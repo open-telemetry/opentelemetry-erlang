@@ -1,0 +1,16 @@
+{application, opentelemetry,
+ [{description, "OpenTelemetry stats collection and distributed tracing framework for Erlang"},
+  {vsn, "git"},
+  {registered, []},
+  {mod, {opentelemetry_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    wts
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {licenses, ["Apache 2.0"]},
+  {links, [{"GitHub", "https://github.com/census-instrumentation/opencensus-erlang"}]}
+ ]}.
