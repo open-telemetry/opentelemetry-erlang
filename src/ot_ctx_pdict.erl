@@ -15,17 +15,38 @@
 %% @doc
 %% @end
 %%%-------------------------------------------------------------------------
--module(opentelemetry_app).
+-module(ot_ctx_pdict).
 
--behaviour(application).
+-behaviour(ot_ctx).
 
--export([start/2, stop/1]).
+-export([with_value/2,
+         with_value/3,
+         get/1,
+         get/2]).
 
-start(_StartType, _StartArgs) ->
-    Opts = application:get_all_env(opentelemetry),
-    opentelemetry_sup:start_link(Opts).
+-spec get(term()) -> term().
+get(Key) ->
+    erlang:get(Key).
 
-stop(_State) ->
-    ok.
+-spec get(term(), term()) -> term().
+get(Key, Default) ->
+    case erlang:get(Key) of
+        undefined ->
+            Default;
+        Value ->
+            Value
+    end.
 
-%% internal functions
+-spec with_value(term(), term()) -> ok.
+with_value(Key, Value) ->
+    erlang:put(Key, Value).
+
+-spec with_value(term(), term(), fun()) -> ok.
+with_value(Key, Value, Fun) ->
+    Orig = erlang:get(Key),
+    try
+        erlang:put(Key, Value),
+        Fun()
+    after
+        erlang:put(Key, Orig)
+    end.
