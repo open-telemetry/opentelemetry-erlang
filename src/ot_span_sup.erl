@@ -15,17 +15,25 @@
 %% @doc
 %% @end
 %%%-------------------------------------------------------------------------
--module(opentelemetry_app).
+-module(ot_span_sup).
 
--behaviour(application).
+-behaviour(supervisor).
 
--export([start/2, stop/1]).
+-export([start_link/1]).
 
-start(_StartType, _StartArgs) ->
-    Opts = application:get_all_env(opentelemetry),
-    opentelemetry_sup:start_link(Opts).
+-export([init/1]).
 
-stop(_State) ->
-    ok.
+-define(SERVER, ?MODULE).
+
+start_link(Opts) ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, [Opts]).
+
+init([Opts]) ->
+    SupFlags = #{strategy => one_for_one,
+                 intensity => 0,
+                 period => 1},
+    ChildSpecs = [#{id => ot_span_ets,
+                    start => {ot_span_ets, start_link, [Opts]}}],
+    {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions

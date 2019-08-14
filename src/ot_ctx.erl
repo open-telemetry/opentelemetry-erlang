@@ -15,17 +15,32 @@
 %% @doc
 %% @end
 %%%-------------------------------------------------------------------------
--module(opentelemetry_app).
+-module(ot_ctx).
 
--behaviour(application).
+-export([with_value/2,
+         with_value/3,
+         get/1,
+         get/2]).
 
--export([start/2, stop/1]).
+-callback get(term()) -> term().
+-callback get(term(), term()) -> term().
+-callback with_value(term(), term()) -> ok.
+-callback with_value(term(), term(), fun()) -> ok.
 
-start(_StartType, _StartArgs) ->
-    Opts = application:get_all_env(opentelemetry),
-    opentelemetry_sup:start_link(Opts).
+-define(ctx, (persistent_term:get({opentelemetry, ctx}, ot_ctx_pdict))).
 
-stop(_State) ->
-    ok.
+-spec get(term()) -> term().
+get(Key) ->
+    ?ctx:get(Key).
 
-%% internal functions
+-spec get(term(), term()) -> term().
+get(Key, Default) ->
+    ?ctx:get(Key, Default).
+
+-spec with_value(term(), term()) -> ok.
+with_value(Key, Value) ->
+    ?ctx:with_value(Key, Value).
+
+-spec with_value(term(), term(), fun()) -> ok.
+with_value(Key, Value, Fun) ->
+    ?ctx:with_value(Key, Value, Fun).

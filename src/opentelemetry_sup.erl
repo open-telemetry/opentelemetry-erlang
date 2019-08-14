@@ -19,29 +19,22 @@
 
 -behaviour(supervisor).
 
--export([start_link/0]).
+-export([start_link/1]).
 
 -export([init/1]).
 
 -define(SERVER, ?MODULE).
 
-start_link() ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+start_link(Opts) ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, [Opts]).
 
-%% sup_flags() = #{strategy => strategy(),         % optional
-%%                 intensity => non_neg_integer(), % optional
-%%                 period => pos_integer()}        % optional
-%% child_spec() = #{id => child_id(),       % mandatory
-%%                  start => mfargs(),      % mandatory
-%%                  restart => restart(),   % optional
-%%                  shutdown => shutdown(), % optional
-%%                  type => worker(),       % optional
-%%                  modules => modules()}   % optional
-init([]) ->
-    SupFlags = #{strategy => one_for_all,
+init([Opts]) ->
+    SupFlags = #{strategy => one_for_one,
                  intensity => 0,
                  period => 1},
-    ChildSpecs = [],
+    ChildSpecs = [#{id => ot_span_sup,
+                    start => {ot_span_sup, start_link, [Opts]},
+                    type => supervisor}],
     {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions
