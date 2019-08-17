@@ -26,7 +26,8 @@
          handle_call/3,
          handle_cast/2]).
 
--export([start_span/2,
+-export([setup/0,
+         start_span/2,
          finish_span/1,
          get_ctx/1,
          is_recording_events/1,
@@ -42,6 +43,11 @@
 
 %% table to store active spans
 -define(SPAN_TAB, otel_span_table).
+
+setup() ->
+    {ok, _} = ot_span_sup:start_child(#{id => ?MODULE,
+                                        start => {?MODULE, start_link, [[]]}}),
+    ok.
 
 start_link(Opts) ->
     gen_server:start_link(?MODULE, Opts, []).
@@ -79,7 +85,7 @@ is_recording_events(_SpanCtx) ->
 
 -spec set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes()) -> ok.
 set_attributes(_SpanCtx, _Attributes) ->
-    ok.
+   ok.
 
 -spec add_events(opentelemetry:span_ctx(), opentelemetry:time_events()) -> ok.
 add_events(_SpanCtx, _TimeEvents) ->
