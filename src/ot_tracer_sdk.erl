@@ -27,9 +27,7 @@
          get_binary_format/0,
          get_http_text_format/0]).
 
--define(span, (persistent_term:get({opentelemetry, span}, ot_span_ets))).
-
--define(SPAN_CTX, ot_tracer_dyn_span_ctx_key).
+-define(SPAN_CTX, {?MODULE, span_ctx}).
 
 -type pdict_trace_ctx() :: {opentelemetry:span_ctx(), pdict_trace_ctx() | undefined}.
 
@@ -37,11 +35,11 @@
 start_span(Name, Opts) ->
     case ot_ctx:get(?SPAN_CTX) of
         {SpanCtx, _}=Ctx ->
-            SpanCtx1 = ?span:start_span(Name, Opts#{parent => SpanCtx}),
+            SpanCtx1 = ot_span:start_span(Name, Opts#{parent => SpanCtx}),
             ot_ctx:with_value(?SPAN_CTX, {SpanCtx1, Ctx}),
             SpanCtx1;
         _ ->
-            SpanCtx = ?span:start_span(Name, Opts#{parent => undefined}),
+            SpanCtx = ot_span:start_span(Name, Opts#{parent => undefined}),
             ot_ctx:with_value(?SPAN_CTX, {SpanCtx, undefined}),
             SpanCtx
     end.
@@ -79,7 +77,7 @@ current_ctx() ->
 -spec finish() -> ok.
 finish() ->
     {SpanCtx, ParentCtx} = current_ctx(),
-    ?span:finish_span(SpanCtx),
+    ot_span:finish_span(SpanCtx),
     ot_ctx:with_value(?SPAN_CTX, ParentCtx),
     ok.
 

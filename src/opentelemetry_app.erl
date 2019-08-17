@@ -23,7 +23,14 @@
 
 start(_StartType, _StartArgs) ->
     Opts = application:get_all_env(opentelemetry),
-    opentelemetry_sup:start_link(Opts).
+    {ok, Pid} = opentelemetry_sup:start_link(Opts),
+
+    %% if the span impl needs to have a process supervised it must be
+    %% setup after the supervision tree has started.
+    SpanImpl = application:get_env(opentelemetry, span_impl, ot_span_ets),
+    ot_span:set_default_impl(SpanImpl),
+
+    {ok, Pid}.
 
 stop(_State) ->
     ok.

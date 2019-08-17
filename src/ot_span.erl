@@ -13,15 +13,22 @@
 %% limitations under the License.
 %%
 %% @doc
-%% Functional interface for span record and callbacks for implementations of
-%% span storage to follow.
+%% Span behaviour.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(ot_span).
 
--export([start_span/1,
+-export([set_default_impl/1,
+         start_span/1,
          start_span/2,
-         end_span/1]).
+         finish_span/1,
+         get_ctx/1,
+         is_recording_events/1,
+         set_attributes/2,
+         add_events/2,
+         add_links/2,
+         set_status/2,
+         update_name/2]).
 
 -include("opentelemetry.hrl").
 
@@ -33,7 +40,9 @@
 
 -export_type([start_opts/0]).
 
--callback start_span(opentelemetry:span_name(), start_opts()) -> opentelemetry:span().
+-callback setup() -> ok.
+-callback start_span(opentelemetry:span_name(), start_opts()) -> opentelemetry:span_ctx().
+-callback finish_span(opentelemetry:span_ctx()) -> ok.
 -callback get_ctx(opentelemetry:span()) -> opentelemetry:span_ctx().
 -callback is_recording_events(opentelemetry:span_ctx()) -> boolean().
 -callback set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes()) -> ok.
@@ -41,82 +50,55 @@
 -callback add_links(opentelemetry:span_ctx(), opentelemetry:links()) -> ok.
 -callback set_status(opentelemetry:span_ctx(), opentelemetry:status()) -> ok.
 -callback update_name(opentelemetry:span_ctx(), opentelemetry:span_name()) -> ok.
--callback finish_span(opentelemetry:span_ctx()) -> ok.
 
-%% sampling bit is the first bit in 8-bit trace options
--define(IS_ENABLED(X), (X band 1) =/= 0).
+-define(span, (persistent_term:get({?MODULE, span}))).
 
--spec start_span(opentelemetry:span_name()) -> {opentelemetry:span_ctx(), opentelemetry:span()}.
-start_span(Name) ->
-    start_span(Name, #{}).
+-spec set_default_impl(module()) -> ok.
+set_default_impl(Module) ->
+    case erlang:function_exported(Module, setup, 0) of
+        true ->
+            ok = Module:setup();
+        false ->
+            ok
+    end,
+    persistent_term:put({?MODULE, span}, Module).
 
--spec start_span(opentelemetry:span_name(), start_opts())
-                -> {opentelemetry:span_ctx(), opentelemetry:span() | undefined}.
-start_span(Name, Opts) ->
-    Parent = maps:get(parent, Opts, undefined),
-    Attributes = maps:get(attributes, Opts, []),
-    Links = maps:get(links, Opts, []),
-    Kind = maps:get(kind, Opts, ?SPAN_KIND_UNSPECIFIED),
+-spec start_span(opentelemetry:span_name()) -> opentelemetry:span_ctx().
+start_span(SpanName) ->
+    ?span:start_span(SpanName, #{}).
 
-    %% TODO: support overriding the sampler
-    _Sampler = maps:get(sampler, Opts, undefined),
+-spec start_span(opentelemetry:span_name(), start_opts()) -> opentelemetry:span_ctx().
+start_span(SpanName, StartOpts) ->
+    ?span:start_span(SpanName, StartOpts).
 
-    new_span_(Name, Parent, Kind, Attributes, Links).
+-spec finish_span(opentelemetry:span_ctx()) -> ok.
+finish_span(SpanCtx) ->
+    ?span:finish_span(SpanCtx).
 
-%% if parent is undefined, first run sampler
-new_span_(Name, undefined, Kind, Attributes, Links) ->
-    TraceId = opentelemetry:generate_trace_id(),
-    Span = #span_ctx{trace_id=TraceId,
-                     trace_options=0},
-    TraceOptions = update_trace_options(should_sample, Span),
-    new_span_(Name, Span#span_ctx{trace_options=TraceOptions}, Kind, Attributes, Links);
-%% if parent is remote, first run sampler
-%% new_span_(Name, Span=#span_ctx{}, Kind, Attributes) %% when RemoteParent =:= true
-%%                                              ->
-%%     TraceOptions = update_trace_options(should_sample, Span),
-%%     new_span_(Name, Span#span_ctx{trace_options=TraceOptions}, Kind, Attributes);
-new_span_(Name, Parent=#span_ctx{trace_id=TraceId,
-                                 trace_options=TraceOptions,
-                                 tracestate=Tracestate,
-                                 span_id=ParentSpanId}, Kind, Attributes, Links)
-  when ?IS_ENABLED(TraceOptions) ->
-    SpanId = opentelemetry:generate_span_id(),
-    Span = #span{trace_id=TraceId,
-                 span_id=SpanId,
-                 tracestate=Tracestate,
-                 start_time=wts:timestamp(),
-                 parent_span_id=ParentSpanId,
-                 kind=Kind,
-                 name=Name,
-                 attributes=Attributes,
-                 links=Links},
-    {Parent#span_ctx{span_id=SpanId}, Span};
-new_span_(_Name, Parent, _Kind, _, _) ->
-    SpanId = opentelemetry:generate_span_id(),
-    %% since discarded by sampler, create no span
-    {Parent#span_ctx{span_id=SpanId}, undefined}.
+-spec get_ctx(opentelemetry:span()) -> opentelemetry:span_ctx().
+get_ctx(Span) ->
+    ?span:is_recording_events(Span).
 
-%%
-update_trace_options(should_sample, #span_ctx{trace_id=_TraceId,
-                                              span_id=_ParentSpanId,
-                                              trace_options=_ParentTraceOptions}) ->
-    1.
-    %% case oc_sampler:should_sample(TraceId, ParentSpanId, ?IS_ENABLED(ParentTraceOptions)) of
-    %%     true ->
-    %%         1;
-    %%     false ->
-    %%         0
-    %% end.
+-spec is_recording_events(opentelemetry:span_ctx()) -> boolean().
+is_recording_events(SpanCtx) ->
+    ?span:is_recording_events(SpanCtx).
 
-%%--------------------------------------------------------------------
-%% @doc
-%% Set the end time for a span if it hasn't been set before.
-%% @end
-%%--------------------------------------------------------------------
--spec end_span(opentelemetry:span()) -> opentelemetry:span().
-end_span(Span=#span{end_time=undefined,
-                    trace_options=TraceOptions}) when ?IS_ENABLED(TraceOptions) ->
-    EndTime = wts:timestamp(),
-    Span#span{end_time=EndTime};
-end_span(Span) ->
-    Span.
+-spec set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes()) -> ok.
+set_attributes(SpanCtx, Attributes) ->
+    ?span:set_attributes(SpanCtx, Attributes).
+
+-spec add_events(opentelemetry:span_ctx(), opentelemetry:time_events()) -> ok.
+add_events(SpanCtx, TimeEvents) ->
+    ?span:add_events(SpanCtx, TimeEvents).
+
+-spec add_links(opentelemetry:span_ctx(), opentelemetry:links()) -> ok.
+add_links(SpanCtx, Links) ->
+    ?span:add_links(SpanCtx, Links).
+
+-spec set_status(opentelemetry:span_ctx(), opentelemetry:status()) -> ok.
+set_status(SpanCtx, Status) ->
+    ?span:set_status(SpanCtx, Status).
+
+-spec update_name(opentelemetry:span_ctx(), opentelemetry:span_name()) -> ok.
+update_name(SpanCtx, SpanName) ->
+    ?span:update_name(SpanCtx, SpanName).
