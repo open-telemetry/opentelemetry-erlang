@@ -19,7 +19,8 @@
 
 -behaviour(ot_tracer).
 
--export([start_span/2,
+-export([setup/1,
+         start_span/2,
          with_span/1,
          with_span/2,
          finish/0,
@@ -28,33 +29,52 @@
          get_http_text_format/0]).
 
 -define(SPAN_CTX, {?MODULE, span_ctx}).
+-define(CTX_IMPL_KEY, {?MODULE, ctx}).
+-define(SPAN_IMPL_KEY, {?MODULE, span}).
+
+-define(ctx, (persistent_term:get(?CTX_IMPL_KEY))).
+-define(span, (persistent_term:get(?SPAN_IMPL_KEY))).
 
 -type pdict_trace_ctx() :: {opentelemetry:span_ctx(), pdict_trace_ctx() | undefined}.
 
+setup(Opts) ->
+    setup_impl(ctx, ?CTX_IMPL_KEY, Opts),
+    setup_impl(span, ?SPAN_IMPL_KEY, Opts).
+
+setup_impl(ConfigKey, PersistentKey, Opts) ->
+    {Impl, Args} = maps:get(ConfigKey, Opts),
+    case erlang:function_exported(Impl, setup, 1) of
+        true ->
+            ok = Impl:setup(Args);
+        false ->
+            ok
+    end,
+    persistent_term:put(PersistentKey, Impl).
+
 -spec start_span(opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
 start_span(Name, Opts) ->
-    case ot_ctx:get(?SPAN_CTX) of
+    case ?ctx:get(?SPAN_CTX) of
         {SpanCtx, _}=Ctx ->
-            SpanCtx1 = ot_span:start_span(Name, Opts#{parent => SpanCtx}),
-            ot_ctx:with_value(?SPAN_CTX, {SpanCtx1, Ctx}),
+            SpanCtx1 = ?span:start_span(Name, Opts#{parent => SpanCtx}),
+            ?ctx:with_value(?SPAN_CTX, {SpanCtx1, Ctx}),
             SpanCtx1;
         _ ->
-            SpanCtx = ot_span:start_span(Name, Opts#{parent => undefined}),
-            ot_ctx:with_value(?SPAN_CTX, {SpanCtx, undefined}),
+            SpanCtx = ?span:start_span(Name, Opts#{parent => undefined}),
+            ?ctx:with_value(?SPAN_CTX, {SpanCtx, undefined}),
             SpanCtx
     end.
 
 -spec with_span(opentelemetry:span_ctx()) -> ok.
 with_span(SpanCtx) ->
-    ot_ctx:with_value(?SPAN_CTX, {SpanCtx, undefined}).
+    ?ctx:with_value(?SPAN_CTX, {SpanCtx, undefined}).
 
 -spec with_span(opentelemetry:span_ctx(), fun()) -> ok.
 with_span(SpanCtx, Fun) ->
-    ot_ctx:with_value(?SPAN_CTX, {SpanCtx, undefined}, Fun).
+    ?ctx:with_value(?SPAN_CTX, {SpanCtx, undefined}, Fun).
 
 -spec current_span_ctx() -> opentelemetry:span_ctx().
 current_span_ctx() ->
-    case ot_ctx:get(?SPAN_CTX) of
+    case ?ctx:get(?SPAN_CTX) of
         {SpanCtx, _ParentPdictSpanCtx} ->
             SpanCtx;
         _ ->
@@ -66,7 +86,7 @@ current_span_ctx() ->
 %% parent trace context, which contains its parent and so on.
 -spec current_ctx() -> pdict_trace_ctx().
 current_ctx() ->
-    ot_ctx:get(?SPAN_CTX).
+    ?ctx:get(?SPAN_CTX).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -77,8 +97,8 @@ current_ctx() ->
 -spec finish() -> ok.
 finish() ->
     {SpanCtx, ParentCtx} = current_ctx(),
-    ot_span:finish_span(SpanCtx),
-    ot_ctx:with_value(?SPAN_CTX, ParentCtx),
+    ?span:finish_span(SpanCtx),
+    ?ctx:with_value(?SPAN_CTX, ParentCtx),
     ok.
 
 -spec get_binary_format() -> binary().

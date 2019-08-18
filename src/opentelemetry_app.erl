@@ -27,8 +27,8 @@ start(_StartType, _StartArgs) ->
 
     %% if the span impl needs to have a process supervised it must be
     %% setup after the supervision tree has started.
-    SpanImpl = application:get_env(opentelemetry, span_impl, ot_span_ets),
-    ot_span:set_default_impl(SpanImpl),
+    {tracer, TracerOpts} = lists:keyfind(tracer, 1, Opts),
+    ot_tracer_sdk:setup(TracerOpts),
 
     {ok, Pid}.
 
