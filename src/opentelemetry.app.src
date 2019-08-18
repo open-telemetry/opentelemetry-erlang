@@ -8,8 +8,8 @@
     stdlib,
     wts
    ]},
-  {env, [{tracer, {ot_tracer_default, #{span => {ot_span_ets, []},
-                                        ctx => {ot_ctx_pdict, []}}}}]},
+  {env, [{tracer, #{span => {ot_span_ets, []},
+                    ctx => {ot_ctx_pdict, []}}}]},
   {modules, []},
 
   {licenses, ["Apache 2.0"]},
