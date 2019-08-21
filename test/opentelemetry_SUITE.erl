@@ -5,8 +5,10 @@
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 
+-include("opentelemetry.hrl").
+
 all() ->
-    [child_spans].
+    [child_spans, non_default_tracer].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
@@ -51,3 +53,15 @@ child_spans(_Config) ->
     %% finish first and no span should be current ctx
     ot_tracer:finish(),
     ?assertMatch(undefined, ot_tracer:current_span_ctx()).
+
+non_default_tracer(_Config) ->
+    SpanCtx1 = ot_tracer:start_span(<<"span-1">>),
+    ?assertNotMatch(#span_ctx{trace_id=0,
+                              span_id=0}, SpanCtx1),
+    ot_tracer:finish(),
+
+    SpanCtx2 = ot_tracer:start_span(ot_tracer_noop, <<"span-2">>, #{}),
+    ?assertMatch(#span_ctx{trace_id=0,
+                           span_id=0}, SpanCtx2),
+    ?assertMatch(SpanCtx2, ot_tracer:current_span_ctx()),
+    ot_tracer:finish().
