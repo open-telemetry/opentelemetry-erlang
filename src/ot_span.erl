@@ -26,7 +26,6 @@
 
 -export_type([start_opts/0]).
 
--callback setup(map()) -> ok.
 -callback start_span(opentelemetry:span_name(), start_opts()) -> opentelemetry:span_ctx().
 -callback finish_span(opentelemetry:span_ctx()) -> ok.
 -callback get_ctx(opentelemetry:span()) -> opentelemetry:span_ctx().

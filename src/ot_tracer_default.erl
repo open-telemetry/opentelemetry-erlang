@@ -15,7 +15,7 @@
 %% @doc
 %% @end
 %%%-------------------------------------------------------------------------
--module(ot_tracer_sdk).
+-module(ot_tracer_default).
 
 -behaviour(ot_tracer).
 
@@ -37,19 +37,20 @@
 
 -type pdict_trace_ctx() :: {opentelemetry:span_ctx(), pdict_trace_ctx() | undefined}.
 
+-spec setup(map()) -> [supervisor:child_spec()].
 setup(Opts) ->
-    setup_impl(ctx, ?CTX_IMPL_KEY, Opts),
-    setup_impl(span, ?SPAN_IMPL_KEY, Opts).
-
-setup_impl(ConfigKey, PersistentKey, Opts) ->
-    {Impl, Args} = maps:get(ConfigKey, Opts),
-    case erlang:function_exported(Impl, setup, 1) of
-        true ->
-            ok = Impl:setup(Args);
-        false ->
-            ok
-    end,
-    persistent_term:put(PersistentKey, Impl).
+    lists:filtermap(fun({ConfigKey, PersistentKey}) ->
+                        {Module, Args} = maps:get(ConfigKey, Opts),
+                        persistent_term:put(PersistentKey, Module),
+                        case erlang:function_exported(Module, start_link, 1) of
+                            true ->
+                                {true, #{id => Module,
+                                         start => {Module, start_link, [Args]}}};
+                            false ->
+                                false
+                        end
+                    end, [{ctx, ?CTX_IMPL_KEY},
+                          {span, ?SPAN_IMPL_KEY}]).
 
 -spec start_span(opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
 start_span(Name, Opts) ->

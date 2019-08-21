@@ -19,22 +19,22 @@
 
 -behaviour(supervisor).
 
--export([start_link/1]).
+-export([start_link/2]).
 
 -export([init/1]).
 
 -define(SERVER, ?MODULE).
 
-start_link(Opts) ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, [Opts]).
+start_link(Children, Opts) ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, [Children, Opts]).
 
-init([Opts]) ->
+init([Children, Opts]) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 0,
                  period => 1},
     ChildSpecs = [#{id => ot_span_sup,
                     start => {ot_span_sup, start_link, [Opts]},
-                    type => supervisor}],
+                    type => supervisor} | Children],
     {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions

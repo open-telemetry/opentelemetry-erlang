@@ -17,7 +17,8 @@
 %%%-------------------------------------------------------------------------
 -module(ot_tracer).
 
--export([start_span/1,
+-export([setup/2,
+         start_span/1,
          start_span/2,
          start_span/3,
          with_span/1,
@@ -29,7 +30,7 @@
 
 -include("opentelemetry.hrl").
 
--define(tracer, (persistent_term:get({opentelemetry, tracer}, ot_tracer_sdk))).
+-define(tracer, (persistent_term:get({?MODULE, tracer}))).
 -define(CURRENT_TRACER, {?MODULE, current_tracer}).
 
 -callback start_span(opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
@@ -39,6 +40,11 @@
 %% -callback get_current_span() -> opentelemetry:span().
 -callback get_binary_format() -> binary().
 -callback get_http_text_format() -> opentelemetry:http_headers().
+
+-spec setup(module(), map()) -> [supervisor:child_spec()].
+setup(Tracer, TracerOpts) ->
+    persistent_term:put({?MODULE, tracer}, Tracer),
+    Tracer:setup(TracerOpts).
 
 -spec start_span(opentelemetry:span_name()) -> opentelemetry:span_ctx().
 start_span(Name) ->

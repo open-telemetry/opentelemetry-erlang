@@ -26,8 +26,7 @@
          handle_call/3,
          handle_cast/2]).
 
--export([setup/1,
-         start_span/2,
+-export([start_span/2,
          finish_span/1,
          get_ctx/1,
          is_recording_events/1,
@@ -43,11 +42,6 @@
 
 %% table to store active spans
 -define(SPAN_TAB, otel_span_table).
-
-setup(_Opts) ->
-    {ok, _} = ot_span_sup:start_child(#{id => ?MODULE,
-                                        start => {?MODULE, start_link, [[]]}}),
-    ok.
 
 start_link(Opts) ->
     gen_server:start_link(?MODULE, Opts, []).

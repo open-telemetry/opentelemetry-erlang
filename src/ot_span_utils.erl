@@ -50,21 +50,21 @@ start_span(Name, Opts) ->
     %% TODO: support overriding the sampler
     _Sampler = maps:get(sampler, Opts, undefined),
 
-    new_span_(Name, Parent, Kind, Attributes, Links).
+    new_span(Name, Parent, Kind, Attributes, Links).
 
 %% if parent is undefined, first run sampler
-new_span_(Name, undefined, Kind, Attributes, Links) ->
+new_span(Name, undefined, Kind, Attributes, Links) ->
     TraceId = opentelemetry:generate_trace_id(),
     Span = #span_ctx{trace_id=TraceId,
                      trace_options=0},
     TraceOptions = update_trace_options(should_sample, Span),
-    new_span_(Name, Span#span_ctx{trace_options=TraceOptions}, Kind, Attributes, Links);
+    new_span(Name, Span#span_ctx{trace_options=TraceOptions}, Kind, Attributes, Links);
 %% if parent is remote, first run sampler
 %% new_span_(Name, Span=#span_ctx{}, Kind, Attributes) %% when RemoteParent =:= true
 %%                                              ->
 %%     TraceOptions = update_trace_options(should_sample, Span),
 %%     new_span_(Name, Span#span_ctx{trace_options=TraceOptions}, Kind, Attributes);
-new_span_(Name, Parent=#span_ctx{trace_id=TraceId,
+new_span(Name, Parent=#span_ctx{trace_id=TraceId,
                                  trace_options=TraceOptions,
                                  tracestate=Tracestate,
                                  span_id=ParentSpanId}, Kind, Attributes, Links)
@@ -80,7 +80,7 @@ new_span_(Name, Parent=#span_ctx{trace_id=TraceId,
                  attributes=Attributes,
                  links=Links},
     {Parent#span_ctx{span_id=SpanId}, Span};
-new_span_(_Name, Parent, _Kind, _, _) ->
+new_span(_Name, Parent, _Kind, _, _) ->
     SpanId = opentelemetry:generate_span_id(),
     %% since discarded by sampler, create no span
     {Parent#span_ctx{span_id=SpanId}, undefined}.
