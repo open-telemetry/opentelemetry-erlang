@@ -22,7 +22,7 @@
 %% is actually used (at the time of exporting).
 
 %% for use in guards: sampling bit is the first bit in 8-bit trace options
--define(IS_SPAN_ENABLED(X), (X band 1) =/= 0).
+-define(IS_SPAN_ENABLED(TraceOptions), (TraceOptions band 1) =/= 0).
 
 -define(MESSAGE_EVENT_TYPE_UNSPECIFIED, 'TYPE_UNSPECIFIED').
 -define(MESSAGE_EVENT_TYPE_SENT, 'SENT').
@@ -41,14 +41,20 @@
           %% 64 bit int span id
           span_id           :: opentelemetry:span_id() | undefined,
           %% 8-bit integer, lowest bit is if it is sampled
-          trace_options = 1 :: integer() | undefined,
+          trace_flags = 1 :: integer() | undefined,
           %% Tracestate represents tracing-system specific context in a list of key-value pairs.
           %% Tracestate allows different vendors propagate additional information and
           %% inter-operate with their legacy Id formats.
           tracestate        :: opentelemetry:tracestate() | undefined,
           %% IsValid is a boolean flag which returns true if the SpanContext has a non-zero
           %% TraceID and a non-zero SpanID.
-          is_valid          :: boolean() | undefined
+          is_valid          :: boolean() | undefined,
+          %% true if the span context came from a remote process
+          is_remote         :: boolean() | undefined,
+          %% this field is not propagated and is only here as an implementation optimization
+          %% If true updates like adding events are done on the span. The same as if the
+          %% trace flags lowest bit is 1 but simply not propagated.
+          is_recorded       :: boolean() | undefined                                
          }).
 
 -record(span, {
@@ -101,7 +107,12 @@
 
           %% An optional number of child spans that were generated while this span
           %% was active. If set, allows implementation to detect missing child spans.
-          child_span_count = undefined            :: integer() | undefined
+          child_span_count = undefined            :: integer() | undefined,
+
+          %% this field is not propagated and is only here as an implementation optimization
+          %% If true updates like adding events are done on the span. The same as if the
+          %% trace flags lowest bit is 1 but simply not propagated.
+          is_recorded       :: boolean() | undefined                                
          }).
 
 -record(link, {

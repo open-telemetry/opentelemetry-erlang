@@ -17,7 +17,7 @@
 %%%-------------------------------------------------------------------------
 -module(ot_tracer).
 
--export([setup/2,
+-export([setup/3,
          start_span/1,
          start_span/2,
          start_span/3,
@@ -30,7 +30,12 @@
 
 -include("opentelemetry.hrl").
 
--define(tracer, (persistent_term:get({?MODULE, tracer}))).
+-record(state, {tracer  :: module(),
+                sampler :: ot_sampler:sampler()}).
+
+-define(state, (persistent_term:get({?MODULE, state}))).
+-define(tracer, ?state#state.tracer).
+-define(sampler, ?state#state.sampler).
 -define(CURRENT_TRACER, {?MODULE, current_tracer}).
 
 -callback start_span(opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
@@ -41,9 +46,10 @@
 -callback get_binary_format() -> binary().
 -callback get_http_text_format() -> opentelemetry:http_headers().
 
--spec setup(module(), map()) -> [supervisor:child_spec()].
-setup(Tracer, TracerOpts) ->
-    persistent_term:put({?MODULE, tracer}, Tracer),
+-spec setup(module(), map(), ot_sampler:sampler()) -> [supervisor:child_spec()].
+setup(Tracer, TracerOpts, Sampler) ->
+    persistent_term:put({?MODULE, state}, #state{tracer=Tracer, 
+                                                 sampler=Sampler}),
     Tracer:setup(TracerOpts).
 
 -spec start_span(opentelemetry:span_name()) -> opentelemetry:span_ctx().
@@ -52,12 +58,22 @@ start_span(Name) ->
 
 -spec start_span(opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
 start_span(Name, Opts) ->
-    start_span(?tracer, Name, Opts).
+    start_span(?state, Name, Opts).
 
 -spec start_span(module(), opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
+start_span(#state{tracer=Tracer}, Name, Opts) when is_map_key(sampler, Opts)->
+    ot_ctx_pdict:with_value(?CURRENT_TRACER, Tracer),
+    Tracer:start_span(Name, Opts);
+start_span(#state{tracer=Tracer, 
+                  sampler=Sampler}, Name, Opts) ->
+    ot_ctx_pdict:with_value(?CURRENT_TRACER, Tracer),
+    Tracer:start_span(Name, Opts#{sampler => Sampler});
+start_span(Tracer, Name, Opts) when is_map_key(sampler, Opts)->
+    ot_ctx_pdict:with_value(?CURRENT_TRACER, Tracer),
+    Tracer:start_span(Name, Opts);
 start_span(Tracer, Name, Opts) ->
     ot_ctx_pdict:with_value(?CURRENT_TRACER, Tracer),
-    Tracer:start_span(Name, Opts).
+    Tracer:start_span(Name, Opts#{sampler => ?sampler}).
 
 -spec with_span(opentelemetry:span_ctx()) -> ok.
 with_span(Span) ->

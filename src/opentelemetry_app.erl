@@ -26,10 +26,15 @@ start(_StartType, _StartArgs) ->
 
     %% if the span impl needs to have a process supervised it must be
     %% setup after the supervision tree has started.
-    {tracer, {Tracer, TracerOpts}} = lists:keyfind(tracer, 1, Opts),
-    Children = ot_tracer:setup(Tracer, TracerOpts),
+    {sampler, {Sampler, SamplerOpts}} = lists:keyfind(sampler, 1, Opts),
+    SamplerFun = ot_sampler:setup(Sampler, SamplerOpts),
 
-    opentelemetry_sup:start_link(Children, Opts).
+    %% if the span impl needs to have a process supervised it must be
+    %% setup after the supervision tree has started.
+    {tracer, {Tracer, TracerOpts}} = lists:keyfind(tracer, 1, Opts),
+    TracerChildren = ot_tracer:setup(Tracer, TracerOpts, SamplerFun),
+
+    opentelemetry_sup:start_link(TracerChildren, Opts).
 
 stop(_State) ->
     ok.

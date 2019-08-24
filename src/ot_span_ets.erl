@@ -32,7 +32,6 @@
          is_recording_events/1,
          set_attributes/2,
          add_events/2,
-         add_links/2,
          set_status/2,
          update_name/2]).
 
@@ -57,7 +56,7 @@ start_span(Name, Opts) ->
 -spec finish_span(opentelemetry:span_ctx()) -> ok.
 finish_span(#span_ctx{span_id=SpanId,
                       tracestate=Tracestate,
-                      trace_options=TraceOptions}) when ?IS_SPAN_ENABLED(TraceOptions) ->
+                      trace_flags=TraceOptions}) when ?IS_SPAN_ENABLED(TraceOptions) ->
     case ets:take(?SPAN_TAB, SpanId) of
         [Span] ->
             _Span1 = ot_span_utils:end_span(Span#span{tracestate=Tracestate}),
@@ -83,10 +82,6 @@ set_attributes(_SpanCtx, _Attributes) ->
 
 -spec add_events(opentelemetry:span_ctx(), opentelemetry:time_events()) -> ok.
 add_events(_SpanCtx, _TimeEvents) ->
-    ok.
-
--spec add_links(opentelemetry:span_ctx(), opentelemetry:links()) -> ok.
-add_links(_SpanCtx, _Links) ->
     ok.
 
 -spec set_status(opentelemetry:span_ctx(), opentelemetry:status()) -> ok.

@@ -31,7 +31,7 @@
 
 -define(NOOP_SPAN_CTX, #span_ctx{trace_id=0,
                                  span_id=0,
-                                 trace_options=0,
+                                 trace_flags=0,
                                  tracestate=[],
                                  is_valid=false}).
 
