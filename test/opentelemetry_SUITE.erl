@@ -8,15 +8,30 @@
 -include("opentelemetry.hrl").
 
 all() ->
+    [{group, ot_ctx_pdict},
+     {group, ot_ctx_seqtrace}].
+
+all_testcases() ->
     [child_spans, non_default_tracer].
+
+groups() ->
+    [{ot_ctx_pdict, [parallel, shuffle], all_testcases()},
+     {ot_ctx_seqtrace, [parallel, shuffle], all_testcases()}].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
-    %% set application environment variables
-    {ok, _} = application:ensure_all_started(opentelemetry),
     Config.
 
 end_per_suite(_Config) ->
+    ok.
+
+init_per_group(CtxModule, Config) ->
+    application:set_env(opentelemetry, tracer, {ot_tracer_default, #{span => {ot_span_ets, []},
+                                                                     ctx => {CtxModule, []}}}),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config.
+
+end_per_group(_, _Config) ->
     ok = application:stop(opentelemetry).
 
 init_per_testcase(_, Config) ->

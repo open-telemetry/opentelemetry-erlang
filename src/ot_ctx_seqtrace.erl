@@ -25,17 +25,38 @@
          with_value/3]).
 
 -spec get(term()) -> term().
-get(_Key) ->
-    ok.
+get(Key) ->
+    case seq_trace:get_token(label) of
+        {label, Label} ->
+            maps:get(Key, Label, undefined);
+        [] ->
+            undefined
+    end.
 
 -spec get(term(), term()) -> term().
-get(_Key, _Value) ->
-    ok.
+get(Key, Default) ->
+    case seq_trace:get_token(label) of
+        {label, Label} ->
+            maps:get(Key, Label, Default);
+        [] ->
+            undefined
+    end.
 
 -spec with_value(term(), term()) -> ok.
-with_value(_Key, _Value) ->
-    ok.
+with_value(Key, Value) ->
+    case seq_trace:get_token(label) of
+        {label, Label} ->
+            seq_trace:set_token(label, Label#{Key => Value});
+        [] ->
+            seq_trace:set_token(label, #{Key => Value})
+    end.
 
 -spec with_value(term(), term(), fun()) -> ok.
-with_value(_Key, _Value, Fun) ->
-    Fun().
+with_value(Key, Value, Fun) ->
+    Orig = ?MODULE:get(Key),
+    try
+        with_value(Key, Value),
+        Fun()
+    after
+        with_value(Key, Orig)
+    end.
