@@ -39,7 +39,7 @@
               sampling_decision/0,
               sampler/0]).
 
--define(MAX_VALUE, 9223372036854775807).
+-define(MAX_VALUE, 9223372036854775807). %% 2^63 - 1
 -define(DEFAULT_PROBABILITY, 0.5).
 
 -define(IGNORE_HINT(SamplingHint, IgnoreHints), SamplingHint =:= undefined
@@ -91,17 +91,15 @@ setup(probability, Opts) ->
                 andalso not(lists:member(SamplingHint, IgnoreHints)) of
                 true ->
                     {?RECORD_AND_PROPAGATE, []};
-                false when OnlyRoot =:= false andalso IsRemote =:= true ->
-                    case do_probability_sample(TraceId, IdUpperBound) of
+                false ->
+                    case OnlyRoot =:= false andalso IsRemote =:= true
+                        andalso do_probability_sample(TraceId, IdUpperBound) of
                         ?RECORD_AND_PROPAGATE ->
                             {?RECORD_AND_PROPAGATE, []};
-                        ?NOT_RECORD ->
+                        _ ->
                             %% sampling hint could still be ?RECORD
                             maybe_sampling_hint(SamplingHint, IgnoreHints)
-                    end;
-                false ->
-                    %% sampling hint could still be ?RECORD
-                    maybe_sampling_hint(SamplingHint, IgnoreHints)
+                    end
             end
     end;
 setup(Sampler, Opts) ->

@@ -1,4 +1,4 @@
--module(otel_samplers_SUITE).
+-module(ot_samplers_SUITE).
 
 -compile(export_all).
 
