@@ -23,7 +23,17 @@ erlang22: &erlang22
     name: rebar3/erlang
     tag: "22"
 
+erlang21: &erlang21
+  executor:
+    name: rebar3/erlang
+    tag: "21"
+
 workflows:
+  otp21:
+    jobs:
+      - rebar3/compile:
+          <<: *erlang21
+
   otp22:
     jobs:
       - rebar3/compile:
