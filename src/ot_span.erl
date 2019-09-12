@@ -34,4 +34,3 @@
 -callback add_events(opentelemetry:span_ctx(), opentelemetry:time_events()) -> ok.
 -callback set_status(opentelemetry:span_ctx(), opentelemetry:status()) -> ok.
 -callback update_name(opentelemetry:span_ctx(), opentelemetry:span_name()) -> ok.
-

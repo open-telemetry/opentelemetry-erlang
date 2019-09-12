@@ -42,6 +42,10 @@ workflows:
           <<: *erlang22
           requires:
             - rebar3/compile
+      - rebar3/lint:
+          <<: *erlang22
+          requires:
+            - rebar3/compile
       - rebar3/dialyzer:
           <<: *erlang22
           requires:
