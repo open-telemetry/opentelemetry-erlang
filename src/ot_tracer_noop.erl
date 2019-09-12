@@ -29,13 +29,15 @@
 
 -include("opentelemetry.hrl").
 
+-define(NOOP_SPAN_CTX, #span_ctx{trace_id=0,
+                                 span_id=0,
+                                 trace_options=0,
+                                 tracestate=[],
+                                 is_valid=false}).
+
 -spec start_span(opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
 start_span(_Name, _) ->
-    #span_ctx{trace_id=0,
-              span_id=0,
-              trace_options=0,
-              tracestate=[],
-              is_valid=false}.
+    ?NOOP_SPAN_CTX.
 
 -spec with_span(opentelemetry:span_ctx()) -> ok.
 with_span(_SpanCtx) ->
@@ -47,10 +49,7 @@ with_span(_SpanCtx, _) ->
 
 -spec current_span_ctx() -> opentelemetry:span_ctx().
 current_span_ctx() ->
-    #span_ctx{trace_id=0,
-              span_id=0,
-              trace_options=0,
-              tracestate=[]}.
+    ?NOOP_SPAN_CTX.
 
 -spec finish() -> ok.
 finish() ->

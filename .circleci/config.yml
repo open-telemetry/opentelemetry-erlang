@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  rebar3: tsloughter/rebar3@0.7.0
+  rebar3: tsloughter/rebar3@0.8.1
   codecov: circleci/codecov@0.0.3
 
 jobs:
@@ -18,33 +18,22 @@ jobs:
       - codecov/upload:
           path: _build/test/covertool/opentelemetry.covertool.xml
 
-erlang21: &erlang21
-  executor:
-    name: rebar3/erlang
-    tag: "21"
-
 erlang22: &erlang22
   executor:
     name: rebar3/erlang
     tag: "22"
+
+erlang21: &erlang21
+  executor:
+    name: rebar3/erlang
+    tag: "21"
 
 workflows:
   otp21:
     jobs:
       - rebar3/compile:
           <<: *erlang21
-      - rebar3/xref:
-          <<: *erlang21
-          requires:
-            - rebar3/compile
-      - rebar3/dialyzer:
-          <<: *erlang21
-          requires:
-            - rebar3/compile
-      - rebar3/ct:
-          <<: *erlang21
-          requires:
-            - rebar3/compile
+
   otp22:
     jobs:
       - rebar3/compile:

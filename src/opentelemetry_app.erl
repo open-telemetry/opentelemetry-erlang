@@ -23,7 +23,13 @@
 
 start(_StartType, _StartArgs) ->
     Opts = application:get_all_env(opentelemetry),
-    opentelemetry_sup:start_link(Opts).
+
+    %% if the span impl needs to have a process supervised it must be
+    %% setup after the supervision tree has started.
+    {tracer, {Tracer, TracerOpts}} = lists:keyfind(tracer, 1, Opts),
+    Children = ot_tracer:setup(Tracer, TracerOpts),
+
+    opentelemetry_sup:start_link(Children, Opts).
 
 stop(_State) ->
     ok.
