@@ -17,7 +17,29 @@
 %%%-------------------------------------------------------------------------
 -module(ot_ctx).
 
--callback get(term()) -> term().
+-export([get/2,
+         get/3,
+         with_value/3,
+         with_value/4]).
+
 -callback get(term(), term()) -> term().
 -callback with_value(term(), term()) -> ok.
--callback with_value(term(), term(), fun()) -> ok.
+
+-spec get(Impl :: module(), term()) -> term().
+get(Module, Key) -> get(Module, Key, undefined).
+
+-spec get(Impl :: module(), term(), term()) -> term().
+get(Module, Key, Default) -> Module:get(Key, Default).
+
+-spec with_value(Impl :: module(), term(), term()) -> term().
+with_value(Module, Key, Value) -> Module:with_value(Key, Value).
+
+-spec with_value(Impl :: module(), term(), term(), fun()) -> term().
+with_value(Module, Key, Value, Fun) ->
+    Orig = get(Module, Key),
+    try
+        with_value(Module, Key, Value),
+        Fun()
+    after
+        with_value(Module, Key, Orig)
+    end.
