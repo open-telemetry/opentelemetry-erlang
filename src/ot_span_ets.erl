@@ -94,8 +94,6 @@ update_name(_SpanCtx, _SpanName) ->
 
 %%
 
-storage_insert(undefined) ->
-    ok;
 storage_insert(Span) ->
     ets:insert(?SPAN_TAB, Span).
 
