@@ -19,7 +19,7 @@
 -module(ot_span).
 
 -type start_opts() :: #{parent => undefined | opentelemetry:span() | opentelemetry:span_ctx(),
-                        sampler => module(),
+                        sampler => ot_sampler:sampler(),
                         links => opentelemetry:links(),
                         is_recorded => boolean(),
                         kind => opentelemetry:span_kind()}.
@@ -32,7 +32,6 @@
 -callback is_recording_events(opentelemetry:span_ctx()) -> boolean().
 -callback set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes()) -> ok.
 -callback add_events(opentelemetry:span_ctx(), opentelemetry:time_events()) -> ok.
--callback add_links(opentelemetry:span_ctx(), opentelemetry:links()) -> ok.
 -callback set_status(opentelemetry:span_ctx(), opentelemetry:status()) -> ok.
 -callback update_name(opentelemetry:span_ctx(), opentelemetry:span_name()) -> ok.
 

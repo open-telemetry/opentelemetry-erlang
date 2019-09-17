@@ -24,12 +24,17 @@
 start(_StartType, _StartArgs) ->
     Opts = application:get_all_env(opentelemetry),
 
-    %% if the span impl needs to have a process supervised it must be
-    %% setup after the supervision tree has started.
-    {tracer, {Tracer, TracerOpts}} = lists:keyfind(tracer, 1, Opts),
-    Children = ot_tracer:setup(Tracer, TracerOpts),
+    {sampler, {Sampler, SamplerOpts}} = lists:keyfind(sampler, 1, Opts),
+    SamplerFun = ot_sampler:setup(Sampler, SamplerOpts),
 
-    opentelemetry_sup:start_link(Children, Opts).
+    %% The default sampler implementation must be passed to the tracer chosen.
+    %% Since the tracer is started after the rest of the supervision tree has started
+    %% and we only get its children, we must instantiate the sampler before anything else.
+    %% The sampler turns out to be instantiated before any supervision tree is started.
+    {tracer, {Tracer, TracerOpts}} = lists:keyfind(tracer, 1, Opts),
+    TracerChildren = ot_tracer:setup(Tracer, TracerOpts, SamplerFun),
+
+    opentelemetry_sup:start_link(TracerChildren, Opts).
 
 stop(_State) ->
     ok.
