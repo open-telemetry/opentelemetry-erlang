@@ -19,7 +19,8 @@
 
 -behaviour(ot_tracer).
 
--export([start_span/2,
+-export([setup/1,
+         start_span/2,
          with_span/1,
          with_span/2,
          finish/0,
@@ -34,6 +35,10 @@
                                  trace_flags=0,
                                  tracestate=[],
                                  is_valid=false}).
+
+-spec setup(map()) -> [supervisor:child_spec()].
+setup(_Opts) ->
+    [].
 
 -spec start_span(opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
 start_span(_Name, _) ->
