@@ -38,6 +38,7 @@
 -define(sampler, ?state#state.sampler).
 -define(CURRENT_TRACER, {?MODULE, current_tracer}).
 
+-callback setup(map()) -> [supervisor:child_spec()].
 -callback start_span(opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
 -callback with_span(opentelemetry:span_ctx()) -> ok.
 -callback finish() -> ok.
