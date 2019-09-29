@@ -59,8 +59,10 @@
 -type span()               :: #span{}.
 -type span_name()          :: unicode:unicode_binary().
 
+-type attribute_key()      :: unicode:unicode_binary().
 -type attribute_value()    :: any().
--type attributes()         :: [{unicode:unicode_binary(), attribute_value()}].
+-type attribute()          :: {unicode:unicode_binary(), attribute_value()}.
+-type attributes()         :: [attribute()].
 
 -type annotation()         :: #annotation{}.
 -type span_kind()          :: ?SPAN_KIND_INTERNAL |

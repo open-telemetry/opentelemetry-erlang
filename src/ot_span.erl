@@ -22,6 +22,7 @@
          finish_span/2,
          get_ctx/2,
          is_recording_events/2,
+         set_attribute/4,
          set_attributes/3,
          add_events/3,
          add_links/3,
@@ -37,13 +38,16 @@
 -export_type([start_opts/0]).
 
 -callback start_span(opentelemetry:span_name(), start_opts()) -> opentelemetry:span_ctx().
--callback finish_span(opentelemetry:span_ctx()) -> ok.
+-callback finish_span(opentelemetry:span_ctx()) -> boolean() | {error, term()}.
 -callback get_ctx(opentelemetry:span()) -> opentelemetry:span_ctx().
 -callback is_recording_events(opentelemetry:span_ctx()) -> boolean().
--callback set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes()) -> ok.
--callback add_events(opentelemetry:span_ctx(), opentelemetry:time_events()) -> ok.
--callback set_status(opentelemetry:span_ctx(), opentelemetry:status()) -> ok.
--callback update_name(opentelemetry:span_ctx(), opentelemetry:span_name()) -> ok.
+-callback set_attribute(opentelemetry:span_ctx(),
+                        opentelemetry:attribute_key(),
+                        opentelemetry:attribute_value()) -> boolean().
+-callback set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes()) -> boolean().
+-callback add_events(opentelemetry:span_ctx(), opentelemetry:time_events()) -> boolean().
+-callback set_status(opentelemetry:span_ctx(), opentelemetry:status()) -> boolean().
+-callback update_name(opentelemetry:span_ctx(), opentelemetry:span_name()) -> boolean().
 
 start_span(Module, Name, Opts) ->
     Module:start_span(Name, Opts).
@@ -56,6 +60,9 @@ get_ctx(Module, Span) ->
 
 is_recording_events(Module, SpanCtx) ->
     Module:is_recording_events(SpanCtx).
+
+set_attribute(Module, SpanCtx, Key, Value) ->
+    Module:set_attribute(SpanCtx, Key, Value).
 
 set_attributes(Module, SpanCtx, Attributes) ->
     Module:set_attributes(SpanCtx, Attributes).
