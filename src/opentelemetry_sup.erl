@@ -32,9 +32,19 @@ init([Children, Opts]) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 0,
                  period => 1},
+
+    ReporterOpts = proplists:get_value(reporter, Opts, []),
+    Reporter = #{id => ot_reporter,
+                 start => {ot_reporter, start_link, [ReporterOpts]},
+                 restart => permanent,
+                 shutdown => 1000,
+                 type => worker,
+                 modules => [ot_reporter]},
+
     ChildSpecs = [#{id => ot_span_sup,
                     start => {ot_span_sup, start_link, [Opts]},
-                    type => supervisor} | Children],
+                    type => supervisor},
+                  Reporter | Children],
     {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions

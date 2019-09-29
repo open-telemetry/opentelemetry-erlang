@@ -10,7 +10,9 @@
    ]},
   {env, [{tracer, {ot_tracer_default, #{span => {ot_span_ets, []},
                                         ctx => {ot_ctx_pdict, []}}}},
-         {sampler, {always_on, #{}}}]},
+         {sampler, {always_on, #{}}},
+         {reporter, [{reporters, []},
+                     {send_interval_ms, 30000}]}]},
   {modules, []},
 
   {licenses, ["Apache 2.0"]},

@@ -59,8 +59,8 @@ finish_span(#span_ctx{span_id=SpanId,
                       trace_flags=TraceOptions}) when ?IS_SPAN_ENABLED(TraceOptions) ->
     case ets:take(?SPAN_TAB, SpanId) of
         [Span] ->
-            _Span1 = ot_span_utils:end_span(Span#span{tracestate=Tracestate}),
-            %% oc_reporter:store_span(Span1),
+            Span1 = ot_span_utils:end_span(Span#span{tracestate=Tracestate}),
+            ot_reporter:store_span(Span1),
             ok;
         _ ->
             ok
