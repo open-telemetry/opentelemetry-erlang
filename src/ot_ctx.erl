@@ -17,7 +17,37 @@
 %%%-------------------------------------------------------------------------
 -module(ot_ctx).
 
--callback get(term()) -> term().
--callback get(term(), term()) -> term().
--callback with_value(term(), term()) -> ok.
--callback with_value(term(), term(), fun()) -> ok.
+-export([get/2,
+         get/3,
+         with_value/3,
+         with_value/4]).
+
+-type key() :: term().
+-type instrumented_fun() :: fun(() -> term()).
+
+-export_type([key/0, instrumented_fun/0]).
+
+%% Get value of `Key' from current context and return `Default' if none.
+-callback get(Key :: key(), Default :: term()) -> term().
+
+%% Set value of `Key' in current context to `Value'.
+-callback with_value(Key :: key(), Value :: term()) -> ok.
+
+-spec get(Impl :: module(), key()) -> term().
+get(Module, Key) -> get(Module, Key, undefined).
+
+-spec get(Impl :: module(), key(), term()) -> term().
+get(Module, Key, Default) -> Module:get(Key, Default).
+
+-spec with_value(Impl :: module(), key(), term()) -> term().
+with_value(Module, Key, Value) -> Module:with_value(Key, Value).
+
+-spec with_value(Impl :: module(), key(), term(), instrumented_fun()) -> term().
+with_value(Module, Key, Value, Fun) ->
+    Orig = get(Module, Key),
+    try
+        with_value(Module, Key, Value),
+        Fun()
+    after
+        with_value(Module, Key, Orig)
+    end.

@@ -73,8 +73,8 @@ start_span(Tracer, Name, Opts) when is_map_key(sampler, Opts)->
     ot_ctx_pdict:with_value(?CURRENT_TRACER, Tracer),
     Tracer:start_span(Name, Opts);
 start_span(Tracer, Name, Opts) ->
-    ot_ctx_pdict:with_value(?CURRENT_TRACER, Tracer),
-    Tracer:start_span(Name, Opts#{sampler => ?sampler}).
+    ot_ctx:with_value(ot_ctx_pdict, ?CURRENT_TRACER, Tracer),
+    Tracer:start_span(Name, Opts).
 
 -spec with_span(opentelemetry:span_ctx()) -> ok.
 with_span(Span) ->
@@ -82,32 +82,32 @@ with_span(Span) ->
 
 -spec with_span(module() | opentelemetry:span_ctx(), opentelemetry:span_ctx() | fun()) -> ok.
 with_span(Span=#span_ctx{}, Fun) ->
-    Tracer = ot_ctx_pdict:get(?CURRENT_TRACER, ?tracer),
+    Tracer = ot_ctx:get(ot_ctx_pdict, ?CURRENT_TRACER, ?tracer),
     with_span(Tracer, Span, Fun);
 with_span(Tracer, Span) ->
-    ot_ctx_pdict:with_value(?CURRENT_TRACER, Tracer),
+    ot_ctx:with_value(ot_ctx_pdict, ?CURRENT_TRACER, Tracer),
     Tracer:with_span(Span).
 
 -spec with_span(module(), opentelemetry:span_ctx(), fun()) -> ok.
 with_span(Tracer, SpanCtx, Fun) ->
-    ot_ctx_pdict:with_value(?CURRENT_TRACER, Tracer, fun() -> Tracer:with_value(SpanCtx, Fun) end).
+    ot_ctx:with_value(ot_ctx_pdict, ?CURRENT_TRACER, Tracer, fun() -> Tracer:with_value(SpanCtx, Fun) end).
 
 -spec finish() -> ok.
 finish() ->
-    Tracer = ot_ctx_pdict:get(?CURRENT_TRACER, ?tracer),
+    Tracer = ot_ctx:get(ot_ctx_pdict, ?CURRENT_TRACER, ?tracer),
     Tracer:finish().
 
 -spec current_span_ctx() -> opentelemetry:span_ctx().
 current_span_ctx() ->
-    Tracer = ot_ctx_pdict:get(?CURRENT_TRACER, ?tracer),
+    Tracer = ot_ctx:get(ot_ctx_pdict, ?CURRENT_TRACER, ?tracer),
     Tracer:current_span_ctx().
 
 -spec get_binary_format() -> binary().
 get_binary_format() ->
-    Tracer = ot_ctx_pdict:get(?CURRENT_TRACER, ?tracer),
+    Tracer = ot_ctx:get(ot_ctx_pdict, ?CURRENT_TRACER, ?tracer),
     Tracer:get_binary_format().
 
 -spec get_http_text_format() -> opentelemetry:http_headers().
 get_http_text_format() ->
-    Tracer = ot_ctx_pdict:get(?CURRENT_TRACER, ?tracer),
+    Tracer = ot_ctx:get(ot_ctx_pdict, ?CURRENT_TRACER, ?tracer),
     Tracer:get_http_text_format().

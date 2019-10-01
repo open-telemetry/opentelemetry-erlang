@@ -19,29 +19,14 @@
 
 -behaviour(ot_ctx).
 
--export([get/1,
-         get/2,
-         with_value/2,
-         with_value/3]).
+-export([get/2,
+         with_value/2]).
 
 -include_lib("kernel/include/logger.hrl").
 
 %% needed until type specs for seq_trace are fixed
--dialyzer({nowarn_function, get/1}).
 -dialyzer({nowarn_function, get/2}).
 -dialyzer({nowarn_function, with_value/2}).
-
--spec get(term()) -> term().
-get(Key) ->
-    case seq_trace:get_token(label) of
-        {label, Label} when is_map(Label) ->
-            maps:get(Key, Label, undefined);
-        [] ->
-            undefined;
-        {label, _Label} ->
-            log_warning(),
-            undefined
-    end.
 
 -spec get(term(), term()) -> term().
 get(Key, Default) ->
@@ -66,18 +51,6 @@ with_value(Key, Value) ->
             log_warning(),
             ok
     end.
-
--spec with_value(term(), term(), fun()) -> ok.
-with_value(Key, Value, Fun) ->
-    Orig = ?MODULE:get(Key),
-    try
-        with_value(Key, Value),
-        Fun()
-    after
-        with_value(Key, Orig)
-    end.
-
-%%
 
 log_warning() ->
     ?LOG_WARNING("seq_trace label must be a map to be used for opentelemetry span context").

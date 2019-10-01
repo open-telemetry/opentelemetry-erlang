@@ -18,6 +18,16 @@
 %%%-------------------------------------------------------------------------
 -module(ot_span).
 
+-export([start_span/3,
+         finish_span/2,
+         get_ctx/2,
+         is_recording_events/2,
+         set_attributes/3,
+         add_events/3,
+         add_links/3,
+         set_status/3,
+         update_name/3]).
+
 -type start_opts() :: #{parent => undefined | opentelemetry:span() | opentelemetry:span_ctx(),
                         sampler => ot_sampler:sampler(),
                         links => opentelemetry:links(),
@@ -34,3 +44,30 @@
 -callback add_events(opentelemetry:span_ctx(), opentelemetry:time_events()) -> ok.
 -callback set_status(opentelemetry:span_ctx(), opentelemetry:status()) -> ok.
 -callback update_name(opentelemetry:span_ctx(), opentelemetry:span_name()) -> ok.
+
+start_span(Module, Name, Opts) ->
+    Module:start_span(Name, Opts).
+
+finish_span(Module, Ctx) ->
+    Module:finish_span(Ctx).
+
+get_ctx(Module, Span) ->
+    Module:get_ctx(Span).
+
+is_recording_events(Module, SpanCtx) ->
+    Module:is_recording_events(SpanCtx).
+
+set_attributes(Module, SpanCtx, Attributes) ->
+    Module:set_attributes(SpanCtx, Attributes).
+
+add_events(Module, SpanCtx, Events) ->
+    Module:add_events(SpanCtx, Events).
+
+add_links(Module, SpanCtx, Links) ->
+    Module:add_links(SpanCtx, Links).
+
+set_status(Module, SpanCtx, Status) ->
+    Module:set_status(SpanCtx, Status).
+
+update_name(Module, SpanCtx, Name) ->
+    Module:update_name(SpanCtx, Name).

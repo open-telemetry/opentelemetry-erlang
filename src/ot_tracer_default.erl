@@ -54,28 +54,28 @@ setup(Opts) ->
 
 -spec start_span(opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
 start_span(Name, Opts) ->
-    case ?ctx:get(?SPAN_CTX) of
+    case ot_ctx:get(?ctx, ?SPAN_CTX) of
         {SpanCtx, _}=Ctx ->
-            SpanCtx1 = ?span:start_span(Name, Opts#{parent => SpanCtx}),
-            ?ctx:with_value(?SPAN_CTX, {SpanCtx1, Ctx}),
+            SpanCtx1 = ot_span:start_span(?span, Name, Opts#{parent => SpanCtx}),
+            ot_ctx:with_value(?ctx, ?SPAN_CTX, {SpanCtx1, Ctx}),
             SpanCtx1;
         _ ->
-            SpanCtx = ?span:start_span(Name, Opts#{parent => undefined}),
-            ?ctx:with_value(?SPAN_CTX, {SpanCtx, undefined}),
+            SpanCtx = ot_span:start_span(?span, Name, Opts#{parent => undefined}),
+            ot_ctx:with_value(?ctx, ?SPAN_CTX, {SpanCtx, undefined}),
             SpanCtx
     end.
 
 -spec with_span(opentelemetry:span_ctx()) -> ok.
 with_span(SpanCtx) ->
-    ?ctx:with_value(?SPAN_CTX, {SpanCtx, undefined}).
+    ot_ctx:with_value(?ctx, ?SPAN_CTX, {SpanCtx, undefined}).
 
 -spec with_span(opentelemetry:span_ctx(), fun()) -> ok.
 with_span(SpanCtx, Fun) ->
-    ?ctx:with_value(?SPAN_CTX, {SpanCtx, undefined}, Fun).
+    ot_ctx:with_value(?ctx, ?SPAN_CTX, {SpanCtx, undefined}, Fun).
 
 -spec current_span_ctx() -> opentelemetry:span_ctx().
 current_span_ctx() ->
-    case ?ctx:get(?SPAN_CTX) of
+    case ot_ctx:get(?ctx, ?SPAN_CTX) of
         {SpanCtx, _ParentPdictSpanCtx} ->
             SpanCtx;
         _ ->
@@ -87,7 +87,7 @@ current_span_ctx() ->
 %% parent trace context, which contains its parent and so on.
 -spec current_ctx() -> pdict_trace_ctx().
 current_ctx() ->
-    ?ctx:get(?SPAN_CTX).
+    ot_ctx:get(?ctx, ?SPAN_CTX).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -98,8 +98,8 @@ current_ctx() ->
 -spec finish() -> ok.
 finish() ->
     {SpanCtx, ParentCtx} = current_ctx(),
-    ?span:finish_span(SpanCtx),
-    ?ctx:with_value(?SPAN_CTX, ParentCtx),
+    ot_span:finish_span(?span, SpanCtx),
+    ot_ctx:with_value(?ctx, ?SPAN_CTX, ParentCtx),
     ok.
 
 -spec get_binary_format() -> binary().
