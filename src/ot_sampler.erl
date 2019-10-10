@@ -35,9 +35,12 @@
                         opentelemetry:span_name(),
                         opentelemetry:kind(),
                         opentelemetry:attributes()) -> sampling_result()).
+
 -export_type([sampling_result/0,
               sampling_decision/0,
               sampler/0]).
+
+-callback setup(term()) -> sampler().
 
 -define(MAX_VALUE, 9223372036854775807). %% 2^63 - 1
 -define(DEFAULT_PROBABILITY, 0.5).
@@ -61,7 +64,7 @@ setup(always_parent, _Opts) ->
             {?NOT_RECORD, []}
     end;
 setup(probability, Opts) ->
-    IdUpperBound = 
+    IdUpperBound =
         case maps:get(probability, Opts, ?DEFAULT_PROBABILITY) of
             P when P =:= 0.0 ->
                 0;
@@ -121,4 +124,3 @@ do_probability_sample(TraceId, IdUpperBound) ->
         false ->
             ?NOT_RECORD
     end.
-

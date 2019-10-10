@@ -49,7 +49,7 @@
 
 -spec setup(module(), map(), ot_sampler:sampler()) -> [supervisor:child_spec()].
 setup(Tracer, TracerOpts, Sampler) ->
-    persistent_term:put({?MODULE, state}, #state{tracer=Tracer, 
+    persistent_term:put({?MODULE, state}, #state{tracer=Tracer,
                                                  sampler=Sampler}),
     Tracer:setup(TracerOpts).
 
@@ -65,7 +65,7 @@ start_span(Name, Opts) ->
 start_span(#state{tracer=Tracer}, Name, Opts) when is_map_key(sampler, Opts)->
     ot_ctx_pdict:with_value(?CURRENT_TRACER, Tracer),
     Tracer:start_span(Name, Opts);
-start_span(#state{tracer=Tracer, 
+start_span(#state{tracer=Tracer,
                   sampler=Sampler}, Name, Opts) ->
     ot_ctx_pdict:with_value(?CURRENT_TRACER, Tracer),
     Tracer:start_span(Name, Opts#{sampler => Sampler});
