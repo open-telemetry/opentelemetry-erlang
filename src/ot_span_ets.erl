@@ -37,11 +37,9 @@
          update_name/2]).
 
 -include("opentelemetry.hrl").
+-include("ot_span_ets.hrl").
 
 -record(state, {}).
-
-%% table to store active spans
--define(SPAN_TAB, otel_span_table).
 
 start_link(Opts) ->
     gen_server:start_link(?MODULE, Opts, []).
