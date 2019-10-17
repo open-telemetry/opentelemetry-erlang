@@ -22,6 +22,9 @@
 %%   reporting_timeout_ms: How long to let the reports run before killing.
 %%   check_table_size_ms: Timeout to check the size of the report table.
 %%   send_interval_ms: How often to trigger running the reporters.
+%%
+%% The size limit of the current table where finished spans are stored can
+%% be configured with the `size_limit_bytes' option.
 %% @end
 %%%-----------------------------------------------------------------------
 -module(ot_reporter).
@@ -108,6 +111,7 @@ store_span(_) ->
 init([Args]) ->
     process_flag(trap_exit, true),
 
+    SizeLimit = proplists:get_value(size_limit_bytes, Args, 30000000),
     ReportingTimeout = proplists:get_value(reporting_timeout_ms, Args, 30000),
     SendInterval = proplists:get_value(send_interval_ms, Args, 30000),
     CheckTableSize = proplists:get_value(check_table_size_ms, Args, 30000),
@@ -119,6 +123,7 @@ init([Args]) ->
 
     {ok, idle, #data{reporters=Reporters,
                      tables={Tid1, Tid2},
+                     size_limit=SizeLimit div erlang:system_info(wordsize),
                      reporting_timeout_ms=ReportingTimeout,
                      check_table_size_ms=CheckTableSize,
                      send_interval_ms=SendInterval}}.
