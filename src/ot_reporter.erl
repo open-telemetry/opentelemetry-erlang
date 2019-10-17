@@ -14,11 +14,19 @@
 %%
 %% @doc This module has the behaviour that each reporter must implement
 %% and creates the buffer of trace spans to be reported.
+%%
+%% The reporter process can be configured to report the current finished
+%% spans based on timeouts and the size of the finished spans table.
+%%
+%% Timeouts:
+%%   reporting_timeout_ms: How long to let the reports run before killing.
+%%   check_table_size_ms: Timeout to check the size of the report table.
+%%   send_interval_ms: How often to trigger running the reporters.
 %% @end
 %%%-----------------------------------------------------------------------
 -module(ot_reporter).
 
--behaviour(gen_server).
+-behaviour(gen_statem).
 
 -compile({no_auto_import, [register/2]}).
 
@@ -28,11 +36,10 @@
          register/2]).
 
 -export([init/1,
-         handle_call/3,
-         handle_cast/2,
-         handle_info/2,
-         code_change/3,
-         terminate/2]).
+         callback_mode/0,
+         idle/3,
+         reporting/3,
+         terminate/3]).
 
 -include("opentelemetry.hrl").
 -include_lib("kernel/include/logger.hrl").
@@ -50,18 +57,29 @@
 %% until it returns.
 -callback report(ets:tid(), opts()) -> ok.
 
--record(state, {reporters :: [{module(), term()}],
-                tables :: {ets:tid(), ets:tid()},
-                send_interval_ms :: integer(),
-                timer_ref :: reference()}).
+-record(data, {reporters :: [{module(), term()}],
+               runner_pid :: pid(),
+               tables :: {ets:tid(), ets:tid()},
+               size_limit :: integer(),
+               reporting_timeout_ms :: integer(),
+               check_table_size_ms :: integer(),
+               send_interval_ms :: integer()}).
 
 -define(CURRENT_TABLES_KEY, {?MODULE, current_table}).
 -define(TABLE_1, ot_report_table1).
 -define(TABLE_2, ot_report_table2).
 -define(CURRENT_TABLE, persistent_term:get(?CURRENT_TABLES_KEY)).
 
+%% check size of current report table at heartbeat
+%% if it gets too large kill the report process and
+%% trigger a new report. Useful if reporting takes
+%% longer than the report interval.
+-define(DEFAULT_HEARTBEAT, 10000).
+-define(DEFAULT_MAX_TABLE_SIZE, 0).
+-define(DEFAULT_REPORT_INTERVAL, 30000).
+
 start_link(Opts) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [Opts], []).
+    gen_statem:start_link({local, ?MODULE}, ?MODULE, [Opts], []).
 
 %% @doc
 %% @equiv register(Reporter, []).
@@ -74,7 +92,7 @@ register(Reporter) ->
 %% @end
 -spec register(module(), term()) -> ok.
 register(Reporter, Options) ->
-    gen_server:call(?MODULE, {register, init_reporter({Reporter, Options})}).
+    gen_statem:call(?MODULE, {register, init_reporter({Reporter, Options})}).
 
 -spec store_span(opencensus:span()) -> true | {error, invalid_span} | {error, no_report_buffer}.
 store_span(Span=#span{}) ->
@@ -88,44 +106,84 @@ store_span(_) ->
     {error, invalid_span}.
 
 init([Args]) ->
+    process_flag(trap_exit, true),
+
+    ReportingTimeout = proplists:get_value(reporting_timeout_ms, Args, 30000),
     SendInterval = proplists:get_value(send_interval_ms, Args, 30000),
+    CheckTableSize = proplists:get_value(check_table_size_ms, Args, 30000),
     Reporters = [init_reporter(Config) || Config <- proplists:get_value(reporters, Args, [])],
 
     Tid1 = new_report_table(?TABLE_1),
     Tid2 = new_report_table(?TABLE_2),
     persistent_term:put(?CURRENT_TABLES_KEY, ?TABLE_1),
 
-    Ref = erlang:send_after(SendInterval, self(), report_spans),
-    {ok, #state{reporters=Reporters,
-                tables={Tid1, Tid2},
-                send_interval_ms=SendInterval,
-                timer_ref=Ref}}.
+    {ok, idle, #data{reporters=Reporters,
+                     tables={Tid1, Tid2},
+                     reporting_timeout_ms=ReportingTimeout,
+                     check_table_size_ms=CheckTableSize,
+                     send_interval_ms=SendInterval}}.
 
-handle_call({register, Reporter}, _From, #state{reporters=Reporters} = State) ->
-    {reply, ok, State#state{reporters=[Reporter | Reporters]}};
-handle_call(_, _From, State) ->
-    {noreply, State}.
+callback_mode() ->
+    [state_functions, state_enter].
 
-handle_cast(_, State) ->
-    {noreply, State}.
+idle(enter, _OldState, #data{send_interval_ms=SendInterval}) ->
+    {keep_state_and_data, [{{timeout, report_spans}, SendInterval, report_spans}]};
+idle(_, report_spans, Data) ->
+    {next_state, reporting, Data};
+idle(EventType, Event, Data) ->
+    handle_event(idle, EventType, Event, Data).
 
-handle_info(report_spans, State=#state{reporters=Reporters,
-                                       send_interval_ms=SendInterval,
-                                       timer_ref=Ref}) ->
-    erlang:cancel_timer(Ref),
-    Ref1 = erlang:send_after(SendInterval, self(), report_spans),
-    Reporters1 = send_spans(Reporters),
-    {noreply, State#state{reporters=Reporters1,
-                          timer_ref=Ref1}}.
+reporting({timeout, report_spans}, report_spans, _) ->
+    {keep_state_and_data, [postpone]};
+reporting(enter, _OldState, Data=#data{reporting_timeout_ms=ReportingTimeout,
+                                       send_interval_ms=SendInterval}) ->
+    RunnerPid = report_spans(Data),
+    {keep_state, Data#data{runner_pid=RunnerPid},
+     [{state_timeout, ReportingTimeout, reporting_timeout},
+      {{timeout, report_spans}, SendInterval, report_spans}]};
+reporting(state_timeout, reporting_timeout, Data) ->
+    %% kill current reporting process because it is taking too long
+    Data1 = kill_runner(Data),
+    {repeat_state, Data1};
+reporting(info, {'EXIT', FromPid, _}, Data=#data{runner_pid=FromPid}) ->
+    {next_state, idle, Data#data{runner_pid=undefined}};
+reporting(EventType, Event, Data) ->
+    handle_event(reporting, EventType, Event, Data).
 
-code_change(_, State, _) ->
-    {ok, State}.
+handle_event(_, info, {'ETS-TRANSFER', Table, _FromPid, start}, Data) ->
+    %% something happened that crashed the runner
+    ets:delete_all_objects(Table),
+    {next_state, idle, Data};
+handle_event(_, info, {'ETS-TRANSFER', _Table, _FromPid, finish}, Data) ->
+    {next_state, idle, Data};
+handle_event(_, info, {completed, FailedReporters}, Data=#data{reporters=Reporters}) ->
+    {next_state, idle, Data#data{reporters=Reporters--FailedReporters,
+                                 runner_pid=undefined}};
+handle_event(State, {timeout, check_table_size}, check_table_size, Data=#data{size_limit=SizeLimit}) ->
+    case ets:info(?CURRENT_TABLE, memory) of
+        M when M >= SizeLimit, State =:= idle ->
+            Data1 = kill_runner(Data),
+            {next_state, reporting, Data1};
+        M when M >= SizeLimit, State =:= reporting ->
+            Data1 = kill_runner(Data),
+            {repeat_state, Data1};
+        _ ->
+            keep_state_and_data
+    end;
+handle_event(_, {call, From}, {register, Reporter}, Data=#data{reporters=Reporters}) ->
+    {keep_state, Data#data{reporters=[Reporter | Reporters]}, [{reply, From, ok}]};
+handle_event(_, _, _, _) ->
+    keep_state_and_data.
 
-terminate(_, #state{timer_ref=Ref}) ->
-    erlang:cancel_timer(Ref),
+terminate(_, _, _Data) ->
     ok.
 
 %%
+
+kill_runner(Data=#data{runner_pid=RunnerPid}) ->
+    erlang:unlink(RunnerPid),
+    erlang:exit(RunnerPid, kill),
+    Data#data{runner_pid=undefined}.
 
 new_report_table(Name) ->
      ets:new(Name, [public, named_table, {write_concurrency, true}, duplicate_bag]).
@@ -135,7 +193,7 @@ init_reporter({Reporter, Config}) ->
 init_reporter(Reporter) when is_atom(Reporter) ->
     {Reporter, Reporter:init([])}.
 
-send_spans(Reporters) ->
+report_spans(#data{reporters=Reporters}) ->
     CurrentTable = ?CURRENT_TABLE,
     NewCurrentTable = case CurrentTable of
                           ?TABLE_1 ->
@@ -147,13 +205,29 @@ send_spans(Reporters) ->
     %% an atom is a single word so this does not trigger a global GC
     persistent_term:put(?CURRENT_TABLES_KEY, NewCurrentTable),
 
-    %% TODO would it simplify GC if we spawned a process and gave it CurrentTable?
-    Reporters1 = lists:filtermap(fun({Reporter, Config}) ->
-                                         report(Reporter, CurrentTable, Config)
-                                 end, Reporters),
-    ets:delete_all_objects(CurrentTable),
+    Self = self(),
+    RunnerPid = erlang:spawn_link(fun() -> send_spans(Self, Reporters) end),
+    ets:give_away(CurrentTable, RunnerPid, report),
+    RunnerPid.
 
-    Reporters1.
+%% Additional benefit of using a separate process is calls to `register` won't
+%% timeout if the actual reporting takes longer than the call timeout
+send_spans(FromPid, Reporters) ->
+    receive
+        {'ETS-TRANSFER', Table, FromPid, report} ->
+            ets:setopts(Table, [{heir, FromPid, start}]),
+
+            %% TODO would it simplify GC if we spawned a process and gave it CurrentTable?
+            Reporters1 = lists:filtermap(fun({Reporter, Config}) ->
+                                                 report(Reporter, Table, Config)
+                                         end, Reporters),
+            ets:delete_all_objects(Table),
+            ets:give_away(Table, FromPid, finish),
+            completed(FromPid, Reporters -- Reporters1)
+    end.
+
+completed(FromPid, FailedReporters) ->
+    FromPid ! {completed, FailedReporters}.
 
 report(undefined, _, _) ->
     true;
