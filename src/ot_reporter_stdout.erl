@@ -28,5 +28,5 @@ init(_) ->
 report(SpansTid, _) ->
     ets:foldl(fun(Span, _Acc) ->
                       io:format("~p~n", [Span])
-              end, [], ok, SpansTid),
+              end, [], SpansTid),
     ok.
