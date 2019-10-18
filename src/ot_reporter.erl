@@ -60,14 +60,13 @@
 %% until it returns.
 -callback report(ets:tid(), opts()) -> ok.
 
--record(data, {reporters :: [{module(), term()}],
-               handed_off_table :: atom(),
-               runner_pid :: pid(),
-               tables :: {ets:tid(), ets:tid()},
-               size_limit :: integer(),
+-record(data, {reporters            :: [{module(), term()}],
+               handed_off_table     :: atom() | undefined,
+               runner_pid           :: pid() | undefined,
+               size_limit           :: integer(),
                reporting_timeout_ms :: integer(),
-               check_table_size_ms :: integer(),
-               send_interval_ms :: integer()}).
+               check_table_size_ms  :: integer(),
+               send_interval_ms     :: integer()}).
 
 -define(CURRENT_TABLES_KEY, {?MODULE, current_table}).
 -define(TABLE_1, ot_report_table1).
@@ -133,7 +132,7 @@ idle(enter, _OldState, #data{send_interval_ms=SendInterval}) ->
 idle(_, report_spans, Data) ->
     {next_state, reporting, Data};
 idle(EventType, Event, Data) ->
-    handle_event(idle, EventType, Event, Data).
+    handle_event_(idle, EventType, Event, Data).
 
 reporting({timeout, report_spans}, report_spans, _) ->
     {keep_state_and_data, [postpone]};
@@ -157,9 +156,9 @@ reporting(info, {'EXIT', FromPid, _}, Data=#data{runner_pid=FromPid}) ->
 reporting(info, {completed, FromPid, FailedReporters}, Data=#data{runner_pid=FromPid}) ->
     complete_reporting(FailedReporters, Data);
 reporting(EventType, Event, Data) ->
-    handle_event(reporting, EventType, Event, Data).
+    handle_event_(reporting, EventType, Event, Data).
 
-handle_event(State, {timeout, check_table_size}, check_table_size, Data=#data{size_limit=SizeLimit}) ->
+handle_event_(State, {timeout, check_table_size}, check_table_size, Data=#data{size_limit=SizeLimit}) ->
     case ets:info(?CURRENT_TABLE, memory) of
         M when M >= SizeLimit, State =:= idle ->
             Data1 = kill_runner(Data),
@@ -170,9 +169,9 @@ handle_event(State, {timeout, check_table_size}, check_table_size, Data=#data{si
         _ ->
             keep_state_and_data
     end;
-handle_event(_, {call, From}, {register, Reporter}, Data=#data{reporters=Reporters}) ->
+handle_event_(_, {call, From}, {register, Reporter}, Data=#data{reporters=Reporters}) ->
     {keep_state, Data#data{reporters=[Reporter | Reporters]}, [{reply, From, ok}]};
-handle_event(_, _, _, _) ->
+handle_event_(_, _, _, _) ->
     keep_state_and_data.
 
 terminate(_, _, _Data) ->
