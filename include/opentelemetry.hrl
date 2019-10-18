@@ -146,3 +146,6 @@
           %% developer-facing error message
           message :: unicode:unicode_binary()
          }).
+
+%% table to store active spans
+-define(SPAN_TAB, otel_span_table).

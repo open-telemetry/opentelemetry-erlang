@@ -21,7 +21,7 @@
 
 -behaviour(gen_statem).
 
--export([start_link/0]).
+-export([start_link/1]).
 
 -export([init/1,
          callback_mode/0,
@@ -32,7 +32,6 @@
 -export([storage_size/0]).
 
 -include("opentelemetry.hrl").
--include("ot_span_ets.hrl").
 -include_lib("kernel/include/logger.hrl").
 
 -record(data, {interval :: integer() | infinity,
@@ -43,22 +42,19 @@
 storage_size() ->
     {ets:info(?SPAN_TAB, size), ets:info(?SPAN_TAB, memory) * erlang:system_info({wordsize, external})}.
 
-start_link() ->
-    gen_statem:start_link({local, ?MODULE}, ?MODULE, [], []).
+start_link(Opts) ->
+    gen_statem:start_link({local, ?MODULE}, ?MODULE, [Opts], []).
 
-init([]) ->
-    SweeperConfig = application:get_env(opencensus, sweeper, #{}),
-
-    Interval = maps:get(interval, SweeperConfig, timer:minutes(5)),
+init([SweeperConfig]) ->
+    Interval = maps:get(interval, SweeperConfig, timer:minutes(10)),
     Strategy = maps:get(strategy, SweeperConfig, drop),
-    TTL = maps:get(span_ttl, SweeperConfig, timer:minutes(5)),
+    TTL = maps:get(span_ttl, SweeperConfig, timer:minutes(30)),
     StorageSize = maps:get(storage_size, SweeperConfig, infinity),
     {ok, ready, #data{interval=Interval,
                       strategy=Strategy,
                       ttl=maybe_convert_time_unit(TTL),
                       storage_size=StorageSize},
      [hibernate, {state_timeout, Interval, sweep}]}.
-
 
 maybe_convert_time_unit(infinity) ->
     infinity;
@@ -119,11 +115,28 @@ sweep_spans(drop, TTL) ->
     end;
 sweep_spans(finish, TTL) ->
     Expired = select_expired(TTL),
-    [finish_span(Span) || Span <- Expired],
+    [begin
+         case ets:take(?SPAN_TAB, SpanId) of
+             [] ->
+                 %% must have finished without needing to be swept
+                 ok;
+             [Span] ->
+                 finish_span(Span)
+         end
+     end || SpanId <- Expired],
     ok;
 sweep_spans(failed_attribute_and_finish, TTL) ->
-    Expired = select_expired(TTL),
-    [finish_span(oc_span:put_attribute(<<"finished_by_sweeper">>, true, Span)) || Span <- Expired],
+    ExpiredSpanIds = select_expired(TTL),
+    [begin
+         case ets:take(?SPAN_TAB, SpanId) of
+             [] ->
+                 %% must have finished without needing to be swept
+                 ok;
+             [Span=#span{attributes=Attributes}] ->
+                 Span1 = Span#span{attributes=Attributes ++ [{<<"finished_by_sweeper">>, true}]},
+                 finish_span(Span1)
+         end
+     end || SpanId <- ExpiredSpanIds],
     ok;
 sweep_spans(Fun, TTL) when is_function(Fun) ->
     Expired = select_expired(TTL),
@@ -135,17 +148,16 @@ sweep_spans(Fun, TTL) when is_function(Fun) ->
 -dialyzer({nowarn_function, finish_span/1}).
 -dialyzer({nowarn_function, select_expired/1}).
 
-expired_match_spec(Time, Return) ->
-    [{#span{start_time={'$1', '_'}, _='_'},
-      [{'<', '$1', Time}],
-      [Return]}].
-
-finish_span(S=#span{span_id=SpanId,
-                    tracestate=Tracestate}) ->
-    %% hack to not lose tracestate when finishing without span ctx
-    oc_span:finish_span(#span_ctx{tracestate=Tracestate}, S),
-    ets:delete(?SPAN_TAB, SpanId).
-
 select_expired(TTL) ->
     TooOld = erlang:monotonic_time() - TTL,
-    ets:select(?SPAN_TAB, expired_match_spec(TooOld, '$_')).
+    ets:select(?SPAN_TAB, expired_match_spec(TooOld, '$1')).
+
+expired_match_spec(Time, Return) ->
+    [{#span{span_id='$1', start_time={'$2', '_'}, _='_'},
+      [{'<', '$2', Time}],
+      [Return]}].
+
+finish_span(Span=#span{tracestate=Tracestate}) ->
+    %% hack to not lose tracestate when finishing without span ctx
+    Span1 = ot_span_utils:end_span(Span#span{tracestate=Tracestate}),
+    ot_reporter:store_span(Span1).

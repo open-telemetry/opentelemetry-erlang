@@ -41,6 +41,8 @@
               span_kind/0,
               link/0,
               links/0,
+              attribute_key/0,
+              attribute_value/0,
               attributes/0,
               annotation/0,
               time_events/0,

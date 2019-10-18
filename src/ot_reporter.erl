@@ -109,9 +109,9 @@ init([Args]) ->
     process_flag(trap_exit, true),
 
     SizeLimit = proplists:get_value(size_limit_bytes, Args, 30000000),
-    ReportingTimeout = proplists:get_value(reporting_timeout_ms, Args, 30000),
-    SendInterval = proplists:get_value(send_interval_ms, Args, 30000),
-    CheckTableSize = proplists:get_value(check_table_size_ms, Args, 30000),
+    ReportingTimeout = proplists:get_value(reporting_timeout_ms, Args, timer:minutes(30)),
+    SendInterval = proplists:get_value(send_interval_ms, Args, timer:minutes(1)),
+    CheckTableSize = proplists:get_value(check_table_size_ms, Args, timer:seconds(10)),
     Reporters = [init_reporter(Config) || Config <- proplists:get_value(reporters, Args, [])],
 
     _Tid1 = new_report_table(?TABLE_1),
