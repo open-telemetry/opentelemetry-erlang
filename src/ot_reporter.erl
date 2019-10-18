@@ -61,6 +61,7 @@
 -callback report(ets:tid(), opts()) -> ok.
 
 -record(data, {reporters :: [{module(), term()}],
+               handed_off_table :: atom(),
                runner_pid :: pid(),
                tables :: {ets:tid(), ets:tid()},
                size_limit :: integer(),
@@ -84,15 +85,11 @@
 start_link(Opts) ->
     gen_statem:start_link({local, ?MODULE}, ?MODULE, [Opts], []).
 
-%% @doc
 %% @equiv register(Reporter, []).
-%% @end
 register(Reporter) ->
     register(Reporter, []).
 
-%% @doc
-%% Register new traces reporter `Reporter' with `Config'.
-%% @end
+%% @doc Register new traces reporter `Reporter' with `Config'.
 -spec register(module(), term()) -> ok.
 register(Reporter, Options) ->
     gen_statem:call(?MODULE, {register, init_reporter({Reporter, Options})}).
@@ -117,12 +114,12 @@ init([Args]) ->
     CheckTableSize = proplists:get_value(check_table_size_ms, Args, 30000),
     Reporters = [init_reporter(Config) || Config <- proplists:get_value(reporters, Args, [])],
 
-    Tid1 = new_report_table(?TABLE_1),
-    Tid2 = new_report_table(?TABLE_2),
+    _Tid1 = new_report_table(?TABLE_1),
+    _Tid2 = new_report_table(?TABLE_2),
     persistent_term:put(?CURRENT_TABLES_KEY, ?TABLE_1),
 
     {ok, idle, #data{reporters=Reporters,
-                     tables={Tid1, Tid2},
+                     handed_off_table=undefined,
                      size_limit=SizeLimit div erlang:system_info(wordsize),
                      reporting_timeout_ms=ReportingTimeout,
                      check_table_size_ms=CheckTableSize,
@@ -142,28 +139,26 @@ reporting({timeout, report_spans}, report_spans, _) ->
     {keep_state_and_data, [postpone]};
 reporting(enter, _OldState, Data=#data{reporting_timeout_ms=ReportingTimeout,
                                        send_interval_ms=SendInterval}) ->
-    RunnerPid = report_spans(Data),
-    {keep_state, Data#data{runner_pid=RunnerPid},
+    {OldTableName, RunnerPid} = report_spans(Data),
+    {keep_state, Data#data{runner_pid=RunnerPid,
+                           handed_off_table=OldTableName},
      [{state_timeout, ReportingTimeout, reporting_timeout},
       {{timeout, report_spans}, SendInterval, report_spans}]};
 reporting(state_timeout, reporting_timeout, Data) ->
     %% kill current reporting process because it is taking too long
     Data1 = kill_runner(Data),
     {repeat_state, Data1};
+%% important to verify runner_pid and FromPid are the same in case it was sent
+%% after kill_runner was called but before it had done the unlink
 reporting(info, {'EXIT', FromPid, _}, Data=#data{runner_pid=FromPid}) ->
-    {next_state, idle, Data#data{runner_pid=undefined}};
+    complete_reporting([], Data);
+%% important to verify runner_pid and FromPid are the same in case it was sent
+%% after kill_runner was called but before it had done the unlink
+reporting(info, {completed, FromPid, FailedReporters}, Data=#data{runner_pid=FromPid}) ->
+    complete_reporting(FailedReporters, Data);
 reporting(EventType, Event, Data) ->
     handle_event(reporting, EventType, Event, Data).
 
-handle_event(_, info, {'ETS-TRANSFER', Table, _FromPid, start}, Data) ->
-    %% something happened that crashed the runner
-    ets:delete_all_objects(Table),
-    {next_state, idle, Data};
-handle_event(_, info, {'ETS-TRANSFER', _Table, _FromPid, finish}, Data) ->
-    {next_state, idle, Data};
-handle_event(_, info, {completed, FailedReporters}, Data=#data{reporters=Reporters}) ->
-    {next_state, idle, Data#data{reporters=Reporters--FailedReporters,
-                                 runner_pid=undefined}};
 handle_event(State, {timeout, check_table_size}, check_table_size, Data=#data{size_limit=SizeLimit}) ->
     case ets:info(?CURRENT_TABLE, memory) of
         M when M >= SizeLimit, State =:= idle ->
@@ -185,10 +180,19 @@ terminate(_, _, _Data) ->
 
 %%
 
+complete_reporting(FailedReporters, Data=#data{reporters=Reporters,
+                                               handed_off_table=ReportingTable})
+  when ReportingTable =/= undefined ->
+    new_report_table(ReportingTable),
+    {next_state, idle, Data#data{reporters=Reporters--FailedReporters,
+                                 runner_pid=undefined,
+                                 handed_off_table=undefined}}.
+
 kill_runner(Data=#data{runner_pid=RunnerPid}) ->
     erlang:unlink(RunnerPid),
     erlang:exit(RunnerPid, kill),
-    Data#data{runner_pid=undefined}.
+    Data#data{runner_pid=undefined,
+              handed_off_table=undefined}.
 
 new_report_table(Name) ->
      ets:new(Name, [public, named_table, {write_concurrency, true}, duplicate_bag]).
@@ -213,37 +217,33 @@ report_spans(#data{reporters=Reporters}) ->
     Self = self(),
     RunnerPid = erlang:spawn_link(fun() -> send_spans(Self, Reporters) end),
     ets:give_away(CurrentTable, RunnerPid, report),
-    RunnerPid.
+    {CurrentTable, RunnerPid}.
 
 %% Additional benefit of using a separate process is calls to `register` won't
 %% timeout if the actual reporting takes longer than the call timeout
 send_spans(FromPid, Reporters) ->
     receive
         {'ETS-TRANSFER', Table, FromPid, report} ->
-            ets:setopts(Table, [{heir, FromPid, start}]),
-
-            %% TODO would it simplify GC if we spawned a process and gave it CurrentTable?
-            Reporters1 = lists:filtermap(fun({Reporter, Config}) ->
-                                                 report(Reporter, Table, Config)
-                                         end, Reporters),
-            ets:delete_all_objects(Table),
-            ets:give_away(Table, FromPid, finish),
-            completed(FromPid, Reporters -- Reporters1)
+            FailedReporters = lists:filtermap(fun({Reporter, Config}) ->
+                                                      report(Reporter, Table, Config)
+                                              end, Reporters),
+            ets:delete(Table),
+            completed(FromPid, FailedReporters)
     end.
 
 completed(FromPid, FailedReporters) ->
-    FromPid ! {completed, FailedReporters}.
+    FromPid ! {completed, self(), FailedReporters}.
 
 report(undefined, _, _) ->
     true;
 report(Reporter, SpansTid, Config) ->
     %% don't let a reporter exception crash us
-    %% and remove a reporter that crashes from future calls to reporters
+    %% and return true if reporter failed
     try
-        Reporter:report(SpansTid, Config) =/= drop
+        Reporter:report(SpansTid, Config) =:= drop
     catch
         Class:Exception:StackTrace ->
             ?LOG_INFO("dropping reporter that threw exception: reporter=~p ~p:~p stacktrace=~p",
                       [Reporter, Class, Exception, StackTrace]),
-            false
+            true
     end.
