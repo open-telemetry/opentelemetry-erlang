@@ -143,9 +143,12 @@ reporting(enter, _OldState, Data=#data{reporting_timeout_ms=ReportingTimeout,
                            handed_off_table=OldTableName},
      [{state_timeout, ReportingTimeout, reporting_timeout},
       {{timeout, report_spans}, SendInterval, report_spans}]};
-reporting(state_timeout, reporting_timeout, Data) ->
+reporting(state_timeout, reporting_timeout, Data=#data{handed_off_table=ReportingTable}) ->
     %% kill current reporting process because it is taking too long
+    %% which deletes the reporting table, so create a new one and
+    %% repeat the state to force another span reporting immediately
     Data1 = kill_runner(Data),
+    new_report_table(ReportingTable),
     {repeat_state, Data1};
 %% important to verify runner_pid and FromPid are the same in case it was sent
 %% after kill_runner was called but before it had done the unlink
