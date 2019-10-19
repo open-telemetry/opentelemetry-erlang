@@ -63,9 +63,9 @@
 -record(data, {reporters            :: [{module(), term()}],
                handed_off_table     :: atom() | undefined,
                runner_pid           :: pid() | undefined,
-               size_limit           :: integer(),
+               size_limit           :: integer() | infinity,
                reporting_timeout_ms :: integer(),
-               check_table_size_ms  :: integer(),
+               check_table_size_ms  :: integer() | infinity,
                send_interval_ms     :: integer()}).
 
 -define(CURRENT_TABLES_KEY, {?MODULE, current_table}).
@@ -73,13 +73,10 @@
 -define(TABLE_2, ot_report_table2).
 -define(CURRENT_TABLE, persistent_term:get(?CURRENT_TABLES_KEY)).
 
-%% check size of current report table at heartbeat
-%% if it gets too large kill the report process and
-%% trigger a new report. Useful if reporting takes
-%% longer than the report interval.
--define(DEFAULT_HEARTBEAT, 10000).
--define(DEFAULT_MAX_TABLE_SIZE, 0).
--define(DEFAULT_REPORT_INTERVAL, 30000).
+-define(DEFAULT_MAX_TABLE_SIZE, infinity).
+-define(DEFAULT_REPORT_INTERVAL, timer:minutes(1)).
+-define(DEFAULT_REPORTING_TIMEOUT, timer:minutes(30)).
+-define(DEFAULT_CHECK_TABLE_SIZE_INTERVAL, infinity).
 
 start_link(Opts) ->
     gen_statem:start_link({local, ?MODULE}, ?MODULE, [Opts], []).
@@ -107,10 +104,10 @@ store_span(_) ->
 init([Args]) ->
     process_flag(trap_exit, true),
 
-    SizeLimit = proplists:get_value(size_limit_bytes, Args, 30000000),
-    ReportingTimeout = proplists:get_value(reporting_timeout_ms, Args, timer:minutes(30)),
-    SendInterval = proplists:get_value(send_interval_ms, Args, timer:minutes(1)),
-    CheckTableSize = proplists:get_value(check_table_size_ms, Args, timer:seconds(10)),
+    SizeLimit = proplists:get_value(size_limit_bytes, Args, ?DEFAULT_MAX_TABLE_SIZE),
+    ReportingTimeout = proplists:get_value(reporting_timeout_ms, Args, ?DEFAULT_REPORTING_TIMEOUT),
+    SendInterval = proplists:get_value(send_interval_ms, Args, ?DEFAULT_REPORT_INTERVAL),
+    CheckTableSize = proplists:get_value(check_table_size_ms, Args, ?DEFAULT_CHECK_TABLE_SIZE_INTERVAL),
     Reporters = [init_reporter(Config) || Config <- proplists:get_value(reporters, Args, [])],
 
     _Tid1 = new_report_table(?TABLE_1),
@@ -119,7 +116,10 @@ init([Args]) ->
 
     {ok, idle, #data{reporters=Reporters,
                      handed_off_table=undefined,
-                     size_limit=SizeLimit div erlang:system_info(wordsize),
+                     size_limit=case SizeLimit of
+                                    infinity -> infinity;
+                                    _ -> SizeLimit div erlang:system_info(wordsize)
+                                end,
                      reporting_timeout_ms=ReportingTimeout,
                      check_table_size_ms=CheckTableSize,
                      send_interval_ms=SendInterval}}.
@@ -158,6 +158,8 @@ reporting(info, {completed, FromPid, FailedReporters}, Data=#data{runner_pid=Fro
 reporting(EventType, Event, Data) ->
     handle_event_(reporting, EventType, Event, Data).
 
+handle_event_(_State, {timeout, check_table_size}, check_table_size, #data{size_limit=infinity}) ->
+    keep_state_and_data;
 handle_event_(State, {timeout, check_table_size}, check_table_size, Data=#data{size_limit=SizeLimit}) ->
     case ets:info(?CURRENT_TABLE, memory) of
         M when M >= SizeLimit, State =:= idle ->
