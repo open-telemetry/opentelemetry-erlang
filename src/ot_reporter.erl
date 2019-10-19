@@ -201,10 +201,12 @@ kill_runner(Data=#data{runner_pid=RunnerPid}) ->
 new_report_table(Name) ->
      ets:new(Name, [public, named_table, {write_concurrency, true}, duplicate_bag]).
 
+init_reporter(Reporter) when is_function(Reporter) ->
+    {Reporter, []};
 init_reporter({Reporter, Config}) ->
-    {Reporter, Reporter:init(Config)};
+    {fun Reporter:report/2, Reporter:init(Config)};
 init_reporter(Reporter) when is_atom(Reporter) ->
-    {Reporter, Reporter:init([])}.
+    {fun Reporter:report/2, Reporter:init([])}.
 
 report_spans(#data{reporters=Reporters}) ->
     CurrentTable = ?CURRENT_TABLE,
@@ -228,10 +230,11 @@ report_spans(#data{reporters=Reporters}) ->
 send_spans(FromPid, Reporters) ->
     receive
         {'ETS-TRANSFER', Table, FromPid, report} ->
+            TableName = ets:rename(Table, current_send_table),
             FailedReporters = lists:filtermap(fun({Reporter, Config}) ->
-                                                      report(Reporter, Table, Config)
+                                                      report(Reporter, TableName, Config)
                                               end, Reporters),
-            ets:delete(Table),
+            ets:delete(TableName),
             completed(FromPid, FailedReporters)
     end.
 
@@ -244,7 +247,7 @@ report(Reporter, SpansTid, Config) ->
     %% don't let a reporter exception crash us
     %% and return true if reporter failed
     try
-        Reporter:report(SpansTid, Config) =:= drop
+        Reporter(SpansTid, Config) =:= drop
     catch
         Class:Exception:StackTrace ->
             ?LOG_INFO("dropping reporter that threw exception: reporter=~p ~p:~p stacktrace=~p",
