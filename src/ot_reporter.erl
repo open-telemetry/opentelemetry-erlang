@@ -201,12 +201,14 @@ kill_runner(Data=#data{runner_pid=RunnerPid}) ->
 new_report_table(Name) ->
      ets:new(Name, [public, named_table, {write_concurrency, true}, duplicate_bag]).
 
-init_reporter(Reporter) when is_function(Reporter) ->
-    {Reporter, []};
-init_reporter({Reporter, Config}) ->
+init_reporter({Reporter, Config}) when is_atom(Reporter) ->
     {fun Reporter:report/2, Reporter:init(Config)};
 init_reporter(Reporter) when is_atom(Reporter) ->
-    {fun Reporter:report/2, Reporter:init([])}.
+    {fun Reporter:report/2, Reporter:init([])};
+init_reporter(Reporter) when is_function(Reporter) ->
+    {Reporter, []};
+init_reporter({Reporter, Config}) when is_function(Reporter) ->
+    {Reporter, Config}.
 
 report_spans(#data{reporters=Reporters}) ->
     CurrentTable = ?CURRENT_TABLE,
