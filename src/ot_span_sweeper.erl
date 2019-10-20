@@ -160,4 +160,4 @@ expired_match_spec(Time, Return) ->
 finish_span(Span=#span{tracestate=Tracestate}) ->
     %% hack to not lose tracestate when finishing without span ctx
     Span1 = ot_span_utils:end_span(Span#span{tracestate=Tracestate}),
-    ot_reporter:store_span(Span1).
+    ot_exporter:store_span(Span1).

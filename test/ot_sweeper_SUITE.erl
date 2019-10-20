@@ -33,8 +33,8 @@ init_per_testcase(storage_size, Config) ->
                                                   storage_size => 100}),
     application:set_env(opentelemetry, tracer, {ot_tracer_default, #{span => {ot_span_ets, []},
                                                                      ctx => {ot_ctx_pdict, []}}}),
-    application:set_env(opentelemetry, reporter, [{reporters, [{ot_reporter_pid, self()}]},
-                                                  {send_interval_ms, 1}]),
+    application:set_env(opentelemetry, exporter, [{exporters, [{ot_exporter_pid, self()}]},
+                                                  {scheduled_delay_ms, 1}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(Type, Config) ->
@@ -43,8 +43,8 @@ init_per_testcase(Type, Config) ->
                                                   span_ttl => 500}),
     application:set_env(opentelemetry, tracer, {ot_tracer_default, #{span => {ot_span_ets, []},
                                                                      ctx => {ot_ctx_pdict, []}}}),
-    application:set_env(opentelemetry, reporter, [{reporters, [{ot_reporter_pid, self()}]},
-                                                  {send_interval_ms, 1}]),
+    application:set_env(opentelemetry, exporter, [{exporters, [{ot_exporter_pid, self()}]},
+                                                  {scheduled_delay_ms, 1}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config.
 
@@ -66,10 +66,10 @@ storage_size(_Config) ->
     %% wait until the sweeper sweeps away the parent span
     ?UNTIL(ets:tab2list(?SPAN_TAB) =:= []),
 
-    %% sleep long enough that the reporter would have run again for sure
+    %% sleep long enough that the exporter would have run again for sure
     timer:sleep(10),
 
-    %% should be no reported spans
+    %% should be no exported spans
     ?assertEqual(no_span, receive
                               {span, #span{name=N}} when N =:= SpanName1 ->
                                   got_span
@@ -107,10 +107,10 @@ drop(_Config) ->
       1000 -> ct:fail("Do not received any message after 1s")
     end,
 
-    %% sleep long enough that the reporter would have run again for sure
+    %% sleep long enough that the exporter would have run again for sure
     timer:sleep(10),
 
-    %% should be no reported span for span-1
+    %% should be no exported span for span-1
     ?assertEqual(no_span, receive
                               {span, #span{name=N}} when N =:= SpanName1 ->
                                   got_span

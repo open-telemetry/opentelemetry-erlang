@@ -12,21 +12,21 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc A test reporter that keeps finished spans in an ETS table.
+%% @doc Reporter that prints spans to stdout.
 %% @end
 %%%-----------------------------------------------------------------------
--module(ot_reporter_tab).
+-module(ot_exporter_stdout).
 
--behaviour(ot_reporter).
+-behaviour(ot_exporter).
 
 -export([init/1,
-         report/2]).
+         export/2]).
 
-init(Tid) ->
-    Tid.
+init(_) ->
+    ok.
 
-report(SpansTid, Tid) ->
+export(SpansTid, _) ->
     ets:foldl(fun(Span, _Acc) ->
-                      ets:insert(Tid, Span)
+                      io:format("~p~n", [Span])
               end, [], SpansTid),
     ok.

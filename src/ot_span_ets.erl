@@ -58,7 +58,7 @@ finish_span(#span_ctx{span_id=SpanId,
     case ets:take(?SPAN_TAB, SpanId) of
         [Span] ->
             Span1 = ot_span_utils:end_span(Span#span{tracestate=Tracestate}),
-            ot_reporter:store_span(Span1);
+            ot_exporter:store_span(Span1);
         _ ->
             false
     end;

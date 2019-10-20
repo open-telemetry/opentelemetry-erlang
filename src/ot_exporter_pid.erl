@@ -12,21 +12,21 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc Reporter that prints spans to stdout.
+%% @doc A test reporter for sending trace spans to an Erlang PID as message.
 %% @end
 %%%-----------------------------------------------------------------------
--module(ot_reporter_stdout).
+-module(ot_exporter_pid).
 
--behaviour(ot_reporter).
+-behaviour(ot_exporter).
 
 -export([init/1,
-         report/2]).
+         export/2]).
 
-init(_) ->
-    ok.
+init(Pid) ->
+    Pid.
 
-report(SpansTid, _) ->
+export(SpansTid, Pid) ->
     ets:foldl(fun(Span, _Acc) ->
-                      io:format("~p~n", [Span])
+                      Pid ! {span, Span}
               end, [], SpansTid),
     ok.

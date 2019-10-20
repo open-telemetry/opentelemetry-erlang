@@ -12,21 +12,21 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc A test reporter for sending trace spans to an Erlang PID as message.
+%% @doc A test reporter that keeps finished spans in an ETS table.
 %% @end
 %%%-----------------------------------------------------------------------
--module(ot_reporter_pid).
+-module(ot_exporter_tab).
 
--behaviour(ot_reporter).
+-behaviour(ot_exporter).
 
 -export([init/1,
-         report/2]).
+         export/2]).
 
-init(Pid) ->
-    Pid.
+init(Tid) ->
+    Tid.
 
-report(SpansTid, Pid) ->
+export(SpansTid, Tid) ->
     ets:foldl(fun(Span, _Acc) ->
-                      Pid ! {span, Span}
+                      ets:insert(Tid, Span)
               end, [], SpansTid),
     ok.
