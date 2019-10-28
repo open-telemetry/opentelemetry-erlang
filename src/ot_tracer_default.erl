@@ -54,16 +54,13 @@ setup(Opts) ->
 
 -spec start_span(opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
 start_span(Name, Opts) ->
-    case ot_ctx:get(?ctx, ?SPAN_CTX) of
-        {SpanCtx, _}=Ctx ->
-            SpanCtx1 = ot_span:start_span(?span, Name, Opts#{parent => SpanCtx}),
-            ot_ctx:with_value(?ctx, ?SPAN_CTX, {SpanCtx1, Ctx}),
-            SpanCtx1;
-        _ ->
-            SpanCtx = ot_span:start_span(?span, Name, Opts#{parent => undefined}),
-            ot_ctx:with_value(?ctx, ?SPAN_CTX, {SpanCtx, undefined}),
-            SpanCtx
-    end.
+    {ParentSpan, ParentCtx} = case ot_ctx:get(?ctx, ?SPAN_CTX) of
+        {Span, _}=Ctx -> {Span, Ctx};
+        _ -> {undefined, undefined}
+    end,
+    SpanCtx = ot_span:start_span(?span, Name, Opts#{parent => ParentSpan}),
+    ot_ctx:with_value(?ctx, ?SPAN_CTX, {SpanCtx, ParentCtx}),
+    SpanCtx.
 
 -spec with_span(opentelemetry:span_ctx()) -> ok.
 with_span(SpanCtx) ->
