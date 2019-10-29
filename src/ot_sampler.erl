@@ -78,31 +78,32 @@ setup(probability, Opts) ->
     IgnoreHints = maps:get(ignore_hints, Opts, [?RECORD]),
     IgnoreParentFlag = maps:get(ignore_parent_flag, Opts, false),
     OnlyRoot = maps:get(only_root_spans, Opts, true),
+    NotIgnorePropagation = not(lists:member(?RECORD_AND_PROPAGATE, IgnoreHints)),
 
-    fun(TraceId, _SpanId, Parent, SamplingHint, _Links, _SpanName, _Kind, _Attributes) when
-              IgnoreParentFlag =:= true orelse Parent =:= undefined ->
+    fun
+       (TraceId, _SpanId, Parent, SamplingHint, _Links, _SpanName, _Kind, _Attributes)
+         when IgnoreParentFlag =:= true orelse Parent =:= undefined ->
             case ?IGNORE_HINT(SamplingHint, IgnoreHints) of
                 true ->
                     {do_probability_sample(TraceId, IdUpperBound), []};
                 false ->
                     {SamplingHint, []}
             end;
-       (_, _, #span_ctx{trace_flags=TraceFlags}, _, _, _, _, _) when ?IS_SPAN_ENABLED(TraceFlags) ->
+       (_, _, #span_ctx{trace_flags=TraceFlags}, _, _, _, _, _)
+         when ?IS_SPAN_ENABLED(TraceFlags) ->
+            {?RECORD_AND_PROPAGATE, []};
+       (_, _, _, ?RECORD_AND_PROPAGATE, _, _, _, _)
+         when NotIgnorePropagation ->
             {?RECORD_AND_PROPAGATE, []};
        (TraceId, _, #span_ctx{is_remote=IsRemote}, SamplingHint, _, _, _, _) ->
-            case SamplingHint =:= ?RECORD_AND_PROPAGATE
-                andalso not(lists:member(SamplingHint, IgnoreHints)) of
-                true ->
+            case not(OnlyRoot)
+                 andalso IsRemote
+                 andalso do_probability_sample(TraceId, IdUpperBound) of
+                ?RECORD_AND_PROPAGATE ->
                     {?RECORD_AND_PROPAGATE, []};
-                false ->
-                    case OnlyRoot =:= false andalso IsRemote =:= true
-                        andalso do_probability_sample(TraceId, IdUpperBound) of
-                        ?RECORD_AND_PROPAGATE ->
-                            {?RECORD_AND_PROPAGATE, []};
-                        _ ->
-                            %% sampling hint could still be ?RECORD
-                            maybe_sampling_hint(SamplingHint, IgnoreHints)
-                    end
+                _ ->
+                    %% sampling hint could still be ?RECORD
+                    maybe_sampling_hint(SamplingHint, IgnoreHints)
             end
     end;
 setup(Sampler, Opts) ->

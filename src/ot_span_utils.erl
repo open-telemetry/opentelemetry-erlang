@@ -53,14 +53,23 @@ new_span(Name, undefined, Sampler, SamplingHint, Kind, Attributes, Links) ->
     Span = #span_ctx{trace_id=TraceId,
                      trace_flags=0},
     new_span(Name, Span, Sampler, SamplingHint, Kind, Attributes, Links);
-new_span(Name, Parent=#span_ctx{trace_id=TraceId,
+new_span(Name,
+         Parent=#span_ctx{trace_id=TraceId,
                                 tracestate=Tracestate,
-                                span_id=ParentSpanId}, Sampler, SamplingHint, Kind, Attributes, Links) ->
+                                span_id=ParentSpanId},
+         Sampler,
+         SamplingHint,
+         Kind,
+         Attributes,
+         Links) ->
     SpanId = opentelemetry:generate_span_id(),
     SpanCtx = Parent#span_ctx{span_id=SpanId},
 
-    {TraceFlags, IsRecorded, SamplerAttributes} = sample(Sampler, TraceId, SpanId, Parent,
-                                                         SamplingHint, Links, Name, Kind, Attributes),
+    {
+     TraceFlags,
+     IsRecorded,
+     SamplerAttributes
+    } = sample(Sampler, TraceId, SpanId, Parent, SamplingHint, Links, Name, Kind, Attributes),
 
     Span = #span{trace_id=TraceId,
                  span_id=SpanId,

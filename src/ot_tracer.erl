@@ -33,9 +33,8 @@
 -record(state, {tracer  :: module(),
                 sampler :: ot_sampler:sampler()}).
 
--define(state, (persistent_term:get({?MODULE, state}))).
--define(tracer, ?state#state.tracer).
--define(sampler, ?state#state.sampler).
+-define(STATE, (persistent_term:get({?MODULE, state}))).
+-define(TRACER, ?STATE#state.tracer).
 -define(CURRENT_TRACER, {?MODULE, current_tracer}).
 
 -callback setup(map()) -> [supervisor:child_spec()].
@@ -59,9 +58,10 @@ start_span(Name) ->
 
 -spec start_span(opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
 start_span(Name, Opts) ->
-    start_span(?state, Name, Opts).
+    start_span(?STATE, Name, Opts).
 
--spec start_span(module(), opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
+-spec start_span(module(), opentelemetry:span_name(), ot_span:start_opts()) ->
+    opentelemetry:span_ctx().
 start_span(#state{tracer=Tracer}, Name, Opts) when is_map_key(sampler, Opts)->
     ot_ctx_pdict:with_value(?CURRENT_TRACER, Tracer),
     Tracer:start_span(Name, Opts);
@@ -78,11 +78,11 @@ start_span(Tracer, Name, Opts) ->
 
 -spec with_span(opentelemetry:span_ctx()) -> ok.
 with_span(Span) ->
-    with_span(?tracer, Span).
+    with_span(?TRACER, Span).
 
 -spec with_span(module() | opentelemetry:span_ctx(), opentelemetry:span_ctx() | fun()) -> ok.
 with_span(Span=#span_ctx{}, Fun) ->
-    Tracer = ot_ctx:get(ot_ctx_pdict, ?CURRENT_TRACER, ?tracer),
+    Tracer = ot_ctx:get(ot_ctx_pdict, ?CURRENT_TRACER, ?TRACER),
     with_span(Tracer, Span, Fun);
 with_span(Tracer, Span) ->
     ot_ctx:with_value(ot_ctx_pdict, ?CURRENT_TRACER, Tracer),
@@ -90,24 +90,29 @@ with_span(Tracer, Span) ->
 
 -spec with_span(module(), opentelemetry:span_ctx(), fun()) -> ok.
 with_span(Tracer, SpanCtx, Fun) ->
-    ot_ctx:with_value(ot_ctx_pdict, ?CURRENT_TRACER, Tracer, fun() -> Tracer:with_value(SpanCtx, Fun) end).
+    ot_ctx:with_value(ot_ctx_pdict,
+                      ?CURRENT_TRACER,
+                      Tracer,
+                      fun() ->
+                              Tracer:with_value(SpanCtx, Fun)
+                      end).
 
 -spec finish() -> ok.
 finish() ->
-    Tracer = ot_ctx:get(ot_ctx_pdict, ?CURRENT_TRACER, ?tracer),
+    Tracer = ot_ctx:get(ot_ctx_pdict, ?CURRENT_TRACER, ?TRACER),
     Tracer:finish().
 
 -spec current_span_ctx() -> opentelemetry:span_ctx().
 current_span_ctx() ->
-    Tracer = ot_ctx:get(ot_ctx_pdict, ?CURRENT_TRACER, ?tracer),
+    Tracer = ot_ctx:get(ot_ctx_pdict, ?CURRENT_TRACER, ?TRACER),
     Tracer:current_span_ctx().
 
 -spec get_binary_format() -> binary().
 get_binary_format() ->
-    Tracer = ot_ctx:get(ot_ctx_pdict, ?CURRENT_TRACER, ?tracer),
+    Tracer = ot_ctx:get(ot_ctx_pdict, ?CURRENT_TRACER, ?TRACER),
     Tracer:get_binary_format().
 
 -spec get_http_text_format() -> opentelemetry:http_headers().
 get_http_text_format() ->
-    Tracer = ot_ctx:get(ot_ctx_pdict, ?CURRENT_TRACER, ?tracer),
+    Tracer = ot_ctx:get(ot_ctx_pdict, ?CURRENT_TRACER, ?TRACER),
     Tracer:get_http_text_format().
