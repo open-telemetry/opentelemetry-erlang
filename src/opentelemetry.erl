@@ -41,6 +41,8 @@
               span_kind/0,
               link/0,
               links/0,
+              attribute_key/0,
+              attribute_value/0,
               attributes/0,
               annotation/0,
               time_events/0,
@@ -59,8 +61,10 @@
 -type span()               :: #span{}.
 -type span_name()          :: unicode:unicode_binary().
 
+-type attribute_key()      :: unicode:unicode_binary().
 -type attribute_value()    :: any().
--type attributes()         :: [{unicode:unicode_binary(), attribute_value()}].
+-type attribute()          :: {unicode:unicode_binary(), attribute_value()}.
+-type attributes()         :: [attribute()].
 
 -type annotation()         :: #annotation{}.
 -type span_kind()          :: ?SPAN_KIND_INTERNAL |

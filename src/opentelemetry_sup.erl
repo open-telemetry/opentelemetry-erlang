@@ -32,9 +32,19 @@ init([Children, Opts]) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 0,
                  period => 1},
+
+    ExporterOpts = proplists:get_value(exporter, Opts, []),
+    Exporter = #{id => ot_exporter,
+                 start => {ot_exporter, start_link, [ExporterOpts]},
+                 restart => permanent,
+                 shutdown => 1000,
+                 type => worker,
+                 modules => [ot_exporter]},
+
     ChildSpecs = [#{id => ot_span_sup,
                     start => {ot_span_sup, start_link, [Opts]},
-                    type => supervisor} | Children],
+                    type => supervisor},
+                  Exporter | Children],
     {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions

@@ -6,6 +6,7 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include("opentelemetry.hrl").
+-include("ot_test_utils.hrl").
 
 all() ->
     [{group, ot_ctx_pdict},
@@ -28,19 +29,28 @@ end_per_suite(_Config) ->
 init_per_group(CtxModule, Config) ->
     application:set_env(opentelemetry, tracer, {ot_tracer_default, #{span => {ot_span_ets, []},
                                                                      ctx => {CtxModule, []}}}),
+    application:set_env(opentelemetry, exporter, [{exporters, []},
+                                                  {scheduled_delay_ms, 1}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
+
     Config.
 
 end_per_group(_, _Config) ->
     ok = application:stop(opentelemetry).
 
 init_per_testcase(_, Config) ->
-    Config.
+    %% adds an exporter for a new table
+    %% spans will be exported to a separate table for each of the test cases
+    Tid = ets:new(exported_spans, [public, bag]),
+    ot_exporter:register(ot_exporter_tab, Tid),
+    [{tid, Tid} | Config].
 
 end_per_testcase(_, _Config) ->
     ok.
 
-child_spans(_Config) ->
+child_spans(Config) ->
+    Tid = ?config(tid, Config),
+
     %% start a span and 2 children
     SpanCtx1 = ot_tracer:start_span(<<"span-1">>),
     SpanCtx2 = ot_tracer:start_span(<<"span-2">>),
@@ -49,6 +59,8 @@ child_spans(_Config) ->
     %% finish the 3rd span
     ?assertMatch(SpanCtx3, ot_tracer:current_span_ctx()),
     ot_tracer:finish(),
+
+    assert_exported(Tid, SpanCtx3),
 
     %% 2nd span should be the current span ctx now
     ?assertMatch(SpanCtx2, ot_tracer:current_span_ctx()),
@@ -67,9 +79,13 @@ child_spans(_Config) ->
 
     %% finish first and no span should be current ctx
     ot_tracer:finish(),
-    ?assertMatch(undefined, ot_tracer:current_span_ctx()).
+    ?assertMatch(undefined, ot_tracer:current_span_ctx()),
 
-non_default_tracer(_Config) ->
+    assert_all_exported(Tid, [SpanCtx1, SpanCtx2, SpanCtx3, SpanCtx4]).
+
+non_default_tracer(Config) ->
+    Tid = ?config(tid, Config),
+
     SpanCtx1 = ot_tracer:start_span(<<"span-1">>),
     ?assertNotMatch(#span_ctx{trace_id=0,
                               span_id=0}, SpanCtx1),
@@ -79,4 +95,27 @@ non_default_tracer(_Config) ->
     ?assertMatch(#span_ctx{trace_id=0,
                            span_id=0}, SpanCtx2),
     ?assertMatch(SpanCtx2, ot_tracer:current_span_ctx()),
-    ot_tracer:finish().
+    ot_tracer:finish(),
+
+    assert_exported(Tid, SpanCtx1),
+    assert_not_exported(Tid, SpanCtx2).
+
+%%
+
+assert_all_exported(Tid, SpanCtxs) ->
+    [assert_exported(Tid, SpanCtx) || SpanCtx <- SpanCtxs].
+
+assert_exported(Tid, #span_ctx{trace_id=TraceId,
+                               span_id=SpanId}) ->
+    ?UNTIL([] =/= ets:match(Tid, #span{trace_id=TraceId,
+                                       span_id=SpanId,
+                                       _='_'})).
+
+assert_not_exported(Tid, #span_ctx{trace_id=TraceId,
+                                   span_id=SpanId}) ->
+    %% sleep so exporter has run before we check
+    %% since we can't do like when checking it exists with UNTIL
+    timer:sleep(100),
+    ?assertMatch([], ets:match(Tid, #span{trace_id=TraceId,
+                                          span_id=SpanId,
+                                          _='_'})).
