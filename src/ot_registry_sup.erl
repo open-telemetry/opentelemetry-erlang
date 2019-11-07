@@ -15,7 +15,7 @@
 %% @doc
 %% @end
 %%%-------------------------------------------------------------------------
--module(opentelemetry_sup).
+-module(ot_registry_sup).
 
 -behaviour(supervisor).
 
@@ -33,14 +33,25 @@ init([Opts]) ->
                  intensity => 1,
                  period => 5},
 
-    RegistrySup = #{id => ot_registry_sup,
-                    start => {ot_registry_sup, start_link, [Opts]},
-                    restart => permanent,
-                    shutdown => 1000,
-                    type => supervisor,
-                    modules => [ot_registry_sup]},
+    TracerRegistry = #{id => ot_registry_tracer,
+                       start => {ot_registry_tracer, start_link, [Opts]},
+                       restart => permanent,
+                       shutdown => 5000,
+                       type => worker,
+                       modules => [ot_registry_tracer]},
 
-    ChildSpecs = [RegistrySup],
+    Processors = proplists:get_value(processors, Opts, []),
+    BatchProcessorOpts = proplists:get_value(ot_batch_processor, Processors, []),
+    BatchProcessor = #{id => ot_batch_processor,
+                       start => {ot_batch_processor, start_link, [BatchProcessorOpts]},
+                       restart => permanent,
+                       shutdown => 5000,
+                       type => worker,
+                       modules => [ot_batch_processor]},
+
+    SpanSup = #{id => ot_span_sup,
+                start => {ot_span_sup, start_link, [Opts]},
+                type => supervisor},
+
+    ChildSpecs = [BatchProcessor, SpanSup, TracerRegistry],
     {ok, {SupFlags, ChildSpecs}}.
-
-%% internal functions

@@ -14,9 +14,14 @@
 %%
 %% @doc
 %% @end
-%%%-----------------------------------------------------------------------
--module(ot_exporter).
+%%%-------------------------------------------------------------------------
+-module(ot_registry_api).
 
--callback init(term()) -> {ok, term()} | ignore.
--callback export(ets:tid(), term()) -> ok | success | failed_not_retryable | failed_retryable.
--callback shutdown(term()) -> ok.
+-export([get/0,
+         get/1]).
+
+get() ->
+    ot_tracer_noop.
+
+get(_Name) ->
+    ot_tracer_noop.

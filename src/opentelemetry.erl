@@ -28,7 +28,10 @@
 %%%-------------------------------------------------------------------------
 -module(opentelemetry).
 
--export([generate_trace_id/0,
+-export([set_default_tracer_registry/1,
+         get_tracer/0,
+         get_tracer/1,
+         generate_trace_id/0,
          generate_span_id/0]).
 
 -include("opentelemetry.hrl").
@@ -92,6 +95,15 @@
 -type resource()           :: #{unicode:unicode_binary() => unicode:unicode_binary()}.
 
 -type http_headers()       :: [{unicode:unicode_binary(), unicode:unicode_binary()}].
+
+set_default_tracer_registry(TracerRegistry) ->
+    persistent_term:put({?MODULE, default_tracer_registry}, TracerRegistry).
+
+get_tracer() ->
+    (persistent_term:get({?MODULE, default_tracer_registry}, ot_registry_api)):get().
+
+get_tracer(Name) ->
+    (persistent_term:get({?MODULE, default_tracer_registry}, ot_registry_api)):get(Name).
 
 %%--------------------------------------------------------------------
 %% @doc

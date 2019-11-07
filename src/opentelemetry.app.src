@@ -8,11 +8,11 @@
     stdlib,
     wts
    ]},
-  {env, [{tracer, {ot_tracer_default, #{span => {ot_span_ets, []},
-                                        ctx => {ot_ctx_pdict, []}}}},
-         {sampler, {always_on, #{}}},
-         {exporter, [{exporters, []},
-                     {scheduled_delay_ms, 30000}]}]},
+  {env, [{sampler, {always_on, #{}}},
+         {processors, [%% #{id => my_processor,
+                       %%   module => ot_batch_processor,
+                       %%   config => #{}}
+                        ]}]},
   {modules, []},
 
   {licenses, ["Apache 2.0"]},

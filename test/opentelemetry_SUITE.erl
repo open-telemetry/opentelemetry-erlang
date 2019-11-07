@@ -13,11 +13,11 @@ all() ->
      {group, ot_ctx_seqtrace}].
 
 all_testcases() ->
-    [child_spans, non_default_tracer].
+    [child_spans].
 
 groups() ->
-    [{ot_ctx_pdict, [parallel, shuffle], all_testcases()},
-     {ot_ctx_seqtrace, [parallel, shuffle], all_testcases()}].
+    [{ot_ctx_pdict, [shuffle], all_testcases()},
+     {ot_ctx_seqtrace, [shuffle], all_testcases()}].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
@@ -26,13 +26,9 @@ init_per_suite(Config) ->
 end_per_suite(_Config) ->
     ok.
 
-init_per_group(CtxModule, Config) ->
-    application:set_env(opentelemetry, tracer, {ot_tracer_default, #{span => {ot_span_ets, []},
-                                                                     ctx => {CtxModule, []}}}),
-    application:set_env(opentelemetry, exporter, [{exporters, []},
-                                                  {scheduled_delay_ms, 1}]),
+init_per_group(_CtxModule, Config) ->
+    application:set_env(opentelemetry, processors, [{ot_batch_processor, [{scheduled_delay_ms, 1}]}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
-
     Config.
 
 end_per_group(_, _Config) ->
@@ -42,7 +38,7 @@ init_per_testcase(_, Config) ->
     %% adds an exporter for a new table
     %% spans will be exported to a separate table for each of the test cases
     Tid = ets:new(exported_spans, [public, bag]),
-    ot_exporter:register(ot_exporter_tab, Tid),
+    ot_batch_processor:set_exporter(ot_exporter_tab, Tid),
     [{tid, Tid} | Config].
 
 end_per_testcase(_, _Config) ->
@@ -83,22 +79,22 @@ child_spans(Config) ->
 
     assert_all_exported(Tid, [SpanCtx1, SpanCtx2, SpanCtx3, SpanCtx4]).
 
-non_default_tracer(Config) ->
-    Tid = ?config(tid, Config),
+%% non_default_tracer(Config) ->
+%%     Tid = ?config(tid, Config),
 
-    SpanCtx1 = ot_tracer:start_span(<<"span-1">>),
-    ?assertNotMatch(#span_ctx{trace_id=0,
-                              span_id=0}, SpanCtx1),
-    ot_tracer:finish(),
+%%     SpanCtx1 = ot_tracer:start_span(<<"span-1">>),
+%%     ?assertNotMatch(#span_ctx{trace_id=0,
+%%                               span_id=0}, SpanCtx1),
+%%     ot_tracer:finish(),
 
-    SpanCtx2 = ot_tracer:start_span(ot_tracer_noop, <<"span-2">>, #{}),
-    ?assertMatch(#span_ctx{trace_id=0,
-                           span_id=0}, SpanCtx2),
-    ?assertMatch(SpanCtx2, ot_tracer:current_span_ctx()),
-    ot_tracer:finish(),
+%%     SpanCtx2 = ot_tracer:start_span(ot_tracer_noop, <<"span-2">>, #{}),
+%%     ?assertMatch(#span_ctx{trace_id=0,
+%%                            span_id=0}, SpanCtx2),
+%%     ?assertMatch(SpanCtx2, ot_tracer:current_span_ctx()),
+%%     ot_tracer:finish(),
 
-    assert_exported(Tid, SpanCtx1),
-    assert_not_exported(Tid, SpanCtx2).
+%%     assert_exported(Tid, SpanCtx1),
+%%     assert_not_exported(Tid, SpanCtx2).
 
 %%
 

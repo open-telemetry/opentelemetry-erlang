@@ -1,4 +1,4 @@
--module(ot_exporter_SUITE).
+-module(ot_batch_processor_SUITE).
 
 -compile(export_all).
 
@@ -16,14 +16,25 @@ all() ->
 exporting_timeout_test(_Config) ->
     process_flag(trap_exit, true),
 
-    {ok, Pid} = ot_exporter:start_link([{exporters, [fun(_, _) -> timer:sleep(timer:minutes(10)) end]},
-                                        {exporting_timeout_ms, 1},
-                                        {scheduled_delay_ms, 1}]),
+    {ok, Pid} = ot_batch_processor:start_link([{exporter, ?MODULE},
+                                               {exporting_timeout_ms, 1},
+                                               {scheduled_delay_ms, 1}]),
 
     receive
         {'EXIT', Pid, _} ->
-            ct:fail(exporter_crash)
+            ct:fail(batch_processor_crash)
     after
         100 ->
             ok
     end.
+
+%% exporter behaviour
+
+init(_) ->
+    {ok, []}.
+
+export(_, _) ->
+    timer:sleep(timer:minutes(10)).
+
+shutdown(_) ->
+    ok.

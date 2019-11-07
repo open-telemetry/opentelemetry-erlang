@@ -47,7 +47,8 @@ start_link(Opts) ->
 -spec start_span(opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
 start_span(Name, Opts) ->
     {SpanCtx, Span} = ot_span_utils:start_span(Name, Opts),
-    _ = storage_insert(Span),
+    Span1 = ot_registry_tracer:on_start(Span),
+    _ = storage_insert(Span1),
     SpanCtx.
 
 %% @doc Finish a span based on its context and send to reporter.
@@ -58,7 +59,7 @@ finish_span(#span_ctx{span_id=SpanId,
     case ets:take(?SPAN_TAB, SpanId) of
         [Span] ->
             Span1 = ot_span_utils:end_span(Span#span{tracestate=Tracestate}),
-            ot_exporter:store_span(Span1);
+            ot_registry_tracer:on_end(Span1);
         _ ->
             false
     end;
@@ -66,8 +67,14 @@ finish_span(_) ->
     ok.
 
 -spec get_ctx(opentelemetry:span()) -> opentelemetry:span_ctx().
-get_ctx(_Span) ->
-    #span_ctx{}.
+get_ctx(#span{trace_id=TraceId,
+              span_id=SpanId,
+              tracestate=TraceState,
+              is_recorded=IsRecorded}) ->
+    #span_ctx{trace_id=TraceId,
+              span_id=SpanId,
+              tracestate=TraceState,
+              is_recorded=IsRecorded}.
 
 -spec is_recording_events(opentelemetry:span_ctx()) -> boolean().
 is_recording_events(#span_ctx{is_recorded=IsRecorded}) ->

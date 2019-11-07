@@ -33,18 +33,26 @@ start_child(ChildSpec) ->
     supervisor:start_child(?SERVER, ChildSpec).
 
 init([Opts]) ->
+    SupFlags = #{strategy => one_for_one,
+                 intensity => 1,
+                 period => 5},
+
     SweeperOpts = proplists:get_value(sweeper, Opts, #{}),
     Sweeper = #{id => ot_span_sweeper,
                 start => {ot_span_sweeper, start_link, [SweeperOpts]},
                 restart => permanent,
-                shutdown => 1000,
+                shutdown => 5000,
                 type => worker,
                 modules => [ot_span_sweeper]},
 
-    SupFlags = #{strategy => one_for_one,
-                 intensity => 0,
-                 period => 1},
-    ChildSpecs = [Sweeper],
+    SpanHandler = #{id => ot_span_ets,
+                    start => {ot_span_ets, start_link, [[]]},
+                    restart => permanent,
+                    shutdown => 5000,
+                    type => worker,
+                    modules => [ot_span_ets]},
+
+    ChildSpecs = [SpanHandler, Sweeper],
     {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions

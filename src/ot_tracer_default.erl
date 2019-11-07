@@ -19,8 +19,7 @@
 
 -behaviour(ot_tracer).
 
--export([setup/1,
-         start_span/2,
+-export([start_span/2,
          with_span/1,
          with_span/2,
          finish/0,
@@ -28,32 +27,12 @@
          get_binary_format/0,
          get_http_text_format/0]).
 
--define(SPAN_CTX, {?MODULE, span_ctx}).
--define(CTX_IMPL_KEY, {?MODULE, ctx}).
--define(SPAN_IMPL_KEY, {?MODULE, span}).
-
--define(ctx, (persistent_term:get(?CTX_IMPL_KEY))).
--define(span, (persistent_term:get(?SPAN_IMPL_KEY))).
+-include("ot_tracer.hrl").
 
 -type pdict_trace_ctx() :: {opentelemetry:span_ctx(), pdict_trace_ctx() | undefined}.
 
--spec setup(map()) -> [supervisor:child_spec()].
-setup(Opts) ->
-    lists:filtermap(fun({ConfigKey, PersistentKey}) ->
-                        {Module, Args} = maps:get(ConfigKey, Opts),
-                        persistent_term:put(PersistentKey, Module),
-                        case erlang:function_exported(Module, start_link, 1) of
-                            true ->
-                                {true, #{id => Module,
-                                         start => {Module, start_link, [Args]}}};
-                            false ->
-                                false
-                        end
-                    end, [{ctx, ?CTX_IMPL_KEY},
-                          {span, ?SPAN_IMPL_KEY}]).
-
 -spec start_span(opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
-start_span(Name, Opts) ->
+start_span(Name, Opts) when is_map_key(sampler, Opts) ->
     case ot_ctx:get(?ctx, ?SPAN_CTX) of
         {SpanCtx, _}=Ctx ->
             SpanCtx1 = ot_span:start_span(?span, Name, Opts#{parent => SpanCtx}),
@@ -63,7 +42,9 @@ start_span(Name, Opts) ->
             SpanCtx = ot_span:start_span(?span, Name, Opts#{parent => undefined}),
             ot_ctx:with_value(?ctx, ?SPAN_CTX, {SpanCtx, undefined}),
             SpanCtx
-    end.
+    end;
+start_span(Name, Opts) ->
+    start_span(Name, Opts#{sampler => ot_registry_tracer:get_sampler()}).
 
 -spec with_span(opentelemetry:span_ctx()) -> ok.
 with_span(SpanCtx) ->
