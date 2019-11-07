@@ -5,7 +5,7 @@
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 
--include("opentelemetry.hrl").
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("ot_sampler.hrl").
 
 all() ->

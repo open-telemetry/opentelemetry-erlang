@@ -19,32 +19,43 @@
 
 -behaviour(supervisor).
 
--export([start_link/2]).
+-export([start_link/1]).
 
 -export([init/1]).
 
 -define(SERVER, ?MODULE).
 
-start_link(Children, Opts) ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, [Children, Opts]).
+start_link(Opts) ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, [Opts]).
 
-init([Children, Opts]) ->
+init([Opts]) ->
     SupFlags = #{strategy => one_for_one,
-                 intensity => 0,
-                 period => 1},
+                 intensity => 1,
+                 period => 5},
 
-    ExporterOpts = proplists:get_value(exporter, Opts, []),
-    Exporter = #{id => ot_exporter,
-                 start => {ot_exporter, start_link, [ExporterOpts]},
-                 restart => permanent,
-                 shutdown => 1000,
-                 type => worker,
-                 modules => [ot_exporter]},
+    %% configuration server
+    TracerServer = #{id => ot_tracer_server,
+                     start => {ot_tracer_server, start_link, [Opts]},
+                     restart => permanent,
+                     shutdown => 5000,
+                     type => worker,
+                     modules => [ot_tracer_server]},
 
-    ChildSpecs = [#{id => ot_span_sup,
-                    start => {ot_span_sup, start_link, [Opts]},
-                    type => supervisor},
-                  Exporter | Children],
+    Processors = proplists:get_value(processors, Opts, []),
+    BatchProcessorOpts = proplists:get_value(ot_batch_processor, Processors, []),
+    BatchProcessor = #{id => ot_batch_processor,
+                       start => {ot_batch_processor, start_link, [BatchProcessorOpts]},
+                       restart => permanent,
+                       shutdown => 5000,
+                       type => worker,
+                       modules => [ot_batch_processor]},
+
+    SpanSup = #{id => ot_span_sup,
+                start => {ot_span_sup, start_link, [Opts]},
+                type => supervisor,
+                restart => permanent,
+                shutdown => 5000,
+                modules => [ot_span_sup]},
+
+    ChildSpecs = [BatchProcessor, SpanSup, TracerServer],
     {ok, {SupFlags, ChildSpecs}}.
-
-%% internal functions

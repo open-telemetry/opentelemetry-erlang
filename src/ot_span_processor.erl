@@ -14,9 +14,14 @@
 %%
 %% @doc
 %% @end
-%%%-----------------------------------------------------------------------
--module(ot_exporter).
+%%%-------------------------------------------------------------------------
+-module(ot_span_processor).
 
--callback init(term()) -> {ok, term()} | ignore.
--callback export(ets:tid(), term()) -> ok | success | failed_not_retryable | failed_retryable.
--callback shutdown(term()) -> ok.
+-export([]).
+
+-type processor_config() :: term().
+
+-export_type([processor_config/0]).
+
+-callback on_start(opentelemetry:span(), processor_config()) -> opentelemetry:span().
+-callback on_end(opentelemetry:span(), processor_config()) -> true | dropped | {error, invalid_span} | {error, no_export_buffer}.
