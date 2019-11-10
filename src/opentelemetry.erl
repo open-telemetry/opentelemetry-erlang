@@ -31,6 +31,14 @@
 -export([set_default_tracer/1,
          get_tracer/0,
          get_tracer/1,
+         timestamp/0,
+         links/1,
+         link/4,
+         event/2,
+         timed_event/2,
+         timed_event/3,
+         timed_events/1,
+         status/2,
          generate_trace_id/0,
          generate_span_id/0]).
 
@@ -48,10 +56,9 @@
               attribute_key/0,
               attribute_value/0,
               attributes/0,
-              annotation/0,
-              time_events/0,
-              message_event/0,
-              message_event_type/0,
+              event/0,
+              timed_event/0,
+              timed_events/0,
               stack_trace/0,
               tracestate/0,
               status/0,
@@ -72,15 +79,12 @@
 -type attribute()          :: {unicode:unicode_binary(), attribute_value()}.
 -type attributes()         :: [attribute()].
 
--type annotation()         :: #annotation{}.
 -type span_kind()          :: ?SPAN_KIND_INTERNAL |
                               ?SPAN_KIND_SERVER   |
                               ?SPAN_KIND_CLIENT.
--type message_event()      :: #message_event{}.
--type message_event_type() :: ?MESSAGE_EVENT_TYPE_UNSPECIFIED |
-                              ?MESSAGE_EVENT_TYPE_SENT        |
-                              ?MESSAGE_EVENT_TYPE_RECEIVED.
--type time_events()        :: [{wts:timestamp(), annotation() | message_event()}].
+-type event()              :: #event{}.
+-type timed_event()        :: #timed_event{}.
+-type timed_events()       :: [#timed_event{}].
 -type link()               :: #link{}.
 -type links()              :: [#link{}].
 -type status()             :: #status{}.
@@ -107,6 +111,86 @@ get_tracer() ->
 
 get_tracer(_Name) ->
     persistent_term:get({?MODULE, default_tracer}, {ot_tracer_noop, []}).
+
+-spec timestamp() -> integer().
+timestamp() ->
+    erlang:system_time(nanosecond).
+
+-spec links([{TraceId, SpanId, Attributes, TraceState}]) -> links() when
+      TraceId :: trace_id(),
+      SpanId :: span_id(),
+      Attributes :: attributes(),
+      TraceState :: tracestate().
+links(List) ->
+    [link(TraceId, SpanId, Attributes, TraceState) || {TraceId, SpanId, Attributes, TraceState} <- List,
+                                                      is_integer(TraceId),
+                                                      is_integer(SpanId),
+                                                      is_list(Attributes),
+                                                      is_list(TraceState)].
+
+-spec link(TraceId, SpanId, Attributes, TraceState) -> link() | undefined when
+      TraceId :: trace_id(),
+      SpanId :: span_id(),
+      Attributes :: attributes(),
+      TraceState :: tracestate().
+link(TraceId, SpanId, Attributes, TraceState) when is_integer(TraceId),
+                                                   is_integer(SpanId),
+                                                   is_list(Attributes),
+                                                   is_list(TraceState) ->
+    #link{trace_id=TraceId,
+          span_id=SpanId,
+          attributes=Attributes,
+          tracestate=TraceState};
+link(_, _, _, _) ->
+    undefined.
+
+-spec event(Name, Attributes) -> event() | undefined when
+      Name :: unicode:unicode_binary(),
+      Attributes :: attributes().
+event(Name, Attributes) when is_binary(Name),
+                             is_list(Attributes) ->
+    #event{name=Name,
+           attributes=Attributes};
+event(_, _) ->
+    undefined.
+
+-spec timed_event(TimeUnixNano, Name, Attributes) -> timed_event() | undefined when
+      TimeUnixNano :: integer(),
+      Name :: unicode:unicode_binary(),
+      Attributes :: attributes().
+timed_event(TimeUnixNano, Name, Attributes) when is_integer(TimeUnixNano),
+                                                 is_binary(Name),
+                                                 is_list(Attributes) ->
+    timed_event(TimeUnixNano, event(Name, Attributes));
+timed_event(_, _, _) ->
+    undefined.
+
+-spec timed_event(TimeUnixNano, Event) -> timed_event() | undefined when
+      TimeUnixNano :: integer(),
+      Event :: event().
+timed_event(TimeUnixNano, Event) when
+      is_integer(TimeUnixNano),
+      is_record(Event, event) ->
+    #timed_event{time_unixnano=TimeUnixNano,
+                 event=Event};
+timed_event(_, _) ->
+    undefined.
+
+timed_events(List) ->
+    [timed_event(TimeUnixNano, Name, Attributes) || {TimeUnixNano, Name, Attributes} <- List,
+                                                    is_integer(TimeUnixNano),
+                                                    is_binary(Name),
+                                                    is_list(Attributes)].
+
+-spec status(Code, Message) -> status() | undefined when
+      Code :: integer(),
+      Message :: unicode:unicode_binary().
+status(Code, Message) when is_integer(Code),
+                           is_binary(Message) ->
+    #status{code=Code,
+            message=Message};
+status(_, _) ->
+    undefined.
 
 %%--------------------------------------------------------------------
 %% @doc

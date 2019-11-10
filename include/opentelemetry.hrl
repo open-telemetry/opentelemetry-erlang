@@ -24,10 +24,6 @@
 %% for use in guards: sampling bit is the first bit in 8-bit trace options
 -define(IS_SPAN_ENABLED(TraceOptions), (TraceOptions band 1) =/= 0).
 
--define(MESSAGE_EVENT_TYPE_UNSPECIFIED, 'TYPE_UNSPECIFIED').
--define(MESSAGE_EVENT_TYPE_SENT, 'SENT').
--define(MESSAGE_EVENT_TYPE_RECEIVED, 'RECEIVED').
-
 -define(SPAN_KIND_UNSPECIFIED, 'SPAN_KIND_UNSPECIFIED').
 -define(SPAN_KIND_INTERNAL, 'INTERNAL').
 -define(SPAN_KIND_SERVER, 'SERVER').
@@ -89,8 +85,8 @@
           %% Kept as a list so ets:select_replace/2 can be used to add new elements
           attributes = []                         :: opentelemetry:attributes() | undefined,
 
-          %% A time-stamped annotation or message event in the Span.
-          time_events = []                        :: opentelemetry:time_events(),
+          %% A time-stamped event in the Span.
+          timed_events = []                       :: opentelemetry:timed_events(),
 
           %% links to spans in other traces
           links = []                              :: opentelemetry:links(),
@@ -118,23 +114,14 @@
           tracestate                :: opentelemetry:tracestate()
          }).
 
--record(message_event, {
-          %% type of MessageEvent. Indicates whether the RPC message was sent or received.
-          type = 'TYPE_UNSPECIFIED' :: opentelemetry:message_event_type(),
-
-          %% identifier for the message, which must be unique in this span.
-          id                        :: integer(),
-
-          %% number of uncompressed bytes sent or received
-          uncompressed_size         :: integer(),
-
-          %% number of compressed bytes sent or received
-          compressed_size           :: integer()
+-record(timed_event, {
+          time_unixnano :: integer(),
+          event :: opentelemetry:event()
          }).
 
--record(annotation, {
-          description      :: unicode:unicode_binary() | undefined,
-          attributes       :: opentelemetry:attributes() | undefined
+-record(event, {
+          name       :: unicode:unicode_binary(),
+          attributes :: opentelemetry:attributes()
          }).
 
 -record(status, {
