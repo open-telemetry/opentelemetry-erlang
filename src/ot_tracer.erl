@@ -30,7 +30,9 @@
 
 -include("opentelemetry.hrl").
 
--callback start_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
+-callback start_span(opentelemetry:tracer(),
+                     opentelemetry:span_name(),
+                     ot_span:start_opts()) -> opentelemetry:span_ctx().
 -callback with_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
 -callback with_span(opentelemetry:tracer(), opentelemetry:span_ctx(), fun()) -> ok.
 -callback end_span(opentelemetry:tracer()) -> ok.
