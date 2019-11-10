@@ -1,2 +1,2 @@
-# opentelemetry-erlang-api-
-Erlang API
+# opentelemetry-erlang-api
+OpenTelemetry API Erlang application
