@@ -27,6 +27,7 @@ end_per_suite(_Config) ->
     ok.
 
 init_per_group(CtxModule, Config) ->
+    application:set_env(opentelemetry, sampler, {probability, #{probability => 1.0}}),
     application:set_env(opentelemetry, tracer, {ot_tracer_default, #{span => {ot_span_ets, []},
                                                                      ctx => {CtxModule, []}}}),
     application:set_env(opentelemetry, exporter, [{exporters, []},
