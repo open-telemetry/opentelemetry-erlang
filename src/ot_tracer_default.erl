@@ -33,21 +33,23 @@
 
 -include("ot_tracer.hrl").
 
+-define(TRACER_KEY, '$__ot_tracer_ctx_key').
+
 -type pdict_trace_ctx() :: {opentelemetry:span_ctx(), pdict_trace_ctx() | undefined}.
 
 -spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts())
                 -> opentelemetry:span_ctx().
 start_span(Tracer, Name, Opts) when is_map_key(sampler, Opts) ->
-    case ot_ctx:get(?ctx, ?SPAN_CTX) of
+    case ot_ctx:get_value(?TRACER_KEY, ?SPAN_CTX) of
         {SpanCtx, _}=Ctx ->
             Processors = on_start(Tracer),
             SpanCtx1 = ot_span_ets:start_span(Name, Opts#{parent => SpanCtx}, Processors),
-            ot_ctx:with_value(?ctx, ?SPAN_CTX, {SpanCtx1, Ctx}),
+            ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, {SpanCtx1, Ctx}),
             SpanCtx1;
         _ ->
             Processors = on_start(Tracer),
             SpanCtx = ot_span_ets:start_span(Name, Opts#{parent => undefined}, Processors),
-            ot_ctx:with_value(?ctx, ?SPAN_CTX, {SpanCtx, undefined}),
+            ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, {SpanCtx, undefined}),
             SpanCtx
     end;
 start_span(Tracer={_, #tracer{sampler=Sampler}}, Name, Opts) ->
@@ -62,15 +64,15 @@ on_end({_, #tracer{processors=Processors}}) ->
 
 -spec with_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
 with_span(_Tracer, SpanCtx) ->
-    ot_ctx:with_value(?ctx, ?SPAN_CTX, {SpanCtx, undefined}).
+    ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, {SpanCtx, undefined}).
 
 -spec with_span(opentelemetry:tracer(), opentelemetry:span_ctx(), fun()) -> ok.
 with_span(_Tracer, SpanCtx, Fun) ->
-    ot_ctx:with_value(?ctx, ?SPAN_CTX, {SpanCtx, undefined}, Fun).
+    ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, {SpanCtx, undefined}, Fun).
 
 -spec current_span_ctx(opentelemetry:tracer()) -> opentelemetry:span_ctx().
 current_span_ctx(_Tracer) ->
-    case ot_ctx:get(?ctx, ?SPAN_CTX) of
+    case ot_ctx:get_value(?TRACER_KEY, ?SPAN_CTX) of
         {SpanCtx, _ParentPdictSpanCtx} ->
             SpanCtx;
         _ ->
@@ -82,7 +84,7 @@ current_span_ctx(_Tracer) ->
 %% parent trace context, which contains its parent and so on.
 -spec current_ctx() -> pdict_trace_ctx().
 current_ctx() ->
-    ot_ctx:get(?ctx, ?SPAN_CTX).
+    ot_ctx:get_value(?TRACER_KEY, ?SPAN_CTX).
 
 span_module({_, #tracer{span_module=SpanModule}}) ->
     SpanModule.
@@ -98,7 +100,7 @@ end_span(Tracer) ->
     {SpanCtx, ParentCtx} = current_ctx(),
     Processors = on_end(Tracer),
     ot_span_ets:end_span(SpanCtx, Processors),
-    ot_ctx:with_value(?ctx, ?SPAN_CTX, ParentCtx),
+    ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, ParentCtx),
     ok.
 
 -spec get_binary_format(opentelemetry:tracer()) -> binary().

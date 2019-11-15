@@ -23,6 +23,7 @@
 
 start(_StartType, _StartArgs) ->
     Opts = application:get_all_env(opentelemetry),
+    opentelemetry:set_default_context_manager(ot_ctx_pdict),
     opentelemetry_sup:start_link(Opts).
 
 stop(_State) ->
