@@ -50,7 +50,7 @@
           %% this field is not propagated and is only here as an implementation optimization
           %% If true updates like adding events are done on the span. The same as if the
           %% trace flags lowest bit is 1 but simply not propagated.
-          is_recorded       :: boolean() | undefined                                
+          is_recorded       :: boolean() | undefined
          }).
 
 -record(span, {

@@ -22,10 +22,7 @@
          with_span/1,
          with_span/2,
          current_span_ctx/0,
-         end_span/0%% ,
-         %% get_binary_format/0,
-         %% get_http_text_format/0
-        ]).
+         end_span/0]).
 
 -export([get_ctx/1,
          is_recording_events/0,
@@ -37,7 +34,6 @@
          update_name/1]).
 
 -include("opentelemetry.hrl").
-%% -include("ot_tracer.hrl").
 
 -type start_opts() :: #{parent => undefined | opentelemetry:span() | opentelemetry:span_ctx(),
                         sampler => ot_sampler:sampler(),
