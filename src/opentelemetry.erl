@@ -29,6 +29,8 @@
 -module(opentelemetry).
 
 -export([set_default_tracer/1,
+         set_default_context_manager/1,
+         get_context_manager/0,
          get_tracer/0,
          get_tracer/1,
          timestamp/0,
@@ -105,6 +107,12 @@
 
 set_default_tracer(Tracer) ->
     persistent_term:put({?MODULE, default_tracer}, Tracer).
+
+set_default_context_manager(ContextModule) ->
+    persistent_term:put({?MODULE, context_manager}, ContextModule).
+
+get_context_manager() ->
+    persistent_term:get({?MODULE, context_manager}, {ot_ctx_noop, []}).
 
 get_tracer() ->
     persistent_term:get({?MODULE, default_tracer}, {ot_tracer_noop, []}).
