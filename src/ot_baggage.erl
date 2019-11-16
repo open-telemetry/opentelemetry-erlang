@@ -22,8 +22,7 @@
          get/1,
          remove/1,
          clear/0,
-         get_http_extractor/0,
-         get_http_injector/0]).
+         get_http_propagators/0]).
 
 -type key() :: string().
 -type value() :: string().
@@ -52,10 +51,23 @@ remove(Key) ->
 clear() ->
     ot_ctx:clear(?BAGGAGE_KEY).
 
--spec get_http_extractor() -> ot_propagation:extractor().
-get_http_extractor() ->
-    ok.
-
--spec get_http_injector() -> ot_propagation:injector().
-get_http_injector() ->
-    ok.
+-spec get_http_propagators() -> {ot_propagation:http_extractor(), ot_propagation:http_injector()}.
+get_http_propagators() ->
+    ToText = fun(_Headers, undefined) ->
+                     [];
+                (_Headers, Baggage) ->
+                     List = maps:fold(fun(Key, Value, Acc) ->
+                                              [[Key, "=", Value] | Acc]
+                                      end, [], Baggage),
+                     lists:join(",", List)
+             end,
+    FromText = fun(String, CurrentBaggage) ->
+                       Pairs = string:lexemes(String, [","]),
+                       lists:foldl(fun(Pair, Acc) ->
+                                           [Key, Pair] = string:split(Pair, "="),
+                                           Acc#{Key => {Pair, unlimited_propagation}}
+                                   end, CurrentBaggage, Pairs)
+               end,
+    Inject = ot_ctx:http_injector(?BAGGAGE_KEY, ToText),
+    Extract = ot_ctx:http_extractor(?BAGGAGE_KEY, FromText),
+    {Extract, Inject}.

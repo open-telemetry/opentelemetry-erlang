@@ -33,6 +33,10 @@
          get_context_manager/0,
          get_tracer/0,
          get_tracer/1,
+         set_http_extractor/1,
+         get_http_extractor/0,
+         set_http_injector/1,
+         get_http_injector/0,
          timestamp/0,
          links/1,
          link/4,
@@ -119,6 +123,30 @@ get_tracer() ->
 
 get_tracer(_Name) ->
     persistent_term:get({?MODULE, default_tracer}, {ot_tracer_noop, []}).
+
+set_http_extractor(List) ->
+    Fun = fun(Headers) ->
+              lists:foldl(fun(Extract, ok) ->
+                              Extract(Headers),
+                              ok
+                          end, ok, List),
+              ok
+          end,
+    persistent_term:put({?MODULE, http_extractor}, Fun).
+
+set_http_injector(List) ->
+    Fun = fun(Headers) ->
+              lists:foldl(fun(Inject, HeadersAcc) ->
+                              Inject(HeadersAcc)
+                          end, Headers, List)
+          end,
+    persistent_term:put({?MODULE, http_injector}, Fun).
+
+get_http_extractor() ->
+    persistent_term:get({?MODULE, http_extractor}, fun(Headers) -> Headers end).
+
+get_http_injector() ->
+    persistent_term:get({?MODULE, http_injector}, fun(_Headers) -> ok end).
 
 -spec timestamp() -> integer().
 timestamp() ->

@@ -17,21 +17,28 @@
 %%%-------------------------------------------------------------------------
 -module(ot_propagation).
 
--export([]).
+-export([http_inject/1,
+         http_extract/1]).
 
--type extractor() :: fun().
--type injector() :: fun().
+-type data() :: term().
+
+-type extractor() :: fun((data()) -> ok).
+-type injector() :: fun((data()) -> data()).
 -type http_headers() :: [{string(), string()}].
 
--callback http_inject(ot_ctx:ctx()) -> http_headers().
--callback http_extract(ot_ctx:ctx(), http_headers()) -> ot_ctx:ctx().
-
--callback set_http_injector(injector()) -> ok.
--callback get_http_injector() -> injector().
-
--callback set_http_extractor(extractor()) -> ok.
--callback get_http_extractor() -> extractor().
+-type http_injector() :: fun((http_headers()) -> http_headers()).
+-type http_extractor() :: fun((http_headers()) -> ok).
 
 -export_type([extractor/0,
               injector/0,
+              http_injector/0,
+              http_extractor/0,
               http_headers/0]).
+
+http_inject(Headers) ->
+    Fun = opentelemetry:get_http_injector(),
+    Fun(Headers).
+
+http_extract(Headers) ->
+    Fun = opentelemetry:get_http_extractor(),
+    Fun(Headers).

@@ -19,8 +19,7 @@
 
 -export([ctx_key/0,
          set/3,
-         get_http_extractor/0,
-         get_http_injector/0]).
+         get_http_propagators/0]).
 
 -type key() :: string().
 -type value() :: string().
@@ -38,10 +37,23 @@ ctx_key() ->
 set(Key, Value, HopLimit) ->
     ot_ctx:set_value(?CORRELATIONS_KEY, Key, {Value, HopLimit}).
 
--spec get_http_extractor() -> ot_propagation:extractor().
-get_http_extractor() ->
-    ok.
-
--spec get_http_injector() -> ot_propagation:injector().
-get_http_injector() ->
-    ok.
+-spec get_http_propagators() -> {ot_propagation:http_extractor(), ot_propagation:http_injector()}.
+get_http_propagators() ->
+    ToText = fun(_Headers, Correlations) ->
+                     List = maps:fold(fun(Key, {Value, unlimited_propagation}, Acc) ->
+                                              [[Key, "=", Value] | Acc];
+                                         (_Key, {_Value, no_propagation}, Acc) ->
+                                              Acc
+                               end, [], Correlations),
+                     lists:join(",", List)
+             end,
+    FromText = fun(String, CurrentCorrelations) ->
+                       Pairs = string:lexemes(String, [","]),
+                       lists:foldl(fun(Pair, Acc) ->
+                                           [Key, Pair] = string:split(Pair, "="),
+                                           Acc#{Key => {Pair, unlimited_propagation}}
+                                   end, CurrentCorrelations, Pairs)
+               end,
+    Inject = ot_ctx:http_injector(?CORRELATIONS_KEY, ToText),
+    Extract = ot_ctx:http_extractor(?CORRELATIONS_KEY, FromText),
+    {Extract, Inject}.
