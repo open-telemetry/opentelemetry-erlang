@@ -30,8 +30,14 @@
 -include_lib("kernel/include/logger.hrl").
 
 %% needed until type specs for seq_trace are fixed
-%% -dialyzer({nowarn_function, get_value/2}).
-%% -dialyzer({nowarn_function, set_value/2}).
+-dialyzer({nowarn_function, get_value/2}).
+-dialyzer({nowarn_function, get_value/3}).
+-dialyzer({nowarn_function, set_value/3}).
+-dialyzer({nowarn_function, clear/1}).
+-dialyzer({nowarn_function, remove/2}).
+-dialyzer({nowarn_function, get_current/1}).
+-dialyzer({nowarn_function, set_current/2}).
+-dialyzer({nowarn_function, get_context/0}).
 
 -spec set_value(term(), term(), term()) -> ok.
 set_value(Namespace, Key, Value) ->

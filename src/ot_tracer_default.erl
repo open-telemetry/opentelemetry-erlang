@@ -25,8 +25,8 @@
          end_span/1,
          on_end/1,
          current_span_ctx/1,
-         get_binary_format/1,
-         get_http_text_format/1]).
+         b3_propagators/0,
+         w3c_propagators/0]).
 
 %% tracer access functions
 -export([span_module/1]).
@@ -68,7 +68,7 @@ with_span(_Tracer, SpanCtx) ->
 
 -spec with_span(opentelemetry:tracer(), opentelemetry:span_ctx(), fun()) -> ok.
 with_span(_Tracer, SpanCtx, Fun) ->
-    ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, {SpanCtx, undefined}, Fun).
+    ot_ctx:with_value(?TRACER_KEY, ?SPAN_CTX, {SpanCtx, undefined}, Fun).
 
 -spec current_span_ctx(opentelemetry:tracer()) -> opentelemetry:span_ctx().
 current_span_ctx(_Tracer) ->
@@ -89,6 +89,22 @@ current_ctx() ->
 span_module({_, #tracer{span_module=SpanModule}}) ->
     SpanModule.
 
+-spec b3_propagators() -> {ot_propagation:http_extractor(), ot_propagation:http_injector()}.
+b3_propagators() ->
+    ToText = fun ot_propagation_http_b3:inject/2,
+    FromText = fun ot_propagation_http_b3:extract/2,
+    Injector = ot_ctx:http_injector(?TRACER_KEY, ?SPAN_CTX, ToText),
+    Extractor = ot_ctx:http_extractor(?TRACER_KEY, ?SPAN_CTX, FromText),
+    {Extractor, Injector}.
+
+-spec w3c_propagators() -> {ot_propagation:http_extractor(), ot_propagation:http_injector()}.
+w3c_propagators() ->
+    ToText = fun ot_propagation_http_w3c:inject/2,
+    FromText = fun ot_propagation_http_w3c:extract/2,
+    Injector = ot_ctx:http_injector(?TRACER_KEY, ?SPAN_CTX, ToText),
+    Extractor = ot_ctx:http_extractor(?TRACER_KEY, ?SPAN_CTX, FromText),
+    {Extractor, Injector}.
+
 %%--------------------------------------------------------------------
 %% @doc
 %% Ends the span in the current pdict context. And sets the parent
@@ -103,10 +119,3 @@ end_span(Tracer) ->
     ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, ParentCtx),
     ok.
 
--spec get_binary_format(opentelemetry:tracer()) -> binary().
-get_binary_format(_) ->
-    <<>>.
-
--spec get_http_text_format(opentelemetry:tracer()) -> opentelemetry:http_headers().
-get_http_text_format(_) ->
-    [].

@@ -13,7 +13,7 @@ all() ->
      {group, ot_ctx_seqtrace}].
 
 all_testcases() ->
-    [child_spans, update_span_data].
+    [child_spans, update_span_data, propagation].
 
 groups() ->
     [{ot_ctx_pdict, [shuffle], all_testcases()},
@@ -110,6 +110,28 @@ update_span_data(Config) ->
                                        status=Status,
                                        timed_events=TimedEvents,
                                        _='_'})).
+
+propagation(_Config) ->
+    SpanCtx1=#span_ctx{trace_id=TraceId,
+                        span_id=SpanId} = otel:start_span(<<"span-1">>),
+    Headers = ot_propagation:http_inject([{<<"existing-header">>, <<"I exist">>}]),
+
+    EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
+    EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
+
+    ?assertListsMatch([{<<"X-B3-TraceId">>, EncodedTraceId},
+                       {<<"X-B3-SpanId">>, EncodedSpanId},
+                       {<<"X-B3-Sampled">>, "1"},
+                       {<<"existing-header">>, <<"I exist">>}], Headers),
+
+    otel:end_span(),
+
+    ?assertEqual(undefined, otel:current_span_ctx()),
+
+    ot_propagation:http_extract(Headers),
+    ?assertSpanCtxsEqual(SpanCtx1, otel:current_span_ctx()),
+
+    ok.
 
 %%
 
