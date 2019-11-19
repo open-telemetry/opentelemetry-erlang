@@ -1,5 +1,9 @@
 {"1.1.0",
-[{<<"rfc3339">>,{pkg,<<"rfc3339">>,<<"0.9.0">>},1},
+[{<<"opentelemetry_api">>,
+  {git,"https://github.com/tsloughter/opentelemetry-erlang-api",
+       {ref,"9ad67e0bbaadfff336d87c1368fc87407660d346"}},
+  0},
+ {<<"rfc3339">>,{pkg,<<"rfc3339">>,<<"0.9.0">>},1},
  {<<"wts">>,{pkg,<<"wts">>,<<"0.3.0">>},0}]}.
 [
 {pkg_hash,[
