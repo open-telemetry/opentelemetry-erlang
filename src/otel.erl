@@ -28,32 +28,13 @@
          is_recording_events/0,
          set_attribute/2,
          set_attributes/1,
+         add_event/2,
          add_events/1,
          add_links/1,
          set_status/1,
          update_name/1]).
 
 -include("opentelemetry.hrl").
-
--type start_opts() :: #{parent => undefined | opentelemetry:span() | opentelemetry:span_ctx(),
-                        sampler => ot_sampler:sampler(),
-                        links => opentelemetry:links(),
-                        is_recorded => boolean(),
-                        kind => opentelemetry:span_kind()}.
-
--export_type([start_opts/0]).
-
--callback start_span(opentelemetry:span_name(), start_opts()) -> opentelemetry:span_ctx().
--callback end_span(opentelemetry:span_ctx()) -> boolean() | {error, term()}.
--callback get_ctx(opentelemetry:span()) -> opentelemetry:span_ctx().
--callback is_recording_events(opentelemetry:span_ctx()) -> boolean().
--callback set_attribute(opentelemetry:span_ctx(),
-                        opentelemetry:attribute_key(),
-                        opentelemetry:attribute_value()) -> boolean().
--callback set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes()) -> boolean().
--callback add_events(opentelemetry:span_ctx(), opentelemetry:time_events()) -> boolean().
--callback set_status(opentelemetry:span_ctx(), opentelemetry:status()) -> boolean().
--callback update_name(opentelemetry:span_ctx(), opentelemetry:span_name()) -> boolean().
 
 %% handy macros so we don't have function name typos
 -define(DO(Args), do_span_function(?FUNCTION_NAME, Args)).
@@ -101,6 +82,9 @@ set_attribute(Key, Value) ->
 
 set_attributes(Attributes) ->
     ?DO([Attributes]).
+
+add_event(Name, Attributes) ->
+    ?DO([Name, Attributes]).
 
 add_events(Events) ->
     ?DO([Events]).
