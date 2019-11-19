@@ -91,7 +91,8 @@ update_span_data(Config) ->
                        span_id=SpanId} = otel:start_span(<<"span-1">>, #{links => Links}),
     otel:set_attribute(<<"key-1">>, <<"value-1">>),
 
-    TimedEvents = opentelemetry:timed_events([{opentelemetry:timestamp(), <<"timed-event-name">>, []}]),
+    TimedEvents = opentelemetry:timed_events([{opentelemetry:timestamp(),
+                                               <<"timed-event-name">>, []}]),
     Status = opentelemetry:status(0, <<"status">>),
 
     %% with spanctx and tracer passed as an argument
@@ -113,7 +114,7 @@ update_span_data(Config) ->
 
 propagation(_Config) ->
     SpanCtx1=#span_ctx{trace_id=TraceId,
-                        span_id=SpanId} = otel:start_span(<<"span-1">>),
+                       span_id=SpanId} = otel:start_span(<<"span-1">>),
     Headers = ot_propagation:http_inject([{<<"existing-header">>, <<"I exist">>}]),
 
     EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
