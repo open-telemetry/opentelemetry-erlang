@@ -34,6 +34,7 @@
          is_recording_events/1,
          set_attribute/3,
          set_attributes/2,
+         add_event/3,
          add_events/2,
          set_status/2,
          update_name/2]).
@@ -104,6 +105,12 @@ set_attributes(#span_ctx{span_id=SpanId}, NewAttributes) ->
         _ ->
             false
     end.
+
+-spec add_event(opentelemetry:span_ctx(), unicode:unicode_binary(), opentelemetry:attributes()) -> boolean().
+add_event(SpanCtx, Name, Attributes) ->
+    TimedEvents = opentelemetry:timed_events([{opentelemetry:timestamp(),
+                                               Name, Attributes}]),
+    add_events(SpanCtx, TimedEvents).
 
 -spec add_events(opentelemetry:span_ctx(), opentelemetry:timed_events()) -> boolean().
 add_events(#span_ctx{span_id=SpanId}, NewTimedEvents) ->
