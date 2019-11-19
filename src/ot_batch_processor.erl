@@ -74,7 +74,7 @@
 -define(CURRENT_TABLE, persistent_term:get(?CURRENT_TABLES_KEY)).
 
 -define(DEFAULT_MAX_QUEUE_SIZE, 2048).
--define(DEFAULT_SCHEDULED_DEPLAY_MS, timer:seconds(5)).
+-define(DEFAULT_SCHEDULED_DELAY_MS, timer:seconds(5)).
 -define(DEFAULT_EXPORTER_TIMEOUT_MS, timer:minutes(5)).
 -define(DEFAULT_CHECK_TABLE_SIZE_MS, timer:seconds(1)).
 
@@ -100,7 +100,7 @@ on_start(Span, _) ->
             -> true | dropped | {error, invalid_span} | {error, no_export_buffer}.
 on_end(Span=#span{}, _) ->
     do_insert(Span);
-on_end(_, _) ->
+on_end(_Span, _) ->
     {error, invalid_span}.
 
 init([Args]) ->
@@ -108,7 +108,7 @@ init([Args]) ->
 
     SizeLimit = proplists:get_value(max_queue_size, Args, ?DEFAULT_MAX_QUEUE_SIZE),
     ExportingTimeout = proplists:get_value(exporting_timeout_ms, Args, ?DEFAULT_EXPORTER_TIMEOUT_MS),
-    ScheduledDelay = proplists:get_value(scheduled_delay_ms, Args, ?DEFAULT_SCHEDULED_DEPLAY_MS),
+    ScheduledDelay = proplists:get_value(scheduled_delay_ms, Args, ?DEFAULT_SCHEDULED_DELAY_MS),
     CheckTableSize = proplists:get_value(check_table_size_ms, Args, ?DEFAULT_CHECK_TABLE_SIZE_MS),
 
     Exporter = init_exporter(proplists:get_value(exporter, Args, undefined)),
