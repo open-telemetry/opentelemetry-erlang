@@ -32,7 +32,7 @@
 
 -type ctx() :: map().
 -type namespace() :: term().
--type key() :: string().
+-type key() :: term().
 -type value() :: term().
 
 -callback set_value(namespace(), key(), value()) -> ok.

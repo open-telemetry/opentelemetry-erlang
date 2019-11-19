@@ -21,9 +21,7 @@
          with_span/2,
          with_span/3,
          current_span_ctx/1,
-         end_span/1,
-         get_binary_format/1,
-         get_http_text_format/1]).
+         end_span/1]).
 
 %% tracer access functions
 -export([span_module/1]).
@@ -38,8 +36,6 @@
 -callback end_span(opentelemetry:tracer()) -> ok.
 -callback current_span_ctx(opentelemetry:tracer()) -> opentelemetry:span_ctx().
 -callback span_module(opentelemetry:tracer()) -> module().
--callback get_binary_format(opentelemetry:tracer()) -> binary().
--callback get_http_text_format(opentelemetry:tracer()) -> opentelemetry:http_headers().
 
 -spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
 start_span(Tracer={Module, _}, Name, Opts) ->
@@ -58,14 +54,6 @@ end_span(Tracer={Module, _}) ->
 
 current_span_ctx(Tracer={Module, _}) ->
     Module:current_span_ctx(Tracer).
-
--spec get_binary_format(opentelemetry:tracer()) -> binary().
-get_binary_format(_Tracer={Module, _}) ->
-    Module:get_binary_format().
-
--spec get_http_text_format(opentelemetry:tracer()) -> opentelemetry:http_headers().
-get_http_text_format(_Tracer={Module, _}) ->
-    Module:get_http_text_format().
 
 %% tracer access functions
 

@@ -24,7 +24,7 @@
 
 -type extractor() :: fun((data()) -> ok).
 -type injector() :: fun((data()) -> data()).
--type http_headers() :: [{string(), string()}].
+-type http_headers() :: [{iodata(), iodata()}].
 
 -type http_injector() :: fun((http_headers()) -> http_headers()).
 -type http_extractor() :: fun((http_headers()) -> ok).
