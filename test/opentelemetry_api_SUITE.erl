@@ -58,7 +58,8 @@ update_span_data(_Config) ->
     SpanCtx1 = otel:start_span(<<"span-1">>, #{links => Links}),
     otel:set_attribute(<<"key-1">>, <<"value-1">>),
 
-    TimedEvents = opentelemetry:timed_events([{opentelemetry:timestamp(), <<"timed-event-name">>, []}]),
+    TimedEvents = opentelemetry:timed_events([{opentelemetry:timestamp(),
+                                               <<"timed-event-name">>, []}]),
     Status = opentelemetry:status(0, <<"status">>),
 
     %% with spanctx and tracer passed as an argument

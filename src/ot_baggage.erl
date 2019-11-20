@@ -31,7 +31,7 @@
               value/0]).
 
 -define(BAGGAGE_KEY, '$__ot_baggage_ctx_key').
-
+-define(BAGGAGE_HEADER, <<"Baggage-Context">>).
 ctx_key() ->
     ?BAGGAGE_KEY.
 
@@ -56,17 +56,26 @@ get_http_propagators() ->
     ToText = fun(_Headers, undefined) ->
                      [];
                 (_Headers, Baggage) ->
-                     List = maps:fold(fun(Key, Value, Acc) ->
-                                              [[Key, "=", Value] | Acc]
-                                      end, [], Baggage),
-                     lists:join(",", List)
+                     case maps:fold(fun(Key, Value, Acc) ->
+                                              [$,, [Key, "=", Value] | Acc]
+                                      end, [], Baggage) of
+                         [$, | List] ->
+                             [{?BAGGAGE_HEADER, List}];
+                         _ ->
+                             []
+                     end
              end,
-    FromText = fun(String, CurrentBaggage) ->
-                       Pairs = string:lexemes(String, [","]),
-                       lists:foldl(fun(Pair, Acc) ->
-                                           [Key, Pair] = string:split(Pair, "="),
-                                           Acc#{Key => {Pair, unlimited_propagation}}
-                                   end, CurrentBaggage, Pairs)
+    FromText = fun(Headers, CurrentBaggage) ->
+                       case lists:keyfind(?BAGGAGE_HEADER, 1, Headers) of
+                           {_, String} ->
+                               Pairs = string:lexemes(String, [","]),
+                               lists:foldl(fun(Pair, Acc) ->
+                                                   [Key, Value] = string:split(Pair, "="),
+                                                   Acc#{Key => {Value, unlimited_propagation}}
+                                           end, CurrentBaggage, Pairs);
+                           _ ->
+                               CurrentBaggage
+                       end
                end,
     Inject = ot_ctx:http_injector(?BAGGAGE_KEY, ToText),
     Extract = ot_ctx:http_extractor(?BAGGAGE_KEY, FromText),

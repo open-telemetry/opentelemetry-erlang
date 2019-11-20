@@ -29,6 +29,7 @@
               value/0]).
 
 -define(CORRELATIONS_KEY, '$__ot_correlations_ctx_key').
+-define(CORRELATIONS_HEADER, <<"Correlation-Context">>).
 
 ctx_key() ->
     ?CORRELATIONS_KEY.
@@ -40,19 +41,28 @@ set(Key, Value, HopLimit) ->
 -spec get_http_propagators() -> {ot_propagation:http_extractor(), ot_propagation:http_injector()}.
 get_http_propagators() ->
     ToText = fun(_Headers, Correlations) ->
-                     List = maps:fold(fun(Key, {Value, unlimited_propagation}, Acc) ->
-                                              [[Key, "=", Value] | Acc];
+                     case maps:fold(fun(Key, {Value, unlimited_propagation}, Acc) ->
+                                              [$,, [Key, "=", Value] | Acc];
                                          (_Key, {_Value, no_propagation}, Acc) ->
                                               Acc
-                               end, [], Correlations),
-                     lists:join(",", List)
+                               end, [], Correlations) of
+                         [$, | List] ->
+                             [{?CORRELATIONS_HEADER, List}];
+                         _ ->
+                             []
+                     end
              end,
-    FromText = fun(String, CurrentCorrelations) ->
-                       Pairs = string:lexemes(String, [","]),
-                       lists:foldl(fun(Pair, Acc) ->
-                                           [Key, Pair] = string:split(Pair, "="),
-                                           Acc#{Key => {Pair, unlimited_propagation}}
-                                   end, CurrentCorrelations, Pairs)
+    FromText = fun(Headers, CurrentCorrelations) ->
+                       case lists:keyfind(?CORRELATIONS_HEADER, 1, Headers) of
+                           {_, String} ->
+                               Pairs = string:lexemes(String, [","]),
+                               lists:foldl(fun(Pair, Acc) ->
+                                                   [Key, Value] = string:split(Pair, "="),
+                                                   Acc#{Key => {Value, unlimited_propagation}}
+                                           end, CurrentCorrelations, Pairs);
+                           _ ->
+                               CurrentCorrelations
+                       end
                end,
     Inject = ot_ctx:http_injector(?CORRELATIONS_KEY, ToText),
     Extract = ot_ctx:http_extractor(?CORRELATIONS_KEY, FromText),

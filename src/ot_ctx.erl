@@ -112,9 +112,8 @@ http_extractor(Namespace, FromText) ->
     http_extractor_(opentelemetry:get_context_manager(), Namespace, FromText).
 
 http_extractor_(CtxModule, Namespace, FromText) ->
-    fun(_Headers) ->
-            String = "", %% Headers
-            New = FromText(String, CtxModule:get_current(Namespace)),
+    fun(Headers) ->
+            New = FromText(Headers, CtxModule:get_current(Namespace)),
             CtxModule:set_current(Namespace, New)
     end.
 
