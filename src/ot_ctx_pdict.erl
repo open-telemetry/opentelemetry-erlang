@@ -19,18 +19,63 @@
 
 -behaviour(ot_ctx).
 
--export([with_value/2,
-         get/2]).
+-export([set_value/4,
+         get_value/3,
+         get_value/4,
+         get_current/2,
+         set_current/3,
+         clear/2,
+         remove/3]).
 
--spec get(term(), term()) -> term().
-get(Key, Default) ->
-    case erlang:get(Key) of
-        undefined ->
-            Default;
-        Value ->
-            Value
+-spec set_value(ot_ctx:context_manager(), term(), term(), term()) -> ok.
+set_value(_ContextManager, Namespace, Key, Value) ->
+    case erlang:get(Namespace) of
+        Map when is_map(Map) ->
+            erlang:put(Namespace, Map#{Key => Value}),
+            ok;
+        _ ->
+            erlang:put(Namespace, #{Key => Value}),
+            ok
     end.
 
--spec with_value(term(), term()) -> ok.
-with_value(Key, Value) ->
-    erlang:put(Key, Value).
+-spec get_value(ot_ctx:context_manager(), term(), term()) -> term().
+get_value(_ContextManager, Namespace, Key) ->
+    get_value(_ContextManager, Namespace, Key, undefined).
+
+-spec get_value(ot_ctx:context_manager(), term(), term(), term()) -> term().
+get_value(_ContextManager, Namespace, Key, Default) ->
+    case erlang:get(Namespace) of
+        undefined ->
+            Default;
+        Map when is_map(Map) ->
+            maps:get(Key, Map, Default);
+        _ ->
+            Default
+    end.
+
+-spec clear(ot_ctx:context_manager(), term()) -> ok.
+clear(_ContextManager, Namespace) ->
+    erlang:erase(Namespace).
+
+-spec remove(ot_ctx:context_manager(), term(), term()) -> ok.
+remove(_ContextManager, Namespace, Key) ->
+    case erlang:get(Namespace) of
+        Map when is_map(Map) ->
+            erlang:put(Namespace, maps:remove(Key, Map)),
+            ok;
+        _ ->
+            ok
+    end.
+
+-spec get_current(ot_ctx:context_manager(), term()) -> map().
+get_current(_ContextManager, Namespace) ->
+    case erlang:get(Namespace) of
+        Map when is_map(Map) ->
+            Map;
+        _ ->
+            #{}
+    end.
+
+-spec set_current(ot_ctx:context_manager(), term(), map()) -> ok.
+set_current(_ContextManager, Namespace, Ctx) ->
+    erlang:put(Namespace, Ctx).

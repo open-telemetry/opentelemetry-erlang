@@ -7,11 +7,41 @@ Requires OTP 21.3 of above.
 
 ## Design
 
-The [OpenTelemetry specification](https://github.com/open-telemetry/opentelemetry-specification) defines a language library as having 2 components, the API and the SDK. The API must not only define the interfaces of any implementation in that language but also be able to function as a minimal implementation. The SDK is the default implementation of the API that must be optional.
+The [OpenTelemetry specification](https://github.com/open-telemetry/opentelemetry-specification) defines a language library as having 2 components, the API and the SDK. The API must not only define the interfaces of any implementation in that language but also be able to function as a noop implementation of the tracer. The SDK is the default implementation of the API that must be optional.
 
-In this library the API is defined as the behaviours `ot_tracer`, `ot_span` and `ot_ctx`. It is not a separate Erlang application from the SDK, nor are there subdirectories following the [layout described in the spec](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/library-layout.md). Not using subdirectories as the spec's layout describes is simply because the OTP application structure has all source files directly under `src/`. There is no separation of API and SDK into distinct libraries because a) there is not yet support in rebar3 for using git repos with multiple applications as dependencies b) since Erlang has a flat namespace the same module naming strategy would be used whether they are separate applications or not. Additionally, a release can be configured to drop any part of an application the user chooses. So in the unlikely event there are users who wish to not include the SDK's default implementation it is possible.
+If you are instrumenting a project your application should only depend on the [OpenTelemetry API](https://github.com/open-telemetry/opentelemetry-erlang-api/) application. 
 
-### Default Tracer
+This repository is the Erlang's SDK implementation and should be included in the final release and configured to setup the sampler, span processors and span exporters.
+
+## Using
+
+In an Erlang project add `opentelemetry` as the first element of the release's applications:
+
+``` erlang
+{relx, [{release, {<name>, <version>}, 
+         [{opentelemetry, temporary},
+          <your applications>]},
+        ...]}.
+```
+
+In the above example `opentelemetry` is set to `temporary` so that if the `opentelemetry` application crashes, or is shutdown, it does not terminate the other applications in the project. This is optional, the `opentelemetry` application purposely sticks to `permanent` for the processes started by the root supervisor to leave it up to the end user whether they want the crash or shutdown or `opentelemetry` to be ignored or cause the shutdown of the rest of the applications in the release.
+
+Doing the same for an Elixir project would be:
+
+``` elixir
+def project do
+  [
+    ...
+    releases: [
+      <name>: [
+        applications: [opentelemetry: :temporary]
+      ],
+
+      ...
+    ]
+  ]
+end
+```
 
 ## Benchmarks
 

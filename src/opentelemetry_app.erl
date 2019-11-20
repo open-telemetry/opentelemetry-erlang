@@ -23,18 +23,19 @@
 
 start(_StartType, _StartArgs) ->
     Opts = application:get_all_env(opentelemetry),
+    opentelemetry:set_default_context_manager({ot_ctx_pdict, []}),
 
-    {sampler, {Sampler, SamplerOpts}} = lists:keyfind(sampler, 1, Opts),
-    SamplerFun = ot_sampler:setup(Sampler, SamplerOpts),
+    {BaggageHttpExtractor, BaggageHttpInjector} = ot_baggage:get_http_propagators(),
+    {CorrelationsHttpExtractor, CorrelationsHttpInjector} = ot_correlations:get_http_propagators(),
+    {B3HttpExtractor, B3HttpInjector} = ot_tracer_default:b3_propagators(),
+    opentelemetry:set_http_extractor([BaggageHttpExtractor,
+                                      CorrelationsHttpExtractor,
+                                      B3HttpExtractor]),
+    opentelemetry:set_http_injector([BaggageHttpInjector,
+                                     CorrelationsHttpInjector,
+                                     B3HttpInjector]),
 
-    %% The default sampler implementation must be passed to the tracer chosen.
-    %% Since the tracer is started after the rest of the supervision tree has started
-    %% and we only get its children, we must instantiate the sampler before anything else.
-    %% The sampler turns out to be instantiated before any supervision tree is started.
-    {tracer, {Tracer, TracerOpts}} = lists:keyfind(tracer, 1, Opts),
-    TracerChildren = ot_tracer:setup(Tracer, TracerOpts, SamplerFun),
-
-    opentelemetry_sup:start_link(TracerChildren, Opts).
+    opentelemetry_sup:start_link(Opts).
 
 stop(_State) ->
     ok.

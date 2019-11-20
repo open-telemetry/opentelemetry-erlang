@@ -19,63 +19,60 @@
 
 -behaviour(ot_tracer).
 
--export([setup/1,
-         start_span/2,
-         with_span/1,
+-export([start_span/3,
          with_span/2,
-         finish/0,
-         current_span_ctx/0,
-         get_binary_format/0,
-         get_http_text_format/0]).
+         with_span/3,
+         end_span/1,
+         on_end/1,
+         current_span_ctx/1,
+         b3_propagators/0,
+         w3c_propagators/0]).
 
--define(SPAN_CTX, {?MODULE, span_ctx}).
--define(CTX_IMPL_KEY, {?MODULE, ctx}).
--define(SPAN_IMPL_KEY, {?MODULE, span}).
+%% tracer access functions
+-export([span_module/1]).
 
--define(ctx, (persistent_term:get(?CTX_IMPL_KEY))).
--define(span, (persistent_term:get(?SPAN_IMPL_KEY))).
+-include("ot_tracer.hrl").
+
+-define(TRACER_KEY, '$__ot_tracer_ctx_key').
 
 -type pdict_trace_ctx() :: {opentelemetry:span_ctx(), pdict_trace_ctx() | undefined}.
 
--spec setup(map()) -> [supervisor:child_spec()].
-setup(Opts) ->
-    lists:filtermap(fun({ConfigKey, PersistentKey}) ->
-                        {Module, Args} = maps:get(ConfigKey, Opts),
-                        persistent_term:put(PersistentKey, Module),
-                        case erlang:function_exported(Module, start_link, 1) of
-                            true ->
-                                {true, #{id => Module,
-                                         start => {Module, start_link, [Args]}}};
-                            false ->
-                                false
-                        end
-                    end, [{ctx, ?CTX_IMPL_KEY},
-                          {span, ?SPAN_IMPL_KEY}]).
-
--spec start_span(opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
-start_span(Name, Opts) ->
-    case ot_ctx:get(?ctx, ?SPAN_CTX) of
+-spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts())
+                -> opentelemetry:span_ctx().
+start_span(Tracer, Name, Opts) when is_map_key(sampler, Opts) ->
+    case ot_ctx:get_value(?TRACER_KEY, ?SPAN_CTX) of
         {SpanCtx, _}=Ctx ->
-            SpanCtx1 = ot_span:start_span(?span, Name, Opts#{parent => SpanCtx}),
-            ot_ctx:with_value(?ctx, ?SPAN_CTX, {SpanCtx1, Ctx}),
+            Processors = on_start(Tracer),
+            SpanCtx1 = ot_span_ets:start_span(Name, Opts#{parent => SpanCtx}, Processors),
+            ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, {SpanCtx1, Ctx}),
             SpanCtx1;
         _ ->
-            SpanCtx = ot_span:start_span(?span, Name, Opts#{parent => undefined}),
-            ot_ctx:with_value(?ctx, ?SPAN_CTX, {SpanCtx, undefined}),
+            Processors = on_start(Tracer),
+            SpanCtx = ot_span_ets:start_span(Name, Opts#{parent => undefined}, Processors),
+            ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, {SpanCtx, undefined}),
             SpanCtx
-    end.
+    end;
+start_span(Tracer={_, #tracer{sampler=Sampler}}, Name, Opts) ->
+    start_span(Tracer, Name, Opts#{sampler => Sampler}).
 
--spec with_span(opentelemetry:span_ctx()) -> ok.
-with_span(SpanCtx) ->
-    ot_ctx:with_value(?ctx, ?SPAN_CTX, {SpanCtx, undefined}).
 
--spec with_span(opentelemetry:span_ctx(), fun()) -> ok.
-with_span(SpanCtx, Fun) ->
-    ot_ctx:with_value(?ctx, ?SPAN_CTX, {SpanCtx, undefined}, Fun).
+on_start({_, #tracer{processors=Processors}}) ->
+    fun(Span) -> [P:on_start(Span, Config) || {P, Config} <- Processors] end.
 
--spec current_span_ctx() -> opentelemetry:span_ctx().
-current_span_ctx() ->
-    case ot_ctx:get(?ctx, ?SPAN_CTX) of
+on_end({_, #tracer{processors=Processors}}) ->
+    fun(Span) -> [P:on_end(Span, Config) || {P, Config} <- Processors] end.
+
+-spec with_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
+with_span(_Tracer, SpanCtx) ->
+    ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, {SpanCtx, undefined}).
+
+-spec with_span(opentelemetry:tracer(), opentelemetry:span_ctx(), fun()) -> ok.
+with_span(_Tracer, SpanCtx, Fun) ->
+    ot_ctx:with_value(?TRACER_KEY, ?SPAN_CTX, {SpanCtx, undefined}, Fun).
+
+-spec current_span_ctx(opentelemetry:tracer()) -> opentelemetry:span_ctx().
+current_span_ctx(_Tracer) ->
+    case ot_ctx:get_value(?TRACER_KEY, ?SPAN_CTX) of
         {SpanCtx, _ParentPdictSpanCtx} ->
             SpanCtx;
         _ ->
@@ -87,25 +84,38 @@ current_span_ctx() ->
 %% parent trace context, which contains its parent and so on.
 -spec current_ctx() -> pdict_trace_ctx().
 current_ctx() ->
-    ot_ctx:get(?ctx, ?SPAN_CTX).
+    ot_ctx:get_value(?TRACER_KEY, ?SPAN_CTX).
+
+span_module({_, #tracer{span_module=SpanModule}}) ->
+    SpanModule.
+
+-spec b3_propagators() -> {ot_propagation:http_extractor(), ot_propagation:http_injector()}.
+b3_propagators() ->
+    ToText = fun ot_propagation_http_b3:inject/2,
+    FromText = fun ot_propagation_http_b3:extract/2,
+    Injector = ot_ctx:http_injector(?TRACER_KEY, ?SPAN_CTX, ToText),
+    Extractor = ot_ctx:http_extractor(?TRACER_KEY, ?SPAN_CTX, FromText),
+    {Extractor, Injector}.
+
+-spec w3c_propagators() -> {ot_propagation:http_extractor(), ot_propagation:http_injector()}.
+w3c_propagators() ->
+    ToText = fun ot_propagation_http_w3c:inject/2,
+    FromText = fun ot_propagation_http_w3c:extract/2,
+    Injector = ot_ctx:http_injector(?TRACER_KEY, ?SPAN_CTX, ToText),
+    Extractor = ot_ctx:http_extractor(?TRACER_KEY, ?SPAN_CTX, FromText),
+    {Extractor, Injector}.
 
 %%--------------------------------------------------------------------
 %% @doc
-%% Finishes the span in the current pdict context. And sets the parent
+%% Ends the span in the current pdict context. And sets the parent
 %% as the current span ctx or undefined if there is no local parent.
 %% @end
 %%--------------------------------------------------------------------
--spec finish() -> ok.
-finish() ->
+-spec end_span(opentelemetry:tracer()) -> ok.
+end_span(Tracer) ->
     {SpanCtx, ParentCtx} = current_ctx(),
-    ot_span:finish_span(?span, SpanCtx),
-    ot_ctx:with_value(?ctx, ?SPAN_CTX, ParentCtx),
+    Processors = on_end(Tracer),
+    ot_span_ets:end_span(SpanCtx, Processors),
+    ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, ParentCtx),
     ok.
 
--spec get_binary_format() -> binary().
-get_binary_format() ->
-    <<>>.
-
--spec get_http_text_format() -> opentelemetry:http_headers().
-get_http_text_format() ->
-    [].

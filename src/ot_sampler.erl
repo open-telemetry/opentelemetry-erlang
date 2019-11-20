@@ -21,7 +21,7 @@
 
 -export([setup/2]).
 
--include("opentelemetry.hrl").
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("ot_sampler.hrl").
 
 -type sampling_decision() :: ?NOT_RECORD | ?RECORD | ?RECORD_AND_PROPAGATE.

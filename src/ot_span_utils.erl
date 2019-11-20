@@ -21,7 +21,7 @@
 -export([start_span/2,
          end_span/1]).
 
--include("opentelemetry.hrl").
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("ot_sampler.hrl").
 
 -type start_opts() :: #{parent => undefined | opentelemetry:span() | opentelemetry:span_ctx(),

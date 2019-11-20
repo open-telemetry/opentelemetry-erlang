@@ -31,11 +31,12 @@
 
 -export([storage_size/0]).
 
--include("opentelemetry.hrl").
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include("ot_span_ets.hrl").
 -include_lib("kernel/include/logger.hrl").
 
 -record(data, {interval :: integer() | infinity,
-               strategy :: drop | finish | failed_attribute_and_finish | fun((opencensus:span()) -> ok),
+               strategy :: drop | end_span | failed_attribute_and_end_span | fun((opencensus:span()) -> ok),
                ttl :: integer() | infinity,
                storage_size :: integer() | infinity}).
 
@@ -113,7 +114,7 @@ sweep_spans(drop, TTL) ->
         NumDeleted ->
             ?LOG_INFO("sweep old spans: ttl=~p num_dropped=~p", [TTL, NumDeleted])
     end;
-sweep_spans(finish, TTL) ->
+sweep_spans(end_span, TTL) ->
     Expired = select_expired(TTL),
     [begin
          case ets:take(?SPAN_TAB, SpanId) of
@@ -121,11 +122,11 @@ sweep_spans(finish, TTL) ->
                  %% must have finished without needing to be swept
                  ok;
              [Span] ->
-                 finish_span(Span)
+                 end_span(Span)
          end
      end || SpanId <- Expired],
     ok;
-sweep_spans(failed_attribute_and_finish, TTL) ->
+sweep_spans(failed_attribute_and_end_span, TTL) ->
     ExpiredSpanIds = select_expired(TTL),
     [begin
          case ets:take(?SPAN_TAB, SpanId) of
@@ -134,7 +135,7 @@ sweep_spans(failed_attribute_and_finish, TTL) ->
                  ok;
              [Span=#span{attributes=Attributes}] ->
                  Span1 = Span#span{attributes=Attributes ++ [{<<"finished_by_sweeper">>, true}]},
-                 finish_span(Span1)
+                 end_span(Span1)
          end
      end || SpanId <- ExpiredSpanIds],
     ok;
@@ -145,7 +146,7 @@ sweep_spans(Fun, TTL) when is_function(Fun) ->
 
 %% ignore these functions because dialyzer doesn't like match spec use of '_'
 -dialyzer({nowarn_function, expired_match_spec/2}).
--dialyzer({nowarn_function, finish_span/1}).
+-dialyzer({nowarn_function, end_span/1}).
 -dialyzer({nowarn_function, select_expired/1}).
 
 select_expired(TTL) ->
@@ -157,7 +158,9 @@ expired_match_spec(Time, Return) ->
       [{'<', '$2', Time}],
       [Return]}].
 
-finish_span(Span=#span{tracestate=Tracestate}) ->
-    %% hack to not lose tracestate when finishing without span ctx
+end_span(Span=#span{tracestate=Tracestate}) ->
+    %% hack to not lose tracestate when ending without span ctx
     Span1 = ot_span_utils:end_span(Span#span{tracestate=Tracestate}),
-    ot_exporter:store_span(Span1).
+    Tracer = opentelemetry:get_tracer(),
+    Processors = ot_tracer_default:on_end(Tracer),
+    Processors(Span1).

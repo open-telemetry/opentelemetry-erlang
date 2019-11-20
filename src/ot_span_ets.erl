@@ -27,47 +27,64 @@
          handle_cast/2]).
 
 -export([start_span/2,
-         finish_span/1,
+         start_span/3,
+         end_span/1,
+         end_span/2,
          get_ctx/1,
          is_recording_events/1,
          set_attribute/3,
          set_attributes/2,
+         add_event/3,
          add_events/2,
          set_status/2,
          update_name/2]).
 
--include("opentelemetry.hrl").
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include("ot_span_ets.hrl").
 
 -record(state, {}).
 
 start_link(Opts) ->
     gen_server:start_link(?MODULE, Opts, []).
 
-%% @doc Start a span and insert into the active span ets table.
--spec start_span(opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
 start_span(Name, Opts) ->
+    start_span(Name, Opts, fun(Span) -> Span end).
+
+%% @doc Start a span and insert into the active span ets table.
+-spec start_span(opentelemetry:span_name(), ot_span:start_opts(), fun()) -> opentelemetry:span_ctx().
+start_span(Name, Opts, Processors) ->
     {SpanCtx, Span} = ot_span_utils:start_span(Name, Opts),
-    _ = storage_insert(Span),
+    Span1 = Processors(Span),
+    _ = storage_insert(Span1),
     SpanCtx.
 
-%% @doc Finish a span based on its context and send to reporter.
--spec finish_span(opentelemetry:span_ctx()) -> boolean() | {error, term()}.
-finish_span(#span_ctx{span_id=SpanId,
-                      tracestate=Tracestate,
-                      trace_flags=TraceOptions}) when ?IS_SPAN_ENABLED(TraceOptions) ->
+end_span(SpanCtx) ->
+    end_span(SpanCtx, fun(Span) -> Span end).
+
+%% @doc End a span based on its context and send to reporter.
+-spec end_span(opentelemetry:span_ctx(), fun()) -> boolean() | {error, term()}.
+end_span(#span_ctx{span_id=SpanId,
+                   tracestate=Tracestate,
+                   trace_flags=TraceOptions}, Processors) when ?IS_SPAN_ENABLED(TraceOptions) ->
     case ets:take(?SPAN_TAB, SpanId) of
         [Span] ->
             Span1 = ot_span_utils:end_span(Span#span{tracestate=Tracestate}),
-            ot_exporter:store_span(Span1);
+            Processors(Span1);
         _ ->
             false
     end;
-finish_span(_) ->
+end_span(_, _) ->
     ok.
 
 -spec get_ctx(opentelemetry:span()) -> opentelemetry:span_ctx().
-get_ctx(_Span) ->
-    #span_ctx{}.
+get_ctx(#span{trace_id=TraceId,
+              span_id=SpanId,
+              tracestate=TraceState,
+              is_recorded=IsRecorded}) ->
+    #span_ctx{trace_id=TraceId,
+              span_id=SpanId,
+              tracestate=TraceState,
+              is_recorded=IsRecorded}.
 
 -spec is_recording_events(opentelemetry:span_ctx()) -> boolean().
 is_recording_events(#span_ctx{is_recorded=IsRecorded}) ->
@@ -89,11 +106,17 @@ set_attributes(#span_ctx{span_id=SpanId}, NewAttributes) ->
             false
     end.
 
--spec add_events(opentelemetry:span_ctx(), opentelemetry:time_events()) -> boolean().
-add_events(#span_ctx{span_id=SpanId}, NewTimeEvents) ->
+-spec add_event(opentelemetry:span_ctx(), unicode:unicode_binary(), opentelemetry:attributes()) -> boolean().
+add_event(SpanCtx, Name, Attributes) ->
+    TimedEvents = opentelemetry:timed_events([{opentelemetry:timestamp(),
+                                               Name, Attributes}]),
+    add_events(SpanCtx, TimedEvents).
+
+-spec add_events(opentelemetry:span_ctx(), opentelemetry:timed_events()) -> boolean().
+add_events(#span_ctx{span_id=SpanId}, NewTimedEvents) ->
     case ets:lookup(?SPAN_TAB, SpanId) of
-        [Span=#span{time_events=TimeEvents}] ->
-            Span1 = Span#span{time_events=TimeEvents++NewTimeEvents},
+        [Span=#span{timed_events=TimeEvents}] ->
+            Span1 = Span#span{timed_events=TimeEvents++NewTimedEvents},
             1 =:= ets:select_replace(?SPAN_TAB, [{Span, [], [{const, Span1}]}]);
         _ ->
             false
