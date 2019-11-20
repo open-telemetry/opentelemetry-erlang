@@ -23,8 +23,7 @@
 
 start(_StartType, _StartArgs) ->
     Opts = application:get_all_env(opentelemetry),
-    opentelemetry:set_default_tracer(ot_tracer_default),
-    opentelemetry:set_default_context_manager(ot_ctx_pdict),
+    opentelemetry:set_default_context_manager({ot_ctx_pdict, []}),
 
     {BaggageHttpExtractor, BaggageHttpInjector} = ot_baggage:get_http_propagators(),
     {CorrelationsHttpExtractor, CorrelationsHttpInjector} = ot_correlations:get_http_propagators(),

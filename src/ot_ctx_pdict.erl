@@ -19,16 +19,16 @@
 
 -behaviour(ot_ctx).
 
--export([set_value/3,
-         get_value/2,
+-export([set_value/4,
          get_value/3,
-         get_current/1,
-         set_current/2,
-         clear/1,
-         remove/2]).
+         get_value/4,
+         get_current/2,
+         set_current/3,
+         clear/2,
+         remove/3]).
 
--spec set_value(term(), term(), term()) -> ok.
-set_value(Namespace, Key, Value) ->
+-spec set_value(ot_ctx:context_manager(), term(), term(), term()) -> ok.
+set_value(_ContextManager, Namespace, Key, Value) ->
     case erlang:get(Namespace) of
         Map when is_map(Map) ->
             erlang:put(Namespace, Map#{Key => Value}),
@@ -38,12 +38,12 @@ set_value(Namespace, Key, Value) ->
             ok
     end.
 
--spec get_value(term(), term()) -> term().
-get_value(Namespace, Key) ->
-    get_value(Namespace, Key, undefined).
+-spec get_value(ot_ctx:context_manager(), term(), term()) -> term().
+get_value(_ContextManager, Namespace, Key) ->
+    get_value(_ContextManager, Namespace, Key, undefined).
 
--spec get_value(term(), term(), term()) -> term().
-get_value(Namespace, Key, Default) ->
+-spec get_value(ot_ctx:context_manager(), term(), term(), term()) -> term().
+get_value(_ContextManager, Namespace, Key, Default) ->
     case erlang:get(Namespace) of
         undefined ->
             Default;
@@ -53,12 +53,12 @@ get_value(Namespace, Key, Default) ->
             Default
     end.
 
--spec clear(term()) -> ok.
-clear(Namespace) ->
+-spec clear(ot_ctx:context_manager(), term()) -> ok.
+clear(_ContextManager, Namespace) ->
     erlang:erase(Namespace).
 
--spec remove(term(), term()) -> ok.
-remove(Namespace, Key) ->
+-spec remove(ot_ctx:context_manager(), term(), term()) -> ok.
+remove(_ContextManager, Namespace, Key) ->
     case erlang:get(Namespace) of
         Map when is_map(Map) ->
             erlang:put(Namespace, maps:remove(Key, Map)),
@@ -67,8 +67,8 @@ remove(Namespace, Key) ->
             ok
     end.
 
--spec get_current(term()) -> map().
-get_current(Namespace) ->
+-spec get_current(ot_ctx:context_manager(), term()) -> map().
+get_current(_ContextManager, Namespace) ->
     case erlang:get(Namespace) of
         Map when is_map(Map) ->
             Map;
@@ -76,6 +76,6 @@ get_current(Namespace) ->
             #{}
     end.
 
--spec set_current(term(), map()) -> ok.
-set_current(Namespace, Ctx) ->
+-spec set_current(ot_ctx:context_manager(), term(), map()) -> ok.
+set_current(_ContextManager, Namespace, Ctx) ->
     erlang:put(Namespace, Ctx).

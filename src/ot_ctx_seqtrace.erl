@@ -17,30 +17,30 @@
 %%%-------------------------------------------------------------------------
 -module(ot_ctx_seqtrace).
 
--export([set_value/3,
-         get_value/2,
+-export([set_value/4,
          get_value/3,
-         get_current/1,
-         set_current/2,
-         clear/1,
-         remove/2]).
+         get_value/4,
+         get_current/2,
+         set_current/3,
+         clear/2,
+         remove/3]).
 
 -behaviour(ot_ctx).
 
 -include_lib("kernel/include/logger.hrl").
 
 %% needed until type specs for seq_trace are fixed
--dialyzer({nowarn_function, get_value/2}).
 -dialyzer({nowarn_function, get_value/3}).
--dialyzer({nowarn_function, set_value/3}).
--dialyzer({nowarn_function, clear/1}).
--dialyzer({nowarn_function, remove/2}).
--dialyzer({nowarn_function, get_current/1}).
--dialyzer({nowarn_function, set_current/2}).
+-dialyzer({nowarn_function, get_value/4}).
+-dialyzer({nowarn_function, set_value/4}).
+-dialyzer({nowarn_function, clear/2}).
+-dialyzer({nowarn_function, remove/3}).
+-dialyzer({nowarn_function, get_current/2}).
+-dialyzer({nowarn_function, set_current/3}).
 -dialyzer({nowarn_function, get_context/0}).
 
--spec set_value(term(), term(), term()) -> ok.
-set_value(Namespace, Key, Value) ->
+-spec set_value(ot_ctx:context_manager(), term(), term(), term()) -> ok.
+set_value(_ContextManager, Namespace, Key, Value) ->
     case get_context() of
         undefined ->
             ok;
@@ -56,12 +56,12 @@ set_value(Namespace, Key, Value) ->
             end
     end.
 
--spec get_value(term(), term()) -> term().
-get_value(Namespace, Key) ->
-    get_value(Namespace, Key, undefined).
+-spec get_value(ot_ctx:context_manager(), term(), term()) -> term().
+get_value(ContextManager, Namespace, Key) ->
+    get_value(ContextManager, Namespace, Key, undefined).
 
--spec get_value(term(), term(), term()) -> term().
-get_value(Namespace, Key, Default) ->
+-spec get_value(ot_ctx:context_manager(), term(), term(), term()) -> term().
+get_value(_ContextManager, Namespace, Key, Default) ->
     case get_context() of
         undefined ->
             ok;
@@ -70,8 +70,8 @@ get_value(Namespace, Key, Default) ->
             maps:get(Key, NamespaceContext, Default)
     end.
 
--spec clear(term()) -> ok.
-clear(Namespace) ->
+-spec clear(ot_ctx:context_manager(), term()) -> ok.
+clear(_ContextManager, Namespace) ->
     case get_context() of
         undefined ->
             ok;
@@ -80,8 +80,8 @@ clear(Namespace) ->
             ok
     end.
 
--spec remove(term(), term()) -> ok.
-remove(Namespace, Key) ->
+-spec remove(ot_ctx:context_manager(), term(), term()) -> ok.
+remove(_ContextManager, Namespace, Key) ->
     case get_context() of
         undefined ->
             ok;
@@ -96,8 +96,8 @@ remove(Namespace, Key) ->
             end
     end.
 
--spec get_current(term()) -> map().
-get_current(Namespace) ->
+-spec get_current(ot_ctx:context_manager(), term()) -> map().
+get_current(_ContextManager, Namespace) ->
     case get_context() of
         undefined ->
             #{};
@@ -110,8 +110,8 @@ get_current(Namespace) ->
             end
     end.
 
--spec set_current(term(), map()) -> ok.
-set_current(Namespace, Ctx) ->
+-spec set_current(ot_ctx:context_manager(), term(), map()) -> ok.
+set_current(_ContextManager, Namespace, Ctx) ->
     erlang:put(Namespace, Ctx).
 
 %% internal functions

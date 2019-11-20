@@ -49,9 +49,6 @@ init(Opts) ->
                      ctx_module=ot_ctx_pdict},
     opentelemetry:set_default_tracer({ot_tracer_default, Tracer}),
 
-    %% TODO: remove this and use ctx module from tracer state everywhere
-    persistent_term:put(?CTX_IMPL_KEY, ot_ctx_pdict),
-
     {ok, #state{sampler=SamplerFun,
                 processors=Processors}}.
 
