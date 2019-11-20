@@ -29,7 +29,7 @@
 -type sampling_result() :: {sampling_decision(), opentelemetry:attributes()}.
 -type sampler() :: fun((opentelemetry:trace_id(),
                         opentelemetry:span_id(),
-                        opentelemetry:span_ctx(),
+                        opentelemetry:span_ctx() | undefined,
                         sampling_hint(),
                         opentelemetry:links(),
                         opentelemetry:span_name(),
