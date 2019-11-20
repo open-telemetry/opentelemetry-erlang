@@ -115,6 +115,7 @@ update_span_data(Config) ->
 propagation(_Config) ->
     SpanCtx1=#span_ctx{trace_id=TraceId,
                        span_id=SpanId} = otel:start_span(<<"span-1">>),
+    ot_baggage:set(<<"baggage-key-1">>, <<"baggage-value-1">>),
     Headers = ot_propagation:http_inject([{<<"existing-header">>, <<"I exist">>}]),
 
     EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
@@ -123,7 +124,8 @@ propagation(_Config) ->
     ?assertListsMatch([{<<"X-B3-TraceId">>, EncodedTraceId},
                        {<<"X-B3-SpanId">>, EncodedSpanId},
                        {<<"X-B3-Sampled">>, "1"},
-                       {<<"existing-header">>, <<"I exist">>}], Headers),
+                       {<<"existing-header">>, <<"I exist">>},
+                       {<<"Baggage-Context">>, [[<<"baggage-key-1">>, "=", <<"baggage-value-1">>]]}], Headers),
 
     otel:end_span(),
 

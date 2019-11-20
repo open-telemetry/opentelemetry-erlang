@@ -29,8 +29,12 @@ start(_StartType, _StartArgs) ->
     {BaggageHttpExtractor, BaggageHttpInjector} = ot_baggage:get_http_propagators(),
     {CorrelationsHttpExtractor, CorrelationsHttpInjector} = ot_correlations:get_http_propagators(),
     {B3HttpExtractor, B3HttpInjector} = ot_tracer_default:b3_propagators(),
-    opentelemetry:set_http_extractor([BaggageHttpExtractor, CorrelationsHttpExtractor, B3HttpExtractor]),
-    opentelemetry:set_http_injector([BaggageHttpInjector, CorrelationsHttpInjector, B3HttpInjector]),
+    opentelemetry:set_http_extractor([BaggageHttpExtractor,
+                                      CorrelationsHttpExtractor,
+                                      B3HttpExtractor]),
+    opentelemetry:set_http_injector([BaggageHttpInjector,
+                                     CorrelationsHttpInjector,
+                                     B3HttpInjector]),
 
     opentelemetry_sup:start_link(Opts).
 
