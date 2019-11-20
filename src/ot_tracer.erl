@@ -37,7 +37,8 @@
 -callback current_span_ctx(opentelemetry:tracer()) -> opentelemetry:span_ctx().
 -callback span_module(opentelemetry:tracer()) -> module().
 
--spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
+-spec start_span(opentelemetry:tracer(), opentelemetry:span_name(),
+                 ot_span:start_opts()) -> opentelemetry:span_ctx().
 start_span(Tracer={Module, _}, Name, Opts) ->
     Module:start_span(Tracer, Name, Opts).
 

@@ -110,6 +110,7 @@
 
 -type http_headers()       :: [{unicode:unicode_binary(), unicode:unicode_binary()}].
 
+-spec set_default_tracer(tracer()) -> boolean().
 set_default_tracer(Tracer) ->
     verify_and_set_term(Tracer, default_tracer, ot_tracer).
 
@@ -121,9 +122,11 @@ set_default_context_manager(ContextManager) ->
 get_context_manager() ->
     persistent_term:get({?MODULE, context_manager}, {ot_ctx_noop, []}).
 
+-spec get_tracer() -> tracer().
 get_tracer() ->
     persistent_term:get({?MODULE, default_tracer}, {ot_tracer_noop, []}).
 
+-spec get_tracer(unicode:unicode_binary()) -> tracer().
 get_tracer(_Name) ->
     persistent_term:get({?MODULE, default_tracer}, {ot_tracer_noop, []}).
 
