@@ -19,33 +19,33 @@
 
 -behaviour(ot_ctx).
 
--export([set_value/3,
-         get_value/2,
-         remove/2,
-         clear/1,
-         set_current/2,
-         get_current/1]).
+-export([set_value/4,
+         get_value/3,
+         remove/3,
+         clear/2,
+         set_current/3,
+         get_current/2]).
 
--spec set_value(ot_ctx:namespace(), ot_ctx:key(), ot_ctx:value()) -> ok.
-set_value(_Namespace, _Key, _Value) ->
+-spec set_value(ot_ctx:context_manager(), ot_ctx:namespace(), ot_ctx:key(), ot_ctx:value()) -> ok.
+set_value(_ContextManager, _Namespace, _Key, _Value) ->
     ok.
 
--spec get_value(ot_ctx:namespace(), ot_ctx:key()) -> ot_ctx:value().
-get_value(_Namespace, _Key) ->
+-spec get_value(ot_ctx:context_manager(), ot_ctx:namespace(), ot_ctx:key()) -> ot_ctx:value().
+get_value(_ContextManager, _Namespace, _Key) ->
     undefined.
 
--spec remove(ot_ctx:namespace(), ot_ctx:key()) -> ok.
-remove(_Namespace, _Key) ->
+-spec remove(ot_ctx:context_manager(), ot_ctx:namespace(), ot_ctx:key()) -> ok.
+remove(_ContextManager, _Namespace, _Key) ->
     ok.
 
--spec clear(ot_ctx:namespace()) -> ok.
-clear(_Namespace) ->
+-spec clear(ot_ctx:context_manager(), ot_ctx:namespace()) -> ok.
+clear(_ContextManager, _Namespace) ->
     ok.
 
--spec set_current(ot_ctx:namespace(), ot_ctx:ctx()) -> ok.
-set_current(_Namespace, _Ctx) ->
+-spec set_current(ot_ctx:context_manager(), ot_ctx:namespace(), ot_ctx:ctx()) -> ok.
+set_current(_ContextManager, _Namespace, _Ctx) ->
     ok.
 
--spec get_current(ot_ctx:namespace()) -> ot_ctx:ctx().
-get_current(_Namespace) ->
+-spec get_current(ot_ctx:context_manager(), ot_ctx:namespace()) -> ot_ctx:ctx().
+get_current(_ContextManager, _Namespace) ->
     #{}.
