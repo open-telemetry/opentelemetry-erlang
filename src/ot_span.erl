@@ -24,6 +24,7 @@
          is_recording_events/2,
          set_attribute/4,
          set_attributes/3,
+         add_event/4,
          add_events/3,
          set_status/3,
          update_name/3]).
@@ -46,6 +47,7 @@
                         opentelemetry:attribute_key(),
                         opentelemetry:attribute_value()) -> boolean().
 -callback set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes()) -> boolean().
+-callback add_event(opentelemetry:span_ctx(), unicode:unicode_binary(), opentelemetry:attributes()) -> boolean().
 -callback add_events(opentelemetry:span_ctx(), opentelemetry:time_events()) -> boolean().
 -callback set_status(opentelemetry:span_ctx(), opentelemetry:status()) -> boolean().
 -callback update_name(opentelemetry:span_ctx(), opentelemetry:span_name()) -> boolean().
@@ -97,6 +99,14 @@ set_attribute(Tracer, SpanCtx, Key, Value) ->
       SpanCtx :: opentelemetry:span_ctx().
 set_attributes(Tracer, SpanCtx, Attributes) ->
     ?DO(Tracer, SpanCtx, [Attributes]).
+
+-spec add_event(Tracer, SpanCtx, Name, Attributes) -> boolean() when
+      Tracer :: opentelemetry:tracer(),
+      Name :: unicode:unicode_binary(),
+      Attributes :: opentelemetry:attributes(),
+      SpanCtx :: opentelemetry:span_ctx().
+add_event(Tracer, SpanCtx, Name, Attributes) ->
+    ?DO(Tracer, SpanCtx, [Name, Attributes]).
 
 -spec add_events(Tracer, SpanCtx, Events) -> boolean() when
       Tracer :: opentelemetry:tracer(),

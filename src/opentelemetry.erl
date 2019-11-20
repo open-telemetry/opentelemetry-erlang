@@ -29,8 +29,14 @@
 -module(opentelemetry).
 
 -export([set_default_tracer/1,
+         set_default_context_manager/1,
+         get_context_manager/0,
          get_tracer/0,
          get_tracer/1,
+         set_http_extractor/1,
+         get_http_extractor/0,
+         set_http_injector/1,
+         get_http_injector/0,
          timestamp/0,
          links/1,
          link/4,
@@ -43,6 +49,7 @@
          generate_span_id/0]).
 
 -include("opentelemetry.hrl").
+-include_lib("kernel/include/logger.hrl").
 
 -export_type([tracer/0,
               trace_id/0,
@@ -103,14 +110,49 @@
 
 -type http_headers()       :: [{unicode:unicode_binary(), unicode:unicode_binary()}].
 
+-spec set_default_tracer(tracer()) -> boolean().
 set_default_tracer(Tracer) ->
-    persistent_term:put({?MODULE, default_tracer}, Tracer).
+    verify_and_set_term(Tracer, default_tracer, ot_tracer).
 
+-spec set_default_context_manager(ot_ctx:context_manager()) -> boolean().
+set_default_context_manager(ContextManager) ->
+    verify_and_set_term(ContextManager, context_manager, ot_ctx).
+
+-spec get_context_manager() -> ot_ctx:context_manager().
+get_context_manager() ->
+    persistent_term:get({?MODULE, context_manager}, {ot_ctx_noop, []}).
+
+-spec get_tracer() -> tracer().
 get_tracer() ->
     persistent_term:get({?MODULE, default_tracer}, {ot_tracer_noop, []}).
 
+-spec get_tracer(unicode:unicode_binary()) -> tracer().
 get_tracer(_Name) ->
     persistent_term:get({?MODULE, default_tracer}, {ot_tracer_noop, []}).
+
+set_http_extractor(List) ->
+    Fun = fun(Headers) ->
+              lists:foldl(fun(Extract, ok) ->
+                              Extract(Headers),
+                              ok
+                          end, ok, List),
+              ok
+          end,
+    persistent_term:put({?MODULE, http_extractor}, Fun).
+
+set_http_injector(List) ->
+    Fun = fun(Headers) ->
+              lists:foldl(fun(Inject, HeadersAcc) ->
+                              Inject(HeadersAcc)
+                          end, Headers, List)
+          end,
+    persistent_term:put({?MODULE, http_injector}, Fun).
+
+get_http_extractor() ->
+    persistent_term:get({?MODULE, http_extractor}, fun(Headers) -> Headers end).
+
+get_http_injector() ->
+    persistent_term:get({?MODULE, http_injector}, fun(_Headers) -> ok end).
 
 -spec timestamp() -> integer().
 timestamp() ->
@@ -212,3 +254,36 @@ generate_span_id() ->
 
 uniform(X) ->
     rand:uniform(X).
+
+%% internal functions
+
+-spec verify_and_set_term(module() | {module(), term()}, term(), atom()) -> boolean().
+verify_and_set_term(Module, TermKey, Behaviour) ->
+    case verify_behaviour(Module, Behaviour) of
+        true ->
+            persistent_term:put({?MODULE, TermKey}, Module),
+            true;
+        false ->
+            ?LOG_WARNING("Module ~p does not implement behaviour ~p. "
+                         "A noop ~p will be used until a module, implementing "
+                         "the behaviour is configured.",
+                         [Module, Behaviour, Behaviour]),
+            false
+    end.
+
+-spec verify_behaviour(module() | {module(), term()}, atom()) -> boolean().
+verify_behaviour({Module, _}, Behaviour) ->
+    verify_behaviour(Module, Behaviour);
+verify_behaviour(Module, Behaviour) ->
+    try Module:module_info(attributes) of
+        Attributes ->
+            case lists:keyfind(behaviour, 1, Attributes) of
+                {behaviour, Behaviours} ->
+                    lists:member(Behaviour, Behaviours);
+                _ ->
+                    false
+            end
+    catch
+        error:undef ->
+            false
+    end.
