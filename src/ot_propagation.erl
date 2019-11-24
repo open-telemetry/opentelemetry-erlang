@@ -20,25 +20,46 @@
 -export([http_inject/1,
          http_extract/1]).
 
--type data() :: term().
+-type extractor(T) :: {fun((T, ot_ctx:context_manager(), ot_ctx:namespace(), {fun(), term()}) -> ok), term()} |
+                      {fun((T, ot_ctx:context_manager(), ot_ctx:namespace(), ot_ctx:key(), {fun(), term()}) -> ok), term()}.
+-type injector(T) :: {fun((T, ot_ctx:context_manager(), ot_ctx:namespace(), {fun(), term()}) -> T), term()} |
+                     {fun((T, ot_ctx:context_manager(), ot_ctx:namespace(), ot_ctx:key(), {fun(), term()}) -> T), term()}.
 
--type extractor() :: fun((data()) -> ok).
--type injector() :: fun((data()) -> data()).
 -type http_headers() :: [{iodata(), iodata()}].
 
--type http_injector() :: fun((http_headers()) -> http_headers()).
--type http_extractor() :: fun((http_headers()) -> ok).
+-type http_injector() :: injector(http_headers()).
+-type http_extractor() :: extractor(http_headers()).
 
--export_type([extractor/0,
-              injector/0,
+-export_type([extractor/1,
+              injector/1,
               http_injector/0,
               http_extractor/0,
               http_headers/0]).
 
 http_inject(Headers) ->
-    Fun = opentelemetry:get_http_injector(),
-    Fun(Headers).
+    Injectors = opentelemetry:get_http_injector(),
+    run_injectors(Headers, Injectors).
 
 http_extract(Headers) ->
-    Fun = opentelemetry:get_http_extractor(),
-    Fun(Headers).
+    Extractors = opentelemetry:get_http_extractor(),
+    run_extractors(Headers, Extractors).
+
+run_extractors(Headers, Extractors) ->
+    lists:foldl(fun({Extract, {ContextManager, Namespace, FromText}}, ok) ->
+                        Extract(Headers, ContextManager, Namespace, FromText),
+                        ok;
+                   ({Extract, {ContextManager, Namespace, Key, FromText}}, ok) ->
+                        Extract(Headers, ContextManager, Namespace, Key, FromText),
+                        ok;
+                   (_, ok) ->
+                        ok
+                end, ok, Extractors).
+
+run_injectors(Headers, Injectors) ->
+    lists:foldl(fun({Inject, {ContextManager, Namespace, ToText}}, HeadersAcc) ->
+                        Inject(HeadersAcc, ContextManager, Namespace, ToText);
+                   ({Inject, {ContextManager, Namespace, Key, ToText}}, HeadersAcc) ->
+                        Inject(HeadersAcc, ContextManager, Namespace, Key, ToText);
+                   (_, HeadersAcc) ->
+                        HeadersAcc
+                end, Headers, Injectors).
