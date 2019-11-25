@@ -97,9 +97,9 @@ end_span(Span) ->
 
 %%
 
-sample(Sampler, TraceId, SpanId, Parent, SamplingHint, Links, SpanName, Kind, Attributes) ->
+sample({Sampler, Opts}, TraceId, SpanId, Parent, SamplingHint, Links, SpanName, Kind, Attributes) ->
     {Decision, Attributes} = Sampler(TraceId, SpanId, Parent, SamplingHint, 
-                                     Links, SpanName, Kind, Attributes),
+                                     Links, SpanName, Kind, Attributes, Opts),
     case Decision of
         ?NOT_RECORD ->
             {0, false, Attributes};
