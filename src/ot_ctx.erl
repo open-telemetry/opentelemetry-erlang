@@ -28,7 +28,11 @@
          http_extractor/2,
          http_injector/2,
          http_extractor/3,
-         http_injector/3]).
+         http_injector/3,
+         http_extractor_fun/4,
+         http_extractor_fun/5,
+         http_injector_fun/4,
+         http_injector_fun/5]).
 
 -type ctx() :: map().
 -type namespace() :: term().
@@ -113,33 +117,37 @@ get_current(ContextManager={CtxModule, _}, Namespace) ->
 http_extractor(Namespace, FromText) ->
     http_extractor_(opentelemetry:get_context_manager(), Namespace, FromText).
 
-http_extractor_(ContextManager={CtxModule, _}, Namespace, FromText) ->
-    fun(Headers) ->
-            New = FromText(Headers, CtxModule:get_current(ContextManager, Namespace)),
-            CtxModule:set_current(ContextManager, Namespace, New)
-    end.
+http_extractor_(ContextManager, Namespace, FromText) ->
+    {fun ?MODULE:http_extractor_fun/4, {ContextManager, Namespace, FromText}}.
+
+http_extractor_fun(Headers, ContextManager={CtxModule, _}, Namespace, FromText) ->
+    New = FromText(Headers, CtxModule:get_current(ContextManager, Namespace)),
+    CtxModule:set_current(ContextManager, Namespace, New).
 
 http_extractor(Namespace, Key, FromText) ->
     http_extractor_(opentelemetry:get_context_manager(), Namespace, Key, FromText).
 
-http_extractor_(ContextManager={CtxModule, _}, Namespace, Key, FromText) ->
-    fun(Headers) ->
-            New = FromText(Headers, CtxModule:get_value(ContextManager, Namespace, Key)),
-            CtxModule:set_value(ContextManager, Namespace, Key, New)
-    end.
+http_extractor_(ContextManager, Namespace, Key, FromText) ->
+    {fun ?MODULE:http_extractor_fun/5, {ContextManager, Namespace, Key, FromText}}.
+
+http_extractor_fun(Headers, ContextManager={CtxModule, _}, Namespace, Key, FromText) ->
+    New = FromText(Headers, CtxModule:get_value(ContextManager, Namespace, Key)),
+    CtxModule:set_value(ContextManager, Namespace, Key, New).
 
 http_injector(Namespace, ToText) ->
     http_injector_(opentelemetry:get_context_manager(), Namespace, ToText).
 
-http_injector_(ContextManager={CtxModule, _}, Namespace, ToText) ->
-    fun(Headers) ->
-            Headers ++ ToText(Headers, CtxModule:get_current(ContextManager, Namespace))
-    end.
+http_injector_(ContextManager, Namespace, ToText) ->
+    {fun ?MODULE:http_injector_fun/4, {ContextManager, Namespace, ToText}}.
+
+http_injector_fun(Headers, ContextManager={CtxModule, _}, Namespace, ToText) ->
+    Headers ++ ToText(Headers, CtxModule:get_current(ContextManager, Namespace)).
 
 http_injector(Namespace, Key, ToText) ->
     http_injector_(opentelemetry:get_context_manager(), Namespace, Key, ToText).
 
-http_injector_(ContextManager={CtxModule, _}, Namespace, Key, ToText) ->
-    fun(Headers) ->
-            Headers ++ ToText(Headers, CtxModule:get_value(ContextManager, Namespace, Key))
-    end.
+http_injector_(ContextManager, Namespace, Key, ToText) ->
+    {fun ?MODULE:http_injector_fun/5, {ContextManager, Namespace, Key, ToText}}.
+
+http_injector_fun(Headers, ContextManager={CtxModule, _}, Namespace, Key, ToText) ->
+    Headers ++ ToText(Headers, CtxModule:get_value(ContextManager, Namespace, Key)).

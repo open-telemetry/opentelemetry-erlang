@@ -130,29 +130,21 @@ get_tracer() ->
 get_tracer(_Name) ->
     persistent_term:get({?MODULE, default_tracer}, {ot_tracer_noop, []}).
 
-set_http_extractor(List) ->
-    Fun = fun(Headers) ->
-              lists:foldl(fun(Extract, ok) ->
-                              Extract(Headers),
-                              ok
-                          end, ok, List),
-              ok
-          end,
-    persistent_term:put({?MODULE, http_extractor}, Fun).
+set_http_extractor(List) when is_list(List) ->
+    persistent_term:put({?MODULE, http_extractor}, List);
+set_http_extractor(_) ->
+    ok.
 
-set_http_injector(List) ->
-    Fun = fun(Headers) ->
-              lists:foldl(fun(Inject, HeadersAcc) ->
-                              Inject(HeadersAcc)
-                          end, Headers, List)
-          end,
-    persistent_term:put({?MODULE, http_injector}, Fun).
+set_http_injector(List) when is_list(List) ->
+    persistent_term:put({?MODULE, http_injector}, List);
+set_http_injector(_) ->
+    ok.
 
 get_http_extractor() ->
-    persistent_term:get({?MODULE, http_extractor}, fun(Headers) -> Headers end).
+    persistent_term:get({?MODULE, http_extractor}, []).
 
 get_http_injector() ->
-    persistent_term:get({?MODULE, http_injector}, fun(_Headers) -> ok end).
+    persistent_term:get({?MODULE, http_injector}, []).
 
 -spec timestamp() -> integer().
 timestamp() ->

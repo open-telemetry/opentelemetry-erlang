@@ -22,7 +22,9 @@
          get/1,
          remove/1,
          clear/0,
-         get_http_propagators/0]).
+         get_http_propagators/0,
+         from_text/2,
+         to_text/2]).
 
 -type key() :: string().
 -type value() :: string().
@@ -53,30 +55,32 @@ clear() ->
 
 -spec get_http_propagators() -> {ot_propagation:http_extractor(), ot_propagation:http_injector()}.
 get_http_propagators() ->
-    ToText = fun(_Headers, undefined) ->
-                     [];
-                (_Headers, Baggage) ->
-                     case maps:fold(fun(Key, Value, Acc) ->
-                                              [$,, [Key, "=", Value] | Acc]
-                                      end, [], Baggage) of
-                         [$, | List] ->
-                             [{?BAGGAGE_HEADER, List}];
-                         _ ->
-                             []
-                     end
-             end,
-    FromText = fun(Headers, CurrentBaggage) ->
-                       case lists:keyfind(?BAGGAGE_HEADER, 1, Headers) of
-                           {_, String} ->
-                               Pairs = string:lexemes(String, [","]),
-                               lists:foldl(fun(Pair, Acc) ->
-                                                   [Key, Value] = string:split(Pair, "="),
-                                                   Acc#{Key => {Value, unlimited_propagation}}
-                                           end, CurrentBaggage, Pairs);
-                           _ ->
-                               CurrentBaggage
-                       end
-               end,
+    ToText = fun ?MODULE:to_text/2,
+    FromText = fun ?MODULE:from_text/2,
     Inject = ot_ctx:http_injector(?BAGGAGE_KEY, ToText),
     Extract = ot_ctx:http_extractor(?BAGGAGE_KEY, FromText),
     {Extract, Inject}.
+
+to_text(_Headers, undefined) ->
+    [];
+to_text(_Headers, Baggage) ->
+    case maps:fold(fun(Key, Value, Acc) ->
+                           [$,, [Key, "=", Value] | Acc]
+                   end, [], Baggage) of
+        [$, | List] ->
+            [{?BAGGAGE_HEADER, List}];
+        _ ->
+            []
+    end.
+
+from_text(Headers, CurrentBaggage) ->
+    case lists:keyfind(?BAGGAGE_HEADER, 1, Headers) of
+        {_, String} ->
+            Pairs = string:lexemes(String, [","]),
+            lists:foldl(fun(Pair, Acc) ->
+                                [Key, Value] = string:split(Pair, "="),
+                                Acc#{Key => {Value, unlimited_propagation}}
+                        end, CurrentBaggage, Pairs);
+        _ ->
+            CurrentBaggage
+    end.
