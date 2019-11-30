@@ -59,5 +59,22 @@ If an Elixir script is wanted for the benchmarks they could be run like:
 $ ERL_LIBS=_build/bench/lib/ mix run --no-mix-exs samples/run.exs
 ```
 
+## W3C Trace Context Interop Tests
+
+Start the interop web server in a shell:
+
+``` shell
+$ rebar3 as interop shell
+
+> w3c_trace_context_interop:run().
+```
+
+Then, clone the [W3C Trace Context repo](https://github.com/w3c/trace-context) and run the tests:
+
+``` shell
+$ cd test
+$ python3 test.py http://127.0.0.1:5000/test
+```
+
 ## Contributing
 

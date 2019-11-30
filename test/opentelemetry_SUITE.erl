@@ -121,9 +121,8 @@ propagation(_Config) ->
     EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
     EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
 
-    ?assertListsMatch([{<<"X-B3-TraceId">>, EncodedTraceId},
-                       {<<"X-B3-SpanId">>, EncodedSpanId},
-                       {<<"X-B3-Sampled">>, "1"},
+    ?assertListsMatch([{<<"traceparent">>,
+                        [<<"00">>, "-", EncodedTraceId,"-", EncodedSpanId, "-", <<"01">>]},
                        {<<"existing-header">>, <<"I exist">>},
                        {<<"Baggage-Context">>, [[<<"baggage-key-1">>, "=", <<"baggage-value-1">>]]}], Headers),
 
@@ -131,7 +130,8 @@ propagation(_Config) ->
 
     ?assertEqual(undefined, otel:current_span_ctx()),
 
-    ot_propagation:http_extract(Headers),
+    BinaryHeaders = [{Key, iolist_to_binary(Value)} || {Key, Value} <- Headers],
+    ot_propagation:http_extract(BinaryHeaders),
     ?assertSpanCtxsEqual(SpanCtx1, otel:current_span_ctx()),
 
     ok.

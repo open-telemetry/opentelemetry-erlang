@@ -24,13 +24,18 @@
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
--define(VERSION, "00").
+-define(VERSION, <<"00">>).
 
 -define(ZERO_TRACEID, <<"00000000000000000000000000000000">>).
 -define(ZERO_SPANID, <<"0000000000000000">>).
 
 -define(HEADER_KEY, <<"traceparent">>).
 -define(STATE_HEADER_KEY, <<"tracestate">>).
+
+-define(KEY_MP, element(2, re:compile("^[a-z0-9][a-z0-9_*/-]{0,255}$|^([a-z0-9_*/-]{1,241})(@[a-z0-9_*/-]{1,14})$"))).
+-define(VALUE_MP, element(2, re:compile("^[ -~]{0,256}$"))).
+
+-define(MAX_TRACESTATE_PAIRS, 32).
 
 -spec inject(ot_propagation:http_headers(),
                  {opentelemetry:span_ctx(), opentelemetry:span_ctx() | undefined} | undefined)
@@ -62,14 +67,20 @@ encode_tracestate(#span_ctx{tracestate=Entries}) ->
 
 -spec extract(ot_propagation:http_headers(), term()) -> opentelemetry:span_ctx() | undefined.
 extract(Headers, _) when is_list(Headers) ->
-    case lists:keyfind(?HEADER_KEY, 1, Headers) of
-        {_, Value} ->
-            case decode(Value) of
-                undefined ->
+    case lists:keytake(?HEADER_KEY, 1, Headers) of
+        {value, {_, Value}, RestHeaders} ->
+            case lists:keymember(?HEADER_KEY, 1, RestHeaders) of
+                true ->
+                    %% duplicate traceparent header found
                     undefined;
-                SpanCtx ->
-                    Tracestate = tracestate_from_headers(Headers),
-                    SpanCtx#span_ctx{tracestate=Tracestate}
+                false ->
+                    case decode(string:trim(Value)) of
+                        undefined ->
+                            undefined;
+                        SpanCtx ->
+                            Tracestate = tracestate_from_headers(Headers),
+                            {SpanCtx#span_ctx{tracestate=Tracestate}, undefined}
+                    end
             end;
         _ ->
             undefined
@@ -90,44 +101,71 @@ combine_headers(Key, Headers) ->
     lists:foldl(fun({K, V}, Acc) ->
                         case string:equal(K, Key) of
                             true ->
-                                [V, $, | Acc];
+                                [Acc,  $, | V];
                             false ->
                                 Acc
                         end
                 end, [], Headers).
 
-tracestate_decode(Value) ->
-    %% TODO: the 512 byte limit should not include optional white space that can
-    %% appear between list members.
-    case iolist_size(Value) of
-        Size when Size =< 512 ->
-            [split(Pair) || Pair <- string:lexemes(Value, [$,])];
+split(Pair) ->
+    case string:split(Pair, "=", all) of
+        [Key, Value] when Value =/= [] andalso Value =/= <<>> ->
+            {iolist_to_binary(Key), iolist_to_binary(Value)};
         _ ->
             undefined
     end.
 
-split(Pair) ->
-    case string:split(Pair, "=") of
-        [Key, Value] ->
-            {iolist_to_binary(Key), iolist_to_binary(Value)};
-        [Key] ->
-            {iolist_to_binary(Key), <<>>}
-    end.
-
+%% note: version ff (255) not allowed by spec
 decode(TraceContext) when is_list(TraceContext) ->
     decode(list_to_binary(TraceContext));
-decode(<<?VERSION, "-", TraceId:32/binary, "-", SpanId:16/binary, _/binary>>)
+decode(<<_:2/binary, "-", TraceId:32/binary, "-", SpanId:16/binary, _/binary>>)
   when TraceId =:= ?ZERO_TRACEID orelse SpanId =:= ?ZERO_SPANID ->
     undefined;
-decode(<<?VERSION, "-", TraceId:32/binary, "-", SpanId:16/binary, "-", Opts:2/binary, _/binary>>) ->
+decode(<<Version:2/binary, "-", TraceId:32/binary, "-", SpanId:16/binary, "-", Opts:2/binary>>)
+  when Version >= ?VERSION andalso Version =/= <<"ff">> ->
+    to_span_ctx(Version, TraceId, SpanId, Opts);
+%% future versions could have more after Opts, so allow for a trailing -
+decode(<<Version:2/binary, "-", TraceId:32/binary, "-", SpanId:16/binary, "-", Opts:2/binary, "-", _/binary>>)
+  when Version > ?VERSION andalso Version =/= <<"ff">> ->
+        to_span_ctx(Version, TraceId, SpanId, Opts);
+decode(_) ->
+    undefined.
+
+to_span_ctx(Version, TraceId, SpanId, Opts) ->
     try
+        %% verify version is hexadecimal
+        _ = binary_to_integer(Version, 16),
         #span_ctx{trace_id=binary_to_integer(TraceId, 16),
                   span_id=binary_to_integer(SpanId, 16),
-                  trace_flags=case Opts of <<"01">> -> 1; _ -> 0 end}
+                  trace_flags=case Opts of <<"01">> -> 1; <<"00">> -> 0; _ -> error(badarg) end}
     catch
         %% to integer from base 16 string failed
         error:badarg ->
             undefined
-    end;
-decode(_) ->
+    end.
+
+tracestate_decode(Value) ->
+    parse_pairs(string:lexemes(Value, [$,])).
+
+parse_pairs(Pairs) when length(Pairs) =< ?MAX_TRACESTATE_PAIRS ->
+    parse_pairs(Pairs, []);
+parse_pairs(_) ->
     undefined.
+
+parse_pairs([], Acc) ->
+    Acc;
+parse_pairs([Pair | Rest], Acc) ->
+    case split(string:trim(Pair)) of
+        {K, V} ->
+            case re:run(K, ?KEY_MP) =/= nomatch
+                andalso not lists:keymember(K, 1, Acc)
+                andalso re:run(V, ?VALUE_MP) =/= nomatch
+            of
+                false ->
+                    undefined;
+                true ->
+                    parse_pairs(Rest, Acc ++ [{K, V}])
+            end;
+        undefined ->
+            undefined
+    end.

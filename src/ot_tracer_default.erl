@@ -40,21 +40,29 @@
 -spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts())
                 -> opentelemetry:span_ctx().
 start_span(Tracer, Name, Opts) when is_map_key(sampler, Opts) ->
-    case ot_ctx:get_value(?TRACER_KEY, ?SPAN_CTX) of
-        {SpanCtx, _}=Ctx ->
-            Processors = on_start(Tracer),
-            SpanCtx1 = ot_span_ets:start_span(Name, Opts#{parent => SpanCtx}, Processors),
-            ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, {SpanCtx1, Ctx}),
-            SpanCtx1;
-        _ ->
-            Processors = on_start(Tracer),
-            SpanCtx = ot_span_ets:start_span(Name, Opts#{parent => undefined}, Processors),
-            ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, {SpanCtx, undefined}),
-            SpanCtx
-    end;
+    start_span_(Tracer, Name, Opts);
 start_span(Tracer={_, #tracer{sampler=Sampler}}, Name, Opts) ->
     start_span(Tracer, Name, Opts#{sampler => Sampler}).
 
+start_span_(Tracer, Name, Opts) when is_map_key(parent, Opts) ->
+    Processors = on_start(Tracer),
+    case maps:get(parent, Opts) of
+        {ParentSpanCtx, _}=Ctx ->
+            SpanCtx1 = ot_span_ets:start_span(Name, Opts#{parent => ParentSpanCtx}, Processors),
+            ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, {SpanCtx1, Ctx}),
+            SpanCtx1;
+        ParentSpanCtx ->
+            SpanCtx1 = ot_span_ets:start_span(Name, Opts, Processors),
+            ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, {SpanCtx1, {ParentSpanCtx, undefined}}),
+            SpanCtx1
+    end;
+start_span_(Tracer, Name, Opts) ->
+    case ot_ctx:get_value(?TRACER_KEY, ?SPAN_CTX) of
+        {_SpanCtx, _}=ParentCtx ->
+            start_span_(Tracer, Name, Opts#{parent => ParentCtx});
+        _ ->
+            start_span_(Tracer, Name, Opts#{parent => undefined})
+    end.
 
 on_start({_, #tracer{processors=Processors}}) ->
     fun(Span) -> [P:on_start(Span, Config) || {P, Config} <- Processors] end.
