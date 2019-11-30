@@ -44,7 +44,8 @@ init(Opts) ->
 
     Tracer = #tracer{module=ot_tracer_default,
                      sampler=SamplerFun,
-                     processors=Processors,
+                     on_start_processors=on_start(Processors),
+                     on_end_processors=on_end(Processors),
                      span_module=ot_span_ets,
                      ctx_module=ot_ctx_pdict},
     opentelemetry:set_default_tracer({ot_tracer_default, Tracer}),
@@ -60,3 +61,11 @@ handle_call(_Msg, _From, State) ->
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
+
+%%
+
+on_start(Processors) ->
+    fun(Span) -> [P:on_start(Span, Config) || {P, Config} <- Processors] end.
+
+on_end(Processors) ->
+    fun(Span) -> [P:on_end(Span, Config) || {P, Config} <- Processors] end.

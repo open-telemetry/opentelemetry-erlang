@@ -23,7 +23,6 @@
          with_span/2,
          with_span/3,
          end_span/1,
-         on_end/1,
          current_span_ctx/1,
          b3_propagators/0,
          w3c_propagators/0]).
@@ -44,8 +43,7 @@ start_span(Tracer, Name, Opts) when is_map_key(sampler, Opts) ->
 start_span(Tracer={_, #tracer{sampler=Sampler}}, Name, Opts) ->
     start_span(Tracer, Name, Opts#{sampler => Sampler}).
 
-start_span_(Tracer, Name, Opts) when is_map_key(parent, Opts) ->
-    Processors = on_start(Tracer),
+start_span_({_, #tracer{on_start_processors=Processors}}, Name, Opts) when is_map_key(parent, Opts) ->
     case maps:get(parent, Opts) of
         {ParentSpanCtx, _}=Ctx ->
             SpanCtx1 = ot_span_ets:start_span(Name, Opts#{parent => ParentSpanCtx}, Processors),
@@ -63,12 +61,6 @@ start_span_(Tracer, Name, Opts) ->
         _ ->
             start_span_(Tracer, Name, Opts#{parent => undefined})
     end.
-
-on_start({_, #tracer{processors=Processors}}) ->
-    fun(Span) -> [P:on_start(Span, Config) || {P, Config} <- Processors] end.
-
-on_end({_, #tracer{processors=Processors}}) ->
-    fun(Span) -> [P:on_end(Span, Config) || {P, Config} <- Processors] end.
 
 -spec with_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
 with_span(_Tracer, SpanCtx) ->
@@ -120,9 +112,8 @@ w3c_propagators() ->
 %% @end
 %%--------------------------------------------------------------------
 -spec end_span(opentelemetry:tracer()) -> ok.
-end_span(Tracer) ->
+end_span({_, #tracer{on_end_processors=Processors}}) ->
     {SpanCtx, ParentCtx} = current_ctx(),
-    Processors = on_end(Tracer),
     ot_span_ets:end_span(SpanCtx, Processors),
     ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, ParentCtx),
     ok.
