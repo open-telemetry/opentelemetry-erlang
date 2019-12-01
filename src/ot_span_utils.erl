@@ -24,19 +24,10 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("ot_sampler.hrl").
 
--type start_opts() :: #{parent => undefined | opentelemetry:span() | opentelemetry:span_ctx(),
-                        sampler := ot_sampler:sampler(),
-                        sampling_hint => ot_sampler:sampling_decision(),
-                        links => opentelemetry:links(),
-                        is_recorded => boolean(),
-                        kind => opentelemetry:span_kind()}.
-
--export_type([start_opts/0]).
-
 %% sampling bit is the first bit in 8-bit trace options
 -define(IS_ENABLED(X), (X band 1) =/= 0).
 
--spec start_span(opentelemetry:span_name(), start_opts())
+-spec start_span(opentelemetry:span_name(), ot_span:start_opts())
                 -> {opentelemetry:span_ctx(), opentelemetry:span() | undefined}.
 start_span(Name, Opts) ->
     Parent = maps:get(parent, Opts, undefined),
@@ -45,17 +36,18 @@ start_span(Name, Opts) ->
     Kind = maps:get(kind, Opts, ?SPAN_KIND_UNSPECIFIED),
     Sampler = maps:get(sampler, Opts),
     SamplingHint = maps:get(sampler_hint, Opts, undefined),
-    new_span(Name, Parent, Sampler, SamplingHint, Kind, Attributes, Links).
+    StartTime = maps:get(start_time, Opts, wts:timestamp()),
+    new_span(Name, Parent, Sampler, SamplingHint, StartTime, Kind, Attributes, Links).
 
 %% if parent is undefined create a new trace id
-new_span(Name, undefined, Sampler, SamplingHint, Kind, Attributes, Links) ->
+new_span(Name, undefined, Sampler, SamplingHint, StartTime, Kind, Attributes, Links) ->
     TraceId = opentelemetry:generate_trace_id(),
     Span = #span_ctx{trace_id=TraceId,
                      trace_flags=0},   
-    new_span(Name, Span, Sampler, SamplingHint, Kind, Attributes, Links);
+    new_span(Name, Span, Sampler, SamplingHint, StartTime, Kind, Attributes, Links);
 new_span(Name, Parent=#span_ctx{trace_id=TraceId,
                                 tracestate=Tracestate,
-                                span_id=ParentSpanId}, Sampler, SamplingHint, Kind, Attributes, Links) ->
+                                span_id=ParentSpanId}, Sampler, SamplingHint, StartTime, Kind, Attributes, Links) ->
     SpanId = opentelemetry:generate_span_id(),
     SpanCtx = Parent#span_ctx{span_id=SpanId},
 
@@ -71,7 +63,7 @@ new_span(Name, Parent=#span_ctx{trace_id=TraceId,
     Span = #span{trace_id=TraceId,
                  span_id=SpanId,
                  tracestate=Tracestate,
-                 start_time=wts:timestamp(),
+                 start_time=StartTime,
                  parent_span_id=ParentSpanId,
                  kind=Kind,
                  name=Name,

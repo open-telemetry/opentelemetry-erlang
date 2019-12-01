@@ -47,6 +47,8 @@ end_per_testcase(_, _Config) ->
 child_spans(Config) ->
     Tid = ?config(tid, Config),
 
+    EarlierTimestamp = wts:timestamp(),
+
     %% start a span and 2 children
     SpanCtx1 = otel:start_span(<<"span-1">>),
     SpanCtx2 = otel:start_span(<<"span-2">>),
@@ -62,7 +64,8 @@ child_spans(Config) ->
     ?assertMatch(SpanCtx2, otel:current_span_ctx()),
 
     %% start another child of the 2nd span
-    SpanCtx4 = otel:start_span(<<"span-4">>),
+    %% with a timestamp sent as part of the start opts
+    SpanCtx4 = otel:start_span(<<"span-4">>, #{start_time => EarlierTimestamp}),
     ?assertMatch(SpanCtx4, otel:current_span_ctx()),
 
     %% end 4th span and 2nd should be current
@@ -77,7 +80,13 @@ child_spans(Config) ->
     otel:end_span(),
     ?assertMatch(undefined, otel:current_span_ctx()),
 
-    assert_all_exported(Tid, [SpanCtx1, SpanCtx2, SpanCtx3, SpanCtx4]).
+    assert_all_exported(Tid, [SpanCtx1, SpanCtx2, SpanCtx3, SpanCtx4]),
+
+    [Span4] = ets:match_object(Tid, #span{trace_id=SpanCtx4#span_ctx.trace_id,
+                                          span_id=SpanCtx4#span_ctx.span_id,
+                                          _='_'}),
+
+    ?assertEqual(EarlierTimestamp, Span4#span.start_time).
 
 update_span_data(Config) ->
     Tid = ?config(tid, Config),
