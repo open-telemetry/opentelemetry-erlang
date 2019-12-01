@@ -33,6 +33,7 @@
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("ot_span_ets.hrl").
+-include("ot_tracer.hrl").
 -include_lib("kernel/include/logger.hrl").
 
 -record(data, {interval :: integer() | infinity,
@@ -161,6 +162,5 @@ expired_match_spec(Time, Return) ->
 end_span(Span=#span{tracestate=Tracestate}) ->
     %% hack to not lose tracestate when ending without span ctx
     Span1 = ot_span_utils:end_span(Span#span{tracestate=Tracestate}),
-    Tracer = opentelemetry:get_tracer(),
-    Processors = ot_tracer_default:on_end(Tracer),
+    {_, #tracer{on_end_processors=Processors}} = opentelemetry:get_tracer(),
     Processors(Span1).

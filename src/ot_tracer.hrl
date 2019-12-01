@@ -7,6 +7,7 @@
                  module :: module(),
                  span_module :: module(),
                  ctx_module :: module(),
-                 processors :: [{module(), term()}],
+                 on_start_processors :: fun((opentelemetry:span()) -> opentelemetry:span()),
+                 on_end_processors :: fun((opentelemetry:span()) -> boolean() | {error, term()}),
                  sampler :: ot_sampler:sampler(),
                  resource :: term() | undefined}).
