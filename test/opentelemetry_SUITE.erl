@@ -139,7 +139,8 @@ propagation(_Config) ->
 
     ?assertEqual(undefined, otel:current_span_ctx()),
 
-    BinaryHeaders = [{Key, iolist_to_binary(Value)} || {Key, Value} <- Headers],
+    %% make header keys uppercase to validate the extractor is case insensitive
+    BinaryHeaders = [{string:uppercase(Key), iolist_to_binary(Value)} || {Key, Value} <- Headers],
     ot_propagation:http_extract(BinaryHeaders),
     ?assertSpanCtxsEqual(SpanCtx1, otel:current_span_ctx()),
 

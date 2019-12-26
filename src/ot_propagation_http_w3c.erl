@@ -67,9 +67,9 @@ encode_tracestate(#span_ctx{tracestate=Entries}) ->
 
 -spec extract(ot_propagation:http_headers(), term()) -> opentelemetry:span_ctx() | undefined.
 extract(Headers, _) when is_list(Headers) ->
-    case lists:keytake(?HEADER_KEY, 1, Headers) of
-        {value, {_, Value}, RestHeaders} ->
-            case lists:keymember(?HEADER_KEY, 1, RestHeaders) of
+    case header_take(?HEADER_KEY, Headers) of
+        [{_, Value} | RestHeaders] ->
+            case header_member(?HEADER_KEY, RestHeaders) of
                 true ->
                     %% duplicate traceparent header found
                     undefined;
@@ -99,7 +99,7 @@ tracestate_from_headers(Headers) ->
 
 combine_headers(Key, Headers) ->
     lists:foldl(fun({K, V}, Acc) ->
-                        case string:equal(K, Key) of
+                        case string:equal(Key, string:casefold(K)) of
                             true ->
                                 [Acc,  $, | V];
                             false ->
@@ -169,3 +169,14 @@ parse_pairs([Pair | Rest], Acc) ->
         undefined ->
             undefined
     end.
+%%
+
+header_take(Key, Headers) ->
+    lists:dropwhile(fun({K, _}) ->
+                            not string:equal(Key, string:casefold(K))
+                    end, Headers).
+
+header_member(_, []) ->
+    false;
+header_member(Key, [{K, _} | T]) ->
+    string:equal(Key, string:casefold(K)) orelse header_member(Key, T).
