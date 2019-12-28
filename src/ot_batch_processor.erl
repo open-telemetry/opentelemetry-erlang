@@ -59,7 +59,7 @@
 %% spans that have been collected so far and the configuration returned in `init'.
 %% Do whatever needs to be done to export each span here, the caller will block
 %% until it returns.
--callback export(ets:tid(), opts()) -> ok | success | failed_not_retryable | failed_retryable.
+-callback export(ets:tab(), opts()) -> ok | success | failed_not_retryable | failed_retryable.
 
 -record(data, {exporter             :: {module(), term()} | undefined,
                resource             :: ot_resource:t(),
