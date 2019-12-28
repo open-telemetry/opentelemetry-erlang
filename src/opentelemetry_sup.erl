@@ -41,6 +41,14 @@ init([Opts]) ->
                      type => worker,
                      modules => [ot_tracer_provider, ot_tracer_server]},
 
+    %%
+    MetricSup = #{id => ot_metric_sup,
+                  start => {ot_metric_sup, start_link, [Opts]},
+                  restart => permanent,
+                  shutdown => 5000,
+                  type => supervisor,
+                  modules => [ot_metric_sup]},
+
     Processors = proplists:get_value(processors, Opts, []),
     BatchProcessorOpts = proplists:get_value(ot_batch_processor, Processors, #{}),
     BatchProcessor = #{id => ot_batch_processor,
@@ -57,5 +65,5 @@ init([Opts]) ->
                 shutdown => 5000,
                 modules => [ot_span_sup]},
 
-    ChildSpecs = [BatchProcessor, SpanSup, TracerServer],
+    ChildSpecs = [MetricSup, BatchProcessor, SpanSup, TracerServer],
     {ok, {SupFlags, ChildSpecs}}.
