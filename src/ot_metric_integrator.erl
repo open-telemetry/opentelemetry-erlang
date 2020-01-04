@@ -37,8 +37,8 @@ start_link(Opts) ->
 
 read() ->
     Tab = ?ACTIVE_TAB, %% ot_metric_accumulator:active_table(),
-    MeasureTab = ?ACTIVE_MEASURE_TAB, %% ot_metric_accumulator:active_measure_table(),
-    [read(T) || T <- [Tab, MeasureTab]].
+    _MeasureTab = ?ACTIVE_MEASURE_TAB, %% ot_metric_accumulator:active_measure_table(),
+    [read(T) || T <- [Tab]].
 
 read(Tab) ->
     ets:foldl(fun(#active_instrument{key={Name, LabelSet},

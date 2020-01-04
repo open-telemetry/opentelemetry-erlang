@@ -85,6 +85,7 @@ handle_call(collect, _From, State) ->
     ot_metric_aggregator_counter:checkpoint(?ACTIVE_TAB),
     ot_metric_aggregator_gauge:checkpoint(?ACTIVE_TAB),
     ot_metric_aggregator_measure:checkpoint(?ACTIVE_MEASURE_TAB),
+    ot_metric_aggregator_mmsc:checkpoint(?ACTIVE_TAB),
     {reply, ok, State};
 handle_call(_Msg, _From, State) ->
     {noreply, State}.
@@ -99,7 +100,8 @@ aggregator(#instrument{kind=counter}) ->
 aggregator(#instrument{kind=gauge}) ->
     ot_metric_aggregator_gauge;
 aggregator(#instrument{kind=measure}) ->
-    ot_metric_aggregator_measure.
+    ot_metric_aggregator_mmsc.
+    %% ot_metric_aggregator_measure.
 
 table(ot_metric_aggregator_measure) ->
     ?ACTIVE_MEASURE_TAB;
