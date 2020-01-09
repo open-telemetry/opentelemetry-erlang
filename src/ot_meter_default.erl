@@ -49,15 +49,15 @@ new_instruments(_Meter, List) ->
 labels(_Meter, Labels) ->
     Labels.
 
--spec record(opentelemetry:meter(), ot_meter:bound_instrument(), number()) -> ok.
+-spec record(opentelemetry:meter(), ot_meter:bound_instrument(), number()) -> boolean().
 record(Meter, BoundInstrument, Number) ->
     ok.
 
--spec record(opentelemetry:meter(), ot_meter:name(), number(), ot_meter:label_set()) -> ok.
+-spec record(opentelemetry:meter(), ot_meter:name(), number(), ot_meter:label_set()) -> boolean().
 record(_Meter, Name, Number, LabelSet) ->
     ot_metric_accumulator:record(Name, LabelSet, Number).
 
--spec record_batch(opentelemetry:meter(), [{ot_meter:name(), number()}], ot_meter:label_set()) -> ok.
+-spec record_batch(opentelemetry:meter(), [{ot_meter:name(), number()}], ot_meter:label_set()) -> boolean().
 record_batch(_Meter, Measures, LabelSet) ->
     ok.
 
@@ -66,8 +66,8 @@ release(Meter, BoundInstrument) ->
     ok.
 
 -spec bind(opentelemetry:meter(), instrument(), ot_meter:label_set()) -> ot_meter:bound_instrument().
-bind(Meter={Module, _}, Instrument, LabelSet) ->
-    Module:bind(Meter, Instrument, LabelSet).
+bind(Meter, Instrument, LabelSet) ->
+    bind_instrument(Meter, Instrument, LabelSet).
 
 -spec lookup(ot_meter:name()) -> instrument() | unknown_instrument.
 lookup(Name) ->
@@ -114,3 +114,25 @@ handle_cast(_Msg, State) ->
     {noreply, State}.
 
 %%
+
+bind_instrument(_Meter, Instrument=#instrument{kind=counter}, LabelSet) ->
+    bind_counter(Instrument, LabelSet);
+bind_instrument(_Meter, Instrument=#instrument{kind=gauge}, LabelSet) ->
+    bind_gauge(Instrument, LabelSet);
+bind_instrument(_Meter, Instrument=#instrument{kind=measure}, LabelSet) ->
+    bind_measure(Instrument, LabelSet).
+
+bind_counter(Instrument=#instrument{input_type=integer}, LabelSet) ->
+    %% TODO: use a counter ref here instead
+    ot_metric_accumulator:lookup_counter(Instrument, LabelSet);
+bind_counter(Instrument=#instrument{input_type=float}, LabelSet) ->
+    ot_metric_accumulator:lookup_counter(Instrument, LabelSet).
+
+bind_gauge(Instrument=#instrument{input_type=integer}, LabelSet) ->
+    %% TODO: use an atomic ref here instead
+    ot_metric_accumulator:lookup_gauge(Instrument, LabelSet);
+bind_gauge(Instrument=#instrument{input_type=float}, LabelSet) ->
+    ot_metric_accumulator:lookup_gauge(Instrument, LabelSet).
+
+bind_measure(Instrument, LabelSet) ->
+    ot_metric_accumulator:lookup_measure(Instrument, LabelSet).

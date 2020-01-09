@@ -63,13 +63,13 @@ init([Opts]) ->
                        modules => [ot_metric_exporter]},
 
     %% TODO: remove this, it should not be enabled by default
-    ControllerOpts = proplists:get_value(controller, Opts, #{}),
-    Controller = #{id => ot_metric_controller,
-                   start => {ot_metric_controller_push, start_link, [ControllerOpts]},
-                   restart => permanent,
-                   shutdown => 5000,
-                   type => worker,
-                   modules => [ot_metric_controller_push]},
+    %% ControllerOpts = proplists:get_value(controller, Opts, #{}),
+    %% Controller = #{id => ot_metric_controller,
+    %%                start => {ot_metric_controller_push, start_link, [ControllerOpts]},
+    %%                restart => permanent,
+    %%                shutdown => 5000,
+    %%                type => worker,
+    %%                modules => [ot_metric_controller_push]},
 
-    ChildSpecs = [Meter, MetricExporter, MetricIntegrator, MetricAccumulator, Controller],
+    ChildSpecs = [Meter, MetricExporter, MetricIntegrator, MetricAccumulator],
     {ok, {SupFlags, ChildSpecs}}.

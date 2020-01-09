@@ -23,8 +23,12 @@
 
 -export([start_link/1,
          active_table/0,
+         record/2,
          record/3,
-         collect/0]).
+         collect/0,
+         lookup_counter/2,
+         lookup_gauge/2,
+         lookup_measure/2]).
 
 -export([init/1,
          handle_call/3,
@@ -43,7 +47,12 @@ start_link(Opts) ->
 active_table() ->
     ?ACTIVE_TAB.
 
--spec record(ot_meter:name(), ot_meter:label_set(), number()) -> ok.
+-spec record(ot_meter:bound_instrument(), number()) -> boolean().
+record({Tab, Active=#active_instrument{instrument=#instrument{input_type=InputType},
+                                       aggregator=Aggregator}}, Number) ->
+    Aggregator:update(Tab, InputType, Active, Number).
+
+-spec record(ot_meter:name(), ot_meter:label_set(), number()) -> boolean() | unknown_instrument.
 record(Name, LabelSet, Number) ->
     case lookup(Name, LabelSet) of
         unknown_instrument ->
@@ -51,6 +60,31 @@ record(Name, LabelSet, Number) ->
         {Tab, Active=#active_instrument{instrument=#instrument{input_type=InputType},
                                         aggregator=Aggregator}} ->
             Aggregator:update(Tab, InputType, Active, Number)
+    end.
+
+
+lookup_counter(Instrument=#instrument{name=Name}, LabelSet) ->
+    case ets:lookup(?ACTIVE_TAB, {Name, LabelSet}) of
+        [ActiveInstrument] ->
+            {?ACTIVE_TAB, ActiveInstrument};
+        [] ->
+            add_active_instrument(Instrument, Name, LabelSet)
+    end.
+
+lookup_gauge(Instrument=#instrument{name=Name}, LabelSet) ->
+    case ets:lookup(?ACTIVE_TAB, {Name, LabelSet}) of
+        [ActiveInstrument] ->
+            {?ACTIVE_TAB, ActiveInstrument};
+        [] ->
+            add_active_instrument(Instrument, Name, LabelSet)
+    end.
+
+lookup_measure(Instrument=#instrument{name=Name}, LabelSet) ->
+    case ets:lookup(?ACTIVE_MEASURE_TAB, {Name, LabelSet}) of
+        [ActiveInstrument] ->
+            {?ACTIVE_MEASURE_TAB, ActiveInstrument};
+        [] ->
+            add_active_instrument(Instrument, Name, LabelSet)
     end.
 
 collect()->
@@ -66,15 +100,15 @@ init(_Opts) ->
                                {read_concurrency, true},
                                {keypos, #active_instrument.key}]),
             _ = ets:new(?ACTIVE_TAB, [named_table,
-                                       public,
-                                       {keypos, #active_instrument.key},
-                                       {write_concurrency, true},
-                                       ordered_set]),
+                                      public,
+                                      {keypos, #active_instrument.key},
+                                      {write_concurrency, true},
+                                      ordered_set]),
             _ = ets:new(?ACTIVE_MEASURE_TAB, [named_table,
-                                               public,
-                                               {keypos, #active_instrument.key},
-                                               {write_concurrency, true},
-                                               duplicate_bag]);
+                                              public,
+                                              {keypos, #active_instrument.key},
+                                              {write_concurrency, true},
+                                              duplicate_bag]);
         _ ->
             ok
     end,
