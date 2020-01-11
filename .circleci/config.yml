@@ -18,6 +18,20 @@ jobs:
       - codecov/upload:
           file: _build/test/covertool/opentelemetry.covertool.xml
 
+  run_benchmarks:
+    docker:
+    - image: circleci/elixir:1.9
+    steps:
+    - checkout
+
+    - run: |
+        mix local.hex --force
+        mix local.rebar --force
+
+        rebar3 as bench compile
+
+        ERL_LIBS=_build/bench/lib/ mix run --no-mix-exs samples/run.exs
+
 erlang22: &erlang22
   executor:
     name: rebar3/erlang
@@ -58,3 +72,7 @@ workflows:
           <<: *erlang22
           requires:
             - rebar3/cover
+
+  benchmarks:
+    jobs:
+      - run_benchmarks
