@@ -37,34 +37,35 @@ start_span(Name, Opts) ->
     Sampler = maps:get(sampler, Opts),
     SamplingHint = maps:get(sampler_hint, Opts, undefined),
     StartTime = maps:get(start_time, Opts, wts:timestamp()),
-    new_span(Name, Parent, Sampler, SamplingHint, StartTime, Kind, Attributes, Links).
+    new_span(Name, Parent, Parent, Sampler, SamplingHint, StartTime, Kind, Attributes, Links).
 
 %% if parent is undefined create a new trace id
-new_span(Name, undefined, Sampler, SamplingHint, StartTime, Kind, Attributes, Links) ->
+new_span(Name, undefined, Parent, Sampler, SamplingHint, StartTime, Kind, Attributes, Links) ->
     TraceId = opentelemetry:generate_trace_id(),
     Span = #span_ctx{trace_id=TraceId,
-                     trace_flags=0},   
-    new_span(Name, Span, Sampler, SamplingHint, StartTime, Kind, Attributes, Links);
-new_span(Name, Parent=#span_ctx{trace_id=TraceId,
+                     trace_flags=0},
+    new_span(Name, Span, Parent, Sampler, SamplingHint, StartTime, Kind, Attributes, Links);
+new_span(Name, Current=#span_ctx{trace_id=TraceId,
                                 tracestate=Tracestate,
-                                span_id=ParentSpanId}, Sampler, SamplingHint, StartTime, Kind, Attributes, Links) ->
+                                span_id=CurrentSpanId}, Parent, Sampler, SamplingHint, StartTime, Kind, Attributes, Links) ->
     SpanId = opentelemetry:generate_span_id(),
-    SpanCtx = Parent#span_ctx{span_id=SpanId},
+    SpanCtx = Current#span_ctx{span_id=SpanId,
+                               parent=Parent},
 
     {TraceFlags, IsRecorded, SamplerAttributes} =
-        sample(Sampler, TraceId, SpanId, case Parent of
+        sample(Sampler, TraceId, SpanId, case Current of
                                              #span_ctx{span_id=undefined} ->
                                                  undefined;
                                              _ ->
-                                                 Parent
+                                                 Current
                                          end,
                SamplingHint, Links, Name, Kind, Attributes),
-    
+
     Span = #span{trace_id=TraceId,
                  span_id=SpanId,
                  tracestate=Tracestate,
                  start_time=StartTime,
-                 parent_span_id=ParentSpanId,
+                 parent_span_id=CurrentSpanId,
                  kind=Kind,
                  name=Name,
                  attributes=Attributes++SamplerAttributes,
@@ -90,7 +91,7 @@ end_span(Span) ->
 %%
 
 sample({Sampler, Opts}, TraceId, SpanId, Parent, SamplingHint, Links, SpanName, Kind, Attributes) ->
-    {Decision, Attributes} = Sampler(TraceId, SpanId, Parent, SamplingHint, 
+    {Decision, Attributes} = Sampler(TraceId, SpanId, Parent, SamplingHint,
                                      Links, SpanName, Kind, Attributes, Opts),
     case Decision of
         ?NOT_RECORD ->
