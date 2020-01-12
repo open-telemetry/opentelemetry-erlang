@@ -65,11 +65,6 @@
           %% 64 bit int parent span
           parent_span_id                          :: opentelemetry:span_id() | undefined,
 
-          %% An optional resource that is associated with this span. If not set, this span
-          %% should be part of a batch that does include the resource information, unless resource
-          %% information is unknown.
-          resource                                :: opentelemetry:resource() | undefined,
-
           %% name of the span
           name                                    :: unicode:unicode_binary(),
 
