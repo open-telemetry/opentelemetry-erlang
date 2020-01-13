@@ -34,7 +34,6 @@
 
 -define(TRACER_KEY, '$__ot_tracer_ctx_key').
 
--type pdict_trace_ctx() :: {opentelemetry:span_ctx(), pdict_trace_ctx() | undefined}.
 
 -spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts())
                 -> opentelemetry:span_ctx().
@@ -90,7 +89,7 @@ current_span_ctx(_Tracer) ->
 %% Internal function that returns the current trace context.
 %% The pdict ctx stores both the current span ctx and the
 %% parent trace context, which contains its parent and so on.
--spec current_ctx() -> pdict_trace_ctx().
+-spec current_ctx() -> tracer_ctx().
 current_ctx() ->
     ot_ctx:get_value(?TRACER_KEY, ?SPAN_CTX).
 

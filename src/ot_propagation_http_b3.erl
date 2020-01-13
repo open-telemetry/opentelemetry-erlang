@@ -21,6 +21,7 @@
          extract/2]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include("ot_tracer.hrl").
 
 -define(B3_TRACE_ID, <<"X-B3-TraceId">>).
 -define(B3_SPAN_ID, <<"X-B3-SpanId">>).
@@ -28,12 +29,11 @@
 
 -define(IS_SAMPLED(S), S =:= "1" orelse S =:= <<"1">> orelse S =:= "true" orelse S =:= <<"true">>).
 
--spec inject(ot_propagation:http_headers(),
-             {opencensus:span_ctx(), opentelemetry:span_ctx() | undefined} | undefined)
+-spec inject(ot_propagation:http_headers(), tracer_ctx() | undefined)
             -> ot_propagation:http_headers().
-inject(_, {#span_ctx{trace_id=TraceId,
-                     span_id=SpanId}, _}) when TraceId =:= 0
-                                               ; SpanId =:= 0 ->
+inject(_, #tracer_ctx{active=#span_ctx{trace_id=TraceId,
+                                       span_id=SpanId}}) when TraceId =:= 0
+                                                              ; SpanId =:= 0 ->
     [];
 inject(_, {#span_ctx{trace_id=TraceId,
                      span_id=SpanId,

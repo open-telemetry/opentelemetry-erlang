@@ -38,9 +38,8 @@
 
 -define(MAX_TRACESTATE_PAIRS, 32).
 
--spec inject(ot_propagation:http_headers(),
-                 {opentelemetry:span_ctx(), opentelemetry:span_ctx() | undefined} | undefined)
-                -> ot_propagation:http_headers().
+-spec inject(ot_propagation:http_headers(), tracer_ctx() | undefined)
+            -> ot_propagation:http_headers().
 inject(_, #tracer_ctx{active=#span_ctx{trace_id=TraceId,
                                        span_id=SpanId},
                       parent=_})

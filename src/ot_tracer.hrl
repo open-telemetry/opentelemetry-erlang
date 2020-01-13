@@ -14,3 +14,4 @@
 
 -record(tracer_ctx, {active :: opentelemetry:span_ctx() | undefined,
                      parent :: #tracer_ctx{} | undefined}).
+-type tracer_ctx() :: #tracer_ctx{}.
