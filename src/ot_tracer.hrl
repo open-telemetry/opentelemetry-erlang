@@ -11,3 +11,6 @@
                  on_end_processors :: fun((opentelemetry:span()) -> boolean() | {error, term()}),
                  sampler :: ot_sampler:sampler(),
                  resource :: term() | undefined}).
+
+-record(tracer_ctx, {active :: opentelemetry:span_ctx() | undefined,
+                     parent :: #tracer_ctx{} | undefined}).

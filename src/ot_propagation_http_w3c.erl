@@ -23,6 +23,7 @@
          decode/1]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include("ot_tracer.hrl").
 
 -define(VERSION, <<"00">>).
 
@@ -40,11 +41,13 @@
 -spec inject(ot_propagation:http_headers(),
                  {opentelemetry:span_ctx(), opentelemetry:span_ctx() | undefined} | undefined)
                 -> ot_propagation:http_headers().
-inject(_, {#span_ctx{trace_id=TraceId,
-                     span_id=SpanId}, _})
+inject(_, #tracer_ctx{active=#span_ctx{trace_id=TraceId,
+                                       span_id=SpanId},
+                      parent=_})
   when TraceId =:= 0 orelse SpanId =:= 0 ->
     [];
-inject(_, {SpanCtx=#span_ctx{}, _}) ->
+inject(_, #tracer_ctx{active=SpanCtx=#span_ctx{},
+                      parent=_}) ->
     EncodedValue = encode(SpanCtx),
     [{?HEADER_KEY, EncodedValue} | encode_tracestate(SpanCtx)];
 inject(_, undefined) ->
@@ -79,7 +82,8 @@ extract(Headers, _) when is_list(Headers) ->
                             undefined;
                         SpanCtx ->
                             Tracestate = tracestate_from_headers(Headers),
-                            {SpanCtx#span_ctx{tracestate=Tracestate}, undefined}
+                            #tracer_ctx{active=SpanCtx#span_ctx{tracestate=Tracestate},
+                                        parent=undefined}
                     end
             end;
         _ ->
