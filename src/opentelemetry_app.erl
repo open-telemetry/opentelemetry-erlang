@@ -19,18 +19,16 @@
 
 -behaviour(application).
 
--export([start/2, stop/1]).
+-export([start/2,
+         stop/1]).
 
 start(_StartType, _StartArgs) ->
     Opts = application:get_all_env(opentelemetry),
     opentelemetry:set_default_context_manager({ot_ctx_pdict, []}),
 
-    {CorrelationsHttpExtractor, CorrelationsHttpInjector} = ot_correlations:get_http_propagators(),
-    {W3CHttpExtractor, W3CHttpInjector} = ot_tracer_default:w3c_propagators(),
-    opentelemetry:set_http_extractor([CorrelationsHttpExtractor,
-                                      W3CHttpExtractor]),
-    opentelemetry:set_http_injector([CorrelationsHttpInjector,
-                                     W3CHttpInjector]),
+    %% set the global propagators for HTTP based on the application env
+    %% must be done *after* the context manager has been set
+    setup_http_propagators(Opts),
 
     opentelemetry_sup:start_link(Opts).
 
@@ -38,3 +36,15 @@ stop(_State) ->
     ok.
 
 %% internal functions
+
+setup_http_propagators(Opts) ->
+    Propagators = proplists:get_value(http_propagators, Opts, []),
+
+    {Extractors, Injectors} =
+        lists:foldl(fun(F, {ExtractorsAcc, InjectorsAcc}) ->
+                            {Extractor, Injector} = F(),
+                            {[Extractor | ExtractorsAcc], [Injector | InjectorsAcc]}
+                    end, {[], []}, Propagators),
+
+    opentelemetry:set_http_extractor(Extractors),
+    opentelemetry:set_http_injector(Injectors).

@@ -10,14 +10,18 @@
 
 all() ->
     [{group, ot_ctx_pdict},
-     {group, ot_ctx_seqtrace}].
+     {group, ot_ctx_seqtrace},
+     {group, w3c},
+     {group, b3}].
 
 all_testcases() ->
-    [child_spans, update_span_data, propagation].
+    [child_spans, update_span_data].
 
 groups() ->
     [{ot_ctx_pdict, [shuffle], all_testcases()},
-     {ot_ctx_seqtrace, [shuffle], all_testcases()}].
+     {ot_ctx_seqtrace, [shuffle], all_testcases()},
+     {w3c, [propagation]},
+     {b3, [propagation]}].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
@@ -26,6 +30,22 @@ init_per_suite(Config) ->
 end_per_suite(_Config) ->
     ok.
 
+init_per_group(Propagator, Config) when Propagator =:= w3c ;
+                                        Propagator =:= b3 ->
+    application:set_env(opentelemetry, processors, [{ot_batch_processor, [{scheduled_delay_ms, 1}]}]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+
+    {CorrelationsHttpExtractor, CorrelationsHttpInjector} = ot_correlations:get_http_propagators(),
+    {TraceHttpExtractor, TraceHttpInjector} = case Propagator of
+                                                  w3c -> ot_tracer_default:w3c_propagators();
+                                                  b3 -> ot_tracer_default:b3_propagators()
+                                              end,
+    opentelemetry:set_http_extractor([CorrelationsHttpExtractor,
+                                      TraceHttpExtractor]),
+    opentelemetry:set_http_injector([CorrelationsHttpInjector,
+                                     TraceHttpInjector]),
+
+    [{propagator, Propagator} | Config];
 init_per_group(_CtxModule, Config) ->
     application:set_env(opentelemetry, processors, [{ot_batch_processor, [{scheduled_delay_ms, 1}]}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
@@ -121,7 +141,8 @@ update_span_data(Config) ->
                                        timed_events=TimedEvents,
                                        _='_'})).
 
-propagation(_Config) ->
+propagation(Config) ->
+    Propagator = ?config(propagator, Config),
     SpanCtx1=#span_ctx{trace_id=TraceId,
                        span_id=SpanId} = otel:start_span(<<"span-1">>),
     Headers = ot_propagation:http_inject([{<<"existing-header">>, <<"I exist">>}]),
@@ -129,9 +150,8 @@ propagation(_Config) ->
     EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
     EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
 
-    ?assertListsMatch([{<<"traceparent">>,
-                        [<<"00">>, "-", EncodedTraceId,"-", EncodedSpanId, "-", <<"01">>]},
-                       {<<"existing-header">>, <<"I exist">>}], Headers),
+    ?assertListsMatch([{<<"existing-header">>, <<"I exist">>} |
+                       trace_context(Propagator, EncodedTraceId, EncodedSpanId)], Headers),
 
     otel:end_span(),
 
@@ -163,3 +183,11 @@ assert_not_exported(Tid, #span_ctx{trace_id=TraceId,
     ?assertMatch([], ets:match(Tid, #span{trace_id=TraceId,
                                           span_id=SpanId,
                                           _='_'})).
+
+trace_context(w3c, EncodedTraceId, EncodedSpanId) ->
+    [{<<"traceparent">>,
+     [<<"00">>, "-", EncodedTraceId,"-", EncodedSpanId, "-", <<"01">>]}];
+trace_context(b3, EncodedTraceId, EncodedSpanId) ->
+    [{<<"X-B3-Sampled">>, "1"},
+     {<<"X-B3-SpanId">>, EncodedSpanId},
+     {<<"X-B3-TraceId">>,EncodedTraceId}].
