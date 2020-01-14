@@ -35,9 +35,9 @@ inject(_, #tracer_ctx{active=#span_ctx{trace_id=TraceId,
                                        span_id=SpanId}}) when TraceId =:= 0
                                                               ; SpanId =:= 0 ->
     [];
-inject(_, {#span_ctx{trace_id=TraceId,
-                     span_id=SpanId,
-                     trace_flags=TraceOptions}, _}) ->
+inject(_, #tracer_ctx{active=#span_ctx{trace_id=TraceId,
+                                       span_id=SpanId,
+                                       trace_flags=TraceOptions}}) ->
     Options = case TraceOptions band 1 of 1 -> "1"; _ -> "0" end,
     EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
     EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
@@ -47,15 +47,16 @@ inject(_, {#span_ctx{trace_id=TraceId,
 inject(_, undefined) ->
     [].
 
--spec extract(ot_propagation:http_headers(), term()) -> opentelemetry:span_ctx()| undefined.
+-spec extract(ot_propagation:http_headers(), term()) -> tracer_ctx() | undefined.
 extract(Headers, _) when is_list(Headers) ->
     try
         TraceId = trace_id(Headers),
         SpanId = span_id(Headers),
         Sampled = lookup(?B3_SAMPLED, Headers),
-        {#span_ctx{trace_id=string_to_integer(TraceId, 16),
-                  span_id=string_to_integer(SpanId, 16),
-                  trace_flags=case Sampled of True when ?IS_SAMPLED(True) -> 1; _ -> 0 end}, undefined}
+        #tracer_ctx{active=#span_ctx{trace_id=string_to_integer(TraceId, 16),
+                                     span_id=string_to_integer(SpanId, 16),
+                                     trace_flags=case Sampled of True when ?IS_SAMPLED(True) -> 1; _ -> 0 end},
+                    parent=undefined}
     catch
         throw:invalid ->
             undefined;
