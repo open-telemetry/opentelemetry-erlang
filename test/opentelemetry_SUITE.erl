@@ -9,7 +9,8 @@
 -include("ot_test_utils.hrl").
 
 all() ->
-    [{group, ot_ctx_pdict},
+    [stop_temporary_app,
+     {group, ot_ctx_pdict},
      {group, ot_ctx_seqtrace},
      {group, w3c},
      {group, b3}].
@@ -52,9 +53,10 @@ init_per_group(_CtxModule, Config) ->
     Config.
 
 end_per_group(_, _Config) ->
-    ok = application:stop(opentelemetry).
+    _ = application:stop(opentelemetry).
 
 init_per_testcase(_, Config) ->
+    {ok, _} = application:ensure_all_started(opentelemetry),
     %% adds an exporter for a new table
     %% spans will be exported to a separate table for each of the test cases
     Tid = ets:new(exported_spans, [public, bag]),
@@ -162,6 +164,19 @@ propagation(Config) ->
     ot_propagation:http_extract(BinaryHeaders),
     ?assertSpanCtxsEqual(SpanCtx1, otel:current_span_ctx()),
 
+    ok.
+
+stop_temporary_app(_Config) ->
+    SpanCtx1 = otel:start_span(<<"span-1">>),
+    ?assertNotMatch(#span_ctx{trace_id=0,
+                              span_id=0}, SpanCtx1),
+
+    ok = application:stop(opentelemetry),
+
+    %% stopping opentelemetry resets the tracer to a noop
+    SpanCtx2 = otel:start_span(<<"span-2">>),
+    ?assertMatch(#span_ctx{trace_id=0,
+                           span_id=0}, SpanCtx2),
     ok.
 
 %%
