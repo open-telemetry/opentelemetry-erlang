@@ -30,41 +30,45 @@
 %% tracer access functions
 -export([span_module/1]).
 
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("ot_tracer.hrl").
 
+%% the context namespace key
 -define(TRACER_KEY, '$__ot_tracer_ctx_key').
-
+%% key under the namespace for the active tracer context
+-define(SPAN_CTX, {ot_tracer_default, span_ctx}).
+%% the span context extracted with a propagator
+-define(EXTERNAL_SPAN_CTX, {ot_tracer_default, external_span_ctx}).
 
 -spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts())
                 -> opentelemetry:span_ctx().
-start_span(Tracer, Name, Opts) when is_map_key(sampler, Opts) ->
-    start_span_(Tracer, Name, Opts);
-start_span(Tracer={_, #tracer{sampler=Sampler}}, Name, Opts) ->
-    start_span(Tracer, Name, Opts#{sampler => Sampler}).
+start_span(Tracer, Name, Opts) ->
+    {ParentSpanCtx, ParentTracerCtx} = parent_span_ctx(Opts),
+    Opts1 = maybe_set_sampler(Tracer, Opts),
+    start_span(Tracer, Name, ParentTracerCtx, Opts1#{parent => ParentSpanCtx}).
 
-start_span_({_, #tracer{on_start_processors=Processors}}, Name, Opts) when is_map_key(parent, Opts) ->
-    case maps:get(parent, Opts) of
-        #tracer_ctx{active=ParentSpanCtx,
-                    parent=_}=Ctx ->
-            SpanCtx1 = ot_span_ets:start_span(Name, Opts#{parent => ParentSpanCtx}, Processors),
-            ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, #tracer_ctx{active=SpanCtx1,
-                                                                 parent=Ctx}),
-            SpanCtx1;
-        ParentSpanCtx ->
-            SpanCtx1 = ot_span_ets:start_span(Name, Opts, Processors),
-            ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, #tracer_ctx{active=SpanCtx1,
-                                                                 parent=#tracer_ctx{active=ParentSpanCtx,
-                                                                                    parent=undefined}}),
-            SpanCtx1
-    end;
-start_span_(Tracer, Name, Opts) ->
+maybe_set_sampler(_Tracer, Opts) when is_map_key(sampler, Opts) ->
+    Opts;
+maybe_set_sampler({_, #tracer{sampler=Sampler}}, Opts) ->
+    Opts#{sampler => Sampler}.
+
+start_span({_, #tracer{on_start_processors=Processors}}, Name, ParentTracerCtx, Opts) ->
+    SpanCtx1 = ot_span_ets:start_span(Name, Opts, Processors),
+    ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, #tracer_ctx{active=SpanCtx1,
+                                                         parent=ParentTracerCtx}),
+    SpanCtx1.
+
+-spec parent_span_ctx(ot_span:start_opts()) -> {opentelemetry:span_ctx(), tracer_ctx()}.
+parent_span_ctx(#{parent := ParentSpanCtx=#span_ctx{}}) ->
+    {ParentSpanCtx, ot_ctx:get_value(?TRACER_KEY, ?SPAN_CTX)};
+parent_span_ctx(_) ->
     case ot_ctx:get_value(?TRACER_KEY, ?SPAN_CTX) of
-        #tracer_ctx{active=_SpanCtx,
-                    parent=_}=ParentCtx ->
-            start_span_(Tracer, Name, Opts#{parent => ParentCtx});
+        TracerCtx=#tracer_ctx{active=ActiveSpanCtx} when ActiveSpanCtx =/= undefined ->
+            {ActiveSpanCtx, TracerCtx};
         _ ->
-            start_span_(Tracer, Name, Opts#{parent => undefined})
+            {ot_ctx:get_value(?TRACER_KEY, ?EXTERNAL_SPAN_CTX), ot_ctx:get_value(?TRACER_KEY, ?SPAN_CTX)}
     end.
+
 
 -spec with_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
 with_span(_Tracer, SpanCtx) ->
@@ -101,7 +105,7 @@ b3_propagators() ->
     ToText = fun ot_propagation_http_b3:inject/2,
     FromText = fun ot_propagation_http_b3:extract/2,
     Injector = ot_ctx:http_injector(?TRACER_KEY, ?SPAN_CTX, ToText),
-    Extractor = ot_ctx:http_extractor(?TRACER_KEY, ?SPAN_CTX, FromText),
+    Extractor = ot_ctx:http_extractor(?TRACER_KEY, ?EXTERNAL_SPAN_CTX, FromText),
     {Extractor, Injector}.
 
 -spec w3c_propagators() -> {ot_propagation:http_extractor(), ot_propagation:http_injector()}.
@@ -109,7 +113,7 @@ w3c_propagators() ->
     ToText = fun ot_propagation_http_w3c:inject/2,
     FromText = fun ot_propagation_http_w3c:extract/2,
     Injector = ot_ctx:http_injector(?TRACER_KEY, ?SPAN_CTX, ToText),
-    Extractor = ot_ctx:http_extractor(?TRACER_KEY, ?SPAN_CTX, FromText),
+    Extractor = ot_ctx:http_extractor(?TRACER_KEY, ?EXTERNAL_SPAN_CTX, FromText),
     {Extractor, Injector}.
 
 %%--------------------------------------------------------------------
@@ -121,8 +125,8 @@ w3c_propagators() ->
 -spec end_span(opentelemetry:tracer()) -> ok.
 end_span({_, #tracer{on_end_processors=Processors}}) ->
     #tracer_ctx{active=SpanCtx,
-                parent=ParentCtx} = current_ctx(),
+                parent=ParentTracerCtx} = current_ctx(),
     ot_span_ets:end_span(SpanCtx, Processors),
-    ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, ParentCtx),
+    ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, ParentTracerCtx),
     ok.
 

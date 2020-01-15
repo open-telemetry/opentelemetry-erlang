@@ -67,7 +67,7 @@ encode_tracestate(#span_ctx{tracestate=Entries}) ->
     StateHeaderValue = lists:join($,, [[Key, $=, Value] || {Key, Value} <- Entries]),
     [{?STATE_HEADER_KEY, StateHeaderValue}].
 
--spec extract(ot_propagation:http_headers(), term()) -> tracer_ctx() | undefined.
+-spec extract(ot_propagation:http_headers(), term()) -> opentelemetry:span_ctx()| undefined.
 extract(Headers, _) when is_list(Headers) ->
     case header_take(?HEADER_KEY, Headers) of
         [{_, Value} | RestHeaders] ->
@@ -81,8 +81,7 @@ extract(Headers, _) when is_list(Headers) ->
                             undefined;
                         SpanCtx ->
                             Tracestate = tracestate_from_headers(Headers),
-                            #tracer_ctx{active=SpanCtx#span_ctx{tracestate=Tracestate},
-                                        parent=undefined}
+                            SpanCtx#span_ctx{tracestate=Tracestate}
                     end
             end;
         _ ->

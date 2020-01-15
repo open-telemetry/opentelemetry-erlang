@@ -47,16 +47,15 @@ inject(_, #tracer_ctx{active=#span_ctx{trace_id=TraceId,
 inject(_, undefined) ->
     [].
 
--spec extract(ot_propagation:http_headers(), term()) -> tracer_ctx() | undefined.
+-spec extract(ot_propagation:http_headers(), term()) -> opentelemetry:span_ctx() | undefined.
 extract(Headers, _) when is_list(Headers) ->
     try
         TraceId = trace_id(Headers),
         SpanId = span_id(Headers),
         Sampled = lookup(?B3_SAMPLED, Headers),
-        #tracer_ctx{active=#span_ctx{trace_id=string_to_integer(TraceId, 16),
-                                     span_id=string_to_integer(SpanId, 16),
-                                     trace_flags=case Sampled of True when ?IS_SAMPLED(True) -> 1; _ -> 0 end},
-                    parent=undefined}
+        #span_ctx{trace_id=string_to_integer(TraceId, 16),
+                  span_id=string_to_integer(SpanId, 16),
+                  trace_flags=case Sampled of True when ?IS_SAMPLED(True) -> 1; _ -> 0 end}
     catch
         throw:invalid ->
             undefined;
