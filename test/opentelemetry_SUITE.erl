@@ -143,8 +143,8 @@ update_span_data(Config) ->
 
 propagation(Config) ->
     Propagator = ?config(propagator, Config),
-    SpanCtx1=#span_ctx{trace_id=TraceId,
-                       span_id=SpanId} = otel:start_span(<<"span-1">>),
+    #span_ctx{trace_id=TraceId,
+              span_id=SpanId} = otel:start_span(<<"span-1">>),
     Headers = ot_propagation:http_inject([{<<"existing-header">>, <<"I exist">>}]),
 
     EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
@@ -160,7 +160,18 @@ propagation(Config) ->
     %% make header keys uppercase to validate the extractor is case insensitive
     BinaryHeaders = [{string:uppercase(Key), iolist_to_binary(Value)} || {Key, Value} <- Headers],
     ot_propagation:http_extract(BinaryHeaders),
-    ?assertSpanCtxsEqual(SpanCtx1, otel:current_span_ctx()),
+
+    %% extracted remote spans are not set to the active span
+    %% instead they are stored under a special "external span"
+    %% key and then used as the parent if current active span
+    %% is undefined or invalid
+    ?assertEqual(undefined, otel:current_span_ctx()),
+
+    #span_ctx{trace_id=TraceId2,
+              span_id=_SpanId2} = otel:start_span(<<"span-2">>),
+
+    %% new span should be a child of the extracted span
+    ?assertEqual(TraceId, TraceId2),
 
     ok.
 

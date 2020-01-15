@@ -1,8 +1,3 @@
--define(SPAN_CTX, {ot_tracer_default, span_ctx}).
--define(CTX_IMPL_KEY, {ot_tracer_default, ctx}).
-
--define(ctx, (persistent_term:get(?CTX_IMPL_KEY))).
-
 -record(tracer, {name :: unicode:unicode_binary() | undefined,
                  module :: module(),
                  span_module :: module(),

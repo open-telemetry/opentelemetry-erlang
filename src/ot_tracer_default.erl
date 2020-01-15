@@ -32,8 +32,12 @@
 
 -include("ot_tracer.hrl").
 
+%% the context namespace key
 -define(TRACER_KEY, '$__ot_tracer_ctx_key').
-
+%% key under the namespace for the active tracer context
+-define(SPAN_CTX, {ot_tracer_default, span_ctx}).
+%% the span context extracted with a propagator
+-define(EXTERNAL_SPAN_CTX, {ot_tracer_default, external_span_ctx}).
 
 -spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts())
                 -> opentelemetry:span_ctx().
@@ -59,11 +63,17 @@ start_span_({_, #tracer{on_start_processors=Processors}}, Name, Opts) when is_ma
     end;
 start_span_(Tracer, Name, Opts) ->
     case ot_ctx:get_value(?TRACER_KEY, ?SPAN_CTX) of
-        #tracer_ctx{active=_SpanCtx,
-                    parent=_}=ParentCtx ->
+        #tracer_ctx{active=ActiveSpanCtx,
+                    parent=_}=ParentCtx when ActiveSpanCtx =/= undefined ->
             start_span_(Tracer, Name, Opts#{parent => ParentCtx});
         _ ->
-            start_span_(Tracer, Name, Opts#{parent => undefined})
+            case ot_ctx:get_value(?TRACER_KEY, ?EXTERNAL_SPAN_CTX) of
+                #tracer_ctx{active=_SpanCtx,
+                            parent=_}=ParentCtx ->
+                    start_span_(Tracer, Name, Opts#{parent => ParentCtx});
+                _ ->
+                    start_span_(Tracer, Name, Opts#{parent => undefined})
+            end
     end.
 
 -spec with_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
@@ -101,7 +111,7 @@ b3_propagators() ->
     ToText = fun ot_propagation_http_b3:inject/2,
     FromText = fun ot_propagation_http_b3:extract/2,
     Injector = ot_ctx:http_injector(?TRACER_KEY, ?SPAN_CTX, ToText),
-    Extractor = ot_ctx:http_extractor(?TRACER_KEY, ?SPAN_CTX, FromText),
+    Extractor = ot_ctx:http_extractor(?TRACER_KEY, ?EXTERNAL_SPAN_CTX, FromText),
     {Extractor, Injector}.
 
 -spec w3c_propagators() -> {ot_propagation:http_extractor(), ot_propagation:http_injector()}.
@@ -109,7 +119,7 @@ w3c_propagators() ->
     ToText = fun ot_propagation_http_w3c:inject/2,
     FromText = fun ot_propagation_http_w3c:extract/2,
     Injector = ot_ctx:http_injector(?TRACER_KEY, ?SPAN_CTX, ToText),
-    Extractor = ot_ctx:http_extractor(?TRACER_KEY, ?SPAN_CTX, FromText),
+    Extractor = ot_ctx:http_extractor(?TRACER_KEY, ?EXTERNAL_SPAN_CTX, FromText),
     {Extractor, Injector}.
 
 %%--------------------------------------------------------------------
