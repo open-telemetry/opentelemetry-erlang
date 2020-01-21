@@ -98,11 +98,10 @@ set_attribute(#span_ctx{span_id=SpanId}, Key, Value) ->
 
 -spec set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes()) -> boolean().
 set_attributes(#span_ctx{span_id=SpanId}, NewAttributes) ->
-    case ets:lookup(?SPAN_TAB, SpanId) of
-        [Span=#span{attributes=Attributes}] ->
-            Span1 = Span#span{attributes=Attributes++NewAttributes},
-            1 =:= ets:select_replace(?SPAN_TAB, [{Span, [], [{const, Span1}]}]);
-        _ ->
+    try ets:lookup_element(?SPAN_TAB, SpanId, #span.attributes) of
+        Attributes ->
+            ets:update_element(?SPAN_TAB, SpanId, {#span.attributes, Attributes++NewAttributes})
+    catch error:badarg ->
             false
     end.
 
@@ -114,11 +113,10 @@ add_event(SpanCtx, Name, Attributes) ->
 
 -spec add_events(opentelemetry:span_ctx(), opentelemetry:timed_events()) -> boolean().
 add_events(#span_ctx{span_id=SpanId}, NewTimedEvents) ->
-    case ets:lookup(?SPAN_TAB, SpanId) of
-        [Span=#span{timed_events=TimeEvents}] ->
-            Span1 = Span#span{timed_events=TimeEvents++NewTimedEvents},
-            1 =:= ets:select_replace(?SPAN_TAB, [{Span, [], [{const, Span1}]}]);
-        _ ->
+    try ets:lookup_element(?SPAN_TAB, SpanId, #span.timed_events) of
+        TimedEvents ->
+            ets:update_element(?SPAN_TAB, SpanId, {#span.timed_events, TimedEvents++NewTimedEvents})
+    catch error:badarg ->
             false
     end.
 
