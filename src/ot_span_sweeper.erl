@@ -34,6 +34,7 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("ot_span_ets.hrl").
 -include("ot_tracer.hrl").
+-include("ot_span.hrl").
 -include_lib("kernel/include/logger.hrl").
 
 -record(data, {interval :: integer() | infinity,

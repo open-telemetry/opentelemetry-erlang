@@ -26,8 +26,8 @@
          handle_call/3,
          handle_cast/2]).
 
--export([start_span/2,
-         start_span/3,
+-export([start_span/3,
+         start_span/4,
          end_span/1,
          end_span/2,
          get_ctx/1,
@@ -40,6 +40,8 @@
          update_name/2]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include("ot_tracer.hrl").
+-include("ot_span.hrl").
 -include("ot_span_ets.hrl").
 
 -record(state, {}).
@@ -47,13 +49,14 @@
 start_link(Opts) ->
     gen_server:start_link(?MODULE, Opts, []).
 
-start_span(Name, Opts) ->
-    start_span(Name, Opts, fun(Span) -> Span end).
+start_span(Name, Opts, LibraryResource) ->
+    start_span(Name, Opts, fun(Span) -> Span end, LibraryResource).
 
 %% @doc Start a span and insert into the active span ets table.
--spec start_span(opentelemetry:span_name(), ot_span:start_opts(), fun()) -> opentelemetry:span_ctx().
-start_span(Name, Opts, Processors) ->
-    {SpanCtx, Span} = ot_span_utils:start_span(Name, Opts),
+-spec start_span(opentelemetry:span_name(), ot_span:start_opts(), fun(), ot_tracer_server:library_resource())
+                -> opentelemetry:span_ctx().
+start_span(Name, Opts, Processors, LibraryResource) ->
+    {SpanCtx, Span} = ot_span_utils:start_span(Name, Opts, LibraryResource),
     Span1 = Processors(Span),
     _ = storage_insert(Span1),
     SpanCtx.

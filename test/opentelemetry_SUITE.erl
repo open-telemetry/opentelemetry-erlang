@@ -6,6 +6,7 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include("ot_span.hrl").
 -include("ot_test_utils.hrl").
 
 all() ->
@@ -16,7 +17,7 @@ all() ->
      {group, b3}].
 
 all_testcases() ->
-    [child_spans, update_span_data].
+    [child_spans, update_span_data, tracer_library_resource].
 
 groups() ->
     [{ot_ctx_pdict, [shuffle], all_testcases()},
@@ -176,6 +177,31 @@ propagation(Config) ->
     ?assertEqual(TraceId, TraceId2),
 
     ok.
+
+tracer_library_resource(Config) ->
+    Tid = ?config(tid, Config),
+
+    TracerName = tracer1,
+    TracerVsn = <<"1.0.0">>,
+    opentelemetry:register_tracer(TracerName, TracerVsn),
+
+    Tracer = opentelemetry:get_tracer(TracerName),
+
+    %% start a span and 2 children
+    SpanCtx1 = ot_tracer:start_span(Tracer, <<"span-1">>, #{}),
+
+    ot_tracer:end_span(Tracer),
+    ?assertMatch(undefined, otel:current_span_ctx()),
+
+    assert_all_exported(Tid, [SpanCtx1]),
+
+    [Span1] = ets:match_object(Tid, #span{trace_id=SpanCtx1#span_ctx.trace_id,
+                                          span_id=SpanCtx1#span_ctx.span_id,
+                                          _='_'}),
+
+    ?assertEqual(#library_resource{name=TracerName,
+                                   version=TracerVsn}, Span1#span.library_resource).
+
 
 stop_temporary_app(_Config) ->
     SpanCtx1 = otel:start_span(<<"span-1">>),
