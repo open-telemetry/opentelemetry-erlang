@@ -52,8 +52,9 @@ maybe_set_sampler(_Tracer, Opts) when is_map_key(sampler, Opts) ->
 maybe_set_sampler({_, #tracer{sampler=Sampler}}, Opts) ->
     Opts#{sampler => Sampler}.
 
-start_span({_, #tracer{on_start_processors=Processors}}, Name, ParentTracerCtx, Opts) ->
-    SpanCtx1 = ot_span_ets:start_span(Name, Opts, Processors),
+start_span({_, #tracer{on_start_processors=Processors,
+                       library_resource=LibraryResource}}, Name, ParentTracerCtx, Opts) ->
+    SpanCtx1 = ot_span_ets:start_span(Name, Opts, Processors, LibraryResource),
     ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, #tracer_ctx{active=SpanCtx1,
                                                          parent=ParentTracerCtx}),
     SpanCtx1.

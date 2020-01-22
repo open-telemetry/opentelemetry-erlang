@@ -35,11 +35,11 @@ init([Opts]) ->
 
     %% configuration server
     TracerServer = #{id => ot_tracer_server,
-                     start => {ot_tracer_server, start_link, [Opts]},
+                     start => {ot_tracer_provider, start_link, [ot_tracer_server, Opts]},
                      restart => permanent,
                      shutdown => 5000,
                      type => worker,
-                     modules => [ot_tracer_server]},
+                     modules => [ot_tracer_provider, ot_tracer_server]},
 
     Processors = proplists:get_value(processors, Opts, []),
     BatchProcessorOpts = proplists:get_value(ot_batch_processor, Processors, []),

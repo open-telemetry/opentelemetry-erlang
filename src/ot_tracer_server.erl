@@ -17,30 +17,28 @@
 %%%-------------------------------------------------------------------------
 -module(ot_tracer_server).
 
--behaviour(gen_server).
-
--export([start_link/1,
-         add_span_processor/1]).
+-behaviour(ot_tracer_provider).
 
 -export([init/1,
-         handle_call/3,
-         handle_cast/2]).
+         register_tracer/3]).
 
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("ot_tracer.hrl").
+-include("ot_span.hrl").
 
--record(state, {processors :: [module()],
+-type library_resource() :: #library_resource{}.
+-export_type([library_resource/0]).
+
+-record(state, {tracer :: tracer(),
+                processors :: [module()],
+                deny_list :: [atom() | {atom(), string()}],
                 sampler :: ot_sampler:sampler()}).
-
-start_link(Opts) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, Opts, []).
-
-add_span_processor(SpanProcessor) ->
-    gen_server:call(?MODULE, {add_span_processor, SpanProcessor}).
 
 init(Opts) ->
     {Sampler, SamplerOpts} = proplists:get_value(sampler, Opts, {always_on, #{}}),
     SamplerFun = ot_sampler:setup(Sampler, SamplerOpts),
     Processors = proplists:get_value(processors, Opts, []),
+    DenyList = proplists:get_value(deny_list, Opts, []),
 
     Tracer = #tracer{module=ot_tracer_default,
                      sampler=SamplerFun,
@@ -50,17 +48,24 @@ init(Opts) ->
                      ctx_module=ot_ctx_pdict},
     opentelemetry:set_default_tracer({ot_tracer_default, Tracer}),
 
-    {ok, #state{sampler=SamplerFun,
+    {ok, #state{tracer=Tracer,
+                sampler=SamplerFun,
+                deny_list=DenyList,
                 processors=Processors}}.
 
-handle_call({add_span_processor, SpanProcessor}, _From, State=#state{processors=Processors}) ->
-    %% do something with these
-    {reply, ok, State#state{processors=Processors++[SpanProcessor]}};
-handle_call(_Msg, _From, State) ->
-    {noreply, State}.
+register_tracer(Name, Vsn, #state{tracer=Tracer,
+                                  deny_list=DenyList}) ->
+    %% TODO: support semver constraints in denylist
+    case proplists:is_defined(Name, DenyList) of
+        true ->
+            opentelemetry:set_tracer(Name, {ot_tracer_noop, []});
+        false ->
+            LibraryResource = #library_resource{name=Name,
+                                                version=Vsn},
+            opentelemetry:set_tracer(Name, {Tracer#tracer.module,
+                                            Tracer#tracer{library_resource=LibraryResource}})
+    end.
 
-handle_cast(_Msg, State) ->
-    {noreply, State}.
 
 %%
 

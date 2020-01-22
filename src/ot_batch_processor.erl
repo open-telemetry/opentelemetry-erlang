@@ -46,6 +46,7 @@
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("kernel/include/logger.hrl").
+-include("ot_span.hrl").
 
 %% behaviour for exporters to implement
 -type opts() :: term().

@@ -10,6 +10,7 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include("ot_test_utils.hrl").
+-include("ot_span.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
 -include("../src/ot_span_ets.hrl").

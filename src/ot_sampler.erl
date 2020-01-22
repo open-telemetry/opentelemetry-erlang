@@ -27,6 +27,7 @@
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("ot_sampler.hrl").
+-include("ot_span.hrl").
 
 -type sampling_decision() :: ?NOT_RECORD | ?RECORD | ?RECORD_AND_PROPAGATE.
 -type sampling_hint() :: sampling_decision() | undefined.
