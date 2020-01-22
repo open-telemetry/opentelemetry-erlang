@@ -18,9 +18,7 @@
 %%%-------------------------------------------------------------------------
 -module(ot_span).
 
--export([start_span/3,
-         end_span/2,
-         get_ctx/2,
+-export([get_ctx/2,
          is_recording_events/2,
          set_attribute/4,
          set_attributes/3,
@@ -42,8 +40,6 @@
 
 -export_type([start_opts/0]).
 
--callback start_span(opentelemetry:span_name(), start_opts()) -> opentelemetry:span_ctx().
--callback end_span(opentelemetry:span_ctx()) -> boolean() | {error, term()}.
 -callback get_ctx(opentelemetry:span()) -> opentelemetry:span_ctx().
 -callback is_recording_events(opentelemetry:span_ctx()) -> boolean().
 -callback set_attribute(opentelemetry:span_ctx(),
@@ -57,22 +53,6 @@
 
 %% handy macros so we don't have function name typos
 -define(DO(Tracer, SpanCtx, Args), do_span_function(?FUNCTION_NAME, Tracer, SpanCtx, Args)).
-
--spec start_span(Tracer, SpanName, Opts) -> SpanCtx when
-      Tracer :: opentelemetry:tracer(),
-      SpanName :: opentelemetry:span_name(),
-      Opts :: start_opts(),
-      SpanCtx :: opentelemetry:span_ctx().
-start_span(Tracer, SpanName, Opts) ->
-    SpanModule = ot_tracer:span_module(Tracer),
-    SpanModule:start_span(SpanName, Opts).
-
--spec end_span(Tracer, SpanCtx) -> boolean() | {error, term()} when
-      Tracer :: opentelemetry:tracer(),
-      SpanCtx :: opentelemetry:span_ctx().
-end_span(Tracer, SpanCtx) ->
-    SpanModule = ot_tracer:span_module(Tracer),
-    SpanModule:end_span(SpanCtx).
 
 -spec get_ctx(Tracer, Span) -> SpanCtx when
       Tracer :: opentelemetry:tracer(),

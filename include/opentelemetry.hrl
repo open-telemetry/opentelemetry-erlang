@@ -53,55 +53,6 @@
           is_recorded       :: boolean() | undefined
          }).
 
--record(span, {
-          %% 128 bit int trace id
-          trace_id                                :: opentelemetry:trace_id() | undefined,
-
-          %% 64 bit int span id
-          span_id                                 :: opentelemetry:span_id() | undefined,
-
-          tracestate                              :: opentelemetry:tracestate() | undefined,
-
-          %% 64 bit int parent span
-          parent_span_id                          :: opentelemetry:span_id() | undefined,
-
-          %% name of the span
-          name                                    :: unicode:unicode_binary(),
-
-          %% Distinguishes between spans generated in a particular context. For example,
-          %% two spans with the same name may be distinguished using `CLIENT` (caller)
-          %% and `SERVER` (callee) to identify queueing latency associated with the span.status
-          kind = ?SPAN_KIND_UNSPECIFIED           :: opentelemetry:span_kind() | undefined,
-
-          start_time                              :: wts:timestamp(),
-          end_time                                :: wts:timestamp() | undefined,
-
-          %% A set of attributes on the span.
-          %% Kept as a list so ets:select_replace/2 can be used to add new elements
-          attributes = []                         :: opentelemetry:attributes() | undefined,
-
-          %% A time-stamped event in the Span.
-          timed_events = []                       :: opentelemetry:timed_events(),
-
-          %% links to spans in other traces
-          links = []                              :: opentelemetry:links(),
-
-          %% An optional final status for this span.
-          status                                  :: opentelemetry:status() | undefined,
-
-          %% An optional number of child spans that were generated while this span
-          %% was active. If set, allows implementation to detect missing child spans.
-          child_span_count = undefined            :: integer() | undefined,
-
-          %% 8-bit integer, lowest bit is if it is sampled
-          trace_options = 1                       :: integer() | undefined,
-
-          %% this field is not propagated and is only here as an implementation optimization
-          %% If true updates like adding events are done on the span. The same as if the
-          %% trace flags lowest bit is 1 but simply not propagated.
-          is_recorded       :: boolean() | undefined                                
-         }).
-
 -record(link, {
           trace_id                  :: opentelemetry:trace_id(),
           span_id                   :: opentelemetry:span_id(),
