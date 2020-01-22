@@ -96,6 +96,11 @@ is_recording_events(#span_ctx{is_recorded=IsRecorded}) ->
 set_attribute(#span_ctx{span_id=SpanId}, Key, Value) ->
     set_attributes(#span_ctx{span_id=SpanId}, [{Key, Value}]).
 
+%% Note: Spans are referenced through the current active span context in a process
+%% and thus modified only by a single process, so concurrent updates of the same field
+%% are not a real concern. This allows `add_events' and `set_attributes' to lookup and
+%% update only the specific element of the `span' without worrying about it having been
+%% changed by another process between the lookup and update.
 -spec set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes()) -> boolean().
 set_attributes(#span_ctx{span_id=SpanId}, NewAttributes) ->
     try ets:lookup_element(?SPAN_TAB, SpanId, #span.attributes) of
