@@ -33,7 +33,7 @@
 -record(state, {tracer :: tracer(),
                 processors :: [module()],
                 deny_list :: [atom() | {atom(), string()}],
-                sampler :: ot_sampler:sampler()}).
+                sampler :: ot_sampler:t()}).
 
 init(Opts) ->
     {Sampler, SamplerOpts} = proplists:get_value(sampler, Opts, {always_on, #{}}),
@@ -41,10 +41,13 @@ init(Opts) ->
     Processors = proplists:get_value(processors, Opts, []),
     DenyList = proplists:get_value(deny_list, Opts, []),
 
+    Resource = ot_resource_env_var:get_resource(),
+
     Tracer = #tracer{module=ot_tracer_default,
                      sampler=SamplerFun,
                      on_start_processors=on_start(Processors),
                      on_end_processors=on_end(Processors),
+                     resource=Resource,
                      span_module=ot_span_ets,
                      ctx_module=ot_ctx_pdict},
     opentelemetry:set_default_tracer({ot_tracer_default, Tracer}),
