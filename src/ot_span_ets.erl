@@ -77,7 +77,7 @@ end_span(#span_ctx{span_id=SpanId,
             false
     end;
 end_span(_, _) ->
-    ok.
+    true.
 
 -spec get_ctx(opentelemetry:span()) -> opentelemetry:span_ctx().
 get_ctx(#span{trace_id=TraceId,

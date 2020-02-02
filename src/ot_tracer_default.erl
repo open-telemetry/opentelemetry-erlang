@@ -20,9 +20,12 @@
 -behaviour(ot_tracer).
 
 -export([start_span/3,
-         with_span/2,
+         set_span/2,
          with_span/3,
+         with_span/4,
          end_span/1,
+         end_span/2,
+         current_ctx/1,
          current_span_ctx/1,
          b3_propagators/0,
          w3c_propagators/0]).
@@ -71,15 +74,30 @@ parent_span_ctx(_) ->
     end.
 
 
--spec with_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
-with_span(_Tracer, SpanCtx) ->
+-spec set_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
+set_span(_Tracer, SpanCtx) ->
     ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, #tracer_ctx{active=SpanCtx,
                                                          parent=undefined}).
 
--spec with_span(opentelemetry:tracer(), opentelemetry:span_ctx(), fun()) -> ok.
-with_span(_Tracer, SpanCtx, Fun) ->
-    ot_ctx:with_value(?TRACER_KEY, ?SPAN_CTX, #tracer_ctx{active=SpanCtx,
-                                                          parent=undefined}, Fun).
+-spec with_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_tracer:traced_fun()) -> ok.
+with_span(_Tracer, SpanName, Fun) ->
+    with_span(_Tracer, SpanName, #{}, Fun).
+
+-spec with_span(opentelemetry:tracer(), opentelemetry:span_name(),
+                ot_span:start_opts(), ot_tracer:traced_fun(T)) -> T.
+with_span(Tracer, SpanName, Opts, Fun) ->
+    %% starting the span makes it active in the `tracer_ctx'
+    SpanCtx = start_span(Tracer, SpanName, Opts),
+    TracerCtx = current_ctx(Tracer),
+    try
+        Fun(SpanCtx)
+    after
+        %% passing TracerCtx directly ensures that this `end_span' ends the span started
+        %% in this function and sets the active span to its parent. If spans in `Fun()'
+        %% were started and not finished properly they will be abandoned and it be up to
+        %% the `ot_span_sweeper' to eventually remove them.
+        _ = end_span(Tracer, TracerCtx)
+    end.
 
 -spec current_span_ctx(opentelemetry:tracer()) -> opentelemetry:span_ctx().
 current_span_ctx(_Tracer) ->
@@ -91,11 +109,11 @@ current_span_ctx(_Tracer) ->
             undefined
     end.
 
-%% Internal function that returns the current trace context.
+%% Returns the current trace context.
 %% The pdict ctx stores both the current span ctx and the
 %% parent trace context, which contains its parent and so on.
--spec current_ctx() -> tracer_ctx().
-current_ctx() ->
+-spec current_ctx(opentelemetry:tracer()) -> ot_tracer:tracer_ctx().
+current_ctx(_Tracer) ->
     ot_ctx:get_value(?TRACER_KEY, ?SPAN_CTX).
 
 span_module({_, #tracer{span_module=SpanModule}}) ->
@@ -123,11 +141,13 @@ w3c_propagators() ->
 %% as the current span ctx or undefined if there is no local parent.
 %% @end
 %%--------------------------------------------------------------------
--spec end_span(opentelemetry:tracer()) -> ok.
-end_span({_, #tracer{on_end_processors=Processors}}) ->
-    #tracer_ctx{active=SpanCtx,
-                parent=ParentTracerCtx} = current_ctx(),
-    ot_span_ets:end_span(SpanCtx, Processors),
-    ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, ParentTracerCtx),
-    ok.
+-spec end_span(opentelemetry:tracer()) -> boolean() | {error, term()}.
+end_span(Tracer) ->
+    end_span(Tracer, current_ctx(Tracer)).
 
+-spec end_span(opentelemetry:tracer(), tracer_ctx()) -> boolean() | {error, term()}.
+end_span({_, #tracer{on_end_processors=Processors}}, #tracer_ctx{active=SpanCtx,
+                                                                 parent=ParentTracerCtx}) ->
+    Result = ot_span_ets:end_span(SpanCtx, Processors),
+    ot_ctx:set_value(?TRACER_KEY, ?SPAN_CTX, ParentTracerCtx),
+    Result.

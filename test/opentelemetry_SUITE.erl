@@ -6,6 +6,7 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include_lib("opentelemetry_api/include/tracer.hrl").
 -include("ot_span.hrl").
 -include("ot_test_utils.hrl").
 
@@ -17,7 +18,7 @@ all() ->
      {group, b3}].
 
 all_testcases() ->
-    [child_spans, update_span_data, tracer_library_resource].
+    [with_span, macros, child_spans, update_span_data, tracer_library_resource].
 
 groups() ->
     [{ot_ctx_pdict, [shuffle], all_testcases()},
@@ -67,6 +68,49 @@ init_per_testcase(_, Config) ->
 end_per_testcase(_, _Config) ->
     ok.
 
+macros(Config) ->
+    Tid = ?config(tid, Config),
+
+    SpanCtx1 = ?start_span(<<"span-1">>),
+    SpanCtx2 = ?start_span(<<"span-2">>),
+
+    ?assertMatch(SpanCtx2, ?current_span_ctx),
+    ?end_span(),
+
+    %% 1st span should be the current span ctx now
+    ?assertMatch(SpanCtx1, ?current_span_ctx()),
+
+    Attr1 = <<"attr-1">>,
+    AttrValue1 = <<"attr-value-1">>,
+    ?set_attribute(Attr1, AttrValue1),
+
+    ?end_span(),
+
+    [Span1] = assert_exported(Tid, SpanCtx1),
+
+    ?assertEqual([{Attr1, AttrValue1}], Span1#span.attributes),
+
+    ok.
+
+with_span(Config) ->
+    _Tid = ?config(tid, Config),
+
+    Tracer = opentelemetry:get_tracer(),
+
+    SpanCtx1 = otel:start_span(<<"span-1">>),
+
+    Result = some_result,
+    ?assertMatch(Result, ot_tracer:with_span(Tracer, <<"with-span-2">>,
+                                             fun(SpanCtx2) ->
+                                                     ?assertNotEqual(SpanCtx1, SpanCtx2),
+                                                     ?assertEqual(SpanCtx2, otel:current_span_ctx()),
+                                                     Result
+                                             end)),
+
+    ?assertMatch(SpanCtx1, otel:current_span_ctx()),
+
+    ok.
+
 child_spans(Config) ->
     Tid = ?config(tid, Config),
 
@@ -103,11 +147,9 @@ child_spans(Config) ->
     otel:end_span(),
     ?assertMatch(undefined, otel:current_span_ctx()),
 
-    assert_all_exported(Tid, [SpanCtx1, SpanCtx2, SpanCtx3, SpanCtx4]),
+    assert_all_exported(Tid, [SpanCtx1, SpanCtx2, SpanCtx3]),
 
-    [Span4] = ets:match_object(Tid, #span{trace_id=SpanCtx4#span_ctx.trace_id,
-                                          span_id=SpanCtx4#span_ctx.span_id,
-                                          _='_'}),
+    [Span4] = assert_exported(Tid, SpanCtx4),
 
     ?assertEqual(EarlierTimestamp, Span4#span.start_time).
 
@@ -136,13 +178,13 @@ update_span_data(Config) ->
     ?assertMatch(SpanCtx1, otel:current_span_ctx()),
     otel:end_span(),
 
-    ?UNTIL([] =/= ets:match(Tid, #span{trace_id=TraceId,
-                                       span_id=SpanId,
-                                       attributes=[{<<"key-1">>, <<"value-1">>}],
-                                       links=Links,
-                                       status=Status,
-                                       timed_events=TimedEvents,
-                                       _='_'})).
+    ?UNTIL_NOT_EQUAL([], ets:match(Tid, #span{trace_id=TraceId,
+                                              span_id=SpanId,
+                                              attributes=[{<<"key-1">>, <<"value-1">>}],
+                                              links=Links,
+                                              status=Status,
+                                              timed_events=TimedEvents,
+                                              _='_'})).
 
 propagation(Config) ->
     Propagator = ?config(propagator, Config),
@@ -193,11 +235,7 @@ tracer_library_resource(Config) ->
     ot_tracer:end_span(Tracer),
     ?assertMatch(undefined, otel:current_span_ctx()),
 
-    assert_all_exported(Tid, [SpanCtx1]),
-
-    [Span1] = ets:match_object(Tid, #span{trace_id=SpanCtx1#span_ctx.trace_id,
-                                          span_id=SpanCtx1#span_ctx.span_id,
-                                          _='_'}),
+    [Span1] = assert_exported(Tid, SpanCtx1),
 
     ?assertEqual(#library_resource{name=TracerName,
                                    version=TracerVsn}, Span1#span.library_resource).
@@ -223,9 +261,9 @@ assert_all_exported(Tid, SpanCtxs) ->
 
 assert_exported(Tid, #span_ctx{trace_id=TraceId,
                                span_id=SpanId}) ->
-    ?UNTIL([] =/= ets:match(Tid, #span{trace_id=TraceId,
-                                       span_id=SpanId,
-                                       _='_'})).
+    ?UNTIL_NOT_EQUAL([], ets:match_object(Tid, #span{trace_id=TraceId,
+                                                     span_id=SpanId,
+                                                     _='_'})).
 
 assert_not_exported(Tid, #span_ctx{trace_id=TraceId,
                                    span_id=SpanId}) ->
