@@ -20,6 +20,7 @@
 -behaviour(gen_server).
 
 -export([start_link/2,
+         register_application_tracer/1,
          register_tracer/2]).
 
 -export([init/1,
@@ -46,6 +47,17 @@ register_tracer(Name, Vsn) ->
             false
     end.
 
+-spec register_application_tracer(atom()) -> boolean().
+register_application_tracer(Name) ->
+    try
+        {ok, Vsn} = application:get_key(Name, vsn),
+        {ok, Modules} = application:get_key(Name, modules),
+        gen_server:call(?MODULE, {register_tracer, Name, Vsn, Modules})
+    catch exit:{noproc, _} ->
+            %% ignore register_tracer because no SDK has been included and started
+            false
+    end.
+
 init([ProviderModule, Opts]) ->
     case ProviderModule:init(Opts) of
         {ok, CbState} ->
@@ -55,6 +67,10 @@ init([ProviderModule, Opts]) ->
             Other
     end.
 
+handle_call({register_tracer, Name, Vsn, Modules}, _From, State=#state{callback=Cb,
+                                                                       cb_state=CbState}) ->
+    _ = Cb:register_tracer(Name, Vsn, Modules, CbState),
+    {reply, ok, State};
 handle_call({register_tracer, Name, Vsn}, _From, State=#state{callback=Cb,
                                                               cb_state=CbState}) ->
     _ = Cb:register_tracer(Name, Vsn, CbState),

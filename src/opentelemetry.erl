@@ -33,6 +33,7 @@
          set_default_context_manager/1,
          get_context_manager/0,
          register_tracer/2,
+         register_application_tracer/1,
          get_tracer/0,
          get_tracer/1,
          set_http_extractor/1,
@@ -127,6 +128,10 @@ set_default_context_manager(ContextManager) ->
 -spec register_tracer(atom(), string()) -> boolean().
 register_tracer(Name, Vsn) ->
     ot_tracer_provider:register_tracer(Name, Vsn).
+
+-spec register_application_tracer(atom()) -> boolean().
+register_application_tracer(Name) ->
+    ot_tracer_provider:register_application_tracer(Name).
 
 -spec get_context_manager() -> ot_ctx:context_manager().
 get_context_manager() ->

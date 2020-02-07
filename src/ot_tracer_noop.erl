@@ -20,13 +20,14 @@
 -behaviour(ot_tracer).
 
 -export([start_span/3,
-         with_span/2,
+         set_span/2,
          with_span/3,
+         with_span/4,
          end_span/1,
+         end_span/2,
          span_module/1,
-         current_span_ctx/1,
-         get_binary_format/1,
-         get_http_text_format/1]).
+         current_ctx/1,
+         current_span_ctx/1]).
 
 -include("opentelemetry.hrl").
 
@@ -36,18 +37,28 @@
                                  tracestate=[],
                                  is_valid=false,
                                  is_recorded=false}).
+-define(NOOP_TRACER_CTX, []).
 
 -spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
 start_span(_, _Name, _) ->
     ?NOOP_SPAN_CTX.
 
--spec with_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
-with_span(_, _SpanCtx) ->
+-spec set_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
+set_span(_, _SpanCtx) ->
     ok.
 
--spec with_span(opentelemetry:tracer(), opentelemetry:span_ctx(), fun()) -> ok.
-with_span(_, _SpanCtx, _) ->
-    ok.
+-spec with_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_tracer:traced_fun(T)) -> T.
+with_span(_, _SpanName, Fun) ->
+    Fun(?NOOP_SPAN_CTX).
+
+-spec with_span(opentelemetry:tracer(), opentelemetry:span_name(),
+                ot_span:start_opts(), ot_tracer:traced_fun(T)) -> T.
+with_span(_, _SpanName, _Opts, Fun) ->
+    Fun(?NOOP_SPAN_CTX).
+
+-spec current_ctx(opentelemetry:tracer()) -> ot_tracer:tracer_ctx().
+current_ctx(_Tracer) ->
+    ?NOOP_TRACER_CTX.
 
 -spec current_span_ctx(opentelemetry:tracer()) -> opentelemetry:span_ctx().
 current_span_ctx(_) ->
@@ -56,14 +67,10 @@ current_span_ctx(_) ->
 span_module(_) ->
     ot_span_noop.
 
--spec end_span(opentelemetry:tracer()) -> ok.
+-spec end_span(opentelemetry:tracer()) -> boolean() | {error, term()}.
 end_span(_) ->
-    ok.
+    true.
 
--spec get_binary_format(opentelemetry:tracer()) -> binary().
-get_binary_format(_) ->
-    <<>>.
-
--spec get_http_text_format(opentelemetry:tracer()) -> opentelemetry:http_headers().
-get_http_text_format(_) ->
-    [].
+-spec end_span(opentelemetry:tracer(), ot_tracer:tracer_ctx()) -> boolean() | {error, term()}.
+end_span(_, _) ->
+    true.

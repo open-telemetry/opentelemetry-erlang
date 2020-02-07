@@ -18,41 +18,66 @@
 -module(ot_tracer).
 
 -export([start_span/3,
-         with_span/2,
+         set_span/2,
          with_span/3,
+         with_span/4,
+         current_ctx/1,
          current_span_ctx/1,
-         end_span/1]).
+         end_span/1,
+         end_span/2]).
 
 %% tracer access functions
 -export([span_module/1]).
 
 -include("opentelemetry.hrl").
 
+-type traced_fun(T) :: fun((opentelemetry:span_ctx()) -> T).
+-type tracer_ctx() :: term().
+
+-export_type([traced_fun/1]).
+
 -callback start_span(opentelemetry:tracer(),
                      opentelemetry:span_name(),
                      ot_span:start_opts()) -> opentelemetry:span_ctx().
--callback with_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
--callback with_span(opentelemetry:tracer(), opentelemetry:span_ctx(), fun()) -> ok.
--callback end_span(opentelemetry:tracer()) -> ok.
+-callback set_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
+-callback with_span(opentelemetry:tracer(), opentelemetry:span_name(), traced_fun(T)) -> T.
+-callback with_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts(), traced_fun(T)) -> T.
+-callback end_span(opentelemetry:tracer()) -> boolean() | {error, term()}.
+-callback end_span(opentelemetry:tracer(), ot_tracer:tracer_ctx()) -> boolean() | {error, term()}.
+-callback current_ctx(opentelemetry:tracer()) -> tracer_ctx().
 -callback current_span_ctx(opentelemetry:tracer()) -> opentelemetry:span_ctx().
 -callback span_module(opentelemetry:tracer()) -> module().
 
--spec start_span(opentelemetry:tracer(), opentelemetry:span_name(),
-                 ot_span:start_opts()) -> opentelemetry:span_ctx().
+-spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts())
+                -> opentelemetry:span_ctx().
 start_span(Tracer={Module, _}, Name, Opts) ->
     Module:start_span(Tracer, Name, Opts).
 
-with_span(Tracer={Module, _}, Span) when is_atom(Module) ->
-    Module:with_span(Tracer, Span).
+-spec set_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
+set_span(Tracer={Module, _}, SpanCtx) when is_atom(Module) ->
+    Module:set_span(Tracer, SpanCtx).
 
--spec with_span(opentelemetry:tracer(), opentelemetry:span_ctx(), fun()) -> ok.
-with_span(Tracer={Module, _}, SpanCtx, Fun) when is_atom(Module) ->
-    Module:with_value(Tracer, SpanCtx, Fun).
+-spec with_span(opentelemetry:tracer(), opentelemetry:span_name(), traced_fun(T)) -> T.
+with_span(Tracer={Module, _}, SpanName, Fun) when is_atom(Module) ->
+    Module:with_span(Tracer, SpanName, Fun).
 
--spec end_span(opentelemetry:tracer()) -> ok.
+-spec with_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts(), traced_fun(T)) -> T.
+with_span(Tracer={Module, _}, SpanName, Opts, Fun) when is_atom(Module) ->
+    Module:with_span(Tracer, SpanName, Opts, Fun).
+
+-spec end_span(opentelemetry:tracer()) -> boolean() | {error, term()}.
 end_span(Tracer={Module, _}) ->
     Module:end_span(Tracer).
 
+-spec end_span(opentelemetry:tracer(), ot_tracer:tracer_ctx()) -> boolean() | {error, term()}.
+end_span(Tracer={Module, _}, TracerCtx) ->
+    Module:end_span(Tracer, TracerCtx).
+
+-spec current_ctx(opentelemetry:tracer()) -> ot_tracer:tracer_ctx().
+current_ctx(Tracer={Module, _}) ->
+    Module:current_ctx(Tracer).
+
+-spec current_span_ctx(opentelemetry:tracer()) -> opentelemetry:span_ctx().
 current_span_ctx(Tracer={Module, _}) ->
     Module:current_span_ctx(Tracer).
 

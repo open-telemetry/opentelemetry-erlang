@@ -23,8 +23,7 @@ If it is a runnable application then this registration should happen in `start/2
 ``` erlang
 start(_StartType, _StartArgs) ->
 ...
-    {ok, Vsn} = application:get_key(pgo, vsn),
-    _ = opentelemetry:register_tracer(pgo, Vsn),
+    _ = opentelemetry:register_application_tracer(pgo),
 ...
 ```
 
@@ -41,12 +40,11 @@ If the application does not have a `start/2` there may be another function that 
 
 ``` erlang
 handle_event(elli_startup, _Args, _Config) ->
-    {ok, Vsn} = application:get_key(opentelemetry_elli, vsn),
-    _ = opentelemetry:register_tracer(opentelemetry_elli, Vsn),
+    _ = opentelemetry:register_application_tracer(opentelemetry_elli),
     ok;
 ```
 
-When there is no startup of any kind to hook into in the library itself it should export a function `register_tracer/0` to be used by any application that depends on it to do the registration:
+When there is no startup of any kind to hook into in the library itself it should export a function `register_application_tracer/0` to be used by any application that depends on it to do the registration:
 
 ``` erlang
 -module(mylib).
@@ -54,8 +52,7 @@ When there is no startup of any kind to hook into in the library itself it shoul
 -export([register_tracer/0]).
 
 register_tracer() ->
-    {ok, Vsn} = application:get_key(mylib, vsn),
-    _ = opentelemetry:register_tracer(mylib, Vsn),
+    _ = opentelemetry:register_application_tracer(mylib),
     ok.
 ```
 
