@@ -12,6 +12,7 @@
 -include("ot_test_utils.hrl").
 -include("ot_span.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include_lib("opentelemetry_api/include/tracer.hrl").
 
 -include("../src/ot_span_ets.hrl").
 
@@ -58,10 +59,10 @@ end_per_testcase(_, _Config) ->
 
 storage_size(_Config) ->
     SpanName1 = <<"span-1">>,
-    SpanCtx = otel:start_span(SpanName1),
+    SpanCtx = ?start_span(SpanName1),
 
     ChildSpanName1 = <<"child-span-1">>,
-    ChildSpanCtx = otel:start_span(ChildSpanName1),
+    ChildSpanCtx = ?start_span(ChildSpanName1),
 
     [ChildSpanData] = ets:lookup(?SPAN_TAB, ChildSpanCtx#span_ctx.span_id),
     ?assertEqual(ChildSpanName1, ChildSpanData#span.name),
@@ -84,21 +85,21 @@ storage_size(_Config) ->
 
 drop(_Config) ->
     SpanName1 = <<"span-1">>,
-    SpanCtx = otel:start_span(SpanName1),
+    SpanCtx = ?start_span(SpanName1),
 
     ChildSpanName1 = <<"child-span-1">>,
-    ChildSpanCtx = otel:start_span(ChildSpanName1),
+    ChildSpanCtx = ?start_span(ChildSpanName1),
 
     [ChildSpanData] = ets:lookup(?SPAN_TAB, ChildSpanCtx#span_ctx.span_id),
     ?assertEqual(ChildSpanName1, ChildSpanData#span.name),
     ?assertEqual(SpanCtx#span_ctx.span_id, ChildSpanData#span.parent_span_id),
 
-    otel:end_span(),
+    ?end_span(),
 
     %% wait until the sweeper sweeps away the parent span
     ?UNTIL(ets:tab2list(?SPAN_TAB) =:= []),
 
-    otel:end_span(),
+    ?end_span(),
 
     receive
         {span, S=#span{name=Name}} when Name =:= ChildSpanName1 ->
@@ -125,11 +126,11 @@ drop(_Config) ->
 
 end_span(_Config) ->
     SpanName1 = <<"span-1">>,
-    _SpanCtx = otel:start_span(SpanName1),
+    _SpanCtx = ?start_span(SpanName1),
 
     ChildSpanName1 = <<"child-span-1">>,
-    _ChildSpanCtx = otel:start_span(ChildSpanName1),
-    otel:end_span(),
+    _ChildSpanCtx = ?start_span(ChildSpanName1),
+    ?end_span(),
 
     %% wait until the sweeper sweeps away the parent span
     ?UNTIL(ets:tab2list(?SPAN_TAB) =:= []),
@@ -149,16 +150,16 @@ end_span(_Config) ->
 
 failed_attribute_and_end_span(_Config) ->
     SpanName1 = <<"span-1">>,
-    SpanCtx = otel:start_span(SpanName1),
+    SpanCtx = ?start_span(SpanName1),
 
     ChildSpanName1 = <<"child-span-1">>,
-    ChildSpanCtx = otel:start_span(ChildSpanName1),
+    ChildSpanCtx = ?start_span(ChildSpanName1),
 
     [ChildSpanData] = ets:lookup(?SPAN_TAB, ChildSpanCtx#span_ctx.span_id),
     ?assertEqual(ChildSpanName1, ChildSpanData#span.name),
     ?assertEqual(SpanCtx#span_ctx.span_id, ChildSpanData#span.parent_span_id),
 
-    otel:end_span(),
+    ?end_span(),
 
     %% wait until the sweeper sweeps away the parent span
     ?UNTIL(ets:tab2list(?SPAN_TAB) =:= []),

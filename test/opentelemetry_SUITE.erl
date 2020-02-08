@@ -97,17 +97,17 @@ with_span(Config) ->
 
     Tracer = opentelemetry:get_tracer(),
 
-    SpanCtx1 = otel:start_span(<<"span-1">>),
+    SpanCtx1 = ?start_span(<<"span-1">>),
 
     Result = some_result,
     ?assertMatch(Result, ot_tracer:with_span(Tracer, <<"with-span-2">>,
                                              fun(SpanCtx2) ->
                                                      ?assertNotEqual(SpanCtx1, SpanCtx2),
-                                                     ?assertEqual(SpanCtx2, otel:current_span_ctx()),
+                                                     ?assertEqual(SpanCtx2, ?current_span_ctx()),
                                                      Result
                                              end)),
 
-    ?assertMatch(SpanCtx1, otel:current_span_ctx()),
+    ?assertMatch(SpanCtx1, ?current_span_ctx()),
 
     ok.
 
@@ -117,35 +117,35 @@ child_spans(Config) ->
     EarlierTimestamp = wts:timestamp(),
 
     %% start a span and 2 children
-    SpanCtx1 = otel:start_span(<<"span-1">>),
-    SpanCtx2 = otel:start_span(<<"span-2">>),
-    SpanCtx3 = otel:start_span(<<"span-3">>),
+    SpanCtx1 = ?start_span(<<"span-1">>),
+    SpanCtx2 = ?start_span(<<"span-2">>),
+    SpanCtx3 = ?start_span(<<"span-3">>),
 
     %% end the 3rd span
-    ?assertMatch(SpanCtx3, otel:current_span_ctx()),
-    otel:end_span(),
+    ?assertMatch(SpanCtx3, ?current_span_ctx()),
+    ?end_span(),
 
     assert_exported(Tid, SpanCtx3),
 
     %% 2nd span should be the current span ctx now
-    ?assertMatch(SpanCtx2, otel:current_span_ctx()),
+    ?assertMatch(SpanCtx2, ?current_span_ctx()),
 
     %% start another child of the 2nd span
     %% with a timestamp sent as part of the start opts
-    SpanCtx4 = otel:start_span(<<"span-4">>, #{start_time => EarlierTimestamp}),
-    ?assertMatch(SpanCtx4, otel:current_span_ctx()),
+    SpanCtx4 = ?start_span(<<"span-4">>, #{start_time => EarlierTimestamp}),
+    ?assertMatch(SpanCtx4, ?current_span_ctx()),
 
     %% end 4th span and 2nd should be current
-    otel:end_span(),
-    ?assertMatch(SpanCtx2, otel:current_span_ctx()),
+    ?end_span(),
+    ?assertMatch(SpanCtx2, ?current_span_ctx()),
 
     %% end 2th span and 1st should be current
-    otel:end_span(),
-    ?assertMatch(SpanCtx1, otel:current_span_ctx()),
+    ?end_span(),
+    ?assertMatch(SpanCtx1, ?current_span_ctx()),
 
     %% end first and no span should be current ctx
-    otel:end_span(),
-    ?assertMatch(undefined, otel:current_span_ctx()),
+    ?end_span(),
+    ?assertMatch(undefined, ?current_span_ctx()),
 
     assert_all_exported(Tid, [SpanCtx1, SpanCtx2, SpanCtx3]),
 
@@ -162,8 +162,8 @@ update_span_data(Config) ->
                    tracestate=[]}],
 
     SpanCtx1=#span_ctx{trace_id=TraceId,
-                       span_id=SpanId} = otel:start_span(<<"span-1">>, #{links => Links}),
-    otel:set_attribute(<<"key-1">>, <<"value-1">>),
+                       span_id=SpanId} = ?start_span(<<"span-1">>, #{links => Links}),
+    ?set_attribute(<<"key-1">>, <<"value-1">>),
 
     TimedEvents = opentelemetry:timed_events([{opentelemetry:timestamp(),
                                                <<"timed-event-name">>, []}]),
@@ -175,8 +175,8 @@ update_span_data(Config) ->
 
     ot_span:add_events(Tracer, SpanCtx1, TimedEvents),
 
-    ?assertMatch(SpanCtx1, otel:current_span_ctx()),
-    otel:end_span(),
+    ?assertMatch(SpanCtx1, ?current_span_ctx()),
+    ?end_span(),
 
     ?UNTIL_NOT_EQUAL([], ets:match(Tid, #span{trace_id=TraceId,
                                               span_id=SpanId,
@@ -189,7 +189,7 @@ update_span_data(Config) ->
 propagation(Config) ->
     Propagator = ?config(propagator, Config),
     #span_ctx{trace_id=TraceId,
-              span_id=SpanId} = otel:start_span(<<"span-1">>),
+              span_id=SpanId} = ?start_span(<<"span-1">>),
     Headers = ot_propagation:http_inject([{<<"existing-header">>, <<"I exist">>}]),
 
     EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
@@ -198,9 +198,9 @@ propagation(Config) ->
     ?assertListsMatch([{<<"existing-header">>, <<"I exist">>} |
                        trace_context(Propagator, EncodedTraceId, EncodedSpanId)], Headers),
 
-    otel:end_span(),
+    ?end_span(),
 
-    ?assertEqual(undefined, otel:current_span_ctx()),
+    ?assertEqual(undefined, ?current_span_ctx()),
 
     %% make header keys uppercase to validate the extractor is case insensitive
     BinaryHeaders = [{string:uppercase(Key), iolist_to_binary(Value)} || {Key, Value} <- Headers],
@@ -210,10 +210,10 @@ propagation(Config) ->
     %% instead they are stored under a special "external span"
     %% key and then used as the parent if current active span
     %% is undefined or invalid
-    ?assertEqual(undefined, otel:current_span_ctx()),
+    ?assertEqual(undefined, ?current_span_ctx()),
 
     #span_ctx{trace_id=TraceId2,
-              span_id=_SpanId2} = otel:start_span(<<"span-2">>),
+              span_id=_SpanId2} = ?start_span(<<"span-2">>),
 
     %% new span should be a child of the extracted span
     ?assertEqual(TraceId, TraceId2),
@@ -233,7 +233,7 @@ tracer_library_resource(Config) ->
     SpanCtx1 = ot_tracer:start_span(Tracer, <<"span-1">>, #{}),
 
     ot_tracer:end_span(Tracer),
-    ?assertMatch(undefined, otel:current_span_ctx()),
+    ?assertMatch(undefined, ?current_span_ctx()),
 
     [Span1] = assert_exported(Tid, SpanCtx1),
 
@@ -242,14 +242,14 @@ tracer_library_resource(Config) ->
 
 
 stop_temporary_app(_Config) ->
-    SpanCtx1 = otel:start_span(<<"span-1">>),
+    SpanCtx1 = ?start_span(<<"span-1">>),
     ?assertNotMatch(#span_ctx{trace_id=0,
                               span_id=0}, SpanCtx1),
 
     ok = application:stop(opentelemetry),
 
     %% stopping opentelemetry resets the tracer to a noop
-    SpanCtx2 = otel:start_span(<<"span-2">>),
+    SpanCtx2 = ?start_span(<<"span-2">>),
     ?assertMatch(#span_ctx{trace_id=0,
                            span_id=0}, SpanCtx2),
     ok.

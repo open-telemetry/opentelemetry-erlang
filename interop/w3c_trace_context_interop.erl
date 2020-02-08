@@ -22,6 +22,7 @@
 
 -include_lib("inets/include/httpd.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include_lib("opentelemetry_api/include/tracer.hrl").
 
 run() ->
     {ok, _Pid} = inets:start(httpd, [{port, 5000},
@@ -42,13 +43,13 @@ do(Req) ->
     lists:foreach(fun(#{<<"arguments">> := Arguments,
                         <<"url">> := Url}) ->
                           ot_propagation:http_extract(Headers),
-                          otel:start_span(<<"interop-test">>),
+                          ?start_span(<<"interop-test">>),
                           InjectedHeaders = ot_propagation:http_inject([]),
                           httpc:request(post, {binary_to_list(Url),
                                                headers_to_list(InjectedHeaders),
                                                "application/json",
                                                jsone:encode(Arguments)}, [], [{body_format, binary}]),
-                          otel:end_span()
+                          ?end_span()
                   end, List),
 
     {proceed, [{response, {200, "ok"}}]}.
