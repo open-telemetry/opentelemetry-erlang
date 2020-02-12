@@ -18,6 +18,19 @@ jobs:
       - codecov/upload:
           path: _build/test/covertool/opentelemetry.covertool.xml
 
+  mix_test:
+    docker:
+    - image: circleci/elixir:1.9
+    steps:
+    - checkout
+
+    - run: |
+        mix local.hex --force
+        mix local.rebar --force
+        mix deps.get
+        mix compile
+        mix test
+
 erlang22: &erlang22
   executor:
     name: rebar3/erlang
@@ -58,3 +71,7 @@ workflows:
           <<: *erlang22
           requires:
             - rebar3/cover
+
+  elixir_api:
+    jobs:
+    - mix_test
