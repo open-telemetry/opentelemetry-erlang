@@ -1,3 +1,8 @@
+-record(meter, {module :: module(),
+                library_resource :: term() | undefined,
+                resource :: term() | undefined}).
+-type meter() :: #meter{}.
+
 -record(instrument, {name         :: ot_meter:name(),
                      description  :: ot_meter:description(),
                      kind         :: ot_meter:metric_kind(),
