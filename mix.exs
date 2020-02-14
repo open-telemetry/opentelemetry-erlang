@@ -14,10 +14,16 @@ defmodule OpenTelemetry.MixProject do
       # source_url: "https://github.com/USER/PROJECT",
       # homepage_url: "http://YOUR_PROJECT_HOMEPAGE",
       docs: [
-        main: "OpenTelemetry"
+        markdown_processor: ExDoc.Markdown.Cmark,
+        main: "OpenTelemetry",
         # logo: "path/to/logo.png",
-        # extras: ["README.md"]
-      ]
+        extras: erlang_docs()
+      ],
+      aliases: [
+        # when build docs first build edocs with rebar3
+        docs: ["cmd rebar3 edoc", "docs"]
+      ],
+      package: package()
     ]
   end
 
@@ -34,7 +40,27 @@ defmodule OpenTelemetry.MixProject do
 
   def deps() do
     [
+      {:cmark, "~> 0.7", only: :dev, runtime: false},
       {:ex_doc, "~> 0.21", only: :dev, runtime: false}
     ]
+  end
+
+  defp package() do
+    [
+      description: "OpenTelemetry API",
+      build_tools: ["rebar3", "mix"],
+      licenses: ["Apache-2.0"],
+      links: %{"GitHub" => "https://github.com/open-telemetry/opentelemetry-erlang-api",
+               "OpenTelemetry.io" => "https://opentelemetry.io"}
+    ]
+  end
+
+  def erlang_docs() do
+    files =
+      for file <- Path.wildcard("edoc/*.md"),
+        file != "edoc/README.md",
+        do: {file, [title: Path.basename(file, ".md")]}
+
+    [{"README.md", [title: "Overview"]} | files]
   end
 end
