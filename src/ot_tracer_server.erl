@@ -20,6 +20,7 @@
 -behaviour(ot_tracer_provider).
 
 -export([init/1,
+         register_tracer/4,
          register_tracer/3]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
@@ -52,6 +53,20 @@ init(Opts) ->
                 sampler=SamplerFun,
                 deny_list=DenyList,
                 processors=Processors}}.
+
+register_tracer(Name, Vsn, Modules, #state{tracer=Tracer,
+                                           deny_list=DenyList}) ->
+    %% TODO: support semver constraints in denylist
+    case proplists:is_defined(Name, DenyList) of
+        true ->
+            opentelemetry:set_tracer(Name, {ot_tracer_noop, []});
+        false ->
+            LibraryResource = #library_resource{name=Name,
+                                                version=Vsn},
+            [opentelemetry:set_tracer(M, {Tracer#tracer.module,
+                                          Tracer#tracer{library_resource=LibraryResource}})
+            || M <- Modules]
+    end.
 
 register_tracer(Name, Vsn, #state{tracer=Tracer,
                                   deny_list=DenyList}) ->

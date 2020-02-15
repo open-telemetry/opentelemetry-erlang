@@ -11,6 +11,19 @@
                            end
                    end)(0)).
 
+%% try for 1 second and also return the result of Y
+-define(UNTIL_NOT_EQUAL(X, Y), (fun Until(I) when I =:= 10 ->
+                                        ct:fail(timeout);
+                                    Until(I) ->
+                                        R = Y,
+                                        case X =/= R of
+                                            true ->
+                                                R;
+                                            false ->
+                                                timer:sleep(100),
+                                                Until(I+1)
+                                        end
+                                end)(0)).
 
 -define(assertListsMatch(List1, List2), ?assertEqual(lists:sort(List1), lists:sort(List2))).
 
