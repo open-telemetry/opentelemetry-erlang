@@ -53,6 +53,3 @@ register_meter(Name, Vsn, #state{meter=Meter,
             opentelemetry:set_meter(Name, {Meter#meter.module,
                                            Meter#meter{library_resource=LibraryResource}})
     end.
-
-
-%%

@@ -33,7 +33,13 @@ init([Opts]) ->
                  intensity => 1,
                  period => 5},
 
-    %%
+    MeterServer = #{id => ot_meter_server,
+                    start => {ot_meter_provider, start_link, [ot_meter_server, Opts]},
+                    restart => permanent,
+                    shutdown => 5000,
+                    type => worker,
+                    modules => [ot_meter_provider, ot_meter_server]},
+
     Meter = #{id => ot_meter,
               start => {ot_meter_default, start_link, [Opts]},
               restart => permanent,
@@ -71,5 +77,5 @@ init([Opts]) ->
     %%                type => worker,
     %%                modules => [ot_metric_controller_push]},
 
-    ChildSpecs = [Meter, MetricExporter, MetricIntegrator, MetricAccumulator],
+    ChildSpecs = [MeterServer, Meter, MetricExporter, MetricIntegrator, MetricAccumulator],
     {ok, {SupFlags, ChildSpecs}}.
