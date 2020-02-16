@@ -32,14 +32,18 @@
 
 -export([init/1,
          handle_call/3,
-         handle_cast/2]).
+         handle_cast/2,
+         handle_info/2]).
 
 %% -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("ot_meter.hrl").
 
 -define(TAB, ?MODULE).
+-define(WORKERS, {?MODULE, workers}).
+-define(WORKER, element(erlang:system_info(scheduler_id), persistent_term:get(?WORKERS))).
 
--record(state, {}).
+-record(state, {refs :: [reference()],
+                worker_opts :: term()}).
 
 -spec new_instruments(opentelemetry:meter(), [ot_meter:instrument_opts()]) -> boolean().
 new_instruments(_Meter, List) ->
@@ -53,9 +57,10 @@ labels(_Meter, Labels) ->
 record(Meter, BoundInstrument, Number) ->
     ok.
 
--spec record(opentelemetry:meter(), ot_meter:name(), number(), ot_meter:label_set()) -> boolean().
-record(_Meter, Name, Number, LabelSet) ->
-    ot_metric_accumulator:record(Name, LabelSet, Number).
+-spec record(opentelemetry:meter(), ot_meter:name(), ot_meter:label_set(), number()) -> boolean().
+record(_Meter, Name, LabelSet, Number) ->
+    ot_meter_worker:record(?WORKER, Name, LabelSet, Number).
+    %% ot_metric_accumulator:record(Name, LabelSet, Number).
 
 -spec record_batch(opentelemetry:meter(), [{ot_meter:name(), number()}], ot_meter:label_set()) -> boolean().
 record_batch(_Meter, Measures, LabelSet) ->
@@ -81,7 +86,7 @@ lookup(Name) ->
 start_link(Opts) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Opts, []).
 
-init(_Opts) ->
+init(Opts) ->
     %% ets table is required for other parts to not crash so we create
     %% it in init and not in a handle_continue or whatever else
     case ets:info(?TAB, name) of
@@ -95,7 +100,12 @@ init(_Opts) ->
             ok
     end,
 
-    {ok, #state{}}.
+    erlang:process_flag(trap_exit, true),
+    Refs = start_children(Opts),
+    persistent_term:put(?WORKERS, list_to_tuple(Refs)),
+
+    {ok, #state{refs=Refs,
+                worker_opts=Opts}}.
 
 handle_call({new, List}, _From, State) ->
     Result = ets:insert_new(?TAB,
@@ -112,6 +122,21 @@ handle_call({new, List}, _From, State) ->
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
+
+handle_info({'EXIT', FromPid, _Reason}, State=#state{refs=Refs}) ->
+    self() ! update_workers,
+    {noreply, State#state{refs=lists:delete(FromPid, Refs)}};
+handle_info(update_workers, State=#state{refs=Refs,
+                                         worker_opts=Opts}) ->
+    flush_update_workers(),
+    case erlang:system_info(schedulers) - length(Refs) of
+        N when N > 0 ->
+            Refs1 = start_children(N, Opts)++Refs,
+            persistent_term:put(?WORKERS, list_to_tuple(Refs1)),
+            {noreply, State#state{refs=Refs1}};
+        _ ->
+            {noreply, State}
+    end.
 
 %%
 
@@ -136,3 +161,23 @@ bind_gauge(Instrument=#instrument{input_type=float}, LabelSet) ->
 
 bind_measure(Instrument, LabelSet) ->
     ot_metric_accumulator:lookup_measure(Instrument, LabelSet).
+
+%% internal
+
+flush_update_workers() ->
+    receive
+        update_workers ->
+            flush_update_workers()
+    after
+        0 ->
+            ok
+    end.
+
+start_children(Opts) ->
+    start_children(erlang:system_info(schedulers), Opts).
+
+start_children(N, Opts) ->
+    lists:map(fun(_) ->
+                      {ok, Pid} = ot_meter_worker:start_link(Opts),
+                      Pid
+              end, lists:seq(1, N)).

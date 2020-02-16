@@ -36,9 +36,7 @@ start_link(Opts) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Opts, []).
 
 read() ->
-    Tab = ?ACTIVE_TAB, %% ot_metric_accumulator:active_table(),
-    _MeasureTab = ?ACTIVE_MEASURE_TAB, %% ot_metric_accumulator:active_measure_table(),
-    [read(T) || T <- [Tab]].
+    read(ot_metric_accumulator:active_table()).
 
 read(Tab) ->
     ets:foldl(fun(#active_instrument{key={Name, LabelSet},

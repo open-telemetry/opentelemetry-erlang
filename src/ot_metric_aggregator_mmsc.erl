@@ -37,7 +37,7 @@ update(_Tab, integer, #active_instrument{value=Counter}, Number) when is_tuple(C
 update(Tab, integer, ActiveInstrument=#active_instrument{key=Key}, Number) ->
     Counter = counters:new(4, [write_concurrency]),
     %% new counters initialize to all 0's, so we must set min/max first or else
-    %% we can't distiguish an unset counter and the acutal value 0
+    %% we can't distiguish an unset counter and the actual value 0
     counters:put(Counter, ?MIN, Number),
     counters:put(Counter, ?MAX, Number),
     case ets:insert_new(Tab, ActiveInstrument#active_instrument{value=Counter}) of

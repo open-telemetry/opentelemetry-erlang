@@ -16,7 +16,7 @@
 %%
 %% @end
 %%%-------------------------------------------------------------------------
--module(ot_metric_aggregator_gauge).
+-module(ot_metric_aggregator_observer).
 
 -export([update/4,
          checkpoint/1,

@@ -21,4 +21,3 @@
 -type active_instrument() :: #active_instrument{}.
 
 -define(ACTIVE_TAB, active_instrument_updates).
--define(ACTIVE_MEASURE_TAB, active_measure_instrument_updates).

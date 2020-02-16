@@ -12,7 +12,7 @@ all() ->
     [mmsc_aggregator].
 
 init_per_suite(Config) ->
-    application:ensure_all_started(opentelemetry),
+    {ok, _} = application:ensure_all_started(opentelemetry),
     Config.
 
 end_per_suite(_Config) ->
@@ -24,12 +24,12 @@ mmsc_aggregator(_Config) ->
                                             input_type => integer,
                                             label_keys => [key1]}]),
 
-    ot_metric_accumulator:record(m1, #{key1 => value1}, 2),
-    ot_metric_accumulator:record(m1, #{key1 => value2}, 8),
-    ot_metric_accumulator:record(m1, #{key1 => value1}, 5),
+    ot_meter_default:record(meter, m1, #{key1 => value1}, 2),
+    ot_meter_default:record(meter, m1, #{key1 => value2}, 8),
+    ot_meter_default:record(meter, m1, #{key1 => value1}, 5),
 
     ot_metric_accumulator:collect(),
     Records = ot_metric_integrator:read(),
-    ?assertEqual([#{{m1, #{key1 => value1}} => {2, 5, 7, 2},
-                    {m1, #{key1 => value2}} => {8, 8, 8, 1}}], Records),
+    ?assertEqual(#{{m1, #{key1 => value1}} => {2, 5, 7, 2},
+                   {m1, #{key1 => value2}} => {8, 8, 8, 1}}, Records),
     ok.

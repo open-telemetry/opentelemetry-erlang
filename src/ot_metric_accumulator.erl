@@ -27,7 +27,7 @@
          record/3,
          collect/0,
          lookup_counter/2,
-         lookup_gauge/2,
+         lookup_observer/2,
          lookup_measure/2]).
 
 -export([init/1,
@@ -48,41 +48,41 @@ active_table() ->
     ?ACTIVE_TAB.
 
 -spec record(ot_meter:bound_instrument(), number()) -> boolean().
-record({Tab, Active=#active_instrument{instrument=#instrument{input_type=InputType},
-                                       aggregator=Aggregator}}, Number) ->
-    Aggregator:update(Tab, InputType, Active, Number).
+record(Active=#active_instrument{instrument=#instrument{input_type=InputType},
+                                 aggregator=Aggregator}, Number) ->
+    Aggregator:update(?ACTIVE_TAB, InputType, Active, Number).
 
 -spec record(ot_meter:name(), ot_meter:label_set(), number()) -> boolean() | unknown_instrument.
 record(Name, LabelSet, Number) ->
     case lookup(Name, LabelSet) of
         unknown_instrument ->
             unknown_instrument;
-        {Tab, Active=#active_instrument{instrument=#instrument{input_type=InputType},
-                                        aggregator=Aggregator}} ->
-            Aggregator:update(Tab, InputType, Active, Number)
+        Active=#active_instrument{instrument=#instrument{input_type=InputType},
+                                  aggregator=Aggregator} ->
+            Aggregator:update(?ACTIVE_TAB, InputType, Active, Number)
     end.
 
 
 lookup_counter(Instrument=#instrument{name=Name}, LabelSet) ->
     case ets:lookup(?ACTIVE_TAB, {Name, LabelSet}) of
         [ActiveInstrument] ->
-            {?ACTIVE_TAB, ActiveInstrument};
+            ActiveInstrument;
         [] ->
             add_active_instrument(Instrument, Name, LabelSet)
     end.
 
-lookup_gauge(Instrument=#instrument{name=Name}, LabelSet) ->
+lookup_observer(Instrument=#instrument{name=Name}, LabelSet) ->
     case ets:lookup(?ACTIVE_TAB, {Name, LabelSet}) of
         [ActiveInstrument] ->
-            {?ACTIVE_TAB, ActiveInstrument};
+            ActiveInstrument;
         [] ->
             add_active_instrument(Instrument, Name, LabelSet)
     end.
 
 lookup_measure(Instrument=#instrument{name=Name}, LabelSet) ->
-    case ets:lookup(?ACTIVE_MEASURE_TAB, {Name, LabelSet}) of
+    case ets:lookup(?ACTIVE_TAB, {Name, LabelSet}) of
         [ActiveInstrument] ->
-            {?ACTIVE_MEASURE_TAB, ActiveInstrument};
+            ActiveInstrument;
         [] ->
             add_active_instrument(Instrument, Name, LabelSet)
     end.
@@ -103,12 +103,7 @@ init(_Opts) ->
                                       public,
                                       {keypos, #active_instrument.key},
                                       {write_concurrency, true},
-                                      ordered_set]),
-            _ = ets:new(?ACTIVE_MEASURE_TAB, [named_table,
-                                              public,
-                                              {keypos, #active_instrument.key},
-                                              {write_concurrency, true},
-                                              duplicate_bag]);
+                                      ordered_set]);
         _ ->
             ok
     end,
@@ -117,8 +112,8 @@ init(_Opts) ->
 
 handle_call(collect, _From, State) ->
     ot_metric_aggregator_counter:checkpoint(?ACTIVE_TAB),
-    ot_metric_aggregator_gauge:checkpoint(?ACTIVE_TAB),
-    ot_metric_aggregator_measure:checkpoint(?ACTIVE_MEASURE_TAB),
+    ot_metric_aggregator_observer:checkpoint(?ACTIVE_TAB),
+    %% ot_metric_aggregator_measure:checkpoint(?ACTIVE_MEASURE_TAB),
     ot_metric_aggregator_mmsc:checkpoint(?ACTIVE_TAB),
     {reply, ok, State};
 handle_call(_Msg, _From, State) ->
@@ -137,37 +132,26 @@ aggregator(#instrument{kind=measure}) ->
     ot_metric_aggregator_mmsc.
     %% ot_metric_aggregator_measure.
 
-table(ot_metric_aggregator_measure) ->
-    ?ACTIVE_MEASURE_TAB;
-table(_) ->
-    ?ACTIVE_TAB.
-
 lookup(Name, LabelSet) ->
     case ets:lookup(?ACTIVE_TAB, {Name, LabelSet}) of
         [ActiveInstrument] ->
-            {?ACTIVE_TAB, ActiveInstrument};
+            ActiveInstrument;
         [] ->
-            case ets:lookup(?ACTIVE_MEASURE_TAB, {Name, LabelSet}) of
-                [ActiveInstrument] ->
-                    {?ACTIVE_MEASURE_TAB, ActiveInstrument};
-                [] ->
-                    case ot_meter_default:lookup(Name) of
-                        unknown_instrument ->
-                            unknown_instrument;
-                        Instrument ->
-                            add_active_instrument(Instrument, Name, LabelSet)
-                    end
+            case ot_meter_default:lookup(Name) of
+                unknown_instrument ->
+                    unknown_instrument;
+                Instrument ->
+                    add_active_instrument(Instrument, Name, LabelSet)
             end
     end.
 
 add_active_instrument(Instrument=#instrument{input_type=InputType}, Name, LabelSet) ->
     Aggregator = aggregator(Instrument),
-    Tab = table(Aggregator),
     DefaultValue = default_value(InputType),
-    {Tab, #active_instrument{key={Name, LabelSet},
-                             instrument=Instrument,
-                             aggregator=Aggregator,
-                             value=DefaultValue}}.
+    #active_instrument{key={Name, LabelSet},
+                       instrument=Instrument,
+                       aggregator=Aggregator,
+                       value=DefaultValue}.
 
 -spec default_value(ot_meter:input_type()) -> integer() | float().
 default_value(integer) -> 0;
