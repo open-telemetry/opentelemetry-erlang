@@ -35,7 +35,7 @@ end_per_suite(_Config) ->
 
 init_per_group(Propagator, Config) when Propagator =:= w3c ;
                                         Propagator =:= b3 ->
-    application:set_env(opentelemetry, processors, [{ot_batch_processor, [{scheduled_delay_ms, 1}]}]),
+    application:set_env(opentelemetry, processors, [{ot_batch_processor, #{scheduled_delay_ms => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
 
     {CorrelationsHttpExtractor, CorrelationsHttpInjector} = ot_correlations:get_http_propagators(),
@@ -50,7 +50,7 @@ init_per_group(Propagator, Config) when Propagator =:= w3c ;
 
     [{propagator, Propagator} | Config];
 init_per_group(_CtxModule, Config) ->
-    application:set_env(opentelemetry, processors, [{ot_batch_processor, [{scheduled_delay_ms, 1}]}]),
+    application:set_env(opentelemetry, processors, [{ot_batch_processor, #{scheduled_delay_ms => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config.
 

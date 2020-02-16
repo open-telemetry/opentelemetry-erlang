@@ -16,9 +16,9 @@ all() ->
 exporting_timeout_test(_Config) ->
     process_flag(trap_exit, true),
 
-    {ok, Pid} = ot_batch_processor:start_link([{exporter, ?MODULE},
-                                               {exporting_timeout_ms, 1},
-                                               {scheduled_delay_ms, 1}]),
+    {ok, Pid} = ot_batch_processor:start_link(#{exporter => ?MODULE,
+                                                exporting_timeout_ms => 1,
+                                                scheduled_delay_ms => 1}),
 
     receive
         {'EXIT', Pid, _} ->

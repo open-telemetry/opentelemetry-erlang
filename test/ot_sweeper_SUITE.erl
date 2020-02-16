@@ -36,7 +36,7 @@ init_per_testcase(storage_size, Config) ->
                                                   span_ttl => 500,
                                                   storage_size => 100}),
     application:set_env(opentelemetry, tracer, ot_tracer_default),
-    application:set_env(opentelemetry, processors, [{ot_batch_processor, [{scheduled_delay_ms, 1}]}]),
+    application:set_env(opentelemetry, processors, [{ot_batch_processor, #{scheduled_delay_ms => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
 
     ot_batch_processor:set_exporter(ot_exporter_pid, self()),
@@ -46,7 +46,7 @@ init_per_testcase(Type, Config) ->
                                                   strategy => Type,
                                                   span_ttl => 500}),
     application:set_env(opentelemetry, tracer, ot_tracer_default),
-    application:set_env(opentelemetry, processors, [{ot_batch_processor, [{scheduled_delay_ms, 1}]}]),
+    application:set_env(opentelemetry, processors, [{ot_batch_processor, #{scheduled_delay_ms => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
 
     ot_batch_processor:set_exporter(ot_exporter_pid, self()),

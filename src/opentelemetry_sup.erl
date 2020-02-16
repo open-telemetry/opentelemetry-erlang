@@ -42,7 +42,7 @@ init([Opts]) ->
                      modules => [ot_tracer_provider, ot_tracer_server]},
 
     Processors = proplists:get_value(processors, Opts, []),
-    BatchProcessorOpts = proplists:get_value(ot_batch_processor, Processors, []),
+    BatchProcessorOpts = proplists:get_value(ot_batch_processor, Processors, #{}),
     BatchProcessor = #{id => ot_batch_processor,
                        start => {ot_batch_processor, start_link, [BatchProcessorOpts]},
                        restart => permanent,
