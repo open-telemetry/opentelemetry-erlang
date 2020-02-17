@@ -165,15 +165,15 @@ update_span_data(Config) ->
                        span_id=SpanId} = ?start_span(<<"span-1">>, #{links => Links}),
     ?set_attribute(<<"key-1">>, <<"value-1">>),
 
-    TimedEvents = opentelemetry:timed_events([{opentelemetry:timestamp(),
-                                               <<"timed-event-name">>, []}]),
+    Events = opentelemetry:events([{opentelemetry:timestamp(),
+                                    <<"event-name">>, []}]),
     Status = opentelemetry:status(0, <<"status">>),
 
     %% with spanctx and tracer passed as an argument
     Tracer = opentelemetry:get_tracer(),
     ot_span:set_status(Tracer, SpanCtx1, Status),
 
-    ot_span:add_events(Tracer, SpanCtx1, TimedEvents),
+    ot_span:add_events(Tracer, SpanCtx1, Events),
 
     ?assertMatch(SpanCtx1, ?current_span_ctx()),
     ?end_span(),
@@ -183,7 +183,7 @@ update_span_data(Config) ->
                                               attributes=[{<<"key-1">>, <<"value-1">>}],
                                               links=Links,
                                               status=Status,
-                                              timed_events=TimedEvents,
+                                              events=Events,
                                               _='_'})).
 
 propagation(Config) ->

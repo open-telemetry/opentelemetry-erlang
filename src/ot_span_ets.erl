@@ -31,7 +31,6 @@
          end_span/1,
          end_span/2,
          get_ctx/1,
-         is_recording_events/1,
          set_attribute/3,
          set_attributes/2,
          add_event/3,
@@ -83,15 +82,11 @@ end_span(_, _) ->
 get_ctx(#span{trace_id=TraceId,
               span_id=SpanId,
               tracestate=TraceState,
-              is_recorded=IsRecorded}) ->
+              is_recording=IsRecording}) ->
     #span_ctx{trace_id=TraceId,
               span_id=SpanId,
               tracestate=TraceState,
-              is_recorded=IsRecorded}.
-
--spec is_recording_events(opentelemetry:span_ctx()) -> boolean().
-is_recording_events(#span_ctx{is_recorded=IsRecorded}) ->
-    IsRecorded.
+              is_recording=IsRecording}.
 
 -spec set_attribute(opentelemetry:span_ctx(),
                     opentelemetry:attribute_key(),
@@ -115,15 +110,14 @@ set_attributes(#span_ctx{span_id=SpanId}, NewAttributes) ->
 
 -spec add_event(opentelemetry:span_ctx(), unicode:unicode_binary(), opentelemetry:attributes()) -> boolean().
 add_event(SpanCtx, Name, Attributes) ->
-    TimedEvents = opentelemetry:timed_events([{opentelemetry:timestamp(),
-                                               Name, Attributes}]),
-    add_events(SpanCtx, TimedEvents).
+    Events = opentelemetry:events([{Name, Attributes}]),
+    add_events(SpanCtx, Events).
 
--spec add_events(opentelemetry:span_ctx(), opentelemetry:timed_events()) -> boolean().
-add_events(#span_ctx{span_id=SpanId}, NewTimedEvents) ->
-    try ets:lookup_element(?SPAN_TAB, SpanId, #span.timed_events) of
-        TimedEvents ->
-            ets:update_element(?SPAN_TAB, SpanId, {#span.timed_events, TimedEvents++NewTimedEvents})
+-spec add_events(opentelemetry:span_ctx(), opentelemetry:events()) -> boolean().
+add_events(#span_ctx{span_id=SpanId}, NewEvents) ->
+    try ets:lookup_element(?SPAN_TAB, SpanId, #span.events) of
+        Events ->
+            ets:update_element(?SPAN_TAB, SpanId, {#span.events, Events++NewEvents})
     catch error:badarg ->
             false
     end.
