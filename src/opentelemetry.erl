@@ -44,9 +44,8 @@
          links/1,
          link/4,
          event/2,
-         timed_event/2,
-         timed_event/3,
-         timed_events/1,
+         event/3,
+         events/1,
          status/2,
          generate_trace_id/0,
          generate_span_id/0]).
@@ -67,8 +66,7 @@
               attribute_value/0,
               attributes/0,
               event/0,
-              timed_event/0,
-              timed_events/0,
+              events/0,
               stack_trace/0,
               tracestate/0,
               status/0,
@@ -93,8 +91,7 @@
                               ?SPAN_KIND_SERVER   |
                               ?SPAN_KIND_CLIENT.
 -type event()              :: #event{}.
--type timed_event()        :: #timed_event{}.
--type timed_events()       :: [#timed_event{}].
+-type events()             :: [#event{}].
 -type link()               :: #link{}.
 -type links()              :: [#link{}].
 -type status()             :: #status{}.
@@ -198,38 +195,53 @@ link(_, _, _, _) ->
       Attributes :: attributes().
 event(Name, Attributes) when is_binary(Name),
                              is_list(Attributes) ->
-    #event{name=Name,
+    #event{time=wts:timestamp(),
+           name=Name,
            attributes=Attributes};
 event(_, _) ->
     undefined.
 
--spec timed_event(TimeUnixNano, Name, Attributes) -> timed_event() | undefined when
-      TimeUnixNano :: integer(),
+-spec event(Time, Name, Attributes) -> event() | undefined when
+      Time :: wts:timestamp() | non_neg_integer(),
       Name :: unicode:unicode_binary(),
       Attributes :: attributes().
-timed_event(TimeUnixNano, Name, Attributes) when is_integer(TimeUnixNano),
-                                                 is_binary(Name),
+event(Timestamp={Time, Offset}, Name, Attributes) when is_integer(Time),
+                                                       is_integer(Offset),
+                                                       is_binary(Name),
+                                                       is_list(Attributes) ->
+    #event{time=Timestamp,
+           name=Name,
+           attributes=Attributes};
+event(TimeNano, Name, Attributes) when is_integer(TimeNano),
+                                       is_binary(Name),
+                                       is_list(Attributes) ->
+    #event{time=TimeNano,
+           name=Name,
+           attributes=Attributes};
+event(_, _, _) ->
+    undefined.
+
+events(List) ->
+    Timestamp = wts:timestamp(),
+    lists:filtermap(fun({Time, Name, Attributes}) when is_binary(Name),
+                                                       is_list(Attributes)  ->
+                            case event(Time, Name, Attributes) of
+                                undefined ->
+                                    false;
+                                Event ->
+                                    {true, Event}
+                            end;
+                       ({Name, Attributes}) when is_binary(Name),
                                                  is_list(Attributes) ->
-    timed_event(TimeUnixNano, event(Name, Attributes));
-timed_event(_, _, _) ->
-    undefined.
-
--spec timed_event(TimeUnixNano, Event) -> timed_event() | undefined when
-      TimeUnixNano :: integer(),
-      Event :: event().
-timed_event(TimeUnixNano, Event) when
-      is_integer(TimeUnixNano),
-      is_record(Event, event) ->
-    #timed_event{time_unixnano=TimeUnixNano,
-                 event=Event};
-timed_event(_, _) ->
-    undefined.
-
-timed_events(List) ->
-    [timed_event(TimeUnixNano, Name, Attributes) || {TimeUnixNano, Name, Attributes} <- List,
-                                                    is_integer(TimeUnixNano),
-                                                    is_binary(Name),
-                                                    is_list(Attributes)].
+                            case event(Timestamp, Name, Attributes) of
+                                undefined ->
+                                    false;
+                                Event ->
+                                    {true, Event}
+                            end;
+                       (_) ->
+                            false
+                    end, List).
 
 -spec status(Code, Message) -> status() | undefined when
       Code :: integer(),
@@ -272,7 +284,7 @@ verify_and_set_term(Module, TermKey, Behaviour) ->
             true;
         false ->
             ?LOG_WARNING("Module ~p does not implement behaviour ~p. "
-                         "A noop ~p will be used until a module, implementing "
+                         "A noop ~p will be used until a module implementing "
                          "the behaviour is configured.",
                          [Module, Behaviour, Behaviour]),
             false

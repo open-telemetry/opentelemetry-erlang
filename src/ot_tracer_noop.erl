@@ -36,7 +36,7 @@
                                  trace_flags=0,
                                  tracestate=[],
                                  is_valid=false,
-                                 is_recorded=false}).
+                                 is_recording=false}).
 -define(NOOP_TRACER_CTX, []).
 
 -spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().

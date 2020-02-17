@@ -19,7 +19,7 @@
 -module(ot_span).
 
 -export([get_ctx/2,
-         is_recording_events/2,
+         is_recording/2,
          set_attribute/4,
          set_attributes/3,
          add_event/4,
@@ -29,12 +29,14 @@
 
 -include("opentelemetry.hrl").
 
+-define(is_recording(SpanCtx), SpanCtx =/= undefined andalso SpanCtx#span_ctx.is_recording =:= true).
+
 -type start_opts() :: #{parent => undefined | opentelemetry:span() | opentelemetry:span_ctx(),
                         attributes => opentelemetry:attributes(),
                         sampler => ot_sampler:sampler(),
                         sampling_hint => ot_sampler:sampling_decision(),
                         links => opentelemetry:links(),
-                        is_recorded => boolean(),
+                        is_recording => boolean(),
                         start_time => wts:timestamp(),
                         kind => opentelemetry:span_kind()}.
 
@@ -62,48 +64,60 @@ get_ctx(Tracer, Span) ->
     SpanModule = ot_tracer:span_module(Tracer),
     SpanModule:get_ctx(Span).
 
--spec is_recording_events(Tracer, SpanCtx) -> boolean() when
+-spec is_recording(Tracer, SpanCtx) -> boolean() when
       Tracer :: opentelemetry:tracer(),
       SpanCtx :: opentelemetry:span_ctx().
-is_recording_events(Tracer, SpanCtx) ->
-    ?DO(Tracer, SpanCtx, []).
+is_recording(ot_span_noop, _) ->
+    false;
+is_recording(_Tracer, SpanCtx) ->
+    ?is_recording(SpanCtx).
 
 -spec set_attribute(Tracer, SpanCtx, Key, Value) -> boolean() when
       Tracer :: opentelemetry:tracer(),
       Key :: opentelemetry:attribute_key(),
       Value :: opentelemetry:attribute_value(),
       SpanCtx :: opentelemetry:span_ctx().
-set_attribute(Tracer, SpanCtx, Key, Value) ->
-    ?DO(Tracer, SpanCtx, [Key, Value]).
+set_attribute(Tracer, SpanCtx, Key, Value) when ?is_recording(SpanCtx) ->
+    ?DO(Tracer, SpanCtx, [Key, Value]);
+set_attribute(_, _, _, _) ->
+    false.
 
 -spec set_attributes(Tracer, SpanCtx, Attributes) -> boolean() when
       Tracer :: opentelemetry:tracer(),
       Attributes :: opentelemetry:attributes(),
       SpanCtx :: opentelemetry:span_ctx().
-set_attributes(Tracer, SpanCtx, Attributes) ->
-    ?DO(Tracer, SpanCtx, [Attributes]).
+set_attributes(Tracer, SpanCtx, Attributes) when ?is_recording(SpanCtx) ->
+    ?DO(Tracer, SpanCtx, [Attributes]);
+set_attributes(_, _, _) ->
+    false.
 
 -spec add_event(Tracer, SpanCtx, Name, Attributes) -> boolean() when
       Tracer :: opentelemetry:tracer(),
       Name :: unicode:unicode_binary(),
       Attributes :: opentelemetry:attributes(),
       SpanCtx :: opentelemetry:span_ctx().
-add_event(Tracer, SpanCtx, Name, Attributes) ->
-    ?DO(Tracer, SpanCtx, [Name, Attributes]).
+add_event(Tracer, SpanCtx, Name, Attributes) when ?is_recording(SpanCtx) ->
+    ?DO(Tracer, SpanCtx, [Name, Attributes]);
+add_event(_, _, _, _) ->
+    false.
 
 -spec add_events(Tracer, SpanCtx, Events) -> boolean() when
       Tracer :: opentelemetry:tracer(),
       Events :: opentelemetry:events(),
       SpanCtx :: opentelemetry:span_ctx().
-add_events(Tracer, SpanCtx, Events) ->
-    ?DO(Tracer, SpanCtx, [Events]).
+add_events(Tracer, SpanCtx, Events) when ?is_recording(SpanCtx) ->
+    ?DO(Tracer, SpanCtx, [Events]);
+add_events(_, _, _) ->
+    false.
 
 -spec set_status(Tracer, SpanCtx, Status) -> boolean() when
       Tracer :: opentelemetry:tracer(),
       Status :: opentelemetry:status(),
       SpanCtx :: opentelemetry:span_ctx().
-set_status(Tracer, SpanCtx, Status) ->
-    ?DO(Tracer, SpanCtx, [Status]).
+set_status(Tracer, SpanCtx, Status) when ?is_recording(SpanCtx) ->
+    ?DO(Tracer, SpanCtx, [Status]);
+set_status(_, _, _) ->
+    false.
 
 -spec update_name(Tracer, SpanCtx, Name) -> boolean() when
       Tracer :: opentelemetry:tracer(),

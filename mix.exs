@@ -40,6 +40,7 @@ defmodule OpenTelemetry.MixProject do
 
   def deps() do
     [
+      {:wts, "~> 0.3.0"},
       {:cmark, "~> 0.7", only: :dev, runtime: false},
       {:ex_doc, "~> 0.21", only: :dev, runtime: false}
     ]

@@ -37,7 +37,7 @@
           %% 64 bit int span id
           span_id           :: opentelemetry:span_id() | undefined,
           %% 8-bit integer, lowest bit is if it is sampled
-          trace_flags = 1 :: integer() | undefined,
+          trace_flags = 1   :: integer() | undefined,
           %% Tracestate represents tracing-system specific context in a list of key-value pairs.
           %% Tracestate allows different vendors propagate additional information and
           %% inter-operate with their legacy Id formats.
@@ -50,7 +50,7 @@
           %% this field is not propagated and is only here as an implementation optimization
           %% If true updates like adding events are done on the span. The same as if the
           %% trace flags lowest bit is 1 but simply not propagated.
-          is_recorded       :: boolean() | undefined
+          is_recording      :: boolean() | undefined
          }).
 
 -record(link, {
@@ -60,18 +60,32 @@
           tracestate                :: opentelemetry:tracestate()
          }).
 
--record(timed_event, {
-          time_unixnano :: integer(),
-          event :: opentelemetry:event()
-         }).
-
 -record(event, {
-          name       :: unicode:unicode_binary(),
-          attributes :: opentelemetry:attributes()
+          time            :: wts:timestamp() | non_neg_integer(),
+          name            :: unicode:unicode_binary(),
+          attributes = [] :: opentelemetry:attributes()
          }).
 
 -record(status, {
-          code    :: integer(),
+          code    :: atom() | integer(),
           %% developer-facing error message
           message :: unicode:unicode_binary()
          }).
+
+-define(OTEL_STATUS_OK, 'Ok').
+-define(OTEL_STATUS_CANCELLED, 'Cancelled').
+-define(OTEL_STATUS_UNKNOWN, 'UnknownError').
+-define(OTEL_STATUS_INVALID_ARGUMENT, 'InvalidArgument').
+-define(OTEL_STATUS_DEADLINE_EXCEEDED, 'DeadlineExceeded').
+-define(OTEL_STATUS_NOT_FOUND, 'NotFound').
+-define(OTEL_STATUS_ALREADY_EXISTS , 'AlreadyExists').
+-define(OTEL_STATUS_PERMISSION_DENIED, 'PermissionDenied').
+-define(OTEL_STATUS_RESOURCE_EXHAUSTED, 'ResourceExhausted').
+-define(OTEL_STATUS_FAILED_PRECONDITION, 'FailedPrecondition').
+-define(OTEL_STATUS_ABORTED, 'Aborted').
+-define(OTEL_STATUS_OUT_OF_RANGE, 'OutOfRange').
+-define(OTEL_STATUS_UNIMPLEMENTED, 'Unimplemented').
+-define(OTEL_STATUS_INTERNAL, 'InternalError').
+-define(OTEL_STATUS_UNAVAILABLE, 'Unavailable').
+-define(OTEL_STATUS_DATA_LOSS, 'DataLoss').
+-define(OTEL_STATUS_UNAUTHENTICATED, 'Unauthenticated').
