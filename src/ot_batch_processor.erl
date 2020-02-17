@@ -107,12 +107,12 @@ on_end(_Span, _) ->
 init([Args]) ->
     process_flag(trap_exit, true),
 
-    SizeLimit = proplists:get_value(max_queue_size, Args, ?DEFAULT_MAX_QUEUE_SIZE),
-    ExportingTimeout = proplists:get_value(exporting_timeout_ms, Args, ?DEFAULT_EXPORTER_TIMEOUT_MS),
-    ScheduledDelay = proplists:get_value(scheduled_delay_ms, Args, ?DEFAULT_SCHEDULED_DELAY_MS),
-    CheckTableSize = proplists:get_value(check_table_size_ms, Args, ?DEFAULT_CHECK_TABLE_SIZE_MS),
+    SizeLimit = maps:get(max_queue_size, Args, ?DEFAULT_MAX_QUEUE_SIZE),
+    ExportingTimeout = maps:get(exporting_timeout_ms, Args, ?DEFAULT_EXPORTER_TIMEOUT_MS),
+    ScheduledDelay = maps:get(scheduled_delay_ms, Args, ?DEFAULT_SCHEDULED_DELAY_MS),
+    CheckTableSize = maps:get(check_table_size_ms, Args, ?DEFAULT_CHECK_TABLE_SIZE_MS),
 
-    Exporter = init_exporter(proplists:get_value(exporter, Args, undefined)),
+    Exporter = init_exporter(maps:get(exporter, Args, undefined)),
 
     _Tid1 = new_export_table(?TABLE_1),
     _Tid2 = new_export_table(?TABLE_2),

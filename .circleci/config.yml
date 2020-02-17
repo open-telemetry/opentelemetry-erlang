@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   rebar3: tsloughter/rebar3@0.8.1
-  codecov: circleci/codecov@0.0.3
+  codecov: codecov/codecov@1.0.5
 
 jobs:
   codecov:
@@ -16,7 +16,7 @@ jobs:
       - attach_workspace:
           at: ~/project/
       - codecov/upload:
-          path: _build/test/covertool/opentelemetry.covertool.xml
+          file: _build/test/covertool/opentelemetry.covertool.xml
 
 erlang22: &erlang22
   executor:
