@@ -46,8 +46,8 @@
           %% Kept as a list so ets:select_replace/2 can be used to add new elements
           attributes = []                         :: opentelemetry:attributes() | undefined,
 
-          %% A time-stamped event in the Span.
-          timed_events = []                       :: opentelemetry:timed_events(),
+          %% List of time-stamped events in the Span.
+          events = []                             :: opentelemetry:events(),
 
           %% links to spans in other traces
           links = []                              :: opentelemetry:links(),
@@ -65,7 +65,7 @@
           %% this field is not propagated and is only here as an implementation optimization
           %% If true updates like adding events are done on the span. The same as if the
           %% trace flags lowest bit is 1 but simply not propagated.
-          is_recorded                             :: boolean() | undefined,
+          is_recording                            :: boolean() | undefined,
 
           library_resource                        :: ot_tracer_server:library_resource()
          }).

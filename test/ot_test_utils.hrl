@@ -28,7 +28,7 @@
 -define(assertListsMatch(List1, List2), ?assertEqual(lists:sort(List1), lists:sort(List2))).
 
 %% a macro for asserting the important parts of a span ctx are equal
-%% parts we keep in the record like is_recorded is not propagated and
+%% parts we keep in the record like is_recording is not propagated and
 %% thus should not be part of a comparison to check propagated ctx
 -define(assertSpanCtxsEqual(SpanCtx1, SpanCtx2), begin
                                                     #span_ctx{trace_id=TraceId1,
