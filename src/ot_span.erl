@@ -43,13 +43,12 @@
 -export_type([start_opts/0]).
 
 -callback get_ctx(opentelemetry:span()) -> opentelemetry:span_ctx().
--callback is_recording_events(opentelemetry:span_ctx()) -> boolean().
 -callback set_attribute(opentelemetry:span_ctx(),
                         opentelemetry:attribute_key(),
                         opentelemetry:attribute_value()) -> boolean().
 -callback set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes()) -> boolean().
 -callback add_event(opentelemetry:span_ctx(), unicode:unicode_binary(), opentelemetry:attributes()) -> boolean().
--callback add_events(opentelemetry:span_ctx(), opentelemetry:time_events()) -> boolean().
+-callback add_events(opentelemetry:span_ctx(), opentelemetry:events()) -> boolean().
 -callback set_status(opentelemetry:span_ctx(), opentelemetry:status()) -> boolean().
 -callback update_name(opentelemetry:span_ctx(), opentelemetry:span_name()) -> boolean().
 
