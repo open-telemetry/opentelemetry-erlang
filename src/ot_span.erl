@@ -34,7 +34,6 @@
 -type start_opts() :: #{parent => undefined | opentelemetry:span() | opentelemetry:span_ctx(),
                         attributes => opentelemetry:attributes(),
                         sampler => ot_sampler:sampler(),
-                        sampling_hint => ot_sampler:sampling_decision(),
                         links => opentelemetry:links(),
                         is_recording => boolean(),
                         start_time => wts:timestamp(),

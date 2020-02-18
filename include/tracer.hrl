@@ -7,14 +7,14 @@
 -define(start_span(SpanName),
         ot_tracer:start_span(?current_tracer, SpanName, #{})).
 
--define(start_span(SpanName, Opts),
-        ot_tracer:start_span(?current_tracer, SpanName, Opts)).
+-define(start_span(SpanName, StartOpts),
+        ot_tracer:start_span(?current_tracer, SpanName, StartOpts)).
 
 -define(set_span(SpanCtx),
         ot_tracer:set_span(?current_tracer, SpanCtx)).
 
--define(with_span(SpanName, Attributes, Fun),
-        ot_tracer:with_span(?current_tracer, SpanName, Fun)).
+-define(with_span(SpanName, StartOpts, Fun),
+        ot_tracer:with_span(?current_tracer, SpanName, StartOpts, Fun)).
 
 -define(end_span(),
         ot_tracer:end_span(?current_tracer)).

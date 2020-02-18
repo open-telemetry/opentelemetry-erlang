@@ -87,9 +87,12 @@
 -type attribute()          :: {unicode:unicode_binary(), attribute_value()}.
 -type attributes()         :: [attribute()].
 
--type span_kind()          :: ?SPAN_KIND_INTERNAL |
-                              ?SPAN_KIND_SERVER   |
-                              ?SPAN_KIND_CLIENT.
+-type span_kind()          :: ?SPAN_KIND_UNSPECIFIED |
+                              ?SPAN_KIND_INTERNAL    |
+                              ?SPAN_KIND_SERVER      |
+                              ?SPAN_KIND_CLIENT      |
+                              ?SPAN_KIND_PRODUCER    |
+                              ?SPAN_KIND_CONSUMER.
 -type event()              :: #event{}.
 -type events()             :: [#event{}].
 -type link()               :: #link{}.
@@ -244,7 +247,7 @@ events(List) ->
                     end, List).
 
 -spec status(Code, Message) -> status() | undefined when
-      Code :: integer(),
+      Code :: atom(),
       Message :: unicode:unicode_binary().
 status(Code, Message) when is_integer(Code),
                            is_binary(Message) ->
