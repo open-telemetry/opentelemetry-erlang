@@ -33,9 +33,9 @@ defmodule OpenTelemetry.Tracer do
   `parent` option given then the Tracer checks for an extracted SpanContext to use as the parent. If
   there is also no extracted context then the created Span is a root Span.
   """
-  defmacro start_span(name, start_opts \\ quote(do: %{})) do
-    quote do
-      :ot_tracer.start_span(:opentelemetry.get_tracer(__MODULE__), unquote(name), unquote(start_opts))
+  defmacro start_span(name, opts \\ quote(do: %{})) do
+    quote bind_quoted: [name: name, start_opts: opts] do
+      :ot_tracer.start_span(:opentelemetry.get_tracer(__MODULE__), name, start_opts)
     end
   end
 
@@ -43,8 +43,8 @@ defmodule OpenTelemetry.Tracer do
   Takes a `t:OpenTelemetry.span_ctx/0` and the Tracer sets it to the currently active Span.
   """
   defmacro set_span(span_ctx) do
-    quote do
-      :ot_tracer.set_span(:opentelemetry.get_tracer(__MODULE__), unquote(span_ctx))
+    quote bind_quoted: [span_ctx: span_ctx] do
+      :ot_tracer.set_span(:opentelemetry.get_tracer(__MODULE__), span_ctx)
     end
   end
 
@@ -72,6 +72,15 @@ defmodule OpenTelemetry.Tracer do
             unquote(name),
             unquote(start_opts),
             fn _ -> unquote(block) end)
+    end
+  end
+
+  @doc """
+  Returns the currently active `t:OpenTelemetry.tracer_ctx/0`.
+  """
+  defmacro current_ctx() do
+    quote do
+      :ot_tracer.current_ctx(:opentelemetry.get_tracer(__MODULE__))
     end
   end
 
