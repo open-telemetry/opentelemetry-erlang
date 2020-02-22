@@ -18,7 +18,8 @@ all() ->
      {group, b3}].
 
 all_testcases() ->
-    [with_span, macros, child_spans, update_span_data, tracer_library_resource].
+    [with_span, macros, child_spans, update_span_data, tracer_library_resource,
+     tracer_previous_ctx].
 
 groups() ->
     [{ot_ctx_pdict, [shuffle], all_testcases()},
@@ -240,6 +241,37 @@ tracer_library_resource(Config) ->
     ?assertEqual(#library_resource{name=TracerName,
                                    version=TracerVsn}, Span1#span.library_resource).
 
+%% check that ending a span results in the tracer setting the previous tracer context
+%% as the current active and not use the parent span ctx of the span being ended --
+%% though at times those will be the same.
+tracer_previous_ctx(Config) ->
+    Tid = ?config(tid, Config),
+
+    Tracer = opentelemetry:get_tracer(),
+
+    SpanCtx1 = ot_tracer:start_span(Tracer, <<"span-1">>, #{}),
+    ?assertMatch(SpanCtx1, ?current_span_ctx()),
+
+    %% create a span that is not set to active and with no parent
+    SpanCtx2 = ot_tracer:create_span(Tracer, <<"span-2">>, #{parent => undefined}),
+
+    %% start a new active span with SpanCtx2 as the parent
+    SpanCtx3 = ot_tracer:start_span(Tracer, <<"span-3">>, #{parent => SpanCtx2}),
+
+    %% end SpanCtx3, even though it isn't the parent SpanCtx1
+    %% should be the active context afterward
+    ot_tracer:end_span(Tracer),
+
+    ?assertMatch(SpanCtx1, ?current_span_ctx()),
+
+    ot_tracer:end_span(Tracer),
+
+    ot_tracer:set_span(Tracer, SpanCtx2),
+    ot_tracer:end_span(Tracer),
+
+    assert_all_exported(Tid, [SpanCtx3, SpanCtx1, SpanCtx2]),
+
+    ok.
 
 stop_temporary_app(_Config) ->
     SpanCtx1 = ?start_span(<<"span-1">>),
