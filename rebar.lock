@@ -1,12 +1,10 @@
 {"1.1.0",
 [{<<"opentelemetry_api">>,
-  {git,"https://github.com/open-telemetry/opentelemetry-erlang-api",
-       {ref,"9f982d557ea8e4526a4f2804b24d45b93c73f6a5"}},
+  {git,"https://github.com/tsloughter/opentelemetry-erlang-api",
+       {ref,"f78c4b231d397c0f9453c3b815899ce628cd7002"}},
   0},
- {<<"rfc3339">>,{pkg,<<"rfc3339">>,<<"0.9.0">>},1},
- {<<"wts">>,{pkg,<<"wts">>,<<"0.3.0">>},0}]}.
+ {<<"wts">>,{pkg,<<"wts">>,<<"0.4.0">>},0}]}.
 [
 {pkg_hash,[
- {<<"rfc3339">>, <<"2075653DC9407541C84B1E15F8BDA2ABE95FB17C9694025E079583F2D19C1060">>},
- {<<"wts">>, <<"5CDF22C775CB1EBAE24C326A5DB6074D753C42F4BD12A9AA47CC62D3E2C71AD1">>}]}
+ {<<"wts">>, <<"62D9DC400AD29F0D233F0665B9C75C8F8EB0A8AF75EEC921056BA4A73B0605A2">>}]}
 ].

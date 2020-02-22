@@ -42,11 +42,11 @@
             -> ot_propagation:http_headers().
 inject(_, #tracer_ctx{active=#span_ctx{trace_id=TraceId,
                                        span_id=SpanId},
-                      parent=_})
+                      previous=_})
   when TraceId =:= 0 orelse SpanId =:= 0 ->
     [];
 inject(_, #tracer_ctx{active=SpanCtx=#span_ctx{},
-                      parent=_}) ->
+                      previous=_}) ->
     EncodedValue = encode(SpanCtx),
     [{?HEADER_KEY, EncodedValue} | encode_tracestate(SpanCtx)];
 inject(_, undefined) ->

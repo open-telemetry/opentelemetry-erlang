@@ -84,7 +84,7 @@
 start_link(Opts) ->
     gen_statem:start_link({local, ?MODULE}, ?MODULE, [Opts], []).
 
-%% @equiv set_exporter(Exporter, []).
+%% @equiv set_exporter(Exporter, [])
 set_exporter(Exporter) ->
     set_exporter(Exporter, []).
 

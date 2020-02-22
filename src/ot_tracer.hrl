@@ -9,6 +9,11 @@
                  resource :: term() | undefined}).
 -type tracer() :: #tracer{}.
 
--record(tracer_ctx, {active :: opentelemetry:span_ctx() | undefined,
-                     parent :: #tracer_ctx{} | undefined}).
+-record(tracer_ctx, {
+                     %% the currently active span ctx
+                     active :: opentelemetry:span_ctx() | undefined,
+                     %% the tracer_ctx at the time the active span ctx
+                     %% was made the active span ctx
+                     previous :: #tracer_ctx{} | undefined
+                    }).
 -type tracer_ctx() :: #tracer_ctx{}.
