@@ -20,6 +20,7 @@
 -behaviour(ot_tracer).
 
 -export([start_span/3,
+         create_span/3,
          set_span/2,
          with_span/3,
          with_span/4,
@@ -41,6 +42,11 @@
 
 -spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts()) -> opentelemetry:span_ctx().
 start_span(_, _Name, _) ->
+    ?NOOP_SPAN_CTX.
+
+-spec create_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts())
+                 -> opentelemetry:span_ctx().
+create_span(_, _Name, _Opts) ->
     ?NOOP_SPAN_CTX.
 
 -spec set_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
@@ -71,6 +77,6 @@ span_module(_) ->
 end_span(_) ->
     true.
 
--spec end_span(opentelemetry:tracer(), ot_tracer:tracer_ctx()) -> boolean() | {error, term()}.
+-spec end_span(opentelemetry:tracer(), ot_tracer:span_ctx()) -> boolean() | {error, term()}.
 end_span(_, _) ->
     true.
