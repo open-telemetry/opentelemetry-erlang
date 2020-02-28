@@ -28,7 +28,9 @@
          record_batch/3,
          release/2,
          bind/3,
-         lookup/1]).
+         lookup/1,
+         set_observer_callback/3,
+         update_observer/3]).
 
 -export([init/1,
          handle_call/3,
@@ -82,6 +84,14 @@ lookup(Name) ->
         [] ->
             unknown_instrument
     end.
+
+-spec set_observer_callback(opentelemetry:meter(), ot_meter:name(), ot_observer:callback()) -> boolean().
+set_observer_callback(Meter={Module, _}, Observer, Callback) ->
+    true.
+
+-spec update_observer(ot_observer:observer_result(), number(), ot_meter:label_set()) -> ok.
+update_observer(ObserverResult={Module, _}, Number, LabelSet) ->
+    ok.
 
 start_link(Opts) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Opts, []).
