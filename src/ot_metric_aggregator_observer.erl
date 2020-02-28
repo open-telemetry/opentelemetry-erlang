@@ -66,7 +66,7 @@ merge({_Number1, _Timestamp1}, {Number2, Timestamp2}) ->
 %%
 
 select_replace(Tab, #active_instrument{key={Name, LabelSet}}, NewValue={_, NewTimestamp}) ->
-    %% ensure recorded gauge is the latest recording
+    %% ensure recorded observer is the latest recording
     MS = ets:fun2ms(fun(A=#active_instrument{key=Key,
                                              value={_, Timestamp}}) when Key =:= {Name, LabelSet}
                                                                          andalso NewTimestamp > Timestamp ->

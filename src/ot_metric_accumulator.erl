@@ -126,8 +126,6 @@ handle_cast(_Msg, State) ->
 
 aggregator(#instrument{kind=counter}) ->
     ot_metric_aggregator_counter;
-aggregator(#instrument{kind=gauge}) ->
-    ot_metric_aggregator_gauge;
 aggregator(#instrument{kind=measure}) ->
     ot_metric_aggregator_mmsc.
     %% ot_metric_aggregator_measure.
