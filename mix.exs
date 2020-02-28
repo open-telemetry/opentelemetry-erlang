@@ -2,13 +2,17 @@ defmodule OpenTelemetry.MixProject do
   use Mix.Project
 
   def project do
+    {app, desc} = load_app()
+    config = load_config()
+
     [
-      app: :open_telemetry,
-      version: version(),
+      app: app,
+      version: version(Keyword.fetch!(desc, :vsn)),
+      description: to_string(Keyword.fetch!(desc, :description)),
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       # We should never have dependencies
-      deps: deps(),
+      deps: deps(Keyword.fetch!(config, :deps)),
       # Docs
       name: "OpenTelemetry API",
       # source_url: "https://github.com/USER/PROJECT",
@@ -27,23 +31,29 @@ defmodule OpenTelemetry.MixProject do
     ]
   end
 
-  defp version do
-    "VERSION"
+  defp version(version) when is_list(version) do
+    List.to_string(version)
+  end
+
+  defp version({:file, path}) do
+    path
     |> File.read!()
     |> String.trim()
   end
 
   # Run "mix help compile.app" to learn about applications.
-  def application do
-    []
-  end
+  def application, do: []
 
-  def deps() do
-    [
-      {:wts, "~> 0.3.0"},
+  defp deps(rebar) do
+    rebar
+    |> Enum.map(fn
+      {dep, version} -> {dep, to_string(version)}
+      dep when is_atom(dep) -> {dep, ">= 0.0.0"}
+    end)
+    |> Enum.concat([
       {:cmark, "~> 0.7", only: :dev, runtime: false},
       {:ex_doc, "~> 0.21", only: :dev, runtime: false}
-    ]
+    ])
   end
 
   defp package() do
@@ -60,8 +70,20 @@ defmodule OpenTelemetry.MixProject do
     files =
       for file <- Path.wildcard("edoc/*.md"),
         file != "edoc/README.md",
-        do: {file, [title: Path.basename(file, ".md")]}
+        do: {String.to_atom(file), [title: Path.basename(file, ".md")]}
 
-    [{"README.md", [title: "Overview"]} | files]
+    [{:"README.md", [title: "Overview"]} | files]
+  end
+
+  defp load_config do
+    {:ok, config} = :file.consult('rebar.config')
+
+    config
+  end
+
+  defp load_app do
+    {:ok, [{:application, name, desc}]} = :file.consult('src/opentelemetry_api.app.src')
+
+    {name, desc}
   end
 end
