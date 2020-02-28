@@ -142,8 +142,6 @@ handle_info(update_workers, State=#state{refs=Refs,
 
 bind_instrument(_Meter, Instrument=#instrument{kind=counter}, LabelSet) ->
     bind_counter(Instrument, LabelSet);
-bind_instrument(_Meter, Instrument=#instrument{kind=gauge}, LabelSet) ->
-    bind_gauge(Instrument, LabelSet);
 bind_instrument(_Meter, Instrument=#instrument{kind=measure}, LabelSet) ->
     bind_measure(Instrument, LabelSet).
 
@@ -152,12 +150,6 @@ bind_counter(Instrument=#instrument{input_type=integer}, LabelSet) ->
     ot_metric_accumulator:lookup_counter(Instrument, LabelSet);
 bind_counter(Instrument=#instrument{input_type=float}, LabelSet) ->
     ot_metric_accumulator:lookup_counter(Instrument, LabelSet).
-
-bind_gauge(Instrument=#instrument{input_type=integer}, LabelSet) ->
-    %% TODO: use an atomic ref here instead
-    ot_metric_accumulator:lookup_gauge(Instrument, LabelSet);
-bind_gauge(Instrument=#instrument{input_type=float}, LabelSet) ->
-    ot_metric_accumulator:lookup_gauge(Instrument, LabelSet).
 
 bind_measure(Instrument, LabelSet) ->
     ot_metric_accumulator:lookup_measure(Instrument, LabelSet).
