@@ -18,8 +18,10 @@
 %%%-------------------------------------------------------------------------
 -module(ot_metric_aggregator).
 
--callback update() -> ok.
+-include("ot_meter.hrl").
 
--callback checkpoint() -> ok.
+-callback update(ets:tid(), ot_meter:input_type(), active_instrument(), number()) -> boolean().
 
--callback merge() -> ok.
+-callback checkpoint(ets:tid()) -> boolean().
+
+-callback merge(term(), term()) -> term().
