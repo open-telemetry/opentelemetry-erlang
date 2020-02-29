@@ -17,7 +17,7 @@ init_per_suite(Config) ->
     os:putenv("OTEL_RESOURCE_LABELS", "service.name=cttest,service.version=1.1.1"),
 
     application:load(opentelemetry),
-    application:set_env(opentelemetry, processors, [{ot_batch_processor, [{scheduled_delay_ms, 1}]}]),
+    application:set_env(opentelemetry, processors, [{ot_batch_processor, #{scheduled_delay_ms => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config.
 
