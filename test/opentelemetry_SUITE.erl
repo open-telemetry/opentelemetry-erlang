@@ -32,6 +32,7 @@ init_per_suite(Config) ->
     Config.
 
 end_per_suite(_Config) ->
+    application:unload(opentelemetry),
     ok.
 
 init_per_group(Propagator, Config) when Propagator =:= w3c ;
@@ -67,6 +68,7 @@ init_per_testcase(_, Config) ->
     [{tid, Tid} | Config].
 
 end_per_testcase(_, _Config) ->
+    _ = application:stop(opentelemetry),
     ok.
 
 macros(Config) ->

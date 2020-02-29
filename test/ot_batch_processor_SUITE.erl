@@ -22,6 +22,7 @@ exporting_timeout_test(_Config) ->
 
     receive
         {'EXIT', Pid, _} ->
+            %% test is to ensure we don't hit this
             ct:fail(batch_processor_crash)
     after
         100 ->

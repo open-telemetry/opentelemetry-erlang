@@ -16,6 +16,7 @@ init_per_suite(Config) ->
     Config.
 
 end_per_suite(_Config) ->
+    _ = application:stop(opentelemetry),
     ok.
 
 counter(_Config) ->
@@ -27,6 +28,8 @@ counter(_Config) ->
     ot_meter_default:record(meter, c1, #{key1 => value1}, 2),
     ot_meter_default:record(meter, c1, #{key1 => value2}, 8),
     ot_meter_default:record(meter, c1, #{key1 => value1}, 5),
+
+    ot_meter_default:wait(),
 
     ot_metric_accumulator:collect(),
     Records = ot_metric_integrator:read(),
@@ -46,6 +49,8 @@ mmsc_aggregator(_Config) ->
     ot_meter_default:record(meter, m1, #{key1 => value1}, 2),
     ot_meter_default:record(meter, m1, #{key1 => value2}, 8),
     ot_meter_default:record(meter, m1, #{key1 => value1}, 5),
+
+    ot_meter_default:wait(),
 
     ot_metric_accumulator:collect(),
     Records = ot_metric_integrator:read(),

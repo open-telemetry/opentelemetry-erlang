@@ -20,7 +20,8 @@
 -behaviour(gen_server).
 
 -export([start_link/1,
-         record/4]).
+         record/4,
+         wait/1]).
 
 -export([init/1,
          handle_call/3,
@@ -36,11 +37,18 @@ start_link(Opts) ->
 record(Pid, Name, LabelSet, Number) ->
     gen_server:cast(Pid, {record, Name, LabelSet, Number}).
 
+%% use for testing.
+%% call this function to know that all previous `record'ings of metrics have been handled
+wait(Pid) ->
+    gen_server:call(Pid, wait).
+
 init(_Opts) ->
     Tid = ets:new(?MODULE, [protected,
                             {keypos, #instrument.name}]),
     {ok, #state{table=Tid}}.
 
+handle_call(wait, _From, State) ->
+    {reply, ok, State};
 handle_call(_, _From, State) ->
     {noreply, State}.
 

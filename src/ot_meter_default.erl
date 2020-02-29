@@ -30,7 +30,8 @@
          bind/3,
          lookup/1,
          set_observer_callback/3,
-         update_observer/3]).
+         update_observer/3,
+         wait/0]).
 
 -export([init/1,
          handle_call/3,
@@ -92,6 +93,12 @@ set_observer_callback(Meter={Module, _}, Observer, Callback) ->
 -spec update_observer(ot_observer:observer_result(), number(), ot_meter:label_set()) -> ok.
 update_observer(ObserverResult={Module, _}, Number, LabelSet) ->
     ok.
+
+%% use for testing.
+%% call this function to know that all previous `record'ings of metrics have been handled
+wait() ->
+    Workers = persistent_term:get({?MODULE, workers}),
+    [ot_meter_worker:wait(W) || W <- tuple_to_list(Workers)].
 
 start_link(Opts) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Opts, []).
