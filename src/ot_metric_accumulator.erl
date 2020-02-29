@@ -62,7 +62,6 @@ record(Name, LabelSet, Number) ->
             Aggregator:update(?ACTIVE_TAB, InputType, Active, Number)
     end.
 
-
 lookup_counter(Instrument=#instrument{name=Name}, LabelSet) ->
     case ets:lookup(?ACTIVE_TAB, {Name, LabelSet}) of
         [ActiveInstrument] ->

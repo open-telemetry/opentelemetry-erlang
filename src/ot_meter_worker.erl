@@ -20,6 +20,7 @@
 -behaviour(gen_server).
 
 -export([start_link/1,
+         record/3,
          record/4,
          wait/1]).
 
@@ -29,10 +30,13 @@
 
 -include("ot_meter.hrl").
 
--record(state, {table :: ets:tid()}).
+-record(state, {table :: ets:tab()}).
 
 start_link(Opts) ->
     gen_server:start_link(?MODULE, Opts, []).
+
+record(Pid, LabelSet, Measures) when is_list(Measures) ->
+    gen_server:cast(Pid, {record, LabelSet, Measures}).
 
 record(Pid, Name, LabelSet, Number) ->
     gen_server:cast(Pid, {record, Name, LabelSet, Number}).
@@ -52,6 +56,9 @@ handle_call(wait, _From, State) ->
 handle_call(_, _From, State) ->
     {noreply, State}.
 
+handle_cast({record, LabelSet, Measures}, State) ->
+    [ot_metric_accumulator:record(Name, LabelSet, Number) || {Name, Number} <- Measures],
+    {noreply, State};
 handle_cast({record, Name, LabelSet, Number}, State) ->
     ot_metric_accumulator:record(Name, LabelSet, Number),
     {noreply, State}.

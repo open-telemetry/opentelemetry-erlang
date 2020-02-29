@@ -18,5 +18,5 @@
 -module(ot_exporter).
 
 -callback init(term()) -> {ok, term()} | ignore.
--callback export(ets:tid(), term()) -> ok | success | failed_not_retryable | failed_retryable.
+-callback export(ets:tab(), term()) -> ok | success | failed_not_retryable | failed_retryable.
 -callback shutdown(term()) -> ok.

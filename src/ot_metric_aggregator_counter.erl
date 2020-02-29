@@ -25,7 +25,7 @@
 -include("ot_meter.hrl").
 -include_lib("stdlib/include/ms_transform.hrl").
 
--spec update(ets:tid(), ot_meter:input_type(), active_instrument(), number()) -> boolean().
+-spec update(ets:tab(), ot_meter:input_type(), active_instrument(), number()) -> boolean().
 update(Tab, integer, ActiveInstrument=#active_instrument{key=Key} , Number) when is_integer(Number) ->
     _ = ets:update_counter(Tab, Key, {#active_instrument.value, Number}, ActiveInstrument);
 update(Tab, float, ActiveInstrument, Number) ->
@@ -39,7 +39,7 @@ update(Tab, float, ActiveInstrument, Number) ->
 update(_, _, _, _) ->
     false.
 
--spec checkpoint(ets:tid()) -> boolean().
+-spec checkpoint(ets:tab()) -> boolean().
 checkpoint(Tab) ->
     MS = ets:fun2ms(fun(A=#active_instrument{aggregator=Aggregator,
                                              instrument=#instrument{input_type=integer},

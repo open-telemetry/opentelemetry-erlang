@@ -25,12 +25,12 @@
 -include("ot_meter.hrl").
 -include_lib("stdlib/include/ms_transform.hrl").
 
--spec update(ets:tid(), ot_meter:input_type(), active_instrument(), number()) -> boolean().
+-spec update(ets:tab(), ot_meter:input_type(), active_instrument(), number()) -> boolean().
 update(Tab, _, ActiveInstrument, Number) ->
     _ = ets:insert(Tab, ActiveInstrument#active_instrument{value=Number}),
     true.
 
--spec checkpoint(ets:tid()) -> boolean().
+-spec checkpoint(ets:tab()) -> boolean().
 checkpoint(Tab) ->
     MS = ets:fun2ms(fun(A=#active_instrument{aggregator=Aggregator,
                                              value=Value}) when Aggregator =:= ?MODULE ->
@@ -50,7 +50,7 @@ merge(Measure1, Measure2) when is_list(Measure1)
     [Measure2 | Measure1];
 merge(Measure1, Measure2) when is_list(Measure2)
                                andalso is_number(Measure1) ->
-    [Measure2 | Measure1];
+    Measure2 ++ [Measure1];
 merge(Measure1, Measure2) when is_number(Measure1)
                                andalso is_number(Measure2) ->
     [Measure2, Measure1];

@@ -41,6 +41,8 @@
 %% -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("ot_meter.hrl").
 
+-type bound_instrument() :: term().
+
 -define(TAB, ?MODULE).
 -define(WORKERS, {?MODULE, workers}).
 -define(WORKER, element(erlang:system_info(scheduler_id), persistent_term:get(?WORKERS))).
@@ -56,24 +58,23 @@ new_instruments(_Meter, List) ->
 labels(_Meter, Labels) ->
     Labels.
 
--spec record(opentelemetry:meter(), ot_meter:bound_instrument(), number()) -> boolean().
-record(Meter, BoundInstrument, Number) ->
-    ok.
+-spec record(opentelemetry:meter(), bound_instrument(), number()) -> ok.
+record(_Meter, BoundInstrument, Number) ->
+    ot_metric_accumulator:record(BoundInstrument, Number).
 
--spec record(opentelemetry:meter(), ot_meter:name(), ot_meter:label_set(), number()) -> boolean().
+-spec record(opentelemetry:meter(), ot_meter:name(), ot_meter:label_set(), number()) -> ok.
 record(_Meter, Name, LabelSet, Number) ->
     ot_meter_worker:record(?WORKER, Name, LabelSet, Number).
-    %% ot_metric_accumulator:record(Name, LabelSet, Number).
 
 -spec record_batch(opentelemetry:meter(), [{ot_meter:name(), number()}], ot_meter:label_set()) -> boolean().
 record_batch(_Meter, Measures, LabelSet) ->
+    ot_meter_worker:record(?WORKER, LabelSet, Measures).
+
+-spec release(opentelemetry:meter(), bound_instrument()) -> ok.
+release(_Meter, _BoundInstrument) ->
     ok.
 
--spec release(opentelemetry:meter(), ot_meter:bound_instrument()) -> ok.
-release(Meter, BoundInstrument) ->
-    ok.
-
--spec bind(opentelemetry:meter(), instrument(), ot_meter:label_set()) -> ot_meter:bound_instrument().
+-spec bind(opentelemetry:meter(), instrument(), ot_meter:label_set()) -> bound_instrument().
 bind(Meter, Instrument, LabelSet) ->
     bind_instrument(Meter, Instrument, LabelSet).
 
@@ -86,7 +87,8 @@ lookup(Name) ->
             unknown_instrument
     end.
 
--spec set_observer_callback(opentelemetry:meter(), ot_meter:name(), ot_observer:callback()) -> boolean().
+-spec set_observer_callback(opentelemetry:meter(), ot_meter:name(), ot_observer:callback())
+                           -> ok | unknown_instrument.
 set_observer_callback(Meter={Module, _}, Observer, Callback) ->
     true.
 

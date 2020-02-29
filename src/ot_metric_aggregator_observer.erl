@@ -25,7 +25,7 @@
 -include("ot_meter.hrl").
 -include_lib("stdlib/include/ms_transform.hrl").
 
--spec update(ets:tid(), ot_meter:input_type(), active_instrument(), number())
+-spec update(ets:tab(), ot_meter:input_type(), active_instrument(), number())
             -> boolean().
 update(Tab, _Type, ActiveInstrument, Number) ->
     Now = erlang:monotonic_time(),
@@ -41,7 +41,7 @@ update(Tab, _Type, ActiveInstrument, Number) ->
             true
     end.
 
--spec checkpoint(ets:tid()) -> boolean().
+-spec checkpoint(ets:tab()) -> boolean().
 checkpoint(Tab) ->
     MS = ets:fun2ms(fun(A=#active_instrument{aggregator=Aggregator,
                                              value=Value}) when Aggregator =:= ?MODULE ->
@@ -54,7 +54,7 @@ checkpoint(Tab) ->
           true
     end.
 
--spec merge(number(), number()) -> {number(), integer()}.
+-spec merge({number(), integer()}, {number(), integer()}) -> {number(), integer()}.
 merge({Number1, Timestamp1}, {_Number2, Timestamp2}) when Timestamp1 > Timestamp2 ->
     {Number1, Timestamp1};
 merge({_Number1, Timestamp1}, {Number2, Timestamp2}) when Timestamp2 > Timestamp1 ->

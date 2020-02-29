@@ -20,8 +20,8 @@
 
 -include("ot_meter.hrl").
 
--callback update(ets:tid(), ot_meter:input_type(), active_instrument(), number()) -> boolean().
+-callback update(ets:tab(), ot_meter:input_type(), active_instrument(), number()) -> boolean().
 
--callback checkpoint(ets:tid()) -> boolean().
+-callback checkpoint(ets:tab()) -> boolean().
 
 -callback merge(term(), term()) -> term().

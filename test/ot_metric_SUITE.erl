@@ -9,7 +9,7 @@
 -include("ot_test_utils.hrl").
 
 all() ->
-    [counter, mmsc_aggregator].
+    [observer, counter, mmsc_aggregator].
 
 init_per_suite(Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry),
@@ -18,6 +18,10 @@ init_per_suite(Config) ->
 end_per_suite(_Config) ->
     _ = application:stop(opentelemetry),
     ok.
+
+observer(_Config) ->
+    ok.
+
 
 counter(_Config) ->
     ot_meter_default:new_instruments([], [#{name => c1,

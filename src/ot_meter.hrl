@@ -16,8 +16,8 @@
 -record(active_instrument, {key :: {ot_meter:name(), ot_meter:label_set()},
                             instrument :: ot_meter:instrument(),
                             aggregator :: module(),
-                            checkpoint :: number(),
-                            value :: number() | {number(), integer()}}).
+                            checkpoint :: number() | undefined,
+                            value :: number() | {number(), integer()} | term()}).
 -type active_instrument() :: #active_instrument{}.
 
 -define(ACTIVE_TAB, active_instrument_updates).

@@ -30,11 +30,10 @@
 -define(SUM, 3).
 -define(COUNT, 4).
 
--spec update(ets:tid(), ot_meter:input_type(), active_instrument(), number()) -> boolean().
-update(_Tab, integer, #active_instrument{value=Counter}, Number) when is_tuple(Counter) ->
-    update_counter(Counter, Number);
-%% if not a tuple it means the value hasn't been set
-update(Tab, integer, ActiveInstrument=#active_instrument{key=Key}, Number) ->
+-spec update(ets:tab(), ot_meter:input_type(), active_instrument(), number()) -> boolean().
+update(Tab, integer, ActiveInstrument=#active_instrument{key=Key,
+                                                         value=Value}, Number) when Value =:= undefined ;
+                                                                                    Value =:= 0 ->
     Counter = counters:new(4, [write_concurrency]),
     %% new counters initialize to all 0's, so we must set min/max first or else
     %% we can't distiguish an unset counter and the actual value 0
@@ -48,6 +47,8 @@ update(Tab, integer, ActiveInstrument=#active_instrument{key=Key}, Number) ->
             Counter = ets:lookup_element(Tab, Key, #active_instrument.key),
             update_counter(Counter, Number)
     end;
+update(_Tab, integer, #active_instrument{value=Counter}, Number) ->
+    update_counter(Counter, Number);
 update(Tab, float, #active_instrument{key={Name, LabelSet}}, Number) ->
     %% can't use min/max functions in matchspec body so stuck with this
     MS = ets:fun2ms(fun(A=#active_instrument{key=Key,
@@ -73,7 +74,7 @@ update(Tab, float, #active_instrument{key={Name, LabelSet}}, Number) ->
             false
     end.
 
--spec checkpoint(ets:tid()) -> boolean().
+-spec checkpoint(ets:tab()) -> boolean().
 checkpoint(Tab) ->
     %% first, checkpoint all the float input type mmsc aggregated metrics
     checkpoint_float(Tab),
