@@ -22,7 +22,6 @@ end_per_suite(_Config) ->
 observer(_Config) ->
     ok.
 
-
 counter(_Config) ->
     ot_meter_default:new_instruments([], [#{name => c1,
                                             kind => counter,
@@ -33,6 +32,7 @@ counter(_Config) ->
     ot_meter_default:record(meter, c1, #{key1 => value2}, 8),
     ot_meter_default:record(meter, c1, #{key1 => value1}, 5),
 
+    %% returns once all records are complete
     ot_meter_default:wait(),
 
     ot_metric_accumulator:collect(),
@@ -54,6 +54,7 @@ mmsc_aggregator(_Config) ->
     ot_meter_default:record(meter, m1, #{key1 => value2}, 8),
     ot_meter_default:record(meter, m1, #{key1 => value1}, 5),
 
+    %% returns once all records are complete
     ot_meter_default:wait(),
 
     ot_metric_accumulator:collect(),

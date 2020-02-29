@@ -29,6 +29,7 @@
          release/2,
          bind/3,
          lookup/1,
+         register_observer/3,
          set_observer_callback/3,
          update_observer/3,
          wait/0]).
@@ -87,9 +88,13 @@ lookup(Name) ->
             unknown_instrument
     end.
 
+-spec register_observer(opentelemetry:meter(), ot_meter:name(), ot_observer:callback()) -> ok.
+register_observer(_Meter, Observer, Callback) ->
+    true.
+
 -spec set_observer_callback(opentelemetry:meter(), ot_meter:name(), ot_observer:callback())
                            -> ok | unknown_instrument.
-set_observer_callback(Meter={Module, _}, Observer, Callback) ->
+set_observer_callback(_Meter, Observer, Callback) ->
     true.
 
 -spec update_observer(ot_observer:observer_result(), number(), ot_meter:label_set()) -> ok.
