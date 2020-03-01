@@ -23,7 +23,7 @@
 
 -type key() :: io_lib:latin1_string().
 -type value() :: io_lib:latin1_string() | integer() | float() | boolean().
--type resource() :: {resource, #{key() => value()}}.
+-type resource() :: {resource, [{key(), value()}]}.
 -opaque t() :: resource().
 
 -export_type([t/0]).
@@ -32,16 +32,18 @@
 
 %% verifies each key and value and drops any that don't pass verification
 -spec create(#{key() => value()}) -> t().
-create(Map) ->
-    {resource, maps:filter(fun(K, V) ->
-                                   %% TODO: log an info or debug message when dropping?
-                                   check_key(K) andalso check_value(V)
-                           end, Map)}.
+create(Map) when is_map(Map) ->
+    create(maps:to_list(Map));
+create(List) when is_list(List) ->
+    {ot_resource, lists:filter(fun({K, V}) ->
+                                    %% TODO: log an info or debug message when dropping?
+                                    check_key(K) andalso check_value(V)
+                            end, List)}.
 
 %% In case of collision the current, first argument, resource takes precedence.
 -spec merge(resource(), resource()) -> t().
-merge({resource, CurrentResource}, {resource, OtherResource}) ->
-    {resource, maps:merge(OtherResource, CurrentResource)}.
+merge({ot_resource, CurrentResource}, {ot_resource, OtherResource}) ->
+    {ot_resource, lists:keymerge(1, OtherResource, CurrentResource)}.
 
 %%
 
@@ -50,8 +52,10 @@ check_string(S) ->
     length(S) =< ?MAX_LENGTH andalso io_lib:deep_latin1_char_list(S).
 
 %% a resource key must be a non-empty latin1 string
-check_key(K) ->
-    is_list(K) andalso length(K) > 0 andalso check_string(K).
+check_key(K=[_|_]) ->
+    check_string(K);
+check_key(_) ->
+    false.
 
 %% a resource value can be a latin1 string, integer, float or boolean
 check_value(V) when is_integer(V) ;

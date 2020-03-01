@@ -18,27 +18,29 @@
 %%%-----------------------------------------------------------------------
 -module(ot_resource_env_var).
 
--export([get_resource/0]).
+-export([get_resource/0,
+         parse/1]).
 
 -define(OS_ENV, "OTEL_RESOURCE_LABELS").
 -define(LABEL_LIST_SPLITTER, ",").
 -define(LABEL_KEY_VALUE_SPLITTER, "=").
 
 get_resource() ->
-    ot_resource:create(parse_resource_labels(os:getenv(?OS_ENV))).
+    ot_resource:create(parse(os:getenv(?OS_ENV))).
 
 %%
 
-parse_resource_labels(false) ->
-    #{};
-parse_resource_labels(RawLabels) ->
+-spec parse(false | string()) -> list().
+parse(false) ->
+    [];
+parse(RawLabels) ->
     Labels = string:split(RawLabels, ?LABEL_LIST_SPLITTER, all),
-    lists:foldl(fun(Label, Acc) ->
-                        case string:split(Label, ?LABEL_KEY_VALUE_SPLITTER, all) of
-                            [K, V] ->
-                                V1 = re:replace(string:trim(V), "^\"|\"$", "", [global, {return, list}]),
-                                Acc#{string:trim(K) => V1};
-                            _ ->
-                                Acc
-                        end
-                end, #{}, Labels).
+    lists:filtermap(fun(Label) ->
+                            case string:split(Label, ?LABEL_KEY_VALUE_SPLITTER, all) of
+                                [K, V] ->
+                                    V1 = re:replace(string:trim(V), "^\"|\"$", "", [global, {return, list}]),
+                                    {true, {string:trim(K), V1}};
+                                _ ->
+                                    false
+                            end
+                    end, Labels).
