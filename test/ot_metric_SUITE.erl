@@ -20,6 +20,34 @@ end_per_suite(_Config) ->
     ok.
 
 observer(_Config) ->
+    ot_meter_default:new_instruments([], [#{name => myobserver,
+                                            kind => observer,
+                                            input_type => integer,
+                                            label_keys => ["a"]}]),
+
+    ot_meter_default:register_observer(meter, myobserver, fun(R) ->
+                                                                  ot_observer:observe(R, 3, #{"a" => "b"}),
+                                                                  ok
+                                                          end),
+
+    ot_metric_accumulator:collect(),
+    Records = ot_metric_integrator:read(),
+
+    ?assertMatch(#{{myobserver, #{"a" => "b"}} := {3, _}}, Records),
+
+    ot_meter_default:register_observer(meter, myobserver, fun(R) ->
+                                                                  ot_observer:observe(R, 5, #{}),
+                                                                  ok
+                                                          end),
+    ot_meter_default:register_observer(meter, myobserver, fun(R) ->
+                                                                  ot_observer:observe(R, 6, #{}),
+                                                                  ok
+                                                          end),
+
+    ot_metric_accumulator:collect(),
+    ?assertMatch(#{{myobserver, #{"a" => "b"}} := {3, _},
+                   {myobserver, #{}} := {6, _}}, ot_metric_integrator:read()),
+
     ok.
 
 counter(_Config) ->

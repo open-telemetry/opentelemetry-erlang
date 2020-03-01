@@ -110,9 +110,13 @@ init(_Opts) ->
     {ok, #state{}}.
 
 handle_call(collect, _From, State) ->
+    %% TODO: should observers just checkpoint?
+    %% TODO: should timeout observer callbacks
+    run_observers(ets:tab2list(ot_meter_default:observer_tab())),
+
+    %% TODO: do these by iterating on the table once, not for each aggregator type
     ot_metric_aggregator_counter:checkpoint(?ACTIVE_TAB),
-    ot_metric_aggregator_observer:checkpoint(?ACTIVE_TAB),
-    %% ot_metric_aggregator_measure:checkpoint(?ACTIVE_MEASURE_TAB),
+    ot_metric_aggregator_last_value:checkpoint(?ACTIVE_TAB),
     ot_metric_aggregator_mmsc:checkpoint(?ACTIVE_TAB),
     {reply, ok, State};
 handle_call(_Msg, _From, State) ->
@@ -123,11 +127,26 @@ handle_cast(_Msg, State) ->
 
 %%
 
+run_observers([]) ->
+    ok;
+run_observers([Observer | Rest]) ->
+    run_observer(Observer),
+    run_observers(Rest).
+
+run_observer(#observer{observer_result=ObserverResult,
+                       callback=Callback}) ->
+    try Callback(ObserverResult)
+    catch _:_ ->
+            %% TODO: log an error
+            ok
+    end.
+
 aggregator(#instrument{kind=counter}) ->
     ot_metric_aggregator_counter;
+aggregator(#instrument{kind=observer}) ->
+    ot_metric_aggregator_last_value;
 aggregator(#instrument{kind=measure}) ->
     ot_metric_aggregator_mmsc.
-    %% ot_metric_aggregator_measure.
 
 lookup(Name, LabelSet) ->
     case ets:lookup(?ACTIVE_TAB, {Name, LabelSet}) of

@@ -30,8 +30,9 @@
          bind/3,
          lookup/1,
          register_observer/3,
+         observer_tab/0,
          set_observer_callback/3,
-         update_observer/3,
+         observe/3,
          wait/0]).
 
 -export([init/1,
@@ -43,6 +44,8 @@
 -include("ot_meter.hrl").
 
 -type bound_instrument() :: term().
+
+-define(OBSERVER_TAB, ot_metric_accumulator_observers).
 
 -define(TAB, ?MODULE).
 -define(WORKERS, {?MODULE, workers}).
@@ -61,13 +64,14 @@ labels(_Meter, Labels) ->
 
 -spec record(opentelemetry:meter(), bound_instrument(), number()) -> ok.
 record(_Meter, BoundInstrument, Number) ->
-    ot_metric_accumulator:record(BoundInstrument, Number).
+    _ = ot_metric_accumulator:record(BoundInstrument, Number),
+    ok.
 
 -spec record(opentelemetry:meter(), ot_meter:name(), ot_meter:label_set(), number()) -> ok.
 record(_Meter, Name, LabelSet, Number) ->
     ot_meter_worker:record(?WORKER, Name, LabelSet, Number).
 
--spec record_batch(opentelemetry:meter(), [{ot_meter:name(), number()}], ot_meter:label_set()) -> boolean().
+-spec record_batch(opentelemetry:meter(), [{ot_meter:name(), number()}], ot_meter:label_set()) -> ok.
 record_batch(_Meter, Measures, LabelSet) ->
     ot_meter_worker:record(?WORKER, LabelSet, Measures).
 
@@ -89,16 +93,32 @@ lookup(Name) ->
     end.
 
 -spec register_observer(opentelemetry:meter(), ot_meter:name(), ot_observer:callback()) -> ok.
-register_observer(_Meter, Observer, Callback) ->
-    true.
+register_observer(_Meter, Name, Callback) ->
+    case lookup(Name) of
+        unknown_instrument ->
+            unknown_instrument;
+        Instrument ->
+            gen_server:call(?MODULE, {register_observer, Name, Instrument, Callback})
+    end.
+
+observer_tab() ->
+    ?OBSERVER_TAB.
 
 -spec set_observer_callback(opentelemetry:meter(), ot_meter:name(), ot_observer:callback())
                            -> ok | unknown_instrument.
-set_observer_callback(_Meter, Observer, Callback) ->
-    true.
+set_observer_callback(_Meter, Name, Callback) ->
+    case lookup(Name) of
+        unknown_instrument ->
+            unknown_instrument;
+        Instrument ->
+            gen_server:call(?MODULE, {register_observer, Name, Instrument, Callback})
+    end.
 
--spec update_observer(ot_observer:observer_result(), number(), ot_meter:label_set()) -> ok.
-update_observer(ObserverResult={Module, _}, Number, LabelSet) ->
+-spec observe(instrument(), number(), ot_meter:label_set()) -> ok.
+observe(ObserverResult, Number, LabelSet) ->
+    Active = ot_metric_accumulator:lookup_observer(ObserverResult, LabelSet),
+    ot_metric_aggregator_last_value:update(ot_metric_accumulator:active_table(),
+                                           observer, Active, Number),
     ok.
 
 %% use for testing.
@@ -124,6 +144,10 @@ init(Opts) ->
             ok
     end,
 
+    _ = ets:new(?OBSERVER_TAB, [named_table,
+                                protected,
+                                {keypos, #observer.name}]),
+
     erlang:process_flag(trap_exit, true),
     Refs = start_children(Opts),
     persistent_term:put(?WORKERS, list_to_tuple(Refs)),
@@ -142,7 +166,12 @@ handle_call({new, List}, _From, State) ->
                    mode=maps:get(monotonic, I, monotonic),
                    numeric_type=maps:get(absolute, I, true)} || I=#{name := Name,
                                                                     kind := MetricKind} <- List]),
-    {reply, Result, State}.
+    {reply, Result, State};
+handle_call({register_observer, Name, Instrument, Callback}, _From, State) ->
+    _ = ets:insert(?OBSERVER_TAB, #observer{name=Name,
+                                            observer_result={ot_meter_default, Instrument},
+                                            callback=Callback}),
+    {reply, ok, State}.
 
 handle_cast(_Msg, State) ->
     {noreply, State}.

@@ -21,3 +21,7 @@
 -type active_instrument() :: #active_instrument{}.
 
 -define(ACTIVE_TAB, active_instrument_updates).
+
+-record(observer, {name :: ot_meter:name(),
+                   observer_result :: ot_observer:observer_result(),
+                   callback :: ot_observer:callback()}).

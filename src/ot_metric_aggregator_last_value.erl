@@ -16,7 +16,7 @@
 %%
 %% @end
 %%%-------------------------------------------------------------------------
--module(ot_metric_aggregator_observer).
+-module(ot_metric_aggregator_last_value).
 
 -export([update/4,
          checkpoint/1,
@@ -25,7 +25,7 @@
 -include("ot_meter.hrl").
 -include_lib("stdlib/include/ms_transform.hrl").
 
--spec update(ets:tab(), ot_meter:input_type(), active_instrument(), number())
+-spec update(ets:tab(), observer | ot_meter:input_type(), active_instrument(), number())
             -> boolean().
 update(Tab, _Type, ActiveInstrument, Number) ->
     Now = erlang:monotonic_time(),
@@ -66,7 +66,7 @@ merge({_Number1, _Timestamp1}, {Number2, Timestamp2}) ->
 %%
 
 select_replace(Tab, #active_instrument{key={Name, LabelSet}}, NewValue={_, NewTimestamp}) ->
-    %% ensure recorded observer is the latest recording
+    %% ensure recorded measurement is the latest recording
     MS = ets:fun2ms(fun(A=#active_instrument{key=Key,
                                              value={_, Timestamp}}) when Key =:= {Name, LabelSet}
                                                                          andalso NewTimestamp > Timestamp ->
