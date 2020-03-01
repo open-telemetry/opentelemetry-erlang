@@ -23,7 +23,7 @@
 
 -type key() :: io_lib:latin1_string().
 -type value() :: io_lib:latin1_string() | integer() | float() | boolean().
--type resource() :: {resource, [{key(), value()}]}.
+-type resource() :: {ot_resource, [{key(), value()}]}.
 -opaque t() :: resource().
 
 -export_type([t/0]).
@@ -31,19 +31,24 @@
 -define(MAX_LENGTH, 255).
 
 %% verifies each key and value and drops any that don't pass verification
--spec create(#{key() => value()}) -> t().
+-spec create(#{key() => value()} | [{key(), value()}]) -> t().
 create(Map) when is_map(Map) ->
     create(maps:to_list(Map));
 create(List) when is_list(List) ->
-    {ot_resource, lists:filter(fun({K, V}) ->
+    {ot_resource, lists:filtermap(fun({K, V}) ->
                                     %% TODO: log an info or debug message when dropping?
-                                    check_key(K) andalso check_value(V)
-                            end, List)}.
+                                    case check_key(K) andalso check_value(V) of
+                                        {true, Value} ->
+                                            {true, {K, Value}};
+                                        _ ->
+                                            false
+                                    end
+                               end, lists:ukeysort(1, List))}.
 
 %% In case of collision the current, first argument, resource takes precedence.
--spec merge(resource(), resource()) -> t().
+-spec merge(t(), t()) -> t().
 merge({ot_resource, CurrentResource}, {ot_resource, OtherResource}) ->
-    {ot_resource, lists:keymerge(1, OtherResource, CurrentResource)}.
+    {ot_resource, lists:ukeymerge(1, CurrentResource, OtherResource)}.
 
 %%
 
@@ -61,8 +66,19 @@ check_key(_) ->
 check_value(V) when is_integer(V) ;
                     is_float(V) ;
                     is_boolean(V) ->
-    true;
+    {true, V};
+check_value(V) when is_binary(V) ->
+    L = binary_to_list(V),
+    check_string_value(L);
 check_value(V) when is_list(V) ->
-    check_string(V);
+    check_string_value(V);
 check_value(_) ->
     false.
+
+check_string_value(V) ->
+    case check_string(V) of
+        true ->
+            {true, V};
+        false ->
+            false
+    end.

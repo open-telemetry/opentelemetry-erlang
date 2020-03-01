@@ -10,31 +10,45 @@
 -include("ot_test_utils.hrl").
 -include("ot_tracer.hrl").
 
+%% TODO: negative testing. What a valid value is is still in flux so nothing bothering
+%% to write tests to limit what can be a value only have them become valid values.
 all() ->
-    [os_env_resource].
+    [startup, os_env_resource, app_env_resource, combining].
 
-init_per_suite(Config) ->
+startup(_Config) ->
     os:putenv("OTEL_RESOURCE_LABELS", "service.name=cttest,service.version=1.1.1"),
 
-    application:load(opentelemetry),
-    application:set_env(opentelemetry, processors, [{ot_batch_processor, #{scheduled_delay_ms => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
-    Config.
+    {_, Tracer} = opentelemetry:get_tracer(),
+    _ = application:stop(opentelemetry),
 
-end_per_suite(_Config) ->
-    _ = application:stop(opentelemetry).
-
-init_per_testcase(_, Config) ->
-    %% adds an exporter for a new table
-    %% spans will be exported to a separate table for each of the test cases
-    Tid = ets:new(exported_spans, [public, bag]),
-    ot_batch_processor:set_exporter(ot_exporter_tab, Tid),
-    [{tid, Tid} | Config].
+    ?assertMatch({ot_resource, [{"service.name", "cttest"},
+                                {"service.version", "1.1.1"}]}, Tracer#tracer.resource),
+    ok.
 
 os_env_resource(_Config) ->
-    {_, Tracer} = opentelemetry:get_tracer(),
+    Resource = ot_resource_env_var:parse("service.name=cttest,service.version=1.1.1"),
+    Expected = [{"service.name", "cttest"}, {"service.version", "1.1.1"}],
+    ?assertEqual(Expected, Resource),
+    ok.
 
-    ?assertMatch({resource, #{"service.name" := "cttest",
-                              "service.version" := "1.1.1"}}, Tracer#tracer.resource),
+app_env_resource(_Config) ->
+    Attributes = #{a => [{b,[{c,d}]}], service => #{name => <<"hello">>}},
+    Expected = [{"a.b.c", d}, {"service.name", <<"hello">>}],
 
+    %% sort because this is created from a map and need to make sure
+    %% the order is always the same when we do the assertion
+    ?assertEqual(Expected, lists:sort(ot_resource_app_env:parse(Attributes))),
+    ok.
+
+combining(_Config) ->
+    Resource1 = ot_resource:create(ot_resource_app_env:parse([{service, [{name, <<"other-name">>},
+                                                                         {version, "1.1.1"}]}])),
+    Resource2 = ot_resource:create(ot_resource_env_var:parse("service.name=cttest,service.version=1.1.1")),
+
+    Merged = ot_resource:merge(Resource1, Resource2),
+
+    Expected = {ot_resource, [{"service.name","other-name"},
+                              {"service.version","1.1.1"}]},
+    ?assertEqual(Expected, Merged),
     ok.
