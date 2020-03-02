@@ -39,14 +39,15 @@
                          opentelemetry:kind(),
                          opentelemetry:attributes(),
                          term()) -> sampling_result()), term()}.
+-opaque t() :: sampler().
 -export_type([sampling_result/0,
               sampling_decision/0,
-              sampler/0]).
+              t/0]).
 
 -define(MAX_VALUE, 9223372036854775807). %% 2^63 - 1
 -define(DEFAULT_PROBABILITY, 0.5).
 
--spec setup(atom() | module(), map()) -> sampler().
+-spec setup(atom() | module(), map()) -> t().
 setup(always_on, _Opts) ->
     {fun ?MODULE:always_on/8, []};
 setup(always_off, _Opts) ->

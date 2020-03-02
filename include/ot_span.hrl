@@ -16,6 +16,8 @@
 %% @end
 %%%-------------------------------------------------------------------------
 
+%% Holds information about the instrumentation library specified when
+%% getting a Tracer from the TracerProvider.
 -record(library_resource, {name    :: atom() | undefined,
                            version :: string() | undefined}).
 
