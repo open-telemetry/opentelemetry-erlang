@@ -18,8 +18,13 @@
 
 %% Holds information about the instrumentation library specified when
 %% getting a Tracer from the TracerProvider.
--record(library_resource, {name    :: atom() | undefined,
-                           version :: string() | undefined}).
+-record(instrumentation_library, {name     :: unicode:unicode_binary() | undefined,
+                                  version  :: unicode:unicode_binary() | undefined}).
+
+%% The name, version and language of this OpenTelemetry library
+-record(telemetry_library, {name     :: unicode:unicode_binary() | undefined,
+                            language :: unicode:unicode_binary() | undefined,
+                            version  :: unicode:unicode_binary() | undefined}).
 
 -record(span, {
           %% 128 bit int trace id
@@ -69,5 +74,5 @@
           %% trace flags lowest bit is 1 but simply not propagated.
           is_recording                            :: boolean() | undefined,
 
-          library_resource                        :: ot_tracer_server:library_resource()
+          instrumentation_library                 :: #instrumentation_library{} | undefined
          }).

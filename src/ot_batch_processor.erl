@@ -227,7 +227,15 @@ kill_runner(Data=#data{runner_pid=RunnerPid}) ->
               handed_off_table=undefined}.
 
 new_export_table(Name) ->
-     ets:new(Name, [public, named_table, {write_concurrency, true}, duplicate_bag]).
+     ets:new(Name, [public,
+                    named_table,
+                    {write_concurrency, true},
+                    duplicate_bag,
+                    %% OpenTelemetry exporter protos group by the
+                    %% instrumentation_library. So using instrumentation_library
+                    %% as the key means we can easily lookup all spans for
+                    %% for each instrumentation_library and export together.
+                    {keypos, #span.instrumentation_library}]).
 
 init_exporter(undefined) ->
     undefined;

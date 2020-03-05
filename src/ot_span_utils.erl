@@ -18,7 +18,7 @@
 %%%-------------------------------------------------------------------------
 -module(ot_span_utils).
 
--export([start_span/3,
+-export([start_span/2,
          end_span/1]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
@@ -28,26 +28,26 @@
 %% sampling bit is the first bit in 8-bit trace options
 -define(IS_ENABLED(X), (X band 1) =/= 0).
 
--spec start_span(opentelemetry:span_name(), ot_span:start_opts(), ot_tracer_server:library_resource())
+-spec start_span(opentelemetry:span_name(), ot_span:start_opts())
                 -> {opentelemetry:span_ctx(), opentelemetry:span() | undefined}.
-start_span(Name, Opts, LibraryResource) ->
+start_span(Name, Opts) ->
     Parent = maps:get(parent, Opts, undefined),
     Attributes = maps:get(attributes, Opts, []),
     Links = maps:get(links, Opts, []),
     Kind = maps:get(kind, Opts, ?SPAN_KIND_UNSPECIFIED),
     Sampler = maps:get(sampler, Opts),
     StartTime = maps:get(start_time, Opts, wts:timestamp()),
-    new_span(Name, Parent, Sampler, StartTime, Kind, Attributes, Links, LibraryResource).
+    new_span(Name, Parent, Sampler, StartTime, Kind, Attributes, Links).
 
 %% if parent is undefined create a new trace id
-new_span(Name, undefined, Sampler, StartTime, Kind, Attributes, Links, LibraryResource) ->
+new_span(Name, undefined, Sampler, StartTime, Kind, Attributes, Links) ->
     TraceId = opentelemetry:generate_trace_id(),
     Span = #span_ctx{trace_id=TraceId,
                      trace_flags=0},   
-    new_span(Name, Span, Sampler, StartTime, Kind, Attributes, Links, LibraryResource);
+    new_span(Name, Span, Sampler, StartTime, Kind, Attributes, Links);
 new_span(Name, Parent=#span_ctx{trace_id=TraceId,
                                 tracestate=Tracestate,
-                                span_id=ParentSpanId}, Sampler, StartTime, Kind, Attributes, Links, LibraryResource) ->
+                                span_id=ParentSpanId}, Sampler, StartTime, Kind, Attributes, Links) ->
     SpanId = opentelemetry:generate_span_id(),
     SpanCtx = Parent#span_ctx{span_id=SpanId},
 
@@ -59,7 +59,7 @@ new_span(Name, Parent=#span_ctx{trace_id=TraceId,
                                                  Parent
                                          end,
                Links, Name, Kind, Attributes),
-    
+
     Span = #span{trace_id=TraceId,
                  span_id=SpanId,
                  tracestate=Tracestate,
@@ -69,8 +69,7 @@ new_span(Name, Parent=#span_ctx{trace_id=TraceId,
                  name=Name,
                  attributes=Attributes++SamplerAttributes,
                  links=Links,
-                 is_recording=IsRecording,
-                 library_resource=LibraryResource},
+                 is_recording=IsRecording},
 
     {SpanCtx#span_ctx{trace_flags=TraceFlags,
                       is_recording=IsRecording}, Span}.

@@ -18,7 +18,7 @@ all() ->
      {group, b3}].
 
 all_testcases() ->
-    [with_span, macros, child_spans, update_span_data, tracer_library_resource,
+    [with_span, macros, child_spans, update_span_data, tracer_instrumentation_library,
      tracer_previous_ctx].
 
 groups() ->
@@ -221,7 +221,7 @@ propagation(Config) ->
 
     ok.
 
-tracer_library_resource(Config) ->
+tracer_instrumentation_library(Config) ->
     Tid = ?config(tid, Config),
 
     TracerName = tracer1,
@@ -238,8 +238,7 @@ tracer_library_resource(Config) ->
 
     [Span1] = assert_exported(Tid, SpanCtx1),
 
-    ?assertEqual(#library_resource{name=TracerName,
-                                   version=TracerVsn}, Span1#span.library_resource).
+    ?assertEqual({instrumentation_library,<<"tracer1">>,<<"1.0.0">>}, Span1#span.instrumentation_library).
 
 %% check that ending a span results in the tracer setting the previous tracer context
 %% as the current active and not use the parent span ctx of the span being ended --
