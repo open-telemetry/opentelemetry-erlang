@@ -5,7 +5,7 @@
 
 %% this module was generated on 2020-03-07T18:16:42+00:00 and should not be modified manually
 
--module(opentelemetry_proto_collector_trace_v_1_trace_service_client).
+-module(opentelemetry_trace_service).
 
 -compile(export_all).
 -compile(nowarn_export_all).

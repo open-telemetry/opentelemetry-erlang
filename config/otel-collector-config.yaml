@@ -1,0 +1,19 @@
+receivers:
+  opencensus:
+    endpoint: "localhost:55678"
+processors:
+  batch:
+    send_batch_size: 1024
+    timeout: 5s
+exporters:
+  zipkin:
+    url: "http://somezipkin.target.com:9411/api/v2/spans" # Replace with a real endpoint.
+extensions:
+  zpages: {}
+service:
+  extensions: [zpages]
+  pipelines:
+    traces:
+      receivers: [opencensus]
+      processors: [batch]
+      exporters: [zipkin]

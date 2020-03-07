@@ -1,0 +1,12 @@
+version: '3'
+services:
+  zipkin:
+    image: sumologic/opentelemetry-collector
+    container_name: otel
+    command: ["--config=/conf/otel-collector-config.yaml"]
+    network_mode: host
+    ports:
+      - 55678:55678
+      - 55679:55679
+    volumes:
+      - ./config/otel-collector-config.yaml:/conf/otel-collector-config.yaml

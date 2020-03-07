@@ -4,7 +4,11 @@
   {registered, []},
   {applications,
    [kernel,
-    stdlib
+    stdlib,
+    grpcbox,
+    wts,
+    opentelemetry,
+    opentelemetry_api
    ]},
   {env,[]},
   {modules, []},

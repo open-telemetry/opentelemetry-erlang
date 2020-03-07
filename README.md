@@ -2,7 +2,35 @@
 
 The OpenTelemetry Protocol exporter.
 
-## Upgrading OpenTelemetry Protos
+## Using
+
+Easiest way to setup is to add configuration for the batch processor in OpenTelemetry application environment.
+
+For an Erlang release in `sys.config`:
+
+``` erlang
+{opentelemetry,
+  [{processors, 
+    [{ot_batch_processor,
+        #{exporter => {opentelemetry_exporter, #{endpoints => [{http, "localhost", 55678, []}]}}}}]}]}
+```
+
+An Elixir release uses `releases.exs`:
+
+``` elixir
+config :opentelemetry,
+    :processors, ot_batch_processor: %{exporter: {:opentelemetry_exporter, %{endpoints: [{http, "localhost", 55678, []}}}}
+```
+
+## Contributing
+
+This project uses a submodule, so be sure to clone with the option `recurse-submodules`:
+
+``` shell
+$ git clone --recurse-submodules https://github.com/opentelemetry-beam/opentelemetry_exporter
+```
+
+### Upgrading OpenTelemetry Protos
 
 The protos are in a separate repository, [opentelemetry-proto](https://github.com/open-telemetry/opentelemetry-proto/), and used as a submodule in this repo. To update the Erlang protobuf modules and GRPC client first update the submodule and then use the [rebar3 grpcbox plugin](https://github.com/tsloughter/grpcbox_plugin/) to generate the client:
 

@@ -4,11 +4,14 @@
          export/2,
          shutdown/1]).
 
+%% for roundtrip testing
+-export([to_proto/1]).
+
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/ot_span.hrl").
 
--define(DEFAULT_ENDPOINTS, [{http, "localhost", 8080, []}]).
+-define(DEFAULT_ENDPOINTS, [{http, "localhost", 55678, []}]).
 
 -record(state, {channel_pid :: pid(),
                 endpoints :: map()}).
@@ -58,7 +61,7 @@ to_proto(#span{trace_id=TraceId,
       trace_id                 => <<TraceId:128>>,
       span_id                  => <<SpanId:64>>,
       parent_span_id           => ParentSpanId,
-      tracestate               => TraceState,
+      tracestate               => to_tracestate_string(TraceState),
       kind                     => Kind,
       start_time_unixnano      => to_unixnano(StartTime),
       end_time_unixnano        => to_unixnano(EndTime),
@@ -111,11 +114,11 @@ to_events(Events) ->
 
 to_events([], Acc)->
     Acc;
-to_events([#timed_event{time_unixnano=Time,
-                        event=#event{name=Name,
-                                    attributes=Attributes}} | Rest], Acc) ->
-    to_events(Rest, [#{time_unixnano => Time,
-                       name => Name,
+to_events([#event{time=Timestamp,
+                  name=Name,
+                  attributes=Attributes} | Rest], Acc) ->
+    to_events(Rest, [#{time_unixnano => to_unixnano(Timestamp),
+                       name => to_binary_string(Name),
                        attributes => to_attributes(Attributes)} | Acc]);
 to_events([_ | Rest], Acc) ->
     to_events(Rest, Acc).
@@ -136,3 +139,21 @@ to_links([#link{trace_id=TraceId,
                       dropped_attributes_count => 0} | Acc]);
 to_links([_ | Rest], Acc) ->
     to_links(Rest, Acc).
+
+to_tracestate_string(undefined) ->
+    "";
+to_tracestate_string(List) ->
+    lists:join($,, [[Key, $=, Value] || {Key, Value} <- List]).
+
+to_binary_string(Value) when is_function(Value) ->
+    to_binary_string(Value());
+to_binary_string(Value) when is_list(Value) ->
+    list_to_binary(Value);
+to_binary_string(Value) when is_integer(Value) ->
+    integer_to_binary(Value);
+to_binary_string(Value) when is_float(Value) ->
+    float_to_binary(Value);
+to_binary_string(Value) when is_atom(Value) ->
+    atom_to_binary(Value, utf8);
+to_binary_string(Value) ->
+    Value.
