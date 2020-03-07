@@ -17,7 +17,7 @@ init(Opts) ->
     Endpoints = maps:get(endpoints, Opts, ?DEFAULT_ENDPOINTS),
     ChannelOpts = maps:get(channel_opts, Opts, #{}),
 
-    ChannelPid = grpcbox_channel:start_link(dfeault_channel, Endpoints, ChannelOpts),
+    ChannelPid = grpcbox_channel:start_link(?MODULE, Endpoints, ChannelOpts),
 
     {ok, #state{channel_pid=ChannelPid}}.
 
@@ -25,7 +25,9 @@ export(Tab, #state{channel_pid=_ChannelPid}) ->
     ResourceSpans = ets:foldl(fun(Span, Acc) ->
                                       [to_proto(Span) | Acc]
                               end, [], Tab),
-    ExportRequest = #{resource_spans => ResourceSpans},
+    ExportRequest = #{resource => #{attributes => [],
+                                    dropped_attributes_count => 0},
+                      resource_spans => ResourceSpans},
     opentelemetry_trace_service:export(ExportRequest),
     ok.
 
@@ -44,7 +46,7 @@ to_proto(#span{trace_id=TraceId,
                start_time=StartTime,
                end_time=EndTime,
                attributes=Attributes,
-               timed_events=TimedEvents,
+               events=TimedEvents,
                links=Links,
                status=Status,
                child_span_count=ChildSpanCount,

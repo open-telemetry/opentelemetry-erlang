@@ -3,9 +3,9 @@
 %% @end
 %%%-------------------------------------------------------------------
 
-%% this module was generated on 2020-02-16T19:53:56+00:00 and should not be modified manually
+%% this module was generated on 2020-03-07T18:16:42+00:00 and should not be modified manually
 
--module(opentelemetry_trace_service).
+-module(opentelemetry_proto_collector_trace_v_1_trace_service_client).
 
 -compile(export_all).
 -compile(nowarn_export_all).

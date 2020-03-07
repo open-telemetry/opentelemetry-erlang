@@ -98,8 +98,7 @@
         dropped_events_count    => non_neg_integer(), % = 12, 32 bits
         links                   => [link()],        % = 13
         dropped_links_count     => non_neg_integer(), % = 14, 32 bits
-        status                  => status(),        % = 15
-        local_child_span_count  => integer()        % = 16, 32 bits
+        status                  => status()         % = 15
        }.
 
 -type status() ::
@@ -477,29 +476,17 @@ encode_msg_span(#{} = M, Bin, TrUserData) ->
 		end;
 	    _ -> B13
 	  end,
-    B15 = case M of
-	    #{status := F15} ->
-		begin
-		  TrF15 = id(F15, TrUserData),
-		  if TrF15 =:= undefined -> B14;
-		     true ->
-			 e_mfield_span_status(TrF15, <<B14/binary, 122>>,
-					      TrUserData)
-		  end
-		end;
-	    _ -> B14
-	  end,
     case M of
-      #{local_child_span_count := F16} ->
+      #{status := F15} ->
 	  begin
-	    TrF16 = id(F16, TrUserData),
-	    if TrF16 =:= 0 -> B15;
+	    TrF15 = id(F15, TrUserData),
+	    if TrF15 =:= undefined -> B14;
 	       true ->
-		   e_type_sfixed32(TrF16, <<B15/binary, 133, 1>>,
-				   TrUserData)
+		   e_mfield_span_status(TrF15, <<B14/binary, 122>>,
+					TrUserData)
 	    end
 	  end;
-      _ -> B15
+      _ -> B14
     end.
 
 encode_msg_status(Msg, TrUserData) ->
@@ -1811,140 +1798,113 @@ decode_msg_span(Bin, TrUserData) ->
 			    id([], TrUserData), id(0, TrUserData),
 			    id([], TrUserData), id(0, TrUserData),
 			    id([], TrUserData), id(0, TrUserData),
-			    id('$undef', TrUserData), id(0, TrUserData),
-			    TrUserData).
+			    id('$undef', TrUserData), TrUserData).
 
 dfp_read_field_def_span(<<10, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
+			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     d_field_span_trace_id(Rest, Z1, Z2, F@_1, F@_2, F@_3,
 			  F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			  F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData);
+			  F@_12, F@_13, F@_14, F@_15, TrUserData);
 dfp_read_field_def_span(<<18, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
+			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     d_field_span_span_id(Rest, Z1, Z2, F@_1, F@_2, F@_3,
 			 F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			 F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData);
+			 F@_12, F@_13, F@_14, F@_15, TrUserData);
 dfp_read_field_def_span(<<26, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
+			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     d_field_span_tracestate(Rest, Z1, Z2, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData);
+			    F@_12, F@_13, F@_14, F@_15, TrUserData);
 dfp_read_field_def_span(<<34, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
+			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     d_field_span_parent_span_id(Rest, Z1, Z2, F@_1, F@_2,
 				F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-				F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-				TrUserData);
+				F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
 dfp_read_field_def_span(<<42, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
+			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     d_field_span_name(Rest, Z1, Z2, F@_1, F@_2, F@_3, F@_4,
 		      F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-		      F@_13, F@_14, F@_15, F@_16, TrUserData);
+		      F@_13, F@_14, F@_15, TrUserData);
 dfp_read_field_def_span(<<48, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
+			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     d_field_span_kind(Rest, Z1, Z2, F@_1, F@_2, F@_3, F@_4,
 		      F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-		      F@_13, F@_14, F@_15, F@_16, TrUserData);
+		      F@_13, F@_14, F@_15, TrUserData);
 dfp_read_field_def_span(<<57, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
+			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     d_field_span_start_time_unixnano(Rest, Z1, Z2, F@_1,
 				     F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
 				     F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
-				     F@_15, F@_16, TrUserData);
+				     F@_15, TrUserData);
 dfp_read_field_def_span(<<65, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
+			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     d_field_span_end_time_unixnano(Rest, Z1, Z2, F@_1, F@_2,
 				   F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
 				   F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-				   F@_16, TrUserData);
+				   TrUserData);
 dfp_read_field_def_span(<<74, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
+			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     d_field_span_attributes(Rest, Z1, Z2, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData);
+			    F@_12, F@_13, F@_14, F@_15, TrUserData);
 dfp_read_field_def_span(<<80, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
+			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     d_field_span_dropped_attributes_count(Rest, Z1, Z2,
 					  F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
 					  F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-					  F@_13, F@_14, F@_15, F@_16,
-					  TrUserData);
+					  F@_13, F@_14, F@_15, TrUserData);
 dfp_read_field_def_span(<<90, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
+			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     d_field_span_events(Rest, Z1, Z2, F@_1, F@_2, F@_3,
 			F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-			F@_13, F@_14, F@_15, F@_16, TrUserData);
+			F@_13, F@_14, F@_15, TrUserData);
 dfp_read_field_def_span(<<96, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
+			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     d_field_span_dropped_events_count(Rest, Z1, Z2, F@_1,
 				      F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
 				      F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
-				      F@_15, F@_16, TrUserData);
+				      F@_15, TrUserData);
 dfp_read_field_def_span(<<106, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
+			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     d_field_span_links(Rest, Z1, Z2, F@_1, F@_2, F@_3, F@_4,
 		       F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-		       F@_13, F@_14, F@_15, F@_16, TrUserData);
+		       F@_13, F@_14, F@_15, TrUserData);
 dfp_read_field_def_span(<<112, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
+			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     d_field_span_dropped_links_count(Rest, Z1, Z2, F@_1,
 				     F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
 				     F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
-				     F@_15, F@_16, TrUserData);
+				     F@_15, TrUserData);
 dfp_read_field_def_span(<<122, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
+			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     d_field_span_status(Rest, Z1, Z2, F@_1, F@_2, F@_3,
 			F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-			F@_13, F@_14, F@_15, F@_16, TrUserData);
-dfp_read_field_def_span(<<133, 1, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
-    d_field_span_local_child_span_count(Rest, Z1, Z2, F@_1,
-					F@_2, F@_3, F@_4, F@_5, F@_6, F@_7,
-					F@_8, F@_9, F@_10, F@_11, F@_12, F@_13,
-					F@_14, F@_15, F@_16, TrUserData);
+			F@_13, F@_14, F@_15, TrUserData);
 dfp_read_field_def_span(<<>>, 0, 0, F@_1, F@_2, F@_3,
 			F@_4, F@_5, F@_6, F@_7, F@_8, R1, F@_10, R2, F@_12, R3,
-			F@_14, F@_15, F@_16, TrUserData) ->
+			F@_14, F@_15, TrUserData) ->
     S1 = #{trace_id => F@_1, span_id => F@_2,
 	   tracestate => F@_3, parent_span_id => F@_4,
 	   name => F@_5, kind => F@_6, start_time_unixnano => F@_7,
 	   end_time_unixnano => F@_8,
 	   dropped_attributes_count => F@_10,
 	   dropped_events_count => F@_12,
-	   dropped_links_count => F@_14,
-	   local_child_span_count => F@_16},
+	   dropped_links_count => F@_14},
     S2 = if R1 == '$undef' -> S1;
 	    true -> S1#{attributes => lists_reverse(R1, TrUserData)}
 	 end,
@@ -1959,140 +1919,130 @@ dfp_read_field_def_span(<<>>, 0, 0, F@_1, F@_2, F@_3,
     end;
 dfp_read_field_def_span(Other, Z1, Z2, F@_1, F@_2, F@_3,
 			F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-			F@_13, F@_14, F@_15, F@_16, TrUserData) ->
+			F@_13, F@_14, F@_15, TrUserData) ->
     dg_read_field_def_span(Other, Z1, Z2, F@_1, F@_2, F@_3,
 			   F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			   F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData).
+			   F@_12, F@_13, F@_14, F@_15, TrUserData).
 
 dg_read_field_def_span(<<1:1, X:7, Rest/binary>>, N,
 		       Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-		       F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
+		       F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
 		       TrUserData)
     when N < 32 - 7 ->
     dg_read_field_def_span(Rest, N + 7, X bsl N + Acc, F@_1,
 			   F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			   F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
+			   F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
 			   TrUserData);
 dg_read_field_def_span(<<0:1, X:7, Rest/binary>>, N,
 		       Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-		       F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
+		       F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
 		       TrUserData) ->
     Key = X bsl N + Acc,
     case Key of
       10 ->
 	  d_field_span_trace_id(Rest, 0, 0, F@_1, F@_2, F@_3,
 				F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-				F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-				TrUserData);
+				F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
       18 ->
 	  d_field_span_span_id(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
 			       F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			       F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData);
+			       F@_12, F@_13, F@_14, F@_15, TrUserData);
       26 ->
 	  d_field_span_tracestate(Rest, 0, 0, F@_1, F@_2, F@_3,
 				  F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-				  F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
+				  F@_11, F@_12, F@_13, F@_14, F@_15,
 				  TrUserData);
       34 ->
 	  d_field_span_parent_span_id(Rest, 0, 0, F@_1, F@_2,
 				      F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
 				      F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-				      F@_16, TrUserData);
+				      TrUserData);
       42 ->
 	  d_field_span_name(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
 			    F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-			    F@_13, F@_14, F@_15, F@_16, TrUserData);
+			    F@_13, F@_14, F@_15, TrUserData);
       48 ->
 	  d_field_span_kind(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
 			    F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-			    F@_13, F@_14, F@_15, F@_16, TrUserData);
+			    F@_13, F@_14, F@_15, TrUserData);
       57 ->
 	  d_field_span_start_time_unixnano(Rest, 0, 0, F@_1, F@_2,
 					   F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
 					   F@_9, F@_10, F@_11, F@_12, F@_13,
-					   F@_14, F@_15, F@_16, TrUserData);
+					   F@_14, F@_15, TrUserData);
       65 ->
 	  d_field_span_end_time_unixnano(Rest, 0, 0, F@_1, F@_2,
 					 F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
 					 F@_9, F@_10, F@_11, F@_12, F@_13,
-					 F@_14, F@_15, F@_16, TrUserData);
+					 F@_14, F@_15, TrUserData);
       74 ->
 	  d_field_span_attributes(Rest, 0, 0, F@_1, F@_2, F@_3,
 				  F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-				  F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
+				  F@_11, F@_12, F@_13, F@_14, F@_15,
 				  TrUserData);
       80 ->
 	  d_field_span_dropped_attributes_count(Rest, 0, 0, F@_1,
 						F@_2, F@_3, F@_4, F@_5, F@_6,
 						F@_7, F@_8, F@_9, F@_10, F@_11,
 						F@_12, F@_13, F@_14, F@_15,
-						F@_16, TrUserData);
+						TrUserData);
       90 ->
 	  d_field_span_events(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
 			      F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-			      F@_13, F@_14, F@_15, F@_16, TrUserData);
+			      F@_13, F@_14, F@_15, TrUserData);
       96 ->
 	  d_field_span_dropped_events_count(Rest, 0, 0, F@_1,
 					    F@_2, F@_3, F@_4, F@_5, F@_6, F@_7,
 					    F@_8, F@_9, F@_10, F@_11, F@_12,
-					    F@_13, F@_14, F@_15, F@_16,
-					    TrUserData);
+					    F@_13, F@_14, F@_15, TrUserData);
       106 ->
 	  d_field_span_links(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
 			     F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-			     F@_13, F@_14, F@_15, F@_16, TrUserData);
+			     F@_13, F@_14, F@_15, TrUserData);
       112 ->
 	  d_field_span_dropped_links_count(Rest, 0, 0, F@_1, F@_2,
 					   F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
 					   F@_9, F@_10, F@_11, F@_12, F@_13,
-					   F@_14, F@_15, F@_16, TrUserData);
+					   F@_14, F@_15, TrUserData);
       122 ->
 	  d_field_span_status(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
 			      F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-			      F@_13, F@_14, F@_15, F@_16, TrUserData);
-      133 ->
-	  d_field_span_local_child_span_count(Rest, 0, 0, F@_1,
-					      F@_2, F@_3, F@_4, F@_5, F@_6,
-					      F@_7, F@_8, F@_9, F@_10, F@_11,
-					      F@_12, F@_13, F@_14, F@_15, F@_16,
-					      TrUserData);
+			      F@_13, F@_14, F@_15, TrUserData);
       _ ->
 	  case Key band 7 of
 	    0 ->
 		skip_varint_span(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
 				 F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-				 F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData);
+				 F@_12, F@_13, F@_14, F@_15, TrUserData);
 	    1 ->
 		skip_64_span(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4, F@_5,
 			     F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13,
-			     F@_14, F@_15, F@_16, TrUserData);
+			     F@_14, F@_15, TrUserData);
 	    2 ->
 		skip_length_delimited_span(Rest, 0, 0, F@_1, F@_2, F@_3,
 					   F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
 					   F@_10, F@_11, F@_12, F@_13, F@_14,
-					   F@_15, F@_16, TrUserData);
+					   F@_15, TrUserData);
 	    3 ->
 		skip_group_span(Rest, Key bsr 3, 0, F@_1, F@_2, F@_3,
 				F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-				F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-				TrUserData);
+				F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
 	    5 ->
 		skip_32_span(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4, F@_5,
 			     F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13,
-			     F@_14, F@_15, F@_16, TrUserData)
+			     F@_14, F@_15, TrUserData)
 	  end
     end;
 dg_read_field_def_span(<<>>, 0, 0, F@_1, F@_2, F@_3,
 		       F@_4, F@_5, F@_6, F@_7, F@_8, R1, F@_10, R2, F@_12, R3,
-		       F@_14, F@_15, F@_16, TrUserData) ->
+		       F@_14, F@_15, TrUserData) ->
     S1 = #{trace_id => F@_1, span_id => F@_2,
 	   tracestate => F@_3, parent_span_id => F@_4,
 	   name => F@_5, kind => F@_6, start_time_unixnano => F@_7,
 	   end_time_unixnano => F@_8,
 	   dropped_attributes_count => F@_10,
 	   dropped_events_count => F@_12,
-	   dropped_links_count => F@_14,
-	   local_child_span_count => F@_16},
+	   dropped_links_count => F@_14},
     S2 = if R1 == '$undef' -> S1;
 	    true -> S1#{attributes => lists_reverse(R1, TrUserData)}
 	 end,
@@ -2108,16 +2058,14 @@ dg_read_field_def_span(<<>>, 0, 0, F@_1, F@_2, F@_3,
 
 d_field_span_trace_id(<<1:1, X:7, Rest/binary>>, N, Acc,
 		      F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		      F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-		      TrUserData)
+		      F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
     when N < 57 ->
     d_field_span_trace_id(Rest, N + 7, X bsl N + Acc, F@_1,
 			  F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-			  F@_11, F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData);
+			  F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
 d_field_span_trace_id(<<0:1, X:7, Rest/binary>>, N, Acc,
 		      _, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		      F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-		      TrUserData) ->
+		      F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = begin
 			   Len = X bsl N + Acc,
 			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
@@ -2125,21 +2073,18 @@ d_field_span_trace_id(<<0:1, X:7, Rest/binary>>, N, Acc,
 			 end,
     dfp_read_field_def_span(RestF, 0, 0, NewFValue, F@_2,
 			    F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-			    F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			    TrUserData).
+			    F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData).
 
 d_field_span_span_id(<<1:1, X:7, Rest/binary>>, N, Acc,
 		     F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		     F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-		     TrUserData)
+		     F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
     when N < 57 ->
     d_field_span_span_id(Rest, N + 7, X bsl N + Acc, F@_1,
 			 F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-			 F@_11, F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData);
+			 F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
 d_field_span_span_id(<<0:1, X:7, Rest/binary>>, N, Acc,
 		     F@_1, _, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		     F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-		     TrUserData) ->
+		     F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = begin
 			   Len = X bsl N + Acc,
 			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
@@ -2147,22 +2092,20 @@ d_field_span_span_id(<<0:1, X:7, Rest/binary>>, N, Acc,
 			 end,
     dfp_read_field_def_span(RestF, 0, 0, F@_1, NewFValue,
 			    F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-			    F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			    TrUserData).
+			    F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData).
 
 d_field_span_tracestate(<<1:1, X:7, Rest/binary>>, N,
 			Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-			F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
+			F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
 			TrUserData)
     when N < 57 ->
     d_field_span_tracestate(Rest, N + 7, X bsl N + Acc,
 			    F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
 			    F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			    F@_16, TrUserData);
+			    TrUserData);
 d_field_span_tracestate(<<0:1, X:7, Rest/binary>>, N,
 			Acc, F@_1, F@_2, _, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			TrUserData) ->
+			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = begin
 			   Len = X bsl N + Acc,
 			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
@@ -2170,22 +2113,22 @@ d_field_span_tracestate(<<0:1, X:7, Rest/binary>>, N,
 			 end,
     dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2,
 			    NewFValue, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
+			    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
 			    TrUserData).
 
 d_field_span_parent_span_id(<<1:1, X:7, Rest/binary>>,
 			    N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7,
 			    F@_8, F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
-			    F@_15, F@_16, TrUserData)
+			    F@_15, TrUserData)
     when N < 57 ->
     d_field_span_parent_span_id(Rest, N + 7, X bsl N + Acc,
 				F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
 				F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-				F@_16, TrUserData);
+				TrUserData);
 d_field_span_parent_span_id(<<0:1, X:7, Rest/binary>>,
 			    N, Acc, F@_1, F@_2, F@_3, _, F@_5, F@_6, F@_7, F@_8,
 			    F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			    F@_16, TrUserData) ->
+			    TrUserData) ->
     {NewFValue, RestF} = begin
 			   Len = X bsl N + Acc,
 			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
@@ -2193,21 +2136,18 @@ d_field_span_parent_span_id(<<0:1, X:7, Rest/binary>>,
 			 end,
     dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
 			    NewFValue, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-			    F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			    TrUserData).
+			    F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData).
 
 d_field_span_name(<<1:1, X:7, Rest/binary>>, N, Acc,
 		  F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		  F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-		  TrUserData)
+		  F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
     when N < 57 ->
     d_field_span_name(Rest, N + 7, X bsl N + Acc, F@_1,
 		      F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-		      F@_11, F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData);
+		      F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
 d_field_span_name(<<0:1, X:7, Rest/binary>>, N, Acc,
 		  F@_1, F@_2, F@_3, F@_4, _, F@_6, F@_7, F@_8, F@_9,
-		  F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-		  TrUserData) ->
+		  F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = begin
 			   Len = X bsl N + Acc,
 			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
@@ -2215,21 +2155,18 @@ d_field_span_name(<<0:1, X:7, Rest/binary>>, N, Acc,
 			 end,
     dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
 			    F@_4, NewFValue, F@_6, F@_7, F@_8, F@_9, F@_10,
-			    F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			    TrUserData).
+			    F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData).
 
 d_field_span_kind(<<1:1, X:7, Rest/binary>>, N, Acc,
 		  F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		  F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-		  TrUserData)
+		  F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
     when N < 57 ->
     d_field_span_kind(Rest, N + 7, X bsl N + Acc, F@_1,
 		      F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-		      F@_11, F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData);
+		      F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
 d_field_span_kind(<<0:1, X:7, Rest/binary>>, N, Acc,
 		  F@_1, F@_2, F@_3, F@_4, F@_5, _, F@_7, F@_8, F@_9,
-		  F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-		  TrUserData) ->
+		  F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = {id('d_enum_span.SpanKind'(begin
 						      <<Res:32/signed-native>> =
 							  <<(X bsl N +
@@ -2240,41 +2177,40 @@ d_field_span_kind(<<0:1, X:7, Rest/binary>>, N, Acc,
 			  Rest},
     dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, NewFValue, F@_7, F@_8, F@_9, F@_10,
-			    F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			    TrUserData).
+			    F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData).
 
 d_field_span_start_time_unixnano(<<Value:64/little,
 				   Rest/binary>>,
 				 Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, _,
 				 F@_8, F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
-				 F@_15, F@_16, TrUserData) ->
+				 F@_15, TrUserData) ->
     dfp_read_field_def_span(Rest, Z1, Z2, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, id(Value, TrUserData), F@_8, F@_9,
-			    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
+			    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
 			    TrUserData).
 
 d_field_span_end_time_unixnano(<<Value:64/little,
 				 Rest/binary>>,
 			       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7,
 			       _, F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
-			       F@_15, F@_16, TrUserData) ->
+			       F@_15, TrUserData) ->
     dfp_read_field_def_span(Rest, Z1, Z2, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, F@_7, id(Value, TrUserData), F@_9,
-			    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
+			    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
 			    TrUserData).
 
 d_field_span_attributes(<<1:1, X:7, Rest/binary>>, N,
 			Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-			F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
+			F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
 			TrUserData)
     when N < 57 ->
     d_field_span_attributes(Rest, N + 7, X bsl N + Acc,
 			    F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
 			    F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			    F@_16, TrUserData);
+			    TrUserData);
 d_field_span_attributes(<<0:1, X:7, Rest/binary>>, N,
 			Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-			Prev, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
+			Prev, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
 			TrUserData) ->
     {NewFValue, RestF} = begin
 			   Len = X bsl N + Acc,
@@ -2286,44 +2222,40 @@ d_field_span_attributes(<<0:1, X:7, Rest/binary>>, N,
     dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, F@_7, F@_8,
 			    cons(NewFValue, Prev, TrUserData), F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData).
+			    F@_12, F@_13, F@_14, F@_15, TrUserData).
 
 d_field_span_dropped_attributes_count(<<1:1, X:7,
 					Rest/binary>>,
 				      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
 				      F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-				      F@_12, F@_13, F@_14, F@_15, F@_16,
-				      TrUserData)
+				      F@_12, F@_13, F@_14, F@_15, TrUserData)
     when N < 57 ->
     d_field_span_dropped_attributes_count(Rest, N + 7,
 					  X bsl N + Acc, F@_1, F@_2, F@_3, F@_4,
 					  F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
 					  F@_11, F@_12, F@_13, F@_14, F@_15,
-					  F@_16, TrUserData);
+					  TrUserData);
 d_field_span_dropped_attributes_count(<<0:1, X:7,
 					Rest/binary>>,
 				      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
 				      F@_6, F@_7, F@_8, F@_9, _, F@_11, F@_12,
-				      F@_13, F@_14, F@_15, F@_16, TrUserData) ->
+				      F@_13, F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = {id(X bsl N + Acc, TrUserData),
 			  Rest},
     dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, NewFValue,
-			    F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-			    TrUserData).
+			    F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData).
 
 d_field_span_events(<<1:1, X:7, Rest/binary>>, N, Acc,
 		    F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-		    TrUserData)
+		    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
     when N < 57 ->
     d_field_span_events(Rest, N + 7, X bsl N + Acc, F@_1,
 			F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-			F@_11, F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData);
+			F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
 d_field_span_events(<<0:1, X:7, Rest/binary>>, N, Acc,
 		    F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		    F@_10, Prev, F@_12, F@_13, F@_14, F@_15, F@_16,
-		    TrUserData) ->
+		    F@_10, Prev, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = begin
 			   Len = X bsl N + Acc,
 			   <<Bs:Len/binary, Rest2/binary>> = Rest,
@@ -2333,42 +2265,40 @@ d_field_span_events(<<0:1, X:7, Rest/binary>>, N, Acc,
     dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
 			    cons(NewFValue, Prev, TrUserData), F@_12, F@_13,
-			    F@_14, F@_15, F@_16, TrUserData).
+			    F@_14, F@_15, TrUserData).
 
 d_field_span_dropped_events_count(<<1:1, X:7,
 				    Rest/binary>>,
 				  N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
 				  F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13,
-				  F@_14, F@_15, F@_16, TrUserData)
+				  F@_14, F@_15, TrUserData)
     when N < 57 ->
     d_field_span_dropped_events_count(Rest, N + 7,
 				      X bsl N + Acc, F@_1, F@_2, F@_3, F@_4,
 				      F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-				      F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
+				      F@_11, F@_12, F@_13, F@_14, F@_15,
 				      TrUserData);
 d_field_span_dropped_events_count(<<0:1, X:7,
 				    Rest/binary>>,
 				  N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
 				  F@_7, F@_8, F@_9, F@_10, F@_11, _, F@_13,
-				  F@_14, F@_15, F@_16, TrUserData) ->
+				  F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = {id(X bsl N + Acc, TrUserData),
 			  Rest},
     dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    NewFValue, F@_13, F@_14, F@_15, F@_16, TrUserData).
+			    NewFValue, F@_13, F@_14, F@_15, TrUserData).
 
 d_field_span_links(<<1:1, X:7, Rest/binary>>, N, Acc,
 		   F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		   F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-		   TrUserData)
+		   F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
     when N < 57 ->
     d_field_span_links(Rest, N + 7, X bsl N + Acc, F@_1,
 		       F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-		       F@_11, F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData);
+		       F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
 d_field_span_links(<<0:1, X:7, Rest/binary>>, N, Acc,
 		   F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		   F@_10, F@_11, F@_12, Prev, F@_14, F@_15, F@_16,
-		   TrUserData) ->
+		   F@_10, F@_11, F@_12, Prev, F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = begin
 			   Len = X bsl N + Acc,
 			   <<Bs:Len/binary, Rest2/binary>> = Rest,
@@ -2378,42 +2308,39 @@ d_field_span_links(<<0:1, X:7, Rest/binary>>, N, Acc,
     dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
 			    F@_12, cons(NewFValue, Prev, TrUserData), F@_14,
-			    F@_15, F@_16, TrUserData).
+			    F@_15, TrUserData).
 
 d_field_span_dropped_links_count(<<1:1, X:7,
 				   Rest/binary>>,
 				 N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
 				 F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13,
-				 F@_14, F@_15, F@_16, TrUserData)
+				 F@_14, F@_15, TrUserData)
     when N < 57 ->
     d_field_span_dropped_links_count(Rest, N + 7,
 				     X bsl N + Acc, F@_1, F@_2, F@_3, F@_4,
 				     F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-				     F@_12, F@_13, F@_14, F@_15, F@_16,
-				     TrUserData);
+				     F@_12, F@_13, F@_14, F@_15, TrUserData);
 d_field_span_dropped_links_count(<<0:1, X:7,
 				   Rest/binary>>,
 				 N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
 				 F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13,
-				 _, F@_15, F@_16, TrUserData) ->
+				 _, F@_15, TrUserData) ->
     {NewFValue, RestF} = {id(X bsl N + Acc, TrUserData),
 			  Rest},
     dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, NewFValue, F@_15, F@_16, TrUserData).
+			    F@_12, F@_13, NewFValue, F@_15, TrUserData).
 
 d_field_span_status(<<1:1, X:7, Rest/binary>>, N, Acc,
 		    F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-		    TrUserData)
+		    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
     when N < 57 ->
     d_field_span_status(Rest, N + 7, X bsl N + Acc, F@_1,
 			F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-			F@_11, F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData);
+			F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
 d_field_span_status(<<0:1, X:7, Rest/binary>>, N, Acc,
 		    F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		    F@_10, F@_11, F@_12, F@_13, F@_14, Prev, F@_16,
-		    TrUserData) ->
+		    F@_10, F@_11, F@_12, F@_13, F@_14, Prev, TrUserData) ->
     {NewFValue, RestF} = begin
 			   Len = X bsl N + Acc,
 			   <<Bs:Len/binary, Rest2/binary>> = Rest,
@@ -2427,73 +2354,61 @@ d_field_span_status(<<0:1, X:7, Rest/binary>>, N, Acc,
 			       true ->
 				   merge_msg_status(Prev, NewFValue, TrUserData)
 			    end,
-			    F@_16, TrUserData).
-
-d_field_span_local_child_span_count(<<Value:32/little-signed,
-				      Rest/binary>>,
-				    Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-				    F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-				    F@_13, F@_14, F@_15, _, TrUserData) ->
-    dfp_read_field_def_span(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, id(Value, TrUserData),
 			    TrUserData).
 
 skip_varint_span(<<1:1, _:7, Rest/binary>>, Z1, Z2,
 		 F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		 F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-		 TrUserData) ->
+		 F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     skip_varint_span(Rest, Z1, Z2, F@_1, F@_2, F@_3, F@_4,
 		     F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-		     F@_13, F@_14, F@_15, F@_16, TrUserData);
+		     F@_13, F@_14, F@_15, TrUserData);
 skip_varint_span(<<0:1, _:7, Rest/binary>>, Z1, Z2,
 		 F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		 F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, F@_16,
-		 TrUserData) ->
+		 F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     dfp_read_field_def_span(Rest, Z1, Z2, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData).
+			    F@_12, F@_13, F@_14, F@_15, TrUserData).
 
 skip_length_delimited_span(<<1:1, X:7, Rest/binary>>, N,
 			   Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
 			   F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			   F@_16, TrUserData)
+			   TrUserData)
     when N < 57 ->
     skip_length_delimited_span(Rest, N + 7, X bsl N + Acc,
 			       F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
 			       F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			       F@_16, TrUserData);
+			       TrUserData);
 skip_length_delimited_span(<<0:1, X:7, Rest/binary>>, N,
 			   Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
 			   F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			   F@_16, TrUserData) ->
+			   TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
     dfp_read_field_def_span(Rest2, 0, 0, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData).
+			    F@_12, F@_13, F@_14, F@_15, TrUserData).
 
 skip_group_span(Bin, FNum, Z2, F@_1, F@_2, F@_3, F@_4,
 		F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-		F@_13, F@_14, F@_15, F@_16, TrUserData) ->
+		F@_13, F@_14, F@_15, TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
     dfp_read_field_def_span(Rest, 0, Z2, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData).
+			    F@_12, F@_13, F@_14, F@_15, TrUserData).
 
 skip_32_span(<<_:32, Rest/binary>>, Z1, Z2, F@_1, F@_2,
 	     F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-	     F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData) ->
+	     F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     dfp_read_field_def_span(Rest, Z1, Z2, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData).
+			    F@_12, F@_13, F@_14, F@_15, TrUserData).
 
 skip_64_span(<<_:64, Rest/binary>>, Z1, Z2, F@_1, F@_2,
 	     F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-	     F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData) ->
+	     F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     dfp_read_field_def_span(Rest, Z1, Z2, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, F@_16, TrUserData).
+			    F@_12, F@_13, F@_14, F@_15, TrUserData).
 
 decode_msg_status(Bin, TrUserData) ->
     dfp_read_field_def_status(Bin, 0, 0,
@@ -3564,25 +3479,13 @@ merge_msg_span(PMsg, NMsg, TrUserData) ->
 		S14#{dropped_links_count => PFdropped_links_count};
 	    _ -> S14
 	  end,
-    S16 = case {PMsg, NMsg} of
-	    {#{status := PFstatus}, #{status := NFstatus}} ->
-		S15#{status =>
-			 merge_msg_status(PFstatus, NFstatus, TrUserData)};
-	    {_, #{status := NFstatus}} -> S15#{status => NFstatus};
-	    {#{status := PFstatus}, _} -> S15#{status => PFstatus};
-	    {_, _} -> S15
-	  end,
     case {PMsg, NMsg} of
-      {_,
-       #{local_child_span_count :=
-	     NFlocal_child_span_count}} ->
-	  S16#{local_child_span_count =>
-		   NFlocal_child_span_count};
-      {#{local_child_span_count := PFlocal_child_span_count},
-       _} ->
-	  S16#{local_child_span_count =>
-		   PFlocal_child_span_count};
-      _ -> S16
+      {#{status := PFstatus}, #{status := NFstatus}} ->
+	  S15#{status =>
+		   merge_msg_status(PFstatus, NFstatus, TrUserData)};
+      {_, #{status := NFstatus}} -> S15#{status => NFstatus};
+      {#{status := PFstatus}, _} -> S15#{status => PFstatus};
+      {_, _} -> S15
     end.
 
 -compile({nowarn_unused_function,merge_msg_status/3}).
@@ -4012,12 +3915,6 @@ v_msg_span(#{} = M, Path, TrUserData) ->
 	  v_msg_status(F15, [status | Path], TrUserData);
       _ -> ok
     end,
-    case M of
-      #{local_child_span_count := F16} ->
-	  v_type_sfixed32(F16, [local_child_span_count | Path],
-			  TrUserData);
-      _ -> ok
-    end,
     lists:foreach(fun (trace_id) -> ok;
 		      (span_id) -> ok;
 		      (tracestate) -> ok;
@@ -4033,7 +3930,6 @@ v_msg_span(#{} = M, Path, TrUserData) ->
 		      (links) -> ok;
 		      (dropped_links_count) -> ok;
 		      (status) -> ok;
-		      (local_child_span_count) -> ok;
 		      (OtherKey) ->
 			  mk_type_error({extraneous_key, OtherKey}, M, Path)
 		  end,
@@ -4355,20 +4251,6 @@ v_type_fixed64(X, Path, _TrUserData) ->
     mk_type_error({bad_integer, fixed64, unsigned, 64}, X,
 		  Path).
 
--compile({nowarn_unused_function,v_type_sfixed32/3}).
--dialyzer({nowarn_function,v_type_sfixed32/3}).
-v_type_sfixed32(N, _Path, _TrUserData)
-    when -2147483648 =< N, N =< 2147483647 ->
-    ok;
-v_type_sfixed32(N, Path, _TrUserData)
-    when is_integer(N) ->
-    mk_type_error({value_out_of_range, sfixed32, signed,
-		   32},
-		  N, Path);
-v_type_sfixed32(X, Path, _TrUserData) ->
-    mk_type_error({bad_integer, sfixed32, signed, 32}, X,
-		  Path).
-
 -compile({nowarn_unused_function,v_type_bool/3}).
 -dialyzer({nowarn_function,v_type_bool/3}).
 v_type_bool(false, _Path, _TrUserData) -> ok;
@@ -4544,9 +4426,6 @@ get_msg_defs() ->
 	 type => uint32, occurrence => optional, opts => []},
        #{name => status, fnum => 15, rnum => 16,
 	 type => {msg, status}, occurrence => optional,
-	 opts => []},
-       #{name => local_child_span_count, fnum => 16,
-	 rnum => 17, type => sfixed32, occurrence => optional,
 	 opts => []}]},
      {{msg, status},
       [#{name => code, fnum => 1, rnum => 2,
@@ -4690,9 +4569,6 @@ find_msg_def(span) ->
        type => uint32, occurrence => optional, opts => []},
      #{name => status, fnum => 15, rnum => 16,
        type => {msg, status}, occurrence => optional,
-       opts => []},
-     #{name => local_child_span_count, fnum => 16,
-       rnum => 17, type => sfixed32, occurrence => optional,
        opts => []}];
 find_msg_def(status) ->
     [#{name => code, fnum => 1, rnum => 2,
