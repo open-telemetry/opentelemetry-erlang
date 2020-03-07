@@ -26,7 +26,8 @@
 
 -export([init/1,
          handle_call/3,
-         handle_cast/2]).
+         handle_cast/2,
+         handle_info/2]).
 
 -include("ot_meter.hrl").
 
@@ -35,11 +36,14 @@
 start_link(Opts) ->
     gen_server:start_link(?MODULE, Opts, []).
 
+%% a cast is just a send wrapped in a try/catch in case the
+%% atom name isn't registered. Since we are working with
+%% pids we don't need that `try' and just use `!'
 record(Pid, LabelSet, Measures) when is_list(Measures) ->
-    gen_server:cast(Pid, {record, LabelSet, Measures}).
+    Pid ! {record, LabelSet, Measures}.
 
 record(Pid, Name, LabelSet, Number) ->
-    gen_server:cast(Pid, {record, Name, LabelSet, Number}).
+    Pid ! {record, Name, LabelSet, Number}.
 
 %% use for testing.
 %% call this function to know that all previous `record'ings of metrics have been handled
@@ -56,9 +60,12 @@ handle_call(wait, _From, State) ->
 handle_call(_, _From, State) ->
     {noreply, State}.
 
-handle_cast({record, LabelSet, Measures}, State) ->
+handle_cast(_, State) ->
+    {noreply, State}.
+
+handle_info({record, LabelSet, Measures}, State) ->
     [ot_metric_accumulator:record(Name, LabelSet, Number) || {Name, Number} <- Measures],
     {noreply, State};
-handle_cast({record, Name, LabelSet, Number}, State) ->
+handle_info({record, Name, LabelSet, Number}, State) ->
     ot_metric_accumulator:record(Name, LabelSet, Number),
     {noreply, State}.
