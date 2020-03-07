@@ -22,8 +22,8 @@
 -define(current_span_ctx(),
         ot_tracer:current_span_ctx(?current_tracer)).
 
--define(is_recording_events(),
-        ot_span:is_recording_events(?current_tracer, ?current_span_ctx)).
+-define(is_recording(),
+        ot_span:is_recording(?current_tracer, ?current_span_ctx)).
 
 -define(set_attribute(Key, Value),
         ot_span:set_attribute(?current_tracer, ?current_span_ctx, Key, Value)).

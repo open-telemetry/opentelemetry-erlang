@@ -19,12 +19,12 @@
 
 -export([set_value/3,
          get_value/2,
-         with_value/4,
-         with_value/5,
          remove/2,
          clear/1,
+
          set_current/2,
          get_current/1,
+
          http_extractor/2,
          http_injector/2,
          http_extractor/3,
@@ -67,20 +67,6 @@ get_value(Namespace, Key) ->
 -spec get_value(context_manager(), namespace(), key()) -> value().
 get_value(ContextManager={CtxModule, _}, Namespace, Key) ->
     CtxModule:get_value(ContextManager, Namespace, Key).
-
--spec with_value(namespace(), key(), value(), fun()) -> ok.
-with_value(Namespace, Key, Value, Fun) ->
-    with_value(opentelemetry:get_context_manager(), Namespace, Key, Value, Fun).
-
--spec with_value(context_manager(), namespace(), key(), value(), fun()) -> ok.
-with_value(ContextManager={CtxModule, _}, Namespace, Key, Value, Fun) ->
-    PrevCtx = get_current(ContextManager, Namespace),
-    CtxModule:set_current(ContextManager, Namespace, PrevCtx#{Key => Value}),
-    try
-        Fun()
-    after
-        set_current(ContextManager, Namespace, PrevCtx)
-    end.
 
 -spec remove(namespace(), key()) -> ok.
 remove(Namespace, Key) ->
