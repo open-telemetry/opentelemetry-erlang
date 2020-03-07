@@ -19,11 +19,13 @@
 
 -export([run/0]).
 
+-include_lib("opentelemetry_api/include/tracer.hrl").
+
 run() ->
-    Iterations = 100,
+    Iterations = 10,
     PDictCtxFun = fun() ->
-                      [ot_tracer:start_span(<<"span-", (integer_to_binary(X))/binary>>)
-                       || X <- lists:seq(1, 100)]
+                      [?start_span(<<"span-", (integer_to_binary(X))/binary>>)
+                       || X <- lists:seq(1, Iterations)]
                   end,
     benchee:run(#{<<"pdict_ctx">> => PDictCtxFun}),
     ok.
