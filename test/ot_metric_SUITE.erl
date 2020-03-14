@@ -6,17 +6,52 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include_lib("opentelemetry_api/include/meter.hrl").
 -include("ot_test_utils.hrl").
 
 all() ->
-    [observer, counter, mmsc].
+    [{group, without_api},
+     {group, with_api}].
+
+groups() ->
+    [{without_api, [shuffle], [observer, counter, mmsc]},
+     {with_api, [shuffle], [e2e_test]}].
 
 init_per_suite(Config) ->
-    {ok, _} = application:ensure_all_started(opentelemetry),
     Config.
 
 end_per_suite(_Config) ->
+    ok.
+
+%% without_api means the tests call the functions in this
+%% application directly and do not go through the api
+init_per_group(without_api, Config) ->
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
+init_per_group(with_api, Config) ->
+    %% TODO: configure an exporter and test that works
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config.
+
+end_per_group(_, _Config) ->
     _ = application:stop(opentelemetry),
+    ok.
+
+e2e_test(_Config) ->
+    ?assertMatch({ot_meter_default, _}, ?current_meter),
+
+    ?new_instruments([#{name => mycounter,
+                        kind => counter,
+                        input_type => integer,
+                        label_keys => ["a"]}]),
+    ?counter_add(mycounter, 4, []),
+    ?counter_add(mycounter, 5, []),
+
+    ot_metric_accumulator:collect(),
+    Records = ot_metric_integrator:read(),
+
+    ?assertMatch(#{{mycounter, []} := 9}, Records),
+
     ok.
 
 observer(_Config) ->
