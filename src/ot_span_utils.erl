@@ -91,13 +91,13 @@ end_span(Span) ->
 %%
 
 sample({Sampler, Opts}, TraceId, SpanId, Parent, Links, SpanName, Kind, Attributes) ->
-    {Decision, Attributes} = Sampler(TraceId, SpanId, Parent, Links,
-                                     SpanName, Kind, Attributes, Opts),
+    {Decision, NewAttributes} = Sampler(TraceId, SpanId, Parent, Links,
+                                        SpanName, Kind, Attributes, Opts),
     case Decision of
         ?NOT_RECORD ->
-            {0, false, Attributes};
+            {0, false, NewAttributes};
         ?RECORD ->
-            {0, true, Attributes};
+            {0, true, NewAttributes};
         ?RECORD_AND_PROPAGATE ->
-            {1, true, Attributes}
+            {1, true, NewAttributes}
     end.
