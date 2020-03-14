@@ -57,7 +57,7 @@ checkpoint(Tab, NameLabelSet) ->
 merge({Min1, Max1, Sum1, Count1}, {Min2, Max2, Sum2, Count2}) ->
     {erlang:min(Min1, Min2), erlang:max(Max1, Max2), Sum1+Sum2, Count1+Count2}.
 
--spec initial_value(ot_meter:input_type()) -> undefined.
+-spec initial_value(ot_meter:input_type()) -> {infinity, number(), number(), 0}.
 initial_value(integer) ->
     {infinity, 0, 0, 0};
 initial_value(float) ->

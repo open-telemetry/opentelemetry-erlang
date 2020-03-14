@@ -77,8 +77,8 @@ observe(#instrument{name=Name}, Number, LabelSet) ->
     ot_metric_aggregator_last_value:update(?ACTIVE_TAB, {Name, LabelSet}, observer, Number),
     ok.
 
--spec lookup_active(ot_meter:name(), ot_meter:label_set()) -> {ot_meter:input_type(), module()} |
-                                                              unknown_instrument.
+-spec lookup_active(instrument() | ot_meter:name(), ot_meter:label_set())
+                   -> {ot_meter:input_type(), module()} | unknown_instrument.
 lookup_active(Instrument=#instrument{name=Name}, LabelSet) ->
     MatchSpec = ?active_ms(Name, LabelSet),
     case ets:select(?ACTIVE_TAB, MatchSpec) of

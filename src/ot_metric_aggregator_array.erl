@@ -12,8 +12,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
-%%
+%% @doc An aggregator that keeps each recorded measurement in a list of
+%% values. The list is reset to the empty list after each checkpoint.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(ot_metric_aggregator_array).
@@ -24,6 +24,9 @@
          checkpoint/2,
          merge/2,
          initial_value/1]).
+
+%% ignore the warningi about use of `current=[Number | Current]' in `select_replace'
+-dialyzer(no_improper_lists).
 
 -include("ot_meter.hrl").
 -include_lib("stdlib/include/ms_transform.hrl").
@@ -58,7 +61,7 @@ checkpoint(Tab, NameLabelSet) ->
 merge(List1, List2) ->
     List1 ++ List2.
 
--spec initial_value(ot_meter:input_type()) -> number().
+-spec initial_value(ot_meter:input_type()) -> [].
 initial_value(_) ->
     [].
 
