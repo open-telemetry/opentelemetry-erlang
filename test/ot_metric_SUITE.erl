@@ -44,13 +44,21 @@ e2e_test(_Config) ->
                         kind => counter,
                         input_type => integer,
                         label_keys => ["a"]}]),
+    ?new_instruments([#{name => myfloat,
+                        kind => counter,
+                        input_type => float,
+                        label_keys => ["a"]}]),
     ?counter_add(mycounter, 4, []),
     ?counter_add(mycounter, 5, []),
+
+    ?counter_add(myfloat, 4.1, []),
+    ?counter_add(myfloat, 5.1, []),
 
     ot_metric_accumulator:collect(),
     Records = ot_metric_integrator:read(),
 
-    ?assertMatch(#{{mycounter, []} := 9}, Records),
+    ?assertMatch(#{{mycounter, []} := 9,
+                   {myfloat, []} := 9.2}, Records),
 
     ok.
 
