@@ -65,6 +65,11 @@
 
 -type resource_spans() ::
       #{resource                => resource(),      % = 1
+        instrumentation_library_spans => [instrumentation_library_spans()] % = 2
+       }.
+
+-type instrumentation_library_spans() ::
+      #{instrumentation_library => instrumentation_library(), % = 1
         spans                   => [span()]         % = 2
        }.
 
@@ -78,7 +83,7 @@
 -type link() ::
       #{trace_id                => iodata(),        % = 1
         span_id                 => iodata(),        % = 2
-        tracestate              => iodata(),        % = 3
+        trace_state             => iodata(),        % = 3
         attributes              => [attribute_key_value()], % = 4
         dropped_attributes_count => non_neg_integer() % = 5, 32 bits
        }.
@@ -86,7 +91,7 @@
 -type span() ::
       #{trace_id                => iodata(),        % = 1
         span_id                 => iodata(),        % = 2
-        tracestate              => iodata(),        % = 3
+        trace_state             => iodata(),        % = 3
         parent_span_id          => iodata(),        % = 4
         name                    => iodata(),        % = 5
         kind                    => 'SPAN_KIND_UNSPECIFIED' | 'INTERNAL' | 'SERVER' | 'CLIENT' | 'PRODUCER' | 'CONSUMER' | integer(), % = 6, enum span.SpanKind
@@ -120,18 +125,23 @@
         value                   => iodata()         % = 2
        }.
 
+-type instrumentation_library() ::
+      #{name                    => iodata(),        % = 1
+        version                 => iodata()         % = 2
+       }.
+
 -type resource() ::
       #{attributes              => [attribute_key_value()], % = 1
         dropped_attributes_count => non_neg_integer() % = 2, 32 bits
        }.
 
--export_type(['export_trace_service_request'/0, 'export_trace_service_response'/0, 'resource_spans'/0, 'event'/0, 'link'/0, 'span'/0, 'status'/0, 'attribute_key_value'/0, 'string_key_value'/0, 'resource'/0]).
+-export_type(['export_trace_service_request'/0, 'export_trace_service_response'/0, 'resource_spans'/0, 'instrumentation_library_spans'/0, 'event'/0, 'link'/0, 'span'/0, 'status'/0, 'attribute_key_value'/0, 'string_key_value'/0, 'instrumentation_library'/0, 'resource'/0]).
 
--spec encode_msg(export_trace_service_request() | export_trace_service_response() | resource_spans() | event() | link() | span() | status() | attribute_key_value() | string_key_value() | resource(), atom()) -> binary().
+-spec encode_msg(export_trace_service_request() | export_trace_service_response() | resource_spans() | instrumentation_library_spans() | event() | link() | span() | status() | attribute_key_value() | string_key_value() | instrumentation_library() | resource(), atom()) -> binary().
 encode_msg(Msg, MsgName) when is_atom(MsgName) ->
     encode_msg(Msg, MsgName, []).
 
--spec encode_msg(export_trace_service_request() | export_trace_service_response() | resource_spans() | event() | link() | span() | status() | attribute_key_value() | string_key_value() | resource(), atom(), list()) -> binary().
+-spec encode_msg(export_trace_service_request() | export_trace_service_response() | resource_spans() | instrumentation_library_spans() | event() | link() | span() | status() | attribute_key_value() | string_key_value() | instrumentation_library() | resource(), atom(), list()) -> binary().
 encode_msg(Msg, MsgName, Opts) ->
     case proplists:get_bool(verify, Opts) of
       true -> verify_msg(Msg, MsgName, Opts);
@@ -150,6 +160,10 @@ encode_msg(Msg, MsgName, Opts) ->
       resource_spans ->
 	  encode_msg_resource_spans(id(Msg, TrUserData),
 				    TrUserData);
+      instrumentation_library_spans ->
+	  encode_msg_instrumentation_library_spans(id(Msg,
+						      TrUserData),
+						   TrUserData);
       event ->
 	  encode_msg_event(id(Msg, TrUserData), TrUserData);
       link ->
@@ -164,6 +178,9 @@ encode_msg(Msg, MsgName, Opts) ->
       string_key_value ->
 	  encode_msg_string_key_value(id(Msg, TrUserData),
 				      TrUserData);
+      instrumentation_library ->
+	  encode_msg_instrumentation_library(id(Msg, TrUserData),
+					     TrUserData);
       resource ->
 	  encode_msg_resource(id(Msg, TrUserData), TrUserData)
     end.
@@ -212,11 +229,46 @@ encode_msg_resource_spans(#{} = M, Bin, TrUserData) ->
 	   _ -> Bin
 	 end,
     case M of
+      #{instrumentation_library_spans := F2} ->
+	  TrF2 = id(F2, TrUserData),
+	  if TrF2 == [] -> B1;
+	     true ->
+		 e_field_resource_spans_instrumentation_library_spans(TrF2,
+								      B1,
+								      TrUserData)
+	  end;
+      _ -> B1
+    end.
+
+encode_msg_instrumentation_library_spans(Msg,
+					 TrUserData) ->
+    encode_msg_instrumentation_library_spans(Msg, <<>>,
+					     TrUserData).
+
+
+encode_msg_instrumentation_library_spans(#{} = M, Bin,
+					 TrUserData) ->
+    B1 = case M of
+	   #{instrumentation_library := F1} ->
+	       begin
+		 TrF1 = id(F1, TrUserData),
+		 if TrF1 =:= undefined -> Bin;
+		    true ->
+			e_mfield_instrumentation_library_spans_instrumentation_library(TrF1,
+										       <<Bin/binary,
+											 10>>,
+										       TrUserData)
+		 end
+	       end;
+	   _ -> Bin
+	 end,
+    case M of
       #{spans := F2} ->
 	  TrF2 = id(F2, TrUserData),
 	  if TrF2 == [] -> B1;
 	     true ->
-		 e_field_resource_spans_spans(TrF2, B1, TrUserData)
+		 e_field_instrumentation_library_spans_spans(TrF2, B1,
+							     TrUserData)
 	  end;
       _ -> B1
     end.
@@ -296,7 +348,7 @@ encode_msg_link(#{} = M, Bin, TrUserData) ->
 	   _ -> B1
 	 end,
     B3 = case M of
-	   #{tracestate := F3} ->
+	   #{trace_state := F3} ->
 	       begin
 		 TrF3 = id(F3, TrUserData),
 		 case is_empty_string(TrF3) of
@@ -354,7 +406,7 @@ encode_msg_span(#{} = M, Bin, TrUserData) ->
 	   _ -> B1
 	 end,
     B3 = case M of
-	   #{tracestate := F3} ->
+	   #{trace_state := F3} ->
 	       begin
 		 TrF3 = id(F3, TrUserData),
 		 case is_empty_string(TrF3) of
@@ -626,6 +678,38 @@ encode_msg_string_key_value(#{} = M, Bin, TrUserData) ->
       _ -> B1
     end.
 
+encode_msg_instrumentation_library(Msg, TrUserData) ->
+    encode_msg_instrumentation_library(Msg, <<>>,
+				       TrUserData).
+
+
+encode_msg_instrumentation_library(#{} = M, Bin,
+				   TrUserData) ->
+    B1 = case M of
+	   #{name := F1} ->
+	       begin
+		 TrF1 = id(F1, TrUserData),
+		 case is_empty_string(TrF1) of
+		   true -> Bin;
+		   false ->
+		       e_type_string(TrF1, <<Bin/binary, 10>>, TrUserData)
+		 end
+	       end;
+	   _ -> Bin
+	 end,
+    case M of
+      #{version := F2} ->
+	  begin
+	    TrF2 = id(F2, TrUserData),
+	    case is_empty_string(TrF2) of
+	      true -> B1;
+	      false ->
+		  e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
+	    end
+	  end;
+      _ -> B1
+    end.
+
 encode_msg_resource(Msg, TrUserData) ->
     encode_msg_resource(Msg, <<>>, TrUserData).
 
@@ -678,19 +762,53 @@ e_mfield_resource_spans_resource(Msg, Bin,
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
-e_mfield_resource_spans_spans(Msg, Bin, TrUserData) ->
+e_mfield_resource_spans_instrumentation_library_spans(Msg,
+						      Bin, TrUserData) ->
+    SubBin = encode_msg_instrumentation_library_spans(Msg,
+						      <<>>, TrUserData),
+    Bin2 = e_varint(byte_size(SubBin), Bin),
+    <<Bin2/binary, SubBin/binary>>.
+
+e_field_resource_spans_instrumentation_library_spans([Elem
+						      | Rest],
+						     Bin, TrUserData) ->
+    Bin2 = <<Bin/binary, 18>>,
+    Bin3 =
+	e_mfield_resource_spans_instrumentation_library_spans(id(Elem,
+								 TrUserData),
+							      Bin2, TrUserData),
+    e_field_resource_spans_instrumentation_library_spans(Rest,
+							 Bin3, TrUserData);
+e_field_resource_spans_instrumentation_library_spans([],
+						     Bin, _TrUserData) ->
+    Bin.
+
+e_mfield_instrumentation_library_spans_instrumentation_library(Msg,
+							       Bin,
+							       TrUserData) ->
+    SubBin = encode_msg_instrumentation_library(Msg, <<>>,
+						TrUserData),
+    Bin2 = e_varint(byte_size(SubBin), Bin),
+    <<Bin2/binary, SubBin/binary>>.
+
+e_mfield_instrumentation_library_spans_spans(Msg, Bin,
+					     TrUserData) ->
     SubBin = encode_msg_span(Msg, <<>>, TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
-e_field_resource_spans_spans([Elem | Rest], Bin,
-			     TrUserData) ->
+e_field_instrumentation_library_spans_spans([Elem
+					     | Rest],
+					    Bin, TrUserData) ->
     Bin2 = <<Bin/binary, 18>>,
-    Bin3 = e_mfield_resource_spans_spans(id(Elem,
-					    TrUserData),
-					 Bin2, TrUserData),
-    e_field_resource_spans_spans(Rest, Bin3, TrUserData);
-e_field_resource_spans_spans([], Bin, _TrUserData) ->
+    Bin3 =
+	e_mfield_instrumentation_library_spans_spans(id(Elem,
+							TrUserData),
+						     Bin2, TrUserData),
+    e_field_instrumentation_library_spans_spans(Rest, Bin3,
+						TrUserData);
+e_field_instrumentation_library_spans_spans([], Bin,
+					    _TrUserData) ->
     Bin.
 
 e_mfield_event_attributes(Msg, Bin, TrUserData) ->
@@ -1011,6 +1129,11 @@ decode_msg_2_doit(export_trace_service_response, Bin,
 decode_msg_2_doit(resource_spans, Bin, TrUserData) ->
     id(decode_msg_resource_spans(Bin, TrUserData),
        TrUserData);
+decode_msg_2_doit(instrumentation_library_spans, Bin,
+		  TrUserData) ->
+    id(decode_msg_instrumentation_library_spans(Bin,
+						TrUserData),
+       TrUserData);
 decode_msg_2_doit(event, Bin, TrUserData) ->
     id(decode_msg_event(Bin, TrUserData), TrUserData);
 decode_msg_2_doit(link, Bin, TrUserData) ->
@@ -1025,6 +1148,10 @@ decode_msg_2_doit(attribute_key_value, Bin,
        TrUserData);
 decode_msg_2_doit(string_key_value, Bin, TrUserData) ->
     id(decode_msg_string_key_value(Bin, TrUserData),
+       TrUserData);
+decode_msg_2_doit(instrumentation_library, Bin,
+		  TrUserData) ->
+    id(decode_msg_instrumentation_library(Bin, TrUserData),
        TrUserData);
 decode_msg_2_doit(resource, Bin, TrUserData) ->
     id(decode_msg_resource(Bin, TrUserData), TrUserData).
@@ -1266,8 +1393,9 @@ dfp_read_field_def_resource_spans(<<10, Rest/binary>>,
 				    F@_2, TrUserData);
 dfp_read_field_def_resource_spans(<<18, Rest/binary>>,
 				  Z1, Z2, F@_1, F@_2, TrUserData) ->
-    d_field_resource_spans_spans(Rest, Z1, Z2, F@_1, F@_2,
-				 TrUserData);
+    d_field_resource_spans_instrumentation_library_spans(Rest,
+							 Z1, Z2, F@_1, F@_2,
+							 TrUserData);
 dfp_read_field_def_resource_spans(<<>>, 0, 0, F@_1, R1,
 				  TrUserData) ->
     S1 = #{},
@@ -1275,7 +1403,9 @@ dfp_read_field_def_resource_spans(<<>>, 0, 0, F@_1, R1,
 	    true -> S1#{resource => F@_1}
 	 end,
     if R1 == '$undef' -> S2;
-       true -> S2#{spans => lists_reverse(R1, TrUserData)}
+       true ->
+	   S2#{instrumentation_library_spans =>
+		   lists_reverse(R1, TrUserData)}
     end;
 dfp_read_field_def_resource_spans(Other, Z1, Z2, F@_1,
 				  F@_2, TrUserData) ->
@@ -1297,8 +1427,9 @@ dg_read_field_def_resource_spans(<<0:1, X:7,
 	  d_field_resource_spans_resource(Rest, 0, 0, F@_1, F@_2,
 					  TrUserData);
       18 ->
-	  d_field_resource_spans_spans(Rest, 0, 0, F@_1, F@_2,
-				       TrUserData);
+	  d_field_resource_spans_instrumentation_library_spans(Rest,
+							       0, 0, F@_1, F@_2,
+							       TrUserData);
       _ ->
 	  case Key band 7 of
 	    0 ->
@@ -1325,7 +1456,9 @@ dg_read_field_def_resource_spans(<<>>, 0, 0, F@_1, R1,
 	    true -> S1#{resource => F@_1}
 	 end,
     if R1 == '$undef' -> S2;
-       true -> S2#{spans => lists_reverse(R1, TrUserData)}
+       true ->
+	   S2#{instrumentation_library_spans =>
+		   lists_reverse(R1, TrUserData)}
     end.
 
 d_field_resource_spans_resource(<<1:1, X:7,
@@ -1351,17 +1484,25 @@ d_field_resource_spans_resource(<<0:1, X:7,
 				      end,
 				      F@_2, TrUserData).
 
-d_field_resource_spans_spans(<<1:1, X:7, Rest/binary>>,
-			     N, Acc, F@_1, F@_2, TrUserData)
+d_field_resource_spans_instrumentation_library_spans(<<1:1,
+						       X:7, Rest/binary>>,
+						     N, Acc, F@_1, F@_2,
+						     TrUserData)
     when N < 57 ->
-    d_field_resource_spans_spans(Rest, N + 7, X bsl N + Acc,
-				 F@_1, F@_2, TrUserData);
-d_field_resource_spans_spans(<<0:1, X:7, Rest/binary>>,
-			     N, Acc, F@_1, Prev, TrUserData) ->
+    d_field_resource_spans_instrumentation_library_spans(Rest,
+							 N + 7, X bsl N + Acc,
+							 F@_1, F@_2,
+							 TrUserData);
+d_field_resource_spans_instrumentation_library_spans(<<0:1,
+						       X:7, Rest/binary>>,
+						     N, Acc, F@_1, Prev,
+						     TrUserData) ->
     {NewFValue, RestF} = begin
 			   Len = X bsl N + Acc,
 			   <<Bs:Len/binary, Rest2/binary>> = Rest,
-			   {id(decode_msg_span(Bs, TrUserData), TrUserData),
+			   {id(decode_msg_instrumentation_library_spans(Bs,
+									TrUserData),
+			       TrUserData),
 			    Rest2}
 			 end,
     dfp_read_field_def_resource_spans(RestF, 0, 0, F@_1,
@@ -1406,6 +1547,208 @@ skip_64_resource_spans(<<_:64, Rest/binary>>, Z1, Z2,
 		       F@_1, F@_2, TrUserData) ->
     dfp_read_field_def_resource_spans(Rest, Z1, Z2, F@_1,
 				      F@_2, TrUserData).
+
+decode_msg_instrumentation_library_spans(Bin,
+					 TrUserData) ->
+    dfp_read_field_def_instrumentation_library_spans(Bin, 0,
+						     0,
+						     id('$undef', TrUserData),
+						     id([], TrUserData),
+						     TrUserData).
+
+dfp_read_field_def_instrumentation_library_spans(<<10,
+						   Rest/binary>>,
+						 Z1, Z2, F@_1, F@_2,
+						 TrUserData) ->
+    d_field_instrumentation_library_spans_instrumentation_library(Rest,
+								  Z1, Z2, F@_1,
+								  F@_2,
+								  TrUserData);
+dfp_read_field_def_instrumentation_library_spans(<<18,
+						   Rest/binary>>,
+						 Z1, Z2, F@_1, F@_2,
+						 TrUserData) ->
+    d_field_instrumentation_library_spans_spans(Rest, Z1,
+						Z2, F@_1, F@_2, TrUserData);
+dfp_read_field_def_instrumentation_library_spans(<<>>,
+						 0, 0, F@_1, R1, TrUserData) ->
+    S1 = #{},
+    S2 = if F@_1 == '$undef' -> S1;
+	    true -> S1#{instrumentation_library => F@_1}
+	 end,
+    if R1 == '$undef' -> S2;
+       true -> S2#{spans => lists_reverse(R1, TrUserData)}
+    end;
+dfp_read_field_def_instrumentation_library_spans(Other,
+						 Z1, Z2, F@_1, F@_2,
+						 TrUserData) ->
+    dg_read_field_def_instrumentation_library_spans(Other,
+						    Z1, Z2, F@_1, F@_2,
+						    TrUserData).
+
+dg_read_field_def_instrumentation_library_spans(<<1:1,
+						  X:7, Rest/binary>>,
+						N, Acc, F@_1, F@_2, TrUserData)
+    when N < 32 - 7 ->
+    dg_read_field_def_instrumentation_library_spans(Rest,
+						    N + 7, X bsl N + Acc, F@_1,
+						    F@_2, TrUserData);
+dg_read_field_def_instrumentation_library_spans(<<0:1,
+						  X:7, Rest/binary>>,
+						N, Acc, F@_1, F@_2,
+						TrUserData) ->
+    Key = X bsl N + Acc,
+    case Key of
+      10 ->
+	  d_field_instrumentation_library_spans_instrumentation_library(Rest,
+									0, 0,
+									F@_1,
+									F@_2,
+									TrUserData);
+      18 ->
+	  d_field_instrumentation_library_spans_spans(Rest, 0, 0,
+						      F@_1, F@_2, TrUserData);
+      _ ->
+	  case Key band 7 of
+	    0 ->
+		skip_varint_instrumentation_library_spans(Rest, 0, 0,
+							  F@_1, F@_2,
+							  TrUserData);
+	    1 ->
+		skip_64_instrumentation_library_spans(Rest, 0, 0, F@_1,
+						      F@_2, TrUserData);
+	    2 ->
+		skip_length_delimited_instrumentation_library_spans(Rest,
+								    0, 0, F@_1,
+								    F@_2,
+								    TrUserData);
+	    3 ->
+		skip_group_instrumentation_library_spans(Rest,
+							 Key bsr 3, 0, F@_1,
+							 F@_2, TrUserData);
+	    5 ->
+		skip_32_instrumentation_library_spans(Rest, 0, 0, F@_1,
+						      F@_2, TrUserData)
+	  end
+    end;
+dg_read_field_def_instrumentation_library_spans(<<>>, 0,
+						0, F@_1, R1, TrUserData) ->
+    S1 = #{},
+    S2 = if F@_1 == '$undef' -> S1;
+	    true -> S1#{instrumentation_library => F@_1}
+	 end,
+    if R1 == '$undef' -> S2;
+       true -> S2#{spans => lists_reverse(R1, TrUserData)}
+    end.
+
+d_field_instrumentation_library_spans_instrumentation_library(<<1:1,
+								X:7,
+								Rest/binary>>,
+							      N, Acc, F@_1,
+							      F@_2, TrUserData)
+    when N < 57 ->
+    d_field_instrumentation_library_spans_instrumentation_library(Rest,
+								  N + 7,
+								  X bsl N + Acc,
+								  F@_1, F@_2,
+								  TrUserData);
+d_field_instrumentation_library_spans_instrumentation_library(<<0:1,
+								X:7,
+								Rest/binary>>,
+							      N, Acc, Prev,
+							      F@_2,
+							      TrUserData) ->
+    {NewFValue, RestF} = begin
+			   Len = X bsl N + Acc,
+			   <<Bs:Len/binary, Rest2/binary>> = Rest,
+			   {id(decode_msg_instrumentation_library(Bs,
+								  TrUserData),
+			       TrUserData),
+			    Rest2}
+			 end,
+    dfp_read_field_def_instrumentation_library_spans(RestF,
+						     0, 0,
+						     if Prev == '$undef' ->
+							    NewFValue;
+							true ->
+							    merge_msg_instrumentation_library(Prev,
+											      NewFValue,
+											      TrUserData)
+						     end,
+						     F@_2, TrUserData).
+
+d_field_instrumentation_library_spans_spans(<<1:1, X:7,
+					      Rest/binary>>,
+					    N, Acc, F@_1, F@_2, TrUserData)
+    when N < 57 ->
+    d_field_instrumentation_library_spans_spans(Rest, N + 7,
+						X bsl N + Acc, F@_1, F@_2,
+						TrUserData);
+d_field_instrumentation_library_spans_spans(<<0:1, X:7,
+					      Rest/binary>>,
+					    N, Acc, F@_1, Prev, TrUserData) ->
+    {NewFValue, RestF} = begin
+			   Len = X bsl N + Acc,
+			   <<Bs:Len/binary, Rest2/binary>> = Rest,
+			   {id(decode_msg_span(Bs, TrUserData), TrUserData),
+			    Rest2}
+			 end,
+    dfp_read_field_def_instrumentation_library_spans(RestF,
+						     0, 0, F@_1,
+						     cons(NewFValue, Prev,
+							  TrUserData),
+						     TrUserData).
+
+skip_varint_instrumentation_library_spans(<<1:1, _:7,
+					    Rest/binary>>,
+					  Z1, Z2, F@_1, F@_2, TrUserData) ->
+    skip_varint_instrumentation_library_spans(Rest, Z1, Z2,
+					      F@_1, F@_2, TrUserData);
+skip_varint_instrumentation_library_spans(<<0:1, _:7,
+					    Rest/binary>>,
+					  Z1, Z2, F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_instrumentation_library_spans(Rest,
+						     Z1, Z2, F@_1, F@_2,
+						     TrUserData).
+
+skip_length_delimited_instrumentation_library_spans(<<1:1,
+						      X:7, Rest/binary>>,
+						    N, Acc, F@_1, F@_2,
+						    TrUserData)
+    when N < 57 ->
+    skip_length_delimited_instrumentation_library_spans(Rest,
+							N + 7, X bsl N + Acc,
+							F@_1, F@_2, TrUserData);
+skip_length_delimited_instrumentation_library_spans(<<0:1,
+						      X:7, Rest/binary>>,
+						    N, Acc, F@_1, F@_2,
+						    TrUserData) ->
+    Length = X bsl N + Acc,
+    <<_:Length/binary, Rest2/binary>> = Rest,
+    dfp_read_field_def_instrumentation_library_spans(Rest2,
+						     0, 0, F@_1, F@_2,
+						     TrUserData).
+
+skip_group_instrumentation_library_spans(Bin, FNum, Z2,
+					 F@_1, F@_2, TrUserData) ->
+    {_, Rest} = read_group(Bin, FNum),
+    dfp_read_field_def_instrumentation_library_spans(Rest,
+						     0, Z2, F@_1, F@_2,
+						     TrUserData).
+
+skip_32_instrumentation_library_spans(<<_:32,
+					Rest/binary>>,
+				      Z1, Z2, F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_instrumentation_library_spans(Rest,
+						     Z1, Z2, F@_1, F@_2,
+						     TrUserData).
+
+skip_64_instrumentation_library_spans(<<_:64,
+					Rest/binary>>,
+				      Z1, Z2, F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_instrumentation_library_spans(Rest,
+						     Z1, Z2, F@_1, F@_2,
+						     TrUserData).
 
 decode_msg_event(Bin, TrUserData) ->
     dfp_read_field_def_event(Bin, 0, 0, id(0, TrUserData),
@@ -1597,8 +1940,8 @@ dfp_read_field_def_link(<<18, Rest/binary>>, Z1, Z2,
 			 F@_4, F@_5, TrUserData);
 dfp_read_field_def_link(<<26, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
-    d_field_link_tracestate(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, TrUserData);
+    d_field_link_trace_state(Rest, Z1, Z2, F@_1, F@_2, F@_3,
+			     F@_4, F@_5, TrUserData);
 dfp_read_field_def_link(<<34, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
     d_field_link_attributes(Rest, Z1, Z2, F@_1, F@_2, F@_3,
@@ -1611,7 +1954,7 @@ dfp_read_field_def_link(<<40, Rest/binary>>, Z1, Z2,
 dfp_read_field_def_link(<<>>, 0, 0, F@_1, F@_2, F@_3,
 			R1, F@_5, TrUserData) ->
     S1 = #{trace_id => F@_1, span_id => F@_2,
-	   tracestate => F@_3, dropped_attributes_count => F@_5},
+	   trace_state => F@_3, dropped_attributes_count => F@_5},
     if R1 == '$undef' -> S1;
        true -> S1#{attributes => lists_reverse(R1, TrUserData)}
     end;
@@ -1636,8 +1979,8 @@ dg_read_field_def_link(<<0:1, X:7, Rest/binary>>, N,
 	  d_field_link_span_id(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
 			       F@_5, TrUserData);
       26 ->
-	  d_field_link_tracestate(Rest, 0, 0, F@_1, F@_2, F@_3,
-				  F@_4, F@_5, TrUserData);
+	  d_field_link_trace_state(Rest, 0, 0, F@_1, F@_2, F@_3,
+				   F@_4, F@_5, TrUserData);
       34 ->
 	  d_field_link_attributes(Rest, 0, 0, F@_1, F@_2, F@_3,
 				  F@_4, F@_5, TrUserData);
@@ -1667,7 +2010,7 @@ dg_read_field_def_link(<<0:1, X:7, Rest/binary>>, N,
 dg_read_field_def_link(<<>>, 0, 0, F@_1, F@_2, F@_3, R1,
 		       F@_5, TrUserData) ->
     S1 = #{trace_id => F@_1, span_id => F@_2,
-	   tracestate => F@_3, dropped_attributes_count => F@_5},
+	   trace_state => F@_3, dropped_attributes_count => F@_5},
     if R1 == '$undef' -> S1;
        true -> S1#{attributes => lists_reverse(R1, TrUserData)}
     end.
@@ -1702,13 +2045,13 @@ d_field_link_span_id(<<0:1, X:7, Rest/binary>>, N, Acc,
     dfp_read_field_def_link(RestF, 0, 0, F@_1, NewFValue,
 			    F@_3, F@_4, F@_5, TrUserData).
 
-d_field_link_tracestate(<<1:1, X:7, Rest/binary>>, N,
-			Acc, F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData)
+d_field_link_trace_state(<<1:1, X:7, Rest/binary>>, N,
+			 Acc, F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData)
     when N < 57 ->
-    d_field_link_tracestate(Rest, N + 7, X bsl N + Acc,
-			    F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData);
-d_field_link_tracestate(<<0:1, X:7, Rest/binary>>, N,
-			Acc, F@_1, F@_2, _, F@_4, F@_5, TrUserData) ->
+    d_field_link_trace_state(Rest, N + 7, X bsl N + Acc,
+			     F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData);
+d_field_link_trace_state(<<0:1, X:7, Rest/binary>>, N,
+			 Acc, F@_1, F@_2, _, F@_4, F@_5, TrUserData) ->
     {NewFValue, RestF} = begin
 			   Len = X bsl N + Acc,
 			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
@@ -1815,9 +2158,9 @@ dfp_read_field_def_span(<<18, Rest/binary>>, Z1, Z2,
 dfp_read_field_def_span(<<26, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
 			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_tracestate(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, TrUserData);
+    d_field_span_trace_state(Rest, Z1, Z2, F@_1, F@_2, F@_3,
+			     F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
+			     F@_12, F@_13, F@_14, F@_15, TrUserData);
 dfp_read_field_def_span(<<34, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
 			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
@@ -1899,7 +2242,7 @@ dfp_read_field_def_span(<<>>, 0, 0, F@_1, F@_2, F@_3,
 			F@_4, F@_5, F@_6, F@_7, F@_8, R1, F@_10, R2, F@_12, R3,
 			F@_14, F@_15, TrUserData) ->
     S1 = #{trace_id => F@_1, span_id => F@_2,
-	   tracestate => F@_3, parent_span_id => F@_4,
+	   trace_state => F@_3, parent_span_id => F@_4,
 	   name => F@_5, kind => F@_6, start_time_unixnano => F@_7,
 	   end_time_unixnano => F@_8,
 	   dropped_attributes_count => F@_10,
@@ -1948,10 +2291,10 @@ dg_read_field_def_span(<<0:1, X:7, Rest/binary>>, N,
 			       F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
 			       F@_12, F@_13, F@_14, F@_15, TrUserData);
       26 ->
-	  d_field_span_tracestate(Rest, 0, 0, F@_1, F@_2, F@_3,
-				  F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-				  F@_11, F@_12, F@_13, F@_14, F@_15,
-				  TrUserData);
+	  d_field_span_trace_state(Rest, 0, 0, F@_1, F@_2, F@_3,
+				   F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
+				   F@_11, F@_12, F@_13, F@_14, F@_15,
+				   TrUserData);
       34 ->
 	  d_field_span_parent_span_id(Rest, 0, 0, F@_1, F@_2,
 				      F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
@@ -2037,7 +2380,7 @@ dg_read_field_def_span(<<>>, 0, 0, F@_1, F@_2, F@_3,
 		       F@_4, F@_5, F@_6, F@_7, F@_8, R1, F@_10, R2, F@_12, R3,
 		       F@_14, F@_15, TrUserData) ->
     S1 = #{trace_id => F@_1, span_id => F@_2,
-	   tracestate => F@_3, parent_span_id => F@_4,
+	   trace_state => F@_3, parent_span_id => F@_4,
 	   name => F@_5, kind => F@_6, start_time_unixnano => F@_7,
 	   end_time_unixnano => F@_8,
 	   dropped_attributes_count => F@_10,
@@ -2094,18 +2437,19 @@ d_field_span_span_id(<<0:1, X:7, Rest/binary>>, N, Acc,
 			    F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
 			    F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData).
 
-d_field_span_tracestate(<<1:1, X:7, Rest/binary>>, N,
-			Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-			F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			TrUserData)
+d_field_span_trace_state(<<1:1, X:7, Rest/binary>>, N,
+			 Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
+			 F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
+			 TrUserData)
     when N < 57 ->
-    d_field_span_tracestate(Rest, N + 7, X bsl N + Acc,
-			    F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-			    F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			    TrUserData);
-d_field_span_tracestate(<<0:1, X:7, Rest/binary>>, N,
-			Acc, F@_1, F@_2, _, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    d_field_span_trace_state(Rest, N + 7, X bsl N + Acc,
+			     F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
+			     F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
+			     TrUserData);
+d_field_span_trace_state(<<0:1, X:7, Rest/binary>>, N,
+			 Acc, F@_1, F@_2, _, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+			 F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
+			 TrUserData) ->
     {NewFValue, RestF} = begin
 			   Len = X bsl N + Acc,
 			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
@@ -2984,6 +3328,149 @@ skip_64_string_key_value(<<_:64, Rest/binary>>, Z1, Z2,
     dfp_read_field_def_string_key_value(Rest, Z1, Z2, F@_1,
 					F@_2, TrUserData).
 
+decode_msg_instrumentation_library(Bin, TrUserData) ->
+    dfp_read_field_def_instrumentation_library(Bin, 0, 0,
+					       id(<<>>, TrUserData),
+					       id(<<>>, TrUserData),
+					       TrUserData).
+
+dfp_read_field_def_instrumentation_library(<<10,
+					     Rest/binary>>,
+					   Z1, Z2, F@_1, F@_2, TrUserData) ->
+    d_field_instrumentation_library_name(Rest, Z1, Z2, F@_1,
+					 F@_2, TrUserData);
+dfp_read_field_def_instrumentation_library(<<18,
+					     Rest/binary>>,
+					   Z1, Z2, F@_1, F@_2, TrUserData) ->
+    d_field_instrumentation_library_version(Rest, Z1, Z2,
+					    F@_1, F@_2, TrUserData);
+dfp_read_field_def_instrumentation_library(<<>>, 0, 0,
+					   F@_1, F@_2, _) ->
+    #{name => F@_1, version => F@_2};
+dfp_read_field_def_instrumentation_library(Other, Z1,
+					   Z2, F@_1, F@_2, TrUserData) ->
+    dg_read_field_def_instrumentation_library(Other, Z1, Z2,
+					      F@_1, F@_2, TrUserData).
+
+dg_read_field_def_instrumentation_library(<<1:1, X:7,
+					    Rest/binary>>,
+					  N, Acc, F@_1, F@_2, TrUserData)
+    when N < 32 - 7 ->
+    dg_read_field_def_instrumentation_library(Rest, N + 7,
+					      X bsl N + Acc, F@_1, F@_2,
+					      TrUserData);
+dg_read_field_def_instrumentation_library(<<0:1, X:7,
+					    Rest/binary>>,
+					  N, Acc, F@_1, F@_2, TrUserData) ->
+    Key = X bsl N + Acc,
+    case Key of
+      10 ->
+	  d_field_instrumentation_library_name(Rest, 0, 0, F@_1,
+					       F@_2, TrUserData);
+      18 ->
+	  d_field_instrumentation_library_version(Rest, 0, 0,
+						  F@_1, F@_2, TrUserData);
+      _ ->
+	  case Key band 7 of
+	    0 ->
+		skip_varint_instrumentation_library(Rest, 0, 0, F@_1,
+						    F@_2, TrUserData);
+	    1 ->
+		skip_64_instrumentation_library(Rest, 0, 0, F@_1, F@_2,
+						TrUserData);
+	    2 ->
+		skip_length_delimited_instrumentation_library(Rest, 0,
+							      0, F@_1, F@_2,
+							      TrUserData);
+	    3 ->
+		skip_group_instrumentation_library(Rest, Key bsr 3, 0,
+						   F@_1, F@_2, TrUserData);
+	    5 ->
+		skip_32_instrumentation_library(Rest, 0, 0, F@_1, F@_2,
+						TrUserData)
+	  end
+    end;
+dg_read_field_def_instrumentation_library(<<>>, 0, 0,
+					  F@_1, F@_2, _) ->
+    #{name => F@_1, version => F@_2}.
+
+d_field_instrumentation_library_name(<<1:1, X:7,
+				       Rest/binary>>,
+				     N, Acc, F@_1, F@_2, TrUserData)
+    when N < 57 ->
+    d_field_instrumentation_library_name(Rest, N + 7,
+					 X bsl N + Acc, F@_1, F@_2, TrUserData);
+d_field_instrumentation_library_name(<<0:1, X:7,
+				       Rest/binary>>,
+				     N, Acc, _, F@_2, TrUserData) ->
+    {NewFValue, RestF} = begin
+			   Len = X bsl N + Acc,
+			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
+			   {id(binary:copy(Bytes), TrUserData), Rest2}
+			 end,
+    dfp_read_field_def_instrumentation_library(RestF, 0, 0,
+					       NewFValue, F@_2, TrUserData).
+
+d_field_instrumentation_library_version(<<1:1, X:7,
+					  Rest/binary>>,
+					N, Acc, F@_1, F@_2, TrUserData)
+    when N < 57 ->
+    d_field_instrumentation_library_version(Rest, N + 7,
+					    X bsl N + Acc, F@_1, F@_2,
+					    TrUserData);
+d_field_instrumentation_library_version(<<0:1, X:7,
+					  Rest/binary>>,
+					N, Acc, F@_1, _, TrUserData) ->
+    {NewFValue, RestF} = begin
+			   Len = X bsl N + Acc,
+			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
+			   {id(binary:copy(Bytes), TrUserData), Rest2}
+			 end,
+    dfp_read_field_def_instrumentation_library(RestF, 0, 0,
+					       F@_1, NewFValue, TrUserData).
+
+skip_varint_instrumentation_library(<<1:1, _:7,
+				      Rest/binary>>,
+				    Z1, Z2, F@_1, F@_2, TrUserData) ->
+    skip_varint_instrumentation_library(Rest, Z1, Z2, F@_1,
+					F@_2, TrUserData);
+skip_varint_instrumentation_library(<<0:1, _:7,
+				      Rest/binary>>,
+				    Z1, Z2, F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_instrumentation_library(Rest, Z1, Z2,
+					       F@_1, F@_2, TrUserData).
+
+skip_length_delimited_instrumentation_library(<<1:1,
+						X:7, Rest/binary>>,
+					      N, Acc, F@_1, F@_2, TrUserData)
+    when N < 57 ->
+    skip_length_delimited_instrumentation_library(Rest,
+						  N + 7, X bsl N + Acc, F@_1,
+						  F@_2, TrUserData);
+skip_length_delimited_instrumentation_library(<<0:1,
+						X:7, Rest/binary>>,
+					      N, Acc, F@_1, F@_2, TrUserData) ->
+    Length = X bsl N + Acc,
+    <<_:Length/binary, Rest2/binary>> = Rest,
+    dfp_read_field_def_instrumentation_library(Rest2, 0, 0,
+					       F@_1, F@_2, TrUserData).
+
+skip_group_instrumentation_library(Bin, FNum, Z2, F@_1,
+				   F@_2, TrUserData) ->
+    {_, Rest} = read_group(Bin, FNum),
+    dfp_read_field_def_instrumentation_library(Rest, 0, Z2,
+					       F@_1, F@_2, TrUserData).
+
+skip_32_instrumentation_library(<<_:32, Rest/binary>>,
+				Z1, Z2, F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_instrumentation_library(Rest, Z1, Z2,
+					       F@_1, F@_2, TrUserData).
+
+skip_64_instrumentation_library(<<_:64, Rest/binary>>,
+				Z1, Z2, F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_instrumentation_library(Rest, Z1, Z2,
+					       F@_1, F@_2, TrUserData).
+
 decode_msg_resource(Bin, TrUserData) ->
     dfp_read_field_def_resource(Bin, 0, 0,
 				id([], TrUserData), id(0, TrUserData),
@@ -3224,6 +3711,9 @@ merge_msgs(Prev, New, MsgName, Opts) ->
 						  TrUserData);
       resource_spans ->
 	  merge_msg_resource_spans(Prev, New, TrUserData);
+      instrumentation_library_spans ->
+	  merge_msg_instrumentation_library_spans(Prev, New,
+						  TrUserData);
       event -> merge_msg_event(Prev, New, TrUserData);
       link -> merge_msg_link(Prev, New, TrUserData);
       span -> merge_msg_span(Prev, New, TrUserData);
@@ -3232,6 +3722,9 @@ merge_msgs(Prev, New, MsgName, Opts) ->
 	  merge_msg_attribute_key_value(Prev, New, TrUserData);
       string_key_value ->
 	  merge_msg_string_key_value(Prev, New, TrUserData);
+      instrumentation_library ->
+	  merge_msg_instrumentation_library(Prev, New,
+					    TrUserData);
       resource -> merge_msg_resource(Prev, New, TrUserData)
     end.
 
@@ -3269,6 +3762,52 @@ merge_msg_resource_spans(PMsg, NMsg, TrUserData) ->
 	       S1#{resource => NFresource};
 	   {#{resource := PFresource}, _} ->
 	       S1#{resource => PFresource};
+	   {_, _} -> S1
+	 end,
+    case {PMsg, NMsg} of
+      {#{instrumentation_library_spans :=
+	     PFinstrumentation_library_spans},
+       #{instrumentation_library_spans :=
+	     NFinstrumentation_library_spans}} ->
+	  S2#{instrumentation_library_spans =>
+		  'erlang_++'(PFinstrumentation_library_spans,
+			      NFinstrumentation_library_spans, TrUserData)};
+      {_,
+       #{instrumentation_library_spans :=
+	     NFinstrumentation_library_spans}} ->
+	  S2#{instrumentation_library_spans =>
+		  NFinstrumentation_library_spans};
+      {#{instrumentation_library_spans :=
+	     PFinstrumentation_library_spans},
+       _} ->
+	  S2#{instrumentation_library_spans =>
+		  PFinstrumentation_library_spans};
+      {_, _} -> S2
+    end.
+
+-compile({nowarn_unused_function,merge_msg_instrumentation_library_spans/3}).
+merge_msg_instrumentation_library_spans(PMsg, NMsg,
+					TrUserData) ->
+    S1 = #{},
+    S2 = case {PMsg, NMsg} of
+	   {#{instrumentation_library :=
+		  PFinstrumentation_library},
+	    #{instrumentation_library :=
+		  NFinstrumentation_library}} ->
+	       S1#{instrumentation_library =>
+		       merge_msg_instrumentation_library(PFinstrumentation_library,
+							 NFinstrumentation_library,
+							 TrUserData)};
+	   {_,
+	    #{instrumentation_library :=
+		  NFinstrumentation_library}} ->
+	       S1#{instrumentation_library =>
+		       NFinstrumentation_library};
+	   {#{instrumentation_library :=
+		  PFinstrumentation_library},
+	    _} ->
+	       S1#{instrumentation_library =>
+		       PFinstrumentation_library};
 	   {_, _} -> S1
 	 end,
     case {PMsg, NMsg} of
@@ -3337,10 +3876,10 @@ merge_msg_link(PMsg, NMsg, TrUserData) ->
 	   _ -> S2
 	 end,
     S4 = case {PMsg, NMsg} of
-	   {_, #{tracestate := NFtracestate}} ->
-	       S3#{tracestate => NFtracestate};
-	   {#{tracestate := PFtracestate}, _} ->
-	       S3#{tracestate => PFtracestate};
+	   {_, #{trace_state := NFtrace_state}} ->
+	       S3#{trace_state => NFtrace_state};
+	   {#{trace_state := PFtrace_state}, _} ->
+	       S3#{trace_state => PFtrace_state};
 	   _ -> S3
 	 end,
     S5 = case {PMsg, NMsg} of
@@ -3386,10 +3925,10 @@ merge_msg_span(PMsg, NMsg, TrUserData) ->
 	   _ -> S2
 	 end,
     S4 = case {PMsg, NMsg} of
-	   {_, #{tracestate := NFtracestate}} ->
-	       S3#{tracestate => NFtracestate};
-	   {#{tracestate := PFtracestate}, _} ->
-	       S3#{tracestate => PFtracestate};
+	   {_, #{trace_state := NFtrace_state}} ->
+	       S3#{trace_state => NFtrace_state};
+	   {#{trace_state := PFtrace_state}, _} ->
+	       S3#{trace_state => PFtrace_state};
 	   _ -> S3
 	 end,
     S5 = case {PMsg, NMsg} of
@@ -3560,6 +4099,22 @@ merge_msg_string_key_value(PMsg, NMsg, _) ->
       _ -> S2
     end.
 
+-compile({nowarn_unused_function,merge_msg_instrumentation_library/3}).
+merge_msg_instrumentation_library(PMsg, NMsg, _) ->
+    S1 = #{},
+    S2 = case {PMsg, NMsg} of
+	   {_, #{name := NFname}} -> S1#{name => NFname};
+	   {#{name := PFname}, _} -> S1#{name => PFname};
+	   _ -> S1
+	 end,
+    case {PMsg, NMsg} of
+      {_, #{version := NFversion}} ->
+	  S2#{version => NFversion};
+      {#{version := PFversion}, _} ->
+	  S2#{version => PFversion};
+      _ -> S2
+    end.
+
 -compile({nowarn_unused_function,merge_msg_resource/3}).
 merge_msg_resource(PMsg, NMsg, TrUserData) ->
     S1 = #{},
@@ -3603,6 +4158,9 @@ verify_msg(Msg, MsgName, Opts) ->
 					      TrUserData);
       resource_spans ->
 	  v_msg_resource_spans(Msg, [MsgName], TrUserData);
+      instrumentation_library_spans ->
+	  v_msg_instrumentation_library_spans(Msg, [MsgName],
+					      TrUserData);
       event -> v_msg_event(Msg, [MsgName], TrUserData);
       link -> v_msg_link(Msg, [MsgName], TrUserData);
       span -> v_msg_span(Msg, [MsgName], TrUserData);
@@ -3611,6 +4169,9 @@ verify_msg(Msg, MsgName, Opts) ->
 	  v_msg_attribute_key_value(Msg, [MsgName], TrUserData);
       string_key_value ->
 	  v_msg_string_key_value(Msg, [MsgName], TrUserData);
+      instrumentation_library ->
+	  v_msg_instrumentation_library(Msg, [MsgName],
+					TrUserData);
       resource -> v_msg_resource(Msg, [MsgName], TrUserData);
       _ -> mk_type_error(not_a_known_message, Msg, [])
     end.
@@ -3679,19 +4240,23 @@ v_msg_resource_spans(#{} = M, Path, TrUserData) ->
       _ -> ok
     end,
     case M of
-      #{spans := F2} ->
+      #{instrumentation_library_spans := F2} ->
 	  if is_list(F2) ->
-		 _ = [v_msg_span(Elem, [spans | Path], TrUserData)
+		 _ = [v_msg_instrumentation_library_spans(Elem,
+							  [instrumentation_library_spans
+							   | Path],
+							  TrUserData)
 		      || Elem <- F2],
 		 ok;
 	     true ->
-		 mk_type_error({invalid_list_of, {msg, span}}, F2,
-			       [spans | Path])
+		 mk_type_error({invalid_list_of,
+				{msg, instrumentation_library_spans}},
+			       F2, [instrumentation_library_spans | Path])
 	  end;
       _ -> ok
     end,
     lists:foreach(fun (resource) -> ok;
-		      (spans) -> ok;
+		      (instrumentation_library_spans) -> ok;
 		      (OtherKey) ->
 			  mk_type_error({extraneous_key, OtherKey}, M, Path)
 		  end,
@@ -3704,6 +4269,48 @@ v_msg_resource_spans(M, Path, _TrUserData)
 		  M, Path);
 v_msg_resource_spans(X, Path, _TrUserData) ->
     mk_type_error({expected_msg, resource_spans}, X, Path).
+
+-compile({nowarn_unused_function,v_msg_instrumentation_library_spans/3}).
+-dialyzer({nowarn_function,v_msg_instrumentation_library_spans/3}).
+v_msg_instrumentation_library_spans(#{} = M, Path,
+				    TrUserData) ->
+    case M of
+      #{instrumentation_library := F1} ->
+	  v_msg_instrumentation_library(F1,
+					[instrumentation_library | Path],
+					TrUserData);
+      _ -> ok
+    end,
+    case M of
+      #{spans := F2} ->
+	  if is_list(F2) ->
+		 _ = [v_msg_span(Elem, [spans | Path], TrUserData)
+		      || Elem <- F2],
+		 ok;
+	     true ->
+		 mk_type_error({invalid_list_of, {msg, span}}, F2,
+			       [spans | Path])
+	  end;
+      _ -> ok
+    end,
+    lists:foreach(fun (instrumentation_library) -> ok;
+		      (spans) -> ok;
+		      (OtherKey) ->
+			  mk_type_error({extraneous_key, OtherKey}, M, Path)
+		  end,
+		  maps:keys(M)),
+    ok;
+v_msg_instrumentation_library_spans(M, Path,
+				    _TrUserData)
+    when is_map(M) ->
+    mk_type_error({missing_fields, [] -- maps:keys(M),
+		   instrumentation_library_spans},
+		  M, Path);
+v_msg_instrumentation_library_spans(X, Path,
+				    _TrUserData) ->
+    mk_type_error({expected_msg,
+		   instrumentation_library_spans},
+		  X, Path).
 
 -compile({nowarn_unused_function,v_msg_event/3}).
 -dialyzer({nowarn_function,v_msg_event/3}).
@@ -3768,8 +4375,8 @@ v_msg_link(#{} = M, Path, TrUserData) ->
       _ -> ok
     end,
     case M of
-      #{tracestate := F3} ->
-	  v_type_string(F3, [tracestate | Path], TrUserData);
+      #{trace_state := F3} ->
+	  v_type_string(F3, [trace_state | Path], TrUserData);
       _ -> ok
     end,
     case M of
@@ -3794,7 +4401,7 @@ v_msg_link(#{} = M, Path, TrUserData) ->
     end,
     lists:foreach(fun (trace_id) -> ok;
 		      (span_id) -> ok;
-		      (tracestate) -> ok;
+		      (trace_state) -> ok;
 		      (attributes) -> ok;
 		      (dropped_attributes_count) -> ok;
 		      (OtherKey) ->
@@ -3823,8 +4430,8 @@ v_msg_span(#{} = M, Path, TrUserData) ->
       _ -> ok
     end,
     case M of
-      #{tracestate := F3} ->
-	  v_type_string(F3, [tracestate | Path], TrUserData);
+      #{trace_state := F3} ->
+	  v_type_string(F3, [trace_state | Path], TrUserData);
       _ -> ok
     end,
     case M of
@@ -3917,7 +4524,7 @@ v_msg_span(#{} = M, Path, TrUserData) ->
     end,
     lists:foreach(fun (trace_id) -> ok;
 		      (span_id) -> ok;
-		      (tracestate) -> ok;
+		      (trace_state) -> ok;
 		      (parent_span_id) -> ok;
 		      (name) -> ok;
 		      (kind) -> ok;
@@ -4052,6 +4659,36 @@ v_msg_string_key_value(M, Path, _TrUserData)
 v_msg_string_key_value(X, Path, _TrUserData) ->
     mk_type_error({expected_msg, string_key_value}, X,
 		  Path).
+
+-compile({nowarn_unused_function,v_msg_instrumentation_library/3}).
+-dialyzer({nowarn_function,v_msg_instrumentation_library/3}).
+v_msg_instrumentation_library(#{} = M, Path,
+			      TrUserData) ->
+    case M of
+      #{name := F1} ->
+	  v_type_string(F1, [name | Path], TrUserData);
+      _ -> ok
+    end,
+    case M of
+      #{version := F2} ->
+	  v_type_string(F2, [version | Path], TrUserData);
+      _ -> ok
+    end,
+    lists:foreach(fun (name) -> ok;
+		      (version) -> ok;
+		      (OtherKey) ->
+			  mk_type_error({extraneous_key, OtherKey}, M, Path)
+		  end,
+		  maps:keys(M)),
+    ok;
+v_msg_instrumentation_library(M, Path, _TrUserData)
+    when is_map(M) ->
+    mk_type_error({missing_fields, [] -- maps:keys(M),
+		   instrumentation_library},
+		  M, Path);
+v_msg_instrumentation_library(X, Path, _TrUserData) ->
+    mk_type_error({expected_msg, instrumentation_library},
+		  X, Path).
 
 -compile({nowarn_unused_function,v_msg_resource/3}).
 -dialyzer({nowarn_function,v_msg_resource/3}).
@@ -4363,6 +5000,13 @@ get_msg_defs() ->
       [#{name => resource, fnum => 1, rnum => 2,
 	 type => {msg, resource}, occurrence => optional,
 	 opts => []},
+       #{name => instrumentation_library_spans, fnum => 2,
+	 rnum => 3, type => {msg, instrumentation_library_spans},
+	 occurrence => repeated, opts => []}]},
+     {{msg, instrumentation_library_spans},
+      [#{name => instrumentation_library, fnum => 1,
+	 rnum => 2, type => {msg, instrumentation_library},
+	 occurrence => optional, opts => []},
        #{name => spans, fnum => 2, rnum => 3,
 	 type => {msg, span}, occurrence => repeated,
 	 opts => []}]},
@@ -4382,7 +5026,7 @@ get_msg_defs() ->
 	 type => bytes, occurrence => optional, opts => []},
        #{name => span_id, fnum => 2, rnum => 3, type => bytes,
 	 occurrence => optional, opts => []},
-       #{name => tracestate, fnum => 3, rnum => 4,
+       #{name => trace_state, fnum => 3, rnum => 4,
 	 type => string, occurrence => optional, opts => []},
        #{name => attributes, fnum => 4, rnum => 5,
 	 type => {msg, attribute_key_value},
@@ -4395,7 +5039,7 @@ get_msg_defs() ->
 	 type => bytes, occurrence => optional, opts => []},
        #{name => span_id, fnum => 2, rnum => 3, type => bytes,
 	 occurrence => optional, opts => []},
-       #{name => tracestate, fnum => 3, rnum => 4,
+       #{name => trace_state, fnum => 3, rnum => 4,
 	 type => string, occurrence => optional, opts => []},
        #{name => parent_span_id, fnum => 4, rnum => 5,
 	 type => bytes, occurrence => optional, opts => []},
@@ -4452,6 +5096,11 @@ get_msg_defs() ->
 	 occurrence => optional, opts => []},
        #{name => value, fnum => 2, rnum => 3, type => string,
 	 occurrence => optional, opts => []}]},
+     {{msg, instrumentation_library},
+      [#{name => name, fnum => 1, rnum => 2, type => string,
+	 occurrence => optional, opts => []},
+       #{name => version, fnum => 2, rnum => 3, type => string,
+	 occurrence => optional, opts => []}]},
      {{msg, resource},
       [#{name => attributes, fnum => 1, rnum => 2,
 	 type => {msg, attribute_key_value},
@@ -4463,9 +5112,10 @@ get_msg_defs() ->
 
 get_msg_names() ->
     [export_trace_service_request,
-     export_trace_service_response, resource_spans, event,
-     link, span, status, attribute_key_value,
-     string_key_value, resource].
+     export_trace_service_response, resource_spans,
+     instrumentation_library_spans, event, link, span,
+     status, attribute_key_value, string_key_value,
+     instrumentation_library, resource].
 
 
 get_group_names() -> [].
@@ -4473,9 +5123,10 @@ get_group_names() -> [].
 
 get_msg_or_group_names() ->
     [export_trace_service_request,
-     export_trace_service_response, resource_spans, event,
-     link, span, status, attribute_key_value,
-     string_key_value, resource].
+     export_trace_service_response, resource_spans,
+     instrumentation_library_spans, event, link, span,
+     status, attribute_key_value, string_key_value,
+     instrumentation_library, resource].
 
 
 get_enum_names() ->
@@ -4506,6 +5157,13 @@ find_msg_def(resource_spans) ->
     [#{name => resource, fnum => 1, rnum => 2,
        type => {msg, resource}, occurrence => optional,
        opts => []},
+     #{name => instrumentation_library_spans, fnum => 2,
+       rnum => 3, type => {msg, instrumentation_library_spans},
+       occurrence => repeated, opts => []}];
+find_msg_def(instrumentation_library_spans) ->
+    [#{name => instrumentation_library, fnum => 1,
+       rnum => 2, type => {msg, instrumentation_library},
+       occurrence => optional, opts => []},
      #{name => spans, fnum => 2, rnum => 3,
        type => {msg, span}, occurrence => repeated,
        opts => []}];
@@ -4525,7 +5183,7 @@ find_msg_def(link) ->
        type => bytes, occurrence => optional, opts => []},
      #{name => span_id, fnum => 2, rnum => 3, type => bytes,
        occurrence => optional, opts => []},
-     #{name => tracestate, fnum => 3, rnum => 4,
+     #{name => trace_state, fnum => 3, rnum => 4,
        type => string, occurrence => optional, opts => []},
      #{name => attributes, fnum => 4, rnum => 5,
        type => {msg, attribute_key_value},
@@ -4538,7 +5196,7 @@ find_msg_def(span) ->
        type => bytes, occurrence => optional, opts => []},
      #{name => span_id, fnum => 2, rnum => 3, type => bytes,
        occurrence => optional, opts => []},
-     #{name => tracestate, fnum => 3, rnum => 4,
+     #{name => trace_state, fnum => 3, rnum => 4,
        type => string, occurrence => optional, opts => []},
      #{name => parent_span_id, fnum => 4, rnum => 5,
        type => bytes, occurrence => optional, opts => []},
@@ -4594,6 +5252,11 @@ find_msg_def(string_key_value) ->
     [#{name => key, fnum => 1, rnum => 2, type => string,
        occurrence => optional, opts => []},
      #{name => value, fnum => 2, rnum => 3, type => string,
+       occurrence => optional, opts => []}];
+find_msg_def(instrumentation_library) ->
+    [#{name => name, fnum => 1, rnum => 2, type => string,
+       occurrence => optional, opts => []},
+     #{name => version, fnum => 2, rnum => 3, type => string,
        occurrence => optional, opts => []}];
 find_msg_def(resource) ->
     [#{name => attributes, fnum => 1, rnum => 2,
@@ -4832,12 +5495,15 @@ fqbin_to_msg_name(<<"opentelemetry.proto.collector.trace.v1.ExportTraceServiceRe
 fqbin_to_msg_name(<<"opentelemetry.proto.collector.trace.v1.ExportTraceServiceResponse">>) ->
     export_trace_service_response;
 fqbin_to_msg_name(<<"opentelemetry.proto.trace.v1.ResourceSpans">>) -> resource_spans;
+fqbin_to_msg_name(<<"opentelemetry.proto.trace.v1.InstrumentationLibrarySpans">>) ->
+    instrumentation_library_spans;
 fqbin_to_msg_name(<<"opentelemetry.proto.trace.v1.Span.Event">>) -> event;
 fqbin_to_msg_name(<<"opentelemetry.proto.trace.v1.Span.Link">>) -> link;
 fqbin_to_msg_name(<<"opentelemetry.proto.trace.v1.Span">>) -> span;
 fqbin_to_msg_name(<<"opentelemetry.proto.trace.v1.Status">>) -> status;
 fqbin_to_msg_name(<<"opentelemetry.proto.common.v1.AttributeKeyValue">>) -> attribute_key_value;
 fqbin_to_msg_name(<<"opentelemetry.proto.common.v1.StringKeyValue">>) -> string_key_value;
+fqbin_to_msg_name(<<"opentelemetry.proto.common.v1.InstrumentationLibrary">>) -> instrumentation_library;
 fqbin_to_msg_name(<<"opentelemetry.proto.resource.v1.Resource">>) -> resource;
 fqbin_to_msg_name(E) -> error({gpb_error, {badmsg, E}}).
 
@@ -4847,12 +5513,15 @@ msg_name_to_fqbin(export_trace_service_request) ->
 msg_name_to_fqbin(export_trace_service_response) ->
     <<"opentelemetry.proto.collector.trace.v1.ExportTraceServiceResponse">>;
 msg_name_to_fqbin(resource_spans) -> <<"opentelemetry.proto.trace.v1.ResourceSpans">>;
+msg_name_to_fqbin(instrumentation_library_spans) ->
+    <<"opentelemetry.proto.trace.v1.InstrumentationLibrarySpans">>;
 msg_name_to_fqbin(event) -> <<"opentelemetry.proto.trace.v1.Span.Event">>;
 msg_name_to_fqbin(link) -> <<"opentelemetry.proto.trace.v1.Span.Link">>;
 msg_name_to_fqbin(span) -> <<"opentelemetry.proto.trace.v1.Span">>;
 msg_name_to_fqbin(status) -> <<"opentelemetry.proto.trace.v1.Status">>;
 msg_name_to_fqbin(attribute_key_value) -> <<"opentelemetry.proto.common.v1.AttributeKeyValue">>;
 msg_name_to_fqbin(string_key_value) -> <<"opentelemetry.proto.common.v1.StringKeyValue">>;
+msg_name_to_fqbin(instrumentation_library) -> <<"opentelemetry.proto.common.v1.InstrumentationLibrary">>;
 msg_name_to_fqbin(resource) -> <<"opentelemetry.proto.resource.v1.Resource">>;
 msg_name_to_fqbin(E) -> error({gpb_error, {badmsg, E}}).
 
@@ -4908,9 +5577,11 @@ get_msg_containment("trace_service") ->
     [export_trace_service_request,
      export_trace_service_response];
 get_msg_containment("trace") ->
-    [resource_spans, span, event, link, status];
+    [instrumentation_library_spans, resource_spans, span,
+     event, link, status];
 get_msg_containment("common") ->
-    [attribute_key_value, string_key_value];
+    [attribute_key_value, instrumentation_library,
+     string_key_value];
 get_msg_containment("resource") -> [resource];
 get_msg_containment(P) ->
     error({gpb_error, {badproto, P}}).
@@ -4959,6 +5630,7 @@ get_enum_containment(P) ->
 
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.trace.v1.Status">>) -> "trace";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.trace.v1.ResourceSpans">>) -> "trace";
+get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.trace.v1.InstrumentationLibrarySpans">>) -> "trace";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.trace.v1.Span.Event">>) -> "trace";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest">>) ->
     "trace_service";
@@ -4967,6 +5639,7 @@ get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.common.v1.StringKeyValue">
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.common.v1.AttributeKeyValue">>) -> "common";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.collector.trace.v1.ExportTraceServiceResponse">>) ->
     "trace_service";
+get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.common.v1.InstrumentationLibrary">>) -> "common";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.trace.v1.Span.Link">>) -> "trace";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.trace.v1.Span">>) -> "trace";
 get_proto_by_msg_name_as_fqbin(E) ->

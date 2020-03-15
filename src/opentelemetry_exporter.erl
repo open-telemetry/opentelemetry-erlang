@@ -1,11 +1,12 @@
 -module(opentelemetry_exporter).
 
 -export([init/1,
-         export/2,
+         export/3,
          shutdown/1]).
 
 %% for roundtrip testing
--export([to_proto/1]).
+-export([to_proto_by_instrumentation_library/1,
+         to_proto/1]).
 
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
@@ -24,13 +25,13 @@ init(Opts) ->
 
     {ok, #state{channel_pid=ChannelPid}}.
 
-export(Tab, #state{channel_pid=_ChannelPid}) ->
-    ResourceSpans = ets:foldl(fun(Span, Acc) ->
-                                      [to_proto(Span) | Acc]
-                              end, [], Tab),
-    ExportRequest = #{resource => #{attributes => [],
+export(Tab, Resource, #state{channel_pid=_ChannelPid}) ->
+    InstrumentationLibrarySpans = to_proto_by_instrumentation_library(Tab),
+    Attributes = ot_resource:attributes(Resource),
+    ResourceSpans = #{resource => #{attributes => to_attributes(Attributes),
                                     dropped_attributes_count => 0},
-                      resource_spans => ResourceSpans},
+                      instrumentation_library_spans => InstrumentationLibrarySpans},
+    ExportRequest = #{resource_spans => ResourceSpans},
     opentelemetry_trace_service:export(ExportRequest),
     ok.
 
@@ -39,6 +40,27 @@ shutdown(#state{channel_pid=Pid}) ->
     ok.
 
 %%
+
+to_proto_by_instrumentation_library(Tab) ->
+    Key = ets:first(Tab),
+    to_proto_by_instrumentation_library(Tab, Key).
+
+to_proto_by_instrumentation_library(_Tab, '$end_of_table') ->
+    [];
+to_proto_by_instrumentation_library(Tab, Key) ->
+    InstrumentationLibrarySpans = lists:foldl(fun(Span, Acc) ->
+                                                      [to_proto(Span) | Acc]
+                                              end, [], ets:lookup(Tab, Key)),
+    [#{instrumentation_library => to_instrumentation_library(Key),
+       spans => InstrumentationLibrarySpans}
+     | to_proto_by_instrumentation_library(Tab, ets:next(Tab, Key))].
+
+to_instrumentation_library(#instrumentation_library{name=Name,
+                                                    version=Version}) ->
+    #{name => Name,
+      version => Version};
+to_instrumentation_library(_) ->
+    undefined.
 
 to_proto(#span{trace_id=TraceId,
                span_id=SpanId,
@@ -54,8 +76,7 @@ to_proto(#span{trace_id=TraceId,
                status=Status,
                child_span_count=ChildSpanCount,
                trace_options=_TraceOptions,
-               is_recording=_IsRecording,
-               library_resource=_LibraryResource}) ->
+               is_recording=_IsRecording}) ->
     ParentSpanId = case MaybeParentSpanId of undefined -> <<>>; _ -> <<MaybeParentSpanId:64>> end,
     #{name                     => Name,
       trace_id                 => <<TraceId:128>>,

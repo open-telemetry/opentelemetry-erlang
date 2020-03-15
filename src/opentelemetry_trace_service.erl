@@ -3,7 +3,7 @@
 %% @end
 %%%-------------------------------------------------------------------
 
-%% this module was generated on 2020-03-07T18:16:42+00:00 and should not be modified manually
+%% this module was generated on 2020-03-15T18:45:15+00:00 and should not be modified manually
 
 -module(opentelemetry_trace_service).
 
