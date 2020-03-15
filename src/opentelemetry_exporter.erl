@@ -15,22 +15,23 @@
 -define(DEFAULT_ENDPOINTS, [{http, "localhost", 55678, []}]).
 
 -record(state, {channel_pid :: pid(),
-                endpoints :: map()}).
+                endpoints :: list()}).
 
 init(Opts) ->
     Endpoints = maps:get(endpoints, Opts, ?DEFAULT_ENDPOINTS),
     ChannelOpts = maps:get(channel_opts, Opts, #{}),
 
-    ChannelPid = grpcbox_channel:start_link(?MODULE, Endpoints, ChannelOpts),
+    {ok, ChannelPid} = grpcbox_channel:start_link(?MODULE, Endpoints, ChannelOpts),
 
-    {ok, #state{channel_pid=ChannelPid}}.
+    {ok, #state{channel_pid=ChannelPid,
+                endpoints=Endpoints}}.
 
 export(Tab, Resource, #state{channel_pid=_ChannelPid}) ->
     InstrumentationLibrarySpans = to_proto_by_instrumentation_library(Tab),
     Attributes = ot_resource:attributes(Resource),
-    ResourceSpans = #{resource => #{attributes => to_attributes(Attributes),
-                                    dropped_attributes_count => 0},
-                      instrumentation_library_spans => InstrumentationLibrarySpans},
+    ResourceSpans = [#{resource => #{attributes => to_attributes(Attributes),
+                                     dropped_attributes_count => 0},
+                       instrumentation_library_spans => InstrumentationLibrarySpans}],
     ExportRequest = #{resource_spans => ResourceSpans},
     opentelemetry_trace_service:export(ExportRequest),
     ok.
@@ -139,10 +140,8 @@ to_events([#event{time=Timestamp,
                   name=Name,
                   attributes=Attributes} | Rest], Acc) ->
     to_events(Rest, [#{time_unixnano => to_unixnano(Timestamp),
-                       name => to_binary_string(Name),
-                       attributes => to_attributes(Attributes)} | Acc]);
-to_events([_ | Rest], Acc) ->
-    to_events(Rest, Acc).
+                       name => Name,
+                       attributes => to_attributes(Attributes)} | Acc]).
 
 to_links(Links) ->
     to_links(Links, []).
@@ -157,24 +156,9 @@ to_links([#link{trace_id=TraceId,
                       span_id => <<SpanId:64>>,
                       tracestate => TraceState,
                       attributes => to_attributes(Attributes),
-                      dropped_attributes_count => 0} | Acc]);
-to_links([_ | Rest], Acc) ->
-    to_links(Rest, Acc).
+                      dropped_attributes_count => 0} | Acc]).
 
 to_tracestate_string(undefined) ->
     "";
 to_tracestate_string(List) ->
     lists:join($,, [[Key, $=, Value] || {Key, Value} <- List]).
-
-to_binary_string(Value) when is_function(Value) ->
-    to_binary_string(Value());
-to_binary_string(Value) when is_list(Value) ->
-    list_to_binary(Value);
-to_binary_string(Value) when is_integer(Value) ->
-    integer_to_binary(Value);
-to_binary_string(Value) when is_float(Value) ->
-    float_to_binary(Value);
-to_binary_string(Value) when is_atom(Value) ->
-    atom_to_binary(Value, utf8);
-to_binary_string(Value) ->
-    Value.

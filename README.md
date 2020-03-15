@@ -1,5 +1,7 @@
 # opentelemetry_exporter
 
+![Common Test](https://github.com/opentelemetry-beam/opentelemetry_elli/workflows/Common%20Test/badge.svg) [![Gitter](https://badges.gitter.im/open-telemetry/opentelemetry-erlang.svg)](https://gitter.im/open-telemetry/opentelemetry-erlang?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 The OpenTelemetry Protocol exporter.
 
 ## Using
@@ -24,7 +26,7 @@ config :opentelemetry,
 
 ## Contributing
 
-This project uses a submodule, so be sure to clone with the option `recurse-submodules`:
+This project uses a submodule during developement, it is not needed if the application is being used as a dependency, so be sure to clone with the option `recurse-submodules`:
 
 ``` shell
 $ git clone --recurse-submodules https://github.com/opentelemetry-beam/opentelemetry_exporter
@@ -41,4 +43,6 @@ $ rebar3 grpc gen -t client
 ===> Writing src/opentelemetry_proto_collector_trace_v_1_trace_service_client.erl (forcibly overwriting)
 $ mv src/opentelemetry_proto_collector_trace_v_1_trace_service_client.erl src/opentelemetry_trace_service.erl
 ```
+
+Then open `src/opentelemetry_trace_service.erl` and fix the module name.
 
