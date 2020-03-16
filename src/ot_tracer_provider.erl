@@ -20,23 +20,36 @@
 -behaviour(gen_server).
 
 -export([start_link/2,
+         resource/0,
          register_application_tracer/1,
          register_tracer/2]).
 
 -export([init/1,
          handle_call/3,
-         handle_cast/2]).
+         handle_cast/2,
+         code_change/3]).
 
 -type cb_state() :: term().
 
 -callback init(term()) -> {ok, cb_state()}.
 -callback register_tracer(atom(), string(), cb_state()) -> boolean().
+-callback resource(cb_state()) -> term() | undefined.
 
 -record(state, {callback :: module(),
                 cb_state :: term()}).
 
 start_link(ProviderModule, Opts) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [ProviderModule, Opts], []).
+
+-spec resource() -> term() | undefined.
+resource() ->
+    try
+        gen_server:call(?MODULE, resource)
+    catch exit:{noproc, _} ->
+            %% ignore because no SDK has been included and started
+            undefined
+    end.
+
 
 -spec register_tracer(atom(), string()) -> boolean().
 register_tracer(Name, Vsn) ->
@@ -75,10 +88,20 @@ handle_call({register_tracer, Name, Vsn}, _From, State=#state{callback=Cb,
                                                               cb_state=CbState}) ->
     _ = Cb:register_tracer(Name, Vsn, CbState),
     {reply, true, State};
+handle_call(resource, _From, State=#state{callback=Cb,
+                                          cb_state=CbState}) ->
+    Resource = Cb:resource(CbState),
+    {reply, Resource, State};
 handle_call(_Msg, _From, State) ->
     {noreply, State}.
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
+
+%% TODO: Use `Extra' as options to update the state like the sampler?
+code_change(_OldVsn, State=#state{callback=Cb,
+                                  cb_state=CbState}, _Extra) ->
+    NewCbState = Cb:code_change(CbState),
+    {ok, State#state{cb_state=NewCbState}}.
 
 %%
