@@ -1,5 +1,9 @@
 {"1.1.0",
-[{<<"wts">>,{pkg,<<"wts">>,<<"0.4.0">>},0}]}.
+[{<<"opentelemetry_api">>,
+  {git,"https://github.com/open-telemetry/opentelemetry-erlang-api",
+       {ref,"fcedcc428efa89c7cef3c9522c9abb03515f2461"}},
+  0},
+ {<<"wts">>,{pkg,<<"wts">>,<<"0.4.0">>},0}]}.
 [
 {pkg_hash,[
  {<<"wts">>, <<"62D9DC400AD29F0D233F0665B9C75C8F8EB0A8AF75EEC921056BA4A73B0605A2">>}]}
