@@ -21,6 +21,7 @@
 
 -export([set_value/4,
          get_value/3,
+         get_value/4,
          remove/3,
          clear/2,
          set_current/3,
@@ -32,6 +33,10 @@ set_value(_ContextManager, _Namespace, _Key, _Value) ->
 
 -spec get_value(ot_ctx:context_manager(), ot_ctx:namespace(), ot_ctx:key()) -> ot_ctx:value().
 get_value(_ContextManager, _Namespace, _Key) ->
+    undefined.
+
+-spec get_value(ot_ctx:context_manager(), ot_ctx:namespace(), ot_ctx:key(), ot_ctx:value()) -> ot_ctx:value().
+get_value(_ContextManager, _Namespace, _Key, _Default) ->
     undefined.
 
 -spec remove(ot_ctx:context_manager(), ot_ctx:namespace(), ot_ctx:key()) -> ok.

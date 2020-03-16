@@ -117,6 +117,11 @@ defmodule OpenTelemetry do
   Current time in UNIX Epoch time, nanoseconds since 00:00:00 UTC on 1 January 1970.
   """
   @spec timestamp() :: integer()
+
+  defdelegate register_application_tracer(name), to: :opentelemetry
+  defdelegate register_application_meter(name), to: :opentelemetry
+
+  # Helpers to build OpenTelemetry structured types
   defdelegate timestamp(), to: :opentelemetry
 
   # span item functions

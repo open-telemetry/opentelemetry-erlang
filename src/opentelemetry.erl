@@ -30,12 +30,18 @@
 
 -export([set_default_tracer/1,
          set_tracer/2,
+         set_meter/2,
+         set_default_meter/1,
          set_default_context_manager/1,
          get_context_manager/0,
          register_tracer/2,
          register_application_tracer/1,
+         register_meter/2,
+         register_application_meter/1,
          get_tracer/0,
          get_tracer/1,
+         get_meter/0,
+         get_meter/1,
          set_http_extractor/1,
          get_http_extractor/0,
          set_http_injector/1,
@@ -54,6 +60,7 @@
 -include_lib("kernel/include/logger.hrl").
 
 -export_type([tracer/0,
+              meter/0,
               trace_id/0,
               span_id/0,
               span_name/0,
@@ -74,6 +81,7 @@
               http_headers/0]).
 
 -type tracer()             :: {module(), term()}.
+-type meter()              :: {module(), term()}.
 
 -type trace_id()           :: non_neg_integer().
 -type span_id()            :: non_neg_integer().
@@ -121,6 +129,14 @@ set_default_tracer(Tracer) ->
 set_tracer(Name, Tracer) ->
     verify_and_set_term(Tracer, Name, ot_tracer).
 
+-spec set_default_meter(meter()) -> boolean().
+set_default_meter(Meter) ->
+    verify_and_set_term(Meter, default_meter, ot_meter).
+
+-spec set_meter(atom(), meter()) -> boolean().
+set_meter(Name, Meter) ->
+    verify_and_set_term(Meter, Name, ot_meter).
+
 -spec set_default_context_manager(ot_ctx:context_manager()) -> boolean().
 set_default_context_manager(ContextManager) ->
     verify_and_set_term(ContextManager, context_manager, ot_ctx).
@@ -133,6 +149,14 @@ register_tracer(Name, Vsn) ->
 register_application_tracer(Name) ->
     ot_tracer_provider:register_application_tracer(Name).
 
+-spec register_meter(atom(), string()) -> boolean().
+register_meter(Name, Vsn) ->
+    ot_meter_provider:register_meter(Name, Vsn).
+
+-spec register_application_meter(atom()) -> boolean().
+register_application_meter(Name) ->
+    ot_meter_provider:register_application_meter(Name).
+
 -spec get_context_manager() -> ot_ctx:context_manager().
 get_context_manager() ->
     persistent_term:get({?MODULE, context_manager}, {ot_ctx_noop, []}).
@@ -141,9 +165,17 @@ get_context_manager() ->
 get_tracer() ->
     persistent_term:get({?MODULE, default_tracer}, {ot_tracer_noop, []}).
 
--spec get_tracer(unicode:unicode_binary()) -> tracer().
+-spec get_tracer(atom()) -> tracer().
 get_tracer(Name) ->
     persistent_term:get({?MODULE, Name}, get_tracer()).
+
+-spec get_meter() -> meter().
+get_meter() ->
+    persistent_term:get({?MODULE, default_meter}, {ot_meter_noop, []}).
+
+-spec get_meter(atom()) -> meter().
+get_meter(Name) ->
+    persistent_term:get({?MODULE, Name}, get_meter()).
 
 set_http_extractor(List) when is_list(List) ->
     persistent_term:put({?MODULE, http_extractor}, List);
@@ -249,7 +281,7 @@ events(List) ->
 -spec status(Code, Message) -> status() | undefined when
       Code :: atom(),
       Message :: unicode:unicode_binary().
-status(Code, Message) when is_integer(Code),
+status(Code, Message) when is_atom(Code),
                            is_binary(Message) ->
     #status{code=Code,
             message=Message};

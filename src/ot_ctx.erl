@@ -19,6 +19,7 @@
 
 -export([set_value/3,
          get_value/2,
+         get_value/3,
          remove/2,
          clear/1,
 
@@ -42,6 +43,7 @@
 
 -callback set_value(context_manager(), namespace(), key(), value()) -> ok.
 -callback get_value(context_manager(), namespace(), key()) -> value() | undefined.
+-callback get_value(context_manager(), namespace(), key(), value()) -> value() | undefined.
 -callback remove(context_manager(), namespace(), key()) -> ok.
 -callback clear(context_manager(), namespace()) -> ok.
 -callback set_current(context_manager(), namespace(), ctx()) -> ok.
@@ -60,13 +62,17 @@ set_value(Namespace, Key, Value) ->
 set_value(ContextManager={CtxModule, _}, Namespace, Key, Value) ->
     CtxModule:set_value(ContextManager, Namespace, Key, Value).
 
--spec get_value(namespace(), key()) -> value().
+-spec get_value(namespace(), key()) -> value() | undefined.
 get_value(Namespace, Key) ->
-    get_value(opentelemetry:get_context_manager(), Namespace, Key).
+    get_value(opentelemetry:get_context_manager(), Namespace, Key, undefined).
 
--spec get_value(context_manager(), namespace(), key()) -> value().
-get_value(ContextManager={CtxModule, _}, Namespace, Key) ->
-    CtxModule:get_value(ContextManager, Namespace, Key).
+-spec get_value(namespace(), key(), value()) -> value().
+get_value(Namespace, Key, Default) ->
+    get_value(opentelemetry:get_context_manager(), Namespace, Key, Default).
+
+-spec get_value(context_manager(), namespace(), key(), value()) -> value().
+get_value(ContextManager={CtxModule, _}, Namespace, Key, Default) ->
+    CtxModule:get_value(ContextManager, Namespace, Key, Default).
 
 -spec remove(namespace(), key()) -> ok.
 remove(Namespace, Key) ->

@@ -1,5 +1,5 @@
 %%%------------------------------------------------------------------------
-%% Copyright 2019, OpenTelemetry Authors
+%% Copyright 2020, OpenTelemetry Authors
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
 %% You may obtain a copy of the License at
@@ -15,13 +15,13 @@
 %% @doc
 %% @end
 %%%-------------------------------------------------------------------------
--module(ot_tracer_provider).
+-module(ot_meter_provider).
 
 -behaviour(gen_server).
 
 -export([start_link/2,
-         register_application_tracer/1,
-         register_tracer/2]).
+         register_application_meter/1,
+         register_meter/2]).
 
 -export([init/1,
          handle_call/3,
@@ -30,7 +30,7 @@
 -type cb_state() :: term().
 
 -callback init(term()) -> {ok, cb_state()}.
--callback register_tracer(atom(), string(), cb_state()) -> boolean().
+-callback register_meter(atom(), string(), cb_state()) -> boolean().
 
 -record(state, {callback :: module(),
                 cb_state :: term()}).
@@ -38,23 +38,23 @@
 start_link(ProviderModule, Opts) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [ProviderModule, Opts], []).
 
--spec register_tracer(atom(), string()) -> boolean().
-register_tracer(Name, Vsn) ->
+-spec register_meter(atom(), string()) -> boolean().
+register_meter(Name, Vsn) ->
     try
-        gen_server:call(?MODULE, {register_tracer, Name, Vsn})
+        gen_server:call(?MODULE, {register_meter, Name, Vsn})
     catch exit:{noproc, _} ->
-            %% ignore register_tracer because no SDK has been included and started
+            %% ignore register_meter because no SDK has been included and started
             false
     end.
 
--spec register_application_tracer(atom()) -> boolean().
-register_application_tracer(Name) ->
+-spec register_application_meter(atom()) -> boolean().
+register_application_meter(Name) ->
     try
         {ok, Vsn} = application:get_key(Name, vsn),
         {ok, Modules} = application:get_key(Name, modules),
-        gen_server:call(?MODULE, {register_tracer, Name, Vsn, Modules})
+        gen_server:call(?MODULE, {register_meter, Name, Vsn, Modules})
     catch exit:{noproc, _} ->
-            %% ignore register_tracer because no SDK has been included and started
+            %% ignore register_meter because no SDK has been included and started
             false
     end.
 
@@ -67,13 +67,13 @@ init([ProviderModule, Opts]) ->
             Other
     end.
 
-handle_call({register_tracer, Name, Vsn, Modules}, _From, State=#state{callback=Cb,
-                                                                       cb_state=CbState}) ->
-    _ = Cb:register_tracer(Name, Vsn, Modules, CbState),
+handle_call({register_meter, Name, Vsn, Modules}, _From, State=#state{callback=Cb,
+                                                                      cb_state=CbState}) ->
+    _ = Cb:register_meter(Name, Vsn, Modules, CbState),
     {reply, true, State};
-handle_call({register_tracer, Name, Vsn}, _From, State=#state{callback=Cb,
-                                                              cb_state=CbState}) ->
-    _ = Cb:register_tracer(Name, Vsn, CbState),
+handle_call({register_meter, Name, Vsn}, _From, State=#state{callback=Cb,
+                                                             cb_state=CbState}) ->
+    _ = Cb:register_meter(Name, Vsn, CbState),
     {reply, true, State};
 handle_call(_Msg, _From, State) ->
     {noreply, State}.
