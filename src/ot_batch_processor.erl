@@ -62,6 +62,7 @@
 -callback export(ets:tid(), opts()) -> ok | success | failed_not_retryable | failed_retryable.
 
 -record(data, {exporter             :: {module(), term()} | undefined,
+               resource             :: ot_resource:t(),
                handed_off_table     :: atom() | undefined,
                runner_pid           :: pid() | undefined,
                max_queue_size       :: integer() | infinity,
@@ -113,6 +114,7 @@ init([Args]) ->
     CheckTableSize = maps:get(check_table_size_ms, Args, ?DEFAULT_CHECK_TABLE_SIZE_MS),
 
     Exporter = init_exporter(maps:get(exporter, Args, undefined)),
+    Resource = ot_tracer_provider:resource(),
 
     _Tid1 = new_export_table(?TABLE_1),
     _Tid2 = new_export_table(?TABLE_2),
@@ -121,6 +123,7 @@ init([Args]) ->
     enable(),
 
     {ok, idle, #data{exporter=Exporter,
+                     resource = Resource,
                      handed_off_table=undefined,
                      max_queue_size=case SizeLimit of
                                         infinity -> infinity;
@@ -254,7 +257,8 @@ shutdown_exporter(undefined) ->
 shutdown_exporter({ExporterModule, Config}) ->
     ExporterModule:shutdown(Config).
 
-export_spans(#data{exporter=Exporter}) ->
+export_spans(#data{exporter=Exporter,
+                   resource=Resource}) ->
     CurrentTable = ?CURRENT_TABLE,
     NewCurrentTable = case CurrentTable of
                           ?TABLE_1 ->
@@ -269,17 +273,17 @@ export_spans(#data{exporter=Exporter}) ->
     enable(),
 
     Self = self(),
-    RunnerPid = erlang:spawn_link(fun() -> send_spans(Self, Exporter) end),
+    RunnerPid = erlang:spawn_link(fun() -> send_spans(Self, Resource, Exporter) end),
     ets:give_away(CurrentTable, RunnerPid, export),
     {CurrentTable, RunnerPid}.
 
 %% Additional benefit of using a separate process is calls to `register` won't
 %% timeout if the actual exporting takes longer than the call timeout
-send_spans(FromPid, Exporter) ->
+send_spans(FromPid, Resource, Exporter) ->
     receive
         {'ETS-TRANSFER', Table, FromPid, export} ->
             TableName = ets:rename(Table, current_send_table),
-            export(Exporter, TableName),
+            export(Exporter, Resource, TableName),
             ets:delete(TableName),
             completed(FromPid)
     end.
@@ -287,13 +291,13 @@ send_spans(FromPid, Exporter) ->
 completed(FromPid) ->
     FromPid ! {completed, self()}.
 
-export(undefined, _) ->
+export(undefined, _, _) ->
     true;
-export({Exporter, Config}, SpansTid) ->
+export({Exporter, Config}, Resource, SpansTid) ->
     %% don't let a exporter exception crash us
     %% and return true if exporter failed
     try
-        Exporter:export(SpansTid, Config) =:= failed_not_retryable
+        Exporter:export(SpansTid, Resource, Config) =:= failed_not_retryable
     catch
         Class:Exception:StackTrace ->
             ?LOG_INFO("exporter threw exception: exporter=~p ~p:~p stacktrace=~p",

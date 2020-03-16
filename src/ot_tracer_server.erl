@@ -22,6 +22,7 @@
 -export([init/1,
          register_tracer/4,
          register_tracer/3,
+         resource/1,
          code_change/1]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
@@ -40,6 +41,7 @@
          shared_tracer :: tracer(),
          processors :: [module()],
          sampler :: ot_sampler:t(),
+         resource :: ot_resource:t(),
 
          %% list of tracer names to return noop tracers for
          deny_list :: [atom() | {atom(), string()}],
@@ -79,10 +81,14 @@ init(Opts) ->
     opentelemetry:set_default_tracer({ot_tracer_default, Tracer}),
 
     {ok, #state{shared_tracer=Tracer,
+                resource=Resource,
                 sampler=SamplerFun,
                 telemetry_library=TelemetryLibrary,
                 deny_list=DenyList,
                 processors=Processors}}.
+
+resource(#state{resource=Resource}) ->
+    Resource.
 
 register_tracer(Name, Vsn, Modules, #state{shared_tracer=Tracer,
                                            deny_list=DenyList}) ->

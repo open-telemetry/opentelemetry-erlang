@@ -19,7 +19,8 @@
 -module(ot_resource).
 
 -export([create/1,
-         merge/2]).
+         merge/2,
+         attributes/1]).
 
 -type key() :: io_lib:latin1_string().
 -type value() :: io_lib:latin1_string() | integer() | float() | boolean().
@@ -44,6 +45,10 @@ create(List) when is_list(List) ->
                                             false
                                     end
                                end, lists:ukeysort(1, List))}.
+
+-spec attributes(t()) -> [{key(), value()}].
+attributes({ot_resource, Resource}) ->
+    Resource.
 
 %% In case of collision the current, first argument, resource takes precedence.
 -spec merge(t(), t()) -> t().
