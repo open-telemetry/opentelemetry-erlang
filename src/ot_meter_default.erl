@@ -132,6 +132,11 @@ observe(_, _, _) ->
     ok.
 
 init(_Opts) ->
+    %% TODO: we do not want to lose instrument and observer tables ever
+    %% eventually need to have an heir to take them if this process crashes.
+    %% Another option is to just use persistent_term since these things
+    %% don't change after creation.
+
     %% ets table is required for other parts to not crash so we create
     %% it in init and not in a handle_continue or whatever else
     case ets:info(?TAB, name) of

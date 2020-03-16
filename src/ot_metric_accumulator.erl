@@ -105,18 +105,14 @@ collect()->
     gen_server:call(?MODULE, collect).
 
 init(_Opts) ->
-    %% ets table is required for other parts to not crash so we create
-    %% it in init and not in a handle_continue or whatever else
-    case ets:info(?ACTIVE_TAB, name) of
-        undefined ->
-            _ = ets:new(?ACTIVE_TAB, [named_table,
-                                      public,
-                                      {keypos, #active_instrument.key},
-                                      {write_concurrency, true},
-                                      ordered_set]);
-        _ ->
-            ok
-    end,
+    %% This ETS table is required for other parts to not crash so we create
+    %% it in init and not in a handle_continue or whatever else.
+    %% No heir is worried about since active metrics are created dynamicly
+    _ = ets:new(?ACTIVE_TAB, [named_table,
+                              public,
+                              {keypos, #active_instrument.key},
+                              {write_concurrency, true},
+                              ordered_set]),
 
     {ok, #state{}}.
 
