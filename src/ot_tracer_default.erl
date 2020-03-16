@@ -154,11 +154,15 @@ w3c_propagators() ->
 %% as the current active ctx or undefined if there is no local previous.
 -spec end_span(opentelemetry:tracer()) -> boolean() | {error, term()}.
 end_span(Tracer) ->
-    #tracer_ctx{active=SpanCtx,
-                previous=PreviousTracerCtx} = current_ctx(Tracer),
-    Result = end_span(Tracer, SpanCtx),
-    ot_ctx:set_value(?TRACER_KEY, ?TRACER_CTX, PreviousTracerCtx),
-    Result.
+    case current_ctx(Tracer) of
+        #tracer_ctx{active=SpanCtx,
+                    previous=PreviousTracerCtx} ->
+            Result = end_span(Tracer, SpanCtx),
+            ot_ctx:set_value(?TRACER_KEY, ?TRACER_CTX, PreviousTracerCtx),
+            Result;
+        _ ->
+            false
+    end.
 
 %% @doc Ends the Span by setting the the `end_time' and calling the `OnEnd' Span Processors.
 -spec end_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> boolean() | {error, term()}.
