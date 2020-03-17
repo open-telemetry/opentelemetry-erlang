@@ -20,7 +20,11 @@ startup(_Config) ->
 
     {ok, _} = application:ensure_all_started(opentelemetry),
     {_, Tracer} = opentelemetry:get_tracer(),
+    Resource = ot_tracer_provider:resource(),
     _ = application:stop(opentelemetry),
+
+    ?assertMatch({ot_resource, [{"service.name", "cttest"},
+                                {"service.version", "1.1.1"}]}, Resource),
 
     ?assertMatch({ot_resource, [{"service.name", "cttest"},
                                 {"service.version", "1.1.1"}]}, Tracer#tracer.resource),

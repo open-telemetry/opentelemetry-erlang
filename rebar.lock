@@ -1,7 +1,7 @@
 {"1.1.0",
 [{<<"opentelemetry_api">>,
   {git,"https://github.com/open-telemetry/opentelemetry-erlang-api",
-       {ref,"017641749c40a0283f5a568331da6cdf6f3641c5"}},
+       {ref,"fcedcc428efa89c7cef3c9522c9abb03515f2461"}},
   0},
  {<<"wts">>,{pkg,<<"wts">>,<<"0.4.0">>},0}]}.
 [

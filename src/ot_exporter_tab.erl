@@ -20,13 +20,13 @@
 -behaviour(ot_exporter).
 
 -export([init/1,
-         export/2,
+         export/3,
          shutdown/1]).
 
 init(Tid) ->
     {ok, Tid}.
 
-export(SpansTid, Tid) ->
+export(SpansTid, _Resource, Tid) ->
     ets:foldl(fun(Span, _Acc) ->
                       ets:insert(Tid, Span)
               end, [], SpansTid),

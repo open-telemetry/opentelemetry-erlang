@@ -58,9 +58,9 @@ start_span(Tracer, Name, Opts) ->
 -spec create_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts())
                  -> opentelemetry:span_ctx().
 create_span(Tracer={_, #tracer{on_start_processors=Processors,
-                               library_resource=LibraryResource}}, Name, Opts) ->
+                               instrumentation_library=InstrumentationLibrary}}, Name, Opts) ->
     Opts1 = maybe_set_sampler(Tracer, maybe_set_parent(Opts)),
-    ot_span_ets:start_span(Name, Opts1, Processors, LibraryResource).
+    ot_span_ets:start_span(Name, Opts1, Processors, InstrumentationLibrary).
 
 maybe_set_sampler(_Tracer, Opts) when is_map_key(sampler, Opts) ->
     Opts;

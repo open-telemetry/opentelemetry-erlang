@@ -57,5 +57,8 @@ init([Opts]) ->
                 shutdown => 5000,
                 modules => [ot_span_sup]},
 
-    ChildSpecs = [BatchProcessor, SpanSup, TracerServer],
+    %% `TracerServer' *must* start before the `BatchProcessor'
+    %% `BatchProcessor' relies on getting the `Resource' from
+    %% the `TracerServer' process
+    ChildSpecs = [TracerServer, BatchProcessor, SpanSup],
     {ok, {SupFlags, ChildSpecs}}.
