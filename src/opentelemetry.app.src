@@ -10,8 +10,8 @@
     opentelemetry_api
    ]},
   {env, [{sampler, {always_on, #{}}},
-         {propagators, [fun ot_correlations:get_http_propagators/0,
-                        fun ot_tracer_default:w3c_propagators/0]},
+         {http_propagators, [fun ot_correlations:get_http_propagators/0,
+                             fun ot_tracer_default:w3c_propagators/0]},
 
          %% list of disabled tracers
          {deny_list, []},
