@@ -21,6 +21,6 @@
 -export([export/1]).
 
 export(Records) when map_size(Records) > 0 ->
-    io:format("Records ~p~n", [Records]);
+    io:format("*METRICS FOR DEBUG*~nRecords ~p~n", [Records]);
 export(_) ->
     ok.

@@ -27,6 +27,7 @@ init(_) ->
     {ok, []}.
 
 export(SpansTid, _Resource, _) ->
+    io:format("*SPANS FOR DEBUG*~n"),
     ets:foldl(fun(Span, _Acc) ->
                       io:format("~p~n", [Span])
               end, [], SpansTid),
