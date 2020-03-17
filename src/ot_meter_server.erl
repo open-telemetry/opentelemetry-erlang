@@ -26,9 +26,6 @@
 -include("ot_meter.hrl").
 -include("ot_span.hrl").
 
--type library_resource() :: #library_resource{}.
--export_type([library_resource/0]).
-
 -record(state, {meter :: meter(),
                 deny_list :: [atom() | {atom(), string()}]}).
 
@@ -48,8 +45,9 @@ register_meter(Name, Vsn, #state{meter=Meter,
         true ->
             opentelemetry:set_meter(Name, {ot_meter_noop, []});
         false ->
-            LibraryResource = #library_resource{name=Name,
-                                                version=Vsn},
+            InstrumentationLibrary = ot_utils:instrumentation_library(Name, Vsn),
             opentelemetry:set_meter(Name, {Meter#meter.module,
-                                           Meter#meter{library_resource=LibraryResource}})
+                                           Meter#meter{instrumentation_library=InstrumentationLibrary}})
     end.
+
+%%

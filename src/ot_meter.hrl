@@ -1,6 +1,7 @@
--record(meter, {module :: module(),
-                library_resource :: term() | undefined,
-                resource :: term() | undefined}).
+-record(meter, {module                  :: module(),
+                instrumentation_library :: ot_tracer_server:instrumentation_library() | undefined,
+                telemetry_library       :: ot_tracer_server:telemetry_library() | undefined,
+                resource                :: ot_resource:t() | undefined}).
 -type meter() :: #meter{}.
 
 -record(instrument, {name         :: ot_meter:name(),

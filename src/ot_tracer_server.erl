@@ -97,8 +97,7 @@ register_tracer(Name, Vsn, Modules, #state{shared_tracer=Tracer,
         true ->
             opentelemetry:set_tracer(Name, {ot_tracer_noop, []});
         false ->
-            InstrumentationLibrary = #instrumentation_library{name=to_binary(Name),
-                                                              version=to_binary(Vsn)},
+            InstrumentationLibrary = ot_utils:instrumentation_library(Name, Vsn),
             TracerTuple = {Tracer#tracer.module,
                            Tracer#tracer{instrumentation_library=InstrumentationLibrary}},
             [opentelemetry:set_tracer(M, TracerTuple) || M <- Modules]
@@ -111,8 +110,7 @@ register_tracer(Name, Vsn, #state{shared_tracer=Tracer,
         true ->
             opentelemetry:set_tracer(Name, {ot_tracer_noop, []});
         false ->
-            InstrumentationLibrary = #instrumentation_library{name=to_binary(Name),
-                                                              version=to_binary(Vsn)},
+            InstrumentationLibrary = ot_utils:instrumentation_library(Name, Vsn),
             TracerTuple = {Tracer#tracer.module,
                            Tracer#tracer{instrumentation_library=InstrumentationLibrary}},
             opentelemetry:set_tracer(Name, TracerTuple)
@@ -135,10 +133,3 @@ on_start(Processors) ->
 
 on_end(Processors) ->
     fun(Span) -> [P:on_end(Span, Config) || {P, Config} <- Processors] end.
-
-to_binary(T) when is_atom(T) ->
-    atom_to_binary(T, utf8);
-to_binary(T) when is_list(T) ->
-    list_to_binary(T);
-to_binary(T) when is_binary(T) ->
-    T.
