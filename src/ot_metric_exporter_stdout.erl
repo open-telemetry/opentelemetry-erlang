@@ -12,26 +12,15 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc Reporter that prints spans to stdout.
+%% @doc
+%%
 %% @end
-%%%-----------------------------------------------------------------------
--module(ot_exporter_stdout).
+%%%-------------------------------------------------------------------------
+-module(ot_metric_exporter_stdout).
 
--behaviour(ot_exporter).
+-export([export/1]).
 
--export([init/1,
-         export/3,
-         shutdown/1]).
-
-init(_) ->
-    {ok, []}.
-
-export(SpansTid, _Resource, _) ->
-    io:format("*SPANS FOR DEBUG*~n"),
-    ets:foldl(fun(Span, _Acc) ->
-                      io:format("~p~n", [Span])
-              end, [], SpansTid),
-    ok.
-
-shutdown(_) ->
+export(Records) when map_size(Records) > 0 ->
+    io:format("*METRICS FOR DEBUG*~nRecords ~p~n", [Records]);
+export(_) ->
     ok.

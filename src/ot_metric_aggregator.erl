@@ -12,26 +12,19 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc Reporter that prints spans to stdout.
+%% @doc
+%%
 %% @end
-%%%-----------------------------------------------------------------------
--module(ot_exporter_stdout).
+%%%-------------------------------------------------------------------------
+-module(ot_metric_aggregator).
 
--behaviour(ot_exporter).
+-include("ot_meter.hrl").
 
--export([init/1,
-         export/3,
-         shutdown/1]).
+-callback update(ets:tab(), ot_meter:key(), ot_meter:input_type(), number()) -> boolean().
 
-init(_) ->
-    {ok, []}.
+-callback checkpoint(ets:tab(), ot_meter:key()) -> boolean().
 
-export(SpansTid, _Resource, _) ->
-    io:format("*SPANS FOR DEBUG*~n"),
-    ets:foldl(fun(Span, _Acc) ->
-                      io:format("~p~n", [Span])
-              end, [], SpansTid),
-    ok.
+-callback merge(term(), term()) -> term().
 
-shutdown(_) ->
-    ok.
+%% TODO: rename to `new'
+-callback initial_value(ot_meter:input_type()) -> term().

@@ -41,6 +41,7 @@ prep_stop(_State) ->
     %% application crashed.
     opentelemetry:set_default_context_manager({ot_ctx_noop, []}),
     opentelemetry:set_default_tracer({ot_tracer_noop, []}),
+    opentelemetry:set_default_meter({ot_meter_noop, []}),
     ok.
 
 stop(_State) ->
