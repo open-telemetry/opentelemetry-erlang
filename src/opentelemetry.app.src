@@ -23,6 +23,6 @@
                         ]}]},
   {modules, []},
 
-  {licenses, ["Apache 2.0"]},
-  {links, [{"GitHub", "https://github.com/census-instrumentation/opencensus-erlang"}]}
+  {licenses, ["Apache-2.0"]},
+  {links, [{"GitHub", "https://github.com/open-telemetry/opentelemetry-erlang"}]}
  ]}.
