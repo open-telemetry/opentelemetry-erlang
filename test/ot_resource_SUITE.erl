@@ -23,11 +23,11 @@ startup(_Config) ->
     Resource = ot_tracer_provider:resource(),
     _ = application:stop(opentelemetry),
 
-    ?assertMatch({ot_resource, [{"service.name", "cttest"},
-                                {"service.version", "1.1.1"}]}, Resource),
+    ?assertMatch({ot_resource, [{<<"service.name">>, <<"cttest">>},
+                                {<<"service.version">>, <<"1.1.1">>}]}, Resource),
 
-    ?assertMatch({ot_resource, [{"service.name", "cttest"},
-                                {"service.version", "1.1.1"}]}, Tracer#tracer.resource),
+    ?assertMatch({ot_resource, [{<<"service.name">>, <<"cttest">>},
+                                {<<"service.version">>, <<"1.1.1">>}]}, Tracer#tracer.resource),
     ok.
 
 os_env_resource(_Config) ->
@@ -52,7 +52,7 @@ combining(_Config) ->
 
     Merged = ot_resource:merge(Resource1, Resource2),
 
-    Expected = {ot_resource, [{"service.name","other-name"},
-                              {"service.version","1.1.1"}]},
+    Expected = {ot_resource, [{<<"service.name">>, <<"other-name">>},
+                              {<<"service.version">>, <<"1.1.1">>}]},
     ?assertEqual(Expected, Merged),
     ok.
