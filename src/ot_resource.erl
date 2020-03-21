@@ -40,7 +40,7 @@ create(List) when is_list(List) ->
                                     %% TODO: log an info or debug message when dropping?
                                     case check_key(K) andalso check_value(V) of
                                         {true, Value} ->
-                                            {true, {K, Value}};
+                                            {true, {to_binary(K), Value}};
                                         _ ->
                                             false
                                     end
@@ -59,7 +59,7 @@ merge({ot_resource, CurrentResource}, {ot_resource, OtherResource}) ->
 
 %% all resource strings, key or value, must be latin1 with length less than 255
 check_string(S) ->
-    length(S) =< ?MAX_LENGTH andalso io_lib:deep_latin1_char_list(S).
+    string:length(S) =< ?MAX_LENGTH.
 
 %% a resource key must be a non-empty latin1 string
 check_key(K=[_|_]) ->
@@ -73,10 +73,16 @@ check_value(V) when is_integer(V) ;
                     is_boolean(V) ->
     {true, V};
 check_value(V) when is_binary(V) ->
-    L = binary_to_list(V),
-    check_string_value(L);
-check_value(V) when is_list(V) ->
     check_string_value(V);
+check_value(V) when is_list(V) ->
+    try unicode:characters_to_binary(V) of
+        B ->
+            check_string_value(B)
+    catch
+        error:badarg ->
+            %% must be an array attribute value
+            {true, V}
+    end;
 check_value(_) ->
     false.
 
@@ -87,3 +93,8 @@ check_string_value(V) ->
         false ->
             false
     end.
+
+to_binary(K) when is_binary(K) ->
+    K;
+to_binary(K) when is_list(K) ->
+    list_to_binary(K).
