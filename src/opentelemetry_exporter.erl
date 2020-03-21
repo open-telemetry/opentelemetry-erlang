@@ -12,7 +12,7 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/ot_span.hrl").
 
--define(DEFAULT_ENDPOINTS, [{http, "localhost", 55678, []}]).
+-define(DEFAULT_ENDPOINTS, [{http, "localhost", 9090, []}]).
 
 -record(state, {channel_pid :: pid(),
                 endpoints :: list()}).
@@ -33,7 +33,7 @@ export(Tab, Resource, #state{channel_pid=_ChannelPid}) ->
                                      dropped_attributes_count => 0},
                        instrumentation_library_spans => InstrumentationLibrarySpans}],
     ExportRequest = #{resource_spans => ResourceSpans},
-    opentelemetry_trace_service:export(ExportRequest),
+    opentelemetry_trace_service:export(ctx:new(), ExportRequest, #{channel => ?MODULE}),
     ok.
 
 shutdown(#state{channel_pid=Pid}) ->

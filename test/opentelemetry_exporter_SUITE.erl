@@ -75,13 +75,13 @@ ets_instrumentation_info(_Config) ->
     true = ets:insert(Tid, ChildSpan),
 
     ?assertMatch([#{instrumentation_library :=
-                        #{name := <<"tracer-2">>,version := <<"0.0.1">>},
+                        #{name := <<"tracer-1">>,version := <<"0.0.1">>},
                     spans :=
                         [_]},
                   #{instrumentation_library :=
-                        #{name := <<"tracer-1">>,version := <<"0.0.1">>},
+                        #{name := <<"tracer-2">>,version := <<"0.0.1">>},
                     spans :=
-                        [_]}], opentelemetry_exporter:to_proto_by_instrumentation_library(Tid)),
+                        [_]}], lists:sort(opentelemetry_exporter:to_proto_by_instrumentation_library(Tid))),
 
     ok.
 
@@ -164,6 +164,7 @@ verify_export(_Config) ->
     ?assertMatch([#{instrumentation_library := undefined,
                     spans := [_, _]}], opentelemetry_exporter:to_proto_by_instrumentation_library(Tid)),
 
-    ?assertMatch(ok, opentelemetry_exporter:export(Tid, ot_resource:create([]), State)),
+    ?assertMatch(ok, opentelemetry_exporter:export(Tid, ot_resource:create([{"service.name",
+                                                                             "my-test-service"}]), State)),
 
     ok.

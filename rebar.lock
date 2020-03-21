@@ -5,6 +5,8 @@
  {<<"gproc">>,{pkg,<<"gproc">>,<<"0.8.0">>},1},
  {<<"grpcbox">>,{pkg,<<"grpcbox">>,<<"0.11.0">>},0},
  {<<"hpack">>,{pkg,<<"hpack_erl">>,<<"0.2.3">>},2},
+ {<<"opentelemetry">>,{pkg,<<"opentelemetry">>,<<"0.3.1">>},0},
+ {<<"opentelemetry_api">>,{pkg,<<"opentelemetry_api">>,<<"0.3.0">>},0},
  {<<"wts">>,{pkg,<<"wts">>,<<"0.4.0">>},0}]}.
 [
 {pkg_hash,[
@@ -14,5 +16,7 @@
  {<<"gproc">>, <<"CEA02C578589C61E5341FCE149EA36CCEF236CC2ECAC8691FBA408E7EA77EC2F">>},
  {<<"grpcbox">>, <<"EA9F9160120A4884838D397DDE64B36EDB122ADF335238F639DEBC12087DA67F">>},
  {<<"hpack">>, <<"17670F83FF984AE6CD74B1C456EDDE906D27FF013740EE4D9EFAA4F1BF999633">>},
+ {<<"opentelemetry">>, <<"D91B3EE5CE171D896FDFDC94CD51BCDAA14365A25A47D7A9156C757F369E632F">>},
+ {<<"opentelemetry_api">>, <<"5D8F08C4F06C0B0EFF50514A57F0B530A25A6520F335AA05C9E39A3669D1DACC">>},
  {<<"wts">>, <<"62D9DC400AD29F0D233F0665B9C75C8F8EB0A8AF75EEC921056BA4A73B0605A2">>}]}
 ].

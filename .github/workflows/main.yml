@@ -13,6 +13,19 @@ jobs:
     name: Test on OTP ${{ matrix.otp_version }} and ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
+    services:
+      zipkin:
+        image: openzipkin/zipkin-slim
+        ports:
+        - 9411:9411
+      otelcol:
+        image: docker.pkg.github.com/opentelemetry-beam/opentelemetry_exporter/otelcol:nightly
+        command: ["--config=/conf/otel-collector-config.yaml"]
+        ports:
+        - 9411:9411
+        volumes:
+        - ./config/otel-collector-config.yaml:/conf/otel-collector-config.yaml
+
     strategy:
       matrix:
         otp_version: [22]
