@@ -19,7 +19,7 @@ jobs:
         ports:
         - 9411:9411
       otelcol:
-        image: docker.pkg.github.com/opentelemetry-beam/opentelemetry_exporter/otelcol:nightly
+        image: tristan/otelcol:nightly
         options: >-
           --config=/conf/otel-collector-config.yaml
         ports:
