@@ -16,14 +16,14 @@ For an Erlang release in `sys.config`:
 {opentelemetry,
   [{processors, 
     [{ot_batch_processor,
-        #{exporter => {opentelemetry_exporter, #{endpoints => [{http, "localhost", 55678, []}]}}}}]}]}
+        #{exporter => {opentelemetry_exporter, #{endpoints => [{http, "localhost", 9090, []}]}}}}]}]}
 ```
 
 An Elixir release uses `releases.exs`:
 
 ``` elixir
 config :opentelemetry,
-    :processors, ot_batch_processor: %{exporter: {:opentelemetry_exporter, %{endpoints: [{http, "localhost", 55678, []}}}}
+    :processors, ot_batch_processor: %{exporter: {:opentelemetry_exporter, %{endpoints: [{http, "localhost", 9090, []}}}}
 ```
 
 ## Contributing
