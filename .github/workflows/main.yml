@@ -20,8 +20,7 @@ jobs:
         - 9411:9411
       otelcol:
         image: tristan/otelcol:nightly
-        options: >-
-          --config=/conf/otel-collector-config.yaml
+        options: --entrypoint "/otelcol --config=/conf/otel-collector-config.yaml"
         ports:
         - 9411:9411
         volumes:
