@@ -22,7 +22,7 @@ defmodule OpenTelemetry.Tracer do
                           optional(:sampler) => :ot_sampler.sampler(),
                           optional(:links) => OpenTelemetry.links(),
                           optional(:is_recording) => boolean(),
-                          optional(:start_time) => :wts.timestamp(),
+                          optional(:start_time) => :opentelemetry.timestamp(),
                           optional(:kind) => OpenTelemetry.span_kind()}
 
   @doc """

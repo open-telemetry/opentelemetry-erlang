@@ -54,16 +54,16 @@
          }).
 
 -record(link, {
-          trace_id                  :: opentelemetry:trace_id(),
-          span_id                   :: opentelemetry:span_id(),
-          attributes                :: opentelemetry:attributes(),
-          tracestate                :: opentelemetry:tracestate()
+          trace_id   :: opentelemetry:trace_id(),
+          span_id    :: opentelemetry:span_id(),
+          attributes :: opentelemetry:attributes(),
+          tracestate :: opentelemetry:tracestate()
          }).
 
 -record(event, {
-          time            :: wts:timestamp() | non_neg_integer(),
-          name            :: unicode:unicode_binary(),
-          attributes = [] :: opentelemetry:attributes()
+          system_time_nano :: non_neg_integer(),
+          name             :: unicode:unicode_binary(),
+          attributes = []  :: opentelemetry:attributes()
          }).
 
 -record(status, {

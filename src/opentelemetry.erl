@@ -47,6 +47,8 @@
          set_http_injector/1,
          get_http_injector/0,
          timestamp/0,
+         timestamp_to_nano/1,
+         convert_timestamp/2,
          links/1,
          link/4,
          event/2,
@@ -63,6 +65,7 @@
               meter/0,
               trace_id/0,
               span_id/0,
+              timestamp/0,
               span_name/0,
               span_ctx/0,
               span/0,
@@ -85,6 +88,8 @@
 
 -type trace_id()           :: non_neg_integer().
 -type span_id()            :: non_neg_integer().
+
+-type timestamp() :: integer().
 
 -type span_ctx()           :: #span_ctx{}.
 -type span()               :: term().
@@ -195,7 +200,16 @@ get_http_injector() ->
 
 -spec timestamp() -> integer().
 timestamp() ->
-    erlang:system_time(nanosecond).
+    erlang:monotonic_time().
+
+-spec timestamp_to_nano(timestamp()) -> integer().
+timestamp_to_nano(Timestamp) ->
+    convert_timestamp(Timestamp, nanosecond).
+
+-spec convert_timestamp(timestamp(), erlang:time_unit()) -> integer().
+convert_timestamp(Timestamp, Unit) ->
+    Offset = erlang:time_offset(),
+    erlang:convert_time_unit(Timestamp + Offset, native, Unit).
 
 -spec links([{TraceId, SpanId, Attributes, TraceState}]) -> links() when
       TraceId :: trace_id(),
@@ -230,34 +244,25 @@ link(_, _, _, _) ->
       Attributes :: attributes().
 event(Name, Attributes) when is_binary(Name),
                              is_list(Attributes) ->
-    #event{time=wts:timestamp(),
-           name=Name,
-           attributes=Attributes};
+    event(erlang:system_time(nanosecond), Name, Attributes);
 event(_, _) ->
     undefined.
 
--spec event(Time, Name, Attributes) -> event() | undefined when
-      Time :: wts:timestamp() | non_neg_integer(),
+-spec event(Timestamp, Name, Attributes) -> event() | undefined when
+      Timestamp :: non_neg_integer(),
       Name :: unicode:unicode_binary(),
       Attributes :: attributes().
-event(Timestamp={Time, Offset}, Name, Attributes) when is_integer(Time),
-                                                       is_integer(Offset),
-                                                       is_binary(Name),
-                                                       is_list(Attributes) ->
-    #event{time=Timestamp,
-           name=Name,
-           attributes=Attributes};
-event(TimeNano, Name, Attributes) when is_integer(TimeNano),
-                                       is_binary(Name),
-                                       is_list(Attributes) ->
-    #event{time=TimeNano,
+event(Timestamp, Name, Attributes) when is_integer(Timestamp),
+                                        is_binary(Name),
+                                        is_list(Attributes) ->
+    #event{system_time_nano=Timestamp,
            name=Name,
            attributes=Attributes};
 event(_, _, _) ->
     undefined.
 
 events(List) ->
-    Timestamp = wts:timestamp(),
+    Timestamp = timestamp(),
     lists:filtermap(fun({Time, Name, Attributes}) when is_binary(Name),
                                                        is_list(Attributes)  ->
                             case event(Time, Name, Attributes) of

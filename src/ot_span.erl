@@ -36,7 +36,7 @@
                         sampler => ot_sampler:sampler(),
                         links => opentelemetry:links(),
                         is_recording => boolean(),
-                        start_time => wts:timestamp(),
+                        start_time => opentelemetry:timestamp(),
                         kind => opentelemetry:span_kind()}.
 
 -export_type([start_opts/0]).
