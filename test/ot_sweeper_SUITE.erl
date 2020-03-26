@@ -104,10 +104,8 @@ drop(_Config) ->
     receive
         {span, S=#span{name=Name}} when Name =:= ChildSpanName1 ->
             %% Verify the end time and duration are set when the span was finished
-            ?assertMatch({ST, O} when is_integer(ST)
-                                      andalso is_integer(O), S#span.start_time),
-            ?assertMatch({ST, O} when is_integer(ST)
-                                      andalso is_integer(O), S#span.end_time)
+            ?assertMatch(ST when is_integer(ST), S#span.start_time),
+            ?assertMatch(ST when is_integer(ST), S#span.end_time)
     after
       1000 -> ct:fail("Do not received any message after 1s")
     end,
@@ -139,10 +137,8 @@ end_span(_Config) ->
                           receive
                               {span, S=#span{name=Name}} ->
                                   %% Verify the end time and duration are set when the span was finished
-                                  ?assertMatch({ST, O} when is_integer(ST)
-                                                            andalso is_integer(O), S#span.start_time),
-                                  ?assertMatch({ST, O} when is_integer(ST)
-                                                            andalso is_integer(O), S#span.end_time)
+                                  ?assertMatch(ST when is_integer(ST), S#span.start_time),
+                                  ?assertMatch(ST when is_integer(ST), S#span.end_time)
                           after
                             1000 -> ct:fail("Do not received any message after 1s")
                           end
@@ -171,10 +167,8 @@ failed_attribute_and_end_span(_Config) ->
             ?assertMatch([{<<"finished_by_sweeper">>, true}], Attributes),
 
             %% Verify the end time and duration are set when the span was finished
-            ?assertMatch({ST, O} when is_integer(ST)
-                                      andalso is_integer(O), S#span.start_time),
-            ?assertMatch({ST, O} when is_integer(ST)
-                                      andalso is_integer(O), S#span.end_time)
+            ?assertMatch(ST when is_integer(ST), S#span.start_time),
+            ?assertMatch(ST when is_integer(ST), S#span.end_time)
     after
       1000 -> ct:fail("Do not received any message after 1s")
     end.

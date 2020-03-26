@@ -36,7 +36,7 @@ start_span(Name, Opts) ->
     Links = maps:get(links, Opts, []),
     Kind = maps:get(kind, Opts, ?SPAN_KIND_UNSPECIFIED),
     Sampler = maps:get(sampler, Opts),
-    StartTime = maps:get(start_time, Opts, wts:timestamp()),
+    StartTime = maps:get(start_time, Opts, opentelemetry:timestamp()),
     new_span(Name, Parent, Sampler, StartTime, Kind, Attributes, Links).
 
 %% if parent is undefined create a new trace id
@@ -82,7 +82,7 @@ new_span(Name, Parent=#span_ctx{trace_id=TraceId,
 -spec end_span(opentelemetry:span()) -> opentelemetry:span().
 end_span(Span=#span{end_time=undefined,
                     trace_options=TraceOptions}) when ?IS_ENABLED(TraceOptions) ->
-    EndTime = wts:timestamp(),
+    EndTime = opentelemetry:timestamp(),
     Span#span{end_time=EndTime};
 end_span(Span) ->
     Span.
