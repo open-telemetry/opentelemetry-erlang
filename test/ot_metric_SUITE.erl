@@ -57,8 +57,8 @@ e2e_test(_Config) ->
     ot_metric_accumulator:collect(),
     Records = ot_metric_integrator:read(),
 
-    ?assertMatch(#{{mycounter, []} := 9,
-                   {myfloat, []} := 9.2}, Records),
+    ?assertMatch(#{{mycounter, []} := #{value := 9},
+                   {myfloat, []} := #{value := 9.2}}, Records),
 
     ok.
 
@@ -76,7 +76,7 @@ observer(_Config) ->
     ot_metric_accumulator:collect(),
     Records = ot_metric_integrator:read(),
 
-    ?assertMatch(#{{myobserver, [{"a", "b"}]} := {3, _}}, Records),
+    ?assertMatch(#{{myobserver, [{"a", "b"}]} := #{value := {3, _}}}, Records),
 
     ot_meter_default:register_observer(meter, myobserver, fun(R) ->
                                                                   ot_observer:observe(R, 5, []),
@@ -88,8 +88,8 @@ observer(_Config) ->
                                                           end),
 
     ot_metric_accumulator:collect(),
-    ?assertMatch(#{{myobserver, [{"a", "b"}]} := undefined,
-                   {myobserver, []} := {6, _}}, ot_metric_integrator:read()),
+    ?assertMatch(#{{myobserver, [{"a", "b"}]} := #{value := undefined},
+                   {myobserver, []} := #{value := {6, _}}}, ot_metric_integrator:read()),
 
     ok.
 
@@ -110,8 +110,8 @@ counter(_Config) ->
     Records = ot_metric_integrator:read(),
 
     %% check mmsc (min, max, sum, count) aggregation values
-    ?assertMatch(#{{c1, [{key1, value1}]} := 7,
-                   {c1, [{key1, value2}]} := 8}, Records),
+    ?assertMatch(#{{c1, [{key1, value1}]} := #{value := 7},
+                   {c1, [{key1, value2}]} := #{value := 8}}, Records),
     ok.
 
 
@@ -129,8 +129,8 @@ mmsc(_Config) ->
     Records = ot_metric_integrator:read(),
 
     %% check mmsc (min, max, sum, count) aggregation values
-    ?assertMatch(#{{m1, [{key1, value1}]} := {2, 5, 7, 2},
-                   {m1, [{key1, value2}]} := {8, 8, 8, 1}}, Records),
+    ?assertMatch(#{{m1, [{key1, value1}]} := #{value := {2, 5, 7, 2}},
+                   {m1, [{key1, value2}]} := #{value := {8, 8, 8, 1}}}, Records),
 
     ot_meter_default:record(meter, m1, [{key1, value1}], 2),
     ot_meter_default:record(meter, m1, [{key1, value2}], 8),
@@ -140,7 +140,7 @@ mmsc(_Config) ->
     Records1 = ot_metric_integrator:read(),
 
     %% check mmsc (min, max, sum, count) aggregation values
-    ?assertMatch(#{{m1, [{key1, value1}]} := {2, 5, 7, 2},
-                   {m1, [{key1, value2}]} := {8, 8, 8, 1}}, Records1),
+    ?assertMatch(#{{m1, [{key1, value1}]} := #{value := {2, 5, 7, 2}},
+                   {m1, [{key1, value2}]} := #{value := {8, 8, 8, 1}}}, Records1),
 
     ok.

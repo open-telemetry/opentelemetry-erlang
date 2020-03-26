@@ -43,7 +43,11 @@ read() ->
 %% returns a map of all metrics to be exported for this collection interval
 read(Tab) ->
     ets:foldl(fun(#active_instrument{key={Name, LabelSet},
-                                     instrument=_Instrument=#instrument{label_keys=LabelKeys},
+                                     instrument=_Instrument=#instrument{description=Description,
+                                                                        kind=Kind,
+                                                                        unit=Unit,
+                                                                        input_type=InputType,
+                                                                        label_keys=LabelKeys},
                                      aggregator=Aggregator,
                                      checkpoint=Value}, Acc) ->
                       %% TODO: what to do here with label sets should be configurable
@@ -51,10 +55,15 @@ read(Tab) ->
                       NewKey = {Name, FilteredLabelSet},
                       case maps:get(NewKey, Acc, undefined) of
                           undefined ->
-                              Acc#{NewKey => Value};
-                          Existing ->
+                              Acc#{NewKey => #{description => Description,
+                                               aggregator => Aggregator,
+                                               unit => Unit,
+                                               input_type => InputType,
+                                               kind => Kind,
+                                               value => Value}};
+                          E=#{value := Existing} ->
                               NewValue = Aggregator:merge(Existing, Value),
-                              Acc#{NewKey => NewValue}
+                              Acc#{NewKey => E#{value => NewValue}}
                       end
               end, #{}, Tab).
 
