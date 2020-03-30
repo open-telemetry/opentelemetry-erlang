@@ -3,7 +3,7 @@
 %% @end
 %%%-------------------------------------------------------------------
 
-%% this module was generated on 2020-03-15T18:45:15+00:00 and should not be modified manually
+%% this module was generated on 2020-03-30T15:54:04+00:00 and should not be modified manually
 
 -module(opentelemetry_trace_service).
 
@@ -15,7 +15,7 @@
 -define(is_ctx(Ctx), is_tuple(Ctx) andalso element(1, Ctx) =:= ctx).
 
 -define(SERVICE, 'opentelemetry.proto.collector.trace.v1.TraceService').
--define(PROTO_MODULE, 'trace_service_pb').
+-define(PROTO_MODULE, 'opentelemetry_exporter_trace_service_pb').
 -define(MARSHAL_FUN(T), fun(I) -> ?PROTO_MODULE:encode_msg(I, T) end).
 -define(UNMARSHAL_FUN(T), fun(I) -> ?PROTO_MODULE:decode_msg(I, T) end).
 -define(DEF(Input, Output, MessageType), #grpcbox_def{service=?SERVICE,
@@ -24,20 +24,20 @@
                                                       unmarshal_fun=?UNMARSHAL_FUN(Output)}).
 
 %% @doc Unary RPC
--spec export(trace_service_pb:export_trace_service_request()) ->
-    {ok, trace_service_pb:export_trace_service_response(), grpcbox:metadata()} | grpcbox_stream:grpc_error_response().
+-spec export(opentelemetry_exporter_trace_service_pb:export_trace_service_request()) ->
+    {ok, opentelemetry_exporter_trace_service_pb:export_trace_service_response(), grpcbox:metadata()} | grpcbox_stream:grpc_error_response().
 export(Input) ->
     export(ctx:new(), Input, #{}).
 
--spec export(ctx:t() | trace_service_pb:export_trace_service_request(), trace_service_pb:export_trace_service_request() | grpcbox_client:options()) ->
-    {ok, trace_service_pb:export_trace_service_response(), grpcbox:metadata()} | grpcbox_stream:grpc_error_response().
+-spec export(ctx:t() | opentelemetry_exporter_trace_service_pb:export_trace_service_request(), opentelemetry_exporter_trace_service_pb:export_trace_service_request() | grpcbox_client:options()) ->
+    {ok, opentelemetry_exporter_trace_service_pb:export_trace_service_response(), grpcbox:metadata()} | grpcbox_stream:grpc_error_response().
 export(Ctx, Input) when ?is_ctx(Ctx) ->
     export(Ctx, Input, #{});
 export(Input, Options) ->
     export(ctx:new(), Input, Options).
 
--spec export(ctx:t(), trace_service_pb:export_trace_service_request(), grpcbox_client:options()) ->
-    {ok, trace_service_pb:export_trace_service_response(), grpcbox:metadata()} | grpcbox_stream:grpc_error_response().
+-spec export(ctx:t(), opentelemetry_exporter_trace_service_pb:export_trace_service_request(), grpcbox_client:options()) ->
+    {ok, opentelemetry_exporter_trace_service_pb:export_trace_service_response(), grpcbox:metadata()} | grpcbox_stream:grpc_error_response().
 export(Ctx, Input, Options) ->
     grpcbox_client:unary(Ctx, <<"/opentelemetry.proto.collector.trace.v1.TraceService/Export">>, Input, ?DEF(export_trace_service_request, export_trace_service_response, <<"opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest">>), Options).
 

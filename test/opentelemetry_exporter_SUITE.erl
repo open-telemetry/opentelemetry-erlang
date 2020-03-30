@@ -110,10 +110,10 @@ span_round_trip(_Config) ->
                                                                  version = <<"0.0.1">>}},
 
     PbSpan = opentelemetry_exporter:to_proto(Span),
-    Proto = trace_service_pb:encode_msg(PbSpan, span),
+    Proto = opentelemetry_exporter_trace_service_pb:encode_msg(PbSpan, span),
 
     PbSpan1 = maps:filter(fun(_, V) -> V =/= undefined end, PbSpan),
-    DecodedProto = trace_service_pb:decode_msg(Proto, span),
+    DecodedProto = opentelemetry_exporter_trace_service_pb:decode_msg(Proto, span),
     ?assertEqual(maps:with([trace_id, span_id], DecodedProto),
                  maps:with([trace_id, span_id], PbSpan1)),
 
