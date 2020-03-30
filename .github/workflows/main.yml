@@ -1,0 +1,47 @@
+name: Common Test
+
+on:
+  pull_request:
+    branches:
+      - 'master'
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  erlang-tests:
+    name: Test on OTP ${{ matrix.otp_version }} and ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        otp_version: [19, 20, 21, 22]
+        os: [ubuntu-latest]
+
+    container:
+      image: erlang:${{ matrix.otp_version }}
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Compile
+      run: rebar3 compile
+    - name: CT tests
+      run: rebar3 ct
+    - name: Xref
+      run: rebar3 xref
+    - name: Dialyzer
+      run: rebar3 dialyzer
+
+  elixir-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1.0.0
+    - uses: actions/setup-elixir@v1.0.0
+      with:
+        otp-version: 22.x
+        elixir-version: 1.9.x
+    - name: Fetch deps
+      run: mix deps.get
+    - name: Run tests
+      run: mix test
