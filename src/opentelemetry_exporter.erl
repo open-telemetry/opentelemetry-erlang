@@ -97,8 +97,8 @@ to_proto(#span{trace_id=TraceId,
       local_child_span_count   => ChildSpanCount}.
 
 -spec to_unixnano(wts:timestamp()) -> non_neg_integer().
-to_unixnano({Timestamp, Offset}) ->
-    erlang:convert_time_unit(Timestamp + Offset, native, nanosecond).
+to_unixnano(Timestamp) ->
+    opentelemetry:timestamp_to_nano(Timestamp).
 
 to_attributes(Attributes) ->
     to_attributes(Attributes, []).
@@ -136,7 +136,7 @@ to_events(Events) ->
 
 to_events([], Acc)->
     Acc;
-to_events([#event{time=Timestamp,
+to_events([#event{system_time_nano=Timestamp,
                   name=Name,
                   attributes=Attributes} | Rest], Acc) ->
     to_events(Rest, [#{time_unixnano => to_unixnano(Timestamp),

@@ -74,7 +74,7 @@
        }.
 
 -type event() ::
-      #{time_unixnano           => non_neg_integer(), % = 1, 32 bits
+      #{time_unix_nano          => non_neg_integer(), % = 1, 32 bits
         name                    => iodata(),        % = 2
         attributes              => [attribute_key_value()], % = 3
         dropped_attributes_count => non_neg_integer() % = 4, 32 bits
@@ -95,8 +95,8 @@
         parent_span_id          => iodata(),        % = 4
         name                    => iodata(),        % = 5
         kind                    => 'SPAN_KIND_UNSPECIFIED' | 'INTERNAL' | 'SERVER' | 'CLIENT' | 'PRODUCER' | 'CONSUMER' | integer(), % = 6, enum span.SpanKind
-        start_time_unixnano     => non_neg_integer(), % = 7, 32 bits
-        end_time_unixnano       => non_neg_integer(), % = 8, 32 bits
+        start_time_unix_nano    => non_neg_integer(), % = 7, 32 bits
+        end_time_unix_nano      => non_neg_integer(), % = 8, 32 bits
         attributes              => [attribute_key_value()], % = 9
         dropped_attributes_count => non_neg_integer(), % = 10, 32 bits
         events                  => [event()],       % = 11
@@ -279,7 +279,7 @@ encode_msg_event(Msg, TrUserData) ->
 
 encode_msg_event(#{} = M, Bin, TrUserData) ->
     B1 = case M of
-	   #{time_unixnano := F1} ->
+	   #{time_unix_nano := F1} ->
 	       begin
 		 TrF1 = id(F1, TrUserData),
 		 if TrF1 =:= 0 -> Bin;
@@ -453,7 +453,7 @@ encode_msg_span(#{} = M, Bin, TrUserData) ->
 	   _ -> B5
 	 end,
     B7 = case M of
-	   #{start_time_unixnano := F7} ->
+	   #{start_time_unix_nano := F7} ->
 	       begin
 		 TrF7 = id(F7, TrUserData),
 		 if TrF7 =:= 0 -> B6;
@@ -464,7 +464,7 @@ encode_msg_span(#{} = M, Bin, TrUserData) ->
 	   _ -> B6
 	 end,
     B8 = case M of
-	   #{end_time_unixnano := F8} ->
+	   #{end_time_unix_nano := F8} ->
 	       begin
 		 TrF8 = id(F8, TrUserData),
 		 if TrF8 =:= 0 -> B7;
@@ -1757,8 +1757,8 @@ decode_msg_event(Bin, TrUserData) ->
 
 dfp_read_field_def_event(<<9, Rest/binary>>, Z1, Z2,
 			 F@_1, F@_2, F@_3, F@_4, TrUserData) ->
-    d_field_event_time_unixnano(Rest, Z1, Z2, F@_1, F@_2,
-				F@_3, F@_4, TrUserData);
+    d_field_event_time_unix_nano(Rest, Z1, Z2, F@_1, F@_2,
+				 F@_3, F@_4, TrUserData);
 dfp_read_field_def_event(<<18, Rest/binary>>, Z1, Z2,
 			 F@_1, F@_2, F@_3, F@_4, TrUserData) ->
     d_field_event_name(Rest, Z1, Z2, F@_1, F@_2, F@_3, F@_4,
@@ -1773,7 +1773,7 @@ dfp_read_field_def_event(<<32, Rest/binary>>, Z1, Z2,
 					   F@_1, F@_2, F@_3, F@_4, TrUserData);
 dfp_read_field_def_event(<<>>, 0, 0, F@_1, F@_2, R1,
 			 F@_4, TrUserData) ->
-    S1 = #{time_unixnano => F@_1, name => F@_2,
+    S1 = #{time_unix_nano => F@_1, name => F@_2,
 	   dropped_attributes_count => F@_4},
     if R1 == '$undef' -> S1;
        true -> S1#{attributes => lists_reverse(R1, TrUserData)}
@@ -1793,8 +1793,8 @@ dg_read_field_def_event(<<0:1, X:7, Rest/binary>>, N,
     Key = X bsl N + Acc,
     case Key of
       9 ->
-	  d_field_event_time_unixnano(Rest, 0, 0, F@_1, F@_2,
-				      F@_3, F@_4, TrUserData);
+	  d_field_event_time_unix_nano(Rest, 0, 0, F@_1, F@_2,
+				       F@_3, F@_4, TrUserData);
       18 ->
 	  d_field_event_name(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
 			     TrUserData);
@@ -1825,15 +1825,15 @@ dg_read_field_def_event(<<0:1, X:7, Rest/binary>>, N,
     end;
 dg_read_field_def_event(<<>>, 0, 0, F@_1, F@_2, R1,
 			F@_4, TrUserData) ->
-    S1 = #{time_unixnano => F@_1, name => F@_2,
+    S1 = #{time_unix_nano => F@_1, name => F@_2,
 	   dropped_attributes_count => F@_4},
     if R1 == '$undef' -> S1;
        true -> S1#{attributes => lists_reverse(R1, TrUserData)}
     end.
 
-d_field_event_time_unixnano(<<Value:64/little,
-			      Rest/binary>>,
-			    Z1, Z2, _, F@_2, F@_3, F@_4, TrUserData) ->
+d_field_event_time_unix_nano(<<Value:64/little,
+			       Rest/binary>>,
+			     Z1, Z2, _, F@_2, F@_3, F@_4, TrUserData) ->
     dfp_read_field_def_event(Rest, Z1, Z2,
 			     id(Value, TrUserData), F@_2, F@_3, F@_4,
 			     TrUserData).
@@ -2182,17 +2182,17 @@ dfp_read_field_def_span(<<48, Rest/binary>>, Z1, Z2,
 dfp_read_field_def_span(<<57, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
 			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_start_time_unixnano(Rest, Z1, Z2, F@_1,
-				     F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-				     F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
-				     F@_15, TrUserData);
+    d_field_span_start_time_unix_nano(Rest, Z1, Z2, F@_1,
+				      F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
+				      F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
+				      F@_15, TrUserData);
 dfp_read_field_def_span(<<65, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
 			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_end_time_unixnano(Rest, Z1, Z2, F@_1, F@_2,
-				   F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-				   F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-				   TrUserData);
+    d_field_span_end_time_unix_nano(Rest, Z1, Z2, F@_1,
+				    F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
+				    F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
+				    F@_15, TrUserData);
 dfp_read_field_def_span(<<74, Rest/binary>>, Z1, Z2,
 			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
 			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
@@ -2243,8 +2243,9 @@ dfp_read_field_def_span(<<>>, 0, 0, F@_1, F@_2, F@_3,
 			F@_14, F@_15, TrUserData) ->
     S1 = #{trace_id => F@_1, span_id => F@_2,
 	   trace_state => F@_3, parent_span_id => F@_4,
-	   name => F@_5, kind => F@_6, start_time_unixnano => F@_7,
-	   end_time_unixnano => F@_8,
+	   name => F@_5, kind => F@_6,
+	   start_time_unix_nano => F@_7,
+	   end_time_unix_nano => F@_8,
 	   dropped_attributes_count => F@_10,
 	   dropped_events_count => F@_12,
 	   dropped_links_count => F@_14},
@@ -2309,15 +2310,15 @@ dg_read_field_def_span(<<0:1, X:7, Rest/binary>>, N,
 			    F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
 			    F@_13, F@_14, F@_15, TrUserData);
       57 ->
-	  d_field_span_start_time_unixnano(Rest, 0, 0, F@_1, F@_2,
-					   F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-					   F@_9, F@_10, F@_11, F@_12, F@_13,
-					   F@_14, F@_15, TrUserData);
+	  d_field_span_start_time_unix_nano(Rest, 0, 0, F@_1,
+					    F@_2, F@_3, F@_4, F@_5, F@_6, F@_7,
+					    F@_8, F@_9, F@_10, F@_11, F@_12,
+					    F@_13, F@_14, F@_15, TrUserData);
       65 ->
-	  d_field_span_end_time_unixnano(Rest, 0, 0, F@_1, F@_2,
-					 F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-					 F@_9, F@_10, F@_11, F@_12, F@_13,
-					 F@_14, F@_15, TrUserData);
+	  d_field_span_end_time_unix_nano(Rest, 0, 0, F@_1, F@_2,
+					  F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
+					  F@_9, F@_10, F@_11, F@_12, F@_13,
+					  F@_14, F@_15, TrUserData);
       74 ->
 	  d_field_span_attributes(Rest, 0, 0, F@_1, F@_2, F@_3,
 				  F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
@@ -2381,8 +2382,9 @@ dg_read_field_def_span(<<>>, 0, 0, F@_1, F@_2, F@_3,
 		       F@_14, F@_15, TrUserData) ->
     S1 = #{trace_id => F@_1, span_id => F@_2,
 	   trace_state => F@_3, parent_span_id => F@_4,
-	   name => F@_5, kind => F@_6, start_time_unixnano => F@_7,
-	   end_time_unixnano => F@_8,
+	   name => F@_5, kind => F@_6,
+	   start_time_unix_nano => F@_7,
+	   end_time_unix_nano => F@_8,
 	   dropped_attributes_count => F@_10,
 	   dropped_events_count => F@_12,
 	   dropped_links_count => F@_14},
@@ -2523,21 +2525,21 @@ d_field_span_kind(<<0:1, X:7, Rest/binary>>, N, Acc,
 			    F@_4, F@_5, NewFValue, F@_7, F@_8, F@_9, F@_10,
 			    F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData).
 
-d_field_span_start_time_unixnano(<<Value:64/little,
-				   Rest/binary>>,
-				 Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, _,
-				 F@_8, F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
-				 F@_15, TrUserData) ->
+d_field_span_start_time_unix_nano(<<Value:64/little,
+				    Rest/binary>>,
+				  Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, _,
+				  F@_8, F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
+				  F@_15, TrUserData) ->
     dfp_read_field_def_span(Rest, Z1, Z2, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, id(Value, TrUserData), F@_8, F@_9,
 			    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
 			    TrUserData).
 
-d_field_span_end_time_unixnano(<<Value:64/little,
-				 Rest/binary>>,
-			       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7,
-			       _, F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
-			       F@_15, TrUserData) ->
+d_field_span_end_time_unix_nano(<<Value:64/little,
+				  Rest/binary>>,
+				Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
+				F@_7, _, F@_9, F@_10, F@_11, F@_12, F@_13,
+				F@_14, F@_15, TrUserData) ->
     dfp_read_field_def_span(Rest, Z1, Z2, F@_1, F@_2, F@_3,
 			    F@_4, F@_5, F@_6, F@_7, id(Value, TrUserData), F@_9,
 			    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
@@ -3822,10 +3824,10 @@ merge_msg_instrumentation_library_spans(PMsg, NMsg,
 merge_msg_event(PMsg, NMsg, TrUserData) ->
     S1 = #{},
     S2 = case {PMsg, NMsg} of
-	   {_, #{time_unixnano := NFtime_unixnano}} ->
-	       S1#{time_unixnano => NFtime_unixnano};
-	   {#{time_unixnano := PFtime_unixnano}, _} ->
-	       S1#{time_unixnano => PFtime_unixnano};
+	   {_, #{time_unix_nano := NFtime_unix_nano}} ->
+	       S1#{time_unix_nano => NFtime_unix_nano};
+	   {#{time_unix_nano := PFtime_unix_nano}, _} ->
+	       S1#{time_unix_nano => PFtime_unix_nano};
 	   _ -> S1
 	 end,
     S3 = case {PMsg, NMsg} of
@@ -3949,17 +3951,19 @@ merge_msg_span(PMsg, NMsg, TrUserData) ->
 	   _ -> S6
 	 end,
     S8 = case {PMsg, NMsg} of
-	   {_, #{start_time_unixnano := NFstart_time_unixnano}} ->
-	       S7#{start_time_unixnano => NFstart_time_unixnano};
-	   {#{start_time_unixnano := PFstart_time_unixnano}, _} ->
-	       S7#{start_time_unixnano => PFstart_time_unixnano};
+	   {_,
+	    #{start_time_unix_nano := NFstart_time_unix_nano}} ->
+	       S7#{start_time_unix_nano => NFstart_time_unix_nano};
+	   {#{start_time_unix_nano := PFstart_time_unix_nano},
+	    _} ->
+	       S7#{start_time_unix_nano => PFstart_time_unix_nano};
 	   _ -> S7
 	 end,
     S9 = case {PMsg, NMsg} of
-	   {_, #{end_time_unixnano := NFend_time_unixnano}} ->
-	       S8#{end_time_unixnano => NFend_time_unixnano};
-	   {#{end_time_unixnano := PFend_time_unixnano}, _} ->
-	       S8#{end_time_unixnano => PFend_time_unixnano};
+	   {_, #{end_time_unix_nano := NFend_time_unix_nano}} ->
+	       S8#{end_time_unix_nano => NFend_time_unix_nano};
+	   {#{end_time_unix_nano := PFend_time_unix_nano}, _} ->
+	       S8#{end_time_unix_nano => PFend_time_unix_nano};
 	   _ -> S8
 	 end,
     S10 = case {PMsg, NMsg} of
@@ -4316,8 +4320,8 @@ v_msg_instrumentation_library_spans(X, Path,
 -dialyzer({nowarn_function,v_msg_event/3}).
 v_msg_event(#{} = M, Path, TrUserData) ->
     case M of
-      #{time_unixnano := F1} ->
-	  v_type_fixed64(F1, [time_unixnano | Path], TrUserData);
+      #{time_unix_nano := F1} ->
+	  v_type_fixed64(F1, [time_unix_nano | Path], TrUserData);
       _ -> ok
     end,
     case M of
@@ -4345,7 +4349,7 @@ v_msg_event(#{} = M, Path, TrUserData) ->
 			TrUserData);
       _ -> ok
     end,
-    lists:foreach(fun (time_unixnano) -> ok;
+    lists:foreach(fun (time_unix_nano) -> ok;
 		      (name) -> ok;
 		      (attributes) -> ok;
 		      (dropped_attributes_count) -> ok;
@@ -4450,14 +4454,14 @@ v_msg_span(#{} = M, Path, TrUserData) ->
       _ -> ok
     end,
     case M of
-      #{start_time_unixnano := F7} ->
-	  v_type_fixed64(F7, [start_time_unixnano | Path],
+      #{start_time_unix_nano := F7} ->
+	  v_type_fixed64(F7, [start_time_unix_nano | Path],
 			 TrUserData);
       _ -> ok
     end,
     case M of
-      #{end_time_unixnano := F8} ->
-	  v_type_fixed64(F8, [end_time_unixnano | Path],
+      #{end_time_unix_nano := F8} ->
+	  v_type_fixed64(F8, [end_time_unix_nano | Path],
 			 TrUserData);
       _ -> ok
     end,
@@ -4528,8 +4532,8 @@ v_msg_span(#{} = M, Path, TrUserData) ->
 		      (parent_span_id) -> ok;
 		      (name) -> ok;
 		      (kind) -> ok;
-		      (start_time_unixnano) -> ok;
-		      (end_time_unixnano) -> ok;
+		      (start_time_unix_nano) -> ok;
+		      (end_time_unix_nano) -> ok;
 		      (attributes) -> ok;
 		      (dropped_attributes_count) -> ok;
 		      (events) -> ok;
@@ -5011,7 +5015,7 @@ get_msg_defs() ->
 	 type => {msg, span}, occurrence => repeated,
 	 opts => []}]},
      {{msg, event},
-      [#{name => time_unixnano, fnum => 1, rnum => 2,
+      [#{name => time_unix_nano, fnum => 1, rnum => 2,
 	 type => fixed64, occurrence => optional, opts => []},
        #{name => name, fnum => 2, rnum => 3, type => string,
 	 occurrence => optional, opts => []},
@@ -5048,9 +5052,9 @@ get_msg_defs() ->
        #{name => kind, fnum => 6, rnum => 7,
 	 type => {enum, 'span.SpanKind'}, occurrence => optional,
 	 opts => []},
-       #{name => start_time_unixnano, fnum => 7, rnum => 8,
+       #{name => start_time_unix_nano, fnum => 7, rnum => 8,
 	 type => fixed64, occurrence => optional, opts => []},
-       #{name => end_time_unixnano, fnum => 8, rnum => 9,
+       #{name => end_time_unix_nano, fnum => 8, rnum => 9,
 	 type => fixed64, occurrence => optional, opts => []},
        #{name => attributes, fnum => 9, rnum => 10,
 	 type => {msg, attribute_key_value},
@@ -5168,7 +5172,7 @@ find_msg_def(instrumentation_library_spans) ->
        type => {msg, span}, occurrence => repeated,
        opts => []}];
 find_msg_def(event) ->
-    [#{name => time_unixnano, fnum => 1, rnum => 2,
+    [#{name => time_unix_nano, fnum => 1, rnum => 2,
        type => fixed64, occurrence => optional, opts => []},
      #{name => name, fnum => 2, rnum => 3, type => string,
        occurrence => optional, opts => []},
@@ -5205,9 +5209,9 @@ find_msg_def(span) ->
      #{name => kind, fnum => 6, rnum => 7,
        type => {enum, 'span.SpanKind'}, occurrence => optional,
        opts => []},
-     #{name => start_time_unixnano, fnum => 7, rnum => 8,
+     #{name => start_time_unix_nano, fnum => 7, rnum => 8,
        type => fixed64, occurrence => optional, opts => []},
-     #{name => end_time_unixnano, fnum => 8, rnum => 9,
+     #{name => end_time_unix_nano, fnum => 8, rnum => 9,
        type => fixed64, occurrence => optional, opts => []},
      #{name => attributes, fnum => 9, rnum => 10,
        type => {msg, attribute_key_value},
