@@ -96,7 +96,7 @@ to_proto(#span{trace_id=TraceId,
       status                   => to_status(Status),
       local_child_span_count   => ChildSpanCount}.
 
--spec to_unixnano(wts:timestamp()) -> non_neg_integer().
+-spec to_unixnano(integer()) -> non_neg_integer().
 to_unixnano(Timestamp) ->
     opentelemetry:timestamp_to_nano(Timestamp).
 
