@@ -19,7 +19,7 @@ jobs:
         ports:
         - 9411:9411
       otelcol:
-        image: tristan/otelcol:nightly
+        image: otel/opentelemetry-collector-dev
         ports:
         - 9090:9090
         volumes:
