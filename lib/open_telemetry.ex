@@ -118,7 +118,6 @@ defmodule OpenTelemetry do
   """
   @spec timestamp() :: integer()
 
-  defdelegate register_application_tracer(name), to: :opentelemetry
   defdelegate register_application_meter(name), to: :opentelemetry
 
   # Helpers to build OpenTelemetry structured types

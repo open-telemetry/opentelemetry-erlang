@@ -106,11 +106,20 @@ For traces to actually be tracked, propagated and exported, the [opentelemetry](
 
 See the [Using section](https://github.com/open-telemetry/opentelemetry-erlang#using) of the [OpenTelemetry-Erlang](https://github.com/open-telemetry/opentelemetry-erlang) repository for details.
 
-### Exporting Spans
+### Exporters
 
 Exporters can be found as separate Applications on Github under the [OpenTelemetry Beam Organization](https://github.com/opentelemetry-beam).
 
-- [Zipkin](https://github.com/opentelemetry-beam/opentelemetry_zipkin)
+- [Zipkin](https://hex.pm/packages/opentelemetry_zipkin)
+- [OpenTelemetry Collector](https://hex.pm/packages/opentelemetry_exporter)
+
+### HTTP Integrations
+
+- [Elli](https://hex.pm/packages/opentelemetry_elli)
+
+### Database Client Integration
+
+- [Ecto](https://hex.pm/packages/opentelemetry_ecto)
 
 ## Contributing
 
