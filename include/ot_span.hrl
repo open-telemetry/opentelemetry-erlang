@@ -46,8 +46,8 @@
           %% and `SERVER` (callee) to identify queueing latency associated with the span.status
           kind                                    :: opentelemetry:span_kind() | undefined,
 
-          start_time                              :: wts:timestamp(),
-          end_time                                :: wts:timestamp() | undefined,
+          start_time                              :: opentelemetry:timestamp(),
+          end_time                                :: opentelemetry:timestamp() | undefined,
 
           %% A set of attributes on the span.
           %% Kept as a list so ets:select_replace/2 can be used to add new elements
