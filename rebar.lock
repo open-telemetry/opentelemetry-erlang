@@ -1,8 +1,6 @@
 {"1.1.0",
-[{<<"opentelemetry_api">>,{pkg,<<"opentelemetry_api">>,<<"0.3.0">>},0},
- {<<"wts">>,{pkg,<<"wts">>,<<"0.4.0">>},0}]}.
+[{<<"opentelemetry_api">>,{pkg,<<"opentelemetry_api">>,<<"0.3.1">>},0}]}.
 [
 {pkg_hash,[
- {<<"opentelemetry_api">>, <<"5D8F08C4F06C0B0EFF50514A57F0B530A25A6520F335AA05C9E39A3669D1DACC">>},
- {<<"wts">>, <<"62D9DC400AD29F0D233F0665B9C75C8F8EB0A8AF75EEC921056BA4A73B0605A2">>}]}
+ {<<"opentelemetry_api">>, <<"AA042F9FF0B774C3E9827E215FCF972D5CFCCD9A79ED55194B58C329A945B486">>}]}
 ].

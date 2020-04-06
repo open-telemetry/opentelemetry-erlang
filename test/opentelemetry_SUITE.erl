@@ -117,7 +117,7 @@ with_span(Config) ->
 child_spans(Config) ->
     Tid = ?config(tid, Config),
 
-    EarlierTimestamp = wts:timestamp(),
+    EarlierTimestamp = opentelemetry:timestamp(),
 
     %% start a span and 2 children
     SpanCtx1 = ?start_span(<<"span-1">>),
@@ -168,7 +168,7 @@ update_span_data(Config) ->
                        span_id=SpanId} = ?start_span(<<"span-1">>, #{links => Links}),
     ?set_attribute(<<"key-1">>, <<"value-1">>),
 
-    Events = opentelemetry:events([{opentelemetry:timestamp(),
+    Events = opentelemetry:events([{erlang:system_time(nanosecond),
                                     <<"event-name">>, []}]),
     Status = opentelemetry:status(0, <<"status">>),
 

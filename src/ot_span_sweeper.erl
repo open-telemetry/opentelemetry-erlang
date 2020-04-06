@@ -156,7 +156,7 @@ select_expired(TTL) ->
     ets:select(?SPAN_TAB, expired_match_spec(TooOld, '$1')).
 
 expired_match_spec(Time, Return) ->
-    [{#span{span_id='$1', start_time={'$2', '_'}, _='_'},
+    [{#span{span_id='$1', start_time='$2', _='_'},
       [{'<', '$2', Time}],
       [Return]}].
 
