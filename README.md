@@ -82,7 +82,7 @@ some_fun() ->
     ?with_span(<<"some_fun/0">>, #{}, 
         fun(_SpanCtx) -> 
             ...
-            ?add_attribute(<<"key">>, <<"value">>),
+            ?set_attribute(<<"key">>, <<"value">>),
             ...
         end),
 ```
@@ -94,7 +94,7 @@ require OpenTelemetry.Span
 def some_fun() do
     OpenTelemetry.Tracer.with_span \"some-span\" do
       ...
-      OpenTelemetry.Span.add_attribute("key", "value")
+      OpenTelemetry.Span.set_attribute("key", "value")
       ...
     end
 end
