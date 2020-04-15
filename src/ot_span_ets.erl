@@ -101,13 +101,15 @@ set_attribute(#span_ctx{span_id=SpanId}, Key, Value) ->
 %% update only the specific element of the `span' without worrying about it having been
 %% changed by another process between the lookup and update.
 -spec set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes()) -> boolean().
-set_attributes(#span_ctx{span_id=SpanId}, NewAttributes) ->
+set_attributes(#span_ctx{span_id=SpanId}, NewAttributes) when is_list(NewAttributes) ->
     try ets:lookup_element(?SPAN_TAB, SpanId, #span.attributes) of
         Attributes ->
             ets:update_element(?SPAN_TAB, SpanId, {#span.attributes, Attributes++NewAttributes})
     catch error:badarg ->
             false
-    end.
+    end;
+set_attributes(_, _) ->
+    false.
 
 -spec add_event(opentelemetry:span_ctx(), unicode:unicode_binary(), opentelemetry:attributes()) -> boolean().
 add_event(SpanCtx, Name, Attributes) ->
@@ -115,13 +117,15 @@ add_event(SpanCtx, Name, Attributes) ->
     add_events(SpanCtx, Events).
 
 -spec add_events(opentelemetry:span_ctx(), opentelemetry:events()) -> boolean().
-add_events(#span_ctx{span_id=SpanId}, NewEvents) ->
+add_events(#span_ctx{span_id=SpanId}, NewEvents) when is_list(NewEvents) ->
     try ets:lookup_element(?SPAN_TAB, SpanId, #span.events) of
         Events ->
             ets:update_element(?SPAN_TAB, SpanId, {#span.events, Events++NewEvents})
     catch error:badarg ->
             false
-    end.
+    end;
+add_events(_, _) ->
+    false.
 
 -spec set_status(opentelemetry:span_ctx(), opentelemetry:status()) -> boolean().
 set_status(#span_ctx{span_id=SpanId}, Status) ->
