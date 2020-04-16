@@ -84,7 +84,7 @@ set_attribute(_, _, _, _) ->
       Tracer :: opentelemetry:tracer(),
       Attributes :: opentelemetry:attributes(),
       SpanCtx :: opentelemetry:span_ctx().
-set_attributes(Tracer, SpanCtx, Attributes) when ?is_recording(SpanCtx) ->
+set_attributes(Tracer, SpanCtx, Attributes) when ?is_recording(SpanCtx) , is_list(Attributes) ->
     ?DO(Tracer, SpanCtx, [Attributes]);
 set_attributes(_, _, _) ->
     false.
@@ -103,7 +103,7 @@ add_event(_, _, _, _) ->
       Tracer :: opentelemetry:tracer(),
       Events :: opentelemetry:events(),
       SpanCtx :: opentelemetry:span_ctx().
-add_events(Tracer, SpanCtx, Events) when ?is_recording(SpanCtx) ->
+add_events(Tracer, SpanCtx, Events) when ?is_recording(SpanCtx) , is_list(Events)  ->
     ?DO(Tracer, SpanCtx, [Events]);
 add_events(_, _, _) ->
     false.
