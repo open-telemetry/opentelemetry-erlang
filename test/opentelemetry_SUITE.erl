@@ -254,7 +254,7 @@ tracer_previous_ctx(Config) ->
     ?assertMatch(SpanCtx1, ?current_span_ctx()),
 
     %% create a span that is not set to active and with no parent
-    SpanCtx2 = ot_tracer:create_span(Tracer, <<"span-2">>, #{parent => undefined}),
+    SpanCtx2 = ot_tracer:start_inactive_span(Tracer, <<"span-2">>, #{parent => undefined}),
 
     %% start a new active span with SpanCtx2 as the parent
     SpanCtx3 = ot_tracer:start_span(Tracer, <<"span-3">>, #{parent => SpanCtx2}),

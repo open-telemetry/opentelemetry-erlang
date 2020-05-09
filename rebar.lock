@@ -1,6 +1,4 @@
-{"1.1.0",
-[{<<"opentelemetry_api">>,{pkg,<<"opentelemetry_api">>,<<"0.3.1">>},0}]}.
-[
-{pkg_hash,[
- {<<"opentelemetry_api">>, <<"AA042F9FF0B774C3E9827E215FCF972D5CFCCD9A79ED55194B58C329A945B486">>}]}
-].
+[{<<"opentelemetry_api">>,
+  {git,"https://github.com/open-telemetry/opentelemetry-erlang-api",
+       {ref,"8629a1c1ccaa8bebe49de469d45c065abae0d6d0"}},
+  0}].
