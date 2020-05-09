@@ -18,7 +18,7 @@
 -module(ot_tracer).
 
 -export([start_span/3,
-         create_span/3,
+         start_inactive_span/3,
          set_span/2,
          with_span/3,
          with_span/4,
@@ -40,9 +40,9 @@
 -callback start_span(opentelemetry:tracer(),
                      opentelemetry:span_name(),
                      ot_span:start_opts()) -> opentelemetry:span_ctx().
--callback create_span(opentelemetry:tracer(),
-                      opentelemetry:span_name(),
-                      ot_span:start_opts()) -> opentelemetry:span_ctx().
+-callback start_inactive_span(opentelemetry:tracer(),
+                              opentelemetry:span_name(),
+                              ot_span:start_opts()) -> opentelemetry:span_ctx().
 -callback set_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
 -callback with_span(opentelemetry:tracer(), opentelemetry:span_name(), traced_fun(T)) -> T.
 -callback with_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts(), traced_fun(T)) -> T.
@@ -57,10 +57,10 @@
 start_span(Tracer={Module, _}, Name, Opts) ->
     Module:start_span(Tracer, Name, Opts).
 
--spec create_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts())
+-spec start_inactive_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts())
                 -> opentelemetry:span_ctx().
-create_span(Tracer={Module, _}, Name, Opts) ->
-    Module:create_span(Tracer, Name, Opts).
+start_inactive_span(Tracer={Module, _}, Name, Opts) ->
+    Module:start_inactive_span(Tracer, Name, Opts).
 
 -spec set_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
 set_span(Tracer={Module, _}, SpanCtx) when is_atom(Module) ->

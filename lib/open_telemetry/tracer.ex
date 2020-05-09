@@ -26,7 +26,7 @@ defmodule OpenTelemetry.Tracer do
                           optional(:kind) => OpenTelemetry.span_kind()}
 
   @doc """
-  Creates a new span and makes it the current active span of the current process.
+  Starts a new span and makes it the current active span of the current process.
 
   The current active Span is used as the parent of the created Span unless a `parent` is given in the
   `t:start_opts/0` argument or there is no active Span. If there is neither a current Span or a
@@ -36,6 +36,25 @@ defmodule OpenTelemetry.Tracer do
   defmacro start_span(name, opts \\ quote(do: %{})) do
     quote bind_quoted: [name: name, start_opts: opts] do
       :ot_tracer.start_span(:opentelemetry.get_tracer(__MODULE__), name, start_opts)
+    end
+  end
+
+  @doc """
+  Starts a new span but does not make it the current active span of the current process.
+
+  This is particularly useful when creating a child Span that is for a new process. Before spawning
+  the new process start an inactive Span, which uses the current context as the parent, then
+  pass this new SpanContext as an argument to the spawned function and in that function use
+  `set_span/1`.
+
+  The current active Span is used as the parent of the created Span unless a `parent` is given in the
+  `t:start_opts/0` argument or there is no active Span. If there is neither a current Span or a
+  `parent` option given then the Tracer checks for an extracted SpanContext to use as the parent. If
+  there is also no extracted context then the created Span is a root Span.
+  """
+  defmacro start_inactive_span(name, opts \\ quote(do: %{})) do
+    quote bind_quoted: [name: name, start_opts: opts] do
+      :ot_tracer.start_inactive_span(:opentelemetry.get_tracer(__MODULE__), name, start_opts)
     end
   end
 

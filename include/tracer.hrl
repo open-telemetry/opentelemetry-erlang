@@ -10,6 +10,12 @@
 -define(start_span(SpanName, StartOpts),
         ot_tracer:start_span(?current_tracer, SpanName, StartOpts)).
 
+-define(start_inactive_span(SpanName),
+        ot_tracer:start_inactive_span(?current_tracer, SpanName, #{})).
+
+-define(start_inactive_span(SpanName, StartOpts),
+        ot_tracer:start_inactive_span(?current_tracer, SpanName, StartOpts)).
+
 -define(set_span(SpanCtx),
         ot_tracer:set_span(?current_tracer, SpanCtx)).
 
