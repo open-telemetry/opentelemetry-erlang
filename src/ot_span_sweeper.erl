@@ -38,7 +38,7 @@
 -include_lib("kernel/include/logger.hrl").
 
 -record(data, {interval :: integer() | infinity,
-               strategy :: drop | end_span | failed_attribute_and_end_span | fun((opencensus:span()) -> ok),
+               strategy :: drop | end_span | failed_attribute_and_end_span | fun((opentelemetry:span()) -> ok),
                ttl :: integer() | infinity,
                storage_size :: integer() | infinity}).
 

@@ -52,7 +52,7 @@ inject(_, #tracer_ctx{active=SpanCtx=#span_ctx{},
 inject(_, undefined) ->
     [].
 
--spec encode(opencensus:span_ctx()) -> iolist().
+-spec encode(opentelemetry:span_ctx()) -> iolist().
 encode(#span_ctx{trace_id=TraceId,
                  span_id=SpanId,
                  trace_flags=TraceOptions}) ->

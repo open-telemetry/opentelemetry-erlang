@@ -48,19 +48,6 @@
 -include_lib("kernel/include/logger.hrl").
 -include("ot_span.hrl").
 
-%% behaviour for exporters to implement
--type opts() :: term().
-
-%% Do any initialization of the exporter here and return configuration
-%% that will be passed along with a list of spans to the `export' function.
--callback init(term()) -> opts().
-
-%% This function is called when the configured interval expires with any
-%% spans that have been collected so far and the configuration returned in `init'.
-%% Do whatever needs to be done to export each span here, the caller will block
-%% until it returns.
--callback export(ets:tab(), opts()) -> ok | success | failed_not_retryable | failed_retryable.
-
 -record(data, {exporter             :: {module(), term()} | undefined,
                resource             :: ot_resource:t(),
                handed_off_table     :: atom() | undefined,
