@@ -113,14 +113,15 @@ defmodule OpenTelemetry do
   @spec register_application_tracer(atom()) :: boolean()
   defdelegate register_application_tracer(otp_app), to: :opentelemetry
 
+  @spec register_application_meter(atom()) :: boolean()
+  defdelegate register_application_meter(name), to: :opentelemetry
+
+  # Helpers to build OpenTelemetry structured types
+
   @doc """
   Current time in UNIX Epoch time, nanoseconds since 00:00:00 UTC on 1 January 1970.
   """
   @spec timestamp() :: integer()
-
-  defdelegate register_application_meter(name), to: :opentelemetry
-
-  # Helpers to build OpenTelemetry structured types
   defdelegate timestamp(), to: :opentelemetry
 
   # span item functions
