@@ -121,8 +121,10 @@ set_status(_, _, _) ->
       Tracer :: opentelemetry:tracer(),
       Name :: opentelemetry:span_name(),
       SpanCtx :: opentelemetry:span_ctx().
-update_name(Tracer, SpanCtx, SpanName) ->
-    ?DO(Tracer, SpanCtx, [SpanName]).
+update_name(Tracer, SpanCtx, SpanName) when ?is_recording(SpanCtx) ->
+    ?DO(Tracer, SpanCtx, [SpanName]);
+update_name(_, _, _) ->
+    false.
 
 %% internal functions
 
