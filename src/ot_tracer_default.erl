@@ -20,7 +20,7 @@
 -behaviour(ot_tracer).
 
 -export([start_span/3,
-         create_span/3,
+         start_inactive_span/3,
          set_span/2,
          with_span/3,
          with_span/4,
@@ -49,15 +49,15 @@
                 -> opentelemetry:span_ctx().
 start_span(Tracer, Name, Opts) ->
     PreviousTracerCtx = ot_ctx:get_value(?TRACER_KEY, ?TRACER_CTX),
-    SpanCtx = create_span(Tracer, Name, Opts),
+    SpanCtx = start_inactive_span(Tracer, Name, Opts),
     ot_ctx:set_value(?TRACER_KEY, ?TRACER_CTX, #tracer_ctx{active=SpanCtx,
                                                            previous=PreviousTracerCtx}),
     SpanCtx.
 
-%% @doc Creates a Span and returns its SpanCtx.
--spec create_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts())
+%% @doc Starts an inactive Span and returns its SpanCtx.
+-spec start_inactive_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts())
                  -> opentelemetry:span_ctx().
-create_span(Tracer={_, #tracer{on_start_processors=Processors,
+start_inactive_span(Tracer={_, #tracer{on_start_processors=Processors,
                                instrumentation_library=InstrumentationLibrary}}, Name, Opts) ->
     Opts1 = maybe_set_sampler(Tracer, maybe_set_parent(Opts)),
     ot_span_ets:start_span(Name, Opts1, Processors, InstrumentationLibrary).
@@ -69,7 +69,7 @@ maybe_set_sampler({_, #tracer{sampler=Sampler}}, Opts) ->
 
 %% returns the span `start_opts' map with the parent span ctx set
 %% based on the current tracer ctx, the opts passed to `start_span'
-%% or `create_span' and in the case none of those are defined it
+%% or `start_inactive_span' and in the case none of those are defined it
 %% checks the `EXTERNAL_SPAN_CTX' which can be set by a propagator extractor.
 -spec maybe_set_parent(ot_span:start_opts()) -> ot_span:start_opts().
 maybe_set_parent(Opts=#{parent := #span_ctx{}}) ->
@@ -100,7 +100,7 @@ with_span(_Tracer, SpanName, Fun) ->
                 ot_span:start_opts(), ot_tracer:traced_fun(T)) -> T.
 with_span(Tracer, SpanName, Opts, Fun) ->
     %% starting the span makes it active in the `tracer_ctx'
-    SpanCtx = create_span(Tracer, SpanName, Opts),
+    SpanCtx = start_inactive_span(Tracer, SpanName, Opts),
     PreviousTracerCtx = current_ctx(Tracer),
     set_span(Tracer, SpanCtx),
     try
