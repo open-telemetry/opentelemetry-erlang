@@ -9,7 +9,7 @@
 -include("tracer.hrl").
 
 all() ->
-    [noop_tracer, update_span_data, noop_with_span, macros].
+    [noop_tracer, update_span_data, noop_with_span, macros, can_create_link_from_span].
 
 init_per_suite(Config) ->
     application:load(opentelemetry_api),
@@ -17,6 +17,30 @@ init_per_suite(Config) ->
 
 end_per_suite(_Config) ->
     ok.
+
+can_create_link_from_span(_Config) ->
+  %% start a span to create a link to
+  SpanCtx = ?start_span(<<"span-1">>),
+
+  %% extract individual values from span context
+  TraceId = ot_span:trace_id(SpanCtx),
+  SpanId = ot_span:span_id(SpanCtx),
+  Tracestate = ot_span:tracestate(SpanCtx),
+
+  %% end span, so there's no current span set
+  ?end_span(),
+
+  %% we don't need any attributes for this test
+  Attributes = [],
+
+  %% attempt to create a link
+  Link = opentelemetry:link(TraceId, SpanId, Attributes, Tracestate),
+  ?assertMatch(#link{ trace_id = TraceId
+                    , span_id = SpanId
+                    , attributes = Attributes
+                    , tracestate = Tracestate
+                    }, Link).
+
 
 noop_tracer(_Config) ->
     %% start a span and 2 children

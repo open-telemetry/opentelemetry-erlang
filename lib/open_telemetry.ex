@@ -133,7 +133,7 @@ defmodule OpenTelemetry do
   defdelegate link(trace_id, span_id, attributes, tracestate), to: :opentelemetry
 
   @doc """
-  Creates a list of `t:link/0` from a list of 3-tuples.
+  Creates a list of `t:link/0` from a list of 4-tuples.
   """
   @spec links([{integer(), integer(), list(), list()}]) :: [link()]
   defdelegate links(link_list), to: :opentelemetry

@@ -19,6 +19,9 @@
 -module(ot_span).
 
 -export([get_ctx/2,
+         trace_id/1,
+         span_id/1,
+         tracestate/1,
          is_recording/2,
          set_attribute/4,
          set_attributes/3,
@@ -125,6 +128,16 @@ update_name(Tracer, SpanCtx, SpanName) when ?is_recording(SpanCtx) ->
     ?DO(Tracer, SpanCtx, [SpanName]);
 update_name(_, _, _) ->
     false.
+
+%% accessors
+-spec trace_id(opentelemetry:span_ctx()) -> opentelemetry:trace_id().
+trace_id(#span_ctx{ trace_id = TraceId }) -> TraceId.
+
+-spec span_id(opentelemetry:span_ctx()) -> opentelemetry:span_id().
+span_id(#span_ctx{ span_id = SpanId }) -> SpanId.
+
+-spec tracestate(opentelemetry:span_ctx()) -> opentelemetry:tracestate().
+tracestate(#span_ctx{ tracestate = Tracestate }) -> Tracestate.
 
 %% internal functions
 

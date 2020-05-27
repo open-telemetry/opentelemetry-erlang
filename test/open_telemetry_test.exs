@@ -32,4 +32,14 @@ defmodule OpenTelemetryTest do
       end
     end
   end
+
+  test "can deconstruct a span context" do
+    Tracer.with_span "span-1" do
+      span = Tracer.current_span_ctx()
+
+      assert nil != Span.trace_id(span)
+      assert nil != Span.span_id(span)
+      assert []   = Span.tracestate(span)
+    end
+  end
 end

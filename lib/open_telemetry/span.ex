@@ -27,6 +27,25 @@ defmodule OpenTelemetry.Span do
   """
 
   @doc """
+  Get the SpanId of a Span.
+  """
+  @spec span_id(OpenTelemetry.span_ctx()) :: OpenTelemetry.span_id()
+  defdelegate span_id(span), to: :ot_span
+
+  @doc """
+  Get the TraceId of a Span.
+  """
+  @spec trace_id(OpenTelemetry.span_ctx()) :: OpenTelemetry.trace_id()
+  defdelegate trace_id(span), to: :ot_span
+
+  @doc """
+  Get the Tracestate of a Span.
+  """
+  @spec tracestate(OpenTelemetry.span_ctx()) :: OpenTelemetry.tracestate()
+  defdelegate tracestate(span), to: :ot_span
+
+
+  @doc """
   Set an attribute with key and value on the currently active Span.
   """
   @spec set_attribute(OpenTelemetry.attribute_key(), OpenTelemetry.attribute_value()) :: boolean()
