@@ -15,10 +15,11 @@ defmodule OpenTelemetry do
 
       OpenTelemetry.register_application_tracer(:this_otp_app)
 
-      Tracer.start_span(\"some-span\")
+      Tracer.start_span("some-span")
       ...
-      ecto_event = OpenTelemetry.event(\"ecto.query\", [{\"query\", query}, {\"total_time\", total_time}])
-      OpenTelemetry.Span.add_event(ecto_event)
+      event = "ecto.query"
+      ecto_attributes = OpenTelemetry.event([{"query", query}, {"total_time", total_time}])
+      OpenTelemetry.Span.add_event(event, ecto_event)
       ...
       Tracer.end_span()
   """
@@ -64,10 +65,10 @@ defmodule OpenTelemetry do
 
   Examples of attributes:
 
-      [{\"/http/user_agent\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36\"}
-       {\"/http/server_latency\", 300}
-       {\"abc.com/myattribute\", True}
-       {\"abc.com/score\", 10.239}]
+      [{"/http/user_agent" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"}
+       {"/http/server_latency", 300}
+       {"abc.com/myattribute", True}
+       {"abc.com/score", 10.239}]
   """
   @type attributes() :: [{attribute_key(), attribute_value()}]
 

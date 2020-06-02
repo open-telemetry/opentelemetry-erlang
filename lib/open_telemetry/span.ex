@@ -5,8 +5,9 @@ defmodule OpenTelemetry.Span do
 
       require OpenTelemetry.Span
       ...
-      ecto_event = OpenTelemetry.event(\"ecto.query\", [{\"query\", query}, {\"total_time\", total_time}])
-      OpenTelemetry.Span.add_event(ecto_event)
+      event = "ecto.query"
+      ecto_attributes = OpenTelemetry.event([{"query", query}, {"total_time", total_time}])
+      OpenTelemetry.Span.add_event(event, ecto_event)
       ...
 
   A Span represents a single operation within a trace. Spans can be nested to form a trace tree.
@@ -44,7 +45,6 @@ defmodule OpenTelemetry.Span do
   @spec tracestate(OpenTelemetry.span_ctx()) :: OpenTelemetry.tracestate()
   defdelegate tracestate(span), to: :ot_span
 
-
   @doc """
   Set an attribute with key and value on the currently active Span.
   """
@@ -52,7 +52,13 @@ defmodule OpenTelemetry.Span do
   defmacro set_attribute(key, value) do
     quote do
       tracer = :opentelemetry.get_tracer(__MODULE__)
-      :ot_span.set_attribute(tracer, :ot_tracer.current_span_ctx(tracer), unquote(key), unquote(value))
+
+      :ot_span.set_attribute(
+        tracer,
+        :ot_tracer.current_span_ctx(tracer),
+        unquote(key),
+        unquote(value)
+      )
     end
   end
 
@@ -70,11 +76,17 @@ defmodule OpenTelemetry.Span do
   @doc """
   Add an event to the currently active Span.
   """
-  @spec add_event(OpenTelemetry.event()) :: boolean()
-  defmacro add_event(event) do
+  @spec add_event(String.t(), [OpenTelemetry.attribute()]) :: boolean()
+  defmacro add_event(event, attributes) do
     quote do
       tracer = :opentelemetry.get_tracer(__MODULE__)
-      :ot_span.add_event(tracer, :ot_tracer.current_span_ctx(tracer), unquote(event))
+
+      :ot_span.add_event(
+        tracer,
+        :ot_tracer.current_span_ctx(tracer),
+        unquote(event),
+        unquote(attributes)
+      )
     end
   end
 
