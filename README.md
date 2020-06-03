@@ -1,6 +1,10 @@
 OpenTelemetry
 =====
 
+[![EEF Observability WG project](https://img.shields.io/badge/EEF-Observability-black)](https://github.com/erlef/eef-observability-wg)
+[![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry)](https://hex.pm/packages/opentelemetry)
+![CircleCI](https://img.shields.io/circleci/build/github/open-telemetry/opentelemetry-erlang)
+
 OpenTelemetry stats collection and distributed tracing framework for Erlang.
 
 Requires OTP 21.3 or above.
