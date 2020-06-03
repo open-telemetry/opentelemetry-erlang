@@ -16,6 +16,16 @@ Registration is done through a single process and uses a [persistent_term](https
 
 Naming the `Tracers` provides additional metadata on spans and allows the user of your Application to disable the traces from the dependency if it is needed.
 
+### Dependency in Elixir
+
+``` elixir
+def deps do
+  [
+    {:opentelemetry_api, "~> 0.3.0"}
+  ]
+end
+```
+
 ### Registering and Using Tracers Directly
 
 If it is a runnable application then this registration should happen in `start/2`, example below is adding `Tracer` registration to the Postgres library [pgo](https://github.com/erleans/pgo):
@@ -33,7 +43,7 @@ defmodule MyApp do
   use Application
 
   def start(_type, _args) do
-    _ = OpenTelemetry.register_application_tracer(MyApp),
+    _ = OpenTelemetry.register_application_tracer(:my_app),
     ...
   end
 end
@@ -92,7 +102,7 @@ require OpenTelemetry.Tracer
 require OpenTelemetry.Span
       
 def some_fun() do
-    OpenTelemetry.Tracer.with_span \"some-span\" do
+    OpenTelemetry.Tracer.with_span "some-span" do
       ...
       OpenTelemetry.Span.set_attribute("key", "value")
       ...
