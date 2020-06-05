@@ -4,7 +4,7 @@
 
 The OpenTelemetry Protocol exporter for use with the [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector).
 
-Currently only supports the Tracer protocol. Metrics are to come soon.
+Currently only supports the Tracer protocol using either GRPC or Protobuffers over HTTP1.1. Metrics are to come soon.
 
 ## Using
 
@@ -19,11 +19,21 @@ For an Erlang release in `sys.config`:
         #{exporter => {opentelemetry_exporter, #{endpoints => [{http, "localhost", 9090, []}]}}}}]}]}
 ```
 
+The default protocol is `http_protobuf`, to override this and use grpc add `protocol` to the config map:
+
+``` erlang
+{opentelemetry,
+  [{processors, 
+    [{ot_batch_processor,
+        #{exporter => {opentelemetry_exporter, #{protocol => grpc,
+                                                 endpoints => [{http, "localhost", 9090, []}]}}}}]}]}
+```
+
 An Elixir release uses `releases.exs`:
 
 ``` elixir
 config :opentelemetry,
-    :processors, ot_batch_processor: %{exporter: {:opentelemetry_exporter, %{endpoints: [{http, "localhost", 9090, []}}}}
+    :processors, ot_batch_processor: %{exporter: {:opentelemetry_exporter, %{endpoints: [{:http, 'localhost', 9090, []}}}}
 ```
 
 ## Contributing

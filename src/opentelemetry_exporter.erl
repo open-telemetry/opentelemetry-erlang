@@ -14,33 +14,71 @@
 
 -define(DEFAULT_ENDPOINTS, [{http, "localhost", 9090, []}]).
 
--record(state, {channel_pid :: pid(),
+-record(state, {protocol :: grpc | http_protobuf | http_json,
+                channel_pid :: pid(),
                 endpoints :: list()}).
 
 init(Opts) ->
     Endpoints = maps:get(endpoints, Opts, ?DEFAULT_ENDPOINTS),
-    ChannelOpts = maps:get(channel_opts, Opts, #{}),
+    case maps:get(protocol, Opts, http_protobuf) of
+        grpc ->
+            Endpoints = maps:get(endpoints, Opts, ?DEFAULT_ENDPOINTS),
+            ChannelOpts = maps:get(channel_opts, Opts, #{}),
+            {ok, ChannelPid} = grpcbox_channel:start_link(?MODULE, Endpoints, ChannelOpts),
 
-    {ok, ChannelPid} = grpcbox_channel:start_link(?MODULE, Endpoints, ChannelOpts),
+            {ok, #state{channel_pid=ChannelPid,
+                        endpoints=Endpoints,
+                        protocol=grpc}};
+        http_protobuf ->
+            {ok, #state{endpoints=Endpoints,
+                        protocol=http_protobuf}};
+        http_json ->
+            {ok, #state{endpoints=Endpoints,
+                        protocol=http_json}}
+    end.
 
-    {ok, #state{channel_pid=ChannelPid,
-                endpoints=Endpoints}}.
-
-export(Tab, Resource, #state{channel_pid=_ChannelPid}) ->
-    InstrumentationLibrarySpans = to_proto_by_instrumentation_library(Tab),
-    Attributes = ot_resource:attributes(Resource),
-    ResourceSpans = [#{resource => #{attributes => to_attributes(Attributes),
-                                     dropped_attributes_count => 0},
-                       instrumentation_library_spans => InstrumentationLibrarySpans}],
-    ExportRequest = #{resource_spans => ResourceSpans},
+export(_Tab, _Resource, #state{protocol=http_json}) ->
+    {error, unimplemented};
+export(Tab, Resource, #state{protocol=http_protobuf,
+                             endpoints=[{Scheme, Host, Port, _} | _]}) ->
+    Proto = opentelemetry_exporter_trace_service_pb:encode_msg(tab_to_proto(Tab, Resource),
+                                                               export_trace_service_request),
+    Address = uri_string:normalize(#{scheme => atom_to_list(Scheme),
+                                     host => Host,
+                                     port => Port,
+                                     path => <<"/v1/trace">>}),
+    case httpc:request(post, {Address, [], "application/x-protobuf", Proto}, [], []) of
+        {ok, {{_, Code, _}, _, _}} when Code >= 200 andalso Code =< 202 ->
+            ok;
+        {ok, {{_, Code, _}, _, Message}} ->
+            ?LOG_INFO("error response from service exported to status=~p ~p",
+                      [Code, Message]),
+            error;
+        {error, Reason} ->
+            ?LOG_INFO("client error exporting spans ~p", [Reason]),
+            error
+    end;
+export(Tab, Resource, #state{protocol=grpc,
+                             channel_pid=_ChannelPid}) ->
+    ExportRequest = tab_to_proto(Tab, Resource),
     opentelemetry_trace_service:export(ctx:new(), ExportRequest, #{channel => ?MODULE}),
     ok.
 
+shutdown(#state{channel_pid=undefined}) ->
+    ok;
 shutdown(#state{channel_pid=Pid}) ->
     _ = grpcbox_channel:stop(Pid),
     ok.
 
 %%
+
+tab_to_proto(Tab, Resource) ->
+    InstrumentationLibrarySpans = to_proto_by_instrumentation_library(Tab),
+    Attributes = ot_resource:attributes(Resource),
+    ResourceSpans = [#{resource => #{attributes => to_attributes(Attributes),
+                                     dropped_attributes_count => 0},
+                       instrumentation_library_spans => InstrumentationLibrarySpans}],
+    #{resource_spans => ResourceSpans}.
 
 to_proto_by_instrumentation_library(Tab) ->
     Key = ets:first(Tab),
