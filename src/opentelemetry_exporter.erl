@@ -15,7 +15,7 @@
 -define(DEFAULT_ENDPOINTS, [{http, "localhost", 9090, []}]).
 
 -record(state, {protocol :: grpc | http_protobuf | http_json,
-                channel_pid :: pid(),
+                channel_pid :: pid() | undefined,
                 endpoints :: list()}).
 
 init(Opts) ->
@@ -101,6 +101,9 @@ to_instrumentation_library(#instrumentation_library{name=Name,
 to_instrumentation_library(_) ->
     undefined.
 
+%% TODO: figure out why this type spec fails
+%% -spec to_proto(#span{}) -> opentelemetry_exporter_trace_service_pb:span().
+
 to_proto(#span{trace_id=TraceId,
                span_id=SpanId,
                tracestate=TraceState,
@@ -121,10 +124,10 @@ to_proto(#span{trace_id=TraceId,
       trace_id                 => <<TraceId:128>>,
       span_id                  => <<SpanId:64>>,
       parent_span_id           => ParentSpanId,
-      tracestate               => to_tracestate_string(TraceState),
+      trace_state              => to_tracestate_string(TraceState),
       kind                     => Kind,
-      start_time_unixnano      => to_unixnano(StartTime),
-      end_time_unixnano        => to_unixnano(EndTime),
+      start_time_unix_nano     => to_unixnano(StartTime),
+      end_time_unix_nano       => to_unixnano(EndTime),
       attributes               => to_attributes(Attributes),
       dropped_attributes_count => 0,
       events                   => to_events(TimedEvents),
@@ -138,6 +141,7 @@ to_proto(#span{trace_id=TraceId,
 to_unixnano(Timestamp) ->
     opentelemetry:timestamp_to_nano(Timestamp).
 
+-spec to_attributes(opentelemetry:attributes()) -> [opentelemetry_exporter_trace_service_pb:attribute_key_value()].
 to_attributes(Attributes) ->
     to_attributes(Attributes, []).
 
@@ -162,6 +166,7 @@ to_attributes([{Key, Value} | Rest], Acc) when is_boolean(Value) ->
 to_attributes([_ | Rest], Acc) ->
     to_attributes(Rest, Acc).
 
+-spec to_status(opentelemetry:status()) -> opentelemetry_exporter_trace_service_pb:status().
 to_status(#status{code=Code,
                   message=Message}) ->
     #{code => Code,
@@ -169,6 +174,7 @@ to_status(#status{code=Code,
 to_status(_) ->
     #{}.
 
+-spec to_events([opentelemetry:events()]) -> [opentelemetry_exporter_trace_service_pb:event()].
 to_events(Events) ->
     to_events(Events, []).
 
@@ -177,10 +183,11 @@ to_events([], Acc)->
 to_events([#event{system_time_nano=Timestamp,
                   name=Name,
                   attributes=Attributes} | Rest], Acc) ->
-    to_events(Rest, [#{time_unixnano => to_unixnano(Timestamp),
+    to_events(Rest, [#{time_unix_nano => to_unixnano(Timestamp),
                        name => Name,
                        attributes => to_attributes(Attributes)} | Acc]).
 
+-spec to_links(opentelemetry:links()) -> [opentelemetry_exporter_trace_service_pb:link()].
 to_links(Links) ->
     to_links(Links, []).
 
@@ -192,7 +199,7 @@ to_links([#link{trace_id=TraceId,
                 tracestate=TraceState} | Rest], Acc) ->
     to_links(Rest, [#{trace_id => <<TraceId:128>>,
                       span_id => <<SpanId:64>>,
-                      tracestate => TraceState,
+                      trace_state => TraceState,
                       attributes => to_attributes(Attributes),
                       dropped_attributes_count => 0} | Acc]).
 
