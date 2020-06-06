@@ -144,70 +144,71 @@ encode_msg(Msg, MsgName) when is_atom(MsgName) ->
 -spec encode_msg(export_trace_service_request() | export_trace_service_response() | resource_spans() | instrumentation_library_spans() | event() | link() | span() | status() | attribute_key_value() | string_key_value() | instrumentation_library() | resource(), atom(), list()) -> binary().
 encode_msg(Msg, MsgName, Opts) ->
     case proplists:get_bool(verify, Opts) of
-      true -> verify_msg(Msg, MsgName, Opts);
-      false -> ok
+        true -> verify_msg(Msg, MsgName, Opts);
+        false -> ok
     end,
     TrUserData = proplists:get_value(user_data, Opts),
     case MsgName of
-      export_trace_service_request ->
-	  encode_msg_export_trace_service_request(id(Msg,
-						     TrUserData),
-						  TrUserData);
-      export_trace_service_response ->
-	  encode_msg_export_trace_service_response(id(Msg,
-						      TrUserData),
-						   TrUserData);
-      resource_spans ->
-	  encode_msg_resource_spans(id(Msg, TrUserData),
-				    TrUserData);
-      instrumentation_library_spans ->
-	  encode_msg_instrumentation_library_spans(id(Msg,
-						      TrUserData),
-						   TrUserData);
-      event ->
-	  encode_msg_event(id(Msg, TrUserData), TrUserData);
-      link ->
-	  encode_msg_link(id(Msg, TrUserData), TrUserData);
-      span ->
-	  encode_msg_span(id(Msg, TrUserData), TrUserData);
-      status ->
-	  encode_msg_status(id(Msg, TrUserData), TrUserData);
-      attribute_key_value ->
-	  encode_msg_attribute_key_value(id(Msg, TrUserData),
-					 TrUserData);
-      string_key_value ->
-	  encode_msg_string_key_value(id(Msg, TrUserData),
-				      TrUserData);
-      instrumentation_library ->
-	  encode_msg_instrumentation_library(id(Msg, TrUserData),
-					     TrUserData);
-      resource ->
-	  encode_msg_resource(id(Msg, TrUserData), TrUserData)
+        export_trace_service_request ->
+            encode_msg_export_trace_service_request(id(Msg,
+                                                       TrUserData),
+                                                    TrUserData);
+        export_trace_service_response ->
+            encode_msg_export_trace_service_response(id(Msg,
+                                                        TrUserData),
+                                                     TrUserData);
+        resource_spans ->
+            encode_msg_resource_spans(id(Msg, TrUserData),
+                                      TrUserData);
+        instrumentation_library_spans ->
+            encode_msg_instrumentation_library_spans(id(Msg,
+                                                        TrUserData),
+                                                     TrUserData);
+        event ->
+            encode_msg_event(id(Msg, TrUserData), TrUserData);
+        link ->
+            encode_msg_link(id(Msg, TrUserData), TrUserData);
+        span ->
+            encode_msg_span(id(Msg, TrUserData), TrUserData);
+        status ->
+            encode_msg_status(id(Msg, TrUserData), TrUserData);
+        attribute_key_value ->
+            encode_msg_attribute_key_value(id(Msg, TrUserData),
+                                           TrUserData);
+        string_key_value ->
+            encode_msg_string_key_value(id(Msg, TrUserData),
+                                        TrUserData);
+        instrumentation_library ->
+            encode_msg_instrumentation_library(id(Msg, TrUserData),
+                                               TrUserData);
+        resource ->
+            encode_msg_resource(id(Msg, TrUserData), TrUserData)
     end.
 
 
 encode_msg_export_trace_service_request(Msg,
-					TrUserData) ->
-    encode_msg_export_trace_service_request(Msg, <<>>,
-					    TrUserData).
+                                        TrUserData) ->
+    encode_msg_export_trace_service_request(Msg,
+                                            <<>>,
+                                            TrUserData).
 
 
 encode_msg_export_trace_service_request(#{} = M, Bin,
-					TrUserData) ->
+                                        TrUserData) ->
     case M of
-      #{resource_spans := F1} ->
-	  TrF1 = id(F1, TrUserData),
-	  if TrF1 == [] -> Bin;
-	     true ->
-		 e_field_export_trace_service_request_resource_spans(TrF1,
-								     Bin,
-								     TrUserData)
-	  end;
-      _ -> Bin
+        #{resource_spans := F1} ->
+            TrF1 = id(F1, TrUserData),
+            if TrF1 == [] -> Bin;
+               true ->
+                   e_field_export_trace_service_request_resource_spans(TrF1,
+                                                                       Bin,
+                                                                       TrUserData)
+            end;
+        _ -> Bin
     end.
 
 encode_msg_export_trace_service_response(_Msg,
-					 _TrUserData) ->
+                                         _TrUserData) ->
     <<>>.
 
 encode_msg_resource_spans(Msg, TrUserData) ->
@@ -216,61 +217,63 @@ encode_msg_resource_spans(Msg, TrUserData) ->
 
 encode_msg_resource_spans(#{} = M, Bin, TrUserData) ->
     B1 = case M of
-	   #{resource := F1} ->
-	       begin
-		 TrF1 = id(F1, TrUserData),
-		 if TrF1 =:= undefined -> Bin;
-		    true ->
-			e_mfield_resource_spans_resource(TrF1,
-							 <<Bin/binary, 10>>,
-							 TrUserData)
-		 end
-	       end;
-	   _ -> Bin
-	 end,
+             #{resource := F1} ->
+                 begin
+                     TrF1 = id(F1, TrUserData),
+                     if TrF1 =:= undefined -> Bin;
+                        true ->
+                            e_mfield_resource_spans_resource(TrF1,
+                                                             <<Bin/binary, 10>>,
+                                                             TrUserData)
+                     end
+                 end;
+             _ -> Bin
+         end,
     case M of
-      #{instrumentation_library_spans := F2} ->
-	  TrF2 = id(F2, TrUserData),
-	  if TrF2 == [] -> B1;
-	     true ->
-		 e_field_resource_spans_instrumentation_library_spans(TrF2,
-								      B1,
-								      TrUserData)
-	  end;
-      _ -> B1
+        #{instrumentation_library_spans := F2} ->
+            TrF2 = id(F2, TrUserData),
+            if TrF2 == [] -> B1;
+               true ->
+                   e_field_resource_spans_instrumentation_library_spans(TrF2,
+                                                                        B1,
+                                                                        TrUserData)
+            end;
+        _ -> B1
     end.
 
 encode_msg_instrumentation_library_spans(Msg,
-					 TrUserData) ->
-    encode_msg_instrumentation_library_spans(Msg, <<>>,
-					     TrUserData).
+                                         TrUserData) ->
+    encode_msg_instrumentation_library_spans(Msg,
+                                             <<>>,
+                                             TrUserData).
 
 
 encode_msg_instrumentation_library_spans(#{} = M, Bin,
-					 TrUserData) ->
+                                         TrUserData) ->
     B1 = case M of
-	   #{instrumentation_library := F1} ->
-	       begin
-		 TrF1 = id(F1, TrUserData),
-		 if TrF1 =:= undefined -> Bin;
-		    true ->
-			e_mfield_instrumentation_library_spans_instrumentation_library(TrF1,
-										       <<Bin/binary,
-											 10>>,
-										       TrUserData)
-		 end
-	       end;
-	   _ -> Bin
-	 end,
+             #{instrumentation_library := F1} ->
+                 begin
+                     TrF1 = id(F1, TrUserData),
+                     if TrF1 =:= undefined -> Bin;
+                        true ->
+                            e_mfield_instrumentation_library_spans_instrumentation_library(TrF1,
+                                                                                           <<Bin/binary,
+                                                                                             10>>,
+                                                                                           TrUserData)
+                     end
+                 end;
+             _ -> Bin
+         end,
     case M of
-      #{spans := F2} ->
-	  TrF2 = id(F2, TrUserData),
-	  if TrF2 == [] -> B1;
-	     true ->
-		 e_field_instrumentation_library_spans_spans(TrF2, B1,
-							     TrUserData)
-	  end;
-      _ -> B1
+        #{spans := F2} ->
+            TrF2 = id(F2, TrUserData),
+            if TrF2 == [] -> B1;
+               true ->
+                   e_field_instrumentation_library_spans_spans(TrF2,
+                                                               B1,
+                                                               TrUserData)
+            end;
+        _ -> B1
     end.
 
 encode_msg_event(Msg, TrUserData) ->
@@ -279,45 +282,45 @@ encode_msg_event(Msg, TrUserData) ->
 
 encode_msg_event(#{} = M, Bin, TrUserData) ->
     B1 = case M of
-	   #{time_unix_nano := F1} ->
-	       begin
-		 TrF1 = id(F1, TrUserData),
-		 if TrF1 =:= 0 -> Bin;
-		    true ->
-			e_type_fixed64(TrF1, <<Bin/binary, 9>>, TrUserData)
-		 end
-	       end;
-	   _ -> Bin
-	 end,
+             #{time_unix_nano := F1} ->
+                 begin
+                     TrF1 = id(F1, TrUserData),
+                     if TrF1 =:= 0 -> Bin;
+                        true ->
+                            e_type_fixed64(TrF1, <<Bin/binary, 9>>, TrUserData)
+                     end
+                 end;
+             _ -> Bin
+         end,
     B2 = case M of
-	   #{name := F2} ->
-	       begin
-		 TrF2 = id(F2, TrUserData),
-		 case is_empty_string(TrF2) of
-		   true -> B1;
-		   false ->
-		       e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
-		 end
-	       end;
-	   _ -> B1
-	 end,
+             #{name := F2} ->
+                 begin
+                     TrF2 = id(F2, TrUserData),
+                     case is_empty_string(TrF2) of
+                         true -> B1;
+                         false ->
+                             e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
+                     end
+                 end;
+             _ -> B1
+         end,
     B3 = case M of
-	   #{attributes := F3} ->
-	       TrF3 = id(F3, TrUserData),
-	       if TrF3 == [] -> B2;
-		  true -> e_field_event_attributes(TrF3, B2, TrUserData)
-	       end;
-	   _ -> B2
-	 end,
+             #{attributes := F3} ->
+                 TrF3 = id(F3, TrUserData),
+                 if TrF3 == [] -> B2;
+                    true -> e_field_event_attributes(TrF3, B2, TrUserData)
+                 end;
+             _ -> B2
+         end,
     case M of
-      #{dropped_attributes_count := F4} ->
-	  begin
-	    TrF4 = id(F4, TrUserData),
-	    if TrF4 =:= 0 -> B3;
-	       true -> e_varint(TrF4, <<B3/binary, 32>>, TrUserData)
-	    end
-	  end;
-      _ -> B3
+        #{dropped_attributes_count := F4} ->
+            begin
+                TrF4 = id(F4, TrUserData),
+                if TrF4 =:= 0 -> B3;
+                   true -> e_varint(TrF4, <<B3/binary, 32>>, TrUserData)
+                end
+            end;
+        _ -> B3
     end.
 
 encode_msg_link(Msg, TrUserData) ->
@@ -326,56 +329,56 @@ encode_msg_link(Msg, TrUserData) ->
 
 encode_msg_link(#{} = M, Bin, TrUserData) ->
     B1 = case M of
-	   #{trace_id := F1} ->
-	       begin
-		 TrF1 = id(F1, TrUserData),
-		 case iolist_size(TrF1) of
-		   0 -> Bin;
-		   _ -> e_type_bytes(TrF1, <<Bin/binary, 10>>, TrUserData)
-		 end
-	       end;
-	   _ -> Bin
-	 end,
+             #{trace_id := F1} ->
+                 begin
+                     TrF1 = id(F1, TrUserData),
+                     case iolist_size(TrF1) of
+                         0 -> Bin;
+                         _ -> e_type_bytes(TrF1, <<Bin/binary, 10>>, TrUserData)
+                     end
+                 end;
+             _ -> Bin
+         end,
     B2 = case M of
-	   #{span_id := F2} ->
-	       begin
-		 TrF2 = id(F2, TrUserData),
-		 case iolist_size(TrF2) of
-		   0 -> B1;
-		   _ -> e_type_bytes(TrF2, <<B1/binary, 18>>, TrUserData)
-		 end
-	       end;
-	   _ -> B1
-	 end,
+             #{span_id := F2} ->
+                 begin
+                     TrF2 = id(F2, TrUserData),
+                     case iolist_size(TrF2) of
+                         0 -> B1;
+                         _ -> e_type_bytes(TrF2, <<B1/binary, 18>>, TrUserData)
+                     end
+                 end;
+             _ -> B1
+         end,
     B3 = case M of
-	   #{trace_state := F3} ->
-	       begin
-		 TrF3 = id(F3, TrUserData),
-		 case is_empty_string(TrF3) of
-		   true -> B2;
-		   false ->
-		       e_type_string(TrF3, <<B2/binary, 26>>, TrUserData)
-		 end
-	       end;
-	   _ -> B2
-	 end,
+             #{trace_state := F3} ->
+                 begin
+                     TrF3 = id(F3, TrUserData),
+                     case is_empty_string(TrF3) of
+                         true -> B2;
+                         false ->
+                             e_type_string(TrF3, <<B2/binary, 26>>, TrUserData)
+                     end
+                 end;
+             _ -> B2
+         end,
     B4 = case M of
-	   #{attributes := F4} ->
-	       TrF4 = id(F4, TrUserData),
-	       if TrF4 == [] -> B3;
-		  true -> e_field_link_attributes(TrF4, B3, TrUserData)
-	       end;
-	   _ -> B3
-	 end,
+             #{attributes := F4} ->
+                 TrF4 = id(F4, TrUserData),
+                 if TrF4 == [] -> B3;
+                    true -> e_field_link_attributes(TrF4, B3, TrUserData)
+                 end;
+             _ -> B3
+         end,
     case M of
-      #{dropped_attributes_count := F5} ->
-	  begin
-	    TrF5 = id(F5, TrUserData),
-	    if TrF5 =:= 0 -> B4;
-	       true -> e_varint(TrF5, <<B4/binary, 40>>, TrUserData)
-	    end
-	  end;
-      _ -> B4
+        #{dropped_attributes_count := F5} ->
+            begin
+                TrF5 = id(F5, TrUserData),
+                if TrF5 =:= 0 -> B4;
+                   true -> e_varint(TrF5, <<B4/binary, 40>>, TrUserData)
+                end
+            end;
+        _ -> B4
     end.
 
 encode_msg_span(Msg, TrUserData) ->
@@ -384,161 +387,164 @@ encode_msg_span(Msg, TrUserData) ->
 
 encode_msg_span(#{} = M, Bin, TrUserData) ->
     B1 = case M of
-	   #{trace_id := F1} ->
-	       begin
-		 TrF1 = id(F1, TrUserData),
-		 case iolist_size(TrF1) of
-		   0 -> Bin;
-		   _ -> e_type_bytes(TrF1, <<Bin/binary, 10>>, TrUserData)
-		 end
-	       end;
-	   _ -> Bin
-	 end,
+             #{trace_id := F1} ->
+                 begin
+                     TrF1 = id(F1, TrUserData),
+                     case iolist_size(TrF1) of
+                         0 -> Bin;
+                         _ -> e_type_bytes(TrF1, <<Bin/binary, 10>>, TrUserData)
+                     end
+                 end;
+             _ -> Bin
+         end,
     B2 = case M of
-	   #{span_id := F2} ->
-	       begin
-		 TrF2 = id(F2, TrUserData),
-		 case iolist_size(TrF2) of
-		   0 -> B1;
-		   _ -> e_type_bytes(TrF2, <<B1/binary, 18>>, TrUserData)
-		 end
-	       end;
-	   _ -> B1
-	 end,
+             #{span_id := F2} ->
+                 begin
+                     TrF2 = id(F2, TrUserData),
+                     case iolist_size(TrF2) of
+                         0 -> B1;
+                         _ -> e_type_bytes(TrF2, <<B1/binary, 18>>, TrUserData)
+                     end
+                 end;
+             _ -> B1
+         end,
     B3 = case M of
-	   #{trace_state := F3} ->
-	       begin
-		 TrF3 = id(F3, TrUserData),
-		 case is_empty_string(TrF3) of
-		   true -> B2;
-		   false ->
-		       e_type_string(TrF3, <<B2/binary, 26>>, TrUserData)
-		 end
-	       end;
-	   _ -> B2
-	 end,
+             #{trace_state := F3} ->
+                 begin
+                     TrF3 = id(F3, TrUserData),
+                     case is_empty_string(TrF3) of
+                         true -> B2;
+                         false ->
+                             e_type_string(TrF3, <<B2/binary, 26>>, TrUserData)
+                     end
+                 end;
+             _ -> B2
+         end,
     B4 = case M of
-	   #{parent_span_id := F4} ->
-	       begin
-		 TrF4 = id(F4, TrUserData),
-		 case iolist_size(TrF4) of
-		   0 -> B3;
-		   _ -> e_type_bytes(TrF4, <<B3/binary, 34>>, TrUserData)
-		 end
-	       end;
-	   _ -> B3
-	 end,
+             #{parent_span_id := F4} ->
+                 begin
+                     TrF4 = id(F4, TrUserData),
+                     case iolist_size(TrF4) of
+                         0 -> B3;
+                         _ -> e_type_bytes(TrF4, <<B3/binary, 34>>, TrUserData)
+                     end
+                 end;
+             _ -> B3
+         end,
     B5 = case M of
-	   #{name := F5} ->
-	       begin
-		 TrF5 = id(F5, TrUserData),
-		 case is_empty_string(TrF5) of
-		   true -> B4;
-		   false ->
-		       e_type_string(TrF5, <<B4/binary, 42>>, TrUserData)
-		 end
-	       end;
-	   _ -> B4
-	 end,
+             #{name := F5} ->
+                 begin
+                     TrF5 = id(F5, TrUserData),
+                     case is_empty_string(TrF5) of
+                         true -> B4;
+                         false ->
+                             e_type_string(TrF5, <<B4/binary, 42>>, TrUserData)
+                     end
+                 end;
+             _ -> B4
+         end,
     B6 = case M of
-	   #{kind := F6} ->
-	       begin
-		 TrF6 = id(F6, TrUserData),
-		 if TrF6 =:= 'SPAN_KIND_UNSPECIFIED'; TrF6 =:= 0 -> B5;
-		    true ->
-			'e_enum_span.SpanKind'(TrF6, <<B5/binary, 48>>,
-					       TrUserData)
-		 end
-	       end;
-	   _ -> B5
-	 end,
+             #{kind := F6} ->
+                 begin
+                     TrF6 = id(F6, TrUserData),
+                     if TrF6 =:= 'SPAN_KIND_UNSPECIFIED'; TrF6 =:= 0 -> B5;
+                        true ->
+                            'e_enum_span.SpanKind'(TrF6,
+                                                   <<B5/binary, 48>>,
+                                                   TrUserData)
+                     end
+                 end;
+             _ -> B5
+         end,
     B7 = case M of
-	   #{start_time_unix_nano := F7} ->
-	       begin
-		 TrF7 = id(F7, TrUserData),
-		 if TrF7 =:= 0 -> B6;
-		    true ->
-			e_type_fixed64(TrF7, <<B6/binary, 57>>, TrUserData)
-		 end
-	       end;
-	   _ -> B6
-	 end,
+             #{start_time_unix_nano := F7} ->
+                 begin
+                     TrF7 = id(F7, TrUserData),
+                     if TrF7 =:= 0 -> B6;
+                        true ->
+                            e_type_fixed64(TrF7, <<B6/binary, 57>>, TrUserData)
+                     end
+                 end;
+             _ -> B6
+         end,
     B8 = case M of
-	   #{end_time_unix_nano := F8} ->
-	       begin
-		 TrF8 = id(F8, TrUserData),
-		 if TrF8 =:= 0 -> B7;
-		    true ->
-			e_type_fixed64(TrF8, <<B7/binary, 65>>, TrUserData)
-		 end
-	       end;
-	   _ -> B7
-	 end,
+             #{end_time_unix_nano := F8} ->
+                 begin
+                     TrF8 = id(F8, TrUserData),
+                     if TrF8 =:= 0 -> B7;
+                        true ->
+                            e_type_fixed64(TrF8, <<B7/binary, 65>>, TrUserData)
+                     end
+                 end;
+             _ -> B7
+         end,
     B9 = case M of
-	   #{attributes := F9} ->
-	       TrF9 = id(F9, TrUserData),
-	       if TrF9 == [] -> B8;
-		  true -> e_field_span_attributes(TrF9, B8, TrUserData)
-	       end;
-	   _ -> B8
-	 end,
+             #{attributes := F9} ->
+                 TrF9 = id(F9, TrUserData),
+                 if TrF9 == [] -> B8;
+                    true -> e_field_span_attributes(TrF9, B8, TrUserData)
+                 end;
+             _ -> B8
+         end,
     B10 = case M of
-	    #{dropped_attributes_count := F10} ->
-		begin
-		  TrF10 = id(F10, TrUserData),
-		  if TrF10 =:= 0 -> B9;
-		     true -> e_varint(TrF10, <<B9/binary, 80>>, TrUserData)
-		  end
-		end;
-	    _ -> B9
-	  end,
+              #{dropped_attributes_count := F10} ->
+                  begin
+                      TrF10 = id(F10, TrUserData),
+                      if TrF10 =:= 0 -> B9;
+                         true -> e_varint(TrF10, <<B9/binary, 80>>, TrUserData)
+                      end
+                  end;
+              _ -> B9
+          end,
     B11 = case M of
-	    #{events := F11} ->
-		TrF11 = id(F11, TrUserData),
-		if TrF11 == [] -> B10;
-		   true -> e_field_span_events(TrF11, B10, TrUserData)
-		end;
-	    _ -> B10
-	  end,
+              #{events := F11} ->
+                  TrF11 = id(F11, TrUserData),
+                  if TrF11 == [] -> B10;
+                     true -> e_field_span_events(TrF11, B10, TrUserData)
+                  end;
+              _ -> B10
+          end,
     B12 = case M of
-	    #{dropped_events_count := F12} ->
-		begin
-		  TrF12 = id(F12, TrUserData),
-		  if TrF12 =:= 0 -> B11;
-		     true -> e_varint(TrF12, <<B11/binary, 96>>, TrUserData)
-		  end
-		end;
-	    _ -> B11
-	  end,
+              #{dropped_events_count := F12} ->
+                  begin
+                      TrF12 = id(F12, TrUserData),
+                      if TrF12 =:= 0 -> B11;
+                         true -> e_varint(TrF12, <<B11/binary, 96>>, TrUserData)
+                      end
+                  end;
+              _ -> B11
+          end,
     B13 = case M of
-	    #{links := F13} ->
-		TrF13 = id(F13, TrUserData),
-		if TrF13 == [] -> B12;
-		   true -> e_field_span_links(TrF13, B12, TrUserData)
-		end;
-	    _ -> B12
-	  end,
+              #{links := F13} ->
+                  TrF13 = id(F13, TrUserData),
+                  if TrF13 == [] -> B12;
+                     true -> e_field_span_links(TrF13, B12, TrUserData)
+                  end;
+              _ -> B12
+          end,
     B14 = case M of
-	    #{dropped_links_count := F14} ->
-		begin
-		  TrF14 = id(F14, TrUserData),
-		  if TrF14 =:= 0 -> B13;
-		     true -> e_varint(TrF14, <<B13/binary, 112>>, TrUserData)
-		  end
-		end;
-	    _ -> B13
-	  end,
+              #{dropped_links_count := F14} ->
+                  begin
+                      TrF14 = id(F14, TrUserData),
+                      if TrF14 =:= 0 -> B13;
+                         true ->
+                             e_varint(TrF14, <<B13/binary, 112>>, TrUserData)
+                      end
+                  end;
+              _ -> B13
+          end,
     case M of
-      #{status := F15} ->
-	  begin
-	    TrF15 = id(F15, TrUserData),
-	    if TrF15 =:= undefined -> B14;
-	       true ->
-		   e_mfield_span_status(TrF15, <<B14/binary, 122>>,
-					TrUserData)
-	    end
-	  end;
-      _ -> B14
+        #{status := F15} ->
+            begin
+                TrF15 = id(F15, TrUserData),
+                if TrF15 =:= undefined -> B14;
+                   true ->
+                       e_mfield_span_status(TrF15,
+                                            <<B14/binary, 122>>,
+                                            TrUserData)
+                end
+            end;
+        _ -> B14
     end.
 
 encode_msg_status(Msg, TrUserData) ->
@@ -547,28 +553,29 @@ encode_msg_status(Msg, TrUserData) ->
 
 encode_msg_status(#{} = M, Bin, TrUserData) ->
     B1 = case M of
-	   #{code := F1} ->
-	       begin
-		 TrF1 = id(F1, TrUserData),
-		 if TrF1 =:= 'Ok'; TrF1 =:= 0 -> Bin;
-		    true ->
-			'e_enum_status.StatusCode'(TrF1, <<Bin/binary, 8>>,
-						   TrUserData)
-		 end
-	       end;
-	   _ -> Bin
-	 end,
+             #{code := F1} ->
+                 begin
+                     TrF1 = id(F1, TrUserData),
+                     if TrF1 =:= 'Ok'; TrF1 =:= 0 -> Bin;
+                        true ->
+                            'e_enum_status.StatusCode'(TrF1,
+                                                       <<Bin/binary, 8>>,
+                                                       TrUserData)
+                     end
+                 end;
+             _ -> Bin
+         end,
     case M of
-      #{message := F2} ->
-	  begin
-	    TrF2 = id(F2, TrUserData),
-	    case is_empty_string(TrF2) of
-	      true -> B1;
-	      false ->
-		  e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
-	    end
-	  end;
-      _ -> B1
+        #{message := F2} ->
+            begin
+                TrF2 = id(F2, TrUserData),
+                case is_empty_string(TrF2) of
+                    true -> B1;
+                    false ->
+                        e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
+                end
+            end;
+        _ -> B1
     end.
 
 encode_msg_attribute_key_value(Msg, TrUserData) ->
@@ -576,76 +583,76 @@ encode_msg_attribute_key_value(Msg, TrUserData) ->
 
 
 encode_msg_attribute_key_value(#{} = M, Bin,
-			       TrUserData) ->
+                               TrUserData) ->
     B1 = case M of
-	   #{key := F1} ->
-	       begin
-		 TrF1 = id(F1, TrUserData),
-		 case is_empty_string(TrF1) of
-		   true -> Bin;
-		   false ->
-		       e_type_string(TrF1, <<Bin/binary, 10>>, TrUserData)
-		 end
-	       end;
-	   _ -> Bin
-	 end,
+             #{key := F1} ->
+                 begin
+                     TrF1 = id(F1, TrUserData),
+                     case is_empty_string(TrF1) of
+                         true -> Bin;
+                         false ->
+                             e_type_string(TrF1, <<Bin/binary, 10>>, TrUserData)
+                     end
+                 end;
+             _ -> Bin
+         end,
     B2 = case M of
-	   #{type := F2} ->
-	       begin
-		 TrF2 = id(F2, TrUserData),
-		 if TrF2 =:= 'STRING'; TrF2 =:= 0 -> B1;
-		    true ->
-			'e_enum_attribute_key_value.ValueType'(TrF2,
-							       <<B1/binary,
-								 16>>,
-							       TrUserData)
-		 end
-	       end;
-	   _ -> B1
-	 end,
+             #{type := F2} ->
+                 begin
+                     TrF2 = id(F2, TrUserData),
+                     if TrF2 =:= 'STRING'; TrF2 =:= 0 -> B1;
+                        true ->
+                            'e_enum_attribute_key_value.ValueType'(TrF2,
+                                                                   <<B1/binary,
+                                                                     16>>,
+                                                                   TrUserData)
+                     end
+                 end;
+             _ -> B1
+         end,
     B3 = case M of
-	   #{string_value := F3} ->
-	       begin
-		 TrF3 = id(F3, TrUserData),
-		 case is_empty_string(TrF3) of
-		   true -> B2;
-		   false ->
-		       e_type_string(TrF3, <<B2/binary, 26>>, TrUserData)
-		 end
-	       end;
-	   _ -> B2
-	 end,
+             #{string_value := F3} ->
+                 begin
+                     TrF3 = id(F3, TrUserData),
+                     case is_empty_string(TrF3) of
+                         true -> B2;
+                         false ->
+                             e_type_string(TrF3, <<B2/binary, 26>>, TrUserData)
+                     end
+                 end;
+             _ -> B2
+         end,
     B4 = case M of
-	   #{int_value := F4} ->
-	       begin
-		 TrF4 = id(F4, TrUserData),
-		 if TrF4 =:= 0 -> B3;
-		    true ->
-			e_type_int64(TrF4, <<B3/binary, 32>>, TrUserData)
-		 end
-	       end;
-	   _ -> B3
-	 end,
+             #{int_value := F4} ->
+                 begin
+                     TrF4 = id(F4, TrUserData),
+                     if TrF4 =:= 0 -> B3;
+                        true ->
+                            e_type_int64(TrF4, <<B3/binary, 32>>, TrUserData)
+                     end
+                 end;
+             _ -> B3
+         end,
     B5 = case M of
-	   #{double_value := F5} ->
-	       begin
-		 TrF5 = id(F5, TrUserData),
-		 if TrF5 =:= 0.0 -> B4;
-		    true ->
-			e_type_double(TrF5, <<B4/binary, 41>>, TrUserData)
-		 end
-	       end;
-	   _ -> B4
-	 end,
+             #{double_value := F5} ->
+                 begin
+                     TrF5 = id(F5, TrUserData),
+                     if TrF5 =:= 0.0 -> B4;
+                        true ->
+                            e_type_double(TrF5, <<B4/binary, 41>>, TrUserData)
+                     end
+                 end;
+             _ -> B4
+         end,
     case M of
-      #{bool_value := F6} ->
-	  begin
-	    TrF6 = id(F6, TrUserData),
-	    if TrF6 =:= false -> B5;
-	       true -> e_type_bool(TrF6, <<B5/binary, 48>>, TrUserData)
-	    end
-	  end;
-      _ -> B5
+        #{bool_value := F6} ->
+            begin
+                TrF6 = id(F6, TrUserData),
+                if TrF6 =:= false -> B5;
+                   true -> e_type_bool(TrF6, <<B5/binary, 48>>, TrUserData)
+                end
+            end;
+        _ -> B5
     end.
 
 encode_msg_string_key_value(Msg, TrUserData) ->
@@ -654,60 +661,61 @@ encode_msg_string_key_value(Msg, TrUserData) ->
 
 encode_msg_string_key_value(#{} = M, Bin, TrUserData) ->
     B1 = case M of
-	   #{key := F1} ->
-	       begin
-		 TrF1 = id(F1, TrUserData),
-		 case is_empty_string(TrF1) of
-		   true -> Bin;
-		   false ->
-		       e_type_string(TrF1, <<Bin/binary, 10>>, TrUserData)
-		 end
-	       end;
-	   _ -> Bin
-	 end,
+             #{key := F1} ->
+                 begin
+                     TrF1 = id(F1, TrUserData),
+                     case is_empty_string(TrF1) of
+                         true -> Bin;
+                         false ->
+                             e_type_string(TrF1, <<Bin/binary, 10>>, TrUserData)
+                     end
+                 end;
+             _ -> Bin
+         end,
     case M of
-      #{value := F2} ->
-	  begin
-	    TrF2 = id(F2, TrUserData),
-	    case is_empty_string(TrF2) of
-	      true -> B1;
-	      false ->
-		  e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
-	    end
-	  end;
-      _ -> B1
+        #{value := F2} ->
+            begin
+                TrF2 = id(F2, TrUserData),
+                case is_empty_string(TrF2) of
+                    true -> B1;
+                    false ->
+                        e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
+                end
+            end;
+        _ -> B1
     end.
 
 encode_msg_instrumentation_library(Msg, TrUserData) ->
-    encode_msg_instrumentation_library(Msg, <<>>,
-				       TrUserData).
+    encode_msg_instrumentation_library(Msg,
+                                       <<>>,
+                                       TrUserData).
 
 
 encode_msg_instrumentation_library(#{} = M, Bin,
-				   TrUserData) ->
+                                   TrUserData) ->
     B1 = case M of
-	   #{name := F1} ->
-	       begin
-		 TrF1 = id(F1, TrUserData),
-		 case is_empty_string(TrF1) of
-		   true -> Bin;
-		   false ->
-		       e_type_string(TrF1, <<Bin/binary, 10>>, TrUserData)
-		 end
-	       end;
-	   _ -> Bin
-	 end,
+             #{name := F1} ->
+                 begin
+                     TrF1 = id(F1, TrUserData),
+                     case is_empty_string(TrF1) of
+                         true -> Bin;
+                         false ->
+                             e_type_string(TrF1, <<Bin/binary, 10>>, TrUserData)
+                     end
+                 end;
+             _ -> Bin
+         end,
     case M of
-      #{version := F2} ->
-	  begin
-	    TrF2 = id(F2, TrUserData),
-	    case is_empty_string(TrF2) of
-	      true -> B1;
-	      false ->
-		  e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
-	    end
-	  end;
-      _ -> B1
+        #{version := F2} ->
+            begin
+                TrF2 = id(F2, TrUserData),
+                case is_empty_string(TrF2) of
+                    true -> B1;
+                    false ->
+                        e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
+                end
+            end;
+        _ -> B1
     end.
 
 encode_msg_resource(Msg, TrUserData) ->
@@ -716,140 +724,155 @@ encode_msg_resource(Msg, TrUserData) ->
 
 encode_msg_resource(#{} = M, Bin, TrUserData) ->
     B1 = case M of
-	   #{attributes := F1} ->
-	       TrF1 = id(F1, TrUserData),
-	       if TrF1 == [] -> Bin;
-		  true ->
-		      e_field_resource_attributes(TrF1, Bin, TrUserData)
-	       end;
-	   _ -> Bin
-	 end,
+             #{attributes := F1} ->
+                 TrF1 = id(F1, TrUserData),
+                 if TrF1 == [] -> Bin;
+                    true ->
+                        e_field_resource_attributes(TrF1, Bin, TrUserData)
+                 end;
+             _ -> Bin
+         end,
     case M of
-      #{dropped_attributes_count := F2} ->
-	  begin
-	    TrF2 = id(F2, TrUserData),
-	    if TrF2 =:= 0 -> B1;
-	       true -> e_varint(TrF2, <<B1/binary, 16>>, TrUserData)
-	    end
-	  end;
-      _ -> B1
+        #{dropped_attributes_count := F2} ->
+            begin
+                TrF2 = id(F2, TrUserData),
+                if TrF2 =:= 0 -> B1;
+                   true -> e_varint(TrF2, <<B1/binary, 16>>, TrUserData)
+                end
+            end;
+        _ -> B1
     end.
 
 e_mfield_export_trace_service_request_resource_spans(Msg,
-						     Bin, TrUserData) ->
-    SubBin = encode_msg_resource_spans(Msg, <<>>,
-				       TrUserData),
+                                                     Bin, TrUserData) ->
+    SubBin = encode_msg_resource_spans(Msg,
+                                       <<>>,
+                                       TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
 e_field_export_trace_service_request_resource_spans([Elem
-						     | Rest],
-						    Bin, TrUserData) ->
+                                                     | Rest],
+                                                    Bin, TrUserData) ->
     Bin2 = <<Bin/binary, 10>>,
     Bin3 =
-	e_mfield_export_trace_service_request_resource_spans(id(Elem,
-								TrUserData),
-							     Bin2, TrUserData),
+        e_mfield_export_trace_service_request_resource_spans(id(Elem,
+                                                                TrUserData),
+                                                             Bin2,
+                                                             TrUserData),
     e_field_export_trace_service_request_resource_spans(Rest,
-							Bin3, TrUserData);
+                                                        Bin3,
+                                                        TrUserData);
 e_field_export_trace_service_request_resource_spans([],
-						    Bin, _TrUserData) ->
+                                                    Bin, _TrUserData) ->
     Bin.
 
 e_mfield_resource_spans_resource(Msg, Bin,
-				 TrUserData) ->
+                                 TrUserData) ->
     SubBin = encode_msg_resource(Msg, <<>>, TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
 e_mfield_resource_spans_instrumentation_library_spans(Msg,
-						      Bin, TrUserData) ->
+                                                      Bin, TrUserData) ->
     SubBin = encode_msg_instrumentation_library_spans(Msg,
-						      <<>>, TrUserData),
+                                                      <<>>,
+                                                      TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
 e_field_resource_spans_instrumentation_library_spans([Elem
-						      | Rest],
-						     Bin, TrUserData) ->
+                                                      | Rest],
+                                                     Bin, TrUserData) ->
     Bin2 = <<Bin/binary, 18>>,
     Bin3 =
-	e_mfield_resource_spans_instrumentation_library_spans(id(Elem,
-								 TrUserData),
-							      Bin2, TrUserData),
+        e_mfield_resource_spans_instrumentation_library_spans(id(Elem,
+                                                                 TrUserData),
+                                                              Bin2,
+                                                              TrUserData),
     e_field_resource_spans_instrumentation_library_spans(Rest,
-							 Bin3, TrUserData);
+                                                         Bin3,
+                                                         TrUserData);
 e_field_resource_spans_instrumentation_library_spans([],
-						     Bin, _TrUserData) ->
+                                                     Bin, _TrUserData) ->
     Bin.
 
 e_mfield_instrumentation_library_spans_instrumentation_library(Msg,
-							       Bin,
-							       TrUserData) ->
-    SubBin = encode_msg_instrumentation_library(Msg, <<>>,
-						TrUserData),
+                                                               Bin,
+                                                               TrUserData) ->
+    SubBin = encode_msg_instrumentation_library(Msg,
+                                                <<>>,
+                                                TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
 e_mfield_instrumentation_library_spans_spans(Msg, Bin,
-					     TrUserData) ->
+                                             TrUserData) ->
     SubBin = encode_msg_span(Msg, <<>>, TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
 e_field_instrumentation_library_spans_spans([Elem
-					     | Rest],
-					    Bin, TrUserData) ->
+                                             | Rest],
+                                            Bin, TrUserData) ->
     Bin2 = <<Bin/binary, 18>>,
     Bin3 =
-	e_mfield_instrumentation_library_spans_spans(id(Elem,
-							TrUserData),
-						     Bin2, TrUserData),
-    e_field_instrumentation_library_spans_spans(Rest, Bin3,
-						TrUserData);
+        e_mfield_instrumentation_library_spans_spans(id(Elem,
+                                                        TrUserData),
+                                                     Bin2,
+                                                     TrUserData),
+    e_field_instrumentation_library_spans_spans(Rest,
+                                                Bin3,
+                                                TrUserData);
 e_field_instrumentation_library_spans_spans([], Bin,
-					    _TrUserData) ->
+                                            _TrUserData) ->
     Bin.
 
 e_mfield_event_attributes(Msg, Bin, TrUserData) ->
-    SubBin = encode_msg_attribute_key_value(Msg, <<>>,
-					    TrUserData),
+    SubBin = encode_msg_attribute_key_value(Msg,
+                                            <<>>,
+                                            TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
 e_field_event_attributes([Elem | Rest], Bin,
-			 TrUserData) ->
+                         TrUserData) ->
     Bin2 = <<Bin/binary, 26>>,
     Bin3 = e_mfield_event_attributes(id(Elem, TrUserData),
-				     Bin2, TrUserData),
+                                     Bin2,
+                                     TrUserData),
     e_field_event_attributes(Rest, Bin3, TrUserData);
 e_field_event_attributes([], Bin, _TrUserData) -> Bin.
 
 e_mfield_link_attributes(Msg, Bin, TrUserData) ->
-    SubBin = encode_msg_attribute_key_value(Msg, <<>>,
-					    TrUserData),
+    SubBin = encode_msg_attribute_key_value(Msg,
+                                            <<>>,
+                                            TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
 e_field_link_attributes([Elem | Rest], Bin,
-			TrUserData) ->
+                        TrUserData) ->
     Bin2 = <<Bin/binary, 34>>,
     Bin3 = e_mfield_link_attributes(id(Elem, TrUserData),
-				    Bin2, TrUserData),
+                                    Bin2,
+                                    TrUserData),
     e_field_link_attributes(Rest, Bin3, TrUserData);
 e_field_link_attributes([], Bin, _TrUserData) -> Bin.
 
 e_mfield_span_attributes(Msg, Bin, TrUserData) ->
-    SubBin = encode_msg_attribute_key_value(Msg, <<>>,
-					    TrUserData),
+    SubBin = encode_msg_attribute_key_value(Msg,
+                                            <<>>,
+                                            TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
 e_field_span_attributes([Elem | Rest], Bin,
-			TrUserData) ->
+                        TrUserData) ->
     Bin2 = <<Bin/binary, 74>>,
     Bin3 = e_mfield_span_attributes(id(Elem, TrUserData),
-				    Bin2, TrUserData),
+                                    Bin2,
+                                    TrUserData),
     e_field_span_attributes(Rest, Bin3, TrUserData);
 e_field_span_attributes([], Bin, _TrUserData) -> Bin.
 
@@ -860,8 +883,9 @@ e_mfield_span_events(Msg, Bin, TrUserData) ->
 
 e_field_span_events([Elem | Rest], Bin, TrUserData) ->
     Bin2 = <<Bin/binary, 90>>,
-    Bin3 = e_mfield_span_events(id(Elem, TrUserData), Bin2,
-				TrUserData),
+    Bin3 = e_mfield_span_events(id(Elem, TrUserData),
+                                Bin2,
+                                TrUserData),
     e_field_span_events(Rest, Bin3, TrUserData);
 e_field_span_events([], Bin, _TrUserData) -> Bin.
 
@@ -872,8 +896,9 @@ e_mfield_span_links(Msg, Bin, TrUserData) ->
 
 e_field_span_links([Elem | Rest], Bin, TrUserData) ->
     Bin2 = <<Bin/binary, 106>>,
-    Bin3 = e_mfield_span_links(id(Elem, TrUserData), Bin2,
-			       TrUserData),
+    Bin3 = e_mfield_span_links(id(Elem, TrUserData),
+                               Bin2,
+                               TrUserData),
     e_field_span_links(Rest, Bin3, TrUserData);
 e_field_span_links([], Bin, _TrUserData) -> Bin.
 
@@ -883,23 +908,25 @@ e_mfield_span_status(Msg, Bin, TrUserData) ->
     <<Bin2/binary, SubBin/binary>>.
 
 e_mfield_resource_attributes(Msg, Bin, TrUserData) ->
-    SubBin = encode_msg_attribute_key_value(Msg, <<>>,
-					    TrUserData),
+    SubBin = encode_msg_attribute_key_value(Msg,
+                                            <<>>,
+                                            TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
 e_field_resource_attributes([Elem | Rest], Bin,
-			    TrUserData) ->
+                            TrUserData) ->
     Bin2 = <<Bin/binary, 10>>,
     Bin3 = e_mfield_resource_attributes(id(Elem,
-					   TrUserData),
-					Bin2, TrUserData),
+                                           TrUserData),
+                                        Bin2,
+                                        TrUserData),
     e_field_resource_attributes(Rest, Bin3, TrUserData);
 e_field_resource_attributes([], Bin, _TrUserData) ->
     Bin.
 
 'e_enum_span.SpanKind'('SPAN_KIND_UNSPECIFIED', Bin,
-		       _TrUserData) ->
+                       _TrUserData) ->
     <<Bin/binary, 0>>;
 'e_enum_span.SpanKind'('INTERNAL', Bin, _TrUserData) ->
     <<Bin/binary, 1>>;
@@ -917,70 +944,70 @@ e_field_resource_attributes([], Bin, _TrUserData) ->
 'e_enum_status.StatusCode'('Ok', Bin, _TrUserData) ->
     <<Bin/binary, 0>>;
 'e_enum_status.StatusCode'('Cancelled', Bin,
-			   _TrUserData) ->
+                           _TrUserData) ->
     <<Bin/binary, 1>>;
 'e_enum_status.StatusCode'('UnknownError', Bin,
-			   _TrUserData) ->
+                           _TrUserData) ->
     <<Bin/binary, 2>>;
 'e_enum_status.StatusCode'('InvalidArgument', Bin,
-			   _TrUserData) ->
+                           _TrUserData) ->
     <<Bin/binary, 3>>;
 'e_enum_status.StatusCode'('DeadlineExceeded', Bin,
-			   _TrUserData) ->
+                           _TrUserData) ->
     <<Bin/binary, 4>>;
 'e_enum_status.StatusCode'('NotFound', Bin,
-			   _TrUserData) ->
+                           _TrUserData) ->
     <<Bin/binary, 5>>;
 'e_enum_status.StatusCode'('AlreadyExists', Bin,
-			   _TrUserData) ->
+                           _TrUserData) ->
     <<Bin/binary, 6>>;
 'e_enum_status.StatusCode'('PermissionDenied', Bin,
-			   _TrUserData) ->
+                           _TrUserData) ->
     <<Bin/binary, 7>>;
 'e_enum_status.StatusCode'('ResourceExhausted', Bin,
-			   _TrUserData) ->
+                           _TrUserData) ->
     <<Bin/binary, 8>>;
 'e_enum_status.StatusCode'('FailedPrecondition', Bin,
-			   _TrUserData) ->
+                           _TrUserData) ->
     <<Bin/binary, 9>>;
 'e_enum_status.StatusCode'('Aborted', Bin,
-			   _TrUserData) ->
+                           _TrUserData) ->
     <<Bin/binary, 10>>;
 'e_enum_status.StatusCode'('OutOfRange', Bin,
-			   _TrUserData) ->
+                           _TrUserData) ->
     <<Bin/binary, 11>>;
 'e_enum_status.StatusCode'('Unimplemented', Bin,
-			   _TrUserData) ->
+                           _TrUserData) ->
     <<Bin/binary, 12>>;
 'e_enum_status.StatusCode'('InternalError', Bin,
-			   _TrUserData) ->
+                           _TrUserData) ->
     <<Bin/binary, 13>>;
 'e_enum_status.StatusCode'('Unavailable', Bin,
-			   _TrUserData) ->
+                           _TrUserData) ->
     <<Bin/binary, 14>>;
 'e_enum_status.StatusCode'('DataLoss', Bin,
-			   _TrUserData) ->
+                           _TrUserData) ->
     <<Bin/binary, 15>>;
 'e_enum_status.StatusCode'('Unauthenticated', Bin,
-			   _TrUserData) ->
+                           _TrUserData) ->
     <<Bin/binary, 16>>;
 'e_enum_status.StatusCode'(V, Bin, _TrUserData) ->
     e_varint(V, Bin).
 
 'e_enum_attribute_key_value.ValueType'('STRING', Bin,
-				       _TrUserData) ->
+                                       _TrUserData) ->
     <<Bin/binary, 0>>;
 'e_enum_attribute_key_value.ValueType'('INT', Bin,
-				       _TrUserData) ->
+                                       _TrUserData) ->
     <<Bin/binary, 1>>;
 'e_enum_attribute_key_value.ValueType'('DOUBLE', Bin,
-				       _TrUserData) ->
+                                       _TrUserData) ->
     <<Bin/binary, 2>>;
 'e_enum_attribute_key_value.ValueType'('BOOL', Bin,
-				       _TrUserData) ->
+                                       _TrUserData) ->
     <<Bin/binary, 3>>;
 'e_enum_attribute_key_value.ValueType'(V, Bin,
-				       _TrUserData) ->
+                                       _TrUserData) ->
     e_varint(V, Bin).
 
 -compile({nowarn_unused_function,e_type_sint/3}).
@@ -1084,8 +1111,8 @@ is_empty_string(B) when is_binary(B) -> false.
 string_has_chars([C | _]) when is_integer(C) -> true;
 string_has_chars([H | T]) ->
     case string_has_chars(H) of
-      true -> true;
-      false -> string_has_chars(T)
+        true -> true;
+        false -> string_has_chars(T)
     end;
 string_has_chars(B)
     when is_binary(B), byte_size(B) =/= 0 ->
@@ -1117,22 +1144,22 @@ decode_msg_1_catch(Bin, MsgName, TrUserData) ->
 -endif.
 
 decode_msg_2_doit(export_trace_service_request, Bin,
-		  TrUserData) ->
+                  TrUserData) ->
     id(decode_msg_export_trace_service_request(Bin,
-					       TrUserData),
+                                               TrUserData),
        TrUserData);
 decode_msg_2_doit(export_trace_service_response, Bin,
-		  TrUserData) ->
+                  TrUserData) ->
     id(decode_msg_export_trace_service_response(Bin,
-						TrUserData),
+                                                TrUserData),
        TrUserData);
 decode_msg_2_doit(resource_spans, Bin, TrUserData) ->
     id(decode_msg_resource_spans(Bin, TrUserData),
        TrUserData);
 decode_msg_2_doit(instrumentation_library_spans, Bin,
-		  TrUserData) ->
+                  TrUserData) ->
     id(decode_msg_instrumentation_library_spans(Bin,
-						TrUserData),
+                                                TrUserData),
        TrUserData);
 decode_msg_2_doit(event, Bin, TrUserData) ->
     id(decode_msg_event(Bin, TrUserData), TrUserData);
@@ -1143,14 +1170,14 @@ decode_msg_2_doit(span, Bin, TrUserData) ->
 decode_msg_2_doit(status, Bin, TrUserData) ->
     id(decode_msg_status(Bin, TrUserData), TrUserData);
 decode_msg_2_doit(attribute_key_value, Bin,
-		  TrUserData) ->
+                  TrUserData) ->
     id(decode_msg_attribute_key_value(Bin, TrUserData),
        TrUserData);
 decode_msg_2_doit(string_key_value, Bin, TrUserData) ->
     id(decode_msg_string_key_value(Bin, TrUserData),
        TrUserData);
 decode_msg_2_doit(instrumentation_library, Bin,
-		  TrUserData) ->
+                  TrUserData) ->
     id(decode_msg_instrumentation_library(Bin, TrUserData),
        TrUserData);
 decode_msg_2_doit(resource, Bin, TrUserData) ->
@@ -1159,2454 +1186,4846 @@ decode_msg_2_doit(resource, Bin, TrUserData) ->
 
 
 decode_msg_export_trace_service_request(Bin,
-					TrUserData) ->
-    dfp_read_field_def_export_trace_service_request(Bin, 0,
-						    0, id([], TrUserData),
-						    TrUserData).
+                                        TrUserData) ->
+    dfp_read_field_def_export_trace_service_request(Bin,
+                                                    0,
+                                                    0,
+                                                    id([], TrUserData),
+                                                    TrUserData).
 
 dfp_read_field_def_export_trace_service_request(<<10,
-						  Rest/binary>>,
-						Z1, Z2, F@_1, TrUserData) ->
+                                                  Rest/binary>>,
+                                                Z1, Z2, F@_1, TrUserData) ->
     d_field_export_trace_service_request_resource_spans(Rest,
-							Z1, Z2, F@_1,
-							TrUserData);
+                                                        Z1,
+                                                        Z2,
+                                                        F@_1,
+                                                        TrUserData);
 dfp_read_field_def_export_trace_service_request(<<>>, 0,
-						0, R1, TrUserData) ->
+                                                0, R1, TrUserData) ->
     S1 = #{},
     if R1 == '$undef' -> S1;
        true ->
-	   S1#{resource_spans => lists_reverse(R1, TrUserData)}
+           S1#{resource_spans => lists_reverse(R1, TrUserData)}
     end;
 dfp_read_field_def_export_trace_service_request(Other,
-						Z1, Z2, F@_1, TrUserData) ->
+                                                Z1, Z2, F@_1, TrUserData) ->
     dg_read_field_def_export_trace_service_request(Other,
-						   Z1, Z2, F@_1, TrUserData).
+                                                   Z1,
+                                                   Z2,
+                                                   F@_1,
+                                                   TrUserData).
 
 dg_read_field_def_export_trace_service_request(<<1:1,
-						 X:7, Rest/binary>>,
-					       N, Acc, F@_1, TrUserData)
+                                                 X:7, Rest/binary>>,
+                                               N, Acc, F@_1, TrUserData)
     when N < 32 - 7 ->
     dg_read_field_def_export_trace_service_request(Rest,
-						   N + 7, X bsl N + Acc, F@_1,
-						   TrUserData);
+                                                   N + 7,
+                                                   X bsl N + Acc,
+                                                   F@_1,
+                                                   TrUserData);
 dg_read_field_def_export_trace_service_request(<<0:1,
-						 X:7, Rest/binary>>,
-					       N, Acc, F@_1, TrUserData) ->
+                                                 X:7, Rest/binary>>,
+                                               N, Acc, F@_1, TrUserData) ->
     Key = X bsl N + Acc,
     case Key of
-      10 ->
-	  d_field_export_trace_service_request_resource_spans(Rest,
-							      0, 0, F@_1,
-							      TrUserData);
-      _ ->
-	  case Key band 7 of
-	    0 ->
-		skip_varint_export_trace_service_request(Rest, 0, 0,
-							 F@_1, TrUserData);
-	    1 ->
-		skip_64_export_trace_service_request(Rest, 0, 0, F@_1,
-						     TrUserData);
-	    2 ->
-		skip_length_delimited_export_trace_service_request(Rest,
-								   0, 0, F@_1,
-								   TrUserData);
-	    3 ->
-		skip_group_export_trace_service_request(Rest, Key bsr 3,
-							0, F@_1, TrUserData);
-	    5 ->
-		skip_32_export_trace_service_request(Rest, 0, 0, F@_1,
-						     TrUserData)
-	  end
+        10 ->
+            d_field_export_trace_service_request_resource_spans(Rest,
+                                                                0,
+                                                                0,
+                                                                F@_1,
+                                                                TrUserData);
+        _ ->
+            case Key band 7 of
+                0 ->
+                    skip_varint_export_trace_service_request(Rest,
+                                                             0,
+                                                             0,
+                                                             F@_1,
+                                                             TrUserData);
+                1 ->
+                    skip_64_export_trace_service_request(Rest,
+                                                         0,
+                                                         0,
+                                                         F@_1,
+                                                         TrUserData);
+                2 ->
+                    skip_length_delimited_export_trace_service_request(Rest,
+                                                                       0,
+                                                                       0,
+                                                                       F@_1,
+                                                                       TrUserData);
+                3 ->
+                    skip_group_export_trace_service_request(Rest,
+                                                            Key bsr 3,
+                                                            0,
+                                                            F@_1,
+                                                            TrUserData);
+                5 ->
+                    skip_32_export_trace_service_request(Rest,
+                                                         0,
+                                                         0,
+                                                         F@_1,
+                                                         TrUserData)
+            end
     end;
 dg_read_field_def_export_trace_service_request(<<>>, 0,
-					       0, R1, TrUserData) ->
+                                               0, R1, TrUserData) ->
     S1 = #{},
     if R1 == '$undef' -> S1;
        true ->
-	   S1#{resource_spans => lists_reverse(R1, TrUserData)}
+           S1#{resource_spans => lists_reverse(R1, TrUserData)}
     end.
 
 d_field_export_trace_service_request_resource_spans(<<1:1,
-						      X:7, Rest/binary>>,
-						    N, Acc, F@_1, TrUserData)
+                                                      X:7, Rest/binary>>,
+                                                    N, Acc, F@_1, TrUserData)
     when N < 57 ->
     d_field_export_trace_service_request_resource_spans(Rest,
-							N + 7, X bsl N + Acc,
-							F@_1, TrUserData);
+                                                        N + 7,
+                                                        X bsl N + Acc,
+                                                        F@_1,
+                                                        TrUserData);
 d_field_export_trace_service_request_resource_spans(<<0:1,
-						      X:7, Rest/binary>>,
-						    N, Acc, Prev, TrUserData) ->
+                                                      X:7, Rest/binary>>,
+                                                    N, Acc, Prev, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bs:Len/binary, Rest2/binary>> = Rest,
-			   {id(decode_msg_resource_spans(Bs, TrUserData),
-			       TrUserData),
-			    Rest2}
-			 end,
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_resource_spans(Bs, TrUserData),
+                                 TrUserData),
+                              Rest2}
+                         end,
     dfp_read_field_def_export_trace_service_request(RestF,
-						    0, 0,
-						    cons(NewFValue, Prev,
-							 TrUserData),
-						    TrUserData).
+                                                    0,
+                                                    0,
+                                                    cons(NewFValue,
+                                                         Prev,
+                                                         TrUserData),
+                                                    TrUserData).
 
 skip_varint_export_trace_service_request(<<1:1, _:7,
-					   Rest/binary>>,
-					 Z1, Z2, F@_1, TrUserData) ->
-    skip_varint_export_trace_service_request(Rest, Z1, Z2,
-					     F@_1, TrUserData);
+                                           Rest/binary>>,
+                                         Z1, Z2, F@_1, TrUserData) ->
+    skip_varint_export_trace_service_request(Rest,
+                                             Z1,
+                                             Z2,
+                                             F@_1,
+                                             TrUserData);
 skip_varint_export_trace_service_request(<<0:1, _:7,
-					   Rest/binary>>,
-					 Z1, Z2, F@_1, TrUserData) ->
+                                           Rest/binary>>,
+                                         Z1, Z2, F@_1, TrUserData) ->
     dfp_read_field_def_export_trace_service_request(Rest,
-						    Z1, Z2, F@_1, TrUserData).
+                                                    Z1,
+                                                    Z2,
+                                                    F@_1,
+                                                    TrUserData).
 
 skip_length_delimited_export_trace_service_request(<<1:1,
-						     X:7, Rest/binary>>,
-						   N, Acc, F@_1, TrUserData)
+                                                     X:7, Rest/binary>>,
+                                                   N, Acc, F@_1, TrUserData)
     when N < 57 ->
     skip_length_delimited_export_trace_service_request(Rest,
-						       N + 7, X bsl N + Acc,
-						       F@_1, TrUserData);
+                                                       N + 7,
+                                                       X bsl N + Acc,
+                                                       F@_1,
+                                                       TrUserData);
 skip_length_delimited_export_trace_service_request(<<0:1,
-						     X:7, Rest/binary>>,
-						   N, Acc, F@_1, TrUserData) ->
+                                                     X:7, Rest/binary>>,
+                                                   N, Acc, F@_1, TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
     dfp_read_field_def_export_trace_service_request(Rest2,
-						    0, 0, F@_1, TrUserData).
+                                                    0,
+                                                    0,
+                                                    F@_1,
+                                                    TrUserData).
 
 skip_group_export_trace_service_request(Bin, FNum, Z2,
-					F@_1, TrUserData) ->
+                                        F@_1, TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_export_trace_service_request(Rest, 0,
-						    Z2, F@_1, TrUserData).
+    dfp_read_field_def_export_trace_service_request(Rest,
+                                                    0,
+                                                    Z2,
+                                                    F@_1,
+                                                    TrUserData).
 
 skip_32_export_trace_service_request(<<_:32,
-				       Rest/binary>>,
-				     Z1, Z2, F@_1, TrUserData) ->
+                                       Rest/binary>>,
+                                     Z1, Z2, F@_1, TrUserData) ->
     dfp_read_field_def_export_trace_service_request(Rest,
-						    Z1, Z2, F@_1, TrUserData).
+                                                    Z1,
+                                                    Z2,
+                                                    F@_1,
+                                                    TrUserData).
 
 skip_64_export_trace_service_request(<<_:64,
-				       Rest/binary>>,
-				     Z1, Z2, F@_1, TrUserData) ->
+                                       Rest/binary>>,
+                                     Z1, Z2, F@_1, TrUserData) ->
     dfp_read_field_def_export_trace_service_request(Rest,
-						    Z1, Z2, F@_1, TrUserData).
+                                                    Z1,
+                                                    Z2,
+                                                    F@_1,
+                                                    TrUserData).
 
 decode_msg_export_trace_service_response(Bin,
-					 TrUserData) ->
-    dfp_read_field_def_export_trace_service_response(Bin, 0,
-						     0, TrUserData).
+                                         TrUserData) ->
+    dfp_read_field_def_export_trace_service_response(Bin,
+                                                     0,
+                                                     0,
+                                                     TrUserData).
 
 dfp_read_field_def_export_trace_service_response(<<>>,
-						 0, 0, _) ->
+                                                 0, 0, _) ->
     #{};
 dfp_read_field_def_export_trace_service_response(Other,
-						 Z1, Z2, TrUserData) ->
+                                                 Z1, Z2, TrUserData) ->
     dg_read_field_def_export_trace_service_response(Other,
-						    Z1, Z2, TrUserData).
+                                                    Z1,
+                                                    Z2,
+                                                    TrUserData).
 
 dg_read_field_def_export_trace_service_response(<<1:1,
-						  X:7, Rest/binary>>,
-						N, Acc, TrUserData)
+                                                  X:7, Rest/binary>>,
+                                                N, Acc, TrUserData)
     when N < 32 - 7 ->
     dg_read_field_def_export_trace_service_response(Rest,
-						    N + 7, X bsl N + Acc,
-						    TrUserData);
+                                                    N + 7,
+                                                    X bsl N + Acc,
+                                                    TrUserData);
 dg_read_field_def_export_trace_service_response(<<0:1,
-						  X:7, Rest/binary>>,
-						N, Acc, TrUserData) ->
+                                                  X:7, Rest/binary>>,
+                                                N, Acc, TrUserData) ->
     Key = X bsl N + Acc,
     case Key band 7 of
-      0 ->
-	  skip_varint_export_trace_service_response(Rest, 0, 0,
-						    TrUserData);
-      1 ->
-	  skip_64_export_trace_service_response(Rest, 0, 0,
-						TrUserData);
-      2 ->
-	  skip_length_delimited_export_trace_service_response(Rest,
-							      0, 0, TrUserData);
-      3 ->
-	  skip_group_export_trace_service_response(Rest,
-						   Key bsr 3, 0, TrUserData);
-      5 ->
-	  skip_32_export_trace_service_response(Rest, 0, 0,
-						TrUserData)
+        0 ->
+            skip_varint_export_trace_service_response(Rest,
+                                                      0,
+                                                      0,
+                                                      TrUserData);
+        1 ->
+            skip_64_export_trace_service_response(Rest,
+                                                  0,
+                                                  0,
+                                                  TrUserData);
+        2 ->
+            skip_length_delimited_export_trace_service_response(Rest,
+                                                                0,
+                                                                0,
+                                                                TrUserData);
+        3 ->
+            skip_group_export_trace_service_response(Rest,
+                                                     Key bsr 3,
+                                                     0,
+                                                     TrUserData);
+        5 ->
+            skip_32_export_trace_service_response(Rest,
+                                                  0,
+                                                  0,
+                                                  TrUserData)
     end;
 dg_read_field_def_export_trace_service_response(<<>>, 0,
-						0, _) ->
+                                                0, _) ->
     #{}.
 
 skip_varint_export_trace_service_response(<<1:1, _:7,
-					    Rest/binary>>,
-					  Z1, Z2, TrUserData) ->
-    skip_varint_export_trace_service_response(Rest, Z1, Z2,
-					      TrUserData);
+                                            Rest/binary>>,
+                                          Z1, Z2, TrUserData) ->
+    skip_varint_export_trace_service_response(Rest,
+                                              Z1,
+                                              Z2,
+                                              TrUserData);
 skip_varint_export_trace_service_response(<<0:1, _:7,
-					    Rest/binary>>,
-					  Z1, Z2, TrUserData) ->
+                                            Rest/binary>>,
+                                          Z1, Z2, TrUserData) ->
     dfp_read_field_def_export_trace_service_response(Rest,
-						     Z1, Z2, TrUserData).
+                                                     Z1,
+                                                     Z2,
+                                                     TrUserData).
 
 skip_length_delimited_export_trace_service_response(<<1:1,
-						      X:7, Rest/binary>>,
-						    N, Acc, TrUserData)
+                                                      X:7, Rest/binary>>,
+                                                    N, Acc, TrUserData)
     when N < 57 ->
     skip_length_delimited_export_trace_service_response(Rest,
-							N + 7, X bsl N + Acc,
-							TrUserData);
+                                                        N + 7,
+                                                        X bsl N + Acc,
+                                                        TrUserData);
 skip_length_delimited_export_trace_service_response(<<0:1,
-						      X:7, Rest/binary>>,
-						    N, Acc, TrUserData) ->
+                                                      X:7, Rest/binary>>,
+                                                    N, Acc, TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
     dfp_read_field_def_export_trace_service_response(Rest2,
-						     0, 0, TrUserData).
+                                                     0,
+                                                     0,
+                                                     TrUserData).
 
 skip_group_export_trace_service_response(Bin, FNum, Z2,
-					 TrUserData) ->
+                                         TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
     dfp_read_field_def_export_trace_service_response(Rest,
-						     0, Z2, TrUserData).
+                                                     0,
+                                                     Z2,
+                                                     TrUserData).
 
 skip_32_export_trace_service_response(<<_:32,
-					Rest/binary>>,
-				      Z1, Z2, TrUserData) ->
+                                        Rest/binary>>,
+                                      Z1, Z2, TrUserData) ->
     dfp_read_field_def_export_trace_service_response(Rest,
-						     Z1, Z2, TrUserData).
+                                                     Z1,
+                                                     Z2,
+                                                     TrUserData).
 
 skip_64_export_trace_service_response(<<_:64,
-					Rest/binary>>,
-				      Z1, Z2, TrUserData) ->
+                                        Rest/binary>>,
+                                      Z1, Z2, TrUserData) ->
     dfp_read_field_def_export_trace_service_response(Rest,
-						     Z1, Z2, TrUserData).
+                                                     Z1,
+                                                     Z2,
+                                                     TrUserData).
 
 decode_msg_resource_spans(Bin, TrUserData) ->
-    dfp_read_field_def_resource_spans(Bin, 0, 0,
-				      id('$undef', TrUserData),
-				      id([], TrUserData), TrUserData).
+    dfp_read_field_def_resource_spans(Bin,
+                                      0,
+                                      0,
+                                      id('$undef', TrUserData),
+                                      id([], TrUserData),
+                                      TrUserData).
 
 dfp_read_field_def_resource_spans(<<10, Rest/binary>>,
-				  Z1, Z2, F@_1, F@_2, TrUserData) ->
-    d_field_resource_spans_resource(Rest, Z1, Z2, F@_1,
-				    F@_2, TrUserData);
+                                  Z1, Z2, F@_1, F@_2, TrUserData) ->
+    d_field_resource_spans_resource(Rest,
+                                    Z1,
+                                    Z2,
+                                    F@_1,
+                                    F@_2,
+                                    TrUserData);
 dfp_read_field_def_resource_spans(<<18, Rest/binary>>,
-				  Z1, Z2, F@_1, F@_2, TrUserData) ->
+                                  Z1, Z2, F@_1, F@_2, TrUserData) ->
     d_field_resource_spans_instrumentation_library_spans(Rest,
-							 Z1, Z2, F@_1, F@_2,
-							 TrUserData);
+                                                         Z1,
+                                                         Z2,
+                                                         F@_1,
+                                                         F@_2,
+                                                         TrUserData);
 dfp_read_field_def_resource_spans(<<>>, 0, 0, F@_1, R1,
-				  TrUserData) ->
+                                  TrUserData) ->
     S1 = #{},
     S2 = if F@_1 == '$undef' -> S1;
-	    true -> S1#{resource => F@_1}
-	 end,
+            true -> S1#{resource => F@_1}
+         end,
     if R1 == '$undef' -> S2;
        true ->
-	   S2#{instrumentation_library_spans =>
-		   lists_reverse(R1, TrUserData)}
+           S2#{instrumentation_library_spans =>
+                   lists_reverse(R1, TrUserData)}
     end;
 dfp_read_field_def_resource_spans(Other, Z1, Z2, F@_1,
-				  F@_2, TrUserData) ->
-    dg_read_field_def_resource_spans(Other, Z1, Z2, F@_1,
-				     F@_2, TrUserData).
+                                  F@_2, TrUserData) ->
+    dg_read_field_def_resource_spans(Other,
+                                     Z1,
+                                     Z2,
+                                     F@_1,
+                                     F@_2,
+                                     TrUserData).
 
 dg_read_field_def_resource_spans(<<1:1, X:7,
-				   Rest/binary>>,
-				 N, Acc, F@_1, F@_2, TrUserData)
+                                   Rest/binary>>,
+                                 N, Acc, F@_1, F@_2, TrUserData)
     when N < 32 - 7 ->
-    dg_read_field_def_resource_spans(Rest, N + 7,
-				     X bsl N + Acc, F@_1, F@_2, TrUserData);
+    dg_read_field_def_resource_spans(Rest,
+                                     N + 7,
+                                     X bsl N + Acc,
+                                     F@_1,
+                                     F@_2,
+                                     TrUserData);
 dg_read_field_def_resource_spans(<<0:1, X:7,
-				   Rest/binary>>,
-				 N, Acc, F@_1, F@_2, TrUserData) ->
+                                   Rest/binary>>,
+                                 N, Acc, F@_1, F@_2, TrUserData) ->
     Key = X bsl N + Acc,
     case Key of
-      10 ->
-	  d_field_resource_spans_resource(Rest, 0, 0, F@_1, F@_2,
-					  TrUserData);
-      18 ->
-	  d_field_resource_spans_instrumentation_library_spans(Rest,
-							       0, 0, F@_1, F@_2,
-							       TrUserData);
-      _ ->
-	  case Key band 7 of
-	    0 ->
-		skip_varint_resource_spans(Rest, 0, 0, F@_1, F@_2,
-					   TrUserData);
-	    1 ->
-		skip_64_resource_spans(Rest, 0, 0, F@_1, F@_2,
-				       TrUserData);
-	    2 ->
-		skip_length_delimited_resource_spans(Rest, 0, 0, F@_1,
-						     F@_2, TrUserData);
-	    3 ->
-		skip_group_resource_spans(Rest, Key bsr 3, 0, F@_1,
-					  F@_2, TrUserData);
-	    5 ->
-		skip_32_resource_spans(Rest, 0, 0, F@_1, F@_2,
-				       TrUserData)
-	  end
+        10 ->
+            d_field_resource_spans_resource(Rest,
+                                            0,
+                                            0,
+                                            F@_1,
+                                            F@_2,
+                                            TrUserData);
+        18 ->
+            d_field_resource_spans_instrumentation_library_spans(Rest,
+                                                                 0,
+                                                                 0,
+                                                                 F@_1,
+                                                                 F@_2,
+                                                                 TrUserData);
+        _ ->
+            case Key band 7 of
+                0 ->
+                    skip_varint_resource_spans(Rest,
+                                               0,
+                                               0,
+                                               F@_1,
+                                               F@_2,
+                                               TrUserData);
+                1 ->
+                    skip_64_resource_spans(Rest,
+                                           0,
+                                           0,
+                                           F@_1,
+                                           F@_2,
+                                           TrUserData);
+                2 ->
+                    skip_length_delimited_resource_spans(Rest,
+                                                         0,
+                                                         0,
+                                                         F@_1,
+                                                         F@_2,
+                                                         TrUserData);
+                3 ->
+                    skip_group_resource_spans(Rest,
+                                              Key bsr 3,
+                                              0,
+                                              F@_1,
+                                              F@_2,
+                                              TrUserData);
+                5 ->
+                    skip_32_resource_spans(Rest,
+                                           0,
+                                           0,
+                                           F@_1,
+                                           F@_2,
+                                           TrUserData)
+            end
     end;
 dg_read_field_def_resource_spans(<<>>, 0, 0, F@_1, R1,
-				 TrUserData) ->
+                                 TrUserData) ->
     S1 = #{},
     S2 = if F@_1 == '$undef' -> S1;
-	    true -> S1#{resource => F@_1}
-	 end,
+            true -> S1#{resource => F@_1}
+         end,
     if R1 == '$undef' -> S2;
        true ->
-	   S2#{instrumentation_library_spans =>
-		   lists_reverse(R1, TrUserData)}
+           S2#{instrumentation_library_spans =>
+                   lists_reverse(R1, TrUserData)}
     end.
 
 d_field_resource_spans_resource(<<1:1, X:7,
-				  Rest/binary>>,
-				N, Acc, F@_1, F@_2, TrUserData)
+                                  Rest/binary>>,
+                                N, Acc, F@_1, F@_2, TrUserData)
     when N < 57 ->
-    d_field_resource_spans_resource(Rest, N + 7,
-				    X bsl N + Acc, F@_1, F@_2, TrUserData);
+    d_field_resource_spans_resource(Rest,
+                                    N + 7,
+                                    X bsl N + Acc,
+                                    F@_1,
+                                    F@_2,
+                                    TrUserData);
 d_field_resource_spans_resource(<<0:1, X:7,
-				  Rest/binary>>,
-				N, Acc, Prev, F@_2, TrUserData) ->
+                                  Rest/binary>>,
+                                N, Acc, Prev, F@_2, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bs:Len/binary, Rest2/binary>> = Rest,
-			   {id(decode_msg_resource(Bs, TrUserData), TrUserData),
-			    Rest2}
-			 end,
-    dfp_read_field_def_resource_spans(RestF, 0, 0,
-				      if Prev == '$undef' -> NewFValue;
-					 true ->
-					     merge_msg_resource(Prev, NewFValue,
-								TrUserData)
-				      end,
-				      F@_2, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_resource(Bs, TrUserData),
+                                 TrUserData),
+                              Rest2}
+                         end,
+    dfp_read_field_def_resource_spans(RestF,
+                                      0,
+                                      0,
+                                      if Prev == '$undef' -> NewFValue;
+                                         true ->
+                                             merge_msg_resource(Prev,
+                                                                NewFValue,
+                                                                TrUserData)
+                                      end,
+                                      F@_2,
+                                      TrUserData).
 
 d_field_resource_spans_instrumentation_library_spans(<<1:1,
-						       X:7, Rest/binary>>,
-						     N, Acc, F@_1, F@_2,
-						     TrUserData)
+                                                       X:7, Rest/binary>>,
+                                                     N, Acc, F@_1, F@_2,
+                                                     TrUserData)
     when N < 57 ->
     d_field_resource_spans_instrumentation_library_spans(Rest,
-							 N + 7, X bsl N + Acc,
-							 F@_1, F@_2,
-							 TrUserData);
+                                                         N + 7,
+                                                         X bsl N + Acc,
+                                                         F@_1,
+                                                         F@_2,
+                                                         TrUserData);
 d_field_resource_spans_instrumentation_library_spans(<<0:1,
-						       X:7, Rest/binary>>,
-						     N, Acc, F@_1, Prev,
-						     TrUserData) ->
+                                                       X:7, Rest/binary>>,
+                                                     N, Acc, F@_1, Prev,
+                                                     TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bs:Len/binary, Rest2/binary>> = Rest,
-			   {id(decode_msg_instrumentation_library_spans(Bs,
-									TrUserData),
-			       TrUserData),
-			    Rest2}
-			 end,
-    dfp_read_field_def_resource_spans(RestF, 0, 0, F@_1,
-				      cons(NewFValue, Prev, TrUserData),
-				      TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_instrumentation_library_spans(Bs,
+                                                                          TrUserData),
+                                 TrUserData),
+                              Rest2}
+                         end,
+    dfp_read_field_def_resource_spans(RestF,
+                                      0,
+                                      0,
+                                      F@_1,
+                                      cons(NewFValue, Prev, TrUserData),
+                                      TrUserData).
 
 skip_varint_resource_spans(<<1:1, _:7, Rest/binary>>,
-			   Z1, Z2, F@_1, F@_2, TrUserData) ->
-    skip_varint_resource_spans(Rest, Z1, Z2, F@_1, F@_2,
-			       TrUserData);
+                           Z1, Z2, F@_1, F@_2, TrUserData) ->
+    skip_varint_resource_spans(Rest,
+                               Z1,
+                               Z2,
+                               F@_1,
+                               F@_2,
+                               TrUserData);
 skip_varint_resource_spans(<<0:1, _:7, Rest/binary>>,
-			   Z1, Z2, F@_1, F@_2, TrUserData) ->
-    dfp_read_field_def_resource_spans(Rest, Z1, Z2, F@_1,
-				      F@_2, TrUserData).
+                           Z1, Z2, F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_resource_spans(Rest,
+                                      Z1,
+                                      Z2,
+                                      F@_1,
+                                      F@_2,
+                                      TrUserData).
 
 skip_length_delimited_resource_spans(<<1:1, X:7,
-				       Rest/binary>>,
-				     N, Acc, F@_1, F@_2, TrUserData)
+                                       Rest/binary>>,
+                                     N, Acc, F@_1, F@_2, TrUserData)
     when N < 57 ->
-    skip_length_delimited_resource_spans(Rest, N + 7,
-					 X bsl N + Acc, F@_1, F@_2, TrUserData);
+    skip_length_delimited_resource_spans(Rest,
+                                         N + 7,
+                                         X bsl N + Acc,
+                                         F@_1,
+                                         F@_2,
+                                         TrUserData);
 skip_length_delimited_resource_spans(<<0:1, X:7,
-				       Rest/binary>>,
-				     N, Acc, F@_1, F@_2, TrUserData) ->
+                                       Rest/binary>>,
+                                     N, Acc, F@_1, F@_2, TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
-    dfp_read_field_def_resource_spans(Rest2, 0, 0, F@_1,
-				      F@_2, TrUserData).
+    dfp_read_field_def_resource_spans(Rest2,
+                                      0,
+                                      0,
+                                      F@_1,
+                                      F@_2,
+                                      TrUserData).
 
 skip_group_resource_spans(Bin, FNum, Z2, F@_1, F@_2,
-			  TrUserData) ->
+                          TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_resource_spans(Rest, 0, Z2, F@_1,
-				      F@_2, TrUserData).
+    dfp_read_field_def_resource_spans(Rest,
+                                      0,
+                                      Z2,
+                                      F@_1,
+                                      F@_2,
+                                      TrUserData).
 
 skip_32_resource_spans(<<_:32, Rest/binary>>, Z1, Z2,
-		       F@_1, F@_2, TrUserData) ->
-    dfp_read_field_def_resource_spans(Rest, Z1, Z2, F@_1,
-				      F@_2, TrUserData).
+                       F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_resource_spans(Rest,
+                                      Z1,
+                                      Z2,
+                                      F@_1,
+                                      F@_2,
+                                      TrUserData).
 
 skip_64_resource_spans(<<_:64, Rest/binary>>, Z1, Z2,
-		       F@_1, F@_2, TrUserData) ->
-    dfp_read_field_def_resource_spans(Rest, Z1, Z2, F@_1,
-				      F@_2, TrUserData).
+                       F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_resource_spans(Rest,
+                                      Z1,
+                                      Z2,
+                                      F@_1,
+                                      F@_2,
+                                      TrUserData).
 
 decode_msg_instrumentation_library_spans(Bin,
-					 TrUserData) ->
-    dfp_read_field_def_instrumentation_library_spans(Bin, 0,
-						     0,
-						     id('$undef', TrUserData),
-						     id([], TrUserData),
-						     TrUserData).
+                                         TrUserData) ->
+    dfp_read_field_def_instrumentation_library_spans(Bin,
+                                                     0,
+                                                     0,
+                                                     id('$undef', TrUserData),
+                                                     id([], TrUserData),
+                                                     TrUserData).
 
 dfp_read_field_def_instrumentation_library_spans(<<10,
-						   Rest/binary>>,
-						 Z1, Z2, F@_1, F@_2,
-						 TrUserData) ->
+                                                   Rest/binary>>,
+                                                 Z1, Z2, F@_1, F@_2,
+                                                 TrUserData) ->
     d_field_instrumentation_library_spans_instrumentation_library(Rest,
-								  Z1, Z2, F@_1,
-								  F@_2,
-								  TrUserData);
+                                                                  Z1,
+                                                                  Z2,
+                                                                  F@_1,
+                                                                  F@_2,
+                                                                  TrUserData);
 dfp_read_field_def_instrumentation_library_spans(<<18,
-						   Rest/binary>>,
-						 Z1, Z2, F@_1, F@_2,
-						 TrUserData) ->
-    d_field_instrumentation_library_spans_spans(Rest, Z1,
-						Z2, F@_1, F@_2, TrUserData);
+                                                   Rest/binary>>,
+                                                 Z1, Z2, F@_1, F@_2,
+                                                 TrUserData) ->
+    d_field_instrumentation_library_spans_spans(Rest,
+                                                Z1,
+                                                Z2,
+                                                F@_1,
+                                                F@_2,
+                                                TrUserData);
 dfp_read_field_def_instrumentation_library_spans(<<>>,
-						 0, 0, F@_1, R1, TrUserData) ->
+                                                 0, 0, F@_1, R1, TrUserData) ->
     S1 = #{},
     S2 = if F@_1 == '$undef' -> S1;
-	    true -> S1#{instrumentation_library => F@_1}
-	 end,
+            true -> S1#{instrumentation_library => F@_1}
+         end,
     if R1 == '$undef' -> S2;
        true -> S2#{spans => lists_reverse(R1, TrUserData)}
     end;
 dfp_read_field_def_instrumentation_library_spans(Other,
-						 Z1, Z2, F@_1, F@_2,
-						 TrUserData) ->
+                                                 Z1, Z2, F@_1, F@_2,
+                                                 TrUserData) ->
     dg_read_field_def_instrumentation_library_spans(Other,
-						    Z1, Z2, F@_1, F@_2,
-						    TrUserData).
+                                                    Z1,
+                                                    Z2,
+                                                    F@_1,
+                                                    F@_2,
+                                                    TrUserData).
 
 dg_read_field_def_instrumentation_library_spans(<<1:1,
-						  X:7, Rest/binary>>,
-						N, Acc, F@_1, F@_2, TrUserData)
+                                                  X:7, Rest/binary>>,
+                                                N, Acc, F@_1, F@_2, TrUserData)
     when N < 32 - 7 ->
     dg_read_field_def_instrumentation_library_spans(Rest,
-						    N + 7, X bsl N + Acc, F@_1,
-						    F@_2, TrUserData);
+                                                    N + 7,
+                                                    X bsl N + Acc,
+                                                    F@_1,
+                                                    F@_2,
+                                                    TrUserData);
 dg_read_field_def_instrumentation_library_spans(<<0:1,
-						  X:7, Rest/binary>>,
-						N, Acc, F@_1, F@_2,
-						TrUserData) ->
+                                                  X:7, Rest/binary>>,
+                                                N, Acc, F@_1, F@_2,
+                                                TrUserData) ->
     Key = X bsl N + Acc,
     case Key of
-      10 ->
-	  d_field_instrumentation_library_spans_instrumentation_library(Rest,
-									0, 0,
-									F@_1,
-									F@_2,
-									TrUserData);
-      18 ->
-	  d_field_instrumentation_library_spans_spans(Rest, 0, 0,
-						      F@_1, F@_2, TrUserData);
-      _ ->
-	  case Key band 7 of
-	    0 ->
-		skip_varint_instrumentation_library_spans(Rest, 0, 0,
-							  F@_1, F@_2,
-							  TrUserData);
-	    1 ->
-		skip_64_instrumentation_library_spans(Rest, 0, 0, F@_1,
-						      F@_2, TrUserData);
-	    2 ->
-		skip_length_delimited_instrumentation_library_spans(Rest,
-								    0, 0, F@_1,
-								    F@_2,
-								    TrUserData);
-	    3 ->
-		skip_group_instrumentation_library_spans(Rest,
-							 Key bsr 3, 0, F@_1,
-							 F@_2, TrUserData);
-	    5 ->
-		skip_32_instrumentation_library_spans(Rest, 0, 0, F@_1,
-						      F@_2, TrUserData)
-	  end
+        10 ->
+            d_field_instrumentation_library_spans_instrumentation_library(Rest,
+                                                                          0,
+                                                                          0,
+                                                                          F@_1,
+                                                                          F@_2,
+                                                                          TrUserData);
+        18 ->
+            d_field_instrumentation_library_spans_spans(Rest,
+                                                        0,
+                                                        0,
+                                                        F@_1,
+                                                        F@_2,
+                                                        TrUserData);
+        _ ->
+            case Key band 7 of
+                0 ->
+                    skip_varint_instrumentation_library_spans(Rest,
+                                                              0,
+                                                              0,
+                                                              F@_1,
+                                                              F@_2,
+                                                              TrUserData);
+                1 ->
+                    skip_64_instrumentation_library_spans(Rest,
+                                                          0,
+                                                          0,
+                                                          F@_1,
+                                                          F@_2,
+                                                          TrUserData);
+                2 ->
+                    skip_length_delimited_instrumentation_library_spans(Rest,
+                                                                        0,
+                                                                        0,
+                                                                        F@_1,
+                                                                        F@_2,
+                                                                        TrUserData);
+                3 ->
+                    skip_group_instrumentation_library_spans(Rest,
+                                                             Key bsr 3,
+                                                             0,
+                                                             F@_1,
+                                                             F@_2,
+                                                             TrUserData);
+                5 ->
+                    skip_32_instrumentation_library_spans(Rest,
+                                                          0,
+                                                          0,
+                                                          F@_1,
+                                                          F@_2,
+                                                          TrUserData)
+            end
     end;
 dg_read_field_def_instrumentation_library_spans(<<>>, 0,
-						0, F@_1, R1, TrUserData) ->
+                                                0, F@_1, R1, TrUserData) ->
     S1 = #{},
     S2 = if F@_1 == '$undef' -> S1;
-	    true -> S1#{instrumentation_library => F@_1}
-	 end,
+            true -> S1#{instrumentation_library => F@_1}
+         end,
     if R1 == '$undef' -> S2;
        true -> S2#{spans => lists_reverse(R1, TrUserData)}
     end.
 
 d_field_instrumentation_library_spans_instrumentation_library(<<1:1,
-								X:7,
-								Rest/binary>>,
-							      N, Acc, F@_1,
-							      F@_2, TrUserData)
+                                                                X:7,
+                                                                Rest/binary>>,
+                                                              N, Acc, F@_1,
+                                                              F@_2, TrUserData)
     when N < 57 ->
     d_field_instrumentation_library_spans_instrumentation_library(Rest,
-								  N + 7,
-								  X bsl N + Acc,
-								  F@_1, F@_2,
-								  TrUserData);
+                                                                  N + 7,
+                                                                  X bsl N + Acc,
+                                                                  F@_1,
+                                                                  F@_2,
+                                                                  TrUserData);
 d_field_instrumentation_library_spans_instrumentation_library(<<0:1,
-								X:7,
-								Rest/binary>>,
-							      N, Acc, Prev,
-							      F@_2,
-							      TrUserData) ->
+                                                                X:7,
+                                                                Rest/binary>>,
+                                                              N, Acc, Prev,
+                                                              F@_2,
+                                                              TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bs:Len/binary, Rest2/binary>> = Rest,
-			   {id(decode_msg_instrumentation_library(Bs,
-								  TrUserData),
-			       TrUserData),
-			    Rest2}
-			 end,
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_instrumentation_library(Bs,
+                                                                    TrUserData),
+                                 TrUserData),
+                              Rest2}
+                         end,
     dfp_read_field_def_instrumentation_library_spans(RestF,
-						     0, 0,
-						     if Prev == '$undef' ->
-							    NewFValue;
-							true ->
-							    merge_msg_instrumentation_library(Prev,
-											      NewFValue,
-											      TrUserData)
-						     end,
-						     F@_2, TrUserData).
+                                                     0,
+                                                     0,
+                                                     if Prev == '$undef' ->
+                                                            NewFValue;
+                                                        true ->
+                                                            merge_msg_instrumentation_library(Prev,
+                                                                                              NewFValue,
+                                                                                              TrUserData)
+                                                     end,
+                                                     F@_2,
+                                                     TrUserData).
 
 d_field_instrumentation_library_spans_spans(<<1:1, X:7,
-					      Rest/binary>>,
-					    N, Acc, F@_1, F@_2, TrUserData)
+                                              Rest/binary>>,
+                                            N, Acc, F@_1, F@_2, TrUserData)
     when N < 57 ->
-    d_field_instrumentation_library_spans_spans(Rest, N + 7,
-						X bsl N + Acc, F@_1, F@_2,
-						TrUserData);
+    d_field_instrumentation_library_spans_spans(Rest,
+                                                N + 7,
+                                                X bsl N + Acc,
+                                                F@_1,
+                                                F@_2,
+                                                TrUserData);
 d_field_instrumentation_library_spans_spans(<<0:1, X:7,
-					      Rest/binary>>,
-					    N, Acc, F@_1, Prev, TrUserData) ->
+                                              Rest/binary>>,
+                                            N, Acc, F@_1, Prev, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bs:Len/binary, Rest2/binary>> = Rest,
-			   {id(decode_msg_span(Bs, TrUserData), TrUserData),
-			    Rest2}
-			 end,
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_span(Bs, TrUserData), TrUserData),
+                              Rest2}
+                         end,
     dfp_read_field_def_instrumentation_library_spans(RestF,
-						     0, 0, F@_1,
-						     cons(NewFValue, Prev,
-							  TrUserData),
-						     TrUserData).
+                                                     0,
+                                                     0,
+                                                     F@_1,
+                                                     cons(NewFValue,
+                                                          Prev,
+                                                          TrUserData),
+                                                     TrUserData).
 
 skip_varint_instrumentation_library_spans(<<1:1, _:7,
-					    Rest/binary>>,
-					  Z1, Z2, F@_1, F@_2, TrUserData) ->
-    skip_varint_instrumentation_library_spans(Rest, Z1, Z2,
-					      F@_1, F@_2, TrUserData);
+                                            Rest/binary>>,
+                                          Z1, Z2, F@_1, F@_2, TrUserData) ->
+    skip_varint_instrumentation_library_spans(Rest,
+                                              Z1,
+                                              Z2,
+                                              F@_1,
+                                              F@_2,
+                                              TrUserData);
 skip_varint_instrumentation_library_spans(<<0:1, _:7,
-					    Rest/binary>>,
-					  Z1, Z2, F@_1, F@_2, TrUserData) ->
+                                            Rest/binary>>,
+                                          Z1, Z2, F@_1, F@_2, TrUserData) ->
     dfp_read_field_def_instrumentation_library_spans(Rest,
-						     Z1, Z2, F@_1, F@_2,
-						     TrUserData).
+                                                     Z1,
+                                                     Z2,
+                                                     F@_1,
+                                                     F@_2,
+                                                     TrUserData).
 
 skip_length_delimited_instrumentation_library_spans(<<1:1,
-						      X:7, Rest/binary>>,
-						    N, Acc, F@_1, F@_2,
-						    TrUserData)
+                                                      X:7, Rest/binary>>,
+                                                    N, Acc, F@_1, F@_2,
+                                                    TrUserData)
     when N < 57 ->
     skip_length_delimited_instrumentation_library_spans(Rest,
-							N + 7, X bsl N + Acc,
-							F@_1, F@_2, TrUserData);
+                                                        N + 7,
+                                                        X bsl N + Acc,
+                                                        F@_1,
+                                                        F@_2,
+                                                        TrUserData);
 skip_length_delimited_instrumentation_library_spans(<<0:1,
-						      X:7, Rest/binary>>,
-						    N, Acc, F@_1, F@_2,
-						    TrUserData) ->
+                                                      X:7, Rest/binary>>,
+                                                    N, Acc, F@_1, F@_2,
+                                                    TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
     dfp_read_field_def_instrumentation_library_spans(Rest2,
-						     0, 0, F@_1, F@_2,
-						     TrUserData).
+                                                     0,
+                                                     0,
+                                                     F@_1,
+                                                     F@_2,
+                                                     TrUserData).
 
 skip_group_instrumentation_library_spans(Bin, FNum, Z2,
-					 F@_1, F@_2, TrUserData) ->
+                                         F@_1, F@_2, TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
     dfp_read_field_def_instrumentation_library_spans(Rest,
-						     0, Z2, F@_1, F@_2,
-						     TrUserData).
+                                                     0,
+                                                     Z2,
+                                                     F@_1,
+                                                     F@_2,
+                                                     TrUserData).
 
 skip_32_instrumentation_library_spans(<<_:32,
-					Rest/binary>>,
-				      Z1, Z2, F@_1, F@_2, TrUserData) ->
+                                        Rest/binary>>,
+                                      Z1, Z2, F@_1, F@_2, TrUserData) ->
     dfp_read_field_def_instrumentation_library_spans(Rest,
-						     Z1, Z2, F@_1, F@_2,
-						     TrUserData).
+                                                     Z1,
+                                                     Z2,
+                                                     F@_1,
+                                                     F@_2,
+                                                     TrUserData).
 
 skip_64_instrumentation_library_spans(<<_:64,
-					Rest/binary>>,
-				      Z1, Z2, F@_1, F@_2, TrUserData) ->
+                                        Rest/binary>>,
+                                      Z1, Z2, F@_1, F@_2, TrUserData) ->
     dfp_read_field_def_instrumentation_library_spans(Rest,
-						     Z1, Z2, F@_1, F@_2,
-						     TrUserData).
+                                                     Z1,
+                                                     Z2,
+                                                     F@_1,
+                                                     F@_2,
+                                                     TrUserData).
 
 decode_msg_event(Bin, TrUserData) ->
-    dfp_read_field_def_event(Bin, 0, 0, id(0, TrUserData),
-			     id(<<>>, TrUserData), id([], TrUserData),
-			     id(0, TrUserData), TrUserData).
+    dfp_read_field_def_event(Bin,
+                             0,
+                             0,
+                             id(0, TrUserData),
+                             id(<<>>, TrUserData),
+                             id([], TrUserData),
+                             id(0, TrUserData),
+                             TrUserData).
 
 dfp_read_field_def_event(<<9, Rest/binary>>, Z1, Z2,
-			 F@_1, F@_2, F@_3, F@_4, TrUserData) ->
-    d_field_event_time_unix_nano(Rest, Z1, Z2, F@_1, F@_2,
-				 F@_3, F@_4, TrUserData);
+                         F@_1, F@_2, F@_3, F@_4, TrUserData) ->
+    d_field_event_time_unix_nano(Rest,
+                                 Z1,
+                                 Z2,
+                                 F@_1,
+                                 F@_2,
+                                 F@_3,
+                                 F@_4,
+                                 TrUserData);
 dfp_read_field_def_event(<<18, Rest/binary>>, Z1, Z2,
-			 F@_1, F@_2, F@_3, F@_4, TrUserData) ->
-    d_field_event_name(Rest, Z1, Z2, F@_1, F@_2, F@_3, F@_4,
-		       TrUserData);
+                         F@_1, F@_2, F@_3, F@_4, TrUserData) ->
+    d_field_event_name(Rest,
+                       Z1,
+                       Z2,
+                       F@_1,
+                       F@_2,
+                       F@_3,
+                       F@_4,
+                       TrUserData);
 dfp_read_field_def_event(<<26, Rest/binary>>, Z1, Z2,
-			 F@_1, F@_2, F@_3, F@_4, TrUserData) ->
-    d_field_event_attributes(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			     F@_4, TrUserData);
+                         F@_1, F@_2, F@_3, F@_4, TrUserData) ->
+    d_field_event_attributes(Rest,
+                             Z1,
+                             Z2,
+                             F@_1,
+                             F@_2,
+                             F@_3,
+                             F@_4,
+                             TrUserData);
 dfp_read_field_def_event(<<32, Rest/binary>>, Z1, Z2,
-			 F@_1, F@_2, F@_3, F@_4, TrUserData) ->
-    d_field_event_dropped_attributes_count(Rest, Z1, Z2,
-					   F@_1, F@_2, F@_3, F@_4, TrUserData);
+                         F@_1, F@_2, F@_3, F@_4, TrUserData) ->
+    d_field_event_dropped_attributes_count(Rest,
+                                           Z1,
+                                           Z2,
+                                           F@_1,
+                                           F@_2,
+                                           F@_3,
+                                           F@_4,
+                                           TrUserData);
 dfp_read_field_def_event(<<>>, 0, 0, F@_1, F@_2, R1,
-			 F@_4, TrUserData) ->
+                         F@_4, TrUserData) ->
     S1 = #{time_unix_nano => F@_1, name => F@_2,
-	   dropped_attributes_count => F@_4},
+           dropped_attributes_count => F@_4},
     if R1 == '$undef' -> S1;
        true -> S1#{attributes => lists_reverse(R1, TrUserData)}
     end;
 dfp_read_field_def_event(Other, Z1, Z2, F@_1, F@_2,
-			 F@_3, F@_4, TrUserData) ->
-    dg_read_field_def_event(Other, Z1, Z2, F@_1, F@_2, F@_3,
-			    F@_4, TrUserData).
+                         F@_3, F@_4, TrUserData) ->
+    dg_read_field_def_event(Other,
+                            Z1,
+                            Z2,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            TrUserData).
 
 dg_read_field_def_event(<<1:1, X:7, Rest/binary>>, N,
-			Acc, F@_1, F@_2, F@_3, F@_4, TrUserData)
+                        Acc, F@_1, F@_2, F@_3, F@_4, TrUserData)
     when N < 32 - 7 ->
-    dg_read_field_def_event(Rest, N + 7, X bsl N + Acc,
-			    F@_1, F@_2, F@_3, F@_4, TrUserData);
+    dg_read_field_def_event(Rest,
+                            N + 7,
+                            X bsl N + Acc,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            TrUserData);
 dg_read_field_def_event(<<0:1, X:7, Rest/binary>>, N,
-			Acc, F@_1, F@_2, F@_3, F@_4, TrUserData) ->
+                        Acc, F@_1, F@_2, F@_3, F@_4, TrUserData) ->
     Key = X bsl N + Acc,
     case Key of
-      9 ->
-	  d_field_event_time_unix_nano(Rest, 0, 0, F@_1, F@_2,
-				       F@_3, F@_4, TrUserData);
-      18 ->
-	  d_field_event_name(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
-			     TrUserData);
-      26 ->
-	  d_field_event_attributes(Rest, 0, 0, F@_1, F@_2, F@_3,
-				   F@_4, TrUserData);
-      32 ->
-	  d_field_event_dropped_attributes_count(Rest, 0, 0, F@_1,
-						 F@_2, F@_3, F@_4, TrUserData);
-      _ ->
-	  case Key band 7 of
-	    0 ->
-		skip_varint_event(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
-				  TrUserData);
-	    1 ->
-		skip_64_event(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
-			      TrUserData);
-	    2 ->
-		skip_length_delimited_event(Rest, 0, 0, F@_1, F@_2,
-					    F@_3, F@_4, TrUserData);
-	    3 ->
-		skip_group_event(Rest, Key bsr 3, 0, F@_1, F@_2, F@_3,
-				 F@_4, TrUserData);
-	    5 ->
-		skip_32_event(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
-			      TrUserData)
-	  end
+        9 ->
+            d_field_event_time_unix_nano(Rest,
+                                         0,
+                                         0,
+                                         F@_1,
+                                         F@_2,
+                                         F@_3,
+                                         F@_4,
+                                         TrUserData);
+        18 ->
+            d_field_event_name(Rest,
+                               0,
+                               0,
+                               F@_1,
+                               F@_2,
+                               F@_3,
+                               F@_4,
+                               TrUserData);
+        26 ->
+            d_field_event_attributes(Rest,
+                                     0,
+                                     0,
+                                     F@_1,
+                                     F@_2,
+                                     F@_3,
+                                     F@_4,
+                                     TrUserData);
+        32 ->
+            d_field_event_dropped_attributes_count(Rest,
+                                                   0,
+                                                   0,
+                                                   F@_1,
+                                                   F@_2,
+                                                   F@_3,
+                                                   F@_4,
+                                                   TrUserData);
+        _ ->
+            case Key band 7 of
+                0 ->
+                    skip_varint_event(Rest,
+                                      0,
+                                      0,
+                                      F@_1,
+                                      F@_2,
+                                      F@_3,
+                                      F@_4,
+                                      TrUserData);
+                1 ->
+                    skip_64_event(Rest,
+                                  0,
+                                  0,
+                                  F@_1,
+                                  F@_2,
+                                  F@_3,
+                                  F@_4,
+                                  TrUserData);
+                2 ->
+                    skip_length_delimited_event(Rest,
+                                                0,
+                                                0,
+                                                F@_1,
+                                                F@_2,
+                                                F@_3,
+                                                F@_4,
+                                                TrUserData);
+                3 ->
+                    skip_group_event(Rest,
+                                     Key bsr 3,
+                                     0,
+                                     F@_1,
+                                     F@_2,
+                                     F@_3,
+                                     F@_4,
+                                     TrUserData);
+                5 ->
+                    skip_32_event(Rest,
+                                  0,
+                                  0,
+                                  F@_1,
+                                  F@_2,
+                                  F@_3,
+                                  F@_4,
+                                  TrUserData)
+            end
     end;
 dg_read_field_def_event(<<>>, 0, 0, F@_1, F@_2, R1,
-			F@_4, TrUserData) ->
+                        F@_4, TrUserData) ->
     S1 = #{time_unix_nano => F@_1, name => F@_2,
-	   dropped_attributes_count => F@_4},
+           dropped_attributes_count => F@_4},
     if R1 == '$undef' -> S1;
        true -> S1#{attributes => lists_reverse(R1, TrUserData)}
     end.
 
 d_field_event_time_unix_nano(<<Value:64/little,
-			       Rest/binary>>,
-			     Z1, Z2, _, F@_2, F@_3, F@_4, TrUserData) ->
-    dfp_read_field_def_event(Rest, Z1, Z2,
-			     id(Value, TrUserData), F@_2, F@_3, F@_4,
-			     TrUserData).
+                               Rest/binary>>,
+                             Z1, Z2, _, F@_2, F@_3, F@_4, TrUserData) ->
+    dfp_read_field_def_event(Rest,
+                             Z1,
+                             Z2,
+                             id(Value, TrUserData),
+                             F@_2,
+                             F@_3,
+                             F@_4,
+                             TrUserData).
 
 d_field_event_name(<<1:1, X:7, Rest/binary>>, N, Acc,
-		   F@_1, F@_2, F@_3, F@_4, TrUserData)
+                   F@_1, F@_2, F@_3, F@_4, TrUserData)
     when N < 57 ->
-    d_field_event_name(Rest, N + 7, X bsl N + Acc, F@_1,
-		       F@_2, F@_3, F@_4, TrUserData);
+    d_field_event_name(Rest,
+                       N + 7,
+                       X bsl N + Acc,
+                       F@_1,
+                       F@_2,
+                       F@_3,
+                       F@_4,
+                       TrUserData);
 d_field_event_name(<<0:1, X:7, Rest/binary>>, N, Acc,
-		   F@_1, _, F@_3, F@_4, TrUserData) ->
+                   F@_1, _, F@_3, F@_4, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
-			   {id(binary:copy(Bytes), TrUserData), Rest2}
-			 end,
-    dfp_read_field_def_event(RestF, 0, 0, F@_1, NewFValue,
-			     F@_3, F@_4, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_event(RestF,
+                             0,
+                             0,
+                             F@_1,
+                             NewFValue,
+                             F@_3,
+                             F@_4,
+                             TrUserData).
 
 d_field_event_attributes(<<1:1, X:7, Rest/binary>>, N,
-			 Acc, F@_1, F@_2, F@_3, F@_4, TrUserData)
+                         Acc, F@_1, F@_2, F@_3, F@_4, TrUserData)
     when N < 57 ->
-    d_field_event_attributes(Rest, N + 7, X bsl N + Acc,
-			     F@_1, F@_2, F@_3, F@_4, TrUserData);
+    d_field_event_attributes(Rest,
+                             N + 7,
+                             X bsl N + Acc,
+                             F@_1,
+                             F@_2,
+                             F@_3,
+                             F@_4,
+                             TrUserData);
 d_field_event_attributes(<<0:1, X:7, Rest/binary>>, N,
-			 Acc, F@_1, F@_2, Prev, F@_4, TrUserData) ->
+                         Acc, F@_1, F@_2, Prev, F@_4, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bs:Len/binary, Rest2/binary>> = Rest,
-			   {id(decode_msg_attribute_key_value(Bs, TrUserData),
-			       TrUserData),
-			    Rest2}
-			 end,
-    dfp_read_field_def_event(RestF, 0, 0, F@_1, F@_2,
-			     cons(NewFValue, Prev, TrUserData), F@_4,
-			     TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_attribute_key_value(Bs, TrUserData),
+                                 TrUserData),
+                              Rest2}
+                         end,
+    dfp_read_field_def_event(RestF,
+                             0,
+                             0,
+                             F@_1,
+                             F@_2,
+                             cons(NewFValue, Prev, TrUserData),
+                             F@_4,
+                             TrUserData).
 
 d_field_event_dropped_attributes_count(<<1:1, X:7,
-					 Rest/binary>>,
-				       N, Acc, F@_1, F@_2, F@_3, F@_4,
-				       TrUserData)
+                                         Rest/binary>>,
+                                       N, Acc, F@_1, F@_2, F@_3, F@_4,
+                                       TrUserData)
     when N < 57 ->
-    d_field_event_dropped_attributes_count(Rest, N + 7,
-					   X bsl N + Acc, F@_1, F@_2, F@_3,
-					   F@_4, TrUserData);
+    d_field_event_dropped_attributes_count(Rest,
+                                           N + 7,
+                                           X bsl N + Acc,
+                                           F@_1,
+                                           F@_2,
+                                           F@_3,
+                                           F@_4,
+                                           TrUserData);
 d_field_event_dropped_attributes_count(<<0:1, X:7,
-					 Rest/binary>>,
-				       N, Acc, F@_1, F@_2, F@_3, _,
-				       TrUserData) ->
+                                         Rest/binary>>,
+                                       N, Acc, F@_1, F@_2, F@_3, _,
+                                       TrUserData) ->
     {NewFValue, RestF} = {id(X bsl N + Acc, TrUserData),
-			  Rest},
-    dfp_read_field_def_event(RestF, 0, 0, F@_1, F@_2, F@_3,
-			     NewFValue, TrUserData).
+                          Rest},
+    dfp_read_field_def_event(RestF,
+                             0,
+                             0,
+                             F@_1,
+                             F@_2,
+                             F@_3,
+                             NewFValue,
+                             TrUserData).
 
 skip_varint_event(<<1:1, _:7, Rest/binary>>, Z1, Z2,
-		  F@_1, F@_2, F@_3, F@_4, TrUserData) ->
-    skip_varint_event(Rest, Z1, Z2, F@_1, F@_2, F@_3, F@_4,
-		      TrUserData);
+                  F@_1, F@_2, F@_3, F@_4, TrUserData) ->
+    skip_varint_event(Rest,
+                      Z1,
+                      Z2,
+                      F@_1,
+                      F@_2,
+                      F@_3,
+                      F@_4,
+                      TrUserData);
 skip_varint_event(<<0:1, _:7, Rest/binary>>, Z1, Z2,
-		  F@_1, F@_2, F@_3, F@_4, TrUserData) ->
-    dfp_read_field_def_event(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			     F@_4, TrUserData).
+                  F@_1, F@_2, F@_3, F@_4, TrUserData) ->
+    dfp_read_field_def_event(Rest,
+                             Z1,
+                             Z2,
+                             F@_1,
+                             F@_2,
+                             F@_3,
+                             F@_4,
+                             TrUserData).
 
 skip_length_delimited_event(<<1:1, X:7, Rest/binary>>,
-			    N, Acc, F@_1, F@_2, F@_3, F@_4, TrUserData)
+                            N, Acc, F@_1, F@_2, F@_3, F@_4, TrUserData)
     when N < 57 ->
-    skip_length_delimited_event(Rest, N + 7, X bsl N + Acc,
-				F@_1, F@_2, F@_3, F@_4, TrUserData);
+    skip_length_delimited_event(Rest,
+                                N + 7,
+                                X bsl N + Acc,
+                                F@_1,
+                                F@_2,
+                                F@_3,
+                                F@_4,
+                                TrUserData);
 skip_length_delimited_event(<<0:1, X:7, Rest/binary>>,
-			    N, Acc, F@_1, F@_2, F@_3, F@_4, TrUserData) ->
+                            N, Acc, F@_1, F@_2, F@_3, F@_4, TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
-    dfp_read_field_def_event(Rest2, 0, 0, F@_1, F@_2, F@_3,
-			     F@_4, TrUserData).
+    dfp_read_field_def_event(Rest2,
+                             0,
+                             0,
+                             F@_1,
+                             F@_2,
+                             F@_3,
+                             F@_4,
+                             TrUserData).
 
 skip_group_event(Bin, FNum, Z2, F@_1, F@_2, F@_3, F@_4,
-		 TrUserData) ->
+                 TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_event(Rest, 0, Z2, F@_1, F@_2, F@_3,
-			     F@_4, TrUserData).
+    dfp_read_field_def_event(Rest,
+                             0,
+                             Z2,
+                             F@_1,
+                             F@_2,
+                             F@_3,
+                             F@_4,
+                             TrUserData).
 
 skip_32_event(<<_:32, Rest/binary>>, Z1, Z2, F@_1, F@_2,
-	      F@_3, F@_4, TrUserData) ->
-    dfp_read_field_def_event(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			     F@_4, TrUserData).
+              F@_3, F@_4, TrUserData) ->
+    dfp_read_field_def_event(Rest,
+                             Z1,
+                             Z2,
+                             F@_1,
+                             F@_2,
+                             F@_3,
+                             F@_4,
+                             TrUserData).
 
 skip_64_event(<<_:64, Rest/binary>>, Z1, Z2, F@_1, F@_2,
-	      F@_3, F@_4, TrUserData) ->
-    dfp_read_field_def_event(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			     F@_4, TrUserData).
+              F@_3, F@_4, TrUserData) ->
+    dfp_read_field_def_event(Rest,
+                             Z1,
+                             Z2,
+                             F@_1,
+                             F@_2,
+                             F@_3,
+                             F@_4,
+                             TrUserData).
 
 decode_msg_link(Bin, TrUserData) ->
-    dfp_read_field_def_link(Bin, 0, 0, id(<<>>, TrUserData),
-			    id(<<>>, TrUserData), id(<<>>, TrUserData),
-			    id([], TrUserData), id(0, TrUserData), TrUserData).
+    dfp_read_field_def_link(Bin,
+                            0,
+                            0,
+                            id(<<>>, TrUserData),
+                            id(<<>>, TrUserData),
+                            id(<<>>, TrUserData),
+                            id([], TrUserData),
+                            id(0, TrUserData),
+                            TrUserData).
 
 dfp_read_field_def_link(<<10, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
-    d_field_link_trace_id(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			  F@_4, F@_5, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
+    d_field_link_trace_id(Rest,
+                          Z1,
+                          Z2,
+                          F@_1,
+                          F@_2,
+                          F@_3,
+                          F@_4,
+                          F@_5,
+                          TrUserData);
 dfp_read_field_def_link(<<18, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
-    d_field_link_span_id(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			 F@_4, F@_5, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
+    d_field_link_span_id(Rest,
+                         Z1,
+                         Z2,
+                         F@_1,
+                         F@_2,
+                         F@_3,
+                         F@_4,
+                         F@_5,
+                         TrUserData);
 dfp_read_field_def_link(<<26, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
-    d_field_link_trace_state(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			     F@_4, F@_5, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
+    d_field_link_trace_state(Rest,
+                             Z1,
+                             Z2,
+                             F@_1,
+                             F@_2,
+                             F@_3,
+                             F@_4,
+                             F@_5,
+                             TrUserData);
 dfp_read_field_def_link(<<34, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
-    d_field_link_attributes(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
+    d_field_link_attributes(Rest,
+                            Z1,
+                            Z2,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            TrUserData);
 dfp_read_field_def_link(<<40, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
-    d_field_link_dropped_attributes_count(Rest, Z1, Z2,
-					  F@_1, F@_2, F@_3, F@_4, F@_5,
-					  TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
+    d_field_link_dropped_attributes_count(Rest,
+                                          Z1,
+                                          Z2,
+                                          F@_1,
+                                          F@_2,
+                                          F@_3,
+                                          F@_4,
+                                          F@_5,
+                                          TrUserData);
 dfp_read_field_def_link(<<>>, 0, 0, F@_1, F@_2, F@_3,
-			R1, F@_5, TrUserData) ->
+                        R1, F@_5, TrUserData) ->
     S1 = #{trace_id => F@_1, span_id => F@_2,
-	   trace_state => F@_3, dropped_attributes_count => F@_5},
+           trace_state => F@_3, dropped_attributes_count => F@_5},
     if R1 == '$undef' -> S1;
        true -> S1#{attributes => lists_reverse(R1, TrUserData)}
     end;
 dfp_read_field_def_link(Other, Z1, Z2, F@_1, F@_2, F@_3,
-			F@_4, F@_5, TrUserData) ->
-    dg_read_field_def_link(Other, Z1, Z2, F@_1, F@_2, F@_3,
-			   F@_4, F@_5, TrUserData).
+                        F@_4, F@_5, TrUserData) ->
+    dg_read_field_def_link(Other,
+                           Z1,
+                           Z2,
+                           F@_1,
+                           F@_2,
+                           F@_3,
+                           F@_4,
+                           F@_5,
+                           TrUserData).
 
 dg_read_field_def_link(<<1:1, X:7, Rest/binary>>, N,
-		       Acc, F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData)
+                       Acc, F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData)
     when N < 32 - 7 ->
-    dg_read_field_def_link(Rest, N + 7, X bsl N + Acc, F@_1,
-			   F@_2, F@_3, F@_4, F@_5, TrUserData);
+    dg_read_field_def_link(Rest,
+                           N + 7,
+                           X bsl N + Acc,
+                           F@_1,
+                           F@_2,
+                           F@_3,
+                           F@_4,
+                           F@_5,
+                           TrUserData);
 dg_read_field_def_link(<<0:1, X:7, Rest/binary>>, N,
-		       Acc, F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
+                       Acc, F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
     Key = X bsl N + Acc,
     case Key of
-      10 ->
-	  d_field_link_trace_id(Rest, 0, 0, F@_1, F@_2, F@_3,
-				F@_4, F@_5, TrUserData);
-      18 ->
-	  d_field_link_span_id(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
-			       F@_5, TrUserData);
-      26 ->
-	  d_field_link_trace_state(Rest, 0, 0, F@_1, F@_2, F@_3,
-				   F@_4, F@_5, TrUserData);
-      34 ->
-	  d_field_link_attributes(Rest, 0, 0, F@_1, F@_2, F@_3,
-				  F@_4, F@_5, TrUserData);
-      40 ->
-	  d_field_link_dropped_attributes_count(Rest, 0, 0, F@_1,
-						F@_2, F@_3, F@_4, F@_5,
-						TrUserData);
-      _ ->
-	  case Key band 7 of
-	    0 ->
-		skip_varint_link(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
-				 F@_5, TrUserData);
-	    1 ->
-		skip_64_link(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4, F@_5,
-			     TrUserData);
-	    2 ->
-		skip_length_delimited_link(Rest, 0, 0, F@_1, F@_2, F@_3,
-					   F@_4, F@_5, TrUserData);
-	    3 ->
-		skip_group_link(Rest, Key bsr 3, 0, F@_1, F@_2, F@_3,
-				F@_4, F@_5, TrUserData);
-	    5 ->
-		skip_32_link(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4, F@_5,
-			     TrUserData)
-	  end
+        10 ->
+            d_field_link_trace_id(Rest,
+                                  0,
+                                  0,
+                                  F@_1,
+                                  F@_2,
+                                  F@_3,
+                                  F@_4,
+                                  F@_5,
+                                  TrUserData);
+        18 ->
+            d_field_link_span_id(Rest,
+                                 0,
+                                 0,
+                                 F@_1,
+                                 F@_2,
+                                 F@_3,
+                                 F@_4,
+                                 F@_5,
+                                 TrUserData);
+        26 ->
+            d_field_link_trace_state(Rest,
+                                     0,
+                                     0,
+                                     F@_1,
+                                     F@_2,
+                                     F@_3,
+                                     F@_4,
+                                     F@_5,
+                                     TrUserData);
+        34 ->
+            d_field_link_attributes(Rest,
+                                    0,
+                                    0,
+                                    F@_1,
+                                    F@_2,
+                                    F@_3,
+                                    F@_4,
+                                    F@_5,
+                                    TrUserData);
+        40 ->
+            d_field_link_dropped_attributes_count(Rest,
+                                                  0,
+                                                  0,
+                                                  F@_1,
+                                                  F@_2,
+                                                  F@_3,
+                                                  F@_4,
+                                                  F@_5,
+                                                  TrUserData);
+        _ ->
+            case Key band 7 of
+                0 ->
+                    skip_varint_link(Rest,
+                                     0,
+                                     0,
+                                     F@_1,
+                                     F@_2,
+                                     F@_3,
+                                     F@_4,
+                                     F@_5,
+                                     TrUserData);
+                1 ->
+                    skip_64_link(Rest,
+                                 0,
+                                 0,
+                                 F@_1,
+                                 F@_2,
+                                 F@_3,
+                                 F@_4,
+                                 F@_5,
+                                 TrUserData);
+                2 ->
+                    skip_length_delimited_link(Rest,
+                                               0,
+                                               0,
+                                               F@_1,
+                                               F@_2,
+                                               F@_3,
+                                               F@_4,
+                                               F@_5,
+                                               TrUserData);
+                3 ->
+                    skip_group_link(Rest,
+                                    Key bsr 3,
+                                    0,
+                                    F@_1,
+                                    F@_2,
+                                    F@_3,
+                                    F@_4,
+                                    F@_5,
+                                    TrUserData);
+                5 ->
+                    skip_32_link(Rest,
+                                 0,
+                                 0,
+                                 F@_1,
+                                 F@_2,
+                                 F@_3,
+                                 F@_4,
+                                 F@_5,
+                                 TrUserData)
+            end
     end;
 dg_read_field_def_link(<<>>, 0, 0, F@_1, F@_2, F@_3, R1,
-		       F@_5, TrUserData) ->
+                       F@_5, TrUserData) ->
     S1 = #{trace_id => F@_1, span_id => F@_2,
-	   trace_state => F@_3, dropped_attributes_count => F@_5},
+           trace_state => F@_3, dropped_attributes_count => F@_5},
     if R1 == '$undef' -> S1;
        true -> S1#{attributes => lists_reverse(R1, TrUserData)}
     end.
 
 d_field_link_trace_id(<<1:1, X:7, Rest/binary>>, N, Acc,
-		      F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData)
+                      F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData)
     when N < 57 ->
-    d_field_link_trace_id(Rest, N + 7, X bsl N + Acc, F@_1,
-			  F@_2, F@_3, F@_4, F@_5, TrUserData);
+    d_field_link_trace_id(Rest,
+                          N + 7,
+                          X bsl N + Acc,
+                          F@_1,
+                          F@_2,
+                          F@_3,
+                          F@_4,
+                          F@_5,
+                          TrUserData);
 d_field_link_trace_id(<<0:1, X:7, Rest/binary>>, N, Acc,
-		      _, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
+                      _, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
-			   {id(binary:copy(Bytes), TrUserData), Rest2}
-			 end,
-    dfp_read_field_def_link(RestF, 0, 0, NewFValue, F@_2,
-			    F@_3, F@_4, F@_5, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_link(RestF,
+                            0,
+                            0,
+                            NewFValue,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            TrUserData).
 
 d_field_link_span_id(<<1:1, X:7, Rest/binary>>, N, Acc,
-		     F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData)
+                     F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData)
     when N < 57 ->
-    d_field_link_span_id(Rest, N + 7, X bsl N + Acc, F@_1,
-			 F@_2, F@_3, F@_4, F@_5, TrUserData);
+    d_field_link_span_id(Rest,
+                         N + 7,
+                         X bsl N + Acc,
+                         F@_1,
+                         F@_2,
+                         F@_3,
+                         F@_4,
+                         F@_5,
+                         TrUserData);
 d_field_link_span_id(<<0:1, X:7, Rest/binary>>, N, Acc,
-		     F@_1, _, F@_3, F@_4, F@_5, TrUserData) ->
+                     F@_1, _, F@_3, F@_4, F@_5, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
-			   {id(binary:copy(Bytes), TrUserData), Rest2}
-			 end,
-    dfp_read_field_def_link(RestF, 0, 0, F@_1, NewFValue,
-			    F@_3, F@_4, F@_5, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_link(RestF,
+                            0,
+                            0,
+                            F@_1,
+                            NewFValue,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            TrUserData).
 
 d_field_link_trace_state(<<1:1, X:7, Rest/binary>>, N,
-			 Acc, F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData)
+                         Acc, F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData)
     when N < 57 ->
-    d_field_link_trace_state(Rest, N + 7, X bsl N + Acc,
-			     F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData);
+    d_field_link_trace_state(Rest,
+                             N + 7,
+                             X bsl N + Acc,
+                             F@_1,
+                             F@_2,
+                             F@_3,
+                             F@_4,
+                             F@_5,
+                             TrUserData);
 d_field_link_trace_state(<<0:1, X:7, Rest/binary>>, N,
-			 Acc, F@_1, F@_2, _, F@_4, F@_5, TrUserData) ->
+                         Acc, F@_1, F@_2, _, F@_4, F@_5, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
-			   {id(binary:copy(Bytes), TrUserData), Rest2}
-			 end,
-    dfp_read_field_def_link(RestF, 0, 0, F@_1, F@_2,
-			    NewFValue, F@_4, F@_5, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_link(RestF,
+                            0,
+                            0,
+                            F@_1,
+                            F@_2,
+                            NewFValue,
+                            F@_4,
+                            F@_5,
+                            TrUserData).
 
 d_field_link_attributes(<<1:1, X:7, Rest/binary>>, N,
-			Acc, F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData)
+                        Acc, F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData)
     when N < 57 ->
-    d_field_link_attributes(Rest, N + 7, X bsl N + Acc,
-			    F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData);
+    d_field_link_attributes(Rest,
+                            N + 7,
+                            X bsl N + Acc,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            TrUserData);
 d_field_link_attributes(<<0:1, X:7, Rest/binary>>, N,
-			Acc, F@_1, F@_2, F@_3, Prev, F@_5, TrUserData) ->
+                        Acc, F@_1, F@_2, F@_3, Prev, F@_5, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bs:Len/binary, Rest2/binary>> = Rest,
-			   {id(decode_msg_attribute_key_value(Bs, TrUserData),
-			       TrUserData),
-			    Rest2}
-			 end,
-    dfp_read_field_def_link(RestF, 0, 0, F@_1, F@_2, F@_3,
-			    cons(NewFValue, Prev, TrUserData), F@_5,
-			    TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_attribute_key_value(Bs, TrUserData),
+                                 TrUserData),
+                              Rest2}
+                         end,
+    dfp_read_field_def_link(RestF,
+                            0,
+                            0,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            cons(NewFValue, Prev, TrUserData),
+                            F@_5,
+                            TrUserData).
 
 d_field_link_dropped_attributes_count(<<1:1, X:7,
-					Rest/binary>>,
-				      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-				      TrUserData)
+                                        Rest/binary>>,
+                                      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
+                                      TrUserData)
     when N < 57 ->
-    d_field_link_dropped_attributes_count(Rest, N + 7,
-					  X bsl N + Acc, F@_1, F@_2, F@_3, F@_4,
-					  F@_5, TrUserData);
+    d_field_link_dropped_attributes_count(Rest,
+                                          N + 7,
+                                          X bsl N + Acc,
+                                          F@_1,
+                                          F@_2,
+                                          F@_3,
+                                          F@_4,
+                                          F@_5,
+                                          TrUserData);
 d_field_link_dropped_attributes_count(<<0:1, X:7,
-					Rest/binary>>,
-				      N, Acc, F@_1, F@_2, F@_3, F@_4, _,
-				      TrUserData) ->
+                                        Rest/binary>>,
+                                      N, Acc, F@_1, F@_2, F@_3, F@_4, _,
+                                      TrUserData) ->
     {NewFValue, RestF} = {id(X bsl N + Acc, TrUserData),
-			  Rest},
-    dfp_read_field_def_link(RestF, 0, 0, F@_1, F@_2, F@_3,
-			    F@_4, NewFValue, TrUserData).
+                          Rest},
+    dfp_read_field_def_link(RestF,
+                            0,
+                            0,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            NewFValue,
+                            TrUserData).
 
 skip_varint_link(<<1:1, _:7, Rest/binary>>, Z1, Z2,
-		 F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
-    skip_varint_link(Rest, Z1, Z2, F@_1, F@_2, F@_3, F@_4,
-		     F@_5, TrUserData);
+                 F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
+    skip_varint_link(Rest,
+                     Z1,
+                     Z2,
+                     F@_1,
+                     F@_2,
+                     F@_3,
+                     F@_4,
+                     F@_5,
+                     TrUserData);
 skip_varint_link(<<0:1, _:7, Rest/binary>>, Z1, Z2,
-		 F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
-    dfp_read_field_def_link(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, TrUserData).
+                 F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
+    dfp_read_field_def_link(Rest,
+                            Z1,
+                            Z2,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            TrUserData).
 
 skip_length_delimited_link(<<1:1, X:7, Rest/binary>>, N,
-			   Acc, F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData)
+                           Acc, F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData)
     when N < 57 ->
-    skip_length_delimited_link(Rest, N + 7, X bsl N + Acc,
-			       F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData);
+    skip_length_delimited_link(Rest,
+                               N + 7,
+                               X bsl N + Acc,
+                               F@_1,
+                               F@_2,
+                               F@_3,
+                               F@_4,
+                               F@_5,
+                               TrUserData);
 skip_length_delimited_link(<<0:1, X:7, Rest/binary>>, N,
-			   Acc, F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
+                           Acc, F@_1, F@_2, F@_3, F@_4, F@_5, TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
-    dfp_read_field_def_link(Rest2, 0, 0, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, TrUserData).
+    dfp_read_field_def_link(Rest2,
+                            0,
+                            0,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            TrUserData).
 
 skip_group_link(Bin, FNum, Z2, F@_1, F@_2, F@_3, F@_4,
-		F@_5, TrUserData) ->
+                F@_5, TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_link(Rest, 0, Z2, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, TrUserData).
+    dfp_read_field_def_link(Rest,
+                            0,
+                            Z2,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            TrUserData).
 
 skip_32_link(<<_:32, Rest/binary>>, Z1, Z2, F@_1, F@_2,
-	     F@_3, F@_4, F@_5, TrUserData) ->
-    dfp_read_field_def_link(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, TrUserData).
+             F@_3, F@_4, F@_5, TrUserData) ->
+    dfp_read_field_def_link(Rest,
+                            Z1,
+                            Z2,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            TrUserData).
 
 skip_64_link(<<_:64, Rest/binary>>, Z1, Z2, F@_1, F@_2,
-	     F@_3, F@_4, F@_5, TrUserData) ->
-    dfp_read_field_def_link(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, TrUserData).
+             F@_3, F@_4, F@_5, TrUserData) ->
+    dfp_read_field_def_link(Rest,
+                            Z1,
+                            Z2,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            TrUserData).
 
 decode_msg_span(Bin, TrUserData) ->
-    dfp_read_field_def_span(Bin, 0, 0, id(<<>>, TrUserData),
-			    id(<<>>, TrUserData), id(<<>>, TrUserData),
-			    id(<<>>, TrUserData), id(<<>>, TrUserData),
-			    id('SPAN_KIND_UNSPECIFIED', TrUserData),
-			    id(0, TrUserData), id(0, TrUserData),
-			    id([], TrUserData), id(0, TrUserData),
-			    id([], TrUserData), id(0, TrUserData),
-			    id([], TrUserData), id(0, TrUserData),
-			    id('$undef', TrUserData), TrUserData).
+    dfp_read_field_def_span(Bin,
+                            0,
+                            0,
+                            id(<<>>, TrUserData),
+                            id(<<>>, TrUserData),
+                            id(<<>>, TrUserData),
+                            id(<<>>, TrUserData),
+                            id(<<>>, TrUserData),
+                            id('SPAN_KIND_UNSPECIFIED', TrUserData),
+                            id(0, TrUserData),
+                            id(0, TrUserData),
+                            id([], TrUserData),
+                            id(0, TrUserData),
+                            id([], TrUserData),
+                            id(0, TrUserData),
+                            id([], TrUserData),
+                            id(0, TrUserData),
+                            id('$undef', TrUserData),
+                            TrUserData).
 
 dfp_read_field_def_span(<<10, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_trace_id(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			  F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			  F@_12, F@_13, F@_14, F@_15, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                        F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    d_field_span_trace_id(Rest,
+                          Z1,
+                          Z2,
+                          F@_1,
+                          F@_2,
+                          F@_3,
+                          F@_4,
+                          F@_5,
+                          F@_6,
+                          F@_7,
+                          F@_8,
+                          F@_9,
+                          F@_10,
+                          F@_11,
+                          F@_12,
+                          F@_13,
+                          F@_14,
+                          F@_15,
+                          TrUserData);
 dfp_read_field_def_span(<<18, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_span_id(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			 F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			 F@_12, F@_13, F@_14, F@_15, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                        F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    d_field_span_span_id(Rest,
+                         Z1,
+                         Z2,
+                         F@_1,
+                         F@_2,
+                         F@_3,
+                         F@_4,
+                         F@_5,
+                         F@_6,
+                         F@_7,
+                         F@_8,
+                         F@_9,
+                         F@_10,
+                         F@_11,
+                         F@_12,
+                         F@_13,
+                         F@_14,
+                         F@_15,
+                         TrUserData);
 dfp_read_field_def_span(<<26, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_trace_state(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			     F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			     F@_12, F@_13, F@_14, F@_15, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                        F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    d_field_span_trace_state(Rest,
+                             Z1,
+                             Z2,
+                             F@_1,
+                             F@_2,
+                             F@_3,
+                             F@_4,
+                             F@_5,
+                             F@_6,
+                             F@_7,
+                             F@_8,
+                             F@_9,
+                             F@_10,
+                             F@_11,
+                             F@_12,
+                             F@_13,
+                             F@_14,
+                             F@_15,
+                             TrUserData);
 dfp_read_field_def_span(<<34, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_parent_span_id(Rest, Z1, Z2, F@_1, F@_2,
-				F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-				F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                        F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    d_field_span_parent_span_id(Rest,
+                                Z1,
+                                Z2,
+                                F@_1,
+                                F@_2,
+                                F@_3,
+                                F@_4,
+                                F@_5,
+                                F@_6,
+                                F@_7,
+                                F@_8,
+                                F@_9,
+                                F@_10,
+                                F@_11,
+                                F@_12,
+                                F@_13,
+                                F@_14,
+                                F@_15,
+                                TrUserData);
 dfp_read_field_def_span(<<42, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_name(Rest, Z1, Z2, F@_1, F@_2, F@_3, F@_4,
-		      F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-		      F@_13, F@_14, F@_15, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                        F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    d_field_span_name(Rest,
+                      Z1,
+                      Z2,
+                      F@_1,
+                      F@_2,
+                      F@_3,
+                      F@_4,
+                      F@_5,
+                      F@_6,
+                      F@_7,
+                      F@_8,
+                      F@_9,
+                      F@_10,
+                      F@_11,
+                      F@_12,
+                      F@_13,
+                      F@_14,
+                      F@_15,
+                      TrUserData);
 dfp_read_field_def_span(<<48, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_kind(Rest, Z1, Z2, F@_1, F@_2, F@_3, F@_4,
-		      F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-		      F@_13, F@_14, F@_15, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                        F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    d_field_span_kind(Rest,
+                      Z1,
+                      Z2,
+                      F@_1,
+                      F@_2,
+                      F@_3,
+                      F@_4,
+                      F@_5,
+                      F@_6,
+                      F@_7,
+                      F@_8,
+                      F@_9,
+                      F@_10,
+                      F@_11,
+                      F@_12,
+                      F@_13,
+                      F@_14,
+                      F@_15,
+                      TrUserData);
 dfp_read_field_def_span(<<57, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_start_time_unix_nano(Rest, Z1, Z2, F@_1,
-				      F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-				      F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
-				      F@_15, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                        F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    d_field_span_start_time_unix_nano(Rest,
+                                      Z1,
+                                      Z2,
+                                      F@_1,
+                                      F@_2,
+                                      F@_3,
+                                      F@_4,
+                                      F@_5,
+                                      F@_6,
+                                      F@_7,
+                                      F@_8,
+                                      F@_9,
+                                      F@_10,
+                                      F@_11,
+                                      F@_12,
+                                      F@_13,
+                                      F@_14,
+                                      F@_15,
+                                      TrUserData);
 dfp_read_field_def_span(<<65, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_end_time_unix_nano(Rest, Z1, Z2, F@_1,
-				    F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-				    F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
-				    F@_15, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                        F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    d_field_span_end_time_unix_nano(Rest,
+                                    Z1,
+                                    Z2,
+                                    F@_1,
+                                    F@_2,
+                                    F@_3,
+                                    F@_4,
+                                    F@_5,
+                                    F@_6,
+                                    F@_7,
+                                    F@_8,
+                                    F@_9,
+                                    F@_10,
+                                    F@_11,
+                                    F@_12,
+                                    F@_13,
+                                    F@_14,
+                                    F@_15,
+                                    TrUserData);
 dfp_read_field_def_span(<<74, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_attributes(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                        F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    d_field_span_attributes(Rest,
+                            Z1,
+                            Z2,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData);
 dfp_read_field_def_span(<<80, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_dropped_attributes_count(Rest, Z1, Z2,
-					  F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-					  F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-					  F@_13, F@_14, F@_15, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                        F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    d_field_span_dropped_attributes_count(Rest,
+                                          Z1,
+                                          Z2,
+                                          F@_1,
+                                          F@_2,
+                                          F@_3,
+                                          F@_4,
+                                          F@_5,
+                                          F@_6,
+                                          F@_7,
+                                          F@_8,
+                                          F@_9,
+                                          F@_10,
+                                          F@_11,
+                                          F@_12,
+                                          F@_13,
+                                          F@_14,
+                                          F@_15,
+                                          TrUserData);
 dfp_read_field_def_span(<<90, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_events(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-			F@_13, F@_14, F@_15, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                        F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    d_field_span_events(Rest,
+                        Z1,
+                        Z2,
+                        F@_1,
+                        F@_2,
+                        F@_3,
+                        F@_4,
+                        F@_5,
+                        F@_6,
+                        F@_7,
+                        F@_8,
+                        F@_9,
+                        F@_10,
+                        F@_11,
+                        F@_12,
+                        F@_13,
+                        F@_14,
+                        F@_15,
+                        TrUserData);
 dfp_read_field_def_span(<<96, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_dropped_events_count(Rest, Z1, Z2, F@_1,
-				      F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-				      F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
-				      F@_15, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                        F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    d_field_span_dropped_events_count(Rest,
+                                      Z1,
+                                      Z2,
+                                      F@_1,
+                                      F@_2,
+                                      F@_3,
+                                      F@_4,
+                                      F@_5,
+                                      F@_6,
+                                      F@_7,
+                                      F@_8,
+                                      F@_9,
+                                      F@_10,
+                                      F@_11,
+                                      F@_12,
+                                      F@_13,
+                                      F@_14,
+                                      F@_15,
+                                      TrUserData);
 dfp_read_field_def_span(<<106, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_links(Rest, Z1, Z2, F@_1, F@_2, F@_3, F@_4,
-		       F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-		       F@_13, F@_14, F@_15, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                        F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    d_field_span_links(Rest,
+                       Z1,
+                       Z2,
+                       F@_1,
+                       F@_2,
+                       F@_3,
+                       F@_4,
+                       F@_5,
+                       F@_6,
+                       F@_7,
+                       F@_8,
+                       F@_9,
+                       F@_10,
+                       F@_11,
+                       F@_12,
+                       F@_13,
+                       F@_14,
+                       F@_15,
+                       TrUserData);
 dfp_read_field_def_span(<<112, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_dropped_links_count(Rest, Z1, Z2, F@_1,
-				     F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-				     F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
-				     F@_15, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                        F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    d_field_span_dropped_links_count(Rest,
+                                     Z1,
+                                     Z2,
+                                     F@_1,
+                                     F@_2,
+                                     F@_3,
+                                     F@_4,
+                                     F@_5,
+                                     F@_6,
+                                     F@_7,
+                                     F@_8,
+                                     F@_9,
+                                     F@_10,
+                                     F@_11,
+                                     F@_12,
+                                     F@_13,
+                                     F@_14,
+                                     F@_15,
+                                     TrUserData);
 dfp_read_field_def_span(<<122, Rest/binary>>, Z1, Z2,
-			F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    d_field_span_status(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-			F@_13, F@_14, F@_15, TrUserData);
+                        F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                        F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    d_field_span_status(Rest,
+                        Z1,
+                        Z2,
+                        F@_1,
+                        F@_2,
+                        F@_3,
+                        F@_4,
+                        F@_5,
+                        F@_6,
+                        F@_7,
+                        F@_8,
+                        F@_9,
+                        F@_10,
+                        F@_11,
+                        F@_12,
+                        F@_13,
+                        F@_14,
+                        F@_15,
+                        TrUserData);
 dfp_read_field_def_span(<<>>, 0, 0, F@_1, F@_2, F@_3,
-			F@_4, F@_5, F@_6, F@_7, F@_8, R1, F@_10, R2, F@_12, R3,
-			F@_14, F@_15, TrUserData) ->
+                        F@_4, F@_5, F@_6, F@_7, F@_8, R1, F@_10, R2, F@_12, R3,
+                        F@_14, F@_15, TrUserData) ->
     S1 = #{trace_id => F@_1, span_id => F@_2,
-	   trace_state => F@_3, parent_span_id => F@_4,
-	   name => F@_5, kind => F@_6,
-	   start_time_unix_nano => F@_7,
-	   end_time_unix_nano => F@_8,
-	   dropped_attributes_count => F@_10,
-	   dropped_events_count => F@_12,
-	   dropped_links_count => F@_14},
+           trace_state => F@_3, parent_span_id => F@_4,
+           name => F@_5, kind => F@_6,
+           start_time_unix_nano => F@_7,
+           end_time_unix_nano => F@_8,
+           dropped_attributes_count => F@_10,
+           dropped_events_count => F@_12,
+           dropped_links_count => F@_14},
     S2 = if R1 == '$undef' -> S1;
-	    true -> S1#{attributes => lists_reverse(R1, TrUserData)}
-	 end,
+            true -> S1#{attributes => lists_reverse(R1, TrUserData)}
+         end,
     S3 = if R2 == '$undef' -> S2;
-	    true -> S2#{events => lists_reverse(R2, TrUserData)}
-	 end,
+            true -> S2#{events => lists_reverse(R2, TrUserData)}
+         end,
     S4 = if R3 == '$undef' -> S3;
-	    true -> S3#{links => lists_reverse(R3, TrUserData)}
-	 end,
+            true -> S3#{links => lists_reverse(R3, TrUserData)}
+         end,
     if F@_15 == '$undef' -> S4;
        true -> S4#{status => F@_15}
     end;
 dfp_read_field_def_span(Other, Z1, Z2, F@_1, F@_2, F@_3,
-			F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-			F@_13, F@_14, F@_15, TrUserData) ->
-    dg_read_field_def_span(Other, Z1, Z2, F@_1, F@_2, F@_3,
-			   F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			   F@_12, F@_13, F@_14, F@_15, TrUserData).
+                        F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
+                        F@_13, F@_14, F@_15, TrUserData) ->
+    dg_read_field_def_span(Other,
+                           Z1,
+                           Z2,
+                           F@_1,
+                           F@_2,
+                           F@_3,
+                           F@_4,
+                           F@_5,
+                           F@_6,
+                           F@_7,
+                           F@_8,
+                           F@_9,
+                           F@_10,
+                           F@_11,
+                           F@_12,
+                           F@_13,
+                           F@_14,
+                           F@_15,
+                           TrUserData).
 
 dg_read_field_def_span(<<1:1, X:7, Rest/binary>>, N,
-		       Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-		       F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-		       TrUserData)
+                       Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
+                       F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
+                       TrUserData)
     when N < 32 - 7 ->
-    dg_read_field_def_span(Rest, N + 7, X bsl N + Acc, F@_1,
-			   F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			   F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			   TrUserData);
+    dg_read_field_def_span(Rest,
+                           N + 7,
+                           X bsl N + Acc,
+                           F@_1,
+                           F@_2,
+                           F@_3,
+                           F@_4,
+                           F@_5,
+                           F@_6,
+                           F@_7,
+                           F@_8,
+                           F@_9,
+                           F@_10,
+                           F@_11,
+                           F@_12,
+                           F@_13,
+                           F@_14,
+                           F@_15,
+                           TrUserData);
 dg_read_field_def_span(<<0:1, X:7, Rest/binary>>, N,
-		       Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-		       F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-		       TrUserData) ->
+                       Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
+                       F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
+                       TrUserData) ->
     Key = X bsl N + Acc,
     case Key of
-      10 ->
-	  d_field_span_trace_id(Rest, 0, 0, F@_1, F@_2, F@_3,
-				F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-				F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
-      18 ->
-	  d_field_span_span_id(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
-			       F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			       F@_12, F@_13, F@_14, F@_15, TrUserData);
-      26 ->
-	  d_field_span_trace_state(Rest, 0, 0, F@_1, F@_2, F@_3,
-				   F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-				   F@_11, F@_12, F@_13, F@_14, F@_15,
-				   TrUserData);
-      34 ->
-	  d_field_span_parent_span_id(Rest, 0, 0, F@_1, F@_2,
-				      F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-				      F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-				      TrUserData);
-      42 ->
-	  d_field_span_name(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
-			    F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-			    F@_13, F@_14, F@_15, TrUserData);
-      48 ->
-	  d_field_span_kind(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
-			    F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-			    F@_13, F@_14, F@_15, TrUserData);
-      57 ->
-	  d_field_span_start_time_unix_nano(Rest, 0, 0, F@_1,
-					    F@_2, F@_3, F@_4, F@_5, F@_6, F@_7,
-					    F@_8, F@_9, F@_10, F@_11, F@_12,
-					    F@_13, F@_14, F@_15, TrUserData);
-      65 ->
-	  d_field_span_end_time_unix_nano(Rest, 0, 0, F@_1, F@_2,
-					  F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-					  F@_9, F@_10, F@_11, F@_12, F@_13,
-					  F@_14, F@_15, TrUserData);
-      74 ->
-	  d_field_span_attributes(Rest, 0, 0, F@_1, F@_2, F@_3,
-				  F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-				  F@_11, F@_12, F@_13, F@_14, F@_15,
-				  TrUserData);
-      80 ->
-	  d_field_span_dropped_attributes_count(Rest, 0, 0, F@_1,
-						F@_2, F@_3, F@_4, F@_5, F@_6,
-						F@_7, F@_8, F@_9, F@_10, F@_11,
-						F@_12, F@_13, F@_14, F@_15,
-						TrUserData);
-      90 ->
-	  d_field_span_events(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
-			      F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-			      F@_13, F@_14, F@_15, TrUserData);
-      96 ->
-	  d_field_span_dropped_events_count(Rest, 0, 0, F@_1,
-					    F@_2, F@_3, F@_4, F@_5, F@_6, F@_7,
-					    F@_8, F@_9, F@_10, F@_11, F@_12,
-					    F@_13, F@_14, F@_15, TrUserData);
-      106 ->
-	  d_field_span_links(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
-			     F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-			     F@_13, F@_14, F@_15, TrUserData);
-      112 ->
-	  d_field_span_dropped_links_count(Rest, 0, 0, F@_1, F@_2,
-					   F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-					   F@_9, F@_10, F@_11, F@_12, F@_13,
-					   F@_14, F@_15, TrUserData);
-      122 ->
-	  d_field_span_status(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
-			      F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-			      F@_13, F@_14, F@_15, TrUserData);
-      _ ->
-	  case Key band 7 of
-	    0 ->
-		skip_varint_span(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4,
-				 F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-				 F@_12, F@_13, F@_14, F@_15, TrUserData);
-	    1 ->
-		skip_64_span(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4, F@_5,
-			     F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13,
-			     F@_14, F@_15, TrUserData);
-	    2 ->
-		skip_length_delimited_span(Rest, 0, 0, F@_1, F@_2, F@_3,
-					   F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-					   F@_10, F@_11, F@_12, F@_13, F@_14,
-					   F@_15, TrUserData);
-	    3 ->
-		skip_group_span(Rest, Key bsr 3, 0, F@_1, F@_2, F@_3,
-				F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-				F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
-	    5 ->
-		skip_32_span(Rest, 0, 0, F@_1, F@_2, F@_3, F@_4, F@_5,
-			     F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13,
-			     F@_14, F@_15, TrUserData)
-	  end
+        10 ->
+            d_field_span_trace_id(Rest,
+                                  0,
+                                  0,
+                                  F@_1,
+                                  F@_2,
+                                  F@_3,
+                                  F@_4,
+                                  F@_5,
+                                  F@_6,
+                                  F@_7,
+                                  F@_8,
+                                  F@_9,
+                                  F@_10,
+                                  F@_11,
+                                  F@_12,
+                                  F@_13,
+                                  F@_14,
+                                  F@_15,
+                                  TrUserData);
+        18 ->
+            d_field_span_span_id(Rest,
+                                 0,
+                                 0,
+                                 F@_1,
+                                 F@_2,
+                                 F@_3,
+                                 F@_4,
+                                 F@_5,
+                                 F@_6,
+                                 F@_7,
+                                 F@_8,
+                                 F@_9,
+                                 F@_10,
+                                 F@_11,
+                                 F@_12,
+                                 F@_13,
+                                 F@_14,
+                                 F@_15,
+                                 TrUserData);
+        26 ->
+            d_field_span_trace_state(Rest,
+                                     0,
+                                     0,
+                                     F@_1,
+                                     F@_2,
+                                     F@_3,
+                                     F@_4,
+                                     F@_5,
+                                     F@_6,
+                                     F@_7,
+                                     F@_8,
+                                     F@_9,
+                                     F@_10,
+                                     F@_11,
+                                     F@_12,
+                                     F@_13,
+                                     F@_14,
+                                     F@_15,
+                                     TrUserData);
+        34 ->
+            d_field_span_parent_span_id(Rest,
+                                        0,
+                                        0,
+                                        F@_1,
+                                        F@_2,
+                                        F@_3,
+                                        F@_4,
+                                        F@_5,
+                                        F@_6,
+                                        F@_7,
+                                        F@_8,
+                                        F@_9,
+                                        F@_10,
+                                        F@_11,
+                                        F@_12,
+                                        F@_13,
+                                        F@_14,
+                                        F@_15,
+                                        TrUserData);
+        42 ->
+            d_field_span_name(Rest,
+                              0,
+                              0,
+                              F@_1,
+                              F@_2,
+                              F@_3,
+                              F@_4,
+                              F@_5,
+                              F@_6,
+                              F@_7,
+                              F@_8,
+                              F@_9,
+                              F@_10,
+                              F@_11,
+                              F@_12,
+                              F@_13,
+                              F@_14,
+                              F@_15,
+                              TrUserData);
+        48 ->
+            d_field_span_kind(Rest,
+                              0,
+                              0,
+                              F@_1,
+                              F@_2,
+                              F@_3,
+                              F@_4,
+                              F@_5,
+                              F@_6,
+                              F@_7,
+                              F@_8,
+                              F@_9,
+                              F@_10,
+                              F@_11,
+                              F@_12,
+                              F@_13,
+                              F@_14,
+                              F@_15,
+                              TrUserData);
+        57 ->
+            d_field_span_start_time_unix_nano(Rest,
+                                              0,
+                                              0,
+                                              F@_1,
+                                              F@_2,
+                                              F@_3,
+                                              F@_4,
+                                              F@_5,
+                                              F@_6,
+                                              F@_7,
+                                              F@_8,
+                                              F@_9,
+                                              F@_10,
+                                              F@_11,
+                                              F@_12,
+                                              F@_13,
+                                              F@_14,
+                                              F@_15,
+                                              TrUserData);
+        65 ->
+            d_field_span_end_time_unix_nano(Rest,
+                                            0,
+                                            0,
+                                            F@_1,
+                                            F@_2,
+                                            F@_3,
+                                            F@_4,
+                                            F@_5,
+                                            F@_6,
+                                            F@_7,
+                                            F@_8,
+                                            F@_9,
+                                            F@_10,
+                                            F@_11,
+                                            F@_12,
+                                            F@_13,
+                                            F@_14,
+                                            F@_15,
+                                            TrUserData);
+        74 ->
+            d_field_span_attributes(Rest,
+                                    0,
+                                    0,
+                                    F@_1,
+                                    F@_2,
+                                    F@_3,
+                                    F@_4,
+                                    F@_5,
+                                    F@_6,
+                                    F@_7,
+                                    F@_8,
+                                    F@_9,
+                                    F@_10,
+                                    F@_11,
+                                    F@_12,
+                                    F@_13,
+                                    F@_14,
+                                    F@_15,
+                                    TrUserData);
+        80 ->
+            d_field_span_dropped_attributes_count(Rest,
+                                                  0,
+                                                  0,
+                                                  F@_1,
+                                                  F@_2,
+                                                  F@_3,
+                                                  F@_4,
+                                                  F@_5,
+                                                  F@_6,
+                                                  F@_7,
+                                                  F@_8,
+                                                  F@_9,
+                                                  F@_10,
+                                                  F@_11,
+                                                  F@_12,
+                                                  F@_13,
+                                                  F@_14,
+                                                  F@_15,
+                                                  TrUserData);
+        90 ->
+            d_field_span_events(Rest,
+                                0,
+                                0,
+                                F@_1,
+                                F@_2,
+                                F@_3,
+                                F@_4,
+                                F@_5,
+                                F@_6,
+                                F@_7,
+                                F@_8,
+                                F@_9,
+                                F@_10,
+                                F@_11,
+                                F@_12,
+                                F@_13,
+                                F@_14,
+                                F@_15,
+                                TrUserData);
+        96 ->
+            d_field_span_dropped_events_count(Rest,
+                                              0,
+                                              0,
+                                              F@_1,
+                                              F@_2,
+                                              F@_3,
+                                              F@_4,
+                                              F@_5,
+                                              F@_6,
+                                              F@_7,
+                                              F@_8,
+                                              F@_9,
+                                              F@_10,
+                                              F@_11,
+                                              F@_12,
+                                              F@_13,
+                                              F@_14,
+                                              F@_15,
+                                              TrUserData);
+        106 ->
+            d_field_span_links(Rest,
+                               0,
+                               0,
+                               F@_1,
+                               F@_2,
+                               F@_3,
+                               F@_4,
+                               F@_5,
+                               F@_6,
+                               F@_7,
+                               F@_8,
+                               F@_9,
+                               F@_10,
+                               F@_11,
+                               F@_12,
+                               F@_13,
+                               F@_14,
+                               F@_15,
+                               TrUserData);
+        112 ->
+            d_field_span_dropped_links_count(Rest,
+                                             0,
+                                             0,
+                                             F@_1,
+                                             F@_2,
+                                             F@_3,
+                                             F@_4,
+                                             F@_5,
+                                             F@_6,
+                                             F@_7,
+                                             F@_8,
+                                             F@_9,
+                                             F@_10,
+                                             F@_11,
+                                             F@_12,
+                                             F@_13,
+                                             F@_14,
+                                             F@_15,
+                                             TrUserData);
+        122 ->
+            d_field_span_status(Rest,
+                                0,
+                                0,
+                                F@_1,
+                                F@_2,
+                                F@_3,
+                                F@_4,
+                                F@_5,
+                                F@_6,
+                                F@_7,
+                                F@_8,
+                                F@_9,
+                                F@_10,
+                                F@_11,
+                                F@_12,
+                                F@_13,
+                                F@_14,
+                                F@_15,
+                                TrUserData);
+        _ ->
+            case Key band 7 of
+                0 ->
+                    skip_varint_span(Rest,
+                                     0,
+                                     0,
+                                     F@_1,
+                                     F@_2,
+                                     F@_3,
+                                     F@_4,
+                                     F@_5,
+                                     F@_6,
+                                     F@_7,
+                                     F@_8,
+                                     F@_9,
+                                     F@_10,
+                                     F@_11,
+                                     F@_12,
+                                     F@_13,
+                                     F@_14,
+                                     F@_15,
+                                     TrUserData);
+                1 ->
+                    skip_64_span(Rest,
+                                 0,
+                                 0,
+                                 F@_1,
+                                 F@_2,
+                                 F@_3,
+                                 F@_4,
+                                 F@_5,
+                                 F@_6,
+                                 F@_7,
+                                 F@_8,
+                                 F@_9,
+                                 F@_10,
+                                 F@_11,
+                                 F@_12,
+                                 F@_13,
+                                 F@_14,
+                                 F@_15,
+                                 TrUserData);
+                2 ->
+                    skip_length_delimited_span(Rest,
+                                               0,
+                                               0,
+                                               F@_1,
+                                               F@_2,
+                                               F@_3,
+                                               F@_4,
+                                               F@_5,
+                                               F@_6,
+                                               F@_7,
+                                               F@_8,
+                                               F@_9,
+                                               F@_10,
+                                               F@_11,
+                                               F@_12,
+                                               F@_13,
+                                               F@_14,
+                                               F@_15,
+                                               TrUserData);
+                3 ->
+                    skip_group_span(Rest,
+                                    Key bsr 3,
+                                    0,
+                                    F@_1,
+                                    F@_2,
+                                    F@_3,
+                                    F@_4,
+                                    F@_5,
+                                    F@_6,
+                                    F@_7,
+                                    F@_8,
+                                    F@_9,
+                                    F@_10,
+                                    F@_11,
+                                    F@_12,
+                                    F@_13,
+                                    F@_14,
+                                    F@_15,
+                                    TrUserData);
+                5 ->
+                    skip_32_span(Rest,
+                                 0,
+                                 0,
+                                 F@_1,
+                                 F@_2,
+                                 F@_3,
+                                 F@_4,
+                                 F@_5,
+                                 F@_6,
+                                 F@_7,
+                                 F@_8,
+                                 F@_9,
+                                 F@_10,
+                                 F@_11,
+                                 F@_12,
+                                 F@_13,
+                                 F@_14,
+                                 F@_15,
+                                 TrUserData)
+            end
     end;
 dg_read_field_def_span(<<>>, 0, 0, F@_1, F@_2, F@_3,
-		       F@_4, F@_5, F@_6, F@_7, F@_8, R1, F@_10, R2, F@_12, R3,
-		       F@_14, F@_15, TrUserData) ->
+                       F@_4, F@_5, F@_6, F@_7, F@_8, R1, F@_10, R2, F@_12, R3,
+                       F@_14, F@_15, TrUserData) ->
     S1 = #{trace_id => F@_1, span_id => F@_2,
-	   trace_state => F@_3, parent_span_id => F@_4,
-	   name => F@_5, kind => F@_6,
-	   start_time_unix_nano => F@_7,
-	   end_time_unix_nano => F@_8,
-	   dropped_attributes_count => F@_10,
-	   dropped_events_count => F@_12,
-	   dropped_links_count => F@_14},
+           trace_state => F@_3, parent_span_id => F@_4,
+           name => F@_5, kind => F@_6,
+           start_time_unix_nano => F@_7,
+           end_time_unix_nano => F@_8,
+           dropped_attributes_count => F@_10,
+           dropped_events_count => F@_12,
+           dropped_links_count => F@_14},
     S2 = if R1 == '$undef' -> S1;
-	    true -> S1#{attributes => lists_reverse(R1, TrUserData)}
-	 end,
+            true -> S1#{attributes => lists_reverse(R1, TrUserData)}
+         end,
     S3 = if R2 == '$undef' -> S2;
-	    true -> S2#{events => lists_reverse(R2, TrUserData)}
-	 end,
+            true -> S2#{events => lists_reverse(R2, TrUserData)}
+         end,
     S4 = if R3 == '$undef' -> S3;
-	    true -> S3#{links => lists_reverse(R3, TrUserData)}
-	 end,
+            true -> S3#{links => lists_reverse(R3, TrUserData)}
+         end,
     if F@_15 == '$undef' -> S4;
        true -> S4#{status => F@_15}
     end.
 
 d_field_span_trace_id(<<1:1, X:7, Rest/binary>>, N, Acc,
-		      F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		      F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
+                      F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                      F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
     when N < 57 ->
-    d_field_span_trace_id(Rest, N + 7, X bsl N + Acc, F@_1,
-			  F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-			  F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
+    d_field_span_trace_id(Rest,
+                          N + 7,
+                          X bsl N + Acc,
+                          F@_1,
+                          F@_2,
+                          F@_3,
+                          F@_4,
+                          F@_5,
+                          F@_6,
+                          F@_7,
+                          F@_8,
+                          F@_9,
+                          F@_10,
+                          F@_11,
+                          F@_12,
+                          F@_13,
+                          F@_14,
+                          F@_15,
+                          TrUserData);
 d_field_span_trace_id(<<0:1, X:7, Rest/binary>>, N, Acc,
-		      _, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		      F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+                      _, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                      F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
-			   {id(binary:copy(Bytes), TrUserData), Rest2}
-			 end,
-    dfp_read_field_def_span(RestF, 0, 0, NewFValue, F@_2,
-			    F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-			    F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_span(RestF,
+                            0,
+                            0,
+                            NewFValue,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 d_field_span_span_id(<<1:1, X:7, Rest/binary>>, N, Acc,
-		     F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		     F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
+                     F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                     F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
     when N < 57 ->
-    d_field_span_span_id(Rest, N + 7, X bsl N + Acc, F@_1,
-			 F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-			 F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
+    d_field_span_span_id(Rest,
+                         N + 7,
+                         X bsl N + Acc,
+                         F@_1,
+                         F@_2,
+                         F@_3,
+                         F@_4,
+                         F@_5,
+                         F@_6,
+                         F@_7,
+                         F@_8,
+                         F@_9,
+                         F@_10,
+                         F@_11,
+                         F@_12,
+                         F@_13,
+                         F@_14,
+                         F@_15,
+                         TrUserData);
 d_field_span_span_id(<<0:1, X:7, Rest/binary>>, N, Acc,
-		     F@_1, _, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		     F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+                     F@_1, _, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                     F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
-			   {id(binary:copy(Bytes), TrUserData), Rest2}
-			 end,
-    dfp_read_field_def_span(RestF, 0, 0, F@_1, NewFValue,
-			    F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-			    F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_span(RestF,
+                            0,
+                            0,
+                            F@_1,
+                            NewFValue,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 d_field_span_trace_state(<<1:1, X:7, Rest/binary>>, N,
-			 Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-			 F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			 TrUserData)
+                         Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
+                         F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
+                         TrUserData)
     when N < 57 ->
-    d_field_span_trace_state(Rest, N + 7, X bsl N + Acc,
-			     F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-			     F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			     TrUserData);
+    d_field_span_trace_state(Rest,
+                             N + 7,
+                             X bsl N + Acc,
+                             F@_1,
+                             F@_2,
+                             F@_3,
+                             F@_4,
+                             F@_5,
+                             F@_6,
+                             F@_7,
+                             F@_8,
+                             F@_9,
+                             F@_10,
+                             F@_11,
+                             F@_12,
+                             F@_13,
+                             F@_14,
+                             F@_15,
+                             TrUserData);
 d_field_span_trace_state(<<0:1, X:7, Rest/binary>>, N,
-			 Acc, F@_1, F@_2, _, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			 F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			 TrUserData) ->
+                         Acc, F@_1, F@_2, _, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                         F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
+                         TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
-			   {id(binary:copy(Bytes), TrUserData), Rest2}
-			 end,
-    dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2,
-			    NewFValue, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-			    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			    TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_span(RestF,
+                            0,
+                            0,
+                            F@_1,
+                            F@_2,
+                            NewFValue,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 d_field_span_parent_span_id(<<1:1, X:7, Rest/binary>>,
-			    N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7,
-			    F@_8, F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
-			    F@_15, TrUserData)
+                            N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7,
+                            F@_8, F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
+                            F@_15, TrUserData)
     when N < 57 ->
-    d_field_span_parent_span_id(Rest, N + 7, X bsl N + Acc,
-				F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-				F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-				TrUserData);
+    d_field_span_parent_span_id(Rest,
+                                N + 7,
+                                X bsl N + Acc,
+                                F@_1,
+                                F@_2,
+                                F@_3,
+                                F@_4,
+                                F@_5,
+                                F@_6,
+                                F@_7,
+                                F@_8,
+                                F@_9,
+                                F@_10,
+                                F@_11,
+                                F@_12,
+                                F@_13,
+                                F@_14,
+                                F@_15,
+                                TrUserData);
 d_field_span_parent_span_id(<<0:1, X:7, Rest/binary>>,
-			    N, Acc, F@_1, F@_2, F@_3, _, F@_5, F@_6, F@_7, F@_8,
-			    F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			    TrUserData) ->
+                            N, Acc, F@_1, F@_2, F@_3, _, F@_5, F@_6, F@_7, F@_8,
+                            F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
+                            TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
-			   {id(binary:copy(Bytes), TrUserData), Rest2}
-			 end,
-    dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
-			    NewFValue, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-			    F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_span(RestF,
+                            0,
+                            0,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            NewFValue,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 d_field_span_name(<<1:1, X:7, Rest/binary>>, N, Acc,
-		  F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		  F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
+                  F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                  F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
     when N < 57 ->
-    d_field_span_name(Rest, N + 7, X bsl N + Acc, F@_1,
-		      F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-		      F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
+    d_field_span_name(Rest,
+                      N + 7,
+                      X bsl N + Acc,
+                      F@_1,
+                      F@_2,
+                      F@_3,
+                      F@_4,
+                      F@_5,
+                      F@_6,
+                      F@_7,
+                      F@_8,
+                      F@_9,
+                      F@_10,
+                      F@_11,
+                      F@_12,
+                      F@_13,
+                      F@_14,
+                      F@_15,
+                      TrUserData);
 d_field_span_name(<<0:1, X:7, Rest/binary>>, N, Acc,
-		  F@_1, F@_2, F@_3, F@_4, _, F@_6, F@_7, F@_8, F@_9,
-		  F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+                  F@_1, F@_2, F@_3, F@_4, _, F@_6, F@_7, F@_8, F@_9,
+                  F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
-			   {id(binary:copy(Bytes), TrUserData), Rest2}
-			 end,
-    dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
-			    F@_4, NewFValue, F@_6, F@_7, F@_8, F@_9, F@_10,
-			    F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_span(RestF,
+                            0,
+                            0,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            NewFValue,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 d_field_span_kind(<<1:1, X:7, Rest/binary>>, N, Acc,
-		  F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		  F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
+                  F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                  F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
     when N < 57 ->
-    d_field_span_kind(Rest, N + 7, X bsl N + Acc, F@_1,
-		      F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-		      F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
+    d_field_span_kind(Rest,
+                      N + 7,
+                      X bsl N + Acc,
+                      F@_1,
+                      F@_2,
+                      F@_3,
+                      F@_4,
+                      F@_5,
+                      F@_6,
+                      F@_7,
+                      F@_8,
+                      F@_9,
+                      F@_10,
+                      F@_11,
+                      F@_12,
+                      F@_13,
+                      F@_14,
+                      F@_15,
+                      TrUserData);
 d_field_span_kind(<<0:1, X:7, Rest/binary>>, N, Acc,
-		  F@_1, F@_2, F@_3, F@_4, F@_5, _, F@_7, F@_8, F@_9,
-		  F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+                  F@_1, F@_2, F@_3, F@_4, F@_5, _, F@_7, F@_8, F@_9,
+                  F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = {id('d_enum_span.SpanKind'(begin
-						      <<Res:32/signed-native>> =
-							  <<(X bsl N +
-							       Acc):32/unsigned-native>>,
-						      id(Res, TrUserData)
-						    end),
-			     TrUserData),
-			  Rest},
-    dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, NewFValue, F@_7, F@_8, F@_9, F@_10,
-			    F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData).
+                                                        <<Res:32/signed-native>> =
+                                                            <<(X bsl N +
+                                                                   Acc):32/unsigned-native>>,
+                                                        id(Res, TrUserData)
+                                                    end),
+                             TrUserData),
+                          Rest},
+    dfp_read_field_def_span(RestF,
+                            0,
+                            0,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            NewFValue,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 d_field_span_start_time_unix_nano(<<Value:64/little,
-				    Rest/binary>>,
-				  Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, _,
-				  F@_8, F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
-				  F@_15, TrUserData) ->
-    dfp_read_field_def_span(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, id(Value, TrUserData), F@_8, F@_9,
-			    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			    TrUserData).
+                                    Rest/binary>>,
+                                  Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, _,
+                                  F@_8, F@_9, F@_10, F@_11, F@_12, F@_13, F@_14,
+                                  F@_15, TrUserData) ->
+    dfp_read_field_def_span(Rest,
+                            Z1,
+                            Z2,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            id(Value, TrUserData),
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 d_field_span_end_time_unix_nano(<<Value:64/little,
-				  Rest/binary>>,
-				Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-				F@_7, _, F@_9, F@_10, F@_11, F@_12, F@_13,
-				F@_14, F@_15, TrUserData) ->
-    dfp_read_field_def_span(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, F@_7, id(Value, TrUserData), F@_9,
-			    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			    TrUserData).
+                                  Rest/binary>>,
+                                Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
+                                F@_7, _, F@_9, F@_10, F@_11, F@_12, F@_13,
+                                F@_14, F@_15, TrUserData) ->
+    dfp_read_field_def_span(Rest,
+                            Z1,
+                            Z2,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            id(Value, TrUserData),
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 d_field_span_attributes(<<1:1, X:7, Rest/binary>>, N,
-			Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-			F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			TrUserData)
+                        Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
+                        F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
+                        TrUserData)
     when N < 57 ->
-    d_field_span_attributes(Rest, N + 7, X bsl N + Acc,
-			    F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-			    F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			    TrUserData);
+    d_field_span_attributes(Rest,
+                            N + 7,
+                            X bsl N + Acc,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData);
 d_field_span_attributes(<<0:1, X:7, Rest/binary>>, N,
-			Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-			Prev, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			TrUserData) ->
+                        Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
+                        Prev, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
+                        TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bs:Len/binary, Rest2/binary>> = Rest,
-			   {id(decode_msg_attribute_key_value(Bs, TrUserData),
-			       TrUserData),
-			    Rest2}
-			 end,
-    dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, F@_7, F@_8,
-			    cons(NewFValue, Prev, TrUserData), F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_attribute_key_value(Bs, TrUserData),
+                                 TrUserData),
+                              Rest2}
+                         end,
+    dfp_read_field_def_span(RestF,
+                            0,
+                            0,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            cons(NewFValue, Prev, TrUserData),
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 d_field_span_dropped_attributes_count(<<1:1, X:7,
-					Rest/binary>>,
-				      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-				      F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-				      F@_12, F@_13, F@_14, F@_15, TrUserData)
+                                        Rest/binary>>,
+                                      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
+                                      F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
+                                      F@_12, F@_13, F@_14, F@_15, TrUserData)
     when N < 57 ->
-    d_field_span_dropped_attributes_count(Rest, N + 7,
-					  X bsl N + Acc, F@_1, F@_2, F@_3, F@_4,
-					  F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-					  F@_11, F@_12, F@_13, F@_14, F@_15,
-					  TrUserData);
+    d_field_span_dropped_attributes_count(Rest,
+                                          N + 7,
+                                          X bsl N + Acc,
+                                          F@_1,
+                                          F@_2,
+                                          F@_3,
+                                          F@_4,
+                                          F@_5,
+                                          F@_6,
+                                          F@_7,
+                                          F@_8,
+                                          F@_9,
+                                          F@_10,
+                                          F@_11,
+                                          F@_12,
+                                          F@_13,
+                                          F@_14,
+                                          F@_15,
+                                          TrUserData);
 d_field_span_dropped_attributes_count(<<0:1, X:7,
-					Rest/binary>>,
-				      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-				      F@_6, F@_7, F@_8, F@_9, _, F@_11, F@_12,
-				      F@_13, F@_14, F@_15, TrUserData) ->
+                                        Rest/binary>>,
+                                      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
+                                      F@_6, F@_7, F@_8, F@_9, _, F@_11, F@_12,
+                                      F@_13, F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = {id(X bsl N + Acc, TrUserData),
-			  Rest},
-    dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, NewFValue,
-			    F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData).
+                          Rest},
+    dfp_read_field_def_span(RestF,
+                            0,
+                            0,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            NewFValue,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 d_field_span_events(<<1:1, X:7, Rest/binary>>, N, Acc,
-		    F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
+                    F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
     when N < 57 ->
-    d_field_span_events(Rest, N + 7, X bsl N + Acc, F@_1,
-			F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-			F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
+    d_field_span_events(Rest,
+                        N + 7,
+                        X bsl N + Acc,
+                        F@_1,
+                        F@_2,
+                        F@_3,
+                        F@_4,
+                        F@_5,
+                        F@_6,
+                        F@_7,
+                        F@_8,
+                        F@_9,
+                        F@_10,
+                        F@_11,
+                        F@_12,
+                        F@_13,
+                        F@_14,
+                        F@_15,
+                        TrUserData);
 d_field_span_events(<<0:1, X:7, Rest/binary>>, N, Acc,
-		    F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		    F@_10, Prev, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+                    F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                    F@_10, Prev, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bs:Len/binary, Rest2/binary>> = Rest,
-			   {id(decode_msg_event(Bs, TrUserData), TrUserData),
-			    Rest2}
-			 end,
-    dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-			    cons(NewFValue, Prev, TrUserData), F@_12, F@_13,
-			    F@_14, F@_15, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_event(Bs, TrUserData), TrUserData),
+                              Rest2}
+                         end,
+    dfp_read_field_def_span(RestF,
+                            0,
+                            0,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            cons(NewFValue, Prev, TrUserData),
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 d_field_span_dropped_events_count(<<1:1, X:7,
-				    Rest/binary>>,
-				  N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-				  F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13,
-				  F@_14, F@_15, TrUserData)
+                                    Rest/binary>>,
+                                  N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
+                                  F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13,
+                                  F@_14, F@_15, TrUserData)
     when N < 57 ->
-    d_field_span_dropped_events_count(Rest, N + 7,
-				      X bsl N + Acc, F@_1, F@_2, F@_3, F@_4,
-				      F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-				      F@_11, F@_12, F@_13, F@_14, F@_15,
-				      TrUserData);
+    d_field_span_dropped_events_count(Rest,
+                                      N + 7,
+                                      X bsl N + Acc,
+                                      F@_1,
+                                      F@_2,
+                                      F@_3,
+                                      F@_4,
+                                      F@_5,
+                                      F@_6,
+                                      F@_7,
+                                      F@_8,
+                                      F@_9,
+                                      F@_10,
+                                      F@_11,
+                                      F@_12,
+                                      F@_13,
+                                      F@_14,
+                                      F@_15,
+                                      TrUserData);
 d_field_span_dropped_events_count(<<0:1, X:7,
-				    Rest/binary>>,
-				  N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-				  F@_7, F@_8, F@_9, F@_10, F@_11, _, F@_13,
-				  F@_14, F@_15, TrUserData) ->
+                                    Rest/binary>>,
+                                  N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
+                                  F@_7, F@_8, F@_9, F@_10, F@_11, _, F@_13,
+                                  F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = {id(X bsl N + Acc, TrUserData),
-			  Rest},
-    dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    NewFValue, F@_13, F@_14, F@_15, TrUserData).
+                          Rest},
+    dfp_read_field_def_span(RestF,
+                            0,
+                            0,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            NewFValue,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 d_field_span_links(<<1:1, X:7, Rest/binary>>, N, Acc,
-		   F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		   F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
+                   F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                   F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
     when N < 57 ->
-    d_field_span_links(Rest, N + 7, X bsl N + Acc, F@_1,
-		       F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-		       F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
+    d_field_span_links(Rest,
+                       N + 7,
+                       X bsl N + Acc,
+                       F@_1,
+                       F@_2,
+                       F@_3,
+                       F@_4,
+                       F@_5,
+                       F@_6,
+                       F@_7,
+                       F@_8,
+                       F@_9,
+                       F@_10,
+                       F@_11,
+                       F@_12,
+                       F@_13,
+                       F@_14,
+                       F@_15,
+                       TrUserData);
 d_field_span_links(<<0:1, X:7, Rest/binary>>, N, Acc,
-		   F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		   F@_10, F@_11, F@_12, Prev, F@_14, F@_15, TrUserData) ->
+                   F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                   F@_10, F@_11, F@_12, Prev, F@_14, F@_15, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bs:Len/binary, Rest2/binary>> = Rest,
-			   {id(decode_msg_link(Bs, TrUserData), TrUserData),
-			    Rest2}
-			 end,
-    dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, cons(NewFValue, Prev, TrUserData), F@_14,
-			    F@_15, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_link(Bs, TrUserData), TrUserData),
+                              Rest2}
+                         end,
+    dfp_read_field_def_span(RestF,
+                            0,
+                            0,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            cons(NewFValue, Prev, TrUserData),
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 d_field_span_dropped_links_count(<<1:1, X:7,
-				   Rest/binary>>,
-				 N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-				 F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13,
-				 F@_14, F@_15, TrUserData)
+                                   Rest/binary>>,
+                                 N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
+                                 F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13,
+                                 F@_14, F@_15, TrUserData)
     when N < 57 ->
-    d_field_span_dropped_links_count(Rest, N + 7,
-				     X bsl N + Acc, F@_1, F@_2, F@_3, F@_4,
-				     F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-				     F@_12, F@_13, F@_14, F@_15, TrUserData);
+    d_field_span_dropped_links_count(Rest,
+                                     N + 7,
+                                     X bsl N + Acc,
+                                     F@_1,
+                                     F@_2,
+                                     F@_3,
+                                     F@_4,
+                                     F@_5,
+                                     F@_6,
+                                     F@_7,
+                                     F@_8,
+                                     F@_9,
+                                     F@_10,
+                                     F@_11,
+                                     F@_12,
+                                     F@_13,
+                                     F@_14,
+                                     F@_15,
+                                     TrUserData);
 d_field_span_dropped_links_count(<<0:1, X:7,
-				   Rest/binary>>,
-				 N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-				 F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13,
-				 _, F@_15, TrUserData) ->
+                                   Rest/binary>>,
+                                 N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
+                                 F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13,
+                                 _, F@_15, TrUserData) ->
     {NewFValue, RestF} = {id(X bsl N + Acc, TrUserData),
-			  Rest},
-    dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, NewFValue, F@_15, TrUserData).
+                          Rest},
+    dfp_read_field_def_span(RestF,
+                            0,
+                            0,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            NewFValue,
+                            F@_15,
+                            TrUserData).
 
 d_field_span_status(<<1:1, X:7, Rest/binary>>, N, Acc,
-		    F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
+                    F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                    F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData)
     when N < 57 ->
-    d_field_span_status(Rest, N + 7, X bsl N + Acc, F@_1,
-			F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10,
-			F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData);
+    d_field_span_status(Rest,
+                        N + 7,
+                        X bsl N + Acc,
+                        F@_1,
+                        F@_2,
+                        F@_3,
+                        F@_4,
+                        F@_5,
+                        F@_6,
+                        F@_7,
+                        F@_8,
+                        F@_9,
+                        F@_10,
+                        F@_11,
+                        F@_12,
+                        F@_13,
+                        F@_14,
+                        F@_15,
+                        TrUserData);
 d_field_span_status(<<0:1, X:7, Rest/binary>>, N, Acc,
-		    F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		    F@_10, F@_11, F@_12, F@_13, F@_14, Prev, TrUserData) ->
+                    F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                    F@_10, F@_11, F@_12, F@_13, F@_14, Prev, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bs:Len/binary, Rest2/binary>> = Rest,
-			   {id(decode_msg_status(Bs, TrUserData), TrUserData),
-			    Rest2}
-			 end,
-    dfp_read_field_def_span(RestF, 0, 0, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, F@_14,
-			    if Prev == '$undef' -> NewFValue;
-			       true ->
-				   merge_msg_status(Prev, NewFValue, TrUserData)
-			    end,
-			    TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_status(Bs, TrUserData), TrUserData),
+                              Rest2}
+                         end,
+    dfp_read_field_def_span(RestF,
+                            0,
+                            0,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            if Prev == '$undef' -> NewFValue;
+                               true ->
+                                   merge_msg_status(Prev, NewFValue, TrUserData)
+                            end,
+                            TrUserData).
 
 skip_varint_span(<<1:1, _:7, Rest/binary>>, Z1, Z2,
-		 F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		 F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    skip_varint_span(Rest, Z1, Z2, F@_1, F@_2, F@_3, F@_4,
-		     F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-		     F@_13, F@_14, F@_15, TrUserData);
+                 F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                 F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    skip_varint_span(Rest,
+                     Z1,
+                     Z2,
+                     F@_1,
+                     F@_2,
+                     F@_3,
+                     F@_4,
+                     F@_5,
+                     F@_6,
+                     F@_7,
+                     F@_8,
+                     F@_9,
+                     F@_10,
+                     F@_11,
+                     F@_12,
+                     F@_13,
+                     F@_14,
+                     F@_15,
+                     TrUserData);
 skip_varint_span(<<0:1, _:7, Rest/binary>>, Z1, Z2,
-		 F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
-		 F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    dfp_read_field_def_span(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, TrUserData).
+                 F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9,
+                 F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    dfp_read_field_def_span(Rest,
+                            Z1,
+                            Z2,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 skip_length_delimited_span(<<1:1, X:7, Rest/binary>>, N,
-			   Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-			   F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			   TrUserData)
+                           Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
+                           F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
+                           TrUserData)
     when N < 57 ->
-    skip_length_delimited_span(Rest, N + 7, X bsl N + Acc,
-			       F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-			       F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			       TrUserData);
+    skip_length_delimited_span(Rest,
+                               N + 7,
+                               X bsl N + Acc,
+                               F@_1,
+                               F@_2,
+                               F@_3,
+                               F@_4,
+                               F@_5,
+                               F@_6,
+                               F@_7,
+                               F@_8,
+                               F@_9,
+                               F@_10,
+                               F@_11,
+                               F@_12,
+                               F@_13,
+                               F@_14,
+                               F@_15,
+                               TrUserData);
 skip_length_delimited_span(<<0:1, X:7, Rest/binary>>, N,
-			   Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
-			   F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
-			   TrUserData) ->
+                           Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8,
+                           F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15,
+                           TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
-    dfp_read_field_def_span(Rest2, 0, 0, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, TrUserData).
+    dfp_read_field_def_span(Rest2,
+                            0,
+                            0,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 skip_group_span(Bin, FNum, Z2, F@_1, F@_2, F@_3, F@_4,
-		F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
-		F@_13, F@_14, F@_15, TrUserData) ->
+                F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12,
+                F@_13, F@_14, F@_15, TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_span(Rest, 0, Z2, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, TrUserData).
+    dfp_read_field_def_span(Rest,
+                            0,
+                            Z2,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 skip_32_span(<<_:32, Rest/binary>>, Z1, Z2, F@_1, F@_2,
-	     F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-	     F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    dfp_read_field_def_span(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, TrUserData).
+             F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
+             F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    dfp_read_field_def_span(Rest,
+                            Z1,
+                            Z2,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 skip_64_span(<<_:64, Rest/binary>>, Z1, Z2, F@_1, F@_2,
-	     F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-	     F@_12, F@_13, F@_14, F@_15, TrUserData) ->
-    dfp_read_field_def_span(Rest, Z1, Z2, F@_1, F@_2, F@_3,
-			    F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
-			    F@_12, F@_13, F@_14, F@_15, TrUserData).
+             F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11,
+             F@_12, F@_13, F@_14, F@_15, TrUserData) ->
+    dfp_read_field_def_span(Rest,
+                            Z1,
+                            Z2,
+                            F@_1,
+                            F@_2,
+                            F@_3,
+                            F@_4,
+                            F@_5,
+                            F@_6,
+                            F@_7,
+                            F@_8,
+                            F@_9,
+                            F@_10,
+                            F@_11,
+                            F@_12,
+                            F@_13,
+                            F@_14,
+                            F@_15,
+                            TrUserData).
 
 decode_msg_status(Bin, TrUserData) ->
-    dfp_read_field_def_status(Bin, 0, 0,
-			      id('Ok', TrUserData), id(<<>>, TrUserData),
-			      TrUserData).
+    dfp_read_field_def_status(Bin,
+                              0,
+                              0,
+                              id('Ok', TrUserData),
+                              id(<<>>, TrUserData),
+                              TrUserData).
 
 dfp_read_field_def_status(<<8, Rest/binary>>, Z1, Z2,
-			  F@_1, F@_2, TrUserData) ->
-    d_field_status_code(Rest, Z1, Z2, F@_1, F@_2,
-			TrUserData);
+                          F@_1, F@_2, TrUserData) ->
+    d_field_status_code(Rest,
+                        Z1,
+                        Z2,
+                        F@_1,
+                        F@_2,
+                        TrUserData);
 dfp_read_field_def_status(<<18, Rest/binary>>, Z1, Z2,
-			  F@_1, F@_2, TrUserData) ->
-    d_field_status_message(Rest, Z1, Z2, F@_1, F@_2,
-			   TrUserData);
+                          F@_1, F@_2, TrUserData) ->
+    d_field_status_message(Rest,
+                           Z1,
+                           Z2,
+                           F@_1,
+                           F@_2,
+                           TrUserData);
 dfp_read_field_def_status(<<>>, 0, 0, F@_1, F@_2, _) ->
     #{code => F@_1, message => F@_2};
 dfp_read_field_def_status(Other, Z1, Z2, F@_1, F@_2,
-			  TrUserData) ->
-    dg_read_field_def_status(Other, Z1, Z2, F@_1, F@_2,
-			     TrUserData).
+                          TrUserData) ->
+    dg_read_field_def_status(Other,
+                             Z1,
+                             Z2,
+                             F@_1,
+                             F@_2,
+                             TrUserData).
 
 dg_read_field_def_status(<<1:1, X:7, Rest/binary>>, N,
-			 Acc, F@_1, F@_2, TrUserData)
+                         Acc, F@_1, F@_2, TrUserData)
     when N < 32 - 7 ->
-    dg_read_field_def_status(Rest, N + 7, X bsl N + Acc,
-			     F@_1, F@_2, TrUserData);
+    dg_read_field_def_status(Rest,
+                             N + 7,
+                             X bsl N + Acc,
+                             F@_1,
+                             F@_2,
+                             TrUserData);
 dg_read_field_def_status(<<0:1, X:7, Rest/binary>>, N,
-			 Acc, F@_1, F@_2, TrUserData) ->
+                         Acc, F@_1, F@_2, TrUserData) ->
     Key = X bsl N + Acc,
     case Key of
-      8 ->
-	  d_field_status_code(Rest, 0, 0, F@_1, F@_2, TrUserData);
-      18 ->
-	  d_field_status_message(Rest, 0, 0, F@_1, F@_2,
-				 TrUserData);
-      _ ->
-	  case Key band 7 of
-	    0 ->
-		skip_varint_status(Rest, 0, 0, F@_1, F@_2, TrUserData);
-	    1 -> skip_64_status(Rest, 0, 0, F@_1, F@_2, TrUserData);
-	    2 ->
-		skip_length_delimited_status(Rest, 0, 0, F@_1, F@_2,
-					     TrUserData);
-	    3 ->
-		skip_group_status(Rest, Key bsr 3, 0, F@_1, F@_2,
-				  TrUserData);
-	    5 -> skip_32_status(Rest, 0, 0, F@_1, F@_2, TrUserData)
-	  end
+        8 ->
+            d_field_status_code(Rest, 0, 0, F@_1, F@_2, TrUserData);
+        18 ->
+            d_field_status_message(Rest,
+                                   0,
+                                   0,
+                                   F@_1,
+                                   F@_2,
+                                   TrUserData);
+        _ ->
+            case Key band 7 of
+                0 ->
+                    skip_varint_status(Rest, 0, 0, F@_1, F@_2, TrUserData);
+                1 -> skip_64_status(Rest, 0, 0, F@_1, F@_2, TrUserData);
+                2 ->
+                    skip_length_delimited_status(Rest,
+                                                 0,
+                                                 0,
+                                                 F@_1,
+                                                 F@_2,
+                                                 TrUserData);
+                3 ->
+                    skip_group_status(Rest,
+                                      Key bsr 3,
+                                      0,
+                                      F@_1,
+                                      F@_2,
+                                      TrUserData);
+                5 -> skip_32_status(Rest, 0, 0, F@_1, F@_2, TrUserData)
+            end
     end;
 dg_read_field_def_status(<<>>, 0, 0, F@_1, F@_2, _) ->
     #{code => F@_1, message => F@_2}.
 
 d_field_status_code(<<1:1, X:7, Rest/binary>>, N, Acc,
-		    F@_1, F@_2, TrUserData)
+                    F@_1, F@_2, TrUserData)
     when N < 57 ->
-    d_field_status_code(Rest, N + 7, X bsl N + Acc, F@_1,
-			F@_2, TrUserData);
+    d_field_status_code(Rest,
+                        N + 7,
+                        X bsl N + Acc,
+                        F@_1,
+                        F@_2,
+                        TrUserData);
 d_field_status_code(<<0:1, X:7, Rest/binary>>, N, Acc,
-		    _, F@_2, TrUserData) ->
+                    _, F@_2, TrUserData) ->
     {NewFValue, RestF} =
-	{id('d_enum_status.StatusCode'(begin
-					 <<Res:32/signed-native>> = <<(X bsl N +
-									 Acc):32/unsigned-native>>,
-					 id(Res, TrUserData)
-				       end),
-	    TrUserData),
-	 Rest},
-    dfp_read_field_def_status(RestF, 0, 0, NewFValue, F@_2,
-			      TrUserData).
+        {id('d_enum_status.StatusCode'(begin
+                                           <<Res:32/signed-native>> = <<(X bsl N
+                                                                             +
+                                                                             Acc):32/unsigned-native>>,
+                                           id(Res, TrUserData)
+                                       end),
+            TrUserData),
+         Rest},
+    dfp_read_field_def_status(RestF,
+                              0,
+                              0,
+                              NewFValue,
+                              F@_2,
+                              TrUserData).
 
 d_field_status_message(<<1:1, X:7, Rest/binary>>, N,
-		       Acc, F@_1, F@_2, TrUserData)
+                       Acc, F@_1, F@_2, TrUserData)
     when N < 57 ->
-    d_field_status_message(Rest, N + 7, X bsl N + Acc, F@_1,
-			   F@_2, TrUserData);
+    d_field_status_message(Rest,
+                           N + 7,
+                           X bsl N + Acc,
+                           F@_1,
+                           F@_2,
+                           TrUserData);
 d_field_status_message(<<0:1, X:7, Rest/binary>>, N,
-		       Acc, F@_1, _, TrUserData) ->
+                       Acc, F@_1, _, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
-			   {id(binary:copy(Bytes), TrUserData), Rest2}
-			 end,
-    dfp_read_field_def_status(RestF, 0, 0, F@_1, NewFValue,
-			      TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_status(RestF,
+                              0,
+                              0,
+                              F@_1,
+                              NewFValue,
+                              TrUserData).
 
 skip_varint_status(<<1:1, _:7, Rest/binary>>, Z1, Z2,
-		   F@_1, F@_2, TrUserData) ->
-    skip_varint_status(Rest, Z1, Z2, F@_1, F@_2,
-		       TrUserData);
+                   F@_1, F@_2, TrUserData) ->
+    skip_varint_status(Rest,
+                       Z1,
+                       Z2,
+                       F@_1,
+                       F@_2,
+                       TrUserData);
 skip_varint_status(<<0:1, _:7, Rest/binary>>, Z1, Z2,
-		   F@_1, F@_2, TrUserData) ->
-    dfp_read_field_def_status(Rest, Z1, Z2, F@_1, F@_2,
-			      TrUserData).
+                   F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_status(Rest,
+                              Z1,
+                              Z2,
+                              F@_1,
+                              F@_2,
+                              TrUserData).
 
 skip_length_delimited_status(<<1:1, X:7, Rest/binary>>,
-			     N, Acc, F@_1, F@_2, TrUserData)
+                             N, Acc, F@_1, F@_2, TrUserData)
     when N < 57 ->
-    skip_length_delimited_status(Rest, N + 7, X bsl N + Acc,
-				 F@_1, F@_2, TrUserData);
+    skip_length_delimited_status(Rest,
+                                 N + 7,
+                                 X bsl N + Acc,
+                                 F@_1,
+                                 F@_2,
+                                 TrUserData);
 skip_length_delimited_status(<<0:1, X:7, Rest/binary>>,
-			     N, Acc, F@_1, F@_2, TrUserData) ->
+                             N, Acc, F@_1, F@_2, TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
-    dfp_read_field_def_status(Rest2, 0, 0, F@_1, F@_2,
-			      TrUserData).
+    dfp_read_field_def_status(Rest2,
+                              0,
+                              0,
+                              F@_1,
+                              F@_2,
+                              TrUserData).
 
 skip_group_status(Bin, FNum, Z2, F@_1, F@_2,
-		  TrUserData) ->
+                  TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_status(Rest, 0, Z2, F@_1, F@_2,
-			      TrUserData).
+    dfp_read_field_def_status(Rest,
+                              0,
+                              Z2,
+                              F@_1,
+                              F@_2,
+                              TrUserData).
 
 skip_32_status(<<_:32, Rest/binary>>, Z1, Z2, F@_1,
-	       F@_2, TrUserData) ->
-    dfp_read_field_def_status(Rest, Z1, Z2, F@_1, F@_2,
-			      TrUserData).
+               F@_2, TrUserData) ->
+    dfp_read_field_def_status(Rest,
+                              Z1,
+                              Z2,
+                              F@_1,
+                              F@_2,
+                              TrUserData).
 
 skip_64_status(<<_:64, Rest/binary>>, Z1, Z2, F@_1,
-	       F@_2, TrUserData) ->
-    dfp_read_field_def_status(Rest, Z1, Z2, F@_1, F@_2,
-			      TrUserData).
+               F@_2, TrUserData) ->
+    dfp_read_field_def_status(Rest,
+                              Z1,
+                              Z2,
+                              F@_1,
+                              F@_2,
+                              TrUserData).
 
 decode_msg_attribute_key_value(Bin, TrUserData) ->
-    dfp_read_field_def_attribute_key_value(Bin, 0, 0,
-					   id(<<>>, TrUserData),
-					   id('STRING', TrUserData),
-					   id(<<>>, TrUserData),
-					   id(0, TrUserData),
-					   id(0.0, TrUserData),
-					   id(false, TrUserData), TrUserData).
+    dfp_read_field_def_attribute_key_value(Bin,
+                                           0,
+                                           0,
+                                           id(<<>>, TrUserData),
+                                           id('STRING', TrUserData),
+                                           id(<<>>, TrUserData),
+                                           id(0, TrUserData),
+                                           id(0.0, TrUserData),
+                                           id(false, TrUserData),
+                                           TrUserData).
 
 dfp_read_field_def_attribute_key_value(<<10,
-					 Rest/binary>>,
-				       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
-				       F@_6, TrUserData) ->
-    d_field_attribute_key_value_key(Rest, Z1, Z2, F@_1,
-				    F@_2, F@_3, F@_4, F@_5, F@_6, TrUserData);
+                                         Rest/binary>>,
+                                       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
+                                       F@_6, TrUserData) ->
+    d_field_attribute_key_value_key(Rest,
+                                    Z1,
+                                    Z2,
+                                    F@_1,
+                                    F@_2,
+                                    F@_3,
+                                    F@_4,
+                                    F@_5,
+                                    F@_6,
+                                    TrUserData);
 dfp_read_field_def_attribute_key_value(<<16,
-					 Rest/binary>>,
-				       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
-				       F@_6, TrUserData) ->
-    d_field_attribute_key_value_type(Rest, Z1, Z2, F@_1,
-				     F@_2, F@_3, F@_4, F@_5, F@_6, TrUserData);
+                                         Rest/binary>>,
+                                       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
+                                       F@_6, TrUserData) ->
+    d_field_attribute_key_value_type(Rest,
+                                     Z1,
+                                     Z2,
+                                     F@_1,
+                                     F@_2,
+                                     F@_3,
+                                     F@_4,
+                                     F@_5,
+                                     F@_6,
+                                     TrUserData);
 dfp_read_field_def_attribute_key_value(<<26,
-					 Rest/binary>>,
-				       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
-				       F@_6, TrUserData) ->
-    d_field_attribute_key_value_string_value(Rest, Z1, Z2,
-					     F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-					     TrUserData);
+                                         Rest/binary>>,
+                                       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
+                                       F@_6, TrUserData) ->
+    d_field_attribute_key_value_string_value(Rest,
+                                             Z1,
+                                             Z2,
+                                             F@_1,
+                                             F@_2,
+                                             F@_3,
+                                             F@_4,
+                                             F@_5,
+                                             F@_6,
+                                             TrUserData);
 dfp_read_field_def_attribute_key_value(<<32,
-					 Rest/binary>>,
-				       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
-				       F@_6, TrUserData) ->
-    d_field_attribute_key_value_int_value(Rest, Z1, Z2,
-					  F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-					  TrUserData);
+                                         Rest/binary>>,
+                                       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
+                                       F@_6, TrUserData) ->
+    d_field_attribute_key_value_int_value(Rest,
+                                          Z1,
+                                          Z2,
+                                          F@_1,
+                                          F@_2,
+                                          F@_3,
+                                          F@_4,
+                                          F@_5,
+                                          F@_6,
+                                          TrUserData);
 dfp_read_field_def_attribute_key_value(<<41,
-					 Rest/binary>>,
-				       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
-				       F@_6, TrUserData) ->
-    d_field_attribute_key_value_double_value(Rest, Z1, Z2,
-					     F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-					     TrUserData);
+                                         Rest/binary>>,
+                                       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
+                                       F@_6, TrUserData) ->
+    d_field_attribute_key_value_double_value(Rest,
+                                             Z1,
+                                             Z2,
+                                             F@_1,
+                                             F@_2,
+                                             F@_3,
+                                             F@_4,
+                                             F@_5,
+                                             F@_6,
+                                             TrUserData);
 dfp_read_field_def_attribute_key_value(<<48,
-					 Rest/binary>>,
-				       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
-				       F@_6, TrUserData) ->
-    d_field_attribute_key_value_bool_value(Rest, Z1, Z2,
-					   F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-					   TrUserData);
+                                         Rest/binary>>,
+                                       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
+                                       F@_6, TrUserData) ->
+    d_field_attribute_key_value_bool_value(Rest,
+                                           Z1,
+                                           Z2,
+                                           F@_1,
+                                           F@_2,
+                                           F@_3,
+                                           F@_4,
+                                           F@_5,
+                                           F@_6,
+                                           TrUserData);
 dfp_read_field_def_attribute_key_value(<<>>, 0, 0, F@_1,
-				       F@_2, F@_3, F@_4, F@_5, F@_6, _) ->
+                                       F@_2, F@_3, F@_4, F@_5, F@_6, _) ->
     #{key => F@_1, type => F@_2, string_value => F@_3,
       int_value => F@_4, double_value => F@_5,
       bool_value => F@_6};
 dfp_read_field_def_attribute_key_value(Other, Z1, Z2,
-				       F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-				       TrUserData) ->
-    dg_read_field_def_attribute_key_value(Other, Z1, Z2,
-					  F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-					  TrUserData).
+                                       F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
+                                       TrUserData) ->
+    dg_read_field_def_attribute_key_value(Other,
+                                          Z1,
+                                          Z2,
+                                          F@_1,
+                                          F@_2,
+                                          F@_3,
+                                          F@_4,
+                                          F@_5,
+                                          F@_6,
+                                          TrUserData).
 
 dg_read_field_def_attribute_key_value(<<1:1, X:7,
-					Rest/binary>>,
-				      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-				      F@_6, TrUserData)
+                                        Rest/binary>>,
+                                      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
+                                      F@_6, TrUserData)
     when N < 32 - 7 ->
-    dg_read_field_def_attribute_key_value(Rest, N + 7,
-					  X bsl N + Acc, F@_1, F@_2, F@_3, F@_4,
-					  F@_5, F@_6, TrUserData);
+    dg_read_field_def_attribute_key_value(Rest,
+                                          N + 7,
+                                          X bsl N + Acc,
+                                          F@_1,
+                                          F@_2,
+                                          F@_3,
+                                          F@_4,
+                                          F@_5,
+                                          F@_6,
+                                          TrUserData);
 dg_read_field_def_attribute_key_value(<<0:1, X:7,
-					Rest/binary>>,
-				      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-				      F@_6, TrUserData) ->
+                                        Rest/binary>>,
+                                      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
+                                      F@_6, TrUserData) ->
     Key = X bsl N + Acc,
     case Key of
-      10 ->
-	  d_field_attribute_key_value_key(Rest, 0, 0, F@_1, F@_2,
-					  F@_3, F@_4, F@_5, F@_6, TrUserData);
-      16 ->
-	  d_field_attribute_key_value_type(Rest, 0, 0, F@_1, F@_2,
-					   F@_3, F@_4, F@_5, F@_6, TrUserData);
-      26 ->
-	  d_field_attribute_key_value_string_value(Rest, 0, 0,
-						   F@_1, F@_2, F@_3, F@_4, F@_5,
-						   F@_6, TrUserData);
-      32 ->
-	  d_field_attribute_key_value_int_value(Rest, 0, 0, F@_1,
-						F@_2, F@_3, F@_4, F@_5, F@_6,
-						TrUserData);
-      41 ->
-	  d_field_attribute_key_value_double_value(Rest, 0, 0,
-						   F@_1, F@_2, F@_3, F@_4, F@_5,
-						   F@_6, TrUserData);
-      48 ->
-	  d_field_attribute_key_value_bool_value(Rest, 0, 0, F@_1,
-						 F@_2, F@_3, F@_4, F@_5, F@_6,
-						 TrUserData);
-      _ ->
-	  case Key band 7 of
-	    0 ->
-		skip_varint_attribute_key_value(Rest, 0, 0, F@_1, F@_2,
-						F@_3, F@_4, F@_5, F@_6,
-						TrUserData);
-	    1 ->
-		skip_64_attribute_key_value(Rest, 0, 0, F@_1, F@_2,
-					    F@_3, F@_4, F@_5, F@_6, TrUserData);
-	    2 ->
-		skip_length_delimited_attribute_key_value(Rest, 0, 0,
-							  F@_1, F@_2, F@_3,
-							  F@_4, F@_5, F@_6,
-							  TrUserData);
-	    3 ->
-		skip_group_attribute_key_value(Rest, Key bsr 3, 0, F@_1,
-					       F@_2, F@_3, F@_4, F@_5, F@_6,
-					       TrUserData);
-	    5 ->
-		skip_32_attribute_key_value(Rest, 0, 0, F@_1, F@_2,
-					    F@_3, F@_4, F@_5, F@_6, TrUserData)
-	  end
+        10 ->
+            d_field_attribute_key_value_key(Rest,
+                                            0,
+                                            0,
+                                            F@_1,
+                                            F@_2,
+                                            F@_3,
+                                            F@_4,
+                                            F@_5,
+                                            F@_6,
+                                            TrUserData);
+        16 ->
+            d_field_attribute_key_value_type(Rest,
+                                             0,
+                                             0,
+                                             F@_1,
+                                             F@_2,
+                                             F@_3,
+                                             F@_4,
+                                             F@_5,
+                                             F@_6,
+                                             TrUserData);
+        26 ->
+            d_field_attribute_key_value_string_value(Rest,
+                                                     0,
+                                                     0,
+                                                     F@_1,
+                                                     F@_2,
+                                                     F@_3,
+                                                     F@_4,
+                                                     F@_5,
+                                                     F@_6,
+                                                     TrUserData);
+        32 ->
+            d_field_attribute_key_value_int_value(Rest,
+                                                  0,
+                                                  0,
+                                                  F@_1,
+                                                  F@_2,
+                                                  F@_3,
+                                                  F@_4,
+                                                  F@_5,
+                                                  F@_6,
+                                                  TrUserData);
+        41 ->
+            d_field_attribute_key_value_double_value(Rest,
+                                                     0,
+                                                     0,
+                                                     F@_1,
+                                                     F@_2,
+                                                     F@_3,
+                                                     F@_4,
+                                                     F@_5,
+                                                     F@_6,
+                                                     TrUserData);
+        48 ->
+            d_field_attribute_key_value_bool_value(Rest,
+                                                   0,
+                                                   0,
+                                                   F@_1,
+                                                   F@_2,
+                                                   F@_3,
+                                                   F@_4,
+                                                   F@_5,
+                                                   F@_6,
+                                                   TrUserData);
+        _ ->
+            case Key band 7 of
+                0 ->
+                    skip_varint_attribute_key_value(Rest,
+                                                    0,
+                                                    0,
+                                                    F@_1,
+                                                    F@_2,
+                                                    F@_3,
+                                                    F@_4,
+                                                    F@_5,
+                                                    F@_6,
+                                                    TrUserData);
+                1 ->
+                    skip_64_attribute_key_value(Rest,
+                                                0,
+                                                0,
+                                                F@_1,
+                                                F@_2,
+                                                F@_3,
+                                                F@_4,
+                                                F@_5,
+                                                F@_6,
+                                                TrUserData);
+                2 ->
+                    skip_length_delimited_attribute_key_value(Rest,
+                                                              0,
+                                                              0,
+                                                              F@_1,
+                                                              F@_2,
+                                                              F@_3,
+                                                              F@_4,
+                                                              F@_5,
+                                                              F@_6,
+                                                              TrUserData);
+                3 ->
+                    skip_group_attribute_key_value(Rest,
+                                                   Key bsr 3,
+                                                   0,
+                                                   F@_1,
+                                                   F@_2,
+                                                   F@_3,
+                                                   F@_4,
+                                                   F@_5,
+                                                   F@_6,
+                                                   TrUserData);
+                5 ->
+                    skip_32_attribute_key_value(Rest,
+                                                0,
+                                                0,
+                                                F@_1,
+                                                F@_2,
+                                                F@_3,
+                                                F@_4,
+                                                F@_5,
+                                                F@_6,
+                                                TrUserData)
+            end
     end;
 dg_read_field_def_attribute_key_value(<<>>, 0, 0, F@_1,
-				      F@_2, F@_3, F@_4, F@_5, F@_6, _) ->
+                                      F@_2, F@_3, F@_4, F@_5, F@_6, _) ->
     #{key => F@_1, type => F@_2, string_value => F@_3,
       int_value => F@_4, double_value => F@_5,
       bool_value => F@_6}.
 
 d_field_attribute_key_value_key(<<1:1, X:7,
-				  Rest/binary>>,
-				N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-				TrUserData)
+                                  Rest/binary>>,
+                                N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
+                                TrUserData)
     when N < 57 ->
-    d_field_attribute_key_value_key(Rest, N + 7,
-				    X bsl N + Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-				    F@_6, TrUserData);
+    d_field_attribute_key_value_key(Rest,
+                                    N + 7,
+                                    X bsl N + Acc,
+                                    F@_1,
+                                    F@_2,
+                                    F@_3,
+                                    F@_4,
+                                    F@_5,
+                                    F@_6,
+                                    TrUserData);
 d_field_attribute_key_value_key(<<0:1, X:7,
-				  Rest/binary>>,
-				N, Acc, _, F@_2, F@_3, F@_4, F@_5, F@_6,
-				TrUserData) ->
+                                  Rest/binary>>,
+                                N, Acc, _, F@_2, F@_3, F@_4, F@_5, F@_6,
+                                TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
-			   {id(binary:copy(Bytes), TrUserData), Rest2}
-			 end,
-    dfp_read_field_def_attribute_key_value(RestF, 0, 0,
-					   NewFValue, F@_2, F@_3, F@_4, F@_5,
-					   F@_6, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_attribute_key_value(RestF,
+                                           0,
+                                           0,
+                                           NewFValue,
+                                           F@_2,
+                                           F@_3,
+                                           F@_4,
+                                           F@_5,
+                                           F@_6,
+                                           TrUserData).
 
 d_field_attribute_key_value_type(<<1:1, X:7,
-				   Rest/binary>>,
-				 N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-				 TrUserData)
+                                   Rest/binary>>,
+                                 N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
+                                 TrUserData)
     when N < 57 ->
-    d_field_attribute_key_value_type(Rest, N + 7,
-				     X bsl N + Acc, F@_1, F@_2, F@_3, F@_4,
-				     F@_5, F@_6, TrUserData);
+    d_field_attribute_key_value_type(Rest,
+                                     N + 7,
+                                     X bsl N + Acc,
+                                     F@_1,
+                                     F@_2,
+                                     F@_3,
+                                     F@_4,
+                                     F@_5,
+                                     F@_6,
+                                     TrUserData);
 d_field_attribute_key_value_type(<<0:1, X:7,
-				   Rest/binary>>,
-				 N, Acc, F@_1, _, F@_3, F@_4, F@_5, F@_6,
-				 TrUserData) ->
+                                   Rest/binary>>,
+                                 N, Acc, F@_1, _, F@_3, F@_4, F@_5, F@_6,
+                                 TrUserData) ->
     {NewFValue, RestF} =
-	{id('d_enum_attribute_key_value.ValueType'(begin
-						     <<Res:32/signed-native>> =
-							 <<(X bsl N +
-							      Acc):32/unsigned-native>>,
-						     id(Res, TrUserData)
-						   end),
-	    TrUserData),
-	 Rest},
-    dfp_read_field_def_attribute_key_value(RestF, 0, 0,
-					   F@_1, NewFValue, F@_3, F@_4, F@_5,
-					   F@_6, TrUserData).
+        {id('d_enum_attribute_key_value.ValueType'(begin
+                                                       <<Res:32/signed-native>> =
+                                                           <<(X bsl N +
+                                                                  Acc):32/unsigned-native>>,
+                                                       id(Res, TrUserData)
+                                                   end),
+            TrUserData),
+         Rest},
+    dfp_read_field_def_attribute_key_value(RestF,
+                                           0,
+                                           0,
+                                           F@_1,
+                                           NewFValue,
+                                           F@_3,
+                                           F@_4,
+                                           F@_5,
+                                           F@_6,
+                                           TrUserData).
 
 d_field_attribute_key_value_string_value(<<1:1, X:7,
-					   Rest/binary>>,
-					 N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-					 F@_6, TrUserData)
+                                           Rest/binary>>,
+                                         N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
+                                         F@_6, TrUserData)
     when N < 57 ->
-    d_field_attribute_key_value_string_value(Rest, N + 7,
-					     X bsl N + Acc, F@_1, F@_2, F@_3,
-					     F@_4, F@_5, F@_6, TrUserData);
+    d_field_attribute_key_value_string_value(Rest,
+                                             N + 7,
+                                             X bsl N + Acc,
+                                             F@_1,
+                                             F@_2,
+                                             F@_3,
+                                             F@_4,
+                                             F@_5,
+                                             F@_6,
+                                             TrUserData);
 d_field_attribute_key_value_string_value(<<0:1, X:7,
-					   Rest/binary>>,
-					 N, Acc, F@_1, F@_2, _, F@_4, F@_5,
-					 F@_6, TrUserData) ->
+                                           Rest/binary>>,
+                                         N, Acc, F@_1, F@_2, _, F@_4, F@_5,
+                                         F@_6, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
-			   {id(binary:copy(Bytes), TrUserData), Rest2}
-			 end,
-    dfp_read_field_def_attribute_key_value(RestF, 0, 0,
-					   F@_1, F@_2, NewFValue, F@_4, F@_5,
-					   F@_6, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_attribute_key_value(RestF,
+                                           0,
+                                           0,
+                                           F@_1,
+                                           F@_2,
+                                           NewFValue,
+                                           F@_4,
+                                           F@_5,
+                                           F@_6,
+                                           TrUserData).
 
 d_field_attribute_key_value_int_value(<<1:1, X:7,
-					Rest/binary>>,
-				      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-				      F@_6, TrUserData)
+                                        Rest/binary>>,
+                                      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
+                                      F@_6, TrUserData)
     when N < 57 ->
-    d_field_attribute_key_value_int_value(Rest, N + 7,
-					  X bsl N + Acc, F@_1, F@_2, F@_3, F@_4,
-					  F@_5, F@_6, TrUserData);
+    d_field_attribute_key_value_int_value(Rest,
+                                          N + 7,
+                                          X bsl N + Acc,
+                                          F@_1,
+                                          F@_2,
+                                          F@_3,
+                                          F@_4,
+                                          F@_5,
+                                          F@_6,
+                                          TrUserData);
 d_field_attribute_key_value_int_value(<<0:1, X:7,
-					Rest/binary>>,
-				      N, Acc, F@_1, F@_2, F@_3, _, F@_5, F@_6,
-				      TrUserData) ->
+                                        Rest/binary>>,
+                                      N, Acc, F@_1, F@_2, F@_3, _, F@_5, F@_6,
+                                      TrUserData) ->
     {NewFValue, RestF} = {begin
-			    <<Res:64/signed-native>> = <<(X bsl N +
-							    Acc):64/unsigned-native>>,
-			    id(Res, TrUserData)
-			  end,
-			  Rest},
-    dfp_read_field_def_attribute_key_value(RestF, 0, 0,
-					   F@_1, F@_2, F@_3, NewFValue, F@_5,
-					   F@_6, TrUserData).
+                              <<Res:64/signed-native>> = <<(X bsl N +
+                                                                Acc):64/unsigned-native>>,
+                              id(Res, TrUserData)
+                          end,
+                          Rest},
+    dfp_read_field_def_attribute_key_value(RestF,
+                                           0,
+                                           0,
+                                           F@_1,
+                                           F@_2,
+                                           F@_3,
+                                           NewFValue,
+                                           F@_5,
+                                           F@_6,
+                                           TrUserData).
 
 d_field_attribute_key_value_double_value(<<0:48, 240,
-					   127, Rest/binary>>,
-					 Z1, Z2, F@_1, F@_2, F@_3, F@_4, _,
-					 F@_6, TrUserData) ->
-    dfp_read_field_def_attribute_key_value(Rest, Z1, Z2,
-					   F@_1, F@_2, F@_3, F@_4,
-					   id(infinity, TrUserData), F@_6,
-					   TrUserData);
+                                           127, Rest/binary>>,
+                                         Z1, Z2, F@_1, F@_2, F@_3, F@_4, _,
+                                         F@_6, TrUserData) ->
+    dfp_read_field_def_attribute_key_value(Rest,
+                                           Z1,
+                                           Z2,
+                                           F@_1,
+                                           F@_2,
+                                           F@_3,
+                                           F@_4,
+                                           id(infinity, TrUserData),
+                                           F@_6,
+                                           TrUserData);
 d_field_attribute_key_value_double_value(<<0:48, 240,
-					   255, Rest/binary>>,
-					 Z1, Z2, F@_1, F@_2, F@_3, F@_4, _,
-					 F@_6, TrUserData) ->
-    dfp_read_field_def_attribute_key_value(Rest, Z1, Z2,
-					   F@_1, F@_2, F@_3, F@_4,
-					   id('-infinity', TrUserData), F@_6,
-					   TrUserData);
+                                           255, Rest/binary>>,
+                                         Z1, Z2, F@_1, F@_2, F@_3, F@_4, _,
+                                         F@_6, TrUserData) ->
+    dfp_read_field_def_attribute_key_value(Rest,
+                                           Z1,
+                                           Z2,
+                                           F@_1,
+                                           F@_2,
+                                           F@_3,
+                                           F@_4,
+                                           id('-infinity', TrUserData),
+                                           F@_6,
+                                           TrUserData);
 d_field_attribute_key_value_double_value(<<_:48, 15:4,
-					   _:4, _:1, 127:7, Rest/binary>>,
-					 Z1, Z2, F@_1, F@_2, F@_3, F@_4, _,
-					 F@_6, TrUserData) ->
-    dfp_read_field_def_attribute_key_value(Rest, Z1, Z2,
-					   F@_1, F@_2, F@_3, F@_4,
-					   id(nan, TrUserData), F@_6,
-					   TrUserData);
+                                           _:4, _:1, 127:7, Rest/binary>>,
+                                         Z1, Z2, F@_1, F@_2, F@_3, F@_4, _,
+                                         F@_6, TrUserData) ->
+    dfp_read_field_def_attribute_key_value(Rest,
+                                           Z1,
+                                           Z2,
+                                           F@_1,
+                                           F@_2,
+                                           F@_3,
+                                           F@_4,
+                                           id(nan, TrUserData),
+                                           F@_6,
+                                           TrUserData);
 d_field_attribute_key_value_double_value(<<Value:64/little-float,
-					   Rest/binary>>,
-					 Z1, Z2, F@_1, F@_2, F@_3, F@_4, _,
-					 F@_6, TrUserData) ->
-    dfp_read_field_def_attribute_key_value(Rest, Z1, Z2,
-					   F@_1, F@_2, F@_3, F@_4,
-					   id(Value, TrUserData), F@_6,
-					   TrUserData).
+                                           Rest/binary>>,
+                                         Z1, Z2, F@_1, F@_2, F@_3, F@_4, _,
+                                         F@_6, TrUserData) ->
+    dfp_read_field_def_attribute_key_value(Rest,
+                                           Z1,
+                                           Z2,
+                                           F@_1,
+                                           F@_2,
+                                           F@_3,
+                                           F@_4,
+                                           id(Value, TrUserData),
+                                           F@_6,
+                                           TrUserData).
 
 d_field_attribute_key_value_bool_value(<<1:1, X:7,
-					 Rest/binary>>,
-				       N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-				       F@_6, TrUserData)
+                                         Rest/binary>>,
+                                       N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
+                                       F@_6, TrUserData)
     when N < 57 ->
-    d_field_attribute_key_value_bool_value(Rest, N + 7,
-					   X bsl N + Acc, F@_1, F@_2, F@_3,
-					   F@_4, F@_5, F@_6, TrUserData);
+    d_field_attribute_key_value_bool_value(Rest,
+                                           N + 7,
+                                           X bsl N + Acc,
+                                           F@_1,
+                                           F@_2,
+                                           F@_3,
+                                           F@_4,
+                                           F@_5,
+                                           F@_6,
+                                           TrUserData);
 d_field_attribute_key_value_bool_value(<<0:1, X:7,
-					 Rest/binary>>,
-				       N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, _,
-				       TrUserData) ->
+                                         Rest/binary>>,
+                                       N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, _,
+                                       TrUserData) ->
     {NewFValue, RestF} = {id(X bsl N + Acc =/= 0,
-			     TrUserData),
-			  Rest},
-    dfp_read_field_def_attribute_key_value(RestF, 0, 0,
-					   F@_1, F@_2, F@_3, F@_4, F@_5,
-					   NewFValue, TrUserData).
+                             TrUserData),
+                          Rest},
+    dfp_read_field_def_attribute_key_value(RestF,
+                                           0,
+                                           0,
+                                           F@_1,
+                                           F@_2,
+                                           F@_3,
+                                           F@_4,
+                                           F@_5,
+                                           NewFValue,
+                                           TrUserData).
 
 skip_varint_attribute_key_value(<<1:1, _:7,
-				  Rest/binary>>,
-				Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-				TrUserData) ->
-    skip_varint_attribute_key_value(Rest, Z1, Z2, F@_1,
-				    F@_2, F@_3, F@_4, F@_5, F@_6, TrUserData);
+                                  Rest/binary>>,
+                                Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
+                                TrUserData) ->
+    skip_varint_attribute_key_value(Rest,
+                                    Z1,
+                                    Z2,
+                                    F@_1,
+                                    F@_2,
+                                    F@_3,
+                                    F@_4,
+                                    F@_5,
+                                    F@_6,
+                                    TrUserData);
 skip_varint_attribute_key_value(<<0:1, _:7,
-				  Rest/binary>>,
-				Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-				TrUserData) ->
-    dfp_read_field_def_attribute_key_value(Rest, Z1, Z2,
-					   F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-					   TrUserData).
+                                  Rest/binary>>,
+                                Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
+                                TrUserData) ->
+    dfp_read_field_def_attribute_key_value(Rest,
+                                           Z1,
+                                           Z2,
+                                           F@_1,
+                                           F@_2,
+                                           F@_3,
+                                           F@_4,
+                                           F@_5,
+                                           F@_6,
+                                           TrUserData).
 
 skip_length_delimited_attribute_key_value(<<1:1, X:7,
-					    Rest/binary>>,
-					  N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-					  F@_6, TrUserData)
+                                            Rest/binary>>,
+                                          N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
+                                          F@_6, TrUserData)
     when N < 57 ->
-    skip_length_delimited_attribute_key_value(Rest, N + 7,
-					      X bsl N + Acc, F@_1, F@_2, F@_3,
-					      F@_4, F@_5, F@_6, TrUserData);
+    skip_length_delimited_attribute_key_value(Rest,
+                                              N + 7,
+                                              X bsl N + Acc,
+                                              F@_1,
+                                              F@_2,
+                                              F@_3,
+                                              F@_4,
+                                              F@_5,
+                                              F@_6,
+                                              TrUserData);
 skip_length_delimited_attribute_key_value(<<0:1, X:7,
-					    Rest/binary>>,
-					  N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-					  F@_6, TrUserData) ->
+                                            Rest/binary>>,
+                                          N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
+                                          F@_6, TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
-    dfp_read_field_def_attribute_key_value(Rest2, 0, 0,
-					   F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-					   TrUserData).
+    dfp_read_field_def_attribute_key_value(Rest2,
+                                           0,
+                                           0,
+                                           F@_1,
+                                           F@_2,
+                                           F@_3,
+                                           F@_4,
+                                           F@_5,
+                                           F@_6,
+                                           TrUserData).
 
 skip_group_attribute_key_value(Bin, FNum, Z2, F@_1,
-			       F@_2, F@_3, F@_4, F@_5, F@_6, TrUserData) ->
+                               F@_2, F@_3, F@_4, F@_5, F@_6, TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_attribute_key_value(Rest, 0, Z2,
-					   F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-					   TrUserData).
+    dfp_read_field_def_attribute_key_value(Rest,
+                                           0,
+                                           Z2,
+                                           F@_1,
+                                           F@_2,
+                                           F@_3,
+                                           F@_4,
+                                           F@_5,
+                                           F@_6,
+                                           TrUserData).
 
 skip_32_attribute_key_value(<<_:32, Rest/binary>>, Z1,
-			    Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-			    TrUserData) ->
-    dfp_read_field_def_attribute_key_value(Rest, Z1, Z2,
-					   F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-					   TrUserData).
+                            Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
+                            TrUserData) ->
+    dfp_read_field_def_attribute_key_value(Rest,
+                                           Z1,
+                                           Z2,
+                                           F@_1,
+                                           F@_2,
+                                           F@_3,
+                                           F@_4,
+                                           F@_5,
+                                           F@_6,
+                                           TrUserData).
 
 skip_64_attribute_key_value(<<_:64, Rest/binary>>, Z1,
-			    Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-			    TrUserData) ->
-    dfp_read_field_def_attribute_key_value(Rest, Z1, Z2,
-					   F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-					   TrUserData).
+                            Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
+                            TrUserData) ->
+    dfp_read_field_def_attribute_key_value(Rest,
+                                           Z1,
+                                           Z2,
+                                           F@_1,
+                                           F@_2,
+                                           F@_3,
+                                           F@_4,
+                                           F@_5,
+                                           F@_6,
+                                           TrUserData).
 
 decode_msg_string_key_value(Bin, TrUserData) ->
-    dfp_read_field_def_string_key_value(Bin, 0, 0,
-					id(<<>>, TrUserData),
-					id(<<>>, TrUserData), TrUserData).
+    dfp_read_field_def_string_key_value(Bin,
+                                        0,
+                                        0,
+                                        id(<<>>, TrUserData),
+                                        id(<<>>, TrUserData),
+                                        TrUserData).
 
 dfp_read_field_def_string_key_value(<<10, Rest/binary>>,
-				    Z1, Z2, F@_1, F@_2, TrUserData) ->
-    d_field_string_key_value_key(Rest, Z1, Z2, F@_1, F@_2,
-				 TrUserData);
+                                    Z1, Z2, F@_1, F@_2, TrUserData) ->
+    d_field_string_key_value_key(Rest,
+                                 Z1,
+                                 Z2,
+                                 F@_1,
+                                 F@_2,
+                                 TrUserData);
 dfp_read_field_def_string_key_value(<<18, Rest/binary>>,
-				    Z1, Z2, F@_1, F@_2, TrUserData) ->
-    d_field_string_key_value_value(Rest, Z1, Z2, F@_1, F@_2,
-				   TrUserData);
+                                    Z1, Z2, F@_1, F@_2, TrUserData) ->
+    d_field_string_key_value_value(Rest,
+                                   Z1,
+                                   Z2,
+                                   F@_1,
+                                   F@_2,
+                                   TrUserData);
 dfp_read_field_def_string_key_value(<<>>, 0, 0, F@_1,
-				    F@_2, _) ->
+                                    F@_2, _) ->
     #{key => F@_1, value => F@_2};
 dfp_read_field_def_string_key_value(Other, Z1, Z2, F@_1,
-				    F@_2, TrUserData) ->
-    dg_read_field_def_string_key_value(Other, Z1, Z2, F@_1,
-				       F@_2, TrUserData).
+                                    F@_2, TrUserData) ->
+    dg_read_field_def_string_key_value(Other,
+                                       Z1,
+                                       Z2,
+                                       F@_1,
+                                       F@_2,
+                                       TrUserData).
 
 dg_read_field_def_string_key_value(<<1:1, X:7,
-				     Rest/binary>>,
-				   N, Acc, F@_1, F@_2, TrUserData)
+                                     Rest/binary>>,
+                                   N, Acc, F@_1, F@_2, TrUserData)
     when N < 32 - 7 ->
-    dg_read_field_def_string_key_value(Rest, N + 7,
-				       X bsl N + Acc, F@_1, F@_2, TrUserData);
+    dg_read_field_def_string_key_value(Rest,
+                                       N + 7,
+                                       X bsl N + Acc,
+                                       F@_1,
+                                       F@_2,
+                                       TrUserData);
 dg_read_field_def_string_key_value(<<0:1, X:7,
-				     Rest/binary>>,
-				   N, Acc, F@_1, F@_2, TrUserData) ->
+                                     Rest/binary>>,
+                                   N, Acc, F@_1, F@_2, TrUserData) ->
     Key = X bsl N + Acc,
     case Key of
-      10 ->
-	  d_field_string_key_value_key(Rest, 0, 0, F@_1, F@_2,
-				       TrUserData);
-      18 ->
-	  d_field_string_key_value_value(Rest, 0, 0, F@_1, F@_2,
-					 TrUserData);
-      _ ->
-	  case Key band 7 of
-	    0 ->
-		skip_varint_string_key_value(Rest, 0, 0, F@_1, F@_2,
-					     TrUserData);
-	    1 ->
-		skip_64_string_key_value(Rest, 0, 0, F@_1, F@_2,
-					 TrUserData);
-	    2 ->
-		skip_length_delimited_string_key_value(Rest, 0, 0, F@_1,
-						       F@_2, TrUserData);
-	    3 ->
-		skip_group_string_key_value(Rest, Key bsr 3, 0, F@_1,
-					    F@_2, TrUserData);
-	    5 ->
-		skip_32_string_key_value(Rest, 0, 0, F@_1, F@_2,
-					 TrUserData)
-	  end
+        10 ->
+            d_field_string_key_value_key(Rest,
+                                         0,
+                                         0,
+                                         F@_1,
+                                         F@_2,
+                                         TrUserData);
+        18 ->
+            d_field_string_key_value_value(Rest,
+                                           0,
+                                           0,
+                                           F@_1,
+                                           F@_2,
+                                           TrUserData);
+        _ ->
+            case Key band 7 of
+                0 ->
+                    skip_varint_string_key_value(Rest,
+                                                 0,
+                                                 0,
+                                                 F@_1,
+                                                 F@_2,
+                                                 TrUserData);
+                1 ->
+                    skip_64_string_key_value(Rest,
+                                             0,
+                                             0,
+                                             F@_1,
+                                             F@_2,
+                                             TrUserData);
+                2 ->
+                    skip_length_delimited_string_key_value(Rest,
+                                                           0,
+                                                           0,
+                                                           F@_1,
+                                                           F@_2,
+                                                           TrUserData);
+                3 ->
+                    skip_group_string_key_value(Rest,
+                                                Key bsr 3,
+                                                0,
+                                                F@_1,
+                                                F@_2,
+                                                TrUserData);
+                5 ->
+                    skip_32_string_key_value(Rest,
+                                             0,
+                                             0,
+                                             F@_1,
+                                             F@_2,
+                                             TrUserData)
+            end
     end;
 dg_read_field_def_string_key_value(<<>>, 0, 0, F@_1,
-				   F@_2, _) ->
+                                   F@_2, _) ->
     #{key => F@_1, value => F@_2}.
 
 d_field_string_key_value_key(<<1:1, X:7, Rest/binary>>,
-			     N, Acc, F@_1, F@_2, TrUserData)
+                             N, Acc, F@_1, F@_2, TrUserData)
     when N < 57 ->
-    d_field_string_key_value_key(Rest, N + 7, X bsl N + Acc,
-				 F@_1, F@_2, TrUserData);
+    d_field_string_key_value_key(Rest,
+                                 N + 7,
+                                 X bsl N + Acc,
+                                 F@_1,
+                                 F@_2,
+                                 TrUserData);
 d_field_string_key_value_key(<<0:1, X:7, Rest/binary>>,
-			     N, Acc, _, F@_2, TrUserData) ->
+                             N, Acc, _, F@_2, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
-			   {id(binary:copy(Bytes), TrUserData), Rest2}
-			 end,
-    dfp_read_field_def_string_key_value(RestF, 0, 0,
-					NewFValue, F@_2, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_string_key_value(RestF,
+                                        0,
+                                        0,
+                                        NewFValue,
+                                        F@_2,
+                                        TrUserData).
 
 d_field_string_key_value_value(<<1:1, X:7,
-				 Rest/binary>>,
-			       N, Acc, F@_1, F@_2, TrUserData)
+                                 Rest/binary>>,
+                               N, Acc, F@_1, F@_2, TrUserData)
     when N < 57 ->
-    d_field_string_key_value_value(Rest, N + 7,
-				   X bsl N + Acc, F@_1, F@_2, TrUserData);
+    d_field_string_key_value_value(Rest,
+                                   N + 7,
+                                   X bsl N + Acc,
+                                   F@_1,
+                                   F@_2,
+                                   TrUserData);
 d_field_string_key_value_value(<<0:1, X:7,
-				 Rest/binary>>,
-			       N, Acc, F@_1, _, TrUserData) ->
+                                 Rest/binary>>,
+                               N, Acc, F@_1, _, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
-			   {id(binary:copy(Bytes), TrUserData), Rest2}
-			 end,
-    dfp_read_field_def_string_key_value(RestF, 0, 0, F@_1,
-					NewFValue, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_string_key_value(RestF,
+                                        0,
+                                        0,
+                                        F@_1,
+                                        NewFValue,
+                                        TrUserData).
 
 skip_varint_string_key_value(<<1:1, _:7, Rest/binary>>,
-			     Z1, Z2, F@_1, F@_2, TrUserData) ->
-    skip_varint_string_key_value(Rest, Z1, Z2, F@_1, F@_2,
-				 TrUserData);
+                             Z1, Z2, F@_1, F@_2, TrUserData) ->
+    skip_varint_string_key_value(Rest,
+                                 Z1,
+                                 Z2,
+                                 F@_1,
+                                 F@_2,
+                                 TrUserData);
 skip_varint_string_key_value(<<0:1, _:7, Rest/binary>>,
-			     Z1, Z2, F@_1, F@_2, TrUserData) ->
-    dfp_read_field_def_string_key_value(Rest, Z1, Z2, F@_1,
-					F@_2, TrUserData).
+                             Z1, Z2, F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_string_key_value(Rest,
+                                        Z1,
+                                        Z2,
+                                        F@_1,
+                                        F@_2,
+                                        TrUserData).
 
 skip_length_delimited_string_key_value(<<1:1, X:7,
-					 Rest/binary>>,
-				       N, Acc, F@_1, F@_2, TrUserData)
+                                         Rest/binary>>,
+                                       N, Acc, F@_1, F@_2, TrUserData)
     when N < 57 ->
-    skip_length_delimited_string_key_value(Rest, N + 7,
-					   X bsl N + Acc, F@_1, F@_2,
-					   TrUserData);
+    skip_length_delimited_string_key_value(Rest,
+                                           N + 7,
+                                           X bsl N + Acc,
+                                           F@_1,
+                                           F@_2,
+                                           TrUserData);
 skip_length_delimited_string_key_value(<<0:1, X:7,
-					 Rest/binary>>,
-				       N, Acc, F@_1, F@_2, TrUserData) ->
+                                         Rest/binary>>,
+                                       N, Acc, F@_1, F@_2, TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
-    dfp_read_field_def_string_key_value(Rest2, 0, 0, F@_1,
-					F@_2, TrUserData).
+    dfp_read_field_def_string_key_value(Rest2,
+                                        0,
+                                        0,
+                                        F@_1,
+                                        F@_2,
+                                        TrUserData).
 
 skip_group_string_key_value(Bin, FNum, Z2, F@_1, F@_2,
-			    TrUserData) ->
+                            TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_string_key_value(Rest, 0, Z2, F@_1,
-					F@_2, TrUserData).
+    dfp_read_field_def_string_key_value(Rest,
+                                        0,
+                                        Z2,
+                                        F@_1,
+                                        F@_2,
+                                        TrUserData).
 
 skip_32_string_key_value(<<_:32, Rest/binary>>, Z1, Z2,
-			 F@_1, F@_2, TrUserData) ->
-    dfp_read_field_def_string_key_value(Rest, Z1, Z2, F@_1,
-					F@_2, TrUserData).
+                         F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_string_key_value(Rest,
+                                        Z1,
+                                        Z2,
+                                        F@_1,
+                                        F@_2,
+                                        TrUserData).
 
 skip_64_string_key_value(<<_:64, Rest/binary>>, Z1, Z2,
-			 F@_1, F@_2, TrUserData) ->
-    dfp_read_field_def_string_key_value(Rest, Z1, Z2, F@_1,
-					F@_2, TrUserData).
+                         F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_string_key_value(Rest,
+                                        Z1,
+                                        Z2,
+                                        F@_1,
+                                        F@_2,
+                                        TrUserData).
 
 decode_msg_instrumentation_library(Bin, TrUserData) ->
-    dfp_read_field_def_instrumentation_library(Bin, 0, 0,
-					       id(<<>>, TrUserData),
-					       id(<<>>, TrUserData),
-					       TrUserData).
+    dfp_read_field_def_instrumentation_library(Bin,
+                                               0,
+                                               0,
+                                               id(<<>>, TrUserData),
+                                               id(<<>>, TrUserData),
+                                               TrUserData).
 
 dfp_read_field_def_instrumentation_library(<<10,
-					     Rest/binary>>,
-					   Z1, Z2, F@_1, F@_2, TrUserData) ->
-    d_field_instrumentation_library_name(Rest, Z1, Z2, F@_1,
-					 F@_2, TrUserData);
+                                             Rest/binary>>,
+                                           Z1, Z2, F@_1, F@_2, TrUserData) ->
+    d_field_instrumentation_library_name(Rest,
+                                         Z1,
+                                         Z2,
+                                         F@_1,
+                                         F@_2,
+                                         TrUserData);
 dfp_read_field_def_instrumentation_library(<<18,
-					     Rest/binary>>,
-					   Z1, Z2, F@_1, F@_2, TrUserData) ->
-    d_field_instrumentation_library_version(Rest, Z1, Z2,
-					    F@_1, F@_2, TrUserData);
+                                             Rest/binary>>,
+                                           Z1, Z2, F@_1, F@_2, TrUserData) ->
+    d_field_instrumentation_library_version(Rest,
+                                            Z1,
+                                            Z2,
+                                            F@_1,
+                                            F@_2,
+                                            TrUserData);
 dfp_read_field_def_instrumentation_library(<<>>, 0, 0,
-					   F@_1, F@_2, _) ->
+                                           F@_1, F@_2, _) ->
     #{name => F@_1, version => F@_2};
 dfp_read_field_def_instrumentation_library(Other, Z1,
-					   Z2, F@_1, F@_2, TrUserData) ->
-    dg_read_field_def_instrumentation_library(Other, Z1, Z2,
-					      F@_1, F@_2, TrUserData).
+                                           Z2, F@_1, F@_2, TrUserData) ->
+    dg_read_field_def_instrumentation_library(Other,
+                                              Z1,
+                                              Z2,
+                                              F@_1,
+                                              F@_2,
+                                              TrUserData).
 
 dg_read_field_def_instrumentation_library(<<1:1, X:7,
-					    Rest/binary>>,
-					  N, Acc, F@_1, F@_2, TrUserData)
+                                            Rest/binary>>,
+                                          N, Acc, F@_1, F@_2, TrUserData)
     when N < 32 - 7 ->
-    dg_read_field_def_instrumentation_library(Rest, N + 7,
-					      X bsl N + Acc, F@_1, F@_2,
-					      TrUserData);
+    dg_read_field_def_instrumentation_library(Rest,
+                                              N + 7,
+                                              X bsl N + Acc,
+                                              F@_1,
+                                              F@_2,
+                                              TrUserData);
 dg_read_field_def_instrumentation_library(<<0:1, X:7,
-					    Rest/binary>>,
-					  N, Acc, F@_1, F@_2, TrUserData) ->
+                                            Rest/binary>>,
+                                          N, Acc, F@_1, F@_2, TrUserData) ->
     Key = X bsl N + Acc,
     case Key of
-      10 ->
-	  d_field_instrumentation_library_name(Rest, 0, 0, F@_1,
-					       F@_2, TrUserData);
-      18 ->
-	  d_field_instrumentation_library_version(Rest, 0, 0,
-						  F@_1, F@_2, TrUserData);
-      _ ->
-	  case Key band 7 of
-	    0 ->
-		skip_varint_instrumentation_library(Rest, 0, 0, F@_1,
-						    F@_2, TrUserData);
-	    1 ->
-		skip_64_instrumentation_library(Rest, 0, 0, F@_1, F@_2,
-						TrUserData);
-	    2 ->
-		skip_length_delimited_instrumentation_library(Rest, 0,
-							      0, F@_1, F@_2,
-							      TrUserData);
-	    3 ->
-		skip_group_instrumentation_library(Rest, Key bsr 3, 0,
-						   F@_1, F@_2, TrUserData);
-	    5 ->
-		skip_32_instrumentation_library(Rest, 0, 0, F@_1, F@_2,
-						TrUserData)
-	  end
+        10 ->
+            d_field_instrumentation_library_name(Rest,
+                                                 0,
+                                                 0,
+                                                 F@_1,
+                                                 F@_2,
+                                                 TrUserData);
+        18 ->
+            d_field_instrumentation_library_version(Rest,
+                                                    0,
+                                                    0,
+                                                    F@_1,
+                                                    F@_2,
+                                                    TrUserData);
+        _ ->
+            case Key band 7 of
+                0 ->
+                    skip_varint_instrumentation_library(Rest,
+                                                        0,
+                                                        0,
+                                                        F@_1,
+                                                        F@_2,
+                                                        TrUserData);
+                1 ->
+                    skip_64_instrumentation_library(Rest,
+                                                    0,
+                                                    0,
+                                                    F@_1,
+                                                    F@_2,
+                                                    TrUserData);
+                2 ->
+                    skip_length_delimited_instrumentation_library(Rest,
+                                                                  0,
+                                                                  0,
+                                                                  F@_1,
+                                                                  F@_2,
+                                                                  TrUserData);
+                3 ->
+                    skip_group_instrumentation_library(Rest,
+                                                       Key bsr 3,
+                                                       0,
+                                                       F@_1,
+                                                       F@_2,
+                                                       TrUserData);
+                5 ->
+                    skip_32_instrumentation_library(Rest,
+                                                    0,
+                                                    0,
+                                                    F@_1,
+                                                    F@_2,
+                                                    TrUserData)
+            end
     end;
 dg_read_field_def_instrumentation_library(<<>>, 0, 0,
-					  F@_1, F@_2, _) ->
+                                          F@_1, F@_2, _) ->
     #{name => F@_1, version => F@_2}.
 
 d_field_instrumentation_library_name(<<1:1, X:7,
-				       Rest/binary>>,
-				     N, Acc, F@_1, F@_2, TrUserData)
+                                       Rest/binary>>,
+                                     N, Acc, F@_1, F@_2, TrUserData)
     when N < 57 ->
-    d_field_instrumentation_library_name(Rest, N + 7,
-					 X bsl N + Acc, F@_1, F@_2, TrUserData);
+    d_field_instrumentation_library_name(Rest,
+                                         N + 7,
+                                         X bsl N + Acc,
+                                         F@_1,
+                                         F@_2,
+                                         TrUserData);
 d_field_instrumentation_library_name(<<0:1, X:7,
-				       Rest/binary>>,
-				     N, Acc, _, F@_2, TrUserData) ->
+                                       Rest/binary>>,
+                                     N, Acc, _, F@_2, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
-			   {id(binary:copy(Bytes), TrUserData), Rest2}
-			 end,
-    dfp_read_field_def_instrumentation_library(RestF, 0, 0,
-					       NewFValue, F@_2, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_instrumentation_library(RestF,
+                                               0,
+                                               0,
+                                               NewFValue,
+                                               F@_2,
+                                               TrUserData).
 
 d_field_instrumentation_library_version(<<1:1, X:7,
-					  Rest/binary>>,
-					N, Acc, F@_1, F@_2, TrUserData)
+                                          Rest/binary>>,
+                                        N, Acc, F@_1, F@_2, TrUserData)
     when N < 57 ->
-    d_field_instrumentation_library_version(Rest, N + 7,
-					    X bsl N + Acc, F@_1, F@_2,
-					    TrUserData);
+    d_field_instrumentation_library_version(Rest,
+                                            N + 7,
+                                            X bsl N + Acc,
+                                            F@_1,
+                                            F@_2,
+                                            TrUserData);
 d_field_instrumentation_library_version(<<0:1, X:7,
-					  Rest/binary>>,
-					N, Acc, F@_1, _, TrUserData) ->
+                                          Rest/binary>>,
+                                        N, Acc, F@_1, _, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bytes:Len/binary, Rest2/binary>> = Rest,
-			   {id(binary:copy(Bytes), TrUserData), Rest2}
-			 end,
-    dfp_read_field_def_instrumentation_library(RestF, 0, 0,
-					       F@_1, NewFValue, TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_instrumentation_library(RestF,
+                                               0,
+                                               0,
+                                               F@_1,
+                                               NewFValue,
+                                               TrUserData).
 
 skip_varint_instrumentation_library(<<1:1, _:7,
-				      Rest/binary>>,
-				    Z1, Z2, F@_1, F@_2, TrUserData) ->
-    skip_varint_instrumentation_library(Rest, Z1, Z2, F@_1,
-					F@_2, TrUserData);
+                                      Rest/binary>>,
+                                    Z1, Z2, F@_1, F@_2, TrUserData) ->
+    skip_varint_instrumentation_library(Rest,
+                                        Z1,
+                                        Z2,
+                                        F@_1,
+                                        F@_2,
+                                        TrUserData);
 skip_varint_instrumentation_library(<<0:1, _:7,
-				      Rest/binary>>,
-				    Z1, Z2, F@_1, F@_2, TrUserData) ->
-    dfp_read_field_def_instrumentation_library(Rest, Z1, Z2,
-					       F@_1, F@_2, TrUserData).
+                                      Rest/binary>>,
+                                    Z1, Z2, F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_instrumentation_library(Rest,
+                                               Z1,
+                                               Z2,
+                                               F@_1,
+                                               F@_2,
+                                               TrUserData).
 
 skip_length_delimited_instrumentation_library(<<1:1,
-						X:7, Rest/binary>>,
-					      N, Acc, F@_1, F@_2, TrUserData)
+                                                X:7, Rest/binary>>,
+                                              N, Acc, F@_1, F@_2, TrUserData)
     when N < 57 ->
     skip_length_delimited_instrumentation_library(Rest,
-						  N + 7, X bsl N + Acc, F@_1,
-						  F@_2, TrUserData);
+                                                  N + 7,
+                                                  X bsl N + Acc,
+                                                  F@_1,
+                                                  F@_2,
+                                                  TrUserData);
 skip_length_delimited_instrumentation_library(<<0:1,
-						X:7, Rest/binary>>,
-					      N, Acc, F@_1, F@_2, TrUserData) ->
+                                                X:7, Rest/binary>>,
+                                              N, Acc, F@_1, F@_2, TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
-    dfp_read_field_def_instrumentation_library(Rest2, 0, 0,
-					       F@_1, F@_2, TrUserData).
+    dfp_read_field_def_instrumentation_library(Rest2,
+                                               0,
+                                               0,
+                                               F@_1,
+                                               F@_2,
+                                               TrUserData).
 
 skip_group_instrumentation_library(Bin, FNum, Z2, F@_1,
-				   F@_2, TrUserData) ->
+                                   F@_2, TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_instrumentation_library(Rest, 0, Z2,
-					       F@_1, F@_2, TrUserData).
+    dfp_read_field_def_instrumentation_library(Rest,
+                                               0,
+                                               Z2,
+                                               F@_1,
+                                               F@_2,
+                                               TrUserData).
 
 skip_32_instrumentation_library(<<_:32, Rest/binary>>,
-				Z1, Z2, F@_1, F@_2, TrUserData) ->
-    dfp_read_field_def_instrumentation_library(Rest, Z1, Z2,
-					       F@_1, F@_2, TrUserData).
+                                Z1, Z2, F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_instrumentation_library(Rest,
+                                               Z1,
+                                               Z2,
+                                               F@_1,
+                                               F@_2,
+                                               TrUserData).
 
 skip_64_instrumentation_library(<<_:64, Rest/binary>>,
-				Z1, Z2, F@_1, F@_2, TrUserData) ->
-    dfp_read_field_def_instrumentation_library(Rest, Z1, Z2,
-					       F@_1, F@_2, TrUserData).
+                                Z1, Z2, F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_instrumentation_library(Rest,
+                                               Z1,
+                                               Z2,
+                                               F@_1,
+                                               F@_2,
+                                               TrUserData).
 
 decode_msg_resource(Bin, TrUserData) ->
-    dfp_read_field_def_resource(Bin, 0, 0,
-				id([], TrUserData), id(0, TrUserData),
-				TrUserData).
+    dfp_read_field_def_resource(Bin,
+                                0,
+                                0,
+                                id([], TrUserData),
+                                id(0, TrUserData),
+                                TrUserData).
 
 dfp_read_field_def_resource(<<10, Rest/binary>>, Z1, Z2,
-			    F@_1, F@_2, TrUserData) ->
-    d_field_resource_attributes(Rest, Z1, Z2, F@_1, F@_2,
-				TrUserData);
+                            F@_1, F@_2, TrUserData) ->
+    d_field_resource_attributes(Rest,
+                                Z1,
+                                Z2,
+                                F@_1,
+                                F@_2,
+                                TrUserData);
 dfp_read_field_def_resource(<<16, Rest/binary>>, Z1, Z2,
-			    F@_1, F@_2, TrUserData) ->
-    d_field_resource_dropped_attributes_count(Rest, Z1, Z2,
-					      F@_1, F@_2, TrUserData);
+                            F@_1, F@_2, TrUserData) ->
+    d_field_resource_dropped_attributes_count(Rest,
+                                              Z1,
+                                              Z2,
+                                              F@_1,
+                                              F@_2,
+                                              TrUserData);
 dfp_read_field_def_resource(<<>>, 0, 0, R1, F@_2,
-			    TrUserData) ->
+                            TrUserData) ->
     S1 = #{dropped_attributes_count => F@_2},
     if R1 == '$undef' -> S1;
        true -> S1#{attributes => lists_reverse(R1, TrUserData)}
     end;
 dfp_read_field_def_resource(Other, Z1, Z2, F@_1, F@_2,
-			    TrUserData) ->
-    dg_read_field_def_resource(Other, Z1, Z2, F@_1, F@_2,
-			       TrUserData).
+                            TrUserData) ->
+    dg_read_field_def_resource(Other,
+                               Z1,
+                               Z2,
+                               F@_1,
+                               F@_2,
+                               TrUserData).
 
 dg_read_field_def_resource(<<1:1, X:7, Rest/binary>>, N,
-			   Acc, F@_1, F@_2, TrUserData)
+                           Acc, F@_1, F@_2, TrUserData)
     when N < 32 - 7 ->
-    dg_read_field_def_resource(Rest, N + 7, X bsl N + Acc,
-			       F@_1, F@_2, TrUserData);
+    dg_read_field_def_resource(Rest,
+                               N + 7,
+                               X bsl N + Acc,
+                               F@_1,
+                               F@_2,
+                               TrUserData);
 dg_read_field_def_resource(<<0:1, X:7, Rest/binary>>, N,
-			   Acc, F@_1, F@_2, TrUserData) ->
+                           Acc, F@_1, F@_2, TrUserData) ->
     Key = X bsl N + Acc,
     case Key of
-      10 ->
-	  d_field_resource_attributes(Rest, 0, 0, F@_1, F@_2,
-				      TrUserData);
-      16 ->
-	  d_field_resource_dropped_attributes_count(Rest, 0, 0,
-						    F@_1, F@_2, TrUserData);
-      _ ->
-	  case Key band 7 of
-	    0 ->
-		skip_varint_resource(Rest, 0, 0, F@_1, F@_2,
-				     TrUserData);
-	    1 ->
-		skip_64_resource(Rest, 0, 0, F@_1, F@_2, TrUserData);
-	    2 ->
-		skip_length_delimited_resource(Rest, 0, 0, F@_1, F@_2,
-					       TrUserData);
-	    3 ->
-		skip_group_resource(Rest, Key bsr 3, 0, F@_1, F@_2,
-				    TrUserData);
-	    5 ->
-		skip_32_resource(Rest, 0, 0, F@_1, F@_2, TrUserData)
-	  end
+        10 ->
+            d_field_resource_attributes(Rest,
+                                        0,
+                                        0,
+                                        F@_1,
+                                        F@_2,
+                                        TrUserData);
+        16 ->
+            d_field_resource_dropped_attributes_count(Rest,
+                                                      0,
+                                                      0,
+                                                      F@_1,
+                                                      F@_2,
+                                                      TrUserData);
+        _ ->
+            case Key band 7 of
+                0 ->
+                    skip_varint_resource(Rest,
+                                         0,
+                                         0,
+                                         F@_1,
+                                         F@_2,
+                                         TrUserData);
+                1 ->
+                    skip_64_resource(Rest, 0, 0, F@_1, F@_2, TrUserData);
+                2 ->
+                    skip_length_delimited_resource(Rest,
+                                                   0,
+                                                   0,
+                                                   F@_1,
+                                                   F@_2,
+                                                   TrUserData);
+                3 ->
+                    skip_group_resource(Rest,
+                                        Key bsr 3,
+                                        0,
+                                        F@_1,
+                                        F@_2,
+                                        TrUserData);
+                5 ->
+                    skip_32_resource(Rest, 0, 0, F@_1, F@_2, TrUserData)
+            end
     end;
 dg_read_field_def_resource(<<>>, 0, 0, R1, F@_2,
-			   TrUserData) ->
+                           TrUserData) ->
     S1 = #{dropped_attributes_count => F@_2},
     if R1 == '$undef' -> S1;
        true -> S1#{attributes => lists_reverse(R1, TrUserData)}
     end.
 
 d_field_resource_attributes(<<1:1, X:7, Rest/binary>>,
-			    N, Acc, F@_1, F@_2, TrUserData)
+                            N, Acc, F@_1, F@_2, TrUserData)
     when N < 57 ->
-    d_field_resource_attributes(Rest, N + 7, X bsl N + Acc,
-				F@_1, F@_2, TrUserData);
+    d_field_resource_attributes(Rest,
+                                N + 7,
+                                X bsl N + Acc,
+                                F@_1,
+                                F@_2,
+                                TrUserData);
 d_field_resource_attributes(<<0:1, X:7, Rest/binary>>,
-			    N, Acc, Prev, F@_2, TrUserData) ->
+                            N, Acc, Prev, F@_2, TrUserData) ->
     {NewFValue, RestF} = begin
-			   Len = X bsl N + Acc,
-			   <<Bs:Len/binary, Rest2/binary>> = Rest,
-			   {id(decode_msg_attribute_key_value(Bs, TrUserData),
-			       TrUserData),
-			    Rest2}
-			 end,
-    dfp_read_field_def_resource(RestF, 0, 0,
-				cons(NewFValue, Prev, TrUserData), F@_2,
-				TrUserData).
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_attribute_key_value(Bs, TrUserData),
+                                 TrUserData),
+                              Rest2}
+                         end,
+    dfp_read_field_def_resource(RestF,
+                                0,
+                                0,
+                                cons(NewFValue, Prev, TrUserData),
+                                F@_2,
+                                TrUserData).
 
 d_field_resource_dropped_attributes_count(<<1:1, X:7,
-					    Rest/binary>>,
-					  N, Acc, F@_1, F@_2, TrUserData)
+                                            Rest/binary>>,
+                                          N, Acc, F@_1, F@_2, TrUserData)
     when N < 57 ->
-    d_field_resource_dropped_attributes_count(Rest, N + 7,
-					      X bsl N + Acc, F@_1, F@_2,
-					      TrUserData);
+    d_field_resource_dropped_attributes_count(Rest,
+                                              N + 7,
+                                              X bsl N + Acc,
+                                              F@_1,
+                                              F@_2,
+                                              TrUserData);
 d_field_resource_dropped_attributes_count(<<0:1, X:7,
-					    Rest/binary>>,
-					  N, Acc, F@_1, _, TrUserData) ->
+                                            Rest/binary>>,
+                                          N, Acc, F@_1, _, TrUserData) ->
     {NewFValue, RestF} = {id(X bsl N + Acc, TrUserData),
-			  Rest},
-    dfp_read_field_def_resource(RestF, 0, 0, F@_1,
-				NewFValue, TrUserData).
+                          Rest},
+    dfp_read_field_def_resource(RestF,
+                                0,
+                                0,
+                                F@_1,
+                                NewFValue,
+                                TrUserData).
 
 skip_varint_resource(<<1:1, _:7, Rest/binary>>, Z1, Z2,
-		     F@_1, F@_2, TrUserData) ->
-    skip_varint_resource(Rest, Z1, Z2, F@_1, F@_2,
-			 TrUserData);
+                     F@_1, F@_2, TrUserData) ->
+    skip_varint_resource(Rest,
+                         Z1,
+                         Z2,
+                         F@_1,
+                         F@_2,
+                         TrUserData);
 skip_varint_resource(<<0:1, _:7, Rest/binary>>, Z1, Z2,
-		     F@_1, F@_2, TrUserData) ->
-    dfp_read_field_def_resource(Rest, Z1, Z2, F@_1, F@_2,
-				TrUserData).
+                     F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_resource(Rest,
+                                Z1,
+                                Z2,
+                                F@_1,
+                                F@_2,
+                                TrUserData).
 
 skip_length_delimited_resource(<<1:1, X:7,
-				 Rest/binary>>,
-			       N, Acc, F@_1, F@_2, TrUserData)
+                                 Rest/binary>>,
+                               N, Acc, F@_1, F@_2, TrUserData)
     when N < 57 ->
-    skip_length_delimited_resource(Rest, N + 7,
-				   X bsl N + Acc, F@_1, F@_2, TrUserData);
+    skip_length_delimited_resource(Rest,
+                                   N + 7,
+                                   X bsl N + Acc,
+                                   F@_1,
+                                   F@_2,
+                                   TrUserData);
 skip_length_delimited_resource(<<0:1, X:7,
-				 Rest/binary>>,
-			       N, Acc, F@_1, F@_2, TrUserData) ->
+                                 Rest/binary>>,
+                               N, Acc, F@_1, F@_2, TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
-    dfp_read_field_def_resource(Rest2, 0, 0, F@_1, F@_2,
-				TrUserData).
+    dfp_read_field_def_resource(Rest2,
+                                0,
+                                0,
+                                F@_1,
+                                F@_2,
+                                TrUserData).
 
 skip_group_resource(Bin, FNum, Z2, F@_1, F@_2,
-		    TrUserData) ->
+                    TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_resource(Rest, 0, Z2, F@_1, F@_2,
-				TrUserData).
+    dfp_read_field_def_resource(Rest,
+                                0,
+                                Z2,
+                                F@_1,
+                                F@_2,
+                                TrUserData).
 
 skip_32_resource(<<_:32, Rest/binary>>, Z1, Z2, F@_1,
-		 F@_2, TrUserData) ->
-    dfp_read_field_def_resource(Rest, Z1, Z2, F@_1, F@_2,
-				TrUserData).
+                 F@_2, TrUserData) ->
+    dfp_read_field_def_resource(Rest,
+                                Z1,
+                                Z2,
+                                F@_1,
+                                F@_2,
+                                TrUserData).
 
 skip_64_resource(<<_:64, Rest/binary>>, Z1, Z2, F@_1,
-		 F@_2, TrUserData) ->
-    dfp_read_field_def_resource(Rest, Z1, Z2, F@_1, F@_2,
-				TrUserData).
+                 F@_2, TrUserData) ->
+    dfp_read_field_def_resource(Rest,
+                                Z1,
+                                Z2,
+                                F@_1,
+                                F@_2,
+                                TrUserData).
 
 'd_enum_span.SpanKind'(0) -> 'SPAN_KIND_UNSPECIFIED';
 'd_enum_span.SpanKind'(1) -> 'INTERNAL';
@@ -3705,446 +6124,454 @@ merge_msgs(Prev, New, MsgName) when is_atom(MsgName) ->
 merge_msgs(Prev, New, MsgName, Opts) ->
     TrUserData = proplists:get_value(user_data, Opts),
     case MsgName of
-      export_trace_service_request ->
-	  merge_msg_export_trace_service_request(Prev, New,
-						 TrUserData);
-      export_trace_service_response ->
-	  merge_msg_export_trace_service_response(Prev, New,
-						  TrUserData);
-      resource_spans ->
-	  merge_msg_resource_spans(Prev, New, TrUserData);
-      instrumentation_library_spans ->
-	  merge_msg_instrumentation_library_spans(Prev, New,
-						  TrUserData);
-      event -> merge_msg_event(Prev, New, TrUserData);
-      link -> merge_msg_link(Prev, New, TrUserData);
-      span -> merge_msg_span(Prev, New, TrUserData);
-      status -> merge_msg_status(Prev, New, TrUserData);
-      attribute_key_value ->
-	  merge_msg_attribute_key_value(Prev, New, TrUserData);
-      string_key_value ->
-	  merge_msg_string_key_value(Prev, New, TrUserData);
-      instrumentation_library ->
-	  merge_msg_instrumentation_library(Prev, New,
-					    TrUserData);
-      resource -> merge_msg_resource(Prev, New, TrUserData)
+        export_trace_service_request ->
+            merge_msg_export_trace_service_request(Prev,
+                                                   New,
+                                                   TrUserData);
+        export_trace_service_response ->
+            merge_msg_export_trace_service_response(Prev,
+                                                    New,
+                                                    TrUserData);
+        resource_spans ->
+            merge_msg_resource_spans(Prev, New, TrUserData);
+        instrumentation_library_spans ->
+            merge_msg_instrumentation_library_spans(Prev,
+                                                    New,
+                                                    TrUserData);
+        event -> merge_msg_event(Prev, New, TrUserData);
+        link -> merge_msg_link(Prev, New, TrUserData);
+        span -> merge_msg_span(Prev, New, TrUserData);
+        status -> merge_msg_status(Prev, New, TrUserData);
+        attribute_key_value ->
+            merge_msg_attribute_key_value(Prev, New, TrUserData);
+        string_key_value ->
+            merge_msg_string_key_value(Prev, New, TrUserData);
+        instrumentation_library ->
+            merge_msg_instrumentation_library(Prev,
+                                              New,
+                                              TrUserData);
+        resource -> merge_msg_resource(Prev, New, TrUserData)
     end.
 
 -compile({nowarn_unused_function,merge_msg_export_trace_service_request/3}).
 merge_msg_export_trace_service_request(PMsg, NMsg,
-				       TrUserData) ->
+                                       TrUserData) ->
     S1 = #{},
     case {PMsg, NMsg} of
-      {#{resource_spans := PFresource_spans},
-       #{resource_spans := NFresource_spans}} ->
-	  S1#{resource_spans =>
-		  'erlang_++'(PFresource_spans, NFresource_spans,
-			      TrUserData)};
-      {_, #{resource_spans := NFresource_spans}} ->
-	  S1#{resource_spans => NFresource_spans};
-      {#{resource_spans := PFresource_spans}, _} ->
-	  S1#{resource_spans => PFresource_spans};
-      {_, _} -> S1
+        {#{resource_spans := PFresource_spans},
+         #{resource_spans := NFresource_spans}} ->
+            S1#{resource_spans =>
+                    'erlang_++'(PFresource_spans,
+                                NFresource_spans,
+                                TrUserData)};
+        {_, #{resource_spans := NFresource_spans}} ->
+            S1#{resource_spans => NFresource_spans};
+        {#{resource_spans := PFresource_spans}, _} ->
+            S1#{resource_spans => PFresource_spans};
+        {_, _} -> S1
     end.
 
 -compile({nowarn_unused_function,merge_msg_export_trace_service_response/3}).
 merge_msg_export_trace_service_response(_Prev, New,
-					_TrUserData) ->
+                                        _TrUserData) ->
     New.
 
 -compile({nowarn_unused_function,merge_msg_resource_spans/3}).
 merge_msg_resource_spans(PMsg, NMsg, TrUserData) ->
     S1 = #{},
     S2 = case {PMsg, NMsg} of
-	   {#{resource := PFresource},
-	    #{resource := NFresource}} ->
-	       S1#{resource =>
-		       merge_msg_resource(PFresource, NFresource, TrUserData)};
-	   {_, #{resource := NFresource}} ->
-	       S1#{resource => NFresource};
-	   {#{resource := PFresource}, _} ->
-	       S1#{resource => PFresource};
-	   {_, _} -> S1
-	 end,
+             {#{resource := PFresource},
+              #{resource := NFresource}} ->
+                 S1#{resource =>
+                         merge_msg_resource(PFresource,
+                                            NFresource,
+                                            TrUserData)};
+             {_, #{resource := NFresource}} ->
+                 S1#{resource => NFresource};
+             {#{resource := PFresource}, _} ->
+                 S1#{resource => PFresource};
+             {_, _} -> S1
+         end,
     case {PMsg, NMsg} of
-      {#{instrumentation_library_spans :=
-	     PFinstrumentation_library_spans},
-       #{instrumentation_library_spans :=
-	     NFinstrumentation_library_spans}} ->
-	  S2#{instrumentation_library_spans =>
-		  'erlang_++'(PFinstrumentation_library_spans,
-			      NFinstrumentation_library_spans, TrUserData)};
-      {_,
-       #{instrumentation_library_spans :=
-	     NFinstrumentation_library_spans}} ->
-	  S2#{instrumentation_library_spans =>
-		  NFinstrumentation_library_spans};
-      {#{instrumentation_library_spans :=
-	     PFinstrumentation_library_spans},
-       _} ->
-	  S2#{instrumentation_library_spans =>
-		  PFinstrumentation_library_spans};
-      {_, _} -> S2
+        {#{instrumentation_library_spans :=
+               PFinstrumentation_library_spans},
+         #{instrumentation_library_spans :=
+               NFinstrumentation_library_spans}} ->
+            S2#{instrumentation_library_spans =>
+                    'erlang_++'(PFinstrumentation_library_spans,
+                                NFinstrumentation_library_spans,
+                                TrUserData)};
+        {_,
+         #{instrumentation_library_spans :=
+               NFinstrumentation_library_spans}} ->
+            S2#{instrumentation_library_spans =>
+                    NFinstrumentation_library_spans};
+        {#{instrumentation_library_spans :=
+               PFinstrumentation_library_spans},
+         _} ->
+            S2#{instrumentation_library_spans =>
+                    PFinstrumentation_library_spans};
+        {_, _} -> S2
     end.
 
 -compile({nowarn_unused_function,merge_msg_instrumentation_library_spans/3}).
 merge_msg_instrumentation_library_spans(PMsg, NMsg,
-					TrUserData) ->
+                                        TrUserData) ->
     S1 = #{},
     S2 = case {PMsg, NMsg} of
-	   {#{instrumentation_library :=
-		  PFinstrumentation_library},
-	    #{instrumentation_library :=
-		  NFinstrumentation_library}} ->
-	       S1#{instrumentation_library =>
-		       merge_msg_instrumentation_library(PFinstrumentation_library,
-							 NFinstrumentation_library,
-							 TrUserData)};
-	   {_,
-	    #{instrumentation_library :=
-		  NFinstrumentation_library}} ->
-	       S1#{instrumentation_library =>
-		       NFinstrumentation_library};
-	   {#{instrumentation_library :=
-		  PFinstrumentation_library},
-	    _} ->
-	       S1#{instrumentation_library =>
-		       PFinstrumentation_library};
-	   {_, _} -> S1
-	 end,
+             {#{instrumentation_library :=
+                    PFinstrumentation_library},
+              #{instrumentation_library :=
+                    NFinstrumentation_library}} ->
+                 S1#{instrumentation_library =>
+                         merge_msg_instrumentation_library(PFinstrumentation_library,
+                                                           NFinstrumentation_library,
+                                                           TrUserData)};
+             {_,
+              #{instrumentation_library :=
+                    NFinstrumentation_library}} ->
+                 S1#{instrumentation_library =>
+                         NFinstrumentation_library};
+             {#{instrumentation_library :=
+                    PFinstrumentation_library},
+              _} ->
+                 S1#{instrumentation_library =>
+                         PFinstrumentation_library};
+             {_, _} -> S1
+         end,
     case {PMsg, NMsg} of
-      {#{spans := PFspans}, #{spans := NFspans}} ->
-	  S2#{spans => 'erlang_++'(PFspans, NFspans, TrUserData)};
-      {_, #{spans := NFspans}} -> S2#{spans => NFspans};
-      {#{spans := PFspans}, _} -> S2#{spans => PFspans};
-      {_, _} -> S2
+        {#{spans := PFspans}, #{spans := NFspans}} ->
+            S2#{spans => 'erlang_++'(PFspans, NFspans, TrUserData)};
+        {_, #{spans := NFspans}} -> S2#{spans => NFspans};
+        {#{spans := PFspans}, _} -> S2#{spans => PFspans};
+        {_, _} -> S2
     end.
 
 -compile({nowarn_unused_function,merge_msg_event/3}).
 merge_msg_event(PMsg, NMsg, TrUserData) ->
     S1 = #{},
     S2 = case {PMsg, NMsg} of
-	   {_, #{time_unix_nano := NFtime_unix_nano}} ->
-	       S1#{time_unix_nano => NFtime_unix_nano};
-	   {#{time_unix_nano := PFtime_unix_nano}, _} ->
-	       S1#{time_unix_nano => PFtime_unix_nano};
-	   _ -> S1
-	 end,
+             {_, #{time_unix_nano := NFtime_unix_nano}} ->
+                 S1#{time_unix_nano => NFtime_unix_nano};
+             {#{time_unix_nano := PFtime_unix_nano}, _} ->
+                 S1#{time_unix_nano => PFtime_unix_nano};
+             _ -> S1
+         end,
     S3 = case {PMsg, NMsg} of
-	   {_, #{name := NFname}} -> S2#{name => NFname};
-	   {#{name := PFname}, _} -> S2#{name => PFname};
-	   _ -> S2
-	 end,
+             {_, #{name := NFname}} -> S2#{name => NFname};
+             {#{name := PFname}, _} -> S2#{name => PFname};
+             _ -> S2
+         end,
     S4 = case {PMsg, NMsg} of
-	   {#{attributes := PFattributes},
-	    #{attributes := NFattributes}} ->
-	       S3#{attributes =>
-		       'erlang_++'(PFattributes, NFattributes, TrUserData)};
-	   {_, #{attributes := NFattributes}} ->
-	       S3#{attributes => NFattributes};
-	   {#{attributes := PFattributes}, _} ->
-	       S3#{attributes => PFattributes};
-	   {_, _} -> S3
-	 end,
+             {#{attributes := PFattributes},
+              #{attributes := NFattributes}} ->
+                 S3#{attributes =>
+                         'erlang_++'(PFattributes, NFattributes, TrUserData)};
+             {_, #{attributes := NFattributes}} ->
+                 S3#{attributes => NFattributes};
+             {#{attributes := PFattributes}, _} ->
+                 S3#{attributes => PFattributes};
+             {_, _} -> S3
+         end,
     case {PMsg, NMsg} of
-      {_,
-       #{dropped_attributes_count :=
-	     NFdropped_attributes_count}} ->
-	  S4#{dropped_attributes_count =>
-		  NFdropped_attributes_count};
-      {#{dropped_attributes_count :=
-	     PFdropped_attributes_count},
-       _} ->
-	  S4#{dropped_attributes_count =>
-		  PFdropped_attributes_count};
-      _ -> S4
+        {_,
+         #{dropped_attributes_count :=
+               NFdropped_attributes_count}} ->
+            S4#{dropped_attributes_count =>
+                    NFdropped_attributes_count};
+        {#{dropped_attributes_count :=
+               PFdropped_attributes_count},
+         _} ->
+            S4#{dropped_attributes_count =>
+                    PFdropped_attributes_count};
+        _ -> S4
     end.
 
 -compile({nowarn_unused_function,merge_msg_link/3}).
 merge_msg_link(PMsg, NMsg, TrUserData) ->
     S1 = #{},
     S2 = case {PMsg, NMsg} of
-	   {_, #{trace_id := NFtrace_id}} ->
-	       S1#{trace_id => NFtrace_id};
-	   {#{trace_id := PFtrace_id}, _} ->
-	       S1#{trace_id => PFtrace_id};
-	   _ -> S1
-	 end,
+             {_, #{trace_id := NFtrace_id}} ->
+                 S1#{trace_id => NFtrace_id};
+             {#{trace_id := PFtrace_id}, _} ->
+                 S1#{trace_id => PFtrace_id};
+             _ -> S1
+         end,
     S3 = case {PMsg, NMsg} of
-	   {_, #{span_id := NFspan_id}} ->
-	       S2#{span_id => NFspan_id};
-	   {#{span_id := PFspan_id}, _} ->
-	       S2#{span_id => PFspan_id};
-	   _ -> S2
-	 end,
+             {_, #{span_id := NFspan_id}} ->
+                 S2#{span_id => NFspan_id};
+             {#{span_id := PFspan_id}, _} ->
+                 S2#{span_id => PFspan_id};
+             _ -> S2
+         end,
     S4 = case {PMsg, NMsg} of
-	   {_, #{trace_state := NFtrace_state}} ->
-	       S3#{trace_state => NFtrace_state};
-	   {#{trace_state := PFtrace_state}, _} ->
-	       S3#{trace_state => PFtrace_state};
-	   _ -> S3
-	 end,
+             {_, #{trace_state := NFtrace_state}} ->
+                 S3#{trace_state => NFtrace_state};
+             {#{trace_state := PFtrace_state}, _} ->
+                 S3#{trace_state => PFtrace_state};
+             _ -> S3
+         end,
     S5 = case {PMsg, NMsg} of
-	   {#{attributes := PFattributes},
-	    #{attributes := NFattributes}} ->
-	       S4#{attributes =>
-		       'erlang_++'(PFattributes, NFattributes, TrUserData)};
-	   {_, #{attributes := NFattributes}} ->
-	       S4#{attributes => NFattributes};
-	   {#{attributes := PFattributes}, _} ->
-	       S4#{attributes => PFattributes};
-	   {_, _} -> S4
-	 end,
+             {#{attributes := PFattributes},
+              #{attributes := NFattributes}} ->
+                 S4#{attributes =>
+                         'erlang_++'(PFattributes, NFattributes, TrUserData)};
+             {_, #{attributes := NFattributes}} ->
+                 S4#{attributes => NFattributes};
+             {#{attributes := PFattributes}, _} ->
+                 S4#{attributes => PFattributes};
+             {_, _} -> S4
+         end,
     case {PMsg, NMsg} of
-      {_,
-       #{dropped_attributes_count :=
-	     NFdropped_attributes_count}} ->
-	  S5#{dropped_attributes_count =>
-		  NFdropped_attributes_count};
-      {#{dropped_attributes_count :=
-	     PFdropped_attributes_count},
-       _} ->
-	  S5#{dropped_attributes_count =>
-		  PFdropped_attributes_count};
-      _ -> S5
+        {_,
+         #{dropped_attributes_count :=
+               NFdropped_attributes_count}} ->
+            S5#{dropped_attributes_count =>
+                    NFdropped_attributes_count};
+        {#{dropped_attributes_count :=
+               PFdropped_attributes_count},
+         _} ->
+            S5#{dropped_attributes_count =>
+                    PFdropped_attributes_count};
+        _ -> S5
     end.
 
 -compile({nowarn_unused_function,merge_msg_span/3}).
 merge_msg_span(PMsg, NMsg, TrUserData) ->
     S1 = #{},
     S2 = case {PMsg, NMsg} of
-	   {_, #{trace_id := NFtrace_id}} ->
-	       S1#{trace_id => NFtrace_id};
-	   {#{trace_id := PFtrace_id}, _} ->
-	       S1#{trace_id => PFtrace_id};
-	   _ -> S1
-	 end,
+             {_, #{trace_id := NFtrace_id}} ->
+                 S1#{trace_id => NFtrace_id};
+             {#{trace_id := PFtrace_id}, _} ->
+                 S1#{trace_id => PFtrace_id};
+             _ -> S1
+         end,
     S3 = case {PMsg, NMsg} of
-	   {_, #{span_id := NFspan_id}} ->
-	       S2#{span_id => NFspan_id};
-	   {#{span_id := PFspan_id}, _} ->
-	       S2#{span_id => PFspan_id};
-	   _ -> S2
-	 end,
+             {_, #{span_id := NFspan_id}} ->
+                 S2#{span_id => NFspan_id};
+             {#{span_id := PFspan_id}, _} ->
+                 S2#{span_id => PFspan_id};
+             _ -> S2
+         end,
     S4 = case {PMsg, NMsg} of
-	   {_, #{trace_state := NFtrace_state}} ->
-	       S3#{trace_state => NFtrace_state};
-	   {#{trace_state := PFtrace_state}, _} ->
-	       S3#{trace_state => PFtrace_state};
-	   _ -> S3
-	 end,
+             {_, #{trace_state := NFtrace_state}} ->
+                 S3#{trace_state => NFtrace_state};
+             {#{trace_state := PFtrace_state}, _} ->
+                 S3#{trace_state => PFtrace_state};
+             _ -> S3
+         end,
     S5 = case {PMsg, NMsg} of
-	   {_, #{parent_span_id := NFparent_span_id}} ->
-	       S4#{parent_span_id => NFparent_span_id};
-	   {#{parent_span_id := PFparent_span_id}, _} ->
-	       S4#{parent_span_id => PFparent_span_id};
-	   _ -> S4
-	 end,
+             {_, #{parent_span_id := NFparent_span_id}} ->
+                 S4#{parent_span_id => NFparent_span_id};
+             {#{parent_span_id := PFparent_span_id}, _} ->
+                 S4#{parent_span_id => PFparent_span_id};
+             _ -> S4
+         end,
     S6 = case {PMsg, NMsg} of
-	   {_, #{name := NFname}} -> S5#{name => NFname};
-	   {#{name := PFname}, _} -> S5#{name => PFname};
-	   _ -> S5
-	 end,
+             {_, #{name := NFname}} -> S5#{name => NFname};
+             {#{name := PFname}, _} -> S5#{name => PFname};
+             _ -> S5
+         end,
     S7 = case {PMsg, NMsg} of
-	   {_, #{kind := NFkind}} -> S6#{kind => NFkind};
-	   {#{kind := PFkind}, _} -> S6#{kind => PFkind};
-	   _ -> S6
-	 end,
+             {_, #{kind := NFkind}} -> S6#{kind => NFkind};
+             {#{kind := PFkind}, _} -> S6#{kind => PFkind};
+             _ -> S6
+         end,
     S8 = case {PMsg, NMsg} of
-	   {_,
-	    #{start_time_unix_nano := NFstart_time_unix_nano}} ->
-	       S7#{start_time_unix_nano => NFstart_time_unix_nano};
-	   {#{start_time_unix_nano := PFstart_time_unix_nano},
-	    _} ->
-	       S7#{start_time_unix_nano => PFstart_time_unix_nano};
-	   _ -> S7
-	 end,
+             {_,
+              #{start_time_unix_nano := NFstart_time_unix_nano}} ->
+                 S7#{start_time_unix_nano => NFstart_time_unix_nano};
+             {#{start_time_unix_nano := PFstart_time_unix_nano},
+              _} ->
+                 S7#{start_time_unix_nano => PFstart_time_unix_nano};
+             _ -> S7
+         end,
     S9 = case {PMsg, NMsg} of
-	   {_, #{end_time_unix_nano := NFend_time_unix_nano}} ->
-	       S8#{end_time_unix_nano => NFend_time_unix_nano};
-	   {#{end_time_unix_nano := PFend_time_unix_nano}, _} ->
-	       S8#{end_time_unix_nano => PFend_time_unix_nano};
-	   _ -> S8
-	 end,
+             {_, #{end_time_unix_nano := NFend_time_unix_nano}} ->
+                 S8#{end_time_unix_nano => NFend_time_unix_nano};
+             {#{end_time_unix_nano := PFend_time_unix_nano}, _} ->
+                 S8#{end_time_unix_nano => PFend_time_unix_nano};
+             _ -> S8
+         end,
     S10 = case {PMsg, NMsg} of
-	    {#{attributes := PFattributes},
-	     #{attributes := NFattributes}} ->
-		S9#{attributes =>
-			'erlang_++'(PFattributes, NFattributes, TrUserData)};
-	    {_, #{attributes := NFattributes}} ->
-		S9#{attributes => NFattributes};
-	    {#{attributes := PFattributes}, _} ->
-		S9#{attributes => PFattributes};
-	    {_, _} -> S9
-	  end,
+              {#{attributes := PFattributes},
+               #{attributes := NFattributes}} ->
+                  S9#{attributes =>
+                          'erlang_++'(PFattributes, NFattributes, TrUserData)};
+              {_, #{attributes := NFattributes}} ->
+                  S9#{attributes => NFattributes};
+              {#{attributes := PFattributes}, _} ->
+                  S9#{attributes => PFattributes};
+              {_, _} -> S9
+          end,
     S11 = case {PMsg, NMsg} of
-	    {_,
-	     #{dropped_attributes_count :=
-		   NFdropped_attributes_count}} ->
-		S10#{dropped_attributes_count =>
-			 NFdropped_attributes_count};
-	    {#{dropped_attributes_count :=
-		   PFdropped_attributes_count},
-	     _} ->
-		S10#{dropped_attributes_count =>
-			 PFdropped_attributes_count};
-	    _ -> S10
-	  end,
+              {_,
+               #{dropped_attributes_count :=
+                     NFdropped_attributes_count}} ->
+                  S10#{dropped_attributes_count =>
+                           NFdropped_attributes_count};
+              {#{dropped_attributes_count :=
+                     PFdropped_attributes_count},
+               _} ->
+                  S10#{dropped_attributes_count =>
+                           PFdropped_attributes_count};
+              _ -> S10
+          end,
     S12 = case {PMsg, NMsg} of
-	    {#{events := PFevents}, #{events := NFevents}} ->
-		S11#{events =>
-			 'erlang_++'(PFevents, NFevents, TrUserData)};
-	    {_, #{events := NFevents}} -> S11#{events => NFevents};
-	    {#{events := PFevents}, _} -> S11#{events => PFevents};
-	    {_, _} -> S11
-	  end,
+              {#{events := PFevents}, #{events := NFevents}} ->
+                  S11#{events =>
+                           'erlang_++'(PFevents, NFevents, TrUserData)};
+              {_, #{events := NFevents}} -> S11#{events => NFevents};
+              {#{events := PFevents}, _} -> S11#{events => PFevents};
+              {_, _} -> S11
+          end,
     S13 = case {PMsg, NMsg} of
-	    {_,
-	     #{dropped_events_count := NFdropped_events_count}} ->
-		S12#{dropped_events_count => NFdropped_events_count};
-	    {#{dropped_events_count := PFdropped_events_count},
-	     _} ->
-		S12#{dropped_events_count => PFdropped_events_count};
-	    _ -> S12
-	  end,
+              {_,
+               #{dropped_events_count := NFdropped_events_count}} ->
+                  S12#{dropped_events_count => NFdropped_events_count};
+              {#{dropped_events_count := PFdropped_events_count},
+               _} ->
+                  S12#{dropped_events_count => PFdropped_events_count};
+              _ -> S12
+          end,
     S14 = case {PMsg, NMsg} of
-	    {#{links := PFlinks}, #{links := NFlinks}} ->
-		S13#{links =>
-			 'erlang_++'(PFlinks, NFlinks, TrUserData)};
-	    {_, #{links := NFlinks}} -> S13#{links => NFlinks};
-	    {#{links := PFlinks}, _} -> S13#{links => PFlinks};
-	    {_, _} -> S13
-	  end,
+              {#{links := PFlinks}, #{links := NFlinks}} ->
+                  S13#{links =>
+                           'erlang_++'(PFlinks, NFlinks, TrUserData)};
+              {_, #{links := NFlinks}} -> S13#{links => NFlinks};
+              {#{links := PFlinks}, _} -> S13#{links => PFlinks};
+              {_, _} -> S13
+          end,
     S15 = case {PMsg, NMsg} of
-	    {_, #{dropped_links_count := NFdropped_links_count}} ->
-		S14#{dropped_links_count => NFdropped_links_count};
-	    {#{dropped_links_count := PFdropped_links_count}, _} ->
-		S14#{dropped_links_count => PFdropped_links_count};
-	    _ -> S14
-	  end,
+              {_, #{dropped_links_count := NFdropped_links_count}} ->
+                  S14#{dropped_links_count => NFdropped_links_count};
+              {#{dropped_links_count := PFdropped_links_count}, _} ->
+                  S14#{dropped_links_count => PFdropped_links_count};
+              _ -> S14
+          end,
     case {PMsg, NMsg} of
-      {#{status := PFstatus}, #{status := NFstatus}} ->
-	  S15#{status =>
-		   merge_msg_status(PFstatus, NFstatus, TrUserData)};
-      {_, #{status := NFstatus}} -> S15#{status => NFstatus};
-      {#{status := PFstatus}, _} -> S15#{status => PFstatus};
-      {_, _} -> S15
+        {#{status := PFstatus}, #{status := NFstatus}} ->
+            S15#{status =>
+                     merge_msg_status(PFstatus, NFstatus, TrUserData)};
+        {_, #{status := NFstatus}} -> S15#{status => NFstatus};
+        {#{status := PFstatus}, _} -> S15#{status => PFstatus};
+        {_, _} -> S15
     end.
 
 -compile({nowarn_unused_function,merge_msg_status/3}).
 merge_msg_status(PMsg, NMsg, _) ->
     S1 = #{},
     S2 = case {PMsg, NMsg} of
-	   {_, #{code := NFcode}} -> S1#{code => NFcode};
-	   {#{code := PFcode}, _} -> S1#{code => PFcode};
-	   _ -> S1
-	 end,
+             {_, #{code := NFcode}} -> S1#{code => NFcode};
+             {#{code := PFcode}, _} -> S1#{code => PFcode};
+             _ -> S1
+         end,
     case {PMsg, NMsg} of
-      {_, #{message := NFmessage}} ->
-	  S2#{message => NFmessage};
-      {#{message := PFmessage}, _} ->
-	  S2#{message => PFmessage};
-      _ -> S2
+        {_, #{message := NFmessage}} ->
+            S2#{message => NFmessage};
+        {#{message := PFmessage}, _} ->
+            S2#{message => PFmessage};
+        _ -> S2
     end.
 
 -compile({nowarn_unused_function,merge_msg_attribute_key_value/3}).
 merge_msg_attribute_key_value(PMsg, NMsg, _) ->
     S1 = #{},
     S2 = case {PMsg, NMsg} of
-	   {_, #{key := NFkey}} -> S1#{key => NFkey};
-	   {#{key := PFkey}, _} -> S1#{key => PFkey};
-	   _ -> S1
-	 end,
+             {_, #{key := NFkey}} -> S1#{key => NFkey};
+             {#{key := PFkey}, _} -> S1#{key => PFkey};
+             _ -> S1
+         end,
     S3 = case {PMsg, NMsg} of
-	   {_, #{type := NFtype}} -> S2#{type => NFtype};
-	   {#{type := PFtype}, _} -> S2#{type => PFtype};
-	   _ -> S2
-	 end,
+             {_, #{type := NFtype}} -> S2#{type => NFtype};
+             {#{type := PFtype}, _} -> S2#{type => PFtype};
+             _ -> S2
+         end,
     S4 = case {PMsg, NMsg} of
-	   {_, #{string_value := NFstring_value}} ->
-	       S3#{string_value => NFstring_value};
-	   {#{string_value := PFstring_value}, _} ->
-	       S3#{string_value => PFstring_value};
-	   _ -> S3
-	 end,
+             {_, #{string_value := NFstring_value}} ->
+                 S3#{string_value => NFstring_value};
+             {#{string_value := PFstring_value}, _} ->
+                 S3#{string_value => PFstring_value};
+             _ -> S3
+         end,
     S5 = case {PMsg, NMsg} of
-	   {_, #{int_value := NFint_value}} ->
-	       S4#{int_value => NFint_value};
-	   {#{int_value := PFint_value}, _} ->
-	       S4#{int_value => PFint_value};
-	   _ -> S4
-	 end,
+             {_, #{int_value := NFint_value}} ->
+                 S4#{int_value => NFint_value};
+             {#{int_value := PFint_value}, _} ->
+                 S4#{int_value => PFint_value};
+             _ -> S4
+         end,
     S6 = case {PMsg, NMsg} of
-	   {_, #{double_value := NFdouble_value}} ->
-	       S5#{double_value => NFdouble_value};
-	   {#{double_value := PFdouble_value}, _} ->
-	       S5#{double_value => PFdouble_value};
-	   _ -> S5
-	 end,
+             {_, #{double_value := NFdouble_value}} ->
+                 S5#{double_value => NFdouble_value};
+             {#{double_value := PFdouble_value}, _} ->
+                 S5#{double_value => PFdouble_value};
+             _ -> S5
+         end,
     case {PMsg, NMsg} of
-      {_, #{bool_value := NFbool_value}} ->
-	  S6#{bool_value => NFbool_value};
-      {#{bool_value := PFbool_value}, _} ->
-	  S6#{bool_value => PFbool_value};
-      _ -> S6
+        {_, #{bool_value := NFbool_value}} ->
+            S6#{bool_value => NFbool_value};
+        {#{bool_value := PFbool_value}, _} ->
+            S6#{bool_value => PFbool_value};
+        _ -> S6
     end.
 
 -compile({nowarn_unused_function,merge_msg_string_key_value/3}).
 merge_msg_string_key_value(PMsg, NMsg, _) ->
     S1 = #{},
     S2 = case {PMsg, NMsg} of
-	   {_, #{key := NFkey}} -> S1#{key => NFkey};
-	   {#{key := PFkey}, _} -> S1#{key => PFkey};
-	   _ -> S1
-	 end,
+             {_, #{key := NFkey}} -> S1#{key => NFkey};
+             {#{key := PFkey}, _} -> S1#{key => PFkey};
+             _ -> S1
+         end,
     case {PMsg, NMsg} of
-      {_, #{value := NFvalue}} -> S2#{value => NFvalue};
-      {#{value := PFvalue}, _} -> S2#{value => PFvalue};
-      _ -> S2
+        {_, #{value := NFvalue}} -> S2#{value => NFvalue};
+        {#{value := PFvalue}, _} -> S2#{value => PFvalue};
+        _ -> S2
     end.
 
 -compile({nowarn_unused_function,merge_msg_instrumentation_library/3}).
 merge_msg_instrumentation_library(PMsg, NMsg, _) ->
     S1 = #{},
     S2 = case {PMsg, NMsg} of
-	   {_, #{name := NFname}} -> S1#{name => NFname};
-	   {#{name := PFname}, _} -> S1#{name => PFname};
-	   _ -> S1
-	 end,
+             {_, #{name := NFname}} -> S1#{name => NFname};
+             {#{name := PFname}, _} -> S1#{name => PFname};
+             _ -> S1
+         end,
     case {PMsg, NMsg} of
-      {_, #{version := NFversion}} ->
-	  S2#{version => NFversion};
-      {#{version := PFversion}, _} ->
-	  S2#{version => PFversion};
-      _ -> S2
+        {_, #{version := NFversion}} ->
+            S2#{version => NFversion};
+        {#{version := PFversion}, _} ->
+            S2#{version => PFversion};
+        _ -> S2
     end.
 
 -compile({nowarn_unused_function,merge_msg_resource/3}).
 merge_msg_resource(PMsg, NMsg, TrUserData) ->
     S1 = #{},
     S2 = case {PMsg, NMsg} of
-	   {#{attributes := PFattributes},
-	    #{attributes := NFattributes}} ->
-	       S1#{attributes =>
-		       'erlang_++'(PFattributes, NFattributes, TrUserData)};
-	   {_, #{attributes := NFattributes}} ->
-	       S1#{attributes => NFattributes};
-	   {#{attributes := PFattributes}, _} ->
-	       S1#{attributes => PFattributes};
-	   {_, _} -> S1
-	 end,
+             {#{attributes := PFattributes},
+              #{attributes := NFattributes}} ->
+                 S1#{attributes =>
+                         'erlang_++'(PFattributes, NFattributes, TrUserData)};
+             {_, #{attributes := NFattributes}} ->
+                 S1#{attributes => NFattributes};
+             {#{attributes := PFattributes}, _} ->
+                 S1#{attributes => PFattributes};
+             {_, _} -> S1
+         end,
     case {PMsg, NMsg} of
-      {_,
-       #{dropped_attributes_count :=
-	     NFdropped_attributes_count}} ->
-	  S2#{dropped_attributes_count =>
-		  NFdropped_attributes_count};
-      {#{dropped_attributes_count :=
-	     PFdropped_attributes_count},
-       _} ->
-	  S2#{dropped_attributes_count =>
-		  PFdropped_attributes_count};
-      _ -> S2
+        {_,
+         #{dropped_attributes_count :=
+               NFdropped_attributes_count}} ->
+            S2#{dropped_attributes_count =>
+                    NFdropped_attributes_count};
+        {#{dropped_attributes_count :=
+               PFdropped_attributes_count},
+         _} ->
+            S2#{dropped_attributes_count =>
+                    PFdropped_attributes_count};
+        _ -> S2
     end.
 
 
@@ -4154,214 +6581,238 @@ verify_msg(Msg, MsgName) when is_atom(MsgName) ->
 verify_msg(Msg, MsgName, Opts) ->
     TrUserData = proplists:get_value(user_data, Opts),
     case MsgName of
-      export_trace_service_request ->
-	  v_msg_export_trace_service_request(Msg, [MsgName],
-					     TrUserData);
-      export_trace_service_response ->
-	  v_msg_export_trace_service_response(Msg, [MsgName],
-					      TrUserData);
-      resource_spans ->
-	  v_msg_resource_spans(Msg, [MsgName], TrUserData);
-      instrumentation_library_spans ->
-	  v_msg_instrumentation_library_spans(Msg, [MsgName],
-					      TrUserData);
-      event -> v_msg_event(Msg, [MsgName], TrUserData);
-      link -> v_msg_link(Msg, [MsgName], TrUserData);
-      span -> v_msg_span(Msg, [MsgName], TrUserData);
-      status -> v_msg_status(Msg, [MsgName], TrUserData);
-      attribute_key_value ->
-	  v_msg_attribute_key_value(Msg, [MsgName], TrUserData);
-      string_key_value ->
-	  v_msg_string_key_value(Msg, [MsgName], TrUserData);
-      instrumentation_library ->
-	  v_msg_instrumentation_library(Msg, [MsgName],
-					TrUserData);
-      resource -> v_msg_resource(Msg, [MsgName], TrUserData);
-      _ -> mk_type_error(not_a_known_message, Msg, [])
+        export_trace_service_request ->
+            v_msg_export_trace_service_request(Msg,
+                                               [MsgName],
+                                               TrUserData);
+        export_trace_service_response ->
+            v_msg_export_trace_service_response(Msg,
+                                                [MsgName],
+                                                TrUserData);
+        resource_spans ->
+            v_msg_resource_spans(Msg, [MsgName], TrUserData);
+        instrumentation_library_spans ->
+            v_msg_instrumentation_library_spans(Msg,
+                                                [MsgName],
+                                                TrUserData);
+        event -> v_msg_event(Msg, [MsgName], TrUserData);
+        link -> v_msg_link(Msg, [MsgName], TrUserData);
+        span -> v_msg_span(Msg, [MsgName], TrUserData);
+        status -> v_msg_status(Msg, [MsgName], TrUserData);
+        attribute_key_value ->
+            v_msg_attribute_key_value(Msg, [MsgName], TrUserData);
+        string_key_value ->
+            v_msg_string_key_value(Msg, [MsgName], TrUserData);
+        instrumentation_library ->
+            v_msg_instrumentation_library(Msg,
+                                          [MsgName],
+                                          TrUserData);
+        resource -> v_msg_resource(Msg, [MsgName], TrUserData);
+        _ -> mk_type_error(not_a_known_message, Msg, [])
     end.
 
 
 -compile({nowarn_unused_function,v_msg_export_trace_service_request/3}).
 -dialyzer({nowarn_function,v_msg_export_trace_service_request/3}).
 v_msg_export_trace_service_request(#{} = M, Path,
-				   TrUserData) ->
+                                   TrUserData) ->
     case M of
-      #{resource_spans := F1} ->
-	  if is_list(F1) ->
-		 _ = [v_msg_resource_spans(Elem, [resource_spans | Path],
-					   TrUserData)
-		      || Elem <- F1],
-		 ok;
-	     true ->
-		 mk_type_error({invalid_list_of, {msg, resource_spans}},
-			       F1, [resource_spans | Path])
-	  end;
-      _ -> ok
+        #{resource_spans := F1} ->
+            if is_list(F1) ->
+                   _ = [v_msg_resource_spans(Elem,
+                                             [resource_spans | Path],
+                                             TrUserData)
+                        || Elem <- F1],
+                   ok;
+               true ->
+                   mk_type_error({invalid_list_of, {msg, resource_spans}},
+                                 F1,
+                                 [resource_spans | Path])
+            end;
+        _ -> ok
     end,
     lists:foreach(fun (resource_spans) -> ok;
-		      (OtherKey) ->
-			  mk_type_error({extraneous_key, OtherKey}, M, Path)
-		  end,
-		  maps:keys(M)),
+                      (OtherKey) ->
+                          mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
     ok;
 v_msg_export_trace_service_request(M, Path, _TrUserData)
     when is_map(M) ->
-    mk_type_error({missing_fields, [] -- maps:keys(M),
-		   export_trace_service_request},
-		  M, Path);
+    mk_type_error({missing_fields,
+                   [] -- maps:keys(M),
+                   export_trace_service_request},
+                  M,
+                  Path);
 v_msg_export_trace_service_request(X, Path,
-				   _TrUserData) ->
+                                   _TrUserData) ->
     mk_type_error({expected_msg,
-		   export_trace_service_request},
-		  X, Path).
+                   export_trace_service_request},
+                  X,
+                  Path).
 
 -compile({nowarn_unused_function,v_msg_export_trace_service_response/3}).
 -dialyzer({nowarn_function,v_msg_export_trace_service_response/3}).
 v_msg_export_trace_service_response(#{} = M, Path, _) ->
     lists:foreach(fun (OtherKey) ->
-			  mk_type_error({extraneous_key, OtherKey}, M, Path)
-		  end,
-		  maps:keys(M)),
+                          mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
     ok;
 v_msg_export_trace_service_response(M, Path,
-				    _TrUserData)
+                                    _TrUserData)
     when is_map(M) ->
-    mk_type_error({missing_fields, [] -- maps:keys(M),
-		   export_trace_service_response},
-		  M, Path);
+    mk_type_error({missing_fields,
+                   [] -- maps:keys(M),
+                   export_trace_service_response},
+                  M,
+                  Path);
 v_msg_export_trace_service_response(X, Path,
-				    _TrUserData) ->
+                                    _TrUserData) ->
     mk_type_error({expected_msg,
-		   export_trace_service_response},
-		  X, Path).
+                   export_trace_service_response},
+                  X,
+                  Path).
 
 -compile({nowarn_unused_function,v_msg_resource_spans/3}).
 -dialyzer({nowarn_function,v_msg_resource_spans/3}).
 v_msg_resource_spans(#{} = M, Path, TrUserData) ->
     case M of
-      #{resource := F1} ->
-	  v_msg_resource(F1, [resource | Path], TrUserData);
-      _ -> ok
+        #{resource := F1} ->
+            v_msg_resource(F1, [resource | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{instrumentation_library_spans := F2} ->
-	  if is_list(F2) ->
-		 _ = [v_msg_instrumentation_library_spans(Elem,
-							  [instrumentation_library_spans
-							   | Path],
-							  TrUserData)
-		      || Elem <- F2],
-		 ok;
-	     true ->
-		 mk_type_error({invalid_list_of,
-				{msg, instrumentation_library_spans}},
-			       F2, [instrumentation_library_spans | Path])
-	  end;
-      _ -> ok
+        #{instrumentation_library_spans := F2} ->
+            if is_list(F2) ->
+                   _ = [v_msg_instrumentation_library_spans(Elem,
+                                                            [instrumentation_library_spans
+                                                             | Path],
+                                                            TrUserData)
+                        || Elem <- F2],
+                   ok;
+               true ->
+                   mk_type_error({invalid_list_of,
+                                  {msg, instrumentation_library_spans}},
+                                 F2,
+                                 [instrumentation_library_spans | Path])
+            end;
+        _ -> ok
     end,
     lists:foreach(fun (resource) -> ok;
-		      (instrumentation_library_spans) -> ok;
-		      (OtherKey) ->
-			  mk_type_error({extraneous_key, OtherKey}, M, Path)
-		  end,
-		  maps:keys(M)),
+                      (instrumentation_library_spans) -> ok;
+                      (OtherKey) ->
+                          mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
     ok;
 v_msg_resource_spans(M, Path, _TrUserData)
     when is_map(M) ->
-    mk_type_error({missing_fields, [] -- maps:keys(M),
-		   resource_spans},
-		  M, Path);
+    mk_type_error({missing_fields,
+                   [] -- maps:keys(M),
+                   resource_spans},
+                  M,
+                  Path);
 v_msg_resource_spans(X, Path, _TrUserData) ->
     mk_type_error({expected_msg, resource_spans}, X, Path).
 
 -compile({nowarn_unused_function,v_msg_instrumentation_library_spans/3}).
 -dialyzer({nowarn_function,v_msg_instrumentation_library_spans/3}).
 v_msg_instrumentation_library_spans(#{} = M, Path,
-				    TrUserData) ->
+                                    TrUserData) ->
     case M of
-      #{instrumentation_library := F1} ->
-	  v_msg_instrumentation_library(F1,
-					[instrumentation_library | Path],
-					TrUserData);
-      _ -> ok
+        #{instrumentation_library := F1} ->
+            v_msg_instrumentation_library(F1,
+                                          [instrumentation_library | Path],
+                                          TrUserData);
+        _ -> ok
     end,
     case M of
-      #{spans := F2} ->
-	  if is_list(F2) ->
-		 _ = [v_msg_span(Elem, [spans | Path], TrUserData)
-		      || Elem <- F2],
-		 ok;
-	     true ->
-		 mk_type_error({invalid_list_of, {msg, span}}, F2,
-			       [spans | Path])
-	  end;
-      _ -> ok
+        #{spans := F2} ->
+            if is_list(F2) ->
+                   _ = [v_msg_span(Elem, [spans | Path], TrUserData)
+                        || Elem <- F2],
+                   ok;
+               true ->
+                   mk_type_error({invalid_list_of, {msg, span}},
+                                 F2,
+                                 [spans | Path])
+            end;
+        _ -> ok
     end,
     lists:foreach(fun (instrumentation_library) -> ok;
-		      (spans) -> ok;
-		      (OtherKey) ->
-			  mk_type_error({extraneous_key, OtherKey}, M, Path)
-		  end,
-		  maps:keys(M)),
+                      (spans) -> ok;
+                      (OtherKey) ->
+                          mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
     ok;
 v_msg_instrumentation_library_spans(M, Path,
-				    _TrUserData)
+                                    _TrUserData)
     when is_map(M) ->
-    mk_type_error({missing_fields, [] -- maps:keys(M),
-		   instrumentation_library_spans},
-		  M, Path);
+    mk_type_error({missing_fields,
+                   [] -- maps:keys(M),
+                   instrumentation_library_spans},
+                  M,
+                  Path);
 v_msg_instrumentation_library_spans(X, Path,
-				    _TrUserData) ->
+                                    _TrUserData) ->
     mk_type_error({expected_msg,
-		   instrumentation_library_spans},
-		  X, Path).
+                   instrumentation_library_spans},
+                  X,
+                  Path).
 
 -compile({nowarn_unused_function,v_msg_event/3}).
 -dialyzer({nowarn_function,v_msg_event/3}).
 v_msg_event(#{} = M, Path, TrUserData) ->
     case M of
-      #{time_unix_nano := F1} ->
-	  v_type_fixed64(F1, [time_unix_nano | Path], TrUserData);
-      _ -> ok
+        #{time_unix_nano := F1} ->
+            v_type_fixed64(F1, [time_unix_nano | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{name := F2} ->
-	  v_type_string(F2, [name | Path], TrUserData);
-      _ -> ok
+        #{name := F2} ->
+            v_type_string(F2, [name | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{attributes := F3} ->
-	  if is_list(F3) ->
-		 _ = [v_msg_attribute_key_value(Elem,
-						[attributes | Path], TrUserData)
-		      || Elem <- F3],
-		 ok;
-	     true ->
-		 mk_type_error({invalid_list_of,
-				{msg, attribute_key_value}},
-			       F3, [attributes | Path])
-	  end;
-      _ -> ok
+        #{attributes := F3} ->
+            if is_list(F3) ->
+                   _ = [v_msg_attribute_key_value(Elem,
+                                                  [attributes | Path],
+                                                  TrUserData)
+                        || Elem <- F3],
+                   ok;
+               true ->
+                   mk_type_error({invalid_list_of,
+                                  {msg, attribute_key_value}},
+                                 F3,
+                                 [attributes | Path])
+            end;
+        _ -> ok
     end,
     case M of
-      #{dropped_attributes_count := F4} ->
-	  v_type_uint32(F4, [dropped_attributes_count | Path],
-			TrUserData);
-      _ -> ok
+        #{dropped_attributes_count := F4} ->
+            v_type_uint32(F4,
+                          [dropped_attributes_count | Path],
+                          TrUserData);
+        _ -> ok
     end,
     lists:foreach(fun (time_unix_nano) -> ok;
-		      (name) -> ok;
-		      (attributes) -> ok;
-		      (dropped_attributes_count) -> ok;
-		      (OtherKey) ->
-			  mk_type_error({extraneous_key, OtherKey}, M, Path)
-		  end,
-		  maps:keys(M)),
+                      (name) -> ok;
+                      (attributes) -> ok;
+                      (dropped_attributes_count) -> ok;
+                      (OtherKey) ->
+                          mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
     ok;
 v_msg_event(M, Path, _TrUserData) when is_map(M) ->
-    mk_type_error({missing_fields, [] -- maps:keys(M),
-		   event},
-		  M, Path);
+    mk_type_error({missing_fields,
+                   [] -- maps:keys(M),
+                   event},
+                  M,
+                  Path);
 v_msg_event(X, Path, _TrUserData) ->
     mk_type_error({expected_msg, event}, X, Path).
 
@@ -4369,54 +6820,59 @@ v_msg_event(X, Path, _TrUserData) ->
 -dialyzer({nowarn_function,v_msg_link/3}).
 v_msg_link(#{} = M, Path, TrUserData) ->
     case M of
-      #{trace_id := F1} ->
-	  v_type_bytes(F1, [trace_id | Path], TrUserData);
-      _ -> ok
+        #{trace_id := F1} ->
+            v_type_bytes(F1, [trace_id | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{span_id := F2} ->
-	  v_type_bytes(F2, [span_id | Path], TrUserData);
-      _ -> ok
+        #{span_id := F2} ->
+            v_type_bytes(F2, [span_id | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{trace_state := F3} ->
-	  v_type_string(F3, [trace_state | Path], TrUserData);
-      _ -> ok
+        #{trace_state := F3} ->
+            v_type_string(F3, [trace_state | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{attributes := F4} ->
-	  if is_list(F4) ->
-		 _ = [v_msg_attribute_key_value(Elem,
-						[attributes | Path], TrUserData)
-		      || Elem <- F4],
-		 ok;
-	     true ->
-		 mk_type_error({invalid_list_of,
-				{msg, attribute_key_value}},
-			       F4, [attributes | Path])
-	  end;
-      _ -> ok
+        #{attributes := F4} ->
+            if is_list(F4) ->
+                   _ = [v_msg_attribute_key_value(Elem,
+                                                  [attributes | Path],
+                                                  TrUserData)
+                        || Elem <- F4],
+                   ok;
+               true ->
+                   mk_type_error({invalid_list_of,
+                                  {msg, attribute_key_value}},
+                                 F4,
+                                 [attributes | Path])
+            end;
+        _ -> ok
     end,
     case M of
-      #{dropped_attributes_count := F5} ->
-	  v_type_uint32(F5, [dropped_attributes_count | Path],
-			TrUserData);
-      _ -> ok
+        #{dropped_attributes_count := F5} ->
+            v_type_uint32(F5,
+                          [dropped_attributes_count | Path],
+                          TrUserData);
+        _ -> ok
     end,
     lists:foreach(fun (trace_id) -> ok;
-		      (span_id) -> ok;
-		      (trace_state) -> ok;
-		      (attributes) -> ok;
-		      (dropped_attributes_count) -> ok;
-		      (OtherKey) ->
-			  mk_type_error({extraneous_key, OtherKey}, M, Path)
-		  end,
-		  maps:keys(M)),
+                      (span_id) -> ok;
+                      (trace_state) -> ok;
+                      (attributes) -> ok;
+                      (dropped_attributes_count) -> ok;
+                      (OtherKey) ->
+                          mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
     ok;
 v_msg_link(M, Path, _TrUserData) when is_map(M) ->
-    mk_type_error({missing_fields, [] -- maps:keys(M),
-		   link},
-		  M, Path);
+    mk_type_error({missing_fields,
+                   [] -- maps:keys(M),
+                   link},
+                  M,
+                  Path);
 v_msg_link(X, Path, _TrUserData) ->
     mk_type_error({expected_msg, link}, X, Path).
 
@@ -4424,132 +6880,143 @@ v_msg_link(X, Path, _TrUserData) ->
 -dialyzer({nowarn_function,v_msg_span/3}).
 v_msg_span(#{} = M, Path, TrUserData) ->
     case M of
-      #{trace_id := F1} ->
-	  v_type_bytes(F1, [trace_id | Path], TrUserData);
-      _ -> ok
+        #{trace_id := F1} ->
+            v_type_bytes(F1, [trace_id | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{span_id := F2} ->
-	  v_type_bytes(F2, [span_id | Path], TrUserData);
-      _ -> ok
+        #{span_id := F2} ->
+            v_type_bytes(F2, [span_id | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{trace_state := F3} ->
-	  v_type_string(F3, [trace_state | Path], TrUserData);
-      _ -> ok
+        #{trace_state := F3} ->
+            v_type_string(F3, [trace_state | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{parent_span_id := F4} ->
-	  v_type_bytes(F4, [parent_span_id | Path], TrUserData);
-      _ -> ok
+        #{parent_span_id := F4} ->
+            v_type_bytes(F4, [parent_span_id | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{name := F5} ->
-	  v_type_string(F5, [name | Path], TrUserData);
-      _ -> ok
+        #{name := F5} ->
+            v_type_string(F5, [name | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{kind := F6} ->
-	  'v_enum_span.SpanKind'(F6, [kind | Path], TrUserData);
-      _ -> ok
+        #{kind := F6} ->
+            'v_enum_span.SpanKind'(F6, [kind | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{start_time_unix_nano := F7} ->
-	  v_type_fixed64(F7, [start_time_unix_nano | Path],
-			 TrUserData);
-      _ -> ok
+        #{start_time_unix_nano := F7} ->
+            v_type_fixed64(F7,
+                           [start_time_unix_nano | Path],
+                           TrUserData);
+        _ -> ok
     end,
     case M of
-      #{end_time_unix_nano := F8} ->
-	  v_type_fixed64(F8, [end_time_unix_nano | Path],
-			 TrUserData);
-      _ -> ok
+        #{end_time_unix_nano := F8} ->
+            v_type_fixed64(F8,
+                           [end_time_unix_nano | Path],
+                           TrUserData);
+        _ -> ok
     end,
     case M of
-      #{attributes := F9} ->
-	  if is_list(F9) ->
-		 _ = [v_msg_attribute_key_value(Elem,
-						[attributes | Path], TrUserData)
-		      || Elem <- F9],
-		 ok;
-	     true ->
-		 mk_type_error({invalid_list_of,
-				{msg, attribute_key_value}},
-			       F9, [attributes | Path])
-	  end;
-      _ -> ok
+        #{attributes := F9} ->
+            if is_list(F9) ->
+                   _ = [v_msg_attribute_key_value(Elem,
+                                                  [attributes | Path],
+                                                  TrUserData)
+                        || Elem <- F9],
+                   ok;
+               true ->
+                   mk_type_error({invalid_list_of,
+                                  {msg, attribute_key_value}},
+                                 F9,
+                                 [attributes | Path])
+            end;
+        _ -> ok
     end,
     case M of
-      #{dropped_attributes_count := F10} ->
-	  v_type_uint32(F10, [dropped_attributes_count | Path],
-			TrUserData);
-      _ -> ok
+        #{dropped_attributes_count := F10} ->
+            v_type_uint32(F10,
+                          [dropped_attributes_count | Path],
+                          TrUserData);
+        _ -> ok
     end,
     case M of
-      #{events := F11} ->
-	  if is_list(F11) ->
-		 _ = [v_msg_event(Elem, [events | Path], TrUserData)
-		      || Elem <- F11],
-		 ok;
-	     true ->
-		 mk_type_error({invalid_list_of, {msg, event}}, F11,
-			       [events | Path])
-	  end;
-      _ -> ok
+        #{events := F11} ->
+            if is_list(F11) ->
+                   _ = [v_msg_event(Elem, [events | Path], TrUserData)
+                        || Elem <- F11],
+                   ok;
+               true ->
+                   mk_type_error({invalid_list_of, {msg, event}},
+                                 F11,
+                                 [events | Path])
+            end;
+        _ -> ok
     end,
     case M of
-      #{dropped_events_count := F12} ->
-	  v_type_uint32(F12, [dropped_events_count | Path],
-			TrUserData);
-      _ -> ok
+        #{dropped_events_count := F12} ->
+            v_type_uint32(F12,
+                          [dropped_events_count | Path],
+                          TrUserData);
+        _ -> ok
     end,
     case M of
-      #{links := F13} ->
-	  if is_list(F13) ->
-		 _ = [v_msg_link(Elem, [links | Path], TrUserData)
-		      || Elem <- F13],
-		 ok;
-	     true ->
-		 mk_type_error({invalid_list_of, {msg, link}}, F13,
-			       [links | Path])
-	  end;
-      _ -> ok
+        #{links := F13} ->
+            if is_list(F13) ->
+                   _ = [v_msg_link(Elem, [links | Path], TrUserData)
+                        || Elem <- F13],
+                   ok;
+               true ->
+                   mk_type_error({invalid_list_of, {msg, link}},
+                                 F13,
+                                 [links | Path])
+            end;
+        _ -> ok
     end,
     case M of
-      #{dropped_links_count := F14} ->
-	  v_type_uint32(F14, [dropped_links_count | Path],
-			TrUserData);
-      _ -> ok
+        #{dropped_links_count := F14} ->
+            v_type_uint32(F14,
+                          [dropped_links_count | Path],
+                          TrUserData);
+        _ -> ok
     end,
     case M of
-      #{status := F15} ->
-	  v_msg_status(F15, [status | Path], TrUserData);
-      _ -> ok
+        #{status := F15} ->
+            v_msg_status(F15, [status | Path], TrUserData);
+        _ -> ok
     end,
     lists:foreach(fun (trace_id) -> ok;
-		      (span_id) -> ok;
-		      (trace_state) -> ok;
-		      (parent_span_id) -> ok;
-		      (name) -> ok;
-		      (kind) -> ok;
-		      (start_time_unix_nano) -> ok;
-		      (end_time_unix_nano) -> ok;
-		      (attributes) -> ok;
-		      (dropped_attributes_count) -> ok;
-		      (events) -> ok;
-		      (dropped_events_count) -> ok;
-		      (links) -> ok;
-		      (dropped_links_count) -> ok;
-		      (status) -> ok;
-		      (OtherKey) ->
-			  mk_type_error({extraneous_key, OtherKey}, M, Path)
-		  end,
-		  maps:keys(M)),
+                      (span_id) -> ok;
+                      (trace_state) -> ok;
+                      (parent_span_id) -> ok;
+                      (name) -> ok;
+                      (kind) -> ok;
+                      (start_time_unix_nano) -> ok;
+                      (end_time_unix_nano) -> ok;
+                      (attributes) -> ok;
+                      (dropped_attributes_count) -> ok;
+                      (events) -> ok;
+                      (dropped_events_count) -> ok;
+                      (links) -> ok;
+                      (dropped_links_count) -> ok;
+                      (status) -> ok;
+                      (OtherKey) ->
+                          mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
     ok;
 v_msg_span(M, Path, _TrUserData) when is_map(M) ->
-    mk_type_error({missing_fields, [] -- maps:keys(M),
-		   span},
-		  M, Path);
+    mk_type_error({missing_fields,
+                   [] -- maps:keys(M),
+                   span},
+                  M,
+                  Path);
 v_msg_span(X, Path, _TrUserData) ->
     mk_type_error({expected_msg, span}, X, Path).
 
@@ -4557,27 +7024,30 @@ v_msg_span(X, Path, _TrUserData) ->
 -dialyzer({nowarn_function,v_msg_status/3}).
 v_msg_status(#{} = M, Path, TrUserData) ->
     case M of
-      #{code := F1} ->
-	  'v_enum_status.StatusCode'(F1, [code | Path],
-				     TrUserData);
-      _ -> ok
+        #{code := F1} ->
+            'v_enum_status.StatusCode'(F1,
+                                       [code | Path],
+                                       TrUserData);
+        _ -> ok
     end,
     case M of
-      #{message := F2} ->
-	  v_type_string(F2, [message | Path], TrUserData);
-      _ -> ok
+        #{message := F2} ->
+            v_type_string(F2, [message | Path], TrUserData);
+        _ -> ok
     end,
     lists:foreach(fun (code) -> ok;
-		      (message) -> ok;
-		      (OtherKey) ->
-			  mk_type_error({extraneous_key, OtherKey}, M, Path)
-		  end,
-		  maps:keys(M)),
+                      (message) -> ok;
+                      (OtherKey) ->
+                          mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
     ok;
 v_msg_status(M, Path, _TrUserData) when is_map(M) ->
-    mk_type_error({missing_fields, [] -- maps:keys(M),
-		   status},
-		  M, Path);
+    mk_type_error({missing_fields,
+                   [] -- maps:keys(M),
+                   status},
+                  M,
+                  Path);
 v_msg_status(X, Path, _TrUserData) ->
     mk_type_error({expected_msg, status}, X, Path).
 
@@ -4585,169 +7055,184 @@ v_msg_status(X, Path, _TrUserData) ->
 -dialyzer({nowarn_function,v_msg_attribute_key_value/3}).
 v_msg_attribute_key_value(#{} = M, Path, TrUserData) ->
     case M of
-      #{key := F1} ->
-	  v_type_string(F1, [key | Path], TrUserData);
-      _ -> ok
+        #{key := F1} ->
+            v_type_string(F1, [key | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{type := F2} ->
-	  'v_enum_attribute_key_value.ValueType'(F2,
-						 [type | Path], TrUserData);
-      _ -> ok
+        #{type := F2} ->
+            'v_enum_attribute_key_value.ValueType'(F2,
+                                                   [type | Path],
+                                                   TrUserData);
+        _ -> ok
     end,
     case M of
-      #{string_value := F3} ->
-	  v_type_string(F3, [string_value | Path], TrUserData);
-      _ -> ok
+        #{string_value := F3} ->
+            v_type_string(F3, [string_value | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{int_value := F4} ->
-	  v_type_int64(F4, [int_value | Path], TrUserData);
-      _ -> ok
+        #{int_value := F4} ->
+            v_type_int64(F4, [int_value | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{double_value := F5} ->
-	  v_type_double(F5, [double_value | Path], TrUserData);
-      _ -> ok
+        #{double_value := F5} ->
+            v_type_double(F5, [double_value | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{bool_value := F6} ->
-	  v_type_bool(F6, [bool_value | Path], TrUserData);
-      _ -> ok
+        #{bool_value := F6} ->
+            v_type_bool(F6, [bool_value | Path], TrUserData);
+        _ -> ok
     end,
     lists:foreach(fun (key) -> ok;
-		      (type) -> ok;
-		      (string_value) -> ok;
-		      (int_value) -> ok;
-		      (double_value) -> ok;
-		      (bool_value) -> ok;
-		      (OtherKey) ->
-			  mk_type_error({extraneous_key, OtherKey}, M, Path)
-		  end,
-		  maps:keys(M)),
+                      (type) -> ok;
+                      (string_value) -> ok;
+                      (int_value) -> ok;
+                      (double_value) -> ok;
+                      (bool_value) -> ok;
+                      (OtherKey) ->
+                          mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
     ok;
 v_msg_attribute_key_value(M, Path, _TrUserData)
     when is_map(M) ->
-    mk_type_error({missing_fields, [] -- maps:keys(M),
-		   attribute_key_value},
-		  M, Path);
+    mk_type_error({missing_fields,
+                   [] -- maps:keys(M),
+                   attribute_key_value},
+                  M,
+                  Path);
 v_msg_attribute_key_value(X, Path, _TrUserData) ->
-    mk_type_error({expected_msg, attribute_key_value}, X,
-		  Path).
+    mk_type_error({expected_msg, attribute_key_value},
+                  X,
+                  Path).
 
 -compile({nowarn_unused_function,v_msg_string_key_value/3}).
 -dialyzer({nowarn_function,v_msg_string_key_value/3}).
 v_msg_string_key_value(#{} = M, Path, TrUserData) ->
     case M of
-      #{key := F1} ->
-	  v_type_string(F1, [key | Path], TrUserData);
-      _ -> ok
+        #{key := F1} ->
+            v_type_string(F1, [key | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{value := F2} ->
-	  v_type_string(F2, [value | Path], TrUserData);
-      _ -> ok
+        #{value := F2} ->
+            v_type_string(F2, [value | Path], TrUserData);
+        _ -> ok
     end,
     lists:foreach(fun (key) -> ok;
-		      (value) -> ok;
-		      (OtherKey) ->
-			  mk_type_error({extraneous_key, OtherKey}, M, Path)
-		  end,
-		  maps:keys(M)),
+                      (value) -> ok;
+                      (OtherKey) ->
+                          mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
     ok;
 v_msg_string_key_value(M, Path, _TrUserData)
     when is_map(M) ->
-    mk_type_error({missing_fields, [] -- maps:keys(M),
-		   string_key_value},
-		  M, Path);
+    mk_type_error({missing_fields,
+                   [] -- maps:keys(M),
+                   string_key_value},
+                  M,
+                  Path);
 v_msg_string_key_value(X, Path, _TrUserData) ->
-    mk_type_error({expected_msg, string_key_value}, X,
-		  Path).
+    mk_type_error({expected_msg, string_key_value},
+                  X,
+                  Path).
 
 -compile({nowarn_unused_function,v_msg_instrumentation_library/3}).
 -dialyzer({nowarn_function,v_msg_instrumentation_library/3}).
 v_msg_instrumentation_library(#{} = M, Path,
-			      TrUserData) ->
+                              TrUserData) ->
     case M of
-      #{name := F1} ->
-	  v_type_string(F1, [name | Path], TrUserData);
-      _ -> ok
+        #{name := F1} ->
+            v_type_string(F1, [name | Path], TrUserData);
+        _ -> ok
     end,
     case M of
-      #{version := F2} ->
-	  v_type_string(F2, [version | Path], TrUserData);
-      _ -> ok
+        #{version := F2} ->
+            v_type_string(F2, [version | Path], TrUserData);
+        _ -> ok
     end,
     lists:foreach(fun (name) -> ok;
-		      (version) -> ok;
-		      (OtherKey) ->
-			  mk_type_error({extraneous_key, OtherKey}, M, Path)
-		  end,
-		  maps:keys(M)),
+                      (version) -> ok;
+                      (OtherKey) ->
+                          mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
     ok;
 v_msg_instrumentation_library(M, Path, _TrUserData)
     when is_map(M) ->
-    mk_type_error({missing_fields, [] -- maps:keys(M),
-		   instrumentation_library},
-		  M, Path);
+    mk_type_error({missing_fields,
+                   [] -- maps:keys(M),
+                   instrumentation_library},
+                  M,
+                  Path);
 v_msg_instrumentation_library(X, Path, _TrUserData) ->
     mk_type_error({expected_msg, instrumentation_library},
-		  X, Path).
+                  X,
+                  Path).
 
 -compile({nowarn_unused_function,v_msg_resource/3}).
 -dialyzer({nowarn_function,v_msg_resource/3}).
 v_msg_resource(#{} = M, Path, TrUserData) ->
     case M of
-      #{attributes := F1} ->
-	  if is_list(F1) ->
-		 _ = [v_msg_attribute_key_value(Elem,
-						[attributes | Path], TrUserData)
-		      || Elem <- F1],
-		 ok;
-	     true ->
-		 mk_type_error({invalid_list_of,
-				{msg, attribute_key_value}},
-			       F1, [attributes | Path])
-	  end;
-      _ -> ok
+        #{attributes := F1} ->
+            if is_list(F1) ->
+                   _ = [v_msg_attribute_key_value(Elem,
+                                                  [attributes | Path],
+                                                  TrUserData)
+                        || Elem <- F1],
+                   ok;
+               true ->
+                   mk_type_error({invalid_list_of,
+                                  {msg, attribute_key_value}},
+                                 F1,
+                                 [attributes | Path])
+            end;
+        _ -> ok
     end,
     case M of
-      #{dropped_attributes_count := F2} ->
-	  v_type_uint32(F2, [dropped_attributes_count | Path],
-			TrUserData);
-      _ -> ok
+        #{dropped_attributes_count := F2} ->
+            v_type_uint32(F2,
+                          [dropped_attributes_count | Path],
+                          TrUserData);
+        _ -> ok
     end,
     lists:foreach(fun (attributes) -> ok;
-		      (dropped_attributes_count) -> ok;
-		      (OtherKey) ->
-			  mk_type_error({extraneous_key, OtherKey}, M, Path)
-		  end,
-		  maps:keys(M)),
+                      (dropped_attributes_count) -> ok;
+                      (OtherKey) ->
+                          mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
     ok;
 v_msg_resource(M, Path, _TrUserData) when is_map(M) ->
-    mk_type_error({missing_fields, [] -- maps:keys(M),
-		   resource},
-		  M, Path);
+    mk_type_error({missing_fields,
+                   [] -- maps:keys(M),
+                   resource},
+                  M,
+                  Path);
 v_msg_resource(X, Path, _TrUserData) ->
     mk_type_error({expected_msg, resource}, X, Path).
 
 -compile({nowarn_unused_function,'v_enum_span.SpanKind'/3}).
 -dialyzer({nowarn_function,'v_enum_span.SpanKind'/3}).
 'v_enum_span.SpanKind'('SPAN_KIND_UNSPECIFIED', _Path,
-		       _TrUserData) ->
+                       _TrUserData) ->
     ok;
 'v_enum_span.SpanKind'('INTERNAL', _Path,
-		       _TrUserData) ->
+                       _TrUserData) ->
     ok;
 'v_enum_span.SpanKind'('SERVER', _Path, _TrUserData) ->
     ok;
 'v_enum_span.SpanKind'('CLIENT', _Path, _TrUserData) ->
     ok;
 'v_enum_span.SpanKind'('PRODUCER', _Path,
-		       _TrUserData) ->
+                       _TrUserData) ->
     ok;
 'v_enum_span.SpanKind'('CONSUMER', _Path,
-		       _TrUserData) ->
+                       _TrUserData) ->
     ok;
 'v_enum_span.SpanKind'(V, Path, TrUserData)
     when is_integer(V) ->
@@ -4760,83 +7245,85 @@ v_msg_resource(X, Path, _TrUserData) ->
 'v_enum_status.StatusCode'('Ok', _Path, _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'('Cancelled', _Path,
-			   _TrUserData) ->
+                           _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'('UnknownError', _Path,
-			   _TrUserData) ->
+                           _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'('InvalidArgument', _Path,
-			   _TrUserData) ->
+                           _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'('DeadlineExceeded', _Path,
-			   _TrUserData) ->
+                           _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'('NotFound', _Path,
-			   _TrUserData) ->
+                           _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'('AlreadyExists', _Path,
-			   _TrUserData) ->
+                           _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'('PermissionDenied', _Path,
-			   _TrUserData) ->
+                           _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'('ResourceExhausted', _Path,
-			   _TrUserData) ->
+                           _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'('FailedPrecondition', _Path,
-			   _TrUserData) ->
+                           _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'('Aborted', _Path,
-			   _TrUserData) ->
+                           _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'('OutOfRange', _Path,
-			   _TrUserData) ->
+                           _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'('Unimplemented', _Path,
-			   _TrUserData) ->
+                           _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'('InternalError', _Path,
-			   _TrUserData) ->
+                           _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'('Unavailable', _Path,
-			   _TrUserData) ->
+                           _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'('DataLoss', _Path,
-			   _TrUserData) ->
+                           _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'('Unauthenticated', _Path,
-			   _TrUserData) ->
+                           _TrUserData) ->
     ok;
 'v_enum_status.StatusCode'(V, Path, TrUserData)
     when is_integer(V) ->
     v_type_sint32(V, Path, TrUserData);
 'v_enum_status.StatusCode'(X, Path, _TrUserData) ->
-    mk_type_error({invalid_enum, 'status.StatusCode'}, X,
-		  Path).
+    mk_type_error({invalid_enum, 'status.StatusCode'},
+                  X,
+                  Path).
 
 -compile({nowarn_unused_function,'v_enum_attribute_key_value.ValueType'/3}).
 -dialyzer({nowarn_function,'v_enum_attribute_key_value.ValueType'/3}).
 'v_enum_attribute_key_value.ValueType'('STRING', _Path,
-				       _TrUserData) ->
+                                       _TrUserData) ->
     ok;
 'v_enum_attribute_key_value.ValueType'('INT', _Path,
-				       _TrUserData) ->
+                                       _TrUserData) ->
     ok;
 'v_enum_attribute_key_value.ValueType'('DOUBLE', _Path,
-				       _TrUserData) ->
+                                       _TrUserData) ->
     ok;
 'v_enum_attribute_key_value.ValueType'('BOOL', _Path,
-				       _TrUserData) ->
+                                       _TrUserData) ->
     ok;
 'v_enum_attribute_key_value.ValueType'(V, Path,
-				       TrUserData)
+                                       TrUserData)
     when is_integer(V) ->
     v_type_sint32(V, Path, TrUserData);
 'v_enum_attribute_key_value.ValueType'(X, Path,
-				       _TrUserData) ->
+                                       _TrUserData) ->
     mk_type_error({invalid_enum,
-		   'attribute_key_value.ValueType'},
-		  X, Path).
+                   'attribute_key_value.ValueType'},
+                  X,
+                  Path).
 
 -compile({nowarn_unused_function,v_type_sint32/3}).
 -dialyzer({nowarn_function,v_type_sint32/3}).
@@ -4846,23 +7333,27 @@ v_type_sint32(N, _Path, _TrUserData)
 v_type_sint32(N, Path, _TrUserData)
     when is_integer(N) ->
     mk_type_error({value_out_of_range, sint32, signed, 32},
-		  N, Path);
+                  N,
+                  Path);
 v_type_sint32(X, Path, _TrUserData) ->
-    mk_type_error({bad_integer, sint32, signed, 32}, X,
-		  Path).
+    mk_type_error({bad_integer, sint32, signed, 32},
+                  X,
+                  Path).
 
 -compile({nowarn_unused_function,v_type_int64/3}).
 -dialyzer({nowarn_function,v_type_int64/3}).
 v_type_int64(N, _Path, _TrUserData)
     when -9223372036854775808 =< N,
-	 N =< 9223372036854775807 ->
+         N =< 9223372036854775807 ->
     ok;
 v_type_int64(N, Path, _TrUserData) when is_integer(N) ->
     mk_type_error({value_out_of_range, int64, signed, 64},
-		  N, Path);
+                  N,
+                  Path);
 v_type_int64(X, Path, _TrUserData) ->
-    mk_type_error({bad_integer, int64, signed, 64}, X,
-		  Path).
+    mk_type_error({bad_integer, int64, signed, 64},
+                  X,
+                  Path).
 
 -compile({nowarn_unused_function,v_type_uint32/3}).
 -dialyzer({nowarn_function,v_type_uint32/3}).
@@ -4871,12 +7362,16 @@ v_type_uint32(N, _Path, _TrUserData)
     ok;
 v_type_uint32(N, Path, _TrUserData)
     when is_integer(N) ->
-    mk_type_error({value_out_of_range, uint32, unsigned,
-		   32},
-		  N, Path);
+    mk_type_error({value_out_of_range,
+                   uint32,
+                   unsigned,
+                   32},
+                  N,
+                  Path);
 v_type_uint32(X, Path, _TrUserData) ->
-    mk_type_error({bad_integer, uint32, unsigned, 32}, X,
-		  Path).
+    mk_type_error({bad_integer, uint32, unsigned, 32},
+                  X,
+                  Path).
 
 -compile({nowarn_unused_function,v_type_fixed64/3}).
 -dialyzer({nowarn_function,v_type_fixed64/3}).
@@ -4885,12 +7380,16 @@ v_type_fixed64(N, _Path, _TrUserData)
     ok;
 v_type_fixed64(N, Path, _TrUserData)
     when is_integer(N) ->
-    mk_type_error({value_out_of_range, fixed64, unsigned,
-		   64},
-		  N, Path);
+    mk_type_error({value_out_of_range,
+                   fixed64,
+                   unsigned,
+                   64},
+                  N,
+                  Path);
 v_type_fixed64(X, Path, _TrUserData) ->
-    mk_type_error({bad_integer, fixed64, unsigned, 64}, X,
-		  Path).
+    mk_type_error({bad_integer, fixed64, unsigned, 64},
+                  X,
+                  Path).
 
 -compile({nowarn_unused_function,v_type_bool/3}).
 -dialyzer({nowarn_function,v_type_bool/3}).
@@ -4919,12 +7418,12 @@ v_type_double(X, Path, _TrUserData) ->
 v_type_string(S, Path, _TrUserData)
     when is_list(S); is_binary(S) ->
     try unicode:characters_to_binary(S) of
-      B when is_binary(B) -> ok;
-      {error, _, _} ->
-	  mk_type_error(bad_unicode_string, S, Path)
+        B when is_binary(B) -> ok;
+        {error, _, _} ->
+            mk_type_error(bad_unicode_string, S, Path)
     catch
-      error:badarg ->
-	  mk_type_error(bad_unicode_string, S, Path)
+        error:badarg ->
+            mk_type_error(bad_unicode_string, S, Path)
     end;
 v_type_string(X, Path, _TrUserData) ->
     mk_type_error(bad_unicode_string, X, Path).
@@ -4943,7 +7442,7 @@ v_type_bytes(X, Path, _TrUserData) ->
 mk_type_error(Error, ValueSeen, Path) ->
     Path2 = prettify_path(Path),
     erlang:error({gpb_type_error,
-		  {Error, [{value, ValueSeen}, {path, Path2}]}}).
+                  {Error, [{value, ValueSeen}, {path, Path2}]}}).
 
 
 -compile({nowarn_unused_function,prettify_path/1}).
@@ -4951,8 +7450,8 @@ mk_type_error(Error, ValueSeen, Path) ->
 prettify_path([]) -> top_level;
 prettify_path(PathR) ->
     list_to_atom(lists:append(lists:join(".",
-					 lists:map(fun atom_to_list/1,
-						   lists:reverse(PathR))))).
+                                         lists:map(fun atom_to_list/1,
+                                                   lists:reverse(PathR))))).
 
 
 -compile({nowarn_unused_function,id/2}).
@@ -4980,146 +7479,167 @@ cons(Elem, Acc, _TrUserData) -> [Elem | Acc].
 
 get_msg_defs() ->
     [{{enum, 'span.SpanKind'},
-      [{'SPAN_KIND_UNSPECIFIED', 0}, {'INTERNAL', 1},
-       {'SERVER', 2}, {'CLIENT', 3}, {'PRODUCER', 4},
+      [{'SPAN_KIND_UNSPECIFIED', 0},
+       {'INTERNAL', 1},
+       {'SERVER', 2},
+       {'CLIENT', 3},
+       {'PRODUCER', 4},
        {'CONSUMER', 5}]},
      {{enum, 'status.StatusCode'},
-      [{'Ok', 0}, {'Cancelled', 1}, {'UnknownError', 2},
-       {'InvalidArgument', 3}, {'DeadlineExceeded', 4},
-       {'NotFound', 5}, {'AlreadyExists', 6},
-       {'PermissionDenied', 7}, {'ResourceExhausted', 8},
-       {'FailedPrecondition', 9}, {'Aborted', 10},
-       {'OutOfRange', 11}, {'Unimplemented', 12},
-       {'InternalError', 13}, {'Unavailable', 14},
-       {'DataLoss', 15}, {'Unauthenticated', 16}]},
+      [{'Ok', 0},
+       {'Cancelled', 1},
+       {'UnknownError', 2},
+       {'InvalidArgument', 3},
+       {'DeadlineExceeded', 4},
+       {'NotFound', 5},
+       {'AlreadyExists', 6},
+       {'PermissionDenied', 7},
+       {'ResourceExhausted', 8},
+       {'FailedPrecondition', 9},
+       {'Aborted', 10},
+       {'OutOfRange', 11},
+       {'Unimplemented', 12},
+       {'InternalError', 13},
+       {'Unavailable', 14},
+       {'DataLoss', 15},
+       {'Unauthenticated', 16}]},
      {{enum, 'attribute_key_value.ValueType'},
-      [{'STRING', 0}, {'INT', 1}, {'DOUBLE', 2},
+      [{'STRING', 0},
+       {'INT', 1},
+       {'DOUBLE', 2},
        {'BOOL', 3}]},
      {{msg, export_trace_service_request},
       [#{name => resource_spans, fnum => 1, rnum => 2,
-	 type => {msg, resource_spans}, occurrence => repeated,
-	 opts => []}]},
+         type => {msg, resource_spans}, occurrence => repeated,
+         opts => []}]},
      {{msg, export_trace_service_response}, []},
      {{msg, resource_spans},
       [#{name => resource, fnum => 1, rnum => 2,
-	 type => {msg, resource}, occurrence => optional,
-	 opts => []},
+         type => {msg, resource}, occurrence => optional,
+         opts => []},
        #{name => instrumentation_library_spans, fnum => 2,
-	 rnum => 3, type => {msg, instrumentation_library_spans},
-	 occurrence => repeated, opts => []}]},
+         rnum => 3, type => {msg, instrumentation_library_spans},
+         occurrence => repeated, opts => []}]},
      {{msg, instrumentation_library_spans},
       [#{name => instrumentation_library, fnum => 1,
-	 rnum => 2, type => {msg, instrumentation_library},
-	 occurrence => optional, opts => []},
+         rnum => 2, type => {msg, instrumentation_library},
+         occurrence => optional, opts => []},
        #{name => spans, fnum => 2, rnum => 3,
-	 type => {msg, span}, occurrence => repeated,
-	 opts => []}]},
+         type => {msg, span}, occurrence => repeated,
+         opts => []}]},
      {{msg, event},
       [#{name => time_unix_nano, fnum => 1, rnum => 2,
-	 type => fixed64, occurrence => optional, opts => []},
+         type => fixed64, occurrence => optional, opts => []},
        #{name => name, fnum => 2, rnum => 3, type => string,
-	 occurrence => optional, opts => []},
+         occurrence => optional, opts => []},
        #{name => attributes, fnum => 3, rnum => 4,
-	 type => {msg, attribute_key_value},
-	 occurrence => repeated, opts => []},
+         type => {msg, attribute_key_value},
+         occurrence => repeated, opts => []},
        #{name => dropped_attributes_count, fnum => 4,
-	 rnum => 5, type => uint32, occurrence => optional,
-	 opts => []}]},
+         rnum => 5, type => uint32, occurrence => optional,
+         opts => []}]},
      {{msg, link},
       [#{name => trace_id, fnum => 1, rnum => 2,
-	 type => bytes, occurrence => optional, opts => []},
+         type => bytes, occurrence => optional, opts => []},
        #{name => span_id, fnum => 2, rnum => 3, type => bytes,
-	 occurrence => optional, opts => []},
+         occurrence => optional, opts => []},
        #{name => trace_state, fnum => 3, rnum => 4,
-	 type => string, occurrence => optional, opts => []},
+         type => string, occurrence => optional, opts => []},
        #{name => attributes, fnum => 4, rnum => 5,
-	 type => {msg, attribute_key_value},
-	 occurrence => repeated, opts => []},
+         type => {msg, attribute_key_value},
+         occurrence => repeated, opts => []},
        #{name => dropped_attributes_count, fnum => 5,
-	 rnum => 6, type => uint32, occurrence => optional,
-	 opts => []}]},
+         rnum => 6, type => uint32, occurrence => optional,
+         opts => []}]},
      {{msg, span},
       [#{name => trace_id, fnum => 1, rnum => 2,
-	 type => bytes, occurrence => optional, opts => []},
+         type => bytes, occurrence => optional, opts => []},
        #{name => span_id, fnum => 2, rnum => 3, type => bytes,
-	 occurrence => optional, opts => []},
+         occurrence => optional, opts => []},
        #{name => trace_state, fnum => 3, rnum => 4,
-	 type => string, occurrence => optional, opts => []},
+         type => string, occurrence => optional, opts => []},
        #{name => parent_span_id, fnum => 4, rnum => 5,
-	 type => bytes, occurrence => optional, opts => []},
+         type => bytes, occurrence => optional, opts => []},
        #{name => name, fnum => 5, rnum => 6, type => string,
-	 occurrence => optional, opts => []},
+         occurrence => optional, opts => []},
        #{name => kind, fnum => 6, rnum => 7,
-	 type => {enum, 'span.SpanKind'}, occurrence => optional,
-	 opts => []},
+         type => {enum, 'span.SpanKind'}, occurrence => optional,
+         opts => []},
        #{name => start_time_unix_nano, fnum => 7, rnum => 8,
-	 type => fixed64, occurrence => optional, opts => []},
+         type => fixed64, occurrence => optional, opts => []},
        #{name => end_time_unix_nano, fnum => 8, rnum => 9,
-	 type => fixed64, occurrence => optional, opts => []},
+         type => fixed64, occurrence => optional, opts => []},
        #{name => attributes, fnum => 9, rnum => 10,
-	 type => {msg, attribute_key_value},
-	 occurrence => repeated, opts => []},
+         type => {msg, attribute_key_value},
+         occurrence => repeated, opts => []},
        #{name => dropped_attributes_count, fnum => 10,
-	 rnum => 11, type => uint32, occurrence => optional,
-	 opts => []},
+         rnum => 11, type => uint32, occurrence => optional,
+         opts => []},
        #{name => events, fnum => 11, rnum => 12,
-	 type => {msg, event}, occurrence => repeated,
-	 opts => []},
+         type => {msg, event}, occurrence => repeated,
+         opts => []},
        #{name => dropped_events_count, fnum => 12, rnum => 13,
-	 type => uint32, occurrence => optional, opts => []},
+         type => uint32, occurrence => optional, opts => []},
        #{name => links, fnum => 13, rnum => 14,
-	 type => {msg, link}, occurrence => repeated,
-	 opts => []},
+         type => {msg, link}, occurrence => repeated,
+         opts => []},
        #{name => dropped_links_count, fnum => 14, rnum => 15,
-	 type => uint32, occurrence => optional, opts => []},
+         type => uint32, occurrence => optional, opts => []},
        #{name => status, fnum => 15, rnum => 16,
-	 type => {msg, status}, occurrence => optional,
-	 opts => []}]},
+         type => {msg, status}, occurrence => optional,
+         opts => []}]},
      {{msg, status},
       [#{name => code, fnum => 1, rnum => 2,
-	 type => {enum, 'status.StatusCode'},
-	 occurrence => optional, opts => []},
+         type => {enum, 'status.StatusCode'},
+         occurrence => optional, opts => []},
        #{name => message, fnum => 2, rnum => 3, type => string,
-	 occurrence => optional, opts => []}]},
+         occurrence => optional, opts => []}]},
      {{msg, attribute_key_value},
       [#{name => key, fnum => 1, rnum => 2, type => string,
-	 occurrence => optional, opts => []},
+         occurrence => optional, opts => []},
        #{name => type, fnum => 2, rnum => 3,
-	 type => {enum, 'attribute_key_value.ValueType'},
-	 occurrence => optional, opts => []},
+         type => {enum, 'attribute_key_value.ValueType'},
+         occurrence => optional, opts => []},
        #{name => string_value, fnum => 3, rnum => 4,
-	 type => string, occurrence => optional, opts => []},
+         type => string, occurrence => optional, opts => []},
        #{name => int_value, fnum => 4, rnum => 5,
-	 type => int64, occurrence => optional, opts => []},
+         type => int64, occurrence => optional, opts => []},
        #{name => double_value, fnum => 5, rnum => 6,
-	 type => double, occurrence => optional, opts => []},
+         type => double, occurrence => optional, opts => []},
        #{name => bool_value, fnum => 6, rnum => 7,
-	 type => bool, occurrence => optional, opts => []}]},
+         type => bool, occurrence => optional, opts => []}]},
      {{msg, string_key_value},
       [#{name => key, fnum => 1, rnum => 2, type => string,
-	 occurrence => optional, opts => []},
+         occurrence => optional, opts => []},
        #{name => value, fnum => 2, rnum => 3, type => string,
-	 occurrence => optional, opts => []}]},
+         occurrence => optional, opts => []}]},
      {{msg, instrumentation_library},
       [#{name => name, fnum => 1, rnum => 2, type => string,
-	 occurrence => optional, opts => []},
+         occurrence => optional, opts => []},
        #{name => version, fnum => 2, rnum => 3, type => string,
-	 occurrence => optional, opts => []}]},
+         occurrence => optional, opts => []}]},
      {{msg, resource},
       [#{name => attributes, fnum => 1, rnum => 2,
-	 type => {msg, attribute_key_value},
-	 occurrence => repeated, opts => []},
+         type => {msg, attribute_key_value},
+         occurrence => repeated, opts => []},
        #{name => dropped_attributes_count, fnum => 2,
-	 rnum => 3, type => uint32, occurrence => optional,
-	 opts => []}]}].
+         rnum => 3, type => uint32, occurrence => optional,
+         opts => []}]}].
 
 
 get_msg_names() ->
     [export_trace_service_request,
-     export_trace_service_response, resource_spans,
-     instrumentation_library_spans, event, link, span,
-     status, attribute_key_value, string_key_value,
-     instrumentation_library, resource].
+     export_trace_service_response,
+     resource_spans,
+     instrumentation_library_spans,
+     event,
+     link,
+     span,
+     status,
+     attribute_key_value,
+     string_key_value,
+     instrumentation_library,
+     resource].
 
 
 get_group_names() -> [].
@@ -5127,28 +7647,36 @@ get_group_names() -> [].
 
 get_msg_or_group_names() ->
     [export_trace_service_request,
-     export_trace_service_response, resource_spans,
-     instrumentation_library_spans, event, link, span,
-     status, attribute_key_value, string_key_value,
-     instrumentation_library, resource].
+     export_trace_service_response,
+     resource_spans,
+     instrumentation_library_spans,
+     event,
+     link,
+     span,
+     status,
+     attribute_key_value,
+     string_key_value,
+     instrumentation_library,
+     resource].
 
 
 get_enum_names() ->
-    ['span.SpanKind', 'status.StatusCode',
+    ['span.SpanKind',
+     'status.StatusCode',
      'attribute_key_value.ValueType'].
 
 
 fetch_msg_def(MsgName) ->
     case find_msg_def(MsgName) of
-      Fs when is_list(Fs) -> Fs;
-      error -> erlang:error({no_such_msg, MsgName})
+        Fs when is_list(Fs) -> Fs;
+        error -> erlang:error({no_such_msg, MsgName})
     end.
 
 
 fetch_enum_def(EnumName) ->
     case find_enum_def(EnumName) of
-      Es when is_list(Es) -> Es;
-      error -> erlang:error({no_such_enum, EnumName})
+        Es when is_list(Es) -> Es;
+        error -> erlang:error({no_such_enum, EnumName})
     end.
 
 
@@ -5273,18 +7801,30 @@ find_msg_def(_) -> error.
 
 
 find_enum_def('span.SpanKind') ->
-    [{'SPAN_KIND_UNSPECIFIED', 0}, {'INTERNAL', 1},
-     {'SERVER', 2}, {'CLIENT', 3}, {'PRODUCER', 4},
+    [{'SPAN_KIND_UNSPECIFIED', 0},
+     {'INTERNAL', 1},
+     {'SERVER', 2},
+     {'CLIENT', 3},
+     {'PRODUCER', 4},
      {'CONSUMER', 5}];
 find_enum_def('status.StatusCode') ->
-    [{'Ok', 0}, {'Cancelled', 1}, {'UnknownError', 2},
-     {'InvalidArgument', 3}, {'DeadlineExceeded', 4},
-     {'NotFound', 5}, {'AlreadyExists', 6},
-     {'PermissionDenied', 7}, {'ResourceExhausted', 8},
-     {'FailedPrecondition', 9}, {'Aborted', 10},
-     {'OutOfRange', 11}, {'Unimplemented', 12},
-     {'InternalError', 13}, {'Unavailable', 14},
-     {'DataLoss', 15}, {'Unauthenticated', 16}];
+    [{'Ok', 0},
+     {'Cancelled', 1},
+     {'UnknownError', 2},
+     {'InvalidArgument', 3},
+     {'DeadlineExceeded', 4},
+     {'NotFound', 5},
+     {'AlreadyExists', 6},
+     {'PermissionDenied', 7},
+     {'ResourceExhausted', 8},
+     {'FailedPrecondition', 9},
+     {'Aborted', 10},
+     {'OutOfRange', 11},
+     {'Unimplemented', 12},
+     {'InternalError', 13},
+     {'Unavailable', 14},
+     {'DataLoss', 15},
+     {'Unauthenticated', 16}];
 find_enum_def('attribute_key_value.ValueType') ->
     [{'STRING', 0}, {'INT', 1}, {'DOUBLE', 2}, {'BOOL', 3}];
 find_enum_def(_) -> error.
@@ -5295,7 +7835,7 @@ enum_symbol_by_value('span.SpanKind', Value) ->
 enum_symbol_by_value('status.StatusCode', Value) ->
     'enum_symbol_by_value_status.StatusCode'(Value);
 enum_symbol_by_value('attribute_key_value.ValueType',
-		     Value) ->
+                     Value) ->
     'enum_symbol_by_value_attribute_key_value.ValueType'(Value).
 
 
@@ -5304,7 +7844,7 @@ enum_value_by_symbol('span.SpanKind', Sym) ->
 enum_value_by_symbol('status.StatusCode', Sym) ->
     'enum_value_by_symbol_status.StatusCode'(Sym);
 enum_value_by_symbol('attribute_key_value.ValueType',
-		     Sym) ->
+                     Sym) ->
     'enum_value_by_symbol_attribute_key_value.ValueType'(Sym).
 
 
@@ -5422,10 +7962,10 @@ get_service_def('opentelemetry.proto.collector.trace.v1.TraceService') ->
     {{service,
       'opentelemetry.proto.collector.trace.v1.TraceService'},
      [#{name => 'Export',
-	input => export_trace_service_request,
-	output => export_trace_service_response,
-	input_stream => false, output_stream => false,
-	opts => []}]};
+        input => export_trace_service_request,
+        output => export_trace_service_response,
+        input_stream => false, output_stream => false,
+        opts => []}]};
 get_service_def(_) -> error.
 
 
@@ -5435,7 +7975,7 @@ get_rpc_names(_) -> error.
 
 
 find_rpc_def('opentelemetry.proto.collector.trace.v1.TraceService',
-	     RpcName) ->
+             RpcName) ->
     'find_rpc_def_opentelemetry.proto.collector.trace.v1.TraceService'(RpcName);
 find_rpc_def(_, _) -> error.
 
@@ -5452,9 +7992,9 @@ find_rpc_def(_, _) -> error.
 
 fetch_rpc_def(ServiceName, RpcName) ->
     case find_rpc_def(ServiceName, RpcName) of
-      Def when is_map(Def) -> Def;
-      error ->
-	  erlang:error({no_such_rpc, ServiceName, RpcName})
+        Def when is_map(Def) -> Def;
+        error ->
+            erlang:error({no_such_rpc, ServiceName, RpcName})
     end.
 
 
@@ -5488,7 +8028,7 @@ fqbins_to_service_and_rpc_name(S, R) ->
 %% to a fully qualified (ie with package name) service name and
 %% an rpc name as binaries.
 service_and_rpc_name_to_fqbins('opentelemetry.proto.collector.trace.v1.TraceService',
-			       'Export') ->
+                               'Export') ->
     {<<"opentelemetry.proto.collector.trace.v1.TraceService">>, <<"Export">>};
 service_and_rpc_name_to_fqbins(S, R) ->
     error({gpb_error, {badservice_or_rpc, {S, R}}}).
@@ -5564,7 +8104,9 @@ source_basename() -> "trace_service.proto".
 %% see get_all_proto_names/0 for a version that returns
 %% the basenames sans extension
 get_all_source_basenames() ->
-    ["trace_service.proto", "trace.proto", "common.proto",
+    ["trace_service.proto",
+     "trace.proto",
+     "common.proto",
      "resource.proto"].
 
 
@@ -5581,10 +8123,15 @@ get_msg_containment("trace_service") ->
     [export_trace_service_request,
      export_trace_service_response];
 get_msg_containment("trace") ->
-    [instrumentation_library_spans, resource_spans, span,
-     event, link, status];
+    [instrumentation_library_spans,
+     resource_spans,
+     span,
+     event,
+     link,
+     status];
 get_msg_containment("common") ->
-    [attribute_key_value, instrumentation_library,
+    [attribute_key_value,
+     instrumentation_library,
      string_key_value];
 get_msg_containment("resource") -> [resource];
 get_msg_containment(P) ->
