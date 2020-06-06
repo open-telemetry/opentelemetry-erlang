@@ -10,8 +10,8 @@ on:
 
 jobs:
   build:
-    name: Test on OTP ${{ matrix.otp_version }} and ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Test on OTP ${{ matrix.otp_version }}
+    runs-on: ubuntu-latest
 
     services:
       zipkin:
@@ -27,14 +27,14 @@ jobs:
 
     strategy:
       matrix:
-        otp_version: [22]
-        os: [ubuntu-latest]
-
-    container:
-      image: erlang:${{ matrix.otp_version }}
+        otp_version: [22.3.2]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
+    - uses: gleam-lang/setup-erlang@v1.0.0
+      with:
+        otp-version: ${{ matrix.otp_version }}
+
     - name: Compile
       run: rebar3 compile
     - name: CT tests
