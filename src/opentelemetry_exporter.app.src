@@ -5,6 +5,7 @@
   {applications,
    [kernel,
     stdlib,
+    inets,
     grpcbox,
     opentelemetry,
     opentelemetry_api

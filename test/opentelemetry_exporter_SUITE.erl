@@ -4,15 +4,17 @@
 -compile(nowarn_export_all).
 
 -include_lib("stdlib/include/assert.hrl").
+-include_lib("common_test/include/ct.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/ot_span.hrl").
 
 all() ->
-    [{group, functional}, {group, with_grpc}].
+    [{group, functional}, {group, http_protobuf}, {group, grpc}].
 
 groups() ->
     [{functional, [], [span_round_trip, ets_instrumentation_info]},
-     {with_grpc, [], [verify_export]}].
+     {grpc, [], [verify_export]},
+     {http_protobuf, [], [verify_export]}].
 
 init_per_suite(Config) ->
     Config.
@@ -20,13 +22,15 @@ init_per_suite(Config) ->
 end_per_suite(_Config) ->
     ok.
 
-init_per_group(with_grpc, Config) ->
+init_per_group(Group, Config) when Group =:= grpc ;
+                                   Group =:= http_protobuf ->
     application:ensure_all_started(opentelemetry_exporter),
-    Config;
+    [{protocol, Group}| Config];
 init_per_group(_, _) ->
     ok.
 
-end_per_group(with_grpc, _Config) ->
+end_per_group(Group, _Config) when Group =:= grpc ;
+                                   Group =:= http_protobuf ->
     application:stop(opentelemetry_exporter),
     ok;
 end_per_group(_, _) ->
@@ -120,8 +124,9 @@ span_round_trip(_Config) ->
     ok.
 
 %% insert a couple spans and export to locally running otel collector
-verify_export(_Config) ->
-    {ok, State} = opentelemetry_exporter:init(#{}),
+verify_export(Config) ->
+    Protocol = ?config(protocol, Config),
+    {ok, State} = opentelemetry_exporter:init(#{protocol => Protocol}),
     Tid = ets:new(span_tab, [duplicate_bag, {keypos, #span.instrumentation_library}]),
 
     ?assertMatch(ok, opentelemetry_exporter:export(Tid, ot_resource:create([]), State)),
