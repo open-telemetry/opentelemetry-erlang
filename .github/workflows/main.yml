@@ -23,7 +23,7 @@ jobs:
         ports:
         - 9090:9090
         volumes:
-        - ./config/otel-collector-config.yaml:/conf/otel-collector-config.yaml
+        - ${{ github.workspace }}/config/otel-collector-config.yaml:/conf/otel-collector-config.yaml
 
     strategy:
       matrix:
