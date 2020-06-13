@@ -12,18 +12,20 @@ defmodule OpenTelemetry.Tracer do
 
       require OpenTelemetry.Tracer
 
-      OpenTelemetry.Tracer.with_span \"span-1\" do
+      OpenTelemetry.Tracer.with_span "span-1" do
         ... do something ...
       end
   """
 
-  @type start_opts() :: %{optional(:parent) => OpenTelemetry.span() | OpenTelemetry.span_ctx(),
-                          optional(:attributes) => OpenTelemetry.attributes(),
-                          optional(:sampler) => :ot_sampler.sampler(),
-                          optional(:links) => OpenTelemetry.links(),
-                          optional(:is_recording) => boolean(),
-                          optional(:start_time) => :opentelemetry.timestamp(),
-                          optional(:kind) => OpenTelemetry.span_kind()}
+  @type start_opts() :: %{
+          optional(:parent) => OpenTelemetry.span() | OpenTelemetry.span_ctx(),
+          optional(:attributes) => OpenTelemetry.attributes(),
+          optional(:sampler) => :ot_sampler.sampler(),
+          optional(:links) => OpenTelemetry.links(),
+          optional(:is_recording) => boolean(),
+          optional(:start_time) => :opentelemetry.timestamp(),
+          optional(:kind) => OpenTelemetry.span_kind()
+        }
 
   @doc """
   Starts a new span and makes it the current active span of the current process.
@@ -87,10 +89,12 @@ defmodule OpenTelemetry.Tracer do
   """
   defmacro with_span(name, start_opts \\ quote(do: %{}), do: block) do
     quote do
-      :ot_tracer.with_span(:opentelemetry.get_tracer(__MODULE__),
-            unquote(name),
-            unquote(start_opts),
-            fn _ -> unquote(block) end)
+      :ot_tracer.with_span(
+        :opentelemetry.get_tracer(__MODULE__),
+        unquote(name),
+        unquote(start_opts),
+        fn _ -> unquote(block) end
+      )
     end
   end
 

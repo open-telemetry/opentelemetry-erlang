@@ -6,7 +6,7 @@ defmodule OpenTelemetry.Meter do
       OpenTelemetry.register_application_meter(Your.Application)
 
       OpenTelemetry.Meter.new_instruments([...])
-      bound = OpenTelemetry.Meter.bind(\"some.latency\", [])
+      bound = OpenTelemetry.Meter.bind("some.latency", [])
       # measure time spent on some function and then record it
       OpenTelemetry.Meter.record(bound, time)
   """
@@ -31,19 +31,32 @@ defmodule OpenTelemetry.Meter do
 
   defmacro record(name, number, label_set) do
     quote do
-      :ot_meter.record(:opentelemetry.get_meter(__MODULE__), unquote(name), unquote(number), unquote(label_set))
+      :ot_meter.record(
+        :opentelemetry.get_meter(__MODULE__),
+        unquote(name),
+        unquote(number),
+        unquote(label_set)
+      )
     end
   end
 
   defmacro record(bound_instrument, number) do
     quote do
-      :ot_meter.record(:opentelemetry.get_meter(__MODULE__), unquote(bound_instrument), unquote(number))
+      :ot_meter.record(
+        :opentelemetry.get_meter(__MODULE__),
+        unquote(bound_instrument),
+        unquote(number)
+      )
     end
   end
 
   defmacro record_batch(label_set, measurements) do
     quote do
-      :ot_meter.record_batch(:opentelemetry.get_meter(__MODULE__), unquote(label_set), unquote(measurements))
+      :ot_meter.record_batch(
+        :opentelemetry.get_meter(__MODULE__),
+        unquote(label_set),
+        unquote(measurements)
+      )
     end
   end
 end
