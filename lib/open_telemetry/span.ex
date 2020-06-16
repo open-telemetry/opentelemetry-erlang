@@ -7,7 +7,7 @@ defmodule OpenTelemetry.Span do
       ...
       event = "ecto.query"
       ecto_attributes = OpenTelemetry.event([{"query", query}, {"total_time", total_time}])
-      OpenTelemetry.Span.add_event(event, ecto_event)
+      OpenTelemetry.Span.add_event(event, ecto_attributes)
       ...
 
   A Span represents a single operation within a trace. Spans can be nested to form a trace tree.
