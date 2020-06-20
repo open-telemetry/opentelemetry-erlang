@@ -1,4 +1,4 @@
 [{<<"opentelemetry_api">>,
   {git,"https://github.com/open-telemetry/opentelemetry-erlang-api",
-       {ref,"8629a1c1ccaa8bebe49de469d45c065abae0d6d0"}},
+       {ref,"041981495028a050f3b920bc24cbb1af8f3d6a3e"}},
   0}].

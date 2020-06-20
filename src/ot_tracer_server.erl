@@ -76,8 +76,7 @@ init(Opts) ->
                      on_end_processors=on_end(Processors),
                      resource=Resource,
                      telemetry_library=TelemetryLibrary,
-                     span_module=ot_span_ets,
-                     ctx_module=ot_ctx_pdict},
+                     span_module=ot_span_ets},
     opentelemetry:set_default_tracer({ot_tracer_default, Tracer}),
 
     {ok, #state{shared_tracer=Tracer,

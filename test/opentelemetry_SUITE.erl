@@ -11,21 +11,17 @@
 -include("ot_test_utils.hrl").
 
 all() ->
-    [stop_temporary_app,
-     {group, ot_ctx_pdict},
-     {group, ot_ctx_seqtrace},
+    [all_testcases(),
      {group, w3c},
      {group, b3}].
 
 all_testcases() ->
     [with_span, macros, child_spans, update_span_data, tracer_instrumentation_library,
-     tracer_previous_ctx].
+     tracer_previous_ctx, stop_temporary_app].
 
 groups() ->
-    [{ot_ctx_pdict, [shuffle], all_testcases()},
-     {ot_ctx_seqtrace, [shuffle], all_testcases()},
-     {w3c, [propagation]},
-     {b3, [propagation]}].
+    [{w3c, [], [propagation]},
+     {b3, [], [propagation]}].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
@@ -50,16 +46,13 @@ init_per_group(Propagator, Config) when Propagator =:= w3c ;
     opentelemetry:set_http_injector([CorrelationsHttpInjector,
                                      TraceHttpInjector]),
 
-    [{propagator, Propagator} | Config];
-init_per_group(_CtxModule, Config) ->
-    application:set_env(opentelemetry, processors, [{ot_batch_processor, #{scheduled_delay_ms => 1}}]),
-    {ok, _} = application:ensure_all_started(opentelemetry),
-    Config.
+    [{propagator, Propagator} | Config].
 
 end_per_group(_, _Config) ->
     _ = application:stop(opentelemetry).
 
 init_per_testcase(_, Config) ->
+    application:set_env(opentelemetry, processors, [{ot_batch_processor, #{scheduled_delay_ms => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     %% adds an exporter for a new table
     %% spans will be exported to a separate table for each of the test cases
