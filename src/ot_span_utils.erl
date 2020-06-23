@@ -34,7 +34,7 @@ start_span(Name, Opts) ->
     Parent = maps:get(parent, Opts, undefined),
     Attributes = maps:get(attributes, Opts, []),
     Links = maps:get(links, Opts, []),
-    Kind = maps:get(kind, Opts, ?SPAN_KIND_UNSPECIFIED),
+    Kind = maps:get(kind, Opts, ?SPAN_KIND_INTERNAL),
     Sampler = maps:get(sampler, Opts),
     StartTime = maps:get(start_time, Opts, opentelemetry:timestamp()),
     new_span(Name, Parent, Sampler, StartTime, Kind, Attributes, Links).
@@ -43,7 +43,7 @@ start_span(Name, Opts) ->
 new_span(Name, undefined, Sampler, StartTime, Kind, Attributes, Links) ->
     TraceId = opentelemetry:generate_trace_id(),
     Span = #span_ctx{trace_id=TraceId,
-                     trace_flags=0},   
+                     trace_flags=0},
     new_span(Name, Span, Sampler, StartTime, Kind, Attributes, Links);
 new_span(Name, Parent=#span_ctx{trace_id=TraceId,
                                 tracestate=Tracestate,
