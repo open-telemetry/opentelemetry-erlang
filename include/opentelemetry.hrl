@@ -24,7 +24,6 @@
 %% for use in guards: sampling bit is the first bit in 8-bit trace options
 -define(IS_SPAN_ENABLED(TraceOptions), (TraceOptions band 1) =/= 0).
 
--define(SPAN_KIND_UNSPECIFIED, 'SPAN_KIND_UNSPECIFIED').
 -define(SPAN_KIND_INTERNAL, 'INTERNAL').
 -define(SPAN_KIND_SERVER, 'SERVER').
 -define(SPAN_KIND_CLIENT, 'CLIENT').

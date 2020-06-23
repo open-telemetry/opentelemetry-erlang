@@ -100,8 +100,7 @@
 -type attribute()          :: {unicode:unicode_binary(), attribute_value()}.
 -type attributes()         :: [attribute()].
 
--type span_kind()          :: ?SPAN_KIND_UNSPECIFIED |
-                              ?SPAN_KIND_INTERNAL    |
+-type span_kind()          :: ?SPAN_KIND_INTERNAL    |
                               ?SPAN_KIND_SERVER      |
                               ?SPAN_KIND_CLIENT      |
                               ?SPAN_KIND_PRODUCER    |
