@@ -20,10 +20,10 @@
 -export([http_inject/1,
          http_extract/1]).
 
--type extractor(T) :: {fun((T, ot_ctx:context_manager(), ot_ctx:namespace(), {fun(), term()}) -> ok), term()} |
-                      {fun((T, ot_ctx:context_manager(), ot_ctx:namespace(), ot_ctx:key(), {fun(), term()}) -> ok), term()}.
--type injector(T) :: {fun((T, ot_ctx:context_manager(), ot_ctx:namespace(), {fun(), term()}) -> T), term()} |
-                     {fun((T, ot_ctx:context_manager(), ot_ctx:namespace(), ot_ctx:key(), {fun(), term()}) -> T), term()}.
+-type extractor(T) :: {fun((T, ot_ctx:namespace(), {fun(), term()}) -> ok), term()} |
+                      {fun((T, ot_ctx:namespace(), ot_ctx:key(), {fun(), term()}) -> ok), term()}.
+-type injector(T) :: {fun((T, ot_ctx:namespace(), {fun(), term()}) -> T), term()} |
+                     {fun((T, ot_ctx:namespace(), ot_ctx:key(), {fun(), term()}) -> T), term()}.
 
 -type http_headers() :: [{iodata(), iodata()}].
 
@@ -45,21 +45,21 @@ http_extract(Headers) ->
     run_extractors(Headers, Extractors).
 
 run_extractors(Headers, Extractors) ->
-    lists:foldl(fun({Extract, {ContextManager, Namespace, FromText}}, ok) ->
-                        Extract(Headers, ContextManager, Namespace, FromText),
+    lists:foldl(fun({Extract, {Namespace, FromText}}, ok) ->
+                        Extract(Headers, Namespace, FromText),
                         ok;
-                   ({Extract, {ContextManager, Namespace, Key, FromText}}, ok) ->
-                        Extract(Headers, ContextManager, Namespace, Key, FromText),
+                   ({Extract, {Namespace, Key, FromText}}, ok) ->
+                        Extract(Headers, Namespace, Key, FromText),
                         ok;
                    (_, ok) ->
                         ok
                 end, ok, Extractors).
 
 run_injectors(Headers, Injectors) ->
-    lists:foldl(fun({Inject, {ContextManager, Namespace, ToText}}, HeadersAcc) ->
-                        Inject(HeadersAcc, ContextManager, Namespace, ToText);
-                   ({Inject, {ContextManager, Namespace, Key, ToText}}, HeadersAcc) ->
-                        Inject(HeadersAcc, ContextManager, Namespace, Key, ToText);
+    lists:foldl(fun({Inject, {Namespace, ToText}}, HeadersAcc) ->
+                        Inject(HeadersAcc, Namespace, ToText);
+                   ({Inject, {Namespace, Key, ToText}}, HeadersAcc) ->
+                        Inject(HeadersAcc, Namespace, Key, ToText);
                    (_, HeadersAcc) ->
                         HeadersAcc
                 end, Headers, Injectors).

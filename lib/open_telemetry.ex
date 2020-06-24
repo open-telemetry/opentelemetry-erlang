@@ -25,10 +25,18 @@ defmodule OpenTelemetry do
   """
 
   @typedoc """
-  A SpanContext represents the portion of a Span which must be
-  as well as being serialized and propagated along side of a distributed context.
+  A SpanContext represents the portion of a Span needed to do operations on a
+  Span. Within a process it acts as a key for looking up and modifying the
+  actual Span. It is also what is serialized and propagated across process
+  boundaries.
   """
   @type span_ctx() :: :opentelemetry.span_ctx()
+
+  @typedoc """
+  TracerContext refers to the data kept in process by the tracer to track
+  the current SpanContext and the parent.
+  """
+  @type tracer_ctx() :: :opentelemetry.tracer_ctx()
 
   @typedoc """
   Span represents a single operation within a trace. Spans can be

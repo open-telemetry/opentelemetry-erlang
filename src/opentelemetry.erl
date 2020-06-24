@@ -32,8 +32,6 @@
          set_tracer/2,
          set_meter/2,
          set_default_meter/1,
-         set_default_context_manager/1,
-         get_context_manager/0,
          register_tracer/2,
          register_application_tracer/1,
          register_meter/2,
@@ -141,10 +139,6 @@ set_default_meter(Meter) ->
 set_meter(Name, Meter) ->
     verify_and_set_term(Meter, Name, ot_meter).
 
--spec set_default_context_manager(ot_ctx:context_manager()) -> boolean().
-set_default_context_manager(ContextManager) ->
-    verify_and_set_term(ContextManager, context_manager, ot_ctx).
-
 -spec register_tracer(atom(), string()) -> boolean().
 register_tracer(Name, Vsn) ->
     ot_tracer_provider:register_tracer(Name, Vsn).
@@ -160,10 +154,6 @@ register_meter(Name, Vsn) ->
 -spec register_application_meter(atom()) -> boolean().
 register_application_meter(Name) ->
     ot_meter_provider:register_application_meter(Name).
-
--spec get_context_manager() -> ot_ctx:context_manager().
-get_context_manager() ->
-    persistent_term:get({?MODULE, context_manager}, {ot_ctx_noop, []}).
 
 -spec get_tracer() -> tracer().
 get_tracer() ->

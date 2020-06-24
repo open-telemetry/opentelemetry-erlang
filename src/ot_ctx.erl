@@ -27,119 +27,108 @@
          get_current/1,
 
          http_extractor/2,
-         http_injector/2,
          http_extractor/3,
+         http_injector/2,
          http_injector/3,
+         http_extractor_fun/3,
          http_extractor_fun/4,
-         http_extractor_fun/5,
-         http_injector_fun/4,
-         http_injector_fun/5]).
+         http_injector_fun/3,
+         http_injector_fun/4]).
 
 -type ctx() :: map().
 -type namespace() :: term().
 -type key() :: term().
 -type value() :: term().
--type context_manager() :: {module(), term()}.
 
--callback set_value(context_manager(), namespace(), key(), value()) -> ok.
--callback get_value(context_manager(), namespace(), key()) -> value() | undefined.
--callback get_value(context_manager(), namespace(), key(), value()) -> value() | undefined.
--callback remove(context_manager(), namespace(), key()) -> ok.
--callback clear(context_manager(), namespace()) -> ok.
--callback set_current(context_manager(), namespace(), ctx()) -> ok.
--callback get_current(context_manager(), namespace()) -> ctx().
+-callback set_value(namespace(), key(), value()) -> ok.
+-callback get_value(namespace(), key()) -> value() | undefined.
+-callback get_value(namespace(), key(), value()) -> value() | undefined.
+-callback remove(namespace(), key()) -> ok.
+-callback clear(namespace()) -> ok.
+-callback set_current(namespace(), ctx()) -> ok.
+-callback get_current(namespace()) -> ctx().
 
 -export_type([ctx/0,
               key/0,
-              value/0,
-              context_manager/0]).
+              value/0]).
 
--spec set_value(namespace(), key(), value()) -> ok.
+-spec set_value(term(), term(), term()) -> ok.
 set_value(Namespace, Key, Value) ->
-    set_value(opentelemetry:get_context_manager(), Namespace, Key, Value).
+    case erlang:get(Namespace) of
+        Map when is_map(Map) ->
+            erlang:put(Namespace, Map#{Key => Value}),
+            ok;
+        _ ->
+            erlang:put(Namespace, #{Key => Value}),
+            ok
+    end.
 
--spec set_value(context_manager(), namespace(), key(), value()) -> ok.
-set_value(ContextManager={CtxModule, _}, Namespace, Key, Value) ->
-    CtxModule:set_value(ContextManager, Namespace, Key, Value).
-
--spec get_value(namespace(), key()) -> value() | undefined.
+-spec get_value(term(), term()) -> term().
 get_value(Namespace, Key) ->
-    get_value(opentelemetry:get_context_manager(), Namespace, Key, undefined).
+    get_value(Namespace, Key, undefined).
 
--spec get_value(namespace(), key(), value()) -> value().
+-spec get_value(term(), term(), term()) -> term().
 get_value(Namespace, Key, Default) ->
-    get_value(opentelemetry:get_context_manager(), Namespace, Key, Default).
+    case erlang:get(Namespace) of
+        undefined ->
+            Default;
+        Map when is_map(Map) ->
+            maps:get(Key, Map, Default);
+        _ ->
+            Default
+    end.
 
--spec get_value(context_manager(), namespace(), key(), value()) -> value().
-get_value(ContextManager={CtxModule, _}, Namespace, Key, Default) ->
-    CtxModule:get_value(ContextManager, Namespace, Key, Default).
-
--spec remove(namespace(), key()) -> ok.
-remove(Namespace, Key) ->
-    remove(opentelemetry:get_context_manager(), Namespace, Key).
-
--spec remove(context_manager(), namespace(), key()) -> ok.
-remove(ContextManager={CtxModule, _}, Namespace, Key) ->
-    CtxModule:remove(ContextManager, Namespace, Key).
-
--spec clear(namespace()) -> ok.
+-spec clear(term()) -> ok.
 clear(Namespace) ->
-    clear(opentelemetry:get_context_manager(), Namespace).
+    erlang:erase(Namespace).
 
--spec clear(context_manager(), namespace()) -> ok.
-clear(ContextManager={CtxModule, _}, Namespace) ->
-    CtxModule:clear(ContextManager, Namespace).
+-spec remove(term(), term()) -> ok.
+remove(Namespace, Key) ->
+    case erlang:get(Namespace) of
+        Map when is_map(Map) ->
+            erlang:put(Namespace, maps:remove(Key, Map)),
+            ok;
+        _ ->
+            ok
+    end.
 
--spec set_current(namespace(), ctx()) -> ok.
-set_current(Namespace, Ctx) ->
-    set_current(opentelemetry:get_context_manager(), Namespace, Ctx).
-
--spec set_current(context_manager(), namespace(), ctx()) -> ok.
-set_current(ContextManager={CtxModule, _}, Namespace, Ctx) ->
-    CtxModule:set_current(ContextManager, Namespace, Ctx).
-
--spec get_current(namespace()) -> ctx().
+-spec get_current(term()) -> map().
 get_current(Namespace) ->
-    get_current(opentelemetry:get_context_manager(), Namespace).
+    case erlang:get(Namespace) of
+        Map when is_map(Map) ->
+            Map;
+        _ ->
+            #{}
+    end.
 
--spec get_current(context_manager(), namespace()) -> ctx().
-get_current(ContextManager={CtxModule, _}, Namespace) ->
-    CtxModule:get_current(ContextManager, Namespace).
+-spec set_current(term(), map()) -> ok.
+set_current(Namespace, Ctx) ->
+    erlang:put(Namespace, Ctx).
+
+%% Extractor and Injector setup functions
 
 http_extractor(Namespace, FromText) ->
-    http_extractor_(opentelemetry:get_context_manager(), Namespace, FromText).
+    {fun ?MODULE:http_extractor_fun/3, {Namespace, FromText}}.
 
-http_extractor_(ContextManager, Namespace, FromText) ->
-    {fun ?MODULE:http_extractor_fun/4, {ContextManager, Namespace, FromText}}.
-
-http_extractor_fun(Headers, ContextManager={CtxModule, _}, Namespace, FromText) ->
-    New = FromText(Headers, CtxModule:get_current(ContextManager, Namespace)),
-    CtxModule:set_current(ContextManager, Namespace, New).
+http_extractor_fun(Headers, Namespace, FromText) ->
+    New = FromText(Headers, ?MODULE:get_current(Namespace)),
+    ?MODULE:set_current(Namespace, New).
 
 http_extractor(Namespace, Key, FromText) ->
-    http_extractor_(opentelemetry:get_context_manager(), Namespace, Key, FromText).
+    {fun ?MODULE:http_extractor_fun/4, {Namespace, Key, FromText}}.
 
-http_extractor_(ContextManager, Namespace, Key, FromText) ->
-    {fun ?MODULE:http_extractor_fun/5, {ContextManager, Namespace, Key, FromText}}.
-
-http_extractor_fun(Headers, ContextManager={CtxModule, _}, Namespace, Key, FromText) ->
-    New = FromText(Headers, CtxModule:get_value(ContextManager, Namespace, Key)),
-    CtxModule:set_value(ContextManager, Namespace, Key, New).
+http_extractor_fun(Headers, Namespace, Key, FromText) ->
+    New = FromText(Headers, ?MODULE:get_value(Namespace, Key)),
+    ?MODULE:set_value(Namespace, Key, New).
 
 http_injector(Namespace, ToText) ->
-    http_injector_(opentelemetry:get_context_manager(), Namespace, ToText).
+    {fun ?MODULE:http_injector_fun/3, {Namespace, ToText}}.
 
-http_injector_(ContextManager, Namespace, ToText) ->
-    {fun ?MODULE:http_injector_fun/4, {ContextManager, Namespace, ToText}}.
-
-http_injector_fun(Headers, ContextManager={CtxModule, _}, Namespace, ToText) ->
-    Headers ++ ToText(Headers, CtxModule:get_current(ContextManager, Namespace)).
+http_injector_fun(Headers, Namespace, ToText) ->
+    Headers ++ ToText(Headers, ?MODULE:get_current(Namespace)).
 
 http_injector(Namespace, Key, ToText) ->
-    http_injector_(opentelemetry:get_context_manager(), Namespace, Key, ToText).
+    {fun ?MODULE:http_injector_fun/4, {Namespace, Key, ToText}}.
 
-http_injector_(ContextManager, Namespace, Key, ToText) ->
-    {fun ?MODULE:http_injector_fun/5, {ContextManager, Namespace, Key, ToText}}.
-
-http_injector_fun(Headers, ContextManager={CtxModule, _}, Namespace, Key, ToText) ->
-    Headers ++ ToText(Headers, CtxModule:get_value(ContextManager, Namespace, Key)).
+http_injector_fun(Headers, Namespace, Key, ToText) ->
+    Headers ++ ToText(Headers, ?MODULE:get_value(Namespace, Key)).
