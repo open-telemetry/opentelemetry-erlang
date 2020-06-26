@@ -38,27 +38,27 @@ probability_sampler(_Config) ->
 
     %% checks the trace id is is under the upper bound
     ?assertMatch({?RECORD_AND_PROPAGATE, []},
-            Sampler(DoSample, 0, undefined, [], SpanName, undefined, [], Opts)),
+            Sampler(DoSample, undefined, [], SpanName, undefined, [], Opts)),
 
     %% checks the trace id is is over the upper bound
     ?assertMatch({?NOT_RECORD, []},
-            Sampler(DoNotSample, 0, undefined, [], SpanName, undefined, [], Opts)),
+            Sampler(DoNotSample, undefined, [], SpanName, undefined, [], Opts)),
 
     %% uses the value from the parent span context
     ?assertMatch({?RECORD_AND_PROPAGATE, []},
-                 Sampler(DoNotSample, 0, #span_ctx{trace_flags=1,
+                 Sampler(DoNotSample, #span_ctx{trace_flags=1,
                                                    is_remote=true},
                          [], SpanName, undefined, [], Opts)),
 
     %% since parent is not remote it uses the value from the parent span context
     ?assertMatch({?NOT_RECORD, []},
-                 Sampler(DoSample, 0, #span_ctx{trace_flags=0,
+                 Sampler(DoSample, #span_ctx{trace_flags=0,
                                                 is_remote=false},
                          [], SpanName, undefined, [], Opts)),
 
     %% since parent is remote it checks the trace id and it is under the upper bound
     ?assertMatch({?RECORD_AND_PROPAGATE, []},
-                 Sampler(DoSample, 0, #span_ctx{trace_flags=0,
+                 Sampler(DoSample, #span_ctx{trace_flags=0,
                                                 is_remote=true},
                          [], SpanName, undefined, [], Opts)),
 
@@ -67,7 +67,7 @@ probability_sampler(_Config) ->
                                                         ignore_parent_flag => false}),
 
     ?assertMatch({?RECORD_AND_PROPAGATE, []},
-                 Sampler1(DoSample, 0, #span_ctx{trace_flags=0, is_remote=true},
+                 Sampler1(DoSample, #span_ctx{trace_flags=0, is_remote=true},
                           [], SpanName, undefined, [], Opts1)),
 
     {Sampler2, Opts3} = ot_sampler:setup(probability, #{probability => Probability,
@@ -75,7 +75,7 @@ probability_sampler(_Config) ->
 
     %% parent not ignored but is 0 and sampler hint RECORD is ignored by default
     ?assertMatch({?NOT_RECORD, []},
-                 Sampler2(DoNotSample, 0, #span_ctx{trace_flags=0, is_remote=true},
+                 Sampler2(DoNotSample, #span_ctx{trace_flags=0, is_remote=true},
                           [], SpanName, undefined, [], Opts3)),
 
     ok.
