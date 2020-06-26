@@ -82,7 +82,7 @@ macros(Config) ->
 
     ?end_span(),
 
-    [Span1] = assert_exported(Tid, SpanCtx1),
+    [Span1] = ot_test_utils:assert_exported(Tid, SpanCtx1),
 
     ?assertEqual([{Attr1, AttrValue1}], Span1#span.attributes),
 
@@ -121,7 +121,7 @@ child_spans(Config) ->
     ?assertMatch(SpanCtx3, ?current_span_ctx()),
     ?end_span(),
 
-    assert_exported(Tid, SpanCtx3),
+    ot_test_utils:assert_exported(Tid, SpanCtx3),
 
     %% 2nd span should be the current span ctx now
     ?assertMatch(SpanCtx2, ?current_span_ctx()),
@@ -143,9 +143,9 @@ child_spans(Config) ->
     ?end_span(),
     ?assertMatch(undefined, ?current_span_ctx()),
 
-    assert_all_exported(Tid, [SpanCtx1, SpanCtx2, SpanCtx3]),
+    ot_test_utils:assert_all_exported(Tid, [SpanCtx1, SpanCtx2, SpanCtx3]),
 
-    [Span4] = assert_exported(Tid, SpanCtx4),
+    [Span4] = ot_test_utils:assert_exported(Tid, SpanCtx4),
 
     ?assertEqual(EarlierTimestamp, Span4#span.start_time).
 
@@ -231,7 +231,7 @@ tracer_instrumentation_library(Config) ->
     ot_tracer:end_span(Tracer),
     ?assertMatch(undefined, ?current_span_ctx()),
 
-    [Span1] = assert_exported(Tid, SpanCtx1),
+    [Span1] = ot_test_utils:assert_exported(Tid, SpanCtx1),
 
     ?assertEqual({instrumentation_library,<<"tracer1">>,<<"1.0.0">>}, Span1#span.instrumentation_library).
 
@@ -263,7 +263,7 @@ tracer_previous_ctx(Config) ->
     ot_tracer:set_span(Tracer, SpanCtx2),
     ot_tracer:end_span(Tracer),
 
-    assert_all_exported(Tid, [SpanCtx3, SpanCtx1, SpanCtx2]),
+    ot_test_utils:assert_all_exported(Tid, [SpanCtx3, SpanCtx1, SpanCtx2]),
 
     ok.
 
@@ -281,24 +281,6 @@ stop_temporary_app(_Config) ->
     ok.
 
 %%
-
-assert_all_exported(Tid, SpanCtxs) ->
-    [assert_exported(Tid, SpanCtx) || SpanCtx <- SpanCtxs].
-
-assert_exported(Tid, #span_ctx{trace_id=TraceId,
-                               span_id=SpanId}) ->
-    ?UNTIL_NOT_EQUAL([], ets:match_object(Tid, #span{trace_id=TraceId,
-                                                     span_id=SpanId,
-                                                     _='_'})).
-
-assert_not_exported(Tid, #span_ctx{trace_id=TraceId,
-                                   span_id=SpanId}) ->
-    %% sleep so exporter has run before we check
-    %% since we can't do like when checking it exists with UNTIL
-    timer:sleep(100),
-    ?assertMatch([], ets:match(Tid, #span{trace_id=TraceId,
-                                          span_id=SpanId,
-                                          _='_'})).
 
 trace_context(w3c, EncodedTraceId, EncodedSpanId) ->
     [{<<"traceparent">>,

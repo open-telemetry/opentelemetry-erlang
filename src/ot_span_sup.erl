@@ -45,6 +45,13 @@ init([Opts]) ->
                 type => worker,
                 modules => [ot_span_sweeper]},
 
+    Monitor = #{id => ot_span_monitor,
+                start => {ot_span_monitor, start_link, []},
+                restart => permanent,
+                shutdown => 5000,
+                type => worker,
+                modules => [ot_span_monitor]},
+
     SpanHandler = #{id => ot_span_ets,
                     start => {ot_span_ets, start_link, [[]]},
                     restart => permanent,
@@ -52,7 +59,7 @@ init([Opts]) ->
                     type => worker,
                     modules => [ot_span_ets]},
 
-    ChildSpecs = [SpanHandler, Sweeper],
+    ChildSpecs = [SpanHandler, Sweeper, Monitor],
     {ok, {SupFlags, ChildSpecs}}.
 
 %% internal functions

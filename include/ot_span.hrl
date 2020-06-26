@@ -74,5 +74,10 @@
           %% trace flags lowest bit is 1 but simply not propagated.
           is_recording                            :: boolean() | undefined,
 
-          instrumentation_library                 :: #instrumentation_library{} | undefined
+          instrumentation_library                 :: #instrumentation_library{} | undefined,
+
+          %% this is the Erlang process the span is active in. It is used only for the optional
+          %% process monitoring feature where a process can be monitored and have all spans
+          %% active in that process be ended if the process exits for any reason.
+          pid                                     :: pid() | undefined
          }).

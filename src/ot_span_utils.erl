@@ -37,7 +37,9 @@ start_span(Name, Opts) ->
     Kind = maps:get(kind, Opts, ?SPAN_KIND_INTERNAL),
     Sampler = maps:get(sampler, Opts),
     StartTime = maps:get(start_time, Opts, opentelemetry:timestamp()),
-    new_span(Name, Parent, Sampler, StartTime, Kind, Attributes, Links).
+    Result = new_span(Name, Parent, Sampler, StartTime, Kind, Attributes, Links),
+    case maps:get(monitor, Opts, false) of true -> ot_span_monitor:add_self(); _ -> ok end,
+    Result.
 
 %% if parent is undefined create a new trace id
 new_span(Name, undefined, Sampler, StartTime, Kind, Attributes, Links) ->
@@ -69,7 +71,8 @@ new_span(Name, Parent=#span_ctx{trace_id=TraceId,
                  name=Name,
                  attributes=Attributes++SamplerAttributes,
                  links=Links,
-                 is_recording=IsRecording},
+                 is_recording=IsRecording,
+                 pid=self()},
 
     {SpanCtx#span_ctx{trace_flags=TraceFlags,
                       is_recording=IsRecording}, Span}.
