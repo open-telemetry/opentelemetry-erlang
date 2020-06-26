@@ -93,7 +93,14 @@ get_ctx(#span{trace_id=TraceId,
                     opentelemetry:attribute_key(),
                     opentelemetry:attribute_value()) -> boolean().
 set_attribute(#span_ctx{span_id=SpanId}, Key, Value) ->
-    set_attributes(#span_ctx{span_id=SpanId}, [{Key, Value}]).
+    try ets:lookup_element(?SPAN_TAB, SpanId, #span.attributes) of
+        Attributes ->
+            ets:update_element(?SPAN_TAB, SpanId, {#span.attributes, [{Key, Value} | Attributes]})
+    catch error:badarg ->
+            false
+    end;
+set_attribute(_, _, _) ->
+    false.
 
 %% Note: Spans are referenced through the current active span context in a process
 %% and thus modified only by a single process, so concurrent updates of the same field
