@@ -52,12 +52,12 @@ new_span(Name, Parent=#span_ctx{trace_id=TraceId,
     SpanCtx = Parent#span_ctx{span_id=SpanId},
 
     {TraceFlags, IsRecording, SamplerAttributes} =
-        sample(Sampler, TraceId, SpanId, case Parent of
-                                             #span_ctx{span_id=undefined} ->
-                                                 undefined;
-                                             _ ->
-                                                 Parent
-                                         end,
+        sample(Sampler, TraceId, case Parent of
+                                     #span_ctx{span_id=undefined} ->
+                                         undefined;
+                                     _ ->
+                                         Parent
+                                 end,
                Links, Name, Kind, Attributes),
 
     Span = #span{trace_id=TraceId,
@@ -89,8 +89,8 @@ end_span(Span) ->
 
 %%
 
-sample({Sampler, Opts}, TraceId, SpanId, Parent, Links, SpanName, Kind, Attributes) ->
-    {Decision, NewAttributes} = Sampler(TraceId, SpanId, Parent, Links,
+sample({Sampler, Opts}, TraceId, Parent, Links, SpanName, Kind, Attributes) ->
+    {Decision, NewAttributes} = Sampler(TraceId, Parent, Links,
                                         SpanName, Kind, Attributes, Opts),
     case Decision of
         ?NOT_RECORD ->
