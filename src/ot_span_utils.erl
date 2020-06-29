@@ -97,6 +97,6 @@ sample({Sampler, Opts}, TraceId, Parent, Links, SpanName, Kind, Attributes) ->
             {0, false, NewAttributes};
         ?RECORD ->
             {0, true, NewAttributes};
-        ?RECORD_AND_PROPAGATE ->
+        ?RECORD_AND_SAMPLED ->
             {1, true, NewAttributes}
     end.
