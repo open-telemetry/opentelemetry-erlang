@@ -33,7 +33,7 @@ An Elixir release uses `releases.exs`:
 
 ``` elixir
 config :opentelemetry,
-    :processors, ot_batch_processor: %{exporter: {:opentelemetry_exporter, %{endpoints: [{:http, 'localhost', 9090, []}}}}
+    :processors, ot_batch_processor: %{exporter: {:opentelemetry_exporter, %{endpoints: [{:http, 'localhost', 9090, []}]}}}
 ```
 
 ## Contributing
