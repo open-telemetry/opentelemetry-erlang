@@ -3,7 +3,7 @@ OpenTelemetry
 
 [![EEF Observability WG project](https://img.shields.io/badge/EEF-Observability-black)](https://github.com/erlef/eef-observability-wg)
 [![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry)](https://hex.pm/packages/opentelemetry)
-![CircleCI](https://img.shields.io/circleci/build/github/open-telemetry/opentelemetry-erlang)
+![Build Status](https://github.com/open-telemetry/opentelemetry-erlang/workflows/Common%20Test/badge.svg)
 
 OpenTelemetry stats collection and distributed tracing framework for Erlang.
 
