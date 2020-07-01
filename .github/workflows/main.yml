@@ -32,5 +32,8 @@ jobs:
       run: rebar3 dialyzer
     - name: XRef
       run: rebar3 xref
-    - name: Coveralls
-      run: rebar3 coveralls send
+    - name: Covertool
+      run: rebar3 covertool generate
+    - uses: codecov/codecov-action@v1
+      with:
+        file: _build/test/covertool/opentelemetry.covertool.xml
