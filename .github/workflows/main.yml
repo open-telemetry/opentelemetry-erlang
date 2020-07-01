@@ -1,0 +1,52 @@
+name: Common Test
+
+on:
+  pull_request:
+    branches:
+      - 'master'
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  erlang_tests:
+    name: OTP ${{ matrix.otp_version }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
+        os: [ubuntu-latest]
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: gleam-lang/setup-erlang@v1.0.0
+      with:
+        otp-version: ${{ matrix.otp_version }}
+
+    - name: Compile
+      run: rebar3 compile
+    - name: EUnit tests
+      run: rebar3 eunit
+    - name: Dialyzer
+      run: rebar3 dialyzer
+    - name: XRef
+      run: rebar3 xref
+    - name: Coveralls
+      run: rebar3 coveralls send
+
+  elixir_tests:
+    runs-on: ubuntu-latest
+    name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+    strategy:
+      matrix:
+        otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
+        elixir: ['1.9.4']
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+      - run: mix deps.get
+      - run: mix test

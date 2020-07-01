@@ -1,5 +1,9 @@
 # Erlang/Elixir OpenTelemetry API
 
+[![EEF Observability WG project](https://img.shields.io/badge/EEF-Observability-black)](https://github.com/erlef/eef-observability-wg)
+[![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry)](https://hex.pm/packages/opentelemetry_api)
+![Build Status](https://github.com/open-telemetry/opentelemetry-erlang-api/workflows/Common%20Test/badge.svg)
+
 This is the API portion of [OpenTelemetry](https://opentelemetry.io/) for Erlang and Elixir Applications.
 
 This is a library, it does not start any processes, and should be the only OpenTelemetry dependency of Erlang/Elixir Applications. 
