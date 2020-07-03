@@ -18,7 +18,6 @@
 -export([enum_symbol_by_value/2, enum_value_by_symbol/2]).
 -export(['enum_symbol_by_value_span.SpanKind'/1, 'enum_value_by_symbol_span.SpanKind'/1]).
 -export(['enum_symbol_by_value_status.StatusCode'/1, 'enum_value_by_symbol_status.StatusCode'/1]).
--export(['enum_symbol_by_value_attribute_key_value.ValueType'/1, 'enum_value_by_symbol_attribute_key_value.ValueType'/1]).
 -export([get_service_names/0]).
 -export([get_service_def/1]).
 -export([get_rpc_names/1]).
@@ -51,8 +50,7 @@
 %% enumerated types
 -type 'span.SpanKind'() :: 'SPAN_KIND_UNSPECIFIED' | 'INTERNAL' | 'SERVER' | 'CLIENT' | 'PRODUCER' | 'CONSUMER'.
 -type 'status.StatusCode'() :: 'Ok' | 'Cancelled' | 'UnknownError' | 'InvalidArgument' | 'DeadlineExceeded' | 'NotFound' | 'AlreadyExists' | 'PermissionDenied' | 'ResourceExhausted' | 'FailedPrecondition' | 'Aborted' | 'OutOfRange' | 'Unimplemented' | 'InternalError' | 'Unavailable' | 'DataLoss' | 'Unauthenticated'.
--type 'attribute_key_value.ValueType'() :: 'STRING' | 'INT' | 'DOUBLE' | 'BOOL'.
--export_type(['span.SpanKind'/0, 'status.StatusCode'/0, 'attribute_key_value.ValueType'/0]).
+-export_type(['span.SpanKind'/0, 'status.StatusCode'/0]).
 
 %% message types
 -type export_trace_service_request() ::
@@ -76,7 +74,7 @@
 -type event() ::
       #{time_unix_nano          => non_neg_integer(), % = 1, 32 bits
         name                    => iodata(),        % = 2
-        attributes              => [attribute_key_value()], % = 3
+        attributes              => [key_value()],   % = 3
         dropped_attributes_count => non_neg_integer() % = 4, 32 bits
        }.
 
@@ -84,7 +82,7 @@
       #{trace_id                => iodata(),        % = 1
         span_id                 => iodata(),        % = 2
         trace_state             => iodata(),        % = 3
-        attributes              => [attribute_key_value()], % = 4
+        attributes              => [key_value()],   % = 4
         dropped_attributes_count => non_neg_integer() % = 5, 32 bits
        }.
 
@@ -97,7 +95,7 @@
         kind                    => 'SPAN_KIND_UNSPECIFIED' | 'INTERNAL' | 'SERVER' | 'CLIENT' | 'PRODUCER' | 'CONSUMER' | integer(), % = 6, enum span.SpanKind
         start_time_unix_nano    => non_neg_integer(), % = 7, 32 bits
         end_time_unix_nano      => non_neg_integer(), % = 8, 32 bits
-        attributes              => [attribute_key_value()], % = 9
+        attributes              => [key_value()],   % = 9
         dropped_attributes_count => non_neg_integer(), % = 10, 32 bits
         events                  => [event()],       % = 11
         dropped_events_count    => non_neg_integer(), % = 12, 32 bits
@@ -111,13 +109,21 @@
         message                 => iodata()         % = 2
        }.
 
--type attribute_key_value() ::
+-type any_value() ::
+      #{value                   => {string_value, iodata()} | {bool_value, boolean() | 0 | 1} | {int_value, integer()} | {double_value, float() | integer() | infinity | '-infinity' | nan} | {array_value, array_value()} | {kvlist_value, key_value_list()} % oneof
+       }.
+
+-type array_value() ::
+      #{values                  => [any_value()]    % = 1
+       }.
+
+-type key_value_list() ::
+      #{values                  => [key_value()]    % = 1
+       }.
+
+-type key_value() ::
       #{key                     => iodata(),        % = 1
-        type                    => 'STRING' | 'INT' | 'DOUBLE' | 'BOOL' | integer(), % = 2, enum attribute_key_value.ValueType
-        string_value            => iodata(),        % = 3
-        int_value               => integer(),       % = 4, 32 bits
-        double_value            => float() | integer() | infinity | '-infinity' | nan, % = 5
-        bool_value              => boolean() | 0 | 1 % = 6
+        value                   => any_value()      % = 2
        }.
 
 -type string_key_value() ::
@@ -131,17 +137,17 @@
        }.
 
 -type resource() ::
-      #{attributes              => [attribute_key_value()], % = 1
+      #{attributes              => [key_value()],   % = 1
         dropped_attributes_count => non_neg_integer() % = 2, 32 bits
        }.
 
--export_type(['export_trace_service_request'/0, 'export_trace_service_response'/0, 'resource_spans'/0, 'instrumentation_library_spans'/0, 'event'/0, 'link'/0, 'span'/0, 'status'/0, 'attribute_key_value'/0, 'string_key_value'/0, 'instrumentation_library'/0, 'resource'/0]).
+-export_type(['export_trace_service_request'/0, 'export_trace_service_response'/0, 'resource_spans'/0, 'instrumentation_library_spans'/0, 'event'/0, 'link'/0, 'span'/0, 'status'/0, 'any_value'/0, 'array_value'/0, 'key_value_list'/0, 'key_value'/0, 'string_key_value'/0, 'instrumentation_library'/0, 'resource'/0]).
 
--spec encode_msg(export_trace_service_request() | export_trace_service_response() | resource_spans() | instrumentation_library_spans() | event() | link() | span() | status() | attribute_key_value() | string_key_value() | instrumentation_library() | resource(), atom()) -> binary().
+-spec encode_msg(export_trace_service_request() | export_trace_service_response() | resource_spans() | instrumentation_library_spans() | event() | link() | span() | status() | any_value() | array_value() | key_value_list() | key_value() | string_key_value() | instrumentation_library() | resource(), atom()) -> binary().
 encode_msg(Msg, MsgName) when is_atom(MsgName) ->
     encode_msg(Msg, MsgName, []).
 
--spec encode_msg(export_trace_service_request() | export_trace_service_response() | resource_spans() | instrumentation_library_spans() | event() | link() | span() | status() | attribute_key_value() | string_key_value() | instrumentation_library() | resource(), atom(), list()) -> binary().
+-spec encode_msg(export_trace_service_request() | export_trace_service_response() | resource_spans() | instrumentation_library_spans() | event() | link() | span() | status() | any_value() | array_value() | key_value_list() | key_value() | string_key_value() | instrumentation_library() | resource(), atom(), list()) -> binary().
 encode_msg(Msg, MsgName, Opts) ->
     case proplists:get_bool(verify, Opts) of
         true -> verify_msg(Msg, MsgName, Opts);
@@ -172,9 +178,15 @@ encode_msg(Msg, MsgName, Opts) ->
             encode_msg_span(id(Msg, TrUserData), TrUserData);
         status ->
             encode_msg_status(id(Msg, TrUserData), TrUserData);
-        attribute_key_value ->
-            encode_msg_attribute_key_value(id(Msg, TrUserData),
-                                           TrUserData);
+        any_value ->
+            encode_msg_any_value(id(Msg, TrUserData), TrUserData);
+        array_value ->
+            encode_msg_array_value(id(Msg, TrUserData), TrUserData);
+        key_value_list ->
+            encode_msg_key_value_list(id(Msg, TrUserData),
+                                      TrUserData);
+        key_value ->
+            encode_msg_key_value(id(Msg, TrUserData), TrUserData);
         string_key_value ->
             encode_msg_string_key_value(id(Msg, TrUserData),
                                         TrUserData);
@@ -578,12 +590,87 @@ encode_msg_status(#{} = M, Bin, TrUserData) ->
         _ -> B1
     end.
 
-encode_msg_attribute_key_value(Msg, TrUserData) ->
-    encode_msg_attribute_key_value(Msg, <<>>, TrUserData).
+encode_msg_any_value(Msg, TrUserData) ->
+    encode_msg_any_value(Msg, <<>>, TrUserData).
 
 
-encode_msg_attribute_key_value(#{} = M, Bin,
-                               TrUserData) ->
+encode_msg_any_value(#{} = M, Bin, TrUserData) ->
+    case M of
+        #{value := F1} ->
+            case id(F1, TrUserData) of
+                {string_value, TF1} ->
+                    begin
+                        TrTF1 = id(TF1, TrUserData),
+                        e_type_string(TrTF1, <<Bin/binary, 10>>, TrUserData)
+                    end;
+                {bool_value, TF1} ->
+                    begin
+                        TrTF1 = id(TF1, TrUserData),
+                        e_type_bool(TrTF1, <<Bin/binary, 16>>, TrUserData)
+                    end;
+                {int_value, TF1} ->
+                    begin
+                        TrTF1 = id(TF1, TrUserData),
+                        e_type_int64(TrTF1, <<Bin/binary, 24>>, TrUserData)
+                    end;
+                {double_value, TF1} ->
+                    begin
+                        TrTF1 = id(TF1, TrUserData),
+                        e_type_double(TrTF1, <<Bin/binary, 33>>, TrUserData)
+                    end;
+                {array_value, TF1} ->
+                    begin
+                        TrTF1 = id(TF1, TrUserData),
+                        e_mfield_any_value_array_value(TrTF1,
+                                                       <<Bin/binary, 42>>,
+                                                       TrUserData)
+                    end;
+                {kvlist_value, TF1} ->
+                    begin
+                        TrTF1 = id(TF1, TrUserData),
+                        e_mfield_any_value_kvlist_value(TrTF1,
+                                                        <<Bin/binary, 50>>,
+                                                        TrUserData)
+                    end
+            end;
+        _ -> Bin
+    end.
+
+encode_msg_array_value(Msg, TrUserData) ->
+    encode_msg_array_value(Msg, <<>>, TrUserData).
+
+
+encode_msg_array_value(#{} = M, Bin, TrUserData) ->
+    case M of
+        #{values := F1} ->
+            TrF1 = id(F1, TrUserData),
+            if TrF1 == [] -> Bin;
+               true ->
+                   e_field_array_value_values(TrF1, Bin, TrUserData)
+            end;
+        _ -> Bin
+    end.
+
+encode_msg_key_value_list(Msg, TrUserData) ->
+    encode_msg_key_value_list(Msg, <<>>, TrUserData).
+
+
+encode_msg_key_value_list(#{} = M, Bin, TrUserData) ->
+    case M of
+        #{values := F1} ->
+            TrF1 = id(F1, TrUserData),
+            if TrF1 == [] -> Bin;
+               true ->
+                   e_field_key_value_list_values(TrF1, Bin, TrUserData)
+            end;
+        _ -> Bin
+    end.
+
+encode_msg_key_value(Msg, TrUserData) ->
+    encode_msg_key_value(Msg, <<>>, TrUserData).
+
+
+encode_msg_key_value(#{} = M, Bin, TrUserData) ->
     B1 = case M of
              #{key := F1} ->
                  begin
@@ -596,63 +683,18 @@ encode_msg_attribute_key_value(#{} = M, Bin,
                  end;
              _ -> Bin
          end,
-    B2 = case M of
-             #{type := F2} ->
-                 begin
-                     TrF2 = id(F2, TrUserData),
-                     if TrF2 =:= 'STRING'; TrF2 =:= 0 -> B1;
-                        true ->
-                            'e_enum_attribute_key_value.ValueType'(TrF2,
-                                                                   <<B1/binary,
-                                                                     16>>,
-                                                                   TrUserData)
-                     end
-                 end;
-             _ -> B1
-         end,
-    B3 = case M of
-             #{string_value := F3} ->
-                 begin
-                     TrF3 = id(F3, TrUserData),
-                     case is_empty_string(TrF3) of
-                         true -> B2;
-                         false ->
-                             e_type_string(TrF3, <<B2/binary, 26>>, TrUserData)
-                     end
-                 end;
-             _ -> B2
-         end,
-    B4 = case M of
-             #{int_value := F4} ->
-                 begin
-                     TrF4 = id(F4, TrUserData),
-                     if TrF4 =:= 0 -> B3;
-                        true ->
-                            e_type_int64(TrF4, <<B3/binary, 32>>, TrUserData)
-                     end
-                 end;
-             _ -> B3
-         end,
-    B5 = case M of
-             #{double_value := F5} ->
-                 begin
-                     TrF5 = id(F5, TrUserData),
-                     if TrF5 =:= 0.0 -> B4;
-                        true ->
-                            e_type_double(TrF5, <<B4/binary, 41>>, TrUserData)
-                     end
-                 end;
-             _ -> B4
-         end,
     case M of
-        #{bool_value := F6} ->
+        #{value := F2} ->
             begin
-                TrF6 = id(F6, TrUserData),
-                if TrF6 =:= false -> B5;
-                   true -> e_type_bool(TrF6, <<B5/binary, 48>>, TrUserData)
+                TrF2 = id(F2, TrUserData),
+                if TrF2 =:= undefined -> B1;
+                   true ->
+                       e_mfield_key_value_value(TrF2,
+                                                <<B1/binary, 18>>,
+                                                TrUserData)
                 end
             end;
-        _ -> B5
+        _ -> B1
     end.
 
 encode_msg_string_key_value(Msg, TrUserData) ->
@@ -829,9 +871,7 @@ e_field_instrumentation_library_spans_spans([], Bin,
     Bin.
 
 e_mfield_event_attributes(Msg, Bin, TrUserData) ->
-    SubBin = encode_msg_attribute_key_value(Msg,
-                                            <<>>,
-                                            TrUserData),
+    SubBin = encode_msg_key_value(Msg, <<>>, TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
@@ -845,9 +885,7 @@ e_field_event_attributes([Elem | Rest], Bin,
 e_field_event_attributes([], Bin, _TrUserData) -> Bin.
 
 e_mfield_link_attributes(Msg, Bin, TrUserData) ->
-    SubBin = encode_msg_attribute_key_value(Msg,
-                                            <<>>,
-                                            TrUserData),
+    SubBin = encode_msg_key_value(Msg, <<>>, TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
@@ -861,9 +899,7 @@ e_field_link_attributes([Elem | Rest], Bin,
 e_field_link_attributes([], Bin, _TrUserData) -> Bin.
 
 e_mfield_span_attributes(Msg, Bin, TrUserData) ->
-    SubBin = encode_msg_attribute_key_value(Msg,
-                                            <<>>,
-                                            TrUserData),
+    SubBin = encode_msg_key_value(Msg, <<>>, TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
@@ -907,10 +943,55 @@ e_mfield_span_status(Msg, Bin, TrUserData) ->
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
+e_mfield_any_value_array_value(Msg, Bin, TrUserData) ->
+    SubBin = encode_msg_array_value(Msg, <<>>, TrUserData),
+    Bin2 = e_varint(byte_size(SubBin), Bin),
+    <<Bin2/binary, SubBin/binary>>.
+
+e_mfield_any_value_kvlist_value(Msg, Bin, TrUserData) ->
+    SubBin = encode_msg_key_value_list(Msg,
+                                       <<>>,
+                                       TrUserData),
+    Bin2 = e_varint(byte_size(SubBin), Bin),
+    <<Bin2/binary, SubBin/binary>>.
+
+e_mfield_array_value_values(Msg, Bin, TrUserData) ->
+    SubBin = encode_msg_any_value(Msg, <<>>, TrUserData),
+    Bin2 = e_varint(byte_size(SubBin), Bin),
+    <<Bin2/binary, SubBin/binary>>.
+
+e_field_array_value_values([Elem | Rest], Bin,
+                           TrUserData) ->
+    Bin2 = <<Bin/binary, 10>>,
+    Bin3 = e_mfield_array_value_values(id(Elem, TrUserData),
+                                       Bin2,
+                                       TrUserData),
+    e_field_array_value_values(Rest, Bin3, TrUserData);
+e_field_array_value_values([], Bin, _TrUserData) -> Bin.
+
+e_mfield_key_value_list_values(Msg, Bin, TrUserData) ->
+    SubBin = encode_msg_key_value(Msg, <<>>, TrUserData),
+    Bin2 = e_varint(byte_size(SubBin), Bin),
+    <<Bin2/binary, SubBin/binary>>.
+
+e_field_key_value_list_values([Elem | Rest], Bin,
+                              TrUserData) ->
+    Bin2 = <<Bin/binary, 10>>,
+    Bin3 = e_mfield_key_value_list_values(id(Elem,
+                                             TrUserData),
+                                          Bin2,
+                                          TrUserData),
+    e_field_key_value_list_values(Rest, Bin3, TrUserData);
+e_field_key_value_list_values([], Bin, _TrUserData) ->
+    Bin.
+
+e_mfield_key_value_value(Msg, Bin, TrUserData) ->
+    SubBin = encode_msg_any_value(Msg, <<>>, TrUserData),
+    Bin2 = e_varint(byte_size(SubBin), Bin),
+    <<Bin2/binary, SubBin/binary>>.
+
 e_mfield_resource_attributes(Msg, Bin, TrUserData) ->
-    SubBin = encode_msg_attribute_key_value(Msg,
-                                            <<>>,
-                                            TrUserData),
+    SubBin = encode_msg_key_value(Msg, <<>>, TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
@@ -992,22 +1073,6 @@ e_field_resource_attributes([], Bin, _TrUserData) ->
                            _TrUserData) ->
     <<Bin/binary, 16>>;
 'e_enum_status.StatusCode'(V, Bin, _TrUserData) ->
-    e_varint(V, Bin).
-
-'e_enum_attribute_key_value.ValueType'('STRING', Bin,
-                                       _TrUserData) ->
-    <<Bin/binary, 0>>;
-'e_enum_attribute_key_value.ValueType'('INT', Bin,
-                                       _TrUserData) ->
-    <<Bin/binary, 1>>;
-'e_enum_attribute_key_value.ValueType'('DOUBLE', Bin,
-                                       _TrUserData) ->
-    <<Bin/binary, 2>>;
-'e_enum_attribute_key_value.ValueType'('BOOL', Bin,
-                                       _TrUserData) ->
-    <<Bin/binary, 3>>;
-'e_enum_attribute_key_value.ValueType'(V, Bin,
-                                       _TrUserData) ->
     e_varint(V, Bin).
 
 -compile({nowarn_unused_function,e_type_sint/3}).
@@ -1169,10 +1234,15 @@ decode_msg_2_doit(span, Bin, TrUserData) ->
     id(decode_msg_span(Bin, TrUserData), TrUserData);
 decode_msg_2_doit(status, Bin, TrUserData) ->
     id(decode_msg_status(Bin, TrUserData), TrUserData);
-decode_msg_2_doit(attribute_key_value, Bin,
-                  TrUserData) ->
-    id(decode_msg_attribute_key_value(Bin, TrUserData),
+decode_msg_2_doit(any_value, Bin, TrUserData) ->
+    id(decode_msg_any_value(Bin, TrUserData), TrUserData);
+decode_msg_2_doit(array_value, Bin, TrUserData) ->
+    id(decode_msg_array_value(Bin, TrUserData), TrUserData);
+decode_msg_2_doit(key_value_list, Bin, TrUserData) ->
+    id(decode_msg_key_value_list(Bin, TrUserData),
        TrUserData);
+decode_msg_2_doit(key_value, Bin, TrUserData) ->
+    id(decode_msg_key_value(Bin, TrUserData), TrUserData);
 decode_msg_2_doit(string_key_value, Bin, TrUserData) ->
     id(decode_msg_string_key_value(Bin, TrUserData),
        TrUserData);
@@ -2237,7 +2307,7 @@ d_field_event_attributes(<<0:1, X:7, Rest/binary>>, N,
     {NewFValue, RestF} = begin
                              Len = X bsl N + Acc,
                              <<Bs:Len/binary, Rest2/binary>> = Rest,
-                             {id(decode_msg_attribute_key_value(Bs, TrUserData),
+                             {id(decode_msg_key_value(Bs, TrUserData),
                                  TrUserData),
                               Rest2}
                          end,
@@ -2674,7 +2744,7 @@ d_field_link_attributes(<<0:1, X:7, Rest/binary>>, N,
     {NewFValue, RestF} = begin
                              Len = X bsl N + Acc,
                              <<Bs:Len/binary, Rest2/binary>> = Rest,
-                             {id(decode_msg_attribute_key_value(Bs, TrUserData),
+                             {id(decode_msg_key_value(Bs, TrUserData),
                                  TrUserData),
                               Rest2}
                          end,
@@ -4053,7 +4123,7 @@ d_field_span_attributes(<<0:1, X:7, Rest/binary>>, N,
     {NewFValue, RestF} = begin
                              Len = X bsl N + Acc,
                              <<Bs:Len/binary, Rest2/binary>> = Rest,
-                             {id(decode_msg_attribute_key_value(Bs, TrUserData),
+                             {id(decode_msg_key_value(Bs, TrUserData),
                                  TrUserData),
                               Rest2}
                          end,
@@ -4754,610 +4824,909 @@ skip_64_status(<<_:64, Rest/binary>>, Z1, Z2, F@_1,
                               F@_2,
                               TrUserData).
 
-decode_msg_attribute_key_value(Bin, TrUserData) ->
-    dfp_read_field_def_attribute_key_value(Bin,
-                                           0,
-                                           0,
-                                           id(<<>>, TrUserData),
-                                           id('STRING', TrUserData),
-                                           id(<<>>, TrUserData),
-                                           id(0, TrUserData),
-                                           id(0.0, TrUserData),
-                                           id(false, TrUserData),
-                                           TrUserData).
+decode_msg_any_value(Bin, TrUserData) ->
+    dfp_read_field_def_any_value(Bin,
+                                 0,
+                                 0,
+                                 id('$undef', TrUserData),
+                                 TrUserData).
 
-dfp_read_field_def_attribute_key_value(<<10,
-                                         Rest/binary>>,
-                                       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
-                                       F@_6, TrUserData) ->
-    d_field_attribute_key_value_key(Rest,
-                                    Z1,
-                                    Z2,
-                                    F@_1,
-                                    F@_2,
-                                    F@_3,
-                                    F@_4,
-                                    F@_5,
-                                    F@_6,
-                                    TrUserData);
-dfp_read_field_def_attribute_key_value(<<16,
-                                         Rest/binary>>,
-                                       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
-                                       F@_6, TrUserData) ->
-    d_field_attribute_key_value_type(Rest,
-                                     Z1,
-                                     Z2,
-                                     F@_1,
-                                     F@_2,
-                                     F@_3,
-                                     F@_4,
-                                     F@_5,
-                                     F@_6,
-                                     TrUserData);
-dfp_read_field_def_attribute_key_value(<<26,
-                                         Rest/binary>>,
-                                       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
-                                       F@_6, TrUserData) ->
-    d_field_attribute_key_value_string_value(Rest,
-                                             Z1,
-                                             Z2,
-                                             F@_1,
-                                             F@_2,
-                                             F@_3,
-                                             F@_4,
-                                             F@_5,
-                                             F@_6,
-                                             TrUserData);
-dfp_read_field_def_attribute_key_value(<<32,
-                                         Rest/binary>>,
-                                       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
-                                       F@_6, TrUserData) ->
-    d_field_attribute_key_value_int_value(Rest,
-                                          Z1,
-                                          Z2,
-                                          F@_1,
-                                          F@_2,
-                                          F@_3,
-                                          F@_4,
-                                          F@_5,
-                                          F@_6,
-                                          TrUserData);
-dfp_read_field_def_attribute_key_value(<<41,
-                                         Rest/binary>>,
-                                       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
-                                       F@_6, TrUserData) ->
-    d_field_attribute_key_value_double_value(Rest,
-                                             Z1,
-                                             Z2,
-                                             F@_1,
-                                             F@_2,
-                                             F@_3,
-                                             F@_4,
-                                             F@_5,
-                                             F@_6,
-                                             TrUserData);
-dfp_read_field_def_attribute_key_value(<<48,
-                                         Rest/binary>>,
-                                       Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5,
-                                       F@_6, TrUserData) ->
-    d_field_attribute_key_value_bool_value(Rest,
-                                           Z1,
-                                           Z2,
-                                           F@_1,
-                                           F@_2,
-                                           F@_3,
-                                           F@_4,
-                                           F@_5,
-                                           F@_6,
-                                           TrUserData);
-dfp_read_field_def_attribute_key_value(<<>>, 0, 0, F@_1,
-                                       F@_2, F@_3, F@_4, F@_5, F@_6, _) ->
-    #{key => F@_1, type => F@_2, string_value => F@_3,
-      int_value => F@_4, double_value => F@_5,
-      bool_value => F@_6};
-dfp_read_field_def_attribute_key_value(Other, Z1, Z2,
-                                       F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-                                       TrUserData) ->
-    dg_read_field_def_attribute_key_value(Other,
-                                          Z1,
-                                          Z2,
-                                          F@_1,
-                                          F@_2,
-                                          F@_3,
-                                          F@_4,
-                                          F@_5,
-                                          F@_6,
-                                          TrUserData).
+dfp_read_field_def_any_value(<<10, Rest/binary>>, Z1,
+                             Z2, F@_1, TrUserData) ->
+    d_field_any_value_string_value(Rest,
+                                   Z1,
+                                   Z2,
+                                   F@_1,
+                                   TrUserData);
+dfp_read_field_def_any_value(<<16, Rest/binary>>, Z1,
+                             Z2, F@_1, TrUserData) ->
+    d_field_any_value_bool_value(Rest,
+                                 Z1,
+                                 Z2,
+                                 F@_1,
+                                 TrUserData);
+dfp_read_field_def_any_value(<<24, Rest/binary>>, Z1,
+                             Z2, F@_1, TrUserData) ->
+    d_field_any_value_int_value(Rest,
+                                Z1,
+                                Z2,
+                                F@_1,
+                                TrUserData);
+dfp_read_field_def_any_value(<<33, Rest/binary>>, Z1,
+                             Z2, F@_1, TrUserData) ->
+    d_field_any_value_double_value(Rest,
+                                   Z1,
+                                   Z2,
+                                   F@_1,
+                                   TrUserData);
+dfp_read_field_def_any_value(<<42, Rest/binary>>, Z1,
+                             Z2, F@_1, TrUserData) ->
+    d_field_any_value_array_value(Rest,
+                                  Z1,
+                                  Z2,
+                                  F@_1,
+                                  TrUserData);
+dfp_read_field_def_any_value(<<50, Rest/binary>>, Z1,
+                             Z2, F@_1, TrUserData) ->
+    d_field_any_value_kvlist_value(Rest,
+                                   Z1,
+                                   Z2,
+                                   F@_1,
+                                   TrUserData);
+dfp_read_field_def_any_value(<<>>, 0, 0, F@_1, _) ->
+    S1 = #{},
+    if F@_1 == '$undef' -> S1;
+       true -> S1#{value => F@_1}
+    end;
+dfp_read_field_def_any_value(Other, Z1, Z2, F@_1,
+                             TrUserData) ->
+    dg_read_field_def_any_value(Other,
+                                Z1,
+                                Z2,
+                                F@_1,
+                                TrUserData).
 
-dg_read_field_def_attribute_key_value(<<1:1, X:7,
-                                        Rest/binary>>,
-                                      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-                                      F@_6, TrUserData)
+dg_read_field_def_any_value(<<1:1, X:7, Rest/binary>>,
+                            N, Acc, F@_1, TrUserData)
     when N < 32 - 7 ->
-    dg_read_field_def_attribute_key_value(Rest,
-                                          N + 7,
-                                          X bsl N + Acc,
-                                          F@_1,
-                                          F@_2,
-                                          F@_3,
-                                          F@_4,
-                                          F@_5,
-                                          F@_6,
-                                          TrUserData);
-dg_read_field_def_attribute_key_value(<<0:1, X:7,
-                                        Rest/binary>>,
-                                      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-                                      F@_6, TrUserData) ->
+    dg_read_field_def_any_value(Rest,
+                                N + 7,
+                                X bsl N + Acc,
+                                F@_1,
+                                TrUserData);
+dg_read_field_def_any_value(<<0:1, X:7, Rest/binary>>,
+                            N, Acc, F@_1, TrUserData) ->
     Key = X bsl N + Acc,
     case Key of
         10 ->
-            d_field_attribute_key_value_key(Rest,
-                                            0,
-                                            0,
-                                            F@_1,
-                                            F@_2,
-                                            F@_3,
-                                            F@_4,
-                                            F@_5,
-                                            F@_6,
-                                            TrUserData);
+            d_field_any_value_string_value(Rest,
+                                           0,
+                                           0,
+                                           F@_1,
+                                           TrUserData);
         16 ->
-            d_field_attribute_key_value_type(Rest,
-                                             0,
-                                             0,
-                                             F@_1,
-                                             F@_2,
-                                             F@_3,
-                                             F@_4,
-                                             F@_5,
-                                             F@_6,
-                                             TrUserData);
-        26 ->
-            d_field_attribute_key_value_string_value(Rest,
-                                                     0,
-                                                     0,
-                                                     F@_1,
-                                                     F@_2,
-                                                     F@_3,
-                                                     F@_4,
-                                                     F@_5,
-                                                     F@_6,
-                                                     TrUserData);
-        32 ->
-            d_field_attribute_key_value_int_value(Rest,
-                                                  0,
-                                                  0,
-                                                  F@_1,
-                                                  F@_2,
-                                                  F@_3,
-                                                  F@_4,
-                                                  F@_5,
-                                                  F@_6,
-                                                  TrUserData);
-        41 ->
-            d_field_attribute_key_value_double_value(Rest,
-                                                     0,
-                                                     0,
-                                                     F@_1,
-                                                     F@_2,
-                                                     F@_3,
-                                                     F@_4,
-                                                     F@_5,
-                                                     F@_6,
-                                                     TrUserData);
-        48 ->
-            d_field_attribute_key_value_bool_value(Rest,
-                                                   0,
-                                                   0,
-                                                   F@_1,
-                                                   F@_2,
-                                                   F@_3,
-                                                   F@_4,
-                                                   F@_5,
-                                                   F@_6,
-                                                   TrUserData);
+            d_field_any_value_bool_value(Rest,
+                                         0,
+                                         0,
+                                         F@_1,
+                                         TrUserData);
+        24 ->
+            d_field_any_value_int_value(Rest,
+                                        0,
+                                        0,
+                                        F@_1,
+                                        TrUserData);
+        33 ->
+            d_field_any_value_double_value(Rest,
+                                           0,
+                                           0,
+                                           F@_1,
+                                           TrUserData);
+        42 ->
+            d_field_any_value_array_value(Rest,
+                                          0,
+                                          0,
+                                          F@_1,
+                                          TrUserData);
+        50 ->
+            d_field_any_value_kvlist_value(Rest,
+                                           0,
+                                           0,
+                                           F@_1,
+                                           TrUserData);
         _ ->
             case Key band 7 of
                 0 ->
-                    skip_varint_attribute_key_value(Rest,
+                    skip_varint_any_value(Rest, 0, 0, F@_1, TrUserData);
+                1 -> skip_64_any_value(Rest, 0, 0, F@_1, TrUserData);
+                2 ->
+                    skip_length_delimited_any_value(Rest,
                                                     0,
                                                     0,
                                                     F@_1,
-                                                    F@_2,
-                                                    F@_3,
-                                                    F@_4,
-                                                    F@_5,
-                                                    F@_6,
                                                     TrUserData);
-                1 ->
-                    skip_64_attribute_key_value(Rest,
-                                                0,
-                                                0,
-                                                F@_1,
-                                                F@_2,
-                                                F@_3,
-                                                F@_4,
-                                                F@_5,
-                                                F@_6,
-                                                TrUserData);
-                2 ->
-                    skip_length_delimited_attribute_key_value(Rest,
-                                                              0,
-                                                              0,
-                                                              F@_1,
-                                                              F@_2,
-                                                              F@_3,
-                                                              F@_4,
-                                                              F@_5,
-                                                              F@_6,
-                                                              TrUserData);
                 3 ->
-                    skip_group_attribute_key_value(Rest,
-                                                   Key bsr 3,
-                                                   0,
-                                                   F@_1,
-                                                   F@_2,
-                                                   F@_3,
-                                                   F@_4,
-                                                   F@_5,
-                                                   F@_6,
-                                                   TrUserData);
-                5 ->
-                    skip_32_attribute_key_value(Rest,
-                                                0,
-                                                0,
-                                                F@_1,
-                                                F@_2,
-                                                F@_3,
-                                                F@_4,
-                                                F@_5,
-                                                F@_6,
-                                                TrUserData)
+                    skip_group_any_value(Rest,
+                                         Key bsr 3,
+                                         0,
+                                         F@_1,
+                                         TrUserData);
+                5 -> skip_32_any_value(Rest, 0, 0, F@_1, TrUserData)
             end
     end;
-dg_read_field_def_attribute_key_value(<<>>, 0, 0, F@_1,
-                                      F@_2, F@_3, F@_4, F@_5, F@_6, _) ->
-    #{key => F@_1, type => F@_2, string_value => F@_3,
-      int_value => F@_4, double_value => F@_5,
-      bool_value => F@_6}.
+dg_read_field_def_any_value(<<>>, 0, 0, F@_1, _) ->
+    S1 = #{},
+    if F@_1 == '$undef' -> S1;
+       true -> S1#{value => F@_1}
+    end.
 
-d_field_attribute_key_value_key(<<1:1, X:7,
-                                  Rest/binary>>,
-                                N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-                                TrUserData)
+d_field_any_value_string_value(<<1:1, X:7,
+                                 Rest/binary>>,
+                               N, Acc, F@_1, TrUserData)
     when N < 57 ->
-    d_field_attribute_key_value_key(Rest,
-                                    N + 7,
-                                    X bsl N + Acc,
-                                    F@_1,
-                                    F@_2,
-                                    F@_3,
-                                    F@_4,
-                                    F@_5,
-                                    F@_6,
-                                    TrUserData);
-d_field_attribute_key_value_key(<<0:1, X:7,
-                                  Rest/binary>>,
-                                N, Acc, _, F@_2, F@_3, F@_4, F@_5, F@_6,
-                                TrUserData) ->
+    d_field_any_value_string_value(Rest,
+                                   N + 7,
+                                   X bsl N + Acc,
+                                   F@_1,
+                                   TrUserData);
+d_field_any_value_string_value(<<0:1, X:7,
+                                 Rest/binary>>,
+                               N, Acc, _, TrUserData) ->
     {NewFValue, RestF} = begin
                              Len = X bsl N + Acc,
                              <<Bytes:Len/binary, Rest2/binary>> = Rest,
                              {id(binary:copy(Bytes), TrUserData), Rest2}
                          end,
-    dfp_read_field_def_attribute_key_value(RestF,
-                                           0,
-                                           0,
-                                           NewFValue,
-                                           F@_2,
-                                           F@_3,
-                                           F@_4,
-                                           F@_5,
-                                           F@_6,
-                                           TrUserData).
+    dfp_read_field_def_any_value(RestF,
+                                 0,
+                                 0,
+                                 id({string_value, NewFValue}, TrUserData),
+                                 TrUserData).
 
-d_field_attribute_key_value_type(<<1:1, X:7,
-                                   Rest/binary>>,
-                                 N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-                                 TrUserData)
+d_field_any_value_bool_value(<<1:1, X:7, Rest/binary>>,
+                             N, Acc, F@_1, TrUserData)
     when N < 57 ->
-    d_field_attribute_key_value_type(Rest,
-                                     N + 7,
-                                     X bsl N + Acc,
-                                     F@_1,
-                                     F@_2,
-                                     F@_3,
-                                     F@_4,
-                                     F@_5,
-                                     F@_6,
-                                     TrUserData);
-d_field_attribute_key_value_type(<<0:1, X:7,
-                                   Rest/binary>>,
-                                 N, Acc, F@_1, _, F@_3, F@_4, F@_5, F@_6,
-                                 TrUserData) ->
-    {NewFValue, RestF} =
-        {id('d_enum_attribute_key_value.ValueType'(begin
-                                                       <<Res:32/signed-native>> =
-                                                           <<(X bsl N +
-                                                                  Acc):32/unsigned-native>>,
-                                                       id(Res, TrUserData)
-                                                   end),
-            TrUserData),
-         Rest},
-    dfp_read_field_def_attribute_key_value(RestF,
-                                           0,
-                                           0,
-                                           F@_1,
-                                           NewFValue,
-                                           F@_3,
-                                           F@_4,
-                                           F@_5,
-                                           F@_6,
-                                           TrUserData).
+    d_field_any_value_bool_value(Rest,
+                                 N + 7,
+                                 X bsl N + Acc,
+                                 F@_1,
+                                 TrUserData);
+d_field_any_value_bool_value(<<0:1, X:7, Rest/binary>>,
+                             N, Acc, _, TrUserData) ->
+    {NewFValue, RestF} = {id(X bsl N + Acc =/= 0,
+                             TrUserData),
+                          Rest},
+    dfp_read_field_def_any_value(RestF,
+                                 0,
+                                 0,
+                                 id({bool_value, NewFValue}, TrUserData),
+                                 TrUserData).
 
-d_field_attribute_key_value_string_value(<<1:1, X:7,
-                                           Rest/binary>>,
-                                         N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-                                         F@_6, TrUserData)
+d_field_any_value_int_value(<<1:1, X:7, Rest/binary>>,
+                            N, Acc, F@_1, TrUserData)
     when N < 57 ->
-    d_field_attribute_key_value_string_value(Rest,
-                                             N + 7,
-                                             X bsl N + Acc,
-                                             F@_1,
-                                             F@_2,
-                                             F@_3,
-                                             F@_4,
-                                             F@_5,
-                                             F@_6,
-                                             TrUserData);
-d_field_attribute_key_value_string_value(<<0:1, X:7,
-                                           Rest/binary>>,
-                                         N, Acc, F@_1, F@_2, _, F@_4, F@_5,
-                                         F@_6, TrUserData) ->
-    {NewFValue, RestF} = begin
-                             Len = X bsl N + Acc,
-                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
-                             {id(binary:copy(Bytes), TrUserData), Rest2}
-                         end,
-    dfp_read_field_def_attribute_key_value(RestF,
-                                           0,
-                                           0,
-                                           F@_1,
-                                           F@_2,
-                                           NewFValue,
-                                           F@_4,
-                                           F@_5,
-                                           F@_6,
-                                           TrUserData).
-
-d_field_attribute_key_value_int_value(<<1:1, X:7,
-                                        Rest/binary>>,
-                                      N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-                                      F@_6, TrUserData)
-    when N < 57 ->
-    d_field_attribute_key_value_int_value(Rest,
-                                          N + 7,
-                                          X bsl N + Acc,
-                                          F@_1,
-                                          F@_2,
-                                          F@_3,
-                                          F@_4,
-                                          F@_5,
-                                          F@_6,
-                                          TrUserData);
-d_field_attribute_key_value_int_value(<<0:1, X:7,
-                                        Rest/binary>>,
-                                      N, Acc, F@_1, F@_2, F@_3, _, F@_5, F@_6,
-                                      TrUserData) ->
+    d_field_any_value_int_value(Rest,
+                                N + 7,
+                                X bsl N + Acc,
+                                F@_1,
+                                TrUserData);
+d_field_any_value_int_value(<<0:1, X:7, Rest/binary>>,
+                            N, Acc, _, TrUserData) ->
     {NewFValue, RestF} = {begin
                               <<Res:64/signed-native>> = <<(X bsl N +
                                                                 Acc):64/unsigned-native>>,
                               id(Res, TrUserData)
                           end,
                           Rest},
-    dfp_read_field_def_attribute_key_value(RestF,
-                                           0,
-                                           0,
-                                           F@_1,
-                                           F@_2,
-                                           F@_3,
-                                           NewFValue,
-                                           F@_5,
-                                           F@_6,
-                                           TrUserData).
+    dfp_read_field_def_any_value(RestF,
+                                 0,
+                                 0,
+                                 id({int_value, NewFValue}, TrUserData),
+                                 TrUserData).
 
-d_field_attribute_key_value_double_value(<<0:48, 240,
-                                           127, Rest/binary>>,
-                                         Z1, Z2, F@_1, F@_2, F@_3, F@_4, _,
-                                         F@_6, TrUserData) ->
-    dfp_read_field_def_attribute_key_value(Rest,
-                                           Z1,
-                                           Z2,
-                                           F@_1,
-                                           F@_2,
-                                           F@_3,
-                                           F@_4,
-                                           id(infinity, TrUserData),
-                                           F@_6,
-                                           TrUserData);
-d_field_attribute_key_value_double_value(<<0:48, 240,
-                                           255, Rest/binary>>,
-                                         Z1, Z2, F@_1, F@_2, F@_3, F@_4, _,
-                                         F@_6, TrUserData) ->
-    dfp_read_field_def_attribute_key_value(Rest,
-                                           Z1,
-                                           Z2,
-                                           F@_1,
-                                           F@_2,
-                                           F@_3,
-                                           F@_4,
-                                           id('-infinity', TrUserData),
-                                           F@_6,
-                                           TrUserData);
-d_field_attribute_key_value_double_value(<<_:48, 15:4,
-                                           _:4, _:1, 127:7, Rest/binary>>,
-                                         Z1, Z2, F@_1, F@_2, F@_3, F@_4, _,
-                                         F@_6, TrUserData) ->
-    dfp_read_field_def_attribute_key_value(Rest,
-                                           Z1,
-                                           Z2,
-                                           F@_1,
-                                           F@_2,
-                                           F@_3,
-                                           F@_4,
-                                           id(nan, TrUserData),
-                                           F@_6,
-                                           TrUserData);
-d_field_attribute_key_value_double_value(<<Value:64/little-float,
-                                           Rest/binary>>,
-                                         Z1, Z2, F@_1, F@_2, F@_3, F@_4, _,
-                                         F@_6, TrUserData) ->
-    dfp_read_field_def_attribute_key_value(Rest,
-                                           Z1,
-                                           Z2,
-                                           F@_1,
-                                           F@_2,
-                                           F@_3,
-                                           F@_4,
-                                           id(Value, TrUserData),
-                                           F@_6,
-                                           TrUserData).
+d_field_any_value_double_value(<<0:48, 240, 127,
+                                 Rest/binary>>,
+                               Z1, Z2, _, TrUserData) ->
+    dfp_read_field_def_any_value(Rest,
+                                 Z1,
+                                 Z2,
+                                 id({double_value, id(infinity, TrUserData)},
+                                    TrUserData),
+                                 TrUserData);
+d_field_any_value_double_value(<<0:48, 240, 255,
+                                 Rest/binary>>,
+                               Z1, Z2, _, TrUserData) ->
+    dfp_read_field_def_any_value(Rest,
+                                 Z1,
+                                 Z2,
+                                 id({double_value, id('-infinity', TrUserData)},
+                                    TrUserData),
+                                 TrUserData);
+d_field_any_value_double_value(<<_:48, 15:4, _:4, _:1,
+                                 127:7, Rest/binary>>,
+                               Z1, Z2, _, TrUserData) ->
+    dfp_read_field_def_any_value(Rest,
+                                 Z1,
+                                 Z2,
+                                 id({double_value, id(nan, TrUserData)},
+                                    TrUserData),
+                                 TrUserData);
+d_field_any_value_double_value(<<Value:64/little-float,
+                                 Rest/binary>>,
+                               Z1, Z2, _, TrUserData) ->
+    dfp_read_field_def_any_value(Rest,
+                                 Z1,
+                                 Z2,
+                                 id({double_value, id(Value, TrUserData)},
+                                    TrUserData),
+                                 TrUserData).
 
-d_field_attribute_key_value_bool_value(<<1:1, X:7,
-                                         Rest/binary>>,
-                                       N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-                                       F@_6, TrUserData)
+d_field_any_value_array_value(<<1:1, X:7, Rest/binary>>,
+                              N, Acc, F@_1, TrUserData)
     when N < 57 ->
-    d_field_attribute_key_value_bool_value(Rest,
-                                           N + 7,
-                                           X bsl N + Acc,
-                                           F@_1,
-                                           F@_2,
-                                           F@_3,
-                                           F@_4,
-                                           F@_5,
-                                           F@_6,
-                                           TrUserData);
-d_field_attribute_key_value_bool_value(<<0:1, X:7,
-                                         Rest/binary>>,
-                                       N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5, _,
-                                       TrUserData) ->
-    {NewFValue, RestF} = {id(X bsl N + Acc =/= 0,
-                             TrUserData),
-                          Rest},
-    dfp_read_field_def_attribute_key_value(RestF,
-                                           0,
-                                           0,
-                                           F@_1,
-                                           F@_2,
-                                           F@_3,
-                                           F@_4,
-                                           F@_5,
-                                           NewFValue,
-                                           TrUserData).
+    d_field_any_value_array_value(Rest,
+                                  N + 7,
+                                  X bsl N + Acc,
+                                  F@_1,
+                                  TrUserData);
+d_field_any_value_array_value(<<0:1, X:7, Rest/binary>>,
+                              N, Acc, Prev, TrUserData) ->
+    {NewFValue, RestF} = begin
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_array_value(Bs, TrUserData),
+                                 TrUserData),
+                              Rest2}
+                         end,
+    dfp_read_field_def_any_value(RestF,
+                                 0,
+                                 0,
+                                 case Prev of
+                                     '$undef' ->
+                                         id({array_value, NewFValue},
+                                            TrUserData);
+                                     {array_value, MVPrev} ->
+                                         id({array_value,
+                                             merge_msg_array_value(MVPrev,
+                                                                   NewFValue,
+                                                                   TrUserData)},
+                                            TrUserData);
+                                     _ ->
+                                         id({array_value, NewFValue},
+                                            TrUserData)
+                                 end,
+                                 TrUserData).
 
-skip_varint_attribute_key_value(<<1:1, _:7,
+d_field_any_value_kvlist_value(<<1:1, X:7,
+                                 Rest/binary>>,
+                               N, Acc, F@_1, TrUserData)
+    when N < 57 ->
+    d_field_any_value_kvlist_value(Rest,
+                                   N + 7,
+                                   X bsl N + Acc,
+                                   F@_1,
+                                   TrUserData);
+d_field_any_value_kvlist_value(<<0:1, X:7,
+                                 Rest/binary>>,
+                               N, Acc, Prev, TrUserData) ->
+    {NewFValue, RestF} = begin
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_key_value_list(Bs, TrUserData),
+                                 TrUserData),
+                              Rest2}
+                         end,
+    dfp_read_field_def_any_value(RestF,
+                                 0,
+                                 0,
+                                 case Prev of
+                                     '$undef' ->
+                                         id({kvlist_value, NewFValue},
+                                            TrUserData);
+                                     {kvlist_value, MVPrev} ->
+                                         id({kvlist_value,
+                                             merge_msg_key_value_list(MVPrev,
+                                                                      NewFValue,
+                                                                      TrUserData)},
+                                            TrUserData);
+                                     _ ->
+                                         id({kvlist_value, NewFValue},
+                                            TrUserData)
+                                 end,
+                                 TrUserData).
+
+skip_varint_any_value(<<1:1, _:7, Rest/binary>>, Z1, Z2,
+                      F@_1, TrUserData) ->
+    skip_varint_any_value(Rest, Z1, Z2, F@_1, TrUserData);
+skip_varint_any_value(<<0:1, _:7, Rest/binary>>, Z1, Z2,
+                      F@_1, TrUserData) ->
+    dfp_read_field_def_any_value(Rest,
+                                 Z1,
+                                 Z2,
+                                 F@_1,
+                                 TrUserData).
+
+skip_length_delimited_any_value(<<1:1, X:7,
                                   Rest/binary>>,
-                                Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-                                TrUserData) ->
-    skip_varint_attribute_key_value(Rest,
-                                    Z1,
-                                    Z2,
+                                N, Acc, F@_1, TrUserData)
+    when N < 57 ->
+    skip_length_delimited_any_value(Rest,
+                                    N + 7,
+                                    X bsl N + Acc,
                                     F@_1,
-                                    F@_2,
-                                    F@_3,
-                                    F@_4,
-                                    F@_5,
-                                    F@_6,
                                     TrUserData);
-skip_varint_attribute_key_value(<<0:1, _:7,
+skip_length_delimited_any_value(<<0:1, X:7,
                                   Rest/binary>>,
-                                Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-                                TrUserData) ->
-    dfp_read_field_def_attribute_key_value(Rest,
-                                           Z1,
-                                           Z2,
-                                           F@_1,
-                                           F@_2,
-                                           F@_3,
-                                           F@_4,
-                                           F@_5,
-                                           F@_6,
-                                           TrUserData).
-
-skip_length_delimited_attribute_key_value(<<1:1, X:7,
-                                            Rest/binary>>,
-                                          N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-                                          F@_6, TrUserData)
-    when N < 57 ->
-    skip_length_delimited_attribute_key_value(Rest,
-                                              N + 7,
-                                              X bsl N + Acc,
-                                              F@_1,
-                                              F@_2,
-                                              F@_3,
-                                              F@_4,
-                                              F@_5,
-                                              F@_6,
-                                              TrUserData);
-skip_length_delimited_attribute_key_value(<<0:1, X:7,
-                                            Rest/binary>>,
-                                          N, Acc, F@_1, F@_2, F@_3, F@_4, F@_5,
-                                          F@_6, TrUserData) ->
+                                N, Acc, F@_1, TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
-    dfp_read_field_def_attribute_key_value(Rest2,
-                                           0,
-                                           0,
-                                           F@_1,
-                                           F@_2,
-                                           F@_3,
-                                           F@_4,
-                                           F@_5,
-                                           F@_6,
-                                           TrUserData).
+    dfp_read_field_def_any_value(Rest2,
+                                 0,
+                                 0,
+                                 F@_1,
+                                 TrUserData).
 
-skip_group_attribute_key_value(Bin, FNum, Z2, F@_1,
-                               F@_2, F@_3, F@_4, F@_5, F@_6, TrUserData) ->
+skip_group_any_value(Bin, FNum, Z2, F@_1, TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_attribute_key_value(Rest,
+    dfp_read_field_def_any_value(Rest,
+                                 0,
+                                 Z2,
+                                 F@_1,
+                                 TrUserData).
+
+skip_32_any_value(<<_:32, Rest/binary>>, Z1, Z2, F@_1,
+                  TrUserData) ->
+    dfp_read_field_def_any_value(Rest,
+                                 Z1,
+                                 Z2,
+                                 F@_1,
+                                 TrUserData).
+
+skip_64_any_value(<<_:64, Rest/binary>>, Z1, Z2, F@_1,
+                  TrUserData) ->
+    dfp_read_field_def_any_value(Rest,
+                                 Z1,
+                                 Z2,
+                                 F@_1,
+                                 TrUserData).
+
+decode_msg_array_value(Bin, TrUserData) ->
+    dfp_read_field_def_array_value(Bin,
+                                   0,
+                                   0,
+                                   id([], TrUserData),
+                                   TrUserData).
+
+dfp_read_field_def_array_value(<<10, Rest/binary>>, Z1,
+                               Z2, F@_1, TrUserData) ->
+    d_field_array_value_values(Rest,
+                               Z1,
+                               Z2,
+                               F@_1,
+                               TrUserData);
+dfp_read_field_def_array_value(<<>>, 0, 0, R1,
+                               TrUserData) ->
+    S1 = #{},
+    if R1 == '$undef' -> S1;
+       true -> S1#{values => lists_reverse(R1, TrUserData)}
+    end;
+dfp_read_field_def_array_value(Other, Z1, Z2, F@_1,
+                               TrUserData) ->
+    dg_read_field_def_array_value(Other,
+                                  Z1,
+                                  Z2,
+                                  F@_1,
+                                  TrUserData).
+
+dg_read_field_def_array_value(<<1:1, X:7, Rest/binary>>,
+                              N, Acc, F@_1, TrUserData)
+    when N < 32 - 7 ->
+    dg_read_field_def_array_value(Rest,
+                                  N + 7,
+                                  X bsl N + Acc,
+                                  F@_1,
+                                  TrUserData);
+dg_read_field_def_array_value(<<0:1, X:7, Rest/binary>>,
+                              N, Acc, F@_1, TrUserData) ->
+    Key = X bsl N + Acc,
+    case Key of
+        10 ->
+            d_field_array_value_values(Rest,
+                                       0,
+                                       0,
+                                       F@_1,
+                                       TrUserData);
+        _ ->
+            case Key band 7 of
+                0 ->
+                    skip_varint_array_value(Rest, 0, 0, F@_1, TrUserData);
+                1 -> skip_64_array_value(Rest, 0, 0, F@_1, TrUserData);
+                2 ->
+                    skip_length_delimited_array_value(Rest,
+                                                      0,
+                                                      0,
+                                                      F@_1,
+                                                      TrUserData);
+                3 ->
+                    skip_group_array_value(Rest,
+                                           Key bsr 3,
                                            0,
-                                           Z2,
                                            F@_1,
-                                           F@_2,
-                                           F@_3,
-                                           F@_4,
-                                           F@_5,
-                                           F@_6,
-                                           TrUserData).
+                                           TrUserData);
+                5 -> skip_32_array_value(Rest, 0, 0, F@_1, TrUserData)
+            end
+    end;
+dg_read_field_def_array_value(<<>>, 0, 0, R1,
+                              TrUserData) ->
+    S1 = #{},
+    if R1 == '$undef' -> S1;
+       true -> S1#{values => lists_reverse(R1, TrUserData)}
+    end.
 
-skip_32_attribute_key_value(<<_:32, Rest/binary>>, Z1,
-                            Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-                            TrUserData) ->
-    dfp_read_field_def_attribute_key_value(Rest,
-                                           Z1,
-                                           Z2,
-                                           F@_1,
-                                           F@_2,
-                                           F@_3,
-                                           F@_4,
-                                           F@_5,
-                                           F@_6,
-                                           TrUserData).
+d_field_array_value_values(<<1:1, X:7, Rest/binary>>, N,
+                           Acc, F@_1, TrUserData)
+    when N < 57 ->
+    d_field_array_value_values(Rest,
+                               N + 7,
+                               X bsl N + Acc,
+                               F@_1,
+                               TrUserData);
+d_field_array_value_values(<<0:1, X:7, Rest/binary>>, N,
+                           Acc, Prev, TrUserData) ->
+    {NewFValue, RestF} = begin
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_any_value(Bs, TrUserData),
+                                 TrUserData),
+                              Rest2}
+                         end,
+    dfp_read_field_def_array_value(RestF,
+                                   0,
+                                   0,
+                                   cons(NewFValue, Prev, TrUserData),
+                                   TrUserData).
 
-skip_64_attribute_key_value(<<_:64, Rest/binary>>, Z1,
-                            Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6,
-                            TrUserData) ->
-    dfp_read_field_def_attribute_key_value(Rest,
-                                           Z1,
-                                           Z2,
-                                           F@_1,
-                                           F@_2,
-                                           F@_3,
-                                           F@_4,
-                                           F@_5,
-                                           F@_6,
-                                           TrUserData).
+skip_varint_array_value(<<1:1, _:7, Rest/binary>>, Z1,
+                        Z2, F@_1, TrUserData) ->
+    skip_varint_array_value(Rest, Z1, Z2, F@_1, TrUserData);
+skip_varint_array_value(<<0:1, _:7, Rest/binary>>, Z1,
+                        Z2, F@_1, TrUserData) ->
+    dfp_read_field_def_array_value(Rest,
+                                   Z1,
+                                   Z2,
+                                   F@_1,
+                                   TrUserData).
+
+skip_length_delimited_array_value(<<1:1, X:7,
+                                    Rest/binary>>,
+                                  N, Acc, F@_1, TrUserData)
+    when N < 57 ->
+    skip_length_delimited_array_value(Rest,
+                                      N + 7,
+                                      X bsl N + Acc,
+                                      F@_1,
+                                      TrUserData);
+skip_length_delimited_array_value(<<0:1, X:7,
+                                    Rest/binary>>,
+                                  N, Acc, F@_1, TrUserData) ->
+    Length = X bsl N + Acc,
+    <<_:Length/binary, Rest2/binary>> = Rest,
+    dfp_read_field_def_array_value(Rest2,
+                                   0,
+                                   0,
+                                   F@_1,
+                                   TrUserData).
+
+skip_group_array_value(Bin, FNum, Z2, F@_1,
+                       TrUserData) ->
+    {_, Rest} = read_group(Bin, FNum),
+    dfp_read_field_def_array_value(Rest,
+                                   0,
+                                   Z2,
+                                   F@_1,
+                                   TrUserData).
+
+skip_32_array_value(<<_:32, Rest/binary>>, Z1, Z2, F@_1,
+                    TrUserData) ->
+    dfp_read_field_def_array_value(Rest,
+                                   Z1,
+                                   Z2,
+                                   F@_1,
+                                   TrUserData).
+
+skip_64_array_value(<<_:64, Rest/binary>>, Z1, Z2, F@_1,
+                    TrUserData) ->
+    dfp_read_field_def_array_value(Rest,
+                                   Z1,
+                                   Z2,
+                                   F@_1,
+                                   TrUserData).
+
+decode_msg_key_value_list(Bin, TrUserData) ->
+    dfp_read_field_def_key_value_list(Bin,
+                                      0,
+                                      0,
+                                      id([], TrUserData),
+                                      TrUserData).
+
+dfp_read_field_def_key_value_list(<<10, Rest/binary>>,
+                                  Z1, Z2, F@_1, TrUserData) ->
+    d_field_key_value_list_values(Rest,
+                                  Z1,
+                                  Z2,
+                                  F@_1,
+                                  TrUserData);
+dfp_read_field_def_key_value_list(<<>>, 0, 0, R1,
+                                  TrUserData) ->
+    S1 = #{},
+    if R1 == '$undef' -> S1;
+       true -> S1#{values => lists_reverse(R1, TrUserData)}
+    end;
+dfp_read_field_def_key_value_list(Other, Z1, Z2, F@_1,
+                                  TrUserData) ->
+    dg_read_field_def_key_value_list(Other,
+                                     Z1,
+                                     Z2,
+                                     F@_1,
+                                     TrUserData).
+
+dg_read_field_def_key_value_list(<<1:1, X:7,
+                                   Rest/binary>>,
+                                 N, Acc, F@_1, TrUserData)
+    when N < 32 - 7 ->
+    dg_read_field_def_key_value_list(Rest,
+                                     N + 7,
+                                     X bsl N + Acc,
+                                     F@_1,
+                                     TrUserData);
+dg_read_field_def_key_value_list(<<0:1, X:7,
+                                   Rest/binary>>,
+                                 N, Acc, F@_1, TrUserData) ->
+    Key = X bsl N + Acc,
+    case Key of
+        10 ->
+            d_field_key_value_list_values(Rest,
+                                          0,
+                                          0,
+                                          F@_1,
+                                          TrUserData);
+        _ ->
+            case Key band 7 of
+                0 ->
+                    skip_varint_key_value_list(Rest,
+                                               0,
+                                               0,
+                                               F@_1,
+                                               TrUserData);
+                1 ->
+                    skip_64_key_value_list(Rest, 0, 0, F@_1, TrUserData);
+                2 ->
+                    skip_length_delimited_key_value_list(Rest,
+                                                         0,
+                                                         0,
+                                                         F@_1,
+                                                         TrUserData);
+                3 ->
+                    skip_group_key_value_list(Rest,
+                                              Key bsr 3,
+                                              0,
+                                              F@_1,
+                                              TrUserData);
+                5 ->
+                    skip_32_key_value_list(Rest, 0, 0, F@_1, TrUserData)
+            end
+    end;
+dg_read_field_def_key_value_list(<<>>, 0, 0, R1,
+                                 TrUserData) ->
+    S1 = #{},
+    if R1 == '$undef' -> S1;
+       true -> S1#{values => lists_reverse(R1, TrUserData)}
+    end.
+
+d_field_key_value_list_values(<<1:1, X:7, Rest/binary>>,
+                              N, Acc, F@_1, TrUserData)
+    when N < 57 ->
+    d_field_key_value_list_values(Rest,
+                                  N + 7,
+                                  X bsl N + Acc,
+                                  F@_1,
+                                  TrUserData);
+d_field_key_value_list_values(<<0:1, X:7, Rest/binary>>,
+                              N, Acc, Prev, TrUserData) ->
+    {NewFValue, RestF} = begin
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_key_value(Bs, TrUserData),
+                                 TrUserData),
+                              Rest2}
+                         end,
+    dfp_read_field_def_key_value_list(RestF,
+                                      0,
+                                      0,
+                                      cons(NewFValue, Prev, TrUserData),
+                                      TrUserData).
+
+skip_varint_key_value_list(<<1:1, _:7, Rest/binary>>,
+                           Z1, Z2, F@_1, TrUserData) ->
+    skip_varint_key_value_list(Rest,
+                               Z1,
+                               Z2,
+                               F@_1,
+                               TrUserData);
+skip_varint_key_value_list(<<0:1, _:7, Rest/binary>>,
+                           Z1, Z2, F@_1, TrUserData) ->
+    dfp_read_field_def_key_value_list(Rest,
+                                      Z1,
+                                      Z2,
+                                      F@_1,
+                                      TrUserData).
+
+skip_length_delimited_key_value_list(<<1:1, X:7,
+                                       Rest/binary>>,
+                                     N, Acc, F@_1, TrUserData)
+    when N < 57 ->
+    skip_length_delimited_key_value_list(Rest,
+                                         N + 7,
+                                         X bsl N + Acc,
+                                         F@_1,
+                                         TrUserData);
+skip_length_delimited_key_value_list(<<0:1, X:7,
+                                       Rest/binary>>,
+                                     N, Acc, F@_1, TrUserData) ->
+    Length = X bsl N + Acc,
+    <<_:Length/binary, Rest2/binary>> = Rest,
+    dfp_read_field_def_key_value_list(Rest2,
+                                      0,
+                                      0,
+                                      F@_1,
+                                      TrUserData).
+
+skip_group_key_value_list(Bin, FNum, Z2, F@_1,
+                          TrUserData) ->
+    {_, Rest} = read_group(Bin, FNum),
+    dfp_read_field_def_key_value_list(Rest,
+                                      0,
+                                      Z2,
+                                      F@_1,
+                                      TrUserData).
+
+skip_32_key_value_list(<<_:32, Rest/binary>>, Z1, Z2,
+                       F@_1, TrUserData) ->
+    dfp_read_field_def_key_value_list(Rest,
+                                      Z1,
+                                      Z2,
+                                      F@_1,
+                                      TrUserData).
+
+skip_64_key_value_list(<<_:64, Rest/binary>>, Z1, Z2,
+                       F@_1, TrUserData) ->
+    dfp_read_field_def_key_value_list(Rest,
+                                      Z1,
+                                      Z2,
+                                      F@_1,
+                                      TrUserData).
+
+decode_msg_key_value(Bin, TrUserData) ->
+    dfp_read_field_def_key_value(Bin,
+                                 0,
+                                 0,
+                                 id(<<>>, TrUserData),
+                                 id('$undef', TrUserData),
+                                 TrUserData).
+
+dfp_read_field_def_key_value(<<10, Rest/binary>>, Z1,
+                             Z2, F@_1, F@_2, TrUserData) ->
+    d_field_key_value_key(Rest,
+                          Z1,
+                          Z2,
+                          F@_1,
+                          F@_2,
+                          TrUserData);
+dfp_read_field_def_key_value(<<18, Rest/binary>>, Z1,
+                             Z2, F@_1, F@_2, TrUserData) ->
+    d_field_key_value_value(Rest,
+                            Z1,
+                            Z2,
+                            F@_1,
+                            F@_2,
+                            TrUserData);
+dfp_read_field_def_key_value(<<>>, 0, 0, F@_1, F@_2,
+                             _) ->
+    S1 = #{key => F@_1},
+    if F@_2 == '$undef' -> S1;
+       true -> S1#{value => F@_2}
+    end;
+dfp_read_field_def_key_value(Other, Z1, Z2, F@_1, F@_2,
+                             TrUserData) ->
+    dg_read_field_def_key_value(Other,
+                                Z1,
+                                Z2,
+                                F@_1,
+                                F@_2,
+                                TrUserData).
+
+dg_read_field_def_key_value(<<1:1, X:7, Rest/binary>>,
+                            N, Acc, F@_1, F@_2, TrUserData)
+    when N < 32 - 7 ->
+    dg_read_field_def_key_value(Rest,
+                                N + 7,
+                                X bsl N + Acc,
+                                F@_1,
+                                F@_2,
+                                TrUserData);
+dg_read_field_def_key_value(<<0:1, X:7, Rest/binary>>,
+                            N, Acc, F@_1, F@_2, TrUserData) ->
+    Key = X bsl N + Acc,
+    case Key of
+        10 ->
+            d_field_key_value_key(Rest,
+                                  0,
+                                  0,
+                                  F@_1,
+                                  F@_2,
+                                  TrUserData);
+        18 ->
+            d_field_key_value_value(Rest,
+                                    0,
+                                    0,
+                                    F@_1,
+                                    F@_2,
+                                    TrUserData);
+        _ ->
+            case Key band 7 of
+                0 ->
+                    skip_varint_key_value(Rest,
+                                          0,
+                                          0,
+                                          F@_1,
+                                          F@_2,
+                                          TrUserData);
+                1 ->
+                    skip_64_key_value(Rest, 0, 0, F@_1, F@_2, TrUserData);
+                2 ->
+                    skip_length_delimited_key_value(Rest,
+                                                    0,
+                                                    0,
+                                                    F@_1,
+                                                    F@_2,
+                                                    TrUserData);
+                3 ->
+                    skip_group_key_value(Rest,
+                                         Key bsr 3,
+                                         0,
+                                         F@_1,
+                                         F@_2,
+                                         TrUserData);
+                5 ->
+                    skip_32_key_value(Rest, 0, 0, F@_1, F@_2, TrUserData)
+            end
+    end;
+dg_read_field_def_key_value(<<>>, 0, 0, F@_1, F@_2,
+                            _) ->
+    S1 = #{key => F@_1},
+    if F@_2 == '$undef' -> S1;
+       true -> S1#{value => F@_2}
+    end.
+
+d_field_key_value_key(<<1:1, X:7, Rest/binary>>, N, Acc,
+                      F@_1, F@_2, TrUserData)
+    when N < 57 ->
+    d_field_key_value_key(Rest,
+                          N + 7,
+                          X bsl N + Acc,
+                          F@_1,
+                          F@_2,
+                          TrUserData);
+d_field_key_value_key(<<0:1, X:7, Rest/binary>>, N, Acc,
+                      _, F@_2, TrUserData) ->
+    {NewFValue, RestF} = begin
+                             Len = X bsl N + Acc,
+                             <<Bytes:Len/binary, Rest2/binary>> = Rest,
+                             {id(binary:copy(Bytes), TrUserData), Rest2}
+                         end,
+    dfp_read_field_def_key_value(RestF,
+                                 0,
+                                 0,
+                                 NewFValue,
+                                 F@_2,
+                                 TrUserData).
+
+d_field_key_value_value(<<1:1, X:7, Rest/binary>>, N,
+                        Acc, F@_1, F@_2, TrUserData)
+    when N < 57 ->
+    d_field_key_value_value(Rest,
+                            N + 7,
+                            X bsl N + Acc,
+                            F@_1,
+                            F@_2,
+                            TrUserData);
+d_field_key_value_value(<<0:1, X:7, Rest/binary>>, N,
+                        Acc, F@_1, Prev, TrUserData) ->
+    {NewFValue, RestF} = begin
+                             Len = X bsl N + Acc,
+                             <<Bs:Len/binary, Rest2/binary>> = Rest,
+                             {id(decode_msg_any_value(Bs, TrUserData),
+                                 TrUserData),
+                              Rest2}
+                         end,
+    dfp_read_field_def_key_value(RestF,
+                                 0,
+                                 0,
+                                 F@_1,
+                                 if Prev == '$undef' -> NewFValue;
+                                    true ->
+                                        merge_msg_any_value(Prev,
+                                                            NewFValue,
+                                                            TrUserData)
+                                 end,
+                                 TrUserData).
+
+skip_varint_key_value(<<1:1, _:7, Rest/binary>>, Z1, Z2,
+                      F@_1, F@_2, TrUserData) ->
+    skip_varint_key_value(Rest,
+                          Z1,
+                          Z2,
+                          F@_1,
+                          F@_2,
+                          TrUserData);
+skip_varint_key_value(<<0:1, _:7, Rest/binary>>, Z1, Z2,
+                      F@_1, F@_2, TrUserData) ->
+    dfp_read_field_def_key_value(Rest,
+                                 Z1,
+                                 Z2,
+                                 F@_1,
+                                 F@_2,
+                                 TrUserData).
+
+skip_length_delimited_key_value(<<1:1, X:7,
+                                  Rest/binary>>,
+                                N, Acc, F@_1, F@_2, TrUserData)
+    when N < 57 ->
+    skip_length_delimited_key_value(Rest,
+                                    N + 7,
+                                    X bsl N + Acc,
+                                    F@_1,
+                                    F@_2,
+                                    TrUserData);
+skip_length_delimited_key_value(<<0:1, X:7,
+                                  Rest/binary>>,
+                                N, Acc, F@_1, F@_2, TrUserData) ->
+    Length = X bsl N + Acc,
+    <<_:Length/binary, Rest2/binary>> = Rest,
+    dfp_read_field_def_key_value(Rest2,
+                                 0,
+                                 0,
+                                 F@_1,
+                                 F@_2,
+                                 TrUserData).
+
+skip_group_key_value(Bin, FNum, Z2, F@_1, F@_2,
+                     TrUserData) ->
+    {_, Rest} = read_group(Bin, FNum),
+    dfp_read_field_def_key_value(Rest,
+                                 0,
+                                 Z2,
+                                 F@_1,
+                                 F@_2,
+                                 TrUserData).
+
+skip_32_key_value(<<_:32, Rest/binary>>, Z1, Z2, F@_1,
+                  F@_2, TrUserData) ->
+    dfp_read_field_def_key_value(Rest,
+                                 Z1,
+                                 Z2,
+                                 F@_1,
+                                 F@_2,
+                                 TrUserData).
+
+skip_64_key_value(<<_:64, Rest/binary>>, Z1, Z2, F@_1,
+                  F@_2, TrUserData) ->
+    dfp_read_field_def_key_value(Rest,
+                                 Z1,
+                                 Z2,
+                                 F@_1,
+                                 F@_2,
+                                 TrUserData).
 
 decode_msg_string_key_value(Bin, TrUserData) ->
     dfp_read_field_def_string_key_value(Bin,
@@ -5927,7 +6296,7 @@ d_field_resource_attributes(<<0:1, X:7, Rest/binary>>,
     {NewFValue, RestF} = begin
                              Len = X bsl N + Acc,
                              <<Bs:Len/binary, Rest2/binary>> = Rest,
-                             {id(decode_msg_attribute_key_value(Bs, TrUserData),
+                             {id(decode_msg_key_value(Bs, TrUserData),
                                  TrUserData),
                               Rest2}
                          end,
@@ -6054,12 +6423,6 @@ skip_64_resource(<<_:64, Rest/binary>>, Z1, Z2, F@_1,
 'd_enum_status.StatusCode'(16) -> 'Unauthenticated';
 'd_enum_status.StatusCode'(V) -> V.
 
-'d_enum_attribute_key_value.ValueType'(0) -> 'STRING';
-'d_enum_attribute_key_value.ValueType'(1) -> 'INT';
-'d_enum_attribute_key_value.ValueType'(2) -> 'DOUBLE';
-'d_enum_attribute_key_value.ValueType'(3) -> 'BOOL';
-'d_enum_attribute_key_value.ValueType'(V) -> V.
-
 read_group(Bin, FieldNum) ->
     {NumBytes, EndTagLen} = read_gr_b(Bin, 0, 0, 0, 0, FieldNum),
     <<Group:NumBytes/binary, _:EndTagLen/binary, Rest/binary>> = Bin,
@@ -6142,8 +6505,12 @@ merge_msgs(Prev, New, MsgName, Opts) ->
         link -> merge_msg_link(Prev, New, TrUserData);
         span -> merge_msg_span(Prev, New, TrUserData);
         status -> merge_msg_status(Prev, New, TrUserData);
-        attribute_key_value ->
-            merge_msg_attribute_key_value(Prev, New, TrUserData);
+        any_value -> merge_msg_any_value(Prev, New, TrUserData);
+        array_value ->
+            merge_msg_array_value(Prev, New, TrUserData);
+        key_value_list ->
+            merge_msg_key_value_list(Prev, New, TrUserData);
+        key_value -> merge_msg_key_value(Prev, New, TrUserData);
         string_key_value ->
             merge_msg_string_key_value(Prev, New, TrUserData);
         instrumentation_library ->
@@ -6474,46 +6841,66 @@ merge_msg_status(PMsg, NMsg, _) ->
         _ -> S2
     end.
 
--compile({nowarn_unused_function,merge_msg_attribute_key_value/3}).
-merge_msg_attribute_key_value(PMsg, NMsg, _) ->
+-compile({nowarn_unused_function,merge_msg_any_value/3}).
+merge_msg_any_value(PMsg, NMsg, TrUserData) ->
+    S1 = #{},
+    case {PMsg, NMsg} of
+        {#{value := {array_value, OPFvalue}},
+         #{value := {array_value, ONFvalue}}} ->
+            S1#{value =>
+                    {array_value,
+                     merge_msg_array_value(OPFvalue, ONFvalue, TrUserData)}};
+        {#{value := {kvlist_value, OPFvalue}},
+         #{value := {kvlist_value, ONFvalue}}} ->
+            S1#{value =>
+                    {kvlist_value,
+                     merge_msg_key_value_list(OPFvalue,
+                                              ONFvalue,
+                                              TrUserData)}};
+        {_, #{value := NFvalue}} -> S1#{value => NFvalue};
+        {#{value := PFvalue}, _} -> S1#{value => PFvalue};
+        {_, _} -> S1
+    end.
+
+-compile({nowarn_unused_function,merge_msg_array_value/3}).
+merge_msg_array_value(PMsg, NMsg, TrUserData) ->
+    S1 = #{},
+    case {PMsg, NMsg} of
+        {#{values := PFvalues}, #{values := NFvalues}} ->
+            S1#{values =>
+                    'erlang_++'(PFvalues, NFvalues, TrUserData)};
+        {_, #{values := NFvalues}} -> S1#{values => NFvalues};
+        {#{values := PFvalues}, _} -> S1#{values => PFvalues};
+        {_, _} -> S1
+    end.
+
+-compile({nowarn_unused_function,merge_msg_key_value_list/3}).
+merge_msg_key_value_list(PMsg, NMsg, TrUserData) ->
+    S1 = #{},
+    case {PMsg, NMsg} of
+        {#{values := PFvalues}, #{values := NFvalues}} ->
+            S1#{values =>
+                    'erlang_++'(PFvalues, NFvalues, TrUserData)};
+        {_, #{values := NFvalues}} -> S1#{values => NFvalues};
+        {#{values := PFvalues}, _} -> S1#{values => PFvalues};
+        {_, _} -> S1
+    end.
+
+-compile({nowarn_unused_function,merge_msg_key_value/3}).
+merge_msg_key_value(PMsg, NMsg, TrUserData) ->
     S1 = #{},
     S2 = case {PMsg, NMsg} of
              {_, #{key := NFkey}} -> S1#{key => NFkey};
              {#{key := PFkey}, _} -> S1#{key => PFkey};
              _ -> S1
          end,
-    S3 = case {PMsg, NMsg} of
-             {_, #{type := NFtype}} -> S2#{type => NFtype};
-             {#{type := PFtype}, _} -> S2#{type => PFtype};
-             _ -> S2
-         end,
-    S4 = case {PMsg, NMsg} of
-             {_, #{string_value := NFstring_value}} ->
-                 S3#{string_value => NFstring_value};
-             {#{string_value := PFstring_value}, _} ->
-                 S3#{string_value => PFstring_value};
-             _ -> S3
-         end,
-    S5 = case {PMsg, NMsg} of
-             {_, #{int_value := NFint_value}} ->
-                 S4#{int_value => NFint_value};
-             {#{int_value := PFint_value}, _} ->
-                 S4#{int_value => PFint_value};
-             _ -> S4
-         end,
-    S6 = case {PMsg, NMsg} of
-             {_, #{double_value := NFdouble_value}} ->
-                 S5#{double_value => NFdouble_value};
-             {#{double_value := PFdouble_value}, _} ->
-                 S5#{double_value => PFdouble_value};
-             _ -> S5
-         end,
     case {PMsg, NMsg} of
-        {_, #{bool_value := NFbool_value}} ->
-            S6#{bool_value => NFbool_value};
-        {#{bool_value := PFbool_value}, _} ->
-            S6#{bool_value => PFbool_value};
-        _ -> S6
+        {#{value := PFvalue}, #{value := NFvalue}} ->
+            S2#{value =>
+                    merge_msg_any_value(PFvalue, NFvalue, TrUserData)};
+        {_, #{value := NFvalue}} -> S2#{value => NFvalue};
+        {#{value := PFvalue}, _} -> S2#{value => PFvalue};
+        {_, _} -> S2
     end.
 
 -compile({nowarn_unused_function,merge_msg_string_key_value/3}).
@@ -6599,8 +6986,14 @@ verify_msg(Msg, MsgName, Opts) ->
         link -> v_msg_link(Msg, [MsgName], TrUserData);
         span -> v_msg_span(Msg, [MsgName], TrUserData);
         status -> v_msg_status(Msg, [MsgName], TrUserData);
-        attribute_key_value ->
-            v_msg_attribute_key_value(Msg, [MsgName], TrUserData);
+        any_value ->
+            v_msg_any_value(Msg, [MsgName], TrUserData);
+        array_value ->
+            v_msg_array_value(Msg, [MsgName], TrUserData);
+        key_value_list ->
+            v_msg_key_value_list(Msg, [MsgName], TrUserData);
+        key_value ->
+            v_msg_key_value(Msg, [MsgName], TrUserData);
         string_key_value ->
             v_msg_string_key_value(Msg, [MsgName], TrUserData);
         instrumentation_library ->
@@ -6778,14 +7171,13 @@ v_msg_event(#{} = M, Path, TrUserData) ->
     case M of
         #{attributes := F3} ->
             if is_list(F3) ->
-                   _ = [v_msg_attribute_key_value(Elem,
-                                                  [attributes | Path],
-                                                  TrUserData)
+                   _ = [v_msg_key_value(Elem,
+                                        [attributes | Path],
+                                        TrUserData)
                         || Elem <- F3],
                    ok;
                true ->
-                   mk_type_error({invalid_list_of,
-                                  {msg, attribute_key_value}},
+                   mk_type_error({invalid_list_of, {msg, key_value}},
                                  F3,
                                  [attributes | Path])
             end;
@@ -6837,14 +7229,13 @@ v_msg_link(#{} = M, Path, TrUserData) ->
     case M of
         #{attributes := F4} ->
             if is_list(F4) ->
-                   _ = [v_msg_attribute_key_value(Elem,
-                                                  [attributes | Path],
-                                                  TrUserData)
+                   _ = [v_msg_key_value(Elem,
+                                        [attributes | Path],
+                                        TrUserData)
                         || Elem <- F4],
                    ok;
                true ->
-                   mk_type_error({invalid_list_of,
-                                  {msg, attribute_key_value}},
+                   mk_type_error({invalid_list_of, {msg, key_value}},
                                  F4,
                                  [attributes | Path])
             end;
@@ -6926,14 +7317,13 @@ v_msg_span(#{} = M, Path, TrUserData) ->
     case M of
         #{attributes := F9} ->
             if is_list(F9) ->
-                   _ = [v_msg_attribute_key_value(Elem,
-                                                  [attributes | Path],
-                                                  TrUserData)
+                   _ = [v_msg_key_value(Elem,
+                                        [attributes | Path],
+                                        TrUserData)
                         || Elem <- F9],
                    ok;
                true ->
-                   mk_type_error({invalid_list_of,
-                                  {msg, attribute_key_value}},
+                   mk_type_error({invalid_list_of, {msg, key_value}},
                                  F9,
                                  [attributes | Path])
             end;
@@ -7051,63 +7441,145 @@ v_msg_status(M, Path, _TrUserData) when is_map(M) ->
 v_msg_status(X, Path, _TrUserData) ->
     mk_type_error({expected_msg, status}, X, Path).
 
--compile({nowarn_unused_function,v_msg_attribute_key_value/3}).
--dialyzer({nowarn_function,v_msg_attribute_key_value/3}).
-v_msg_attribute_key_value(#{} = M, Path, TrUserData) ->
+-compile({nowarn_unused_function,v_msg_any_value/3}).
+-dialyzer({nowarn_function,v_msg_any_value/3}).
+v_msg_any_value(#{} = M, Path, TrUserData) ->
+    case M of
+        #{value := {string_value, OF1}} ->
+            v_type_string(OF1,
+                          [string_value, value | Path],
+                          TrUserData);
+        #{value := {bool_value, OF1}} ->
+            v_type_bool(OF1,
+                        [bool_value, value | Path],
+                        TrUserData);
+        #{value := {int_value, OF1}} ->
+            v_type_int64(OF1,
+                         [int_value, value | Path],
+                         TrUserData);
+        #{value := {double_value, OF1}} ->
+            v_type_double(OF1,
+                          [double_value, value | Path],
+                          TrUserData);
+        #{value := {array_value, OF1}} ->
+            v_msg_array_value(OF1,
+                              [array_value, value | Path],
+                              TrUserData);
+        #{value := {kvlist_value, OF1}} ->
+            v_msg_key_value_list(OF1,
+                                 [kvlist_value, value | Path],
+                                 TrUserData);
+        #{value := F1} ->
+            mk_type_error(invalid_oneof, F1, [value | Path]);
+        _ -> ok
+    end,
+    lists:foreach(fun (value) -> ok;
+                      (OtherKey) ->
+                          mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
+    ok;
+v_msg_any_value(M, Path, _TrUserData) when is_map(M) ->
+    mk_type_error({missing_fields,
+                   [] -- maps:keys(M),
+                   any_value},
+                  M,
+                  Path);
+v_msg_any_value(X, Path, _TrUserData) ->
+    mk_type_error({expected_msg, any_value}, X, Path).
+
+-compile({nowarn_unused_function,v_msg_array_value/3}).
+-dialyzer({nowarn_function,v_msg_array_value/3}).
+v_msg_array_value(#{} = M, Path, TrUserData) ->
+    case M of
+        #{values := F1} ->
+            if is_list(F1) ->
+                   _ = [v_msg_any_value(Elem, [values | Path], TrUserData)
+                        || Elem <- F1],
+                   ok;
+               true ->
+                   mk_type_error({invalid_list_of, {msg, any_value}},
+                                 F1,
+                                 [values | Path])
+            end;
+        _ -> ok
+    end,
+    lists:foreach(fun (values) -> ok;
+                      (OtherKey) ->
+                          mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
+    ok;
+v_msg_array_value(M, Path, _TrUserData)
+    when is_map(M) ->
+    mk_type_error({missing_fields,
+                   [] -- maps:keys(M),
+                   array_value},
+                  M,
+                  Path);
+v_msg_array_value(X, Path, _TrUserData) ->
+    mk_type_error({expected_msg, array_value}, X, Path).
+
+-compile({nowarn_unused_function,v_msg_key_value_list/3}).
+-dialyzer({nowarn_function,v_msg_key_value_list/3}).
+v_msg_key_value_list(#{} = M, Path, TrUserData) ->
+    case M of
+        #{values := F1} ->
+            if is_list(F1) ->
+                   _ = [v_msg_key_value(Elem, [values | Path], TrUserData)
+                        || Elem <- F1],
+                   ok;
+               true ->
+                   mk_type_error({invalid_list_of, {msg, key_value}},
+                                 F1,
+                                 [values | Path])
+            end;
+        _ -> ok
+    end,
+    lists:foreach(fun (values) -> ok;
+                      (OtherKey) ->
+                          mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
+    ok;
+v_msg_key_value_list(M, Path, _TrUserData)
+    when is_map(M) ->
+    mk_type_error({missing_fields,
+                   [] -- maps:keys(M),
+                   key_value_list},
+                  M,
+                  Path);
+v_msg_key_value_list(X, Path, _TrUserData) ->
+    mk_type_error({expected_msg, key_value_list}, X, Path).
+
+-compile({nowarn_unused_function,v_msg_key_value/3}).
+-dialyzer({nowarn_function,v_msg_key_value/3}).
+v_msg_key_value(#{} = M, Path, TrUserData) ->
     case M of
         #{key := F1} ->
             v_type_string(F1, [key | Path], TrUserData);
         _ -> ok
     end,
     case M of
-        #{type := F2} ->
-            'v_enum_attribute_key_value.ValueType'(F2,
-                                                   [type | Path],
-                                                   TrUserData);
-        _ -> ok
-    end,
-    case M of
-        #{string_value := F3} ->
-            v_type_string(F3, [string_value | Path], TrUserData);
-        _ -> ok
-    end,
-    case M of
-        #{int_value := F4} ->
-            v_type_int64(F4, [int_value | Path], TrUserData);
-        _ -> ok
-    end,
-    case M of
-        #{double_value := F5} ->
-            v_type_double(F5, [double_value | Path], TrUserData);
-        _ -> ok
-    end,
-    case M of
-        #{bool_value := F6} ->
-            v_type_bool(F6, [bool_value | Path], TrUserData);
+        #{value := F2} ->
+            v_msg_any_value(F2, [value | Path], TrUserData);
         _ -> ok
     end,
     lists:foreach(fun (key) -> ok;
-                      (type) -> ok;
-                      (string_value) -> ok;
-                      (int_value) -> ok;
-                      (double_value) -> ok;
-                      (bool_value) -> ok;
+                      (value) -> ok;
                       (OtherKey) ->
                           mk_type_error({extraneous_key, OtherKey}, M, Path)
                   end,
                   maps:keys(M)),
     ok;
-v_msg_attribute_key_value(M, Path, _TrUserData)
-    when is_map(M) ->
+v_msg_key_value(M, Path, _TrUserData) when is_map(M) ->
     mk_type_error({missing_fields,
                    [] -- maps:keys(M),
-                   attribute_key_value},
+                   key_value},
                   M,
                   Path);
-v_msg_attribute_key_value(X, Path, _TrUserData) ->
-    mk_type_error({expected_msg, attribute_key_value},
-                  X,
-                  Path).
+v_msg_key_value(X, Path, _TrUserData) ->
+    mk_type_error({expected_msg, key_value}, X, Path).
 
 -compile({nowarn_unused_function,v_msg_string_key_value/3}).
 -dialyzer({nowarn_function,v_msg_string_key_value/3}).
@@ -7180,14 +7652,13 @@ v_msg_resource(#{} = M, Path, TrUserData) ->
     case M of
         #{attributes := F1} ->
             if is_list(F1) ->
-                   _ = [v_msg_attribute_key_value(Elem,
-                                                  [attributes | Path],
-                                                  TrUserData)
+                   _ = [v_msg_key_value(Elem,
+                                        [attributes | Path],
+                                        TrUserData)
                         || Elem <- F1],
                    ok;
                true ->
-                   mk_type_error({invalid_list_of,
-                                  {msg, attribute_key_value}},
+                   mk_type_error({invalid_list_of, {msg, key_value}},
                                  F1,
                                  [attributes | Path])
             end;
@@ -7297,31 +7768,6 @@ v_msg_resource(X, Path, _TrUserData) ->
     v_type_sint32(V, Path, TrUserData);
 'v_enum_status.StatusCode'(X, Path, _TrUserData) ->
     mk_type_error({invalid_enum, 'status.StatusCode'},
-                  X,
-                  Path).
-
--compile({nowarn_unused_function,'v_enum_attribute_key_value.ValueType'/3}).
--dialyzer({nowarn_function,'v_enum_attribute_key_value.ValueType'/3}).
-'v_enum_attribute_key_value.ValueType'('STRING', _Path,
-                                       _TrUserData) ->
-    ok;
-'v_enum_attribute_key_value.ValueType'('INT', _Path,
-                                       _TrUserData) ->
-    ok;
-'v_enum_attribute_key_value.ValueType'('DOUBLE', _Path,
-                                       _TrUserData) ->
-    ok;
-'v_enum_attribute_key_value.ValueType'('BOOL', _Path,
-                                       _TrUserData) ->
-    ok;
-'v_enum_attribute_key_value.ValueType'(V, Path,
-                                       TrUserData)
-    when is_integer(V) ->
-    v_type_sint32(V, Path, TrUserData);
-'v_enum_attribute_key_value.ValueType'(X, Path,
-                                       _TrUserData) ->
-    mk_type_error({invalid_enum,
-                   'attribute_key_value.ValueType'},
                   X,
                   Path).
 
@@ -7503,11 +7949,6 @@ get_msg_defs() ->
        {'Unavailable', 14},
        {'DataLoss', 15},
        {'Unauthenticated', 16}]},
-     {{enum, 'attribute_key_value.ValueType'},
-      [{'STRING', 0},
-       {'INT', 1},
-       {'DOUBLE', 2},
-       {'BOOL', 3}]},
      {{msg, export_trace_service_request},
       [#{name => resource_spans, fnum => 1, rnum => 2,
          type => {msg, resource_spans}, occurrence => repeated,
@@ -7533,8 +7974,8 @@ get_msg_defs() ->
        #{name => name, fnum => 2, rnum => 3, type => string,
          occurrence => optional, opts => []},
        #{name => attributes, fnum => 3, rnum => 4,
-         type => {msg, attribute_key_value},
-         occurrence => repeated, opts => []},
+         type => {msg, key_value}, occurrence => repeated,
+         opts => []},
        #{name => dropped_attributes_count, fnum => 4,
          rnum => 5, type => uint32, occurrence => optional,
          opts => []}]},
@@ -7546,8 +7987,8 @@ get_msg_defs() ->
        #{name => trace_state, fnum => 3, rnum => 4,
          type => string, occurrence => optional, opts => []},
        #{name => attributes, fnum => 4, rnum => 5,
-         type => {msg, attribute_key_value},
-         occurrence => repeated, opts => []},
+         type => {msg, key_value}, occurrence => repeated,
+         opts => []},
        #{name => dropped_attributes_count, fnum => 5,
          rnum => 6, type => uint32, occurrence => optional,
          opts => []}]},
@@ -7570,8 +8011,8 @@ get_msg_defs() ->
        #{name => end_time_unix_nano, fnum => 8, rnum => 9,
          type => fixed64, occurrence => optional, opts => []},
        #{name => attributes, fnum => 9, rnum => 10,
-         type => {msg, attribute_key_value},
-         occurrence => repeated, opts => []},
+         type => {msg, key_value}, occurrence => repeated,
+         opts => []},
        #{name => dropped_attributes_count, fnum => 10,
          rnum => 11, type => uint32, occurrence => optional,
          opts => []},
@@ -7594,20 +8035,37 @@ get_msg_defs() ->
          occurrence => optional, opts => []},
        #{name => message, fnum => 2, rnum => 3, type => string,
          occurrence => optional, opts => []}]},
-     {{msg, attribute_key_value},
+     {{msg, any_value},
+      [#{name => value, rnum => 2,
+         fields =>
+             [#{name => string_value, fnum => 1, rnum => 2,
+                type => string, occurrence => optional, opts => []},
+              #{name => bool_value, fnum => 2, rnum => 2,
+                type => bool, occurrence => optional, opts => []},
+              #{name => int_value, fnum => 3, rnum => 2,
+                type => int64, occurrence => optional, opts => []},
+              #{name => double_value, fnum => 4, rnum => 2,
+                type => double, occurrence => optional, opts => []},
+              #{name => array_value, fnum => 5, rnum => 2,
+                type => {msg, array_value}, occurrence => optional,
+                opts => []},
+              #{name => kvlist_value, fnum => 6, rnum => 2,
+                type => {msg, key_value_list}, occurrence => optional,
+                opts => []}]}]},
+     {{msg, array_value},
+      [#{name => values, fnum => 1, rnum => 2,
+         type => {msg, any_value}, occurrence => repeated,
+         opts => []}]},
+     {{msg, key_value_list},
+      [#{name => values, fnum => 1, rnum => 2,
+         type => {msg, key_value}, occurrence => repeated,
+         opts => []}]},
+     {{msg, key_value},
       [#{name => key, fnum => 1, rnum => 2, type => string,
          occurrence => optional, opts => []},
-       #{name => type, fnum => 2, rnum => 3,
-         type => {enum, 'attribute_key_value.ValueType'},
-         occurrence => optional, opts => []},
-       #{name => string_value, fnum => 3, rnum => 4,
-         type => string, occurrence => optional, opts => []},
-       #{name => int_value, fnum => 4, rnum => 5,
-         type => int64, occurrence => optional, opts => []},
-       #{name => double_value, fnum => 5, rnum => 6,
-         type => double, occurrence => optional, opts => []},
-       #{name => bool_value, fnum => 6, rnum => 7,
-         type => bool, occurrence => optional, opts => []}]},
+       #{name => value, fnum => 2, rnum => 3,
+         type => {msg, any_value}, occurrence => optional,
+         opts => []}]},
      {{msg, string_key_value},
       [#{name => key, fnum => 1, rnum => 2, type => string,
          occurrence => optional, opts => []},
@@ -7620,8 +8078,8 @@ get_msg_defs() ->
          occurrence => optional, opts => []}]},
      {{msg, resource},
       [#{name => attributes, fnum => 1, rnum => 2,
-         type => {msg, attribute_key_value},
-         occurrence => repeated, opts => []},
+         type => {msg, key_value}, occurrence => repeated,
+         opts => []},
        #{name => dropped_attributes_count, fnum => 2,
          rnum => 3, type => uint32, occurrence => optional,
          opts => []}]}].
@@ -7636,7 +8094,10 @@ get_msg_names() ->
      link,
      span,
      status,
-     attribute_key_value,
+     any_value,
+     array_value,
+     key_value_list,
+     key_value,
      string_key_value,
      instrumentation_library,
      resource].
@@ -7654,16 +8115,17 @@ get_msg_or_group_names() ->
      link,
      span,
      status,
-     attribute_key_value,
+     any_value,
+     array_value,
+     key_value_list,
+     key_value,
      string_key_value,
      instrumentation_library,
      resource].
 
 
 get_enum_names() ->
-    ['span.SpanKind',
-     'status.StatusCode',
-     'attribute_key_value.ValueType'].
+    ['span.SpanKind', 'status.StatusCode'].
 
 
 fetch_msg_def(MsgName) ->
@@ -7705,8 +8167,8 @@ find_msg_def(event) ->
      #{name => name, fnum => 2, rnum => 3, type => string,
        occurrence => optional, opts => []},
      #{name => attributes, fnum => 3, rnum => 4,
-       type => {msg, attribute_key_value},
-       occurrence => repeated, opts => []},
+       type => {msg, key_value}, occurrence => repeated,
+       opts => []},
      #{name => dropped_attributes_count, fnum => 4,
        rnum => 5, type => uint32, occurrence => optional,
        opts => []}];
@@ -7718,8 +8180,8 @@ find_msg_def(link) ->
      #{name => trace_state, fnum => 3, rnum => 4,
        type => string, occurrence => optional, opts => []},
      #{name => attributes, fnum => 4, rnum => 5,
-       type => {msg, attribute_key_value},
-       occurrence => repeated, opts => []},
+       type => {msg, key_value}, occurrence => repeated,
+       opts => []},
      #{name => dropped_attributes_count, fnum => 5,
        rnum => 6, type => uint32, occurrence => optional,
        opts => []}];
@@ -7742,8 +8204,8 @@ find_msg_def(span) ->
      #{name => end_time_unix_nano, fnum => 8, rnum => 9,
        type => fixed64, occurrence => optional, opts => []},
      #{name => attributes, fnum => 9, rnum => 10,
-       type => {msg, attribute_key_value},
-       occurrence => repeated, opts => []},
+       type => {msg, key_value}, occurrence => repeated,
+       opts => []},
      #{name => dropped_attributes_count, fnum => 10,
        rnum => 11, type => uint32, occurrence => optional,
        opts => []},
@@ -7766,20 +8228,37 @@ find_msg_def(status) ->
        occurrence => optional, opts => []},
      #{name => message, fnum => 2, rnum => 3, type => string,
        occurrence => optional, opts => []}];
-find_msg_def(attribute_key_value) ->
+find_msg_def(any_value) ->
+    [#{name => value, rnum => 2,
+       fields =>
+           [#{name => string_value, fnum => 1, rnum => 2,
+              type => string, occurrence => optional, opts => []},
+            #{name => bool_value, fnum => 2, rnum => 2,
+              type => bool, occurrence => optional, opts => []},
+            #{name => int_value, fnum => 3, rnum => 2,
+              type => int64, occurrence => optional, opts => []},
+            #{name => double_value, fnum => 4, rnum => 2,
+              type => double, occurrence => optional, opts => []},
+            #{name => array_value, fnum => 5, rnum => 2,
+              type => {msg, array_value}, occurrence => optional,
+              opts => []},
+            #{name => kvlist_value, fnum => 6, rnum => 2,
+              type => {msg, key_value_list}, occurrence => optional,
+              opts => []}]}];
+find_msg_def(array_value) ->
+    [#{name => values, fnum => 1, rnum => 2,
+       type => {msg, any_value}, occurrence => repeated,
+       opts => []}];
+find_msg_def(key_value_list) ->
+    [#{name => values, fnum => 1, rnum => 2,
+       type => {msg, key_value}, occurrence => repeated,
+       opts => []}];
+find_msg_def(key_value) ->
     [#{name => key, fnum => 1, rnum => 2, type => string,
        occurrence => optional, opts => []},
-     #{name => type, fnum => 2, rnum => 3,
-       type => {enum, 'attribute_key_value.ValueType'},
-       occurrence => optional, opts => []},
-     #{name => string_value, fnum => 3, rnum => 4,
-       type => string, occurrence => optional, opts => []},
-     #{name => int_value, fnum => 4, rnum => 5,
-       type => int64, occurrence => optional, opts => []},
-     #{name => double_value, fnum => 5, rnum => 6,
-       type => double, occurrence => optional, opts => []},
-     #{name => bool_value, fnum => 6, rnum => 7,
-       type => bool, occurrence => optional, opts => []}];
+     #{name => value, fnum => 2, rnum => 3,
+       type => {msg, any_value}, occurrence => optional,
+       opts => []}];
 find_msg_def(string_key_value) ->
     [#{name => key, fnum => 1, rnum => 2, type => string,
        occurrence => optional, opts => []},
@@ -7792,8 +8271,8 @@ find_msg_def(instrumentation_library) ->
        occurrence => optional, opts => []}];
 find_msg_def(resource) ->
     [#{name => attributes, fnum => 1, rnum => 2,
-       type => {msg, attribute_key_value},
-       occurrence => repeated, opts => []},
+       type => {msg, key_value}, occurrence => repeated,
+       opts => []},
      #{name => dropped_attributes_count, fnum => 2,
        rnum => 3, type => uint32, occurrence => optional,
        opts => []}];
@@ -7825,27 +8304,19 @@ find_enum_def('status.StatusCode') ->
      {'Unavailable', 14},
      {'DataLoss', 15},
      {'Unauthenticated', 16}];
-find_enum_def('attribute_key_value.ValueType') ->
-    [{'STRING', 0}, {'INT', 1}, {'DOUBLE', 2}, {'BOOL', 3}];
 find_enum_def(_) -> error.
 
 
 enum_symbol_by_value('span.SpanKind', Value) ->
     'enum_symbol_by_value_span.SpanKind'(Value);
 enum_symbol_by_value('status.StatusCode', Value) ->
-    'enum_symbol_by_value_status.StatusCode'(Value);
-enum_symbol_by_value('attribute_key_value.ValueType',
-                     Value) ->
-    'enum_symbol_by_value_attribute_key_value.ValueType'(Value).
+    'enum_symbol_by_value_status.StatusCode'(Value).
 
 
 enum_value_by_symbol('span.SpanKind', Sym) ->
     'enum_value_by_symbol_span.SpanKind'(Sym);
 enum_value_by_symbol('status.StatusCode', Sym) ->
-    'enum_value_by_symbol_status.StatusCode'(Sym);
-enum_value_by_symbol('attribute_key_value.ValueType',
-                     Sym) ->
-    'enum_value_by_symbol_attribute_key_value.ValueType'(Sym).
+    'enum_value_by_symbol_status.StatusCode'(Sym).
 
 
 'enum_symbol_by_value_span.SpanKind'(0) ->
@@ -7933,25 +8404,6 @@ enum_value_by_symbol('attribute_key_value.ValueType',
     15;
 'enum_value_by_symbol_status.StatusCode'('Unauthenticated') ->
     16.
-
-'enum_symbol_by_value_attribute_key_value.ValueType'(0) ->
-    'STRING';
-'enum_symbol_by_value_attribute_key_value.ValueType'(1) ->
-    'INT';
-'enum_symbol_by_value_attribute_key_value.ValueType'(2) ->
-    'DOUBLE';
-'enum_symbol_by_value_attribute_key_value.ValueType'(3) ->
-    'BOOL'.
-
-
-'enum_value_by_symbol_attribute_key_value.ValueType'('STRING') ->
-    0;
-'enum_value_by_symbol_attribute_key_value.ValueType'('INT') ->
-    1;
-'enum_value_by_symbol_attribute_key_value.ValueType'('DOUBLE') ->
-    2;
-'enum_value_by_symbol_attribute_key_value.ValueType'('BOOL') ->
-    3.
 
 
 get_service_names() ->
@@ -8045,7 +8497,10 @@ fqbin_to_msg_name(<<"opentelemetry.proto.trace.v1.Span.Event">>) -> event;
 fqbin_to_msg_name(<<"opentelemetry.proto.trace.v1.Span.Link">>) -> link;
 fqbin_to_msg_name(<<"opentelemetry.proto.trace.v1.Span">>) -> span;
 fqbin_to_msg_name(<<"opentelemetry.proto.trace.v1.Status">>) -> status;
-fqbin_to_msg_name(<<"opentelemetry.proto.common.v1.AttributeKeyValue">>) -> attribute_key_value;
+fqbin_to_msg_name(<<"opentelemetry.proto.common.v1.AnyValue">>) -> any_value;
+fqbin_to_msg_name(<<"opentelemetry.proto.common.v1.ArrayValue">>) -> array_value;
+fqbin_to_msg_name(<<"opentelemetry.proto.common.v1.KeyValueList">>) -> key_value_list;
+fqbin_to_msg_name(<<"opentelemetry.proto.common.v1.KeyValue">>) -> key_value;
 fqbin_to_msg_name(<<"opentelemetry.proto.common.v1.StringKeyValue">>) -> string_key_value;
 fqbin_to_msg_name(<<"opentelemetry.proto.common.v1.InstrumentationLibrary">>) -> instrumentation_library;
 fqbin_to_msg_name(<<"opentelemetry.proto.resource.v1.Resource">>) -> resource;
@@ -8063,7 +8518,10 @@ msg_name_to_fqbin(event) -> <<"opentelemetry.proto.trace.v1.Span.Event">>;
 msg_name_to_fqbin(link) -> <<"opentelemetry.proto.trace.v1.Span.Link">>;
 msg_name_to_fqbin(span) -> <<"opentelemetry.proto.trace.v1.Span">>;
 msg_name_to_fqbin(status) -> <<"opentelemetry.proto.trace.v1.Status">>;
-msg_name_to_fqbin(attribute_key_value) -> <<"opentelemetry.proto.common.v1.AttributeKeyValue">>;
+msg_name_to_fqbin(any_value) -> <<"opentelemetry.proto.common.v1.AnyValue">>;
+msg_name_to_fqbin(array_value) -> <<"opentelemetry.proto.common.v1.ArrayValue">>;
+msg_name_to_fqbin(key_value_list) -> <<"opentelemetry.proto.common.v1.KeyValueList">>;
+msg_name_to_fqbin(key_value) -> <<"opentelemetry.proto.common.v1.KeyValue">>;
 msg_name_to_fqbin(string_key_value) -> <<"opentelemetry.proto.common.v1.StringKeyValue">>;
 msg_name_to_fqbin(instrumentation_library) -> <<"opentelemetry.proto.common.v1.InstrumentationLibrary">>;
 msg_name_to_fqbin(resource) -> <<"opentelemetry.proto.resource.v1.Resource">>;
@@ -8072,16 +8530,12 @@ msg_name_to_fqbin(E) -> error({gpb_error, {badmsg, E}}).
 
 fqbin_to_enum_name(<<"opentelemetry.proto.trace.v1.Span.SpanKind">>) -> 'span.SpanKind';
 fqbin_to_enum_name(<<"opentelemetry.proto.trace.v1.Status.StatusCode">>) -> 'status.StatusCode';
-fqbin_to_enum_name(<<"opentelemetry.proto.common.v1.AttributeKeyValue.ValueType">>) ->
-    'attribute_key_value.ValueType';
 fqbin_to_enum_name(E) ->
     error({gpb_error, {badenum, E}}).
 
 
 enum_name_to_fqbin('span.SpanKind') -> <<"opentelemetry.proto.trace.v1.Span.SpanKind">>;
 enum_name_to_fqbin('status.StatusCode') -> <<"opentelemetry.proto.trace.v1.Status.StatusCode">>;
-enum_name_to_fqbin('attribute_key_value.ValueType') ->
-    <<"opentelemetry.proto.common.v1.AttributeKeyValue.ValueType">>;
 enum_name_to_fqbin(E) ->
     error({gpb_error, {badenum, E}}).
 
@@ -8130,8 +8584,11 @@ get_msg_containment("trace") ->
      link,
      status];
 get_msg_containment("common") ->
-    [attribute_key_value,
+    [any_value,
+     array_value,
      instrumentation_library,
+     key_value,
+     key_value_list,
      string_key_value];
 get_msg_containment("resource") -> [resource];
 get_msg_containment(P) ->
@@ -8172,8 +8629,7 @@ get_rpc_containment(P) ->
 get_enum_containment("trace_service") -> [];
 get_enum_containment("trace") ->
     ['span.SpanKind', 'status.StatusCode'];
-get_enum_containment("common") ->
-    ['attribute_key_value.ValueType'];
+get_enum_containment("common") -> [];
 get_enum_containment("resource") -> [];
 get_enum_containment(P) ->
     error({gpb_error, {badproto, P}}).
@@ -8182,12 +8638,15 @@ get_enum_containment(P) ->
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.trace.v1.Status">>) -> "trace";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.trace.v1.ResourceSpans">>) -> "trace";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.trace.v1.InstrumentationLibrarySpans">>) -> "trace";
+get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.common.v1.KeyValueList">>) -> "common";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.trace.v1.Span.Event">>) -> "trace";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest">>) ->
     "trace_service";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.resource.v1.Resource">>) -> "resource";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.common.v1.StringKeyValue">>) -> "common";
-get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.common.v1.AttributeKeyValue">>) -> "common";
+get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.common.v1.KeyValue">>) -> "common";
+get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.common.v1.ArrayValue">>) -> "common";
+get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.common.v1.AnyValue">>) -> "common";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.collector.trace.v1.ExportTraceServiceResponse">>) ->
     "trace_service";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.common.v1.InstrumentationLibrary">>) -> "common";
@@ -8204,7 +8663,6 @@ get_proto_by_service_name_as_fqbin(E) ->
 
 
 get_proto_by_enum_name_as_fqbin(<<"opentelemetry.proto.trace.v1.Span.SpanKind">>) -> "trace";
-get_proto_by_enum_name_as_fqbin(<<"opentelemetry.proto.common.v1.AttributeKeyValue.ValueType">>) -> "common";
 get_proto_by_enum_name_as_fqbin(<<"opentelemetry.proto.trace.v1.Status.StatusCode">>) -> "trace";
 get_proto_by_enum_name_as_fqbin(E) ->
     error({gpb_error, {badenum, E}}).

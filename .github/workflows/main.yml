@@ -13,28 +13,19 @@ jobs:
     name: Test on OTP ${{ matrix.otp_version }}
     runs-on: ubuntu-latest
 
-    services:
-      zipkin:
-        image: openzipkin/zipkin-slim
-        ports:
-        - 9411:9411
-      otelcol:
-        image: otel/opentelemetry-collector-dev
-        ports:
-        - 9090:9090
-        volumes:
-        - ${{ github.workspace }}/config/otel-collector-config.yaml:/conf/otel-collector-config.yaml
-
     strategy:
       matrix:
         otp_version: [22.3.2]
 
     steps:
     - uses: actions/checkout@v2
+
+    - name: Run Collector
+      run: docker-compose up -d
+
     - uses: gleam-lang/setup-erlang@v1.0.0
       with:
         otp-version: ${{ matrix.otp_version }}
-
     - name: Compile
       run: rebar3 compile
     - name: CT tests

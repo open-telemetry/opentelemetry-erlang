@@ -126,7 +126,14 @@ span_round_trip(_Config) ->
 %% insert a couple spans and export to locally running otel collector
 verify_export(Config) ->
     Protocol = ?config(protocol, Config),
-    {ok, State} = opentelemetry_exporter:init(#{protocol => Protocol}),
+    Port = case Protocol of
+               grpc ->
+                   55680;
+               http_protobuf ->
+                   55681
+           end,
+    {ok, State} = opentelemetry_exporter:init(#{protocol => Protocol,
+                                                endpoints => [{http, "localhost", Port, []}]}),
     Tid = ets:new(span_tab, [duplicate_bag, {keypos, #span.instrumentation_library}]),
 
     ?assertMatch(ok, opentelemetry_exporter:export(Tid, ot_resource:create([]), State)),
