@@ -48,6 +48,8 @@
          timestamp_to_nano/1,
          convert_timestamp/2,
          links/1,
+         link/1,
+         link/2,
          link/4,
          event/2,
          event/3,
@@ -200,17 +202,47 @@ convert_timestamp(Timestamp, Unit) ->
     Offset = erlang:time_offset(),
     erlang:convert_time_unit(Timestamp + Offset, native, Unit).
 
--spec links([{TraceId, SpanId, Attributes, TraceState}]) -> links() when
+-spec links([{TraceId, SpanId, Attributes, TraceState} | span_ctx() | {span_ctx(), Attributes}]) -> links() when
       TraceId :: trace_id(),
       SpanId :: span_id(),
       Attributes :: attributes(),
       TraceState :: tracestate().
-links(List) ->
-    [link(TraceId, SpanId, Attributes, TraceState) || {TraceId, SpanId, Attributes, TraceState} <- List,
-                                                      is_integer(TraceId),
-                                                      is_integer(SpanId),
-                                                      is_list(Attributes),
-                                                      is_list(TraceState)].
+links(List) when is_list(List) ->
+    lists:filtermap(fun({TraceId, SpanId, Attributes, TraceState}) when is_integer(TraceId) ,
+                                                                        is_integer(SpanId) ,
+                                                                        is_list(Attributes) ,
+                                                                        is_list(TraceState) ->
+                            link_or_false(TraceId, SpanId, Attributes, TraceState);
+                       ({#span_ctx{trace_id=TraceId,
+                                   span_id=SpanId,
+                                   tracestate=TraceState}, Attributes}) when is_integer(TraceId) ,
+                                                                             is_integer(SpanId) ,
+                                                                             is_list(Attributes) ,
+                                                                             is_list(TraceState) ->
+                            link_or_false(TraceId, SpanId, Attributes, TraceState);
+                       (#span_ctx{trace_id=TraceId,
+                                  span_id=SpanId,
+                                  tracestate=TraceState}) when is_integer(TraceId) ,
+                                                               is_integer(SpanId) ,
+                                                               is_list(TraceState) ->
+                            link_or_false(TraceId, SpanId, [], TraceState);
+                       (_) ->
+                            false
+              end, List);
+links(_) ->
+    [].
+
+-spec link(span_ctx() | undefined) -> link().
+link(SpanCtx) ->
+    link(SpanCtx, []).
+
+-spec link(span_ctx() | undefined, attributes()) -> link().
+link(#span_ctx{trace_id=TraceId,
+               span_id=SpanId,
+               tracestate=TraceState}, Attributes) ->
+    ?MODULE:link(TraceId, SpanId, Attributes, TraceState);
+link(_, _) ->
+    undefined.
 
 -spec link(TraceId, SpanId, Attributes, TraceState) -> link() | undefined when
       TraceId :: trace_id(),
@@ -333,5 +365,15 @@ verify_behaviour(Module, Behaviour) ->
             end
     catch
         error:undef ->
+            false
+    end.
+
+%% for use in a filtermap
+%% return {true, Link} if a link is returned or return false
+link_or_false(TraceId, SpanId, Attributes, TraceState) ->
+    case link(TraceId, SpanId, Attributes, TraceState) of
+        Link=#link{} ->
+            {true, Link};
+        _ ->
             false
     end.

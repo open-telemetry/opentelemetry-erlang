@@ -32,8 +32,11 @@ jobs:
       run: rebar3 dialyzer
     - name: XRef
       run: rebar3 xref
-    - name: Coveralls
-      run: rebar3 coveralls send
+    - name: Covertool
+      run: rebar3 covertool generate
+    - uses: codecov/codecov-action@v1
+      with:
+        file: _build/test/covertool/opentelemetry.covertool.xml
 
   elixir_tests:
     runs-on: ubuntu-latest
@@ -46,7 +49,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-elixir@v1
         with:
-          otp-version: ${{matrix.otp}}
+          otp-version: ${{matrix.otp_version}}
           elixir-version: ${{matrix.elixir}}
       - run: mix deps.get
       - run: mix test

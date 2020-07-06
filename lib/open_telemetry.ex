@@ -142,9 +142,21 @@ defmodule OpenTelemetry do
   defdelegate link(trace_id, span_id, attributes, tracestate), to: :opentelemetry
 
   @doc """
+  Creates a `t:link/0` from a `t:span_ctx/0`.
+  """
+  @spec link(span_ctx() | :undefined) :: link()
+  defdelegate link(span_ctx), to: :opentelemetry
+
+  @doc """
+  Creates a `t:link/0` from a `t:span_ctx/0` and list of `t:attributes/0`.
+  """
+  @spec link(span_ctx() | :undefined, attributes()) :: link()
+  defdelegate link(span_ctx, attributes), to: :opentelemetry
+
+  @doc """
   Creates a list of `t:link/0` from a list of 4-tuples.
   """
-  @spec links([{integer(), integer(), list(), list()}]) :: [link()]
+  @spec links([{integer(), integer(), attributes(), tracestate()} | span_ctx() | {span_ctx(), attributes()}]) :: [link()]
   defdelegate links(link_list), to: :opentelemetry
 
   @doc """

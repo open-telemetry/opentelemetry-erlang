@@ -19,27 +19,49 @@ end_per_suite(_Config) ->
     ok.
 
 can_create_link_from_span(_Config) ->
-  %% start a span to create a link to
-  SpanCtx = ?start_span(<<"span-1">>),
+    %% start a span to create a link to
+    SpanCtx = ?start_span(<<"span-1">>),
 
-  %% extract individual values from span context
-  TraceId = ot_span:trace_id(SpanCtx),
-  SpanId = ot_span:span_id(SpanCtx),
-  Tracestate = ot_span:tracestate(SpanCtx),
+    %% extract individual values from span context
+    TraceId = ot_span:trace_id(SpanCtx),
+    SpanId = ot_span:span_id(SpanCtx),
+    Tracestate = ot_span:tracestate(SpanCtx),
 
-  %% end span, so there's no current span set
-  ?end_span(),
+    %% end span, so there's no current span set
+    ?end_span(),
 
-  %% we don't need any attributes for this test
-  Attributes = [],
+    Attributes = [{<<"attr-1">>, <<"value-1">>}],
 
-  %% attempt to create a link
-  Link = opentelemetry:link(TraceId, SpanId, Attributes, Tracestate),
-  ?assertMatch(#link{ trace_id = TraceId
-                    , span_id = SpanId
-                    , attributes = Attributes
-                    , tracestate = Tracestate
-                    }, Link).
+    ?assertMatch(undefined, opentelemetry:link(undefined)),
+    ?assertMatch(undefined, opentelemetry:link(undefined, Attributes)),
+
+    ?assertMatch(#link{trace_id=TraceId,
+                       span_id=SpanId,
+                       attributes=Attributes,
+                       tracestate=Tracestate},
+                 opentelemetry:link(TraceId, SpanId, Attributes, Tracestate)),
+
+    ?assertMatch(#link{trace_id=TraceId,
+                       span_id=SpanId,
+                       attributes=[],
+                       tracestate=Tracestate},
+                 opentelemetry:link(SpanCtx)),
+
+    ?assertMatch(#link{trace_id=TraceId,
+                       span_id=SpanId,
+                       attributes=Attributes,
+                       tracestate=Tracestate},
+                 opentelemetry:link(SpanCtx, Attributes)),
+
+    ?assertMatch([#link{trace_id=TraceId,
+                        span_id=SpanId,
+                        attributes=Attributes,
+                        tracestate=Tracestate},
+                  #link{trace_id=TraceId,
+                        span_id=SpanId,
+                        attributes=[],
+                        tracestate=Tracestate}],
+                 opentelemetry:links([undefined, {SpanCtx, Attributes}, SpanCtx])).
 
 
 noop_tracer(_Config) ->
