@@ -128,10 +128,33 @@ defmodule OpenTelemetry do
   # Helpers to build OpenTelemetry structured types
 
   @doc """
-  Current time in UNIX Epoch time, nanoseconds since 00:00:00 UTC on 1 January 1970.
+  A monotonically increasing time provided by the Erlang runtime system in the native time unit.
+  This value is the most accurate and precise timestamp available from the Erlang runtime and
+  should be used for finding durations or any timestamp that can be converted to a system
+  time before being sent to another system.
+
+  Use `convert_timestamp/2` or `timestamp_to_nano/1` to convert a native monotonic time to a
+  system time of either nanoseconds or another unit.
+
+  Using these functions allows timestamps to be accurate, used for duration and be exportable
+  as POSIX time when needed.
   """
   @spec timestamp() :: integer()
   defdelegate timestamp(), to: :opentelemetry
+
+  @doc """
+  Convert a native monotonic timestamp to nanosecond POSIX time. Meaning the time since Epoch.
+  Epoch is defined to be 00:00:00 UTC, 1970-01-01.
+  """
+  @spec timestamp_to_nano(integer()) :: integer()
+  defdelegate timestamp_to_nano(timestamp), to: :opentelemetry
+
+  @doc """
+  Convert a native monotonic timestamp to POSIX time of any `:erlang.time_unit/0`.
+  Meaning the time since Epoch. Epoch is defined to be 00:00:00 UTC, 1970-01-01.
+  """
+  @spec convert_timestamp(integer(), :erlang.time_unit()) :: integer()
+  defdelegate convert_timestamp(timestamp, unit), to: :opentelemetry
 
   # span item functions
 

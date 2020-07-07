@@ -189,14 +189,31 @@ get_http_extractor() ->
 get_http_injector() ->
     persistent_term:get({?MODULE, http_injector}, []).
 
+%% @doc A monotonically increasing time provided by the Erlang runtime system in the native time unit.
+%% This value is the most accurate and precise timestamp available from the Erlang runtime and
+%% should be used for finding durations or any timestamp that can be converted to a system
+%% time before being sent to another system.
+
+%% Use {@link convert_timestamp/2} or {@link timestamp_to_nano/1} to convert a native monotonic time to a
+%% system time of either nanoseconds or another {@link erlang:time_unit()}.
+
+%% Using these functions allows timestamps to be accurate, used for duration and be exportable
+%% as POSIX time when needed.
+%% @end
 -spec timestamp() -> integer().
 timestamp() ->
     erlang:monotonic_time().
 
+%% @doc Convert a native monotonic timestamp to nanosecond POSIX time. Meaning the time since Epoch.
+%% Epoch is defined to be 00:00:00 UTC, 1970-01-01.
+%% @end
 -spec timestamp_to_nano(timestamp()) -> integer().
 timestamp_to_nano(Timestamp) ->
     convert_timestamp(Timestamp, nanosecond).
 
+%% @doc Convert a native monotonic timestamp to POSIX time of any {@link erlang:time_unit()}.
+%% Meaning the time since Epoch. Epoch is defined to be 00:00:00 UTC, 1970-01-01.
+%% @end
 -spec convert_timestamp(timestamp(), erlang:time_unit()) -> integer().
 convert_timestamp(Timestamp, Unit) ->
     Offset = erlang:time_offset(),
