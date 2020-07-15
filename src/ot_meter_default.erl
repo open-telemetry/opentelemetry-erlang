@@ -21,6 +21,7 @@
 -behaviour(gen_server).
 
 -export([start_link/1,
+         new_instrument/4,
          new_instruments/2,
          lookup_instrument/1,
          record/4,
@@ -42,6 +43,7 @@
          handle_cast/2]).
 
 -include("ot_meter.hrl").
+-include_lib("kernel/include/logger.hrl").
 
 -define(OBSERVER_TAB, ot_metric_accumulator_observers).
 
@@ -51,6 +53,10 @@
 
 start_link(Opts) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Opts, []).
+
+-spec new_instrument(opentelemetry:meter(), ot_meter:name(), ot_meter:instrument_kind(), ot_meter:instrument_opts()) -> boolean().
+new_instrument(_Meter, Name, InstrumentKind, Opts) ->
+    gen_server:call(?MODULE, {new, Name, InstrumentKind, Opts}).
 
 -spec new_instruments(opentelemetry:meter(), [ot_meter:instrument_opts()]) -> boolean().
 new_instruments(_Meter, List) ->
@@ -162,15 +168,11 @@ init(_Opts) ->
 
     {ok, #state{}}.
 
+handle_call({new, Name, InstrumentKind, Opts}, _From, State) ->
+    Result = insert_new_instrument(Name, InstrumentKind, Opts),
+    {reply, Result, State};
 handle_call({new, List}, _From, State) ->
-    Result = ets:insert_new(?TAB,
-      [#instrument{name=Name,
-                   description=maps:get(description, I, <<>>),
-                   kind=MetricKind,
-                   input_type=maps:get(input_type, I, integer),
-                   unit=maps:get(unit, I, one),
-                   label_keys=maps:get(label_keys, I, [])} || I=#{name := Name,
-                                                                  kind := MetricKind} <- List]),
+    Result = insert_new_instruments(List),
     {reply, Result, State};
 handle_call({register_observer, Name, Instrument, Callback}, _From, State) ->
     _ = ets:insert(?OBSERVER_TAB, #observer{name=Name,
@@ -187,3 +189,45 @@ handle_cast(_Msg, State) ->
 %% instruments with `input_type' `integer'?
 bind_instrument(Instrument, LabelSet) ->
     ot_metric_accumulator:lookup_active(Instrument, LabelSet).
+
+insert_new_instrument(Name, InstrumentKind, Opts) ->
+    ToInsert = instrument(Name, InstrumentKind, Opts),
+    insert_new(ToInsert).
+
+insert_new(ToInsert) ->
+    try
+        ets:insert_new(?TAB, ToInsert)
+    catch
+        C:T ->
+            ?LOG_INFO("Unable to create instruments because of error ~p:~p at ets:insert_new(~p, ~p)", [C, T, ?TAB, ToInsert]),
+            false
+    end.
+
+insert_new_instruments(List) when is_list(List) ->
+    ToInsert = lists:filtermap(fun({Name, InstrumentKind, Opts}) ->
+                                       instrument(Name, InstrumentKind, Opts);
+                                  (_) ->
+                                       false
+                               end, List),
+    insert_new(ToInsert);
+insert_new_instruments(_) ->
+    false.
+
+instrument(Name, InstrumentKind, InstrumentConfig) ->
+    try
+        {true, #instrument{name=Name,
+                           description=maps:get(description, InstrumentConfig, <<>>),
+                           kind=InstrumentKind,
+                           number_kind=maps:get(number_kind, InstrumentConfig, integer),
+                           unit=maps:get(unit, InstrumentConfig, one),
+                           monotonic=maps:get(monotonic, InstrumentConfig),
+                           synchronous=maps:get(synchronous, InstrumentConfig)}}
+    catch
+        error:undef ->
+            ?LOG_INFO("Unable to create instrument ~p because instrument kind ~p isn't a module exporting instrument_config/0", [Name, InstrumentKind]),
+            false;
+        C:T->
+            %% TODO: add stacktrace as logger metadata?
+            ?LOG_INFO("Unable to create instrument ~p because of error ~p:~p", [Name, C, T]),
+            false
+    end.

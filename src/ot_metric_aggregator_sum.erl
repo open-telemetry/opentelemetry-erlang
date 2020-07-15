@@ -28,7 +28,7 @@
 -include("ot_meter.hrl").
 -include_lib("stdlib/include/ms_transform.hrl").
 
--spec update(ets:tab(), ot_meter:key(), ot_meter:input_type(), number()) -> boolean().
+-spec update(ets:tab(), ot_meter:key(), ot_meter:number_kind(), number()) -> boolean().
 update(Tab, Key, integer, Number) when is_integer(Number) ->
     _ = ets:update_counter(Tab, Key, {#active_instrument.current, Number});
 update(Tab, Key, float, Number) ->
@@ -40,13 +40,13 @@ update(_, _, _, _) ->
 checkpoint(Tab, NameLabelSet) ->
     MS = ets:fun2ms(fun(A=#active_instrument{key=Key,
                                              aggregator=Aggregator,
-                                             instrument=#instrument{input_type=integer},
+                                             instrument=#instrument{number_kind=integer},
                                              current=Current}) when Key =:= NameLabelSet ->
                             A#active_instrument{checkpoint=Current,
                                                 current=0};
                        (A=#active_instrument{key=Key,
                                              aggregator=Aggregator,
-                                             instrument=#instrument{input_type=float},
+                                             instrument=#instrument{number_kind=float},
                                              current=Current}) when Key =:= NameLabelSet ->
                             A#active_instrument{checkpoint=Current,
                                                 current=0.0}
@@ -62,7 +62,7 @@ checkpoint(Tab, NameLabelSet) ->
 merge(Number1, Number2) ->
     Number1 + Number2.
 
--spec initial_value(ot_meter:input_type()) -> number().
+-spec initial_value(ot_meter:number_kind()) -> number().
 initial_value(integer) ->
     0;
 initial_value(float) ->

@@ -41,7 +41,7 @@
 
 -define(active_ms(Name, LabelSet),
         ets:fun2ms(fun(#active_instrument{key=Key,
-                                          instrument=#instrument{input_type=InputType},
+                                          instrument=#instrument{number_kind=InputType},
                                           aggregator=Aggregator}) when Key =:= {Name, LabelSet} ->
                            {InputType, Aggregator}
                    end)).
@@ -58,7 +58,7 @@ active_table() ->
 record({Key, {InputType, Aggregator}}, Number) ->
     Aggregator:update(?ACTIVE_TAB, Key, InputType, Number);
 record(#active_instrument{key=Key,
-                          instrument=#instrument{input_type=InputType},
+                          instrument=#instrument{number_kind=InputType},
                           aggregator=Aggregator}, Number) ->
     Aggregator:update(?ACTIVE_TAB, Key, InputType, Number).
 
@@ -78,7 +78,7 @@ observe(#instrument{name=Name}, Number, LabelSet) ->
     ok.
 
 -spec lookup_active(instrument() | ot_meter:name(), ot_meter:label_set())
-                   -> {ot_meter:input_type(), module()} | unknown_instrument.
+                   -> {ot_meter:number_kind(), module()} | unknown_instrument.
 lookup_active(Instrument=#instrument{name=Name}, LabelSet) ->
     MatchSpec = ?active_ms(Name, LabelSet),
     case ets:select(?ACTIVE_TAB, MatchSpec) of
@@ -118,7 +118,7 @@ init(_Opts) ->
 
 handle_call(collect, _From, State) ->
     %% TODO: should observers just checkpoint in the first place?
-    %% TODO: should timeout observer callbacks
+    %% TODO: should have a timeout on observer callbacks
     run_observers(ets:tab2list(ot_meter_default:observer_tab())),
 
     MS = ets:fun2ms(fun(#active_instrument{key=Key,
@@ -157,14 +157,14 @@ run_observer(#observer{instrument=ObserverInstrument,
             ok
     end.
 
-aggregator(#instrument{kind=counter}) ->
+aggregator(#instrument{kind=ot_counter}) ->
     ot_metric_aggregator_sum;
-aggregator(#instrument{kind=observer}) ->
+aggregator(#instrument{kind=ot_sum_observer}) ->
     ot_metric_aggregator_last_value;
-aggregator(#instrument{kind=measure}) ->
+aggregator(#instrument{kind=ot_value_recorder}) ->
     ot_metric_aggregator_mmsc.
 
-add_active_instrument(Instrument=#instrument{input_type=InputType}, Name, LabelSet) ->
+add_active_instrument(Instrument=#instrument{number_kind=InputType}, Name, LabelSet) ->
     Aggregator = aggregator(Instrument),
     InitialValue = Aggregator:initial_value(InputType),
     ActiveInstrument = #active_instrument{key={Name, LabelSet},
