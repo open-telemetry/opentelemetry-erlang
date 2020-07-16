@@ -58,6 +58,7 @@ start_link(Opts) ->
 new_instrument(_Meter, Name, InstrumentKind, Opts) ->
     gen_server:call(?MODULE, {new, Name, InstrumentKind, Opts}).
 
+%% @doc returns `true' if any instrument in the list is successfully created
 -spec new_instruments(opentelemetry:meter(), [ot_meter:instrument_opts()]) -> boolean().
 new_instruments(_Meter, List) ->
     gen_server:call(?MODULE, {new, List}).
@@ -191,43 +192,56 @@ bind_instrument(Instrument, LabelSet) ->
     ot_metric_accumulator:lookup_active(Instrument, LabelSet).
 
 insert_new_instrument(Name, InstrumentKind, Opts) ->
-    ToInsert = instrument(Name, InstrumentKind, Opts),
-    insert_new(ToInsert).
-
-insert_new(ToInsert) ->
-    try
-        ets:insert_new(?TAB, ToInsert)
-    catch
-        C:T ->
-            ?LOG_INFO("Unable to create instruments because of error ~p:~p at ets:insert_new(~p, ~p)", [C, T, ?TAB, ToInsert]),
-            false
+    case instrument(Name, InstrumentKind, Opts) of
+        {error, kind_not_a_module} ->
+            false;
+        Instrument ->
+            insert_new(Instrument)
     end.
 
+%% Insert each individually so we can log more useful error messages.
+%% Instruments should all be created once at the start of an application
+%% so the performance isn't a concern here.
 insert_new_instruments(List) when is_list(List) ->
-    ToInsert = lists:filtermap(fun({Name, InstrumentKind, Opts}) ->
-                                       instrument(Name, InstrumentKind, Opts);
-                                  (_) ->
-                                       false
-                               end, List),
-    insert_new(ToInsert);
+    %% use foldl to track if any insert has failed and return true only if
+    %% none fails
+    lists:foldl(fun({Name, InstrumentKind, Opts}, Acc) ->
+                        insert_new_instrument(Name, InstrumentKind, Opts) andalso Acc;
+                   (X, _Acc) ->
+                        ?LOG_INFO("Unable to create instrument from argument ~p. "
+                                  "Format must be {Name, InstrumentKind, Opts}.", [X]),
+                        false
+                end, true, List);
 insert_new_instruments(_) ->
     false.
 
-instrument(Name, InstrumentKind, InstrumentConfig) ->
+insert_new(Instrument=#instrument{name=Name}) ->
     try
-        {true, #instrument{name=Name,
-                           description=maps:get(description, InstrumentConfig, <<>>),
-                           kind=InstrumentKind,
-                           number_kind=maps:get(number_kind, InstrumentConfig, integer),
-                           unit=maps:get(unit, InstrumentConfig, one),
-                           monotonic=maps:get(monotonic, InstrumentConfig),
-                           synchronous=maps:get(synchronous, InstrumentConfig)}}
+        ets:insert_new(?TAB, Instrument)
+    catch
+        C:T:S ->
+            ?LOG_INFO("Unable to create instrument.", #{instrument_name => Name,
+                                                        class => C,
+                                                        exception => T,
+                                                        stacktrace => S}),
+            false
+    end.
+
+instrument(Name, InstrumentKind, InstrumentConfig) ->
+    %% InstrumentKind must be a module that implements `ot_instrument'
+    try InstrumentKind:module_info() of
+        _ ->
+            #instrument{name=Name,
+                        description=maps:get(description, InstrumentConfig, <<>>),
+                        kind=InstrumentKind,
+                        number_kind=maps:get(number_kind, InstrumentConfig, integer),
+                        unit=maps:get(unit, InstrumentConfig, one),
+                        monotonic=maps:get(monotonic, InstrumentConfig),
+                        synchronous=maps:get(synchronous, InstrumentConfig)}
     catch
         error:undef ->
-            ?LOG_INFO("Unable to create instrument ~p because instrument kind ~p isn't a module exporting instrument_config/0", [Name, InstrumentKind]),
-            false;
-        C:T->
-            %% TODO: add stacktrace as logger metadata?
-            ?LOG_INFO("Unable to create instrument ~p because of error ~p:~p", [Name, C, T]),
-            false
+            ?LOG_INFO("Unable to create instrument kind because the kind must be a module.",
+                      #{instrument_name => Name,
+                        instrument_kind => InstrumentKind}),
+            {error, kind_not_a_module}
     end.
