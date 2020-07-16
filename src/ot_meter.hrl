@@ -6,13 +6,22 @@
 
 -record(instrument, {name         :: ot_meter:name(),
                      description  :: ot_meter:description(),
-                     kind         :: ot_meter:metric_kind(),
-                     input_type   :: ot_meter:input_type(),
-                     mode         :: ot_meter:instrument_mode(),
-                     numeric_type :: atom(),
-                     label_keys   :: [atom()],
+                     kind         :: ot_meter:instrument_kind(),
+                     number_kind  :: ot_meter:number_kind(),
+                     monotonic    :: boolean(),
+                     synchronous  :: boolean(),
                      unit         :: ot_meter:unit()}).
 -type instrument() :: #instrument{}.
+
+-record(descriptor, {name :: ot_meter:name(),
+                     kind :: ot_meter:instrument_kind(),
+                     number_kind :: ot_meter:number_kind(),
+                     config :: ot_meter:instrument_config()}).
+
+-record(config, {%% Description describes the instrument in human-readable terms.
+                 description :: ot_meter:description(),
+                 %% Unit describes the measurement unit for a instrument.
+                 unit :: ot_meter:unit()}).
 
 -type aggregator() :: module().
 
@@ -24,7 +33,7 @@
 -type active_instrument() :: #active_instrument{}.
 
 -record(bound_instrument, {key :: {ot_meter:name(), ot_meter:label_set()},
-                           input_type   :: ot_meter:input_type(),
+                           number_kind :: ot_meter:number_kind(),
                            aggregator :: aggregator()}).
 -type bound_instrument() :: #bound_instrument{} | unknown_instrument.
 

@@ -42,28 +42,24 @@ read() ->
 %% after the filtering of the label sets has been done.
 %% returns a map of all metrics to be exported for this collection interval
 read(Tab) ->
-    ets:foldl(fun(#active_instrument{key={Name, LabelSet},
+    ets:foldl(fun(#active_instrument{key=Key,
                                      instrument=_Instrument=#instrument{description=Description,
                                                                         kind=Kind,
                                                                         unit=Unit,
-                                                                        input_type=InputType,
-                                                                        label_keys=LabelKeys},
+                                                                        number_kind=InputType},
                                      aggregator=Aggregator,
                                      checkpoint=Value}, Acc) ->
-                      %% TODO: what to do here with label sets should be configurable
-                      FilteredLabelSet = filter_label_set(LabelKeys, LabelSet),
-                      NewKey = {Name, FilteredLabelSet},
-                      case maps:get(NewKey, Acc, undefined) of
+                      case maps:get(Key, Acc, undefined) of
                           undefined ->
-                              Acc#{NewKey => #{description => Description,
-                                               aggregator => Aggregator,
-                                               unit => Unit,
-                                               input_type => InputType,
-                                               kind => Kind,
-                                               value => Value}};
+                              Acc#{Key => #{description => Description,
+                                            aggregator => Aggregator,
+                                            unit => Unit,
+                                            number_kind => InputType,
+                                            kind => Kind,
+                                            value => Value}};
                           E=#{value := Existing} ->
                               NewValue = Aggregator:merge(Existing, Value),
-                              Acc#{NewKey => E#{value => NewValue}}
+                              Acc#{Key => E#{value => NewValue}}
                       end
               end, #{}, Tab).
 
@@ -77,7 +73,3 @@ handle_cast(_Msg, State) ->
     {noreply, State}.
 
 %%
-
-filter_label_set(Keys, Set) ->
-    %% TODO: should label sets be maps?
-    maps:to_list(maps:with(Keys, maps:from_list(Set))).
