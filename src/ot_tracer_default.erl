@@ -58,7 +58,7 @@ start_span(Tracer, Name, Opts) ->
 -spec start_inactive_span(opentelemetry:tracer(), opentelemetry:span_name(), ot_span:start_opts())
                  -> opentelemetry:span_ctx().
 start_inactive_span(Tracer={_, #tracer{on_start_processors=Processors,
-                               instrumentation_library=InstrumentationLibrary}}, Name, Opts) ->
+                                       instrumentation_library=InstrumentationLibrary}}, Name, Opts) ->
     Opts1 = maybe_set_sampler(Tracer, maybe_set_parent(Opts)),
     ot_span_ets:start_span(Name, Opts1, Processors, InstrumentationLibrary).
 

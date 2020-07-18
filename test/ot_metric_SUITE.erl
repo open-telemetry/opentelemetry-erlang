@@ -38,21 +38,18 @@ end_per_group(_, _Config) ->
     ok.
 
 e2e_test(_Config) ->
-    ?assertMatch({ot_meter_default, _}, ?current_meter),
+    ?assertMatch({ot_meter_default, _}, ?ot_current_meter),
 
-    ?new_instruments([#{name => mycounter,
-                        kind => counter,
-                        input_type => integer,
-                        label_keys => ["a"]}]),
-    ?new_instruments([#{name => myfloat,
-                        kind => counter,
-                        input_type => float,
-                        label_keys => ["a"]}]),
-    ?counter_add(mycounter, 4, []),
-    ?counter_add(mycounter, 5, []),
+    ?ot_new_instruments([{mycounter, ot_counter, #{monotonic => true,
+                                                   synchronous => true}}]),
+    ?ot_new_instruments([{myfloat, ot_counter, #{monotonic => true,
+                                                 number_kind => float,
+                                                 synchronous => true}}]),
+    ?ot_counter_add(mycounter, 4, []),
+    ?ot_counter_add(mycounter, 5, []),
 
-    ?counter_add(myfloat, 4.1, []),
-    ?counter_add(myfloat, 5.1, []),
+    ?ot_counter_add(myfloat, 4.1, []),
+    ?ot_counter_add(myfloat, 5.1, []),
 
     ot_metric_accumulator:collect(),
     Records = ot_metric_integrator:read(),
@@ -63,13 +60,11 @@ e2e_test(_Config) ->
     ok.
 
 observer(_Config) ->
-    ot_meter_default:new_instruments([], [#{name => myobserver,
-                                            kind => observer,
-                                            input_type => integer,
-                                            label_keys => ["a"]}]),
+    ot_meter_default:new_instruments([], [{myobserver, ot_sum_observer, #{monotonic => true,
+                                                                          synchronous => false}}]),
 
     ot_meter_default:register_observer(meter, myobserver, fun(R) ->
-                                                                  ot_observer:observe(R, 3, [{"a", "b"}]),
+                                                                  ot_sum_observer:observe(R, 3, [{"a", "b"}]),
                                                                   ok
                                                           end),
 
@@ -79,11 +74,11 @@ observer(_Config) ->
     ?assertMatch(#{{myobserver, [{"a", "b"}]} := #{value := {3, _}}}, Records),
 
     ot_meter_default:register_observer(meter, myobserver, fun(R) ->
-                                                                  ot_observer:observe(R, 5, []),
+                                                                  ot_sum_observer:observe(R, 5, []),
                                                                   ok
                                                           end),
     ot_meter_default:register_observer(meter, myobserver, fun(R) ->
-                                                                  ot_observer:observe(R, 6, []),
+                                                                  ot_sum_observer:observe(R, 6, []),
                                                                   ok
                                                           end),
 
@@ -94,10 +89,8 @@ observer(_Config) ->
     ok.
 
 counter(_Config) ->
-    ot_meter_default:new_instruments([], [#{name => c1,
-                                            kind => counter,
-                                            input_type => integer,
-                                            label_keys => [key1]}]),
+    ot_meter_default:new_instruments([], [{c1, ot_counter, #{monotonic => true,
+                                                             synchronous => true}}]),
 
     %% a bad measurement should be ignored
     ?assertEqual(ok, ot_meter_default:record(meter, m1, [{key1, value1}], undefined)),
@@ -116,10 +109,8 @@ counter(_Config) ->
 
 
 mmsc(_Config) ->
-    ot_meter_default:new_instruments([], [#{name => m1,
-                                            kind => measure,
-                                            input_type => integer,
-                                            label_keys => [key1]}]),
+    ot_meter_default:new_instruments([], [{m1, ot_value_recorder, #{monotonic => false,
+                                                                    synchronous => true}}]),
 
     ot_meter_default:record(meter, m1, [{key1, value1}], 2),
     ot_meter_default:record(meter, m1, [{key1, value2}], 8),

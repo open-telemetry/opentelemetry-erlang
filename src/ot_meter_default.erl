@@ -21,6 +21,7 @@
 -behaviour(gen_server).
 
 -export([start_link/1,
+         new_instrument/4,
          new_instruments/2,
          lookup_instrument/1,
          record/4,
@@ -42,6 +43,7 @@
          handle_cast/2]).
 
 -include("ot_meter.hrl").
+-include_lib("kernel/include/logger.hrl").
 
 -define(OBSERVER_TAB, ot_metric_accumulator_observers).
 
@@ -52,6 +54,11 @@
 start_link(Opts) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, Opts, []).
 
+-spec new_instrument(opentelemetry:meter(), ot_meter:name(), ot_meter:instrument_kind(), ot_meter:instrument_opts()) -> boolean().
+new_instrument(_Meter, Name, InstrumentKind, Opts) ->
+    gen_server:call(?MODULE, {new, Name, InstrumentKind, Opts}).
+
+%% @doc returns `true' if any instrument in the list is successfully created
 -spec new_instruments(opentelemetry:meter(), [ot_meter:instrument_opts()]) -> boolean().
 new_instruments(_Meter, List) ->
     gen_server:call(?MODULE, {new, List}).
@@ -162,15 +169,11 @@ init(_Opts) ->
 
     {ok, #state{}}.
 
+handle_call({new, Name, InstrumentKind, Opts}, _From, State) ->
+    Result = insert_new_instrument(Name, InstrumentKind, Opts),
+    {reply, Result, State};
 handle_call({new, List}, _From, State) ->
-    Result = ets:insert_new(?TAB,
-      [#instrument{name=Name,
-                   description=maps:get(description, I, <<>>),
-                   kind=MetricKind,
-                   input_type=maps:get(input_type, I, integer),
-                   unit=maps:get(unit, I, one),
-                   label_keys=maps:get(label_keys, I, [])} || I=#{name := Name,
-                                                                  kind := MetricKind} <- List]),
+    Result = insert_new_instruments(List),
     {reply, Result, State};
 handle_call({register_observer, Name, Instrument, Callback}, _From, State) ->
     _ = ets:insert(?OBSERVER_TAB, #observer{name=Name,
@@ -187,3 +190,58 @@ handle_cast(_Msg, State) ->
 %% instruments with `input_type' `integer'?
 bind_instrument(Instrument, LabelSet) ->
     ot_metric_accumulator:lookup_active(Instrument, LabelSet).
+
+insert_new_instrument(Name, InstrumentKind, Opts) ->
+    case instrument(Name, InstrumentKind, Opts) of
+        {error, kind_not_a_module} ->
+            false;
+        Instrument ->
+            insert_new(Instrument)
+    end.
+
+%% Insert each individually so we can log more useful error messages.
+%% Instruments should all be created once at the start of an application
+%% so the performance isn't a concern here.
+insert_new_instruments(List) when is_list(List) ->
+    %% use foldl to track if any insert has failed and return true only if
+    %% none fails
+    lists:foldl(fun({Name, InstrumentKind, Opts}, Acc) ->
+                        insert_new_instrument(Name, InstrumentKind, Opts) andalso Acc;
+                   (X, _Acc) ->
+                        ?LOG_INFO("Unable to create instrument from argument ~p. "
+                                  "Format must be {Name, InstrumentKind, Opts}.", [X]),
+                        false
+                end, true, List);
+insert_new_instruments(_) ->
+    false.
+
+insert_new(Instrument=#instrument{name=Name}) ->
+    try
+        ets:insert_new(?TAB, Instrument)
+    catch
+        C:T:S ->
+            ?LOG_INFO("Unable to create instrument.", #{instrument_name => Name,
+                                                        class => C,
+                                                        exception => T,
+                                                        stacktrace => S}),
+            false
+    end.
+
+instrument(Name, InstrumentKind, InstrumentConfig) ->
+    %% InstrumentKind must be a module that implements `ot_instrument'
+    try InstrumentKind:module_info() of
+        _ ->
+            #instrument{name=Name,
+                        description=maps:get(description, InstrumentConfig, <<>>),
+                        kind=InstrumentKind,
+                        number_kind=maps:get(number_kind, InstrumentConfig, integer),
+                        unit=maps:get(unit, InstrumentConfig, one),
+                        monotonic=maps:get(monotonic, InstrumentConfig),
+                        synchronous=maps:get(synchronous, InstrumentConfig)}
+    catch
+        error:undef ->
+            ?LOG_INFO("Unable to create instrument kind because the kind must be a module.",
+                      #{instrument_name => Name,
+                        instrument_kind => InstrumentKind}),
+            {error, kind_not_a_module}
+    end.
