@@ -22,14 +22,15 @@
 -export([setup/2,
          always_on/7,
          always_off/7,
-         always_parent/7,
+         parent_or_else/7,
          probability/7]).
 
+-include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("ot_sampler.hrl").
 -include("ot_span.hrl").
 
--type sampling_decision() :: ?NOT_RECORD | ?RECORD | ?RECORD_AND_PROPAGATE.
+-type sampling_decision() :: ?NOT_RECORD | ?RECORD | ?RECORD_AND_SAMPLED.
 -type sampling_result() :: {sampling_decision(), opentelemetry:attributes()}.
 -type sampler() :: {fun((opentelemetry:trace_id(),
                          opentelemetry:span_ctx() | undefined,
@@ -51,8 +52,12 @@ setup(always_on, _Opts) ->
     {fun ?MODULE:always_on/7, []};
 setup(always_off, _Opts) ->
     {fun ?MODULE:always_off/7, []};
-setup(always_parent, _Opts) ->
-    {fun ?MODULE:always_parent/7, []};
+setup(parent_or_else, #{delegate_sampler := {DelegateSampler, DelegateOpts}})
+  when is_atom(DelegateSampler) ->
+    {fun ?MODULE:parent_or_else/7, setup(DelegateSampler, DelegateOpts)};
+setup(parent_or_else, _Opts) ->
+    ?LOG_INFO("no delegate_sampler opt found for sampler parent_or_else. always_on will be used for root spans"),
+    {fun ?MODULE:parent_or_else/7, setup(always_on, #{})};
 setup(probability, Opts) ->
     IdUpperBound =
         case maps:get(probability, Opts, ?DEFAULT_PROBABILITY) of
@@ -72,15 +77,17 @@ setup(Sampler, Opts) ->
     Sampler:setup(Opts).
 
 always_on(_TraceId, _SpanCtx, _Links, _SpanName, _Kind, _Attributes, _Opts) ->
-    {?RECORD_AND_PROPAGATE, []}.
+    {?RECORD_AND_SAMPLED, []}.
 
 always_off(_TraceId, _SpanCtx, _Links, _SpanName, _Kind, _Attributes, _Opts) ->
     {?NOT_RECORD, []}.
 
-always_parent(_, #span_ctx{trace_flags=TraceFlags}, _, _, _, _, _) when ?IS_SPAN_ENABLED(TraceFlags) ->
-    {?RECORD_AND_PROPAGATE, []};
-always_parent(_, _, _, _, _, _, _) ->
-    {?NOT_RECORD, []}.
+parent_or_else(_, #span_ctx{trace_flags=TraceFlags}, _, _, _, _, _) when ?IS_SPAN_ENABLED(TraceFlags) ->
+    {?RECORD_AND_SAMPLED, []};
+parent_or_else(_, #span_ctx{trace_flags=_TraceFlags}, _, _, _, _, _) ->
+    {?NOT_RECORD, []};
+parent_or_else(TraceId, SpanCtx, Links, SpanName, Kind, Attributes, {DelegateSampler, DelegateOpts}) ->
+    DelegateSampler(TraceId, SpanCtx, Links, SpanName, Kind, Attributes, DelegateOpts).
 
 probability(TraceId, Parent, _, _, _, _, {IdUpperBound,
                                           IgnoreParentFlag,
@@ -91,14 +98,14 @@ probability(_, #span_ctx{trace_flags=TraceFlags}, _, _, _, _, {_IdUpperBound,
                                                                _IgnoreParentFlag,
                                                                _OnlyRoot})
   when ?IS_SPAN_ENABLED(TraceFlags) ->
-    {?RECORD_AND_PROPAGATE, []};
+    {?RECORD_AND_SAMPLED, []};
 probability(TraceId, #span_ctx{is_remote=IsRemote}, _, _, _, _, {IdUpperBound,
                                                                  _IgnoreParentFlag,
                                                                  OnlyRoot}) ->
     case OnlyRoot =:= false andalso IsRemote =:= true
         andalso do_probability_sample(TraceId, IdUpperBound) of
-        ?RECORD_AND_PROPAGATE ->
-            {?RECORD_AND_PROPAGATE, []};
+        ?RECORD_AND_SAMPLED ->
+            {?RECORD_AND_SAMPLED, []};
         _ ->
             {?NOT_RECORD, []}
     end.
@@ -107,7 +114,7 @@ do_probability_sample(TraceId, IdUpperBound) ->
     Lower64Bits = TraceId band ?MAX_VALUE,
     case erlang:abs(Lower64Bits) < IdUpperBound of
         true ->
-            ?RECORD_AND_PROPAGATE;
+            ?RECORD_AND_SAMPLED;
         false ->
             ?NOT_RECORD
     end.

@@ -18,4 +18,4 @@
 
 -define(NOT_RECORD, not_record).
 -define(RECORD, record).
--define(RECORD_AND_PROPAGATE, record_and_propagate).
+-define(RECORD_AND_SAMPLED, record_and_sampled).
