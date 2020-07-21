@@ -51,7 +51,7 @@ export(Tab, Resource, #state{protocol=http_protobuf,
         {ok, {{_, Code, _}, _, _}} when Code >= 200 andalso Code =< 202 ->
             ok;
         {ok, {{_, Code, _}, _, Message}} ->
-            ?LOG_INFO("error response from service exported to status=~p ~p",
+            ?LOG_INFO("error response from service exported to status=~p ~s",
                       [Code, Message]),
             error;
         {error, Reason} ->
