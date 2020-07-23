@@ -116,6 +116,7 @@ to_proto(#span{trace_id=TraceId,
                events=TimedEvents,
                links=Links,
                status=Status,
+               child_span_count=ChildSpanCount,
                trace_options=_TraceOptions,
                is_recording=_IsRecording}) ->
     ParentSpanId = case MaybeParentSpanId of undefined -> <<>>; _ -> <<MaybeParentSpanId:64>> end,
@@ -133,7 +134,8 @@ to_proto(#span{trace_id=TraceId,
       dropped_events_count     => 0,
       links                    => to_links(Links),
       dropped_links_count      => 0,
-      status                   => to_status(Status).
+      status                   => to_status(Status),
+      local_child_span_count   => ChildSpanCount}.
 
 -spec to_unixnano(integer()) -> non_neg_integer().
 to_unixnano(Timestamp) ->
