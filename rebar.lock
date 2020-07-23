@@ -1,4 +1,4 @@
-{"1.2.0",
+{"1.1.0",
 [{<<"acceptor_pool">>,{pkg,<<"acceptor_pool">>,<<"1.0.0">>},1},
  {<<"chatterbox">>,{pkg,<<"ts_chatterbox">>,<<"0.9.1">>},1},
  {<<"ctx">>,{pkg,<<"ctx">>,<<"0.5.0">>},1},
@@ -6,7 +6,7 @@
  {<<"grpcbox">>,{pkg,<<"grpcbox">>,<<"0.11.0">>},0},
  {<<"hpack">>,{pkg,<<"hpack_erl">>,<<"0.2.3">>},2},
  {<<"opentelemetry">>,{pkg,<<"opentelemetry">>,<<"0.4.0">>},0},
- {<<"opentelemetry_api">>,{pkg,<<"opentelemetry_api">>,<<"0.3.1">>},0}]}.
+ {<<"opentelemetry_api">>,{pkg,<<"opentelemetry_api">>,<<"0.3.2">>},0}]}.
 [
 {pkg_hash,[
  {<<"acceptor_pool">>, <<"43C20D2ACAE35F0C2BCD64F9D2BDE267E459F0F3FD23DAB26485BF518C281B21">>},
@@ -16,14 +16,5 @@
  {<<"grpcbox">>, <<"EA9F9160120A4884838D397DDE64B36EDB122ADF335238F639DEBC12087DA67F">>},
  {<<"hpack">>, <<"17670F83FF984AE6CD74B1C456EDDE906D27FF013740EE4D9EFAA4F1BF999633">>},
  {<<"opentelemetry">>, <<"293729F014009B03A1A2C47E6367DB6F280B41412FAA5639F06DCCE9733D18A6">>},
- {<<"opentelemetry_api">>, <<"AA042F9FF0B774C3E9827E215FCF972D5CFCCD9A79ED55194B58C329A945B486">>}]},
-{pkg_hash_ext,[
- {<<"acceptor_pool">>, <<"0CBCD83FDC8B9AD2EEE2067EF8B91A14858A5883CB7CD800E6FCD5803E158788">>},
- {<<"chatterbox">>, <<"D5427C3701CCE85A7B7F9977A4A44B98E527494F6CB598717585A332EF4107B4">>},
- {<<"ctx">>, <<"52554D80F9D93B3F82DBA8E1776E8EA87B0D6218AE94BA0F73D61AD1579AED08">>},
- {<<"gproc">>, <<"580ADAFA56463B75263EF5A5DF4C86AF321F68694E7786CB057FD805D1E2A7DE">>},
- {<<"grpcbox">>, <<"26FFC946D6471309EAE2E29B6126E8BE3729018DC581FB0E471368D15BADF472">>},
- {<<"hpack">>, <<"06F580167C4B8B8A6429040DF36CC93BBA6D571FAEAEC1B28816523379CBB23A">>},
- {<<"opentelemetry">>, <<"F0EB4281F26879147322B0A6F1C457C57F3F1C4121CBFF1F6056E4C98B1647A7">>},
- {<<"opentelemetry_api">>, <<"91FC78C521B9FC7F72F47144BB9F0838D57584B1BE5BBD3098D8AAF2F2D42686">>}]}
+ {<<"opentelemetry_api">>, <<"B474CD21AF5855A6DFFF0912F26C7C40FBF1FD05B045D8E29FD53EDEB4C3EC99">>}]}
 ].
