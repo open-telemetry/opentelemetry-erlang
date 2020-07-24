@@ -170,7 +170,12 @@ verify_export(Config) ->
                                 #event{system_time_nano=erlang:system_time(nanosecond),
                                        name = <<"event-2">>,
                                        attributes = [{<<"attr-3">>, <<"value-3">>}]}],
-                      attributes = [{<<"attr-2">>, <<"value-2">>}]},
+                      attributes = [
+                                    {<<"attr-2">>, <<"value-2">>},
+                                    {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
+                                    {<<"proplist-key-1">>, [{proplistkey1, 456}, {<<"proplist-key-2">>, 9.345}]},
+                                    {<<"list-key-1">>, [listkey1, 123, <<"list-value-3">>]}
+                                   ]},
     true = ets:insert(Tid, ChildSpan),
 
     ?assertMatch([#{instrumentation_library := undefined,

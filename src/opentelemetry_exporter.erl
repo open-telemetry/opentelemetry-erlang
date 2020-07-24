@@ -145,26 +145,39 @@ to_unixnano(Timestamp) ->
 to_attributes(Attributes) ->
     to_attributes(Attributes, []).
 
+%% Note: nested maps may be an issue.
 to_attributes([], Acc) ->
     Acc;
 to_attributes([{Key, Value} | Rest], Acc) when is_binary(Value) ->
     to_attributes(Rest, [#{key => Key,
-                           type => 'STRING',
-                           string_value => Value} | Acc]);
+                           value => #{value => {string_value, Value}}} | Acc]);
 to_attributes([{Key, Value} | Rest], Acc) when is_integer(Value) ->
     to_attributes(Rest, [#{key => Key,
-                           type => 'INT',
-                           int_value => Value} | Acc]);
+                           value => #{value => {int_value, Value}}} | Acc]);
 to_attributes([{Key, Value} | Rest], Acc) when is_float(Value) ->
     to_attributes(Rest, [#{key => Key,
-                           type => 'DOUBLE',
-                           double_value => Value} | Acc]);
+                           value => #{value => {double_value, Value}}} | Acc]);
 to_attributes([{Key, Value} | Rest], Acc) when is_boolean(Value) ->
     to_attributes(Rest, [#{key => Key,
-                           type => 'BOOL',
-                           bool_value => Value} | Acc]);
+                           value => #{value => {bool_value, Value}}} | Acc]);
+to_attributes([{Key, Value} | Rest], Acc) when is_map(Value) ->
+    to_attributes(Rest, [#{key => Key,
+                           values => #{value => {kvlist_value, maps:to_list(Value)}}} | Acc]);
+to_attributes([{Key, Value} | Rest], Acc) when is_list(Value) ->
+    case is_proplist(Value) of
+        true ->
+            to_attributes(Rest, [#{key => Key,
+                                        values => #{value => {kvlist_value, Value}}} | Acc]);
+        false ->
+            to_attributes(Rest, [#{key => Key,
+                                   values => #{value => {array_value, Value}}} | Acc])
+    end;
 to_attributes([_ | Rest], Acc) ->
     to_attributes(Rest, Acc).
+
+is_proplist([]) -> true;
+is_proplist([{K,_}|L]) when is_atom(K) or is_binary(K) -> is_proplist(L);
+is_proplist(_) -> false.
 
 -spec to_status(opentelemetry:status()) -> opentelemetry_exporter_trace_service_pb:status().
 to_status(#status{code=Code,
