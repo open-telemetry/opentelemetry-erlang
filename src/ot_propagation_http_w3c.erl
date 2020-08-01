@@ -59,7 +59,7 @@ encode(#span_ctx{trace_id=TraceId,
     Options = case TraceOptions band 1 of 1 -> <<"01">>; _ -> <<"00">> end,
     EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
     EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
-    [?VERSION, "-", EncodedTraceId, "-", EncodedSpanId, "-", Options].
+    unicode:characters_to_binary([?VERSION, "-", EncodedTraceId, "-", EncodedSpanId, "-", Options]).
 
 encode_tracestate(#span_ctx{tracestate=undefined}) ->
     [];
