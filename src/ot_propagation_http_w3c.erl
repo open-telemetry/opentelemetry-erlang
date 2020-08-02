@@ -52,14 +52,14 @@ inject(_, #tracer_ctx{active=SpanCtx=#span_ctx{},
 inject(_, undefined) ->
     [].
 
--spec encode(opentelemetry:span_ctx()) -> iolist().
+-spec encode(opentelemetry:span_ctx()) -> binary().
 encode(#span_ctx{trace_id=TraceId,
                  span_id=SpanId,
                  trace_flags=TraceOptions}) ->
     Options = case TraceOptions band 1 of 1 -> <<"01">>; _ -> <<"00">> end,
     EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
     EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
-    unicode:characters_to_binary([?VERSION, "-", EncodedTraceId, "-", EncodedSpanId, "-", Options]).
+    iolist_to_binary([?VERSION, "-", EncodedTraceId, "-", EncodedSpanId, "-", Options]).
 
 encode_tracestate(#span_ctx{tracestate=undefined}) ->
     [];
