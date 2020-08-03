@@ -62,10 +62,6 @@
           %% An optional final status for this span.
           status                                  :: opentelemetry:status() | undefined,
 
-          %% An optional number of child spans that were generated while this span
-          %% was active. If set, allows implementation to detect missing child spans.
-          child_span_count = undefined            :: integer() | undefined,
-
           %% 8-bit integer, lowest bit is if it is sampled
           trace_options = 1                       :: integer() | undefined,
 
