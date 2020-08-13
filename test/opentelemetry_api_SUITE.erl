@@ -107,7 +107,8 @@ update_span_data(_Config) ->
 
     Events = opentelemetry:events([{opentelemetry:timestamp(),
                                     <<"timed-event-name">>, []}]),
-    Status = opentelemetry:status(0, <<"status">>),
+    Status = ot_http_status:to_status(200),
+    ?assertMatch(#status{code = ?OTEL_STATUS_OK, message = <<"Ok">>}, Status),
 
     %% with spanctx and tracer passed as an argument
     Tracer = opentelemetry:get_tracer(),
