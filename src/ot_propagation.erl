@@ -25,7 +25,7 @@
 -type injector(T) :: {fun((T, ot_ctx:namespace(), {fun(), term()}) -> T), term()} |
                      {fun((T, ot_ctx:namespace(), ot_ctx:key(), {fun(), term()}) -> T), term()}.
 
--type http_headers() :: [{iodata(), iodata()}].
+-type http_headers() :: [{binary(), binary()}].
 
 -type http_injector() :: injector(http_headers()).
 -type http_extractor() :: extractor(http_headers()).
