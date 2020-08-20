@@ -107,7 +107,11 @@ span_round_trip(_Config) ->
                         #event{system_time_nano=erlang:system_time(nanosecond),
                                name = <<"event-2">>,
                                attributes = [{<<"attr-3">>, <<"value-3">>}]}],
-              attributes = [{<<"attr-2">>, <<"value-2">>}],
+              attributes = [
+                  {<<"attr-2">>, <<"value-2">>},
+                  {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
+                  {<<"proplist-key-1">>, [{proplistkey1, 456}, {<<"proplist-key-2">>, 9.345}]}
+                ],
               status = #status{code='Ok',
                                message = <<"">>},
               instrumentation_library = #instrumentation_library{name = <<"tracer-1">>,
