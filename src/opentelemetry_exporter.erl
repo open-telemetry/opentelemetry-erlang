@@ -120,7 +120,7 @@ to_proto(#span{trace_id=TraceId,
                trace_options=_TraceOptions,
                is_recording=_IsRecording}) ->
     ParentSpanId = case MaybeParentSpanId of undefined -> <<>>; _ -> <<MaybeParentSpanId:64>> end,
-    #{name                     => Name,
+    #{name                     => to_binary(Name),
       trace_id                 => <<TraceId:128>>,
       span_id                  => <<SpanId:64>>,
       parent_span_id           => ParentSpanId,
@@ -149,24 +149,27 @@ to_attributes(Attributes) ->
 to_attributes([], Acc) ->
     Acc;
 to_attributes([{Key, Value} | Rest], Acc) when is_binary(Value) ->
-    to_attributes(Rest, [#{key => Key,
+    to_attributes(Rest, [#{key => to_binary(Key),
                            value => #{value => {string_value, Value}}} | Acc]);
+to_attributes([{Key, Value} | Rest], Acc) when is_atom(Value) ->
+    to_attributes(Rest, [#{key => to_binary(Key),
+                           value => #{value => {string_value, to_binary(Value)}}} | Acc]);
 to_attributes([{Key, Value} | Rest], Acc) when is_integer(Value) ->
-    to_attributes(Rest, [#{key => Key,
+    to_attributes(Rest, [#{key => to_binary(Key),
                            value => #{value => {int_value, Value}}} | Acc]);
 to_attributes([{Key, Value} | Rest], Acc) when is_float(Value) ->
-    to_attributes(Rest, [#{key => Key,
+    to_attributes(Rest, [#{key => to_binary(Key),
                            value => #{value => {double_value, Value}}} | Acc]);
 to_attributes([{Key, Value} | Rest], Acc) when is_boolean(Value) ->
-    to_attributes(Rest, [#{key => Key,
+    to_attributes(Rest, [#{key => to_binary(Key),
                            value => #{value => {bool_value, Value}}} | Acc]);
 to_attributes([{Key, Value} | Rest], Acc) when is_map(Value) ->
-    to_attributes(Rest, [#{key => Key,
+    to_attributes(Rest, [#{key => to_binary(Key),
                            values => #{value => {kvlist_value, maps:to_list(Value)}}} | Acc]);
 to_attributes([{Key, Value} | Rest], Acc) when is_list(Value) ->
     case is_proplist(Value) of
         true ->
-            to_attributes(Rest, [#{key => Key,
+            to_attributes(Rest, [#{key => to_binary(Key),
                                         values => #{value => {kvlist_value, Value}}} | Acc]);
         false ->
             to_attributes(Rest, [#{key => Key,
@@ -178,6 +181,9 @@ to_attributes([_ | Rest], Acc) ->
 is_proplist([]) -> true;
 is_proplist([{K,_}|L]) when is_atom(K) or is_binary(K) -> is_proplist(L);
 is_proplist(_) -> false.
+
+to_binary(Term) when is_atom(Term) -> erlang:atom_to_binary(Term, unicode);
+to_binary(Term) -> Term.
 
 -spec to_status(opentelemetry:status()) -> opentelemetry_exporter_trace_service_pb:status().
 to_status(#status{code=Code,
@@ -197,7 +203,7 @@ to_events([#event{system_time_nano=Timestamp,
                   name=Name,
                   attributes=Attributes} | Rest], Acc) ->
     to_events(Rest, [#{time_unix_nano => to_unixnano(Timestamp),
-                       name => Name,
+                       name => to_binary(Name),
                        attributes => to_attributes(Attributes)} | Acc]).
 
 -spec to_links(opentelemetry:links()) -> [opentelemetry_exporter_trace_service_pb:link()].

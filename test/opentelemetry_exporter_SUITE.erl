@@ -176,6 +176,7 @@ verify_export(Config) ->
                                        name = <<"event-2">>,
                                        attributes = [{<<"attr-3">>, <<"value-3">>}]}],
                       attributes = [
+                                    {atom_attr, atom_value},
                                     {<<"attr-2">>, <<"value-2">>},
                                     {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
                                     {<<"proplist-key-1">>, [{proplistkey1, 456}, {<<"proplist-key-2">>, 9.345}]},
