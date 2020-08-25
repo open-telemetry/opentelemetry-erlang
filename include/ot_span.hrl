@@ -39,7 +39,7 @@
           parent_span_id                          :: opentelemetry:span_id() | undefined,
 
           %% name of the span
-          name                                    :: unicode:unicode_binary(),
+          name                                    :: unicode:unicode_binary() | atom(),
 
           %% Distinguishes between spans generated in a particular context. For example,
           %% two spans with the same name may be distinguished using `CLIENT` (caller)
