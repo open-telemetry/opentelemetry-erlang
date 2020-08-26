@@ -107,7 +107,11 @@ span_round_trip(_Config) ->
                         #event{system_time_nano=erlang:system_time(nanosecond),
                                name = <<"event-2">>,
                                attributes = [{<<"attr-3">>, <<"value-3">>}]}],
-              attributes = [{<<"attr-2">>, <<"value-2">>}],
+              attributes = [
+                  {<<"attr-2">>, <<"value-2">>},
+                  {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
+                  {<<"proplist-key-1">>, [{proplistkey1, 456}, {<<"proplist-key-2">>, 9.345}]}
+                ],
               status = #status{code='Ok',
                                message = <<"">>},
               instrumentation_library = #instrumentation_library{name = <<"tracer-1">>,
@@ -125,6 +129,7 @@ span_round_trip(_Config) ->
 
 %% insert a couple spans and export to locally running otel collector
 verify_export(Config) ->
+    os:putenv("OTEL_RESOURCE_LABELS", "service.name=my-test-service,service.version=98da75ea6d38724743bf42b45565049238d86b3f"),
     Protocol = ?config(protocol, Config),
     Port = case Protocol of
                grpc ->
@@ -180,8 +185,8 @@ verify_export(Config) ->
 
     ?assertMatch([#{instrumentation_library := undefined,
                     spans := [_, _]}], opentelemetry_exporter:to_proto_by_instrumentation_library(Tid)),
-
-    ?assertMatch(ok, opentelemetry_exporter:export(Tid, ot_resource:create([{"service.name",
-                                                                             "my-test-service"}]), State)),
+    Resource = ot_resource_env_var:get_resource(),
+    ?assertMatch({ot_resource,[{<<"service.name">>,<<"my-test-service">>},{<<"service.version">>,<<"98da75ea6d38724743bf42b45565049238d86b3f">>}]}, Resource),
+    ?assertMatch(ok, opentelemetry_exporter:export(Tid, Resource, State)),
 
     ok.
