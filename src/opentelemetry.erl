@@ -93,11 +93,11 @@
 
 -type span_ctx()           :: #span_ctx{}.
 -type span()               :: term().
--type span_name()          :: unicode:unicode_binary().
+-type span_name()          :: unicode:unicode_binary() | atom().
 
--type attribute_key()      :: unicode:unicode_binary().
+-type attribute_key()      :: unicode:unicode_binary() | atom().
 -type attribute_value()    :: any().
--type attribute()          :: {unicode:unicode_binary(), attribute_value()}.
+-type attribute()          :: {attribute_key(), attribute_value()}.
 -type attributes()         :: [attribute()].
 
 -type span_kind()          :: ?SPAN_KIND_INTERNAL    |
