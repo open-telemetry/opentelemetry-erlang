@@ -23,10 +23,13 @@
 %% value containing all information needed by the SDK to record an update
 -type instrument() :: term().
 
-%% function called with an `observer_instrument' argument to update observer
--type callback() :: fun((instrument()) -> ok).
+-type callback() :: fun((observer_instrument()) -> ok).
 
--export_type([callback/0]).
+%% value containing all information needed by the SDK to record an update
+-type observer_instrument() :: term().
+-type observer_result() :: {module(), observer_instrument()}.
+
+-export_type([callback/0, observer_result/0]).
 
 -callback set_callback(opentelemetry:meter(), ot_meter:name(), callback()) -> ok.
 -callback observe(instrument(), number(), ot_meter:labels()) -> ok.

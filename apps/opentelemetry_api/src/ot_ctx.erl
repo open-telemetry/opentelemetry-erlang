@@ -46,7 +46,8 @@
 
 -export_type([t/0,
               key/0,
-              value/0]).
+              value/0
+            ]).
 
 -define(CURRENT_CTX, '$__current_otel_ctx').
 

@@ -20,7 +20,8 @@ defmodule OpenTelemetry.Tracer do
   @type start_opts() :: %{
           optional(:parent) => OpenTelemetry.span() | OpenTelemetry.span_ctx(),
           optional(:attributes) => OpenTelemetry.attributes(),
-          optional(:sampler) => :ot_sampler.sampler(),
+          # TODO sampler should is an opaque type defined in the implementation
+          optional(:sampler) => term(),
           optional(:links) => OpenTelemetry.links(),
           optional(:is_recording) => boolean(),
           optional(:start_time) => :opentelemetry.timestamp(),
