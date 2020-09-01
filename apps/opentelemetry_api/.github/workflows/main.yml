@@ -41,7 +41,7 @@ jobs:
 
   elixir_tests:
     runs-on: ubuntu-latest
-    name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+    name: OTP ${{matrix.otp_version}} / Elixir ${{matrix.elixir}}
     strategy:
       matrix:
         otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
@@ -60,7 +60,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: deps
-          key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock', matrix.otp, matrix.elixir)) }}
+          key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock', matrix.otp_version, matrix.elixir)) }}
           restore-keys: |
             ${{ runner.os }}-mix-
       - run: mix test
