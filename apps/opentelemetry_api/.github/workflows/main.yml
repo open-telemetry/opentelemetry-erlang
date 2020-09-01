@@ -24,6 +24,7 @@ jobs:
       with:
         otp-version: ${{ matrix.otp_version }}
 
+
     - name: Compile
       run: rebar3 compile
     - name: EUnit tests
@@ -52,5 +53,15 @@ jobs:
           otp-version: ${{matrix.otp_version}}
           elixir-version: ${{matrix.elixir}}
       - run: mix deps.get
+      - uses: actions/cache@v1
+        with:
+          path: _build
+          key: build-${{ hashFiles('mix.lock') }}
+      - uses: actions/cache@v2
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock', matrix.otp, matrix.elixir)) }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
       - run: mix test
       - run: mix dialyzer
