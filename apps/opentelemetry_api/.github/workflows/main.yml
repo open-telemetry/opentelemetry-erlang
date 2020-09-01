@@ -44,7 +44,7 @@ jobs:
     strategy:
       matrix:
         otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
-        elixir: ['1.9.4']
+        elixir: ['1.10.4']
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-elixir@v1
