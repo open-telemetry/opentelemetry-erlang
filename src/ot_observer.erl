@@ -20,21 +20,13 @@
 %%%-------------------------------------------------------------------------
 -module(ot_observer).
 
--export([set_callback/3,
-         observe/3]).
+%% value containing all information needed by the SDK to record an update
+-type instrument() :: term().
 
 %% function called with an `observer_instrument' argument to update observer
--type callback() :: fun((observer_instrument()) -> ok).
-
-%% value containing all information needed by the SDK to record an update
--type observer_instrument() :: term().
+-type callback() :: fun((instrument()) -> ok).
 
 -export_type([callback/0]).
 
--spec set_callback(opentelemetry:meter(), ot_meter:name(), callback()) -> ok.
-set_callback(Meter, Observer, Callback) ->
-    ot_meter:set_observer_callback(Meter, Observer, Callback).
-
--spec observe(observer_instrument(), number(), ot_meter:label_set()) -> ok.
-observe(ObserverInstrument, Number, LabelSet) ->
-    ot_meter:observe(ObserverInstrument, Number, LabelSet).
+-callback set_callback(opentelemetry:meter(), ot_meter:name(), callback()) -> ok.
+-callback observe(instrument(), number(), ot_meter:labels()) -> ok.

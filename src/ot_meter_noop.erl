@@ -19,7 +19,8 @@
 
 -behaviour(ot_meter).
 
--export([new_instruments/2,
+-export([new_instrument/4,
+         new_instruments/2,
          labels/2,
          record/3,
          record/4,
@@ -29,6 +30,9 @@
          set_observer_callback/3,
          register_observer/3,
          observe/3]).
+
+new_instrument(_, _, _, _) ->
+    true.
 
 new_instruments(_, _) ->
     true.

@@ -1,14 +1,22 @@
 defmodule OpenTelemetry.Meter do
   @moduledoc """
 
+      require OpenTelemetry.ValueRecorder
+      require OpenTelemetry.Counter
       require OpenTelemetry.Meter
 
       OpenTelemetry.register_application_meter(Your.Application)
 
-      OpenTelemetry.Meter.new_instruments([...])
+      OpenTelemetry.Meter.new_instruments([OpenTelemetry.ValueRecorder.instrument("some.latency"),
+                                           OpenTelemetry.Counter.instrument("some.counter")])
+
+      # use the new instrument by name
+      OpenTelemetry.Counter.add("some.counter", 1)
+
+      # or use a bound instrument
       bound = OpenTelemetry.Meter.bind("some.latency", [])
       # measure time spent on some function and then record it
-      OpenTelemetry.Meter.record(bound, time)
+      OpenTelemetry.ValueRecorder.record(bound, time)
   """
 
   defmacro new_instruments(list) do

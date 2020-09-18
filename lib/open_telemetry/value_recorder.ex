@@ -1,10 +1,16 @@
-defmodule OpenTelemetry.Measure do
+defmodule OpenTelemetry.ValueRecorder do
   @moduledoc """
 
-      require OpenTelemetry.Measure
+      require OpenTelemetry.ValueRecorder
 
-      OpenTelemetry.Measure.record("some.counter", 3)
+      OpenTelemetry.ValueRecorder.record("some.recorder", 3)
   """
+
+  defmacro new(name, opts \\ %{}) do
+    quote do
+      :ot_value_recorder.new(:opentelemetry.get_meter(__MODULE__), unquote(name), unquote(opts))
+    end
+  end
 
   defmacro record(name, number, label_set) do
     quote do
@@ -27,5 +33,6 @@ defmodule OpenTelemetry.Measure do
     end
   end
 
-  defdelegate measurement(name_or_instrument, number), to: :ot_measure
+  defdelegate definition(name, opts), to: :ot_value_recorder
+  defdelegate measurement(name_or_instrument, number), to: :ot_value_recorder
 end

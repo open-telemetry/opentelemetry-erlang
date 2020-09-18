@@ -1,16 +1,16 @@
-defmodule OpenTelemetry.Counter do
+defmodule OpenTelemetry.UpdownCounter do
   @moduledoc """
 
-      require OpenTelemetry.Counter
+      require OpenTelemetry.UpdownCounter
 
-      OpenTelemetry.Counter.new("some.counter")
+      OpenTelemetry.UpdownCounter.new("some.counter")
 
-      OpenTelemetry.Counter.add("some.counter", 3)
+      OpenTelemetry.UpdownCounter.add("some.counter", -3)
   """
 
   defmacro new(name, opts \\ %{}) do
     quote do
-      :ot_counter.new(:opentelemetry.get_meter(__MODULE__), unquote(name), unquote(opts))
+      :ot_updown_counter.new(:opentelemetry.get_meter(__MODULE__), unquote(name), unquote(opts))
     end
   end
 
@@ -26,6 +26,6 @@ defmodule OpenTelemetry.Counter do
     end
   end
 
-  defdelegate definition(name, opts), to: :ot_counter
-  defdelegate measurement(name_or_instrument, number), to: :ot_counter
+  defdelegate definition(name, opts), to: :ot_updown_counter
+  defdelegate measurement(name_or_instrument, number), to: :ot_updown_counter
 end

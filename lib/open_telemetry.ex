@@ -179,7 +179,11 @@ defmodule OpenTelemetry do
   @doc """
   Creates a list of `t:link/0` from a list of 4-tuples.
   """
-  @spec links([{integer(), integer(), attributes(), tracestate()} | span_ctx() | {span_ctx(), attributes()}]) :: [link()]
+  @spec links([
+          {integer(), integer(), attributes(), tracestate()}
+          | span_ctx()
+          | {span_ctx(), attributes()}
+        ]) :: [link()]
   defdelegate links(link_list), to: :opentelemetry
 
   @doc """
