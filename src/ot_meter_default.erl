@@ -193,7 +193,7 @@ bind_instrument(Instrument, LabelSet) ->
 
 insert_new_instrument(Name, InstrumentKind, Opts) ->
     case instrument(Name, InstrumentKind, Opts) of
-        {error, kind_not_a_module} ->
+        {error, _} ->
             false;
         Instrument ->
             insert_new(Instrument)
@@ -243,5 +243,10 @@ instrument(Name, InstrumentKind, InstrumentConfig) ->
             ?LOG_INFO("Unable to create instrument kind because the kind must be a module.",
                       #{instrument_name => Name,
                         instrument_kind => InstrumentKind}),
-            {error, kind_not_a_module}
+            {error, kind_not_a_module};
+        error:{badkey, Key} ->
+            ?LOG_INFO("Unable to create instrument because instrument map missing required key.",
+                      #{instrument_name => Name,
+                        missing_key => Key}),
+            {error, {missing_key, Key}}
     end.
