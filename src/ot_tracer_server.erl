@@ -128,7 +128,15 @@ code_change(State=#state{shared_tracer=Tracer=#tracer{telemetry_library=Telemetr
 %%
 
 on_start(Processors) ->
-    fun(Span) -> [P:on_start(Span, Config) || {P, Config} <- Processors] end.
+    fun(Ctx, Span) ->
+            lists:foldl(fun({P, Config}, Acc) ->
+                                P:on_start(Ctx, Acc, Config)
+                        end, Span, Processors)
+    end.
 
 on_end(Processors) ->
-    fun(Span) -> [P:on_end(Span, Config) || {P, Config} <- Processors] end.
+    fun(Span) ->
+            lists:foldl(fun({P, Config}, Bool) ->
+                                Bool andalso P:on_end(Span, Config)
+                        end, true, Processors)
+    end.

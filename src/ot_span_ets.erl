@@ -26,8 +26,7 @@
          handle_call/3,
          handle_cast/2]).
 
--export([start_span/3,
-         start_span/4,
+-export([start_span/6,
          end_span/1,
          end_span/2,
          get_ctx/1,
@@ -48,16 +47,14 @@
 start_link(Opts) ->
     gen_server:start_link(?MODULE, Opts, []).
 
-start_span(Name, Opts, InstrumentationLibrary) ->
-    start_span(Name, Opts, fun(Span) -> Span end, InstrumentationLibrary).
-
 %% @doc Start a span and insert into the active span ets table.
--spec start_span(opentelemetry:span_name(), ot_span:start_opts(), fun(),
-                 ot_tracer_server:instrumentation_library()) -> opentelemetry:span_ctx().
-start_span(Name, Opts, Processors, InstrumentationLibrary) ->
-    {SpanCtx, Span} = ot_span_utils:start_span(Name, Opts),
+-spec start_span(ot_ctx:t(), opentelemetry:span_name(), opentelemetry:span_ctx() | undefined,
+                 ot_span:start_opts(), fun(), ot_tracer_server:instrumentation_library())
+                -> opentelemetry:span_ctx().
+start_span(Ctx, Name, ParentSpanCtx, Opts, Processors, InstrumentationLibrary) ->
+    {SpanCtx, Span} = ot_span_utils:start_span(Name, ParentSpanCtx, Opts),
     Span1 = Span#span{instrumentation_library=InstrumentationLibrary},
-    Span2 = Processors(Span1),
+    Span2 = Processors(Ctx, Span1),
     _ = storage_insert(Span2),
     SpanCtx.
 

@@ -1,6 +1,6 @@
 %% Try for 1 seconds
 -define(UNTIL(X), (fun Until(I) when I =:= 10 ->
-                           ct:fail(timeout);
+                           ct:fail("timeout: UNTIL(~s)", [??X]);
                        Until(I) ->
                            case X of
                                true ->
@@ -13,7 +13,7 @@
 
 %% try for 1 second and also return the result of Y
 -define(UNTIL_NOT_EQUAL(X, Y), (fun Until(I) when I =:= 10 ->
-                                        ct:fail(timeout);
+                                        ct:fail("timeout: UNTIL_NOT_EQUAL(~s, ~s)", [??X, ??Y]);
                                     Until(I) ->
                                         R = Y,
                                         case X =/= R of
