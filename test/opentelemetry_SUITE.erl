@@ -17,7 +17,7 @@ all() ->
 
 all_testcases() ->
     [with_span, macros, child_spans, update_span_data, tracer_instrumentation_library,
-     tracer_previous_ctx, stop_temporary_app].
+     tracer_previous_ctx, stop_temporary_app, reset_after, attach_ctx].
 
 groups() ->
     [{w3c, [], [propagation]},
@@ -36,14 +36,14 @@ init_per_group(Propagator, Config) when Propagator =:= w3c ;
     application:set_env(opentelemetry, processors, [{ot_batch_processor, #{scheduled_delay_ms => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
 
-    {CorrelationsHttpExtractor, CorrelationsHttpInjector} = ot_correlations:get_http_propagators(),
+    {BaggageHttpExtractor, BaggageHttpInjector} = ot_baggage:get_http_propagators(),
     {TraceHttpExtractor, TraceHttpInjector} = case Propagator of
                                                   w3c -> ot_tracer_default:w3c_propagators();
                                                   b3 -> ot_tracer_default:b3_propagators()
                                               end,
-    opentelemetry:set_http_extractor([CorrelationsHttpExtractor,
+    opentelemetry:set_http_extractor([BaggageHttpExtractor,
                                       TraceHttpExtractor]),
-    opentelemetry:set_http_injector([CorrelationsHttpInjector,
+    opentelemetry:set_http_injector([BaggageHttpInjector,
                                      TraceHttpInjector]),
 
     [{propagator, Propagator} | Config].
@@ -182,19 +182,38 @@ update_span_data(Config) ->
                                               events=Events,
                                               _='_'})).
 
-propagation(_Config) ->
-    #span_ctx{trace_id=TraceId} = ?start_span(<<"span-1">>),
+propagation(Config) ->
+    Propagator = ?config(propagator, Config),
+    #span_ctx{trace_id=TraceId,
+              span_id=SpanId} = ?start_span(<<"span-1">>),
+
+    ot_baggage:set("key-1", "value-1"),
+    ot_baggage:set("key-2", "value-2"),
     Headers = ot_propagation:http_inject([{<<"existing-header">>, <<"I exist">>}]),
 
-    [?assert(is_binary(Value)) || {_Key, Value} <- Headers],
+    EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
+    EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
+
+    ?assertListsMatch([{<<"otcorrelations">>, "key-2=value-2,key-1=value-1"},
+                       {<<"existing-header">>, <<"I exist">>} |
+                       trace_context(Propagator, EncodedTraceId, EncodedSpanId)], Headers),
 
     ?end_span(),
 
+    ?assertEqual(#{"key-1" => "value-1",
+                   "key-2" => "value-2"}, ot_baggage:get_all()),
     ?assertEqual(undefined, ?current_span_ctx()),
+
+    %% clear our baggage from the context to test extraction
+    ot_ctx:remove(ot_baggage:ctx_key()),
+    ?assertEqual(#{}, ot_baggage:get_all()),
 
     %% make header keys uppercase to validate the extractor is case insensitive
     BinaryHeaders = [{string:uppercase(Key), iolist_to_binary(Value)} || {Key, Value} <- Headers],
     ot_propagation:http_extract(BinaryHeaders),
+
+    ?assertEqual(#{"key-1" => "value-1",
+                   "key-2" => "value-2"}, ot_baggage:get_all()),
 
     %% extracted remote spans are not set to the active span
     %% instead they are stored under a special "external span"
@@ -240,17 +259,15 @@ tracer_previous_ctx(Config) ->
     SpanCtx1 = ot_tracer:start_span(Tracer, <<"span-1">>, #{}),
     ?assertMatch(SpanCtx1, ?current_span_ctx()),
 
-    %% create a span that is not set to active and with no parent
-    SpanCtx2 = ot_tracer:start_inactive_span(Tracer, <<"span-2">>, #{parent => undefined}),
-
+    %% create a span that is not on the current context and with no parent
+    {SpanCtx2, Ctx} = ot_tracer:start_span(ot_ctx:new(), Tracer, <<"span-2">>, #{}),
     %% start a new active span with SpanCtx2 as the parent
-    SpanCtx3 = ot_tracer:start_span(Tracer, <<"span-3">>, #{parent => SpanCtx2}),
+    {SpanCtx3, Ctx1} = ot_tracer:start_span(Ctx, Tracer, <<"span-3">>, #{}),
 
     %% end SpanCtx3, even though it isn't the parent SpanCtx1
-    %% should be the active context afterward
-    ot_tracer:end_span(Tracer),
+    ot_tracer:end_span(Ctx1, Tracer),
 
-    ?assertMatch(SpanCtx1, ?current_span_ctx()),
+    ?assertEqual(SpanCtx1, ?current_span_ctx()),
 
     ot_tracer:end_span(Tracer),
 
@@ -258,6 +275,53 @@ tracer_previous_ctx(Config) ->
     ot_tracer:end_span(Tracer),
 
     assert_all_exported(Tid, [SpanCtx3, SpanCtx1, SpanCtx2]),
+
+    ok.
+
+attach_ctx(Config) ->
+    Tid = ?config(tid, Config),
+
+    Tracer = opentelemetry:get_tracer(),
+
+    SpanCtx1 = ot_tracer:start_span(Tracer, <<"span-1">>, #{}),
+    ?assertMatch(SpanCtx1, ?current_span_ctx()),
+
+    %% create a span that is not set to active and with no parent
+    {SpanCtx2, _Ctx} = ot_tracer:start_inactive_span(ot_ctx:new(), Tracer, <<"span-2">>, #{}),
+    Ctx = ot_ctx:get_current(),
+
+    erlang:spawn(fun() ->
+                         ot_ctx:attach(Ctx),
+                         ot_tracer:set_span(Tracer, SpanCtx2),
+                         ot_tracer:end_span(Tracer)
+                 end),
+
+    ot_tracer:end_span(Tracer),
+
+    assert_all_exported(Tid, [SpanCtx1, SpanCtx2]),
+
+    ok.
+
+reset_after(Config) ->
+    Tid = ?config(tid, Config),
+
+    Tracer = opentelemetry:get_tracer(),
+
+    SpanCtx1 = ot_tracer:start_span(Tracer, <<"span-1">>, #{}),
+    ?assertMatch(SpanCtx1, ?current_span_ctx()),
+
+    Ctx = ot_ctx:get_current(),
+
+    try
+        %% start but don't end a span
+        _SpanCtx2 = ot_tracer:start_span(Tracer, <<"span-2">>, #{})
+    after
+        ot_ctx:attach(Ctx)
+    end,
+
+    ot_tracer:end_span(Tracer),
+
+    assert_all_exported(Tid, [SpanCtx1]),
 
     ok.
 
