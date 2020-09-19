@@ -360,8 +360,8 @@ assert_not_exported(Tid, #span_ctx{trace_id=TraceId,
 
 trace_context(w3c, EncodedTraceId, EncodedSpanId) ->
     [{<<"traceparent">>,
-     [<<"00">>, "-", EncodedTraceId,"-", EncodedSpanId, "-", <<"01">>]}];
+     iolist_to_binary([<<"00">>, "-", EncodedTraceId,"-", EncodedSpanId, "-", <<"01">>])}];
 trace_context(b3, EncodedTraceId, EncodedSpanId) ->
-    [{<<"X-B3-Sampled">>, "1"},
-     {<<"X-B3-SpanId">>, EncodedSpanId},
-     {<<"X-B3-TraceId">>,EncodedTraceId}].
+    [{<<"X-B3-Sampled">>, <<"1">>},
+     {<<"X-B3-SpanId">>, list_to_binary(EncodedSpanId)},
+     {<<"X-B3-TraceId">>, list_to_binary(EncodedTraceId)}].

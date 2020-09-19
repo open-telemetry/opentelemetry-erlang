@@ -6,7 +6,7 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
--include("ot_sampler.hrl").
+-include_lib("ot_sampler.hrl").
 
 all() ->
     [exporting_timeout_test].

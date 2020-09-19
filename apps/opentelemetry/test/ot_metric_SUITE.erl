@@ -38,18 +38,18 @@ end_per_group(_, _Config) ->
     ok.
 
 e2e_test(_Config) ->
-    ?assertMatch({ot_meter_default, _}, ?current_meter),
+    ?assertMatch({ot_meter_default, _}, ?ot_current_meter),
 
-    ?new_instruments([{mycounter, ot_counter, #{monotonic => true,
+    ?ot_new_instruments([{mycounter, ot_counter, #{monotonic => true,
                                                    synchronous => true}}]),
-    ?new_instruments([{myfloat, ot_counter, #{monotonic => true,
+    ?ot_new_instruments([{myfloat, ot_counter, #{monotonic => true,
                                                  number_kind => float,
                                                  synchronous => true}}]),
-    ?counter_add(mycounter, 4, []),
-    ?counter_add(mycounter, 5, []),
+    ?ot_counter_add(mycounter, 4, []),
+    ?ot_counter_add(mycounter, 5, []),
 
-    ?counter_add(myfloat, 4.1, []),
-    ?counter_add(myfloat, 5.1, []),
+    ?ot_counter_add(myfloat, 4.1, []),
+    ?ot_counter_add(myfloat, 5.1, []),
 
     ot_metric_accumulator:collect(),
     Records = ot_metric_integrator:read(),
