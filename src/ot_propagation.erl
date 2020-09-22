@@ -20,10 +20,10 @@
 -export([http_inject/1,
          http_extract/1]).
 
--type extractor(T) :: {fun((T, ot_ctx:namespace(), {fun(), term()}) -> ok), term()} |
-                      {fun((T, ot_ctx:namespace(), ot_ctx:key(), {fun(), term()}) -> ok), term()}.
--type injector(T) :: {fun((T, ot_ctx:namespace(), {fun(), term()}) -> T), term()} |
-                     {fun((T, ot_ctx:namespace(), ot_ctx:key(), {fun(), term()}) -> T), term()}.
+-type extractor(T) :: {fun((T, {fun(), term()}) -> ok), term()} |
+                      {fun((T, ot_ctx:key(), {fun(), term()}) -> ok), term()}.
+-type injector(T) :: {fun((T, {fun(), term()}) -> T), term()} |
+                     {fun((T, ot_ctx:key(), {fun(), term()}) -> T), term()}.
 
 -type http_headers() :: [{binary(), binary()}].
 
@@ -45,21 +45,21 @@ http_extract(Headers) ->
     run_extractors(Headers, Extractors).
 
 run_extractors(Headers, Extractors) ->
-    lists:foldl(fun({Extract, {Namespace, FromText}}, ok) ->
-                        Extract(Headers, Namespace, FromText),
+    lists:foldl(fun({Extract, {Key, FromText}}, ok) ->
+                        Extract(Headers, Key, FromText),
                         ok;
-                   ({Extract, {Namespace, Key, FromText}}, ok) ->
-                        Extract(Headers, Namespace, Key, FromText),
+                   ({Extract, FromText}, ok) ->
+                        Extract(Headers, FromText),
                         ok;
                    (_, ok) ->
                         ok
                 end, ok, Extractors).
 
 run_injectors(Headers, Injectors) ->
-    lists:foldl(fun({Inject, {Namespace, ToText}}, HeadersAcc) ->
-                        Inject(HeadersAcc, Namespace, ToText);
-                   ({Inject, {Namespace, Key, ToText}}, HeadersAcc) ->
-                        Inject(HeadersAcc, Namespace, Key, ToText);
+    lists:foldl(fun({Inject, {Key, ToText}}, HeadersAcc) ->
+                        Inject(HeadersAcc, Key, ToText);
+                   ({Inject, ToText}, HeadersAcc) ->
+                        Inject(HeadersAcc, ToText);
                    (_, HeadersAcc) ->
                         HeadersAcc
                 end, Headers, Injectors).

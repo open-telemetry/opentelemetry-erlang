@@ -34,8 +34,7 @@
 
 -define(is_recording(SpanCtx), SpanCtx =/= undefined andalso SpanCtx#span_ctx.is_recording =:= true).
 
--type start_opts() :: #{parent => undefined | opentelemetry:span() | opentelemetry:span_ctx(),
-                        attributes => opentelemetry:attributes(),
+-type start_opts() :: #{attributes => opentelemetry:attributes(),
                         sampler => term(),
                         links => opentelemetry:links(),
                         is_recording => boolean(),
