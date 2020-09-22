@@ -18,6 +18,9 @@ jobs:
         otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
         os: [ubuntu-latest]
 
+    env:
+      OTP_VERSION: ${{ matrix.otp_version }}
+
     steps:
     - uses: actions/checkout@v2
     - uses: gleam-lang/setup-erlang@v1.0.0
@@ -39,6 +42,10 @@ jobs:
     - uses: codecov/codecov-action@v1
       with:
         file: _build/test/covertool/opentelemetry.covertool.xml
+        env_vars: OTP_VERSION
+        flags: sdk
     - uses: codecov/codecov-action@v1
       with:
         file: _build/test/covertool/opentelemetry_api.covertool.xml
+        env_vars: OTP_VERSION
+        flags: api
