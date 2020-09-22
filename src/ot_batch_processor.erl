@@ -33,7 +33,7 @@
 -behaviour(ot_span_processor).
 
 -export([start_link/1,
-         on_start/2,
+         on_start/3,
          on_end/2,
          set_exporter/1,
          set_exporter/2]).
@@ -81,8 +81,9 @@ set_exporter(Exporter) ->
 set_exporter(Exporter, Options) ->
     gen_statem:call(?MODULE, {set_exporter, {Exporter, Options}}).
 
--spec on_start(opentelemetry:span(), ot_span_processor:processor_config()) -> opentelemetry:span().
-on_start(Span, _) ->
+-spec on_start(ot_ctx:t(), opentelemetry:span(), ot_span_processor:processor_config())
+              -> opentelemetry:span().
+on_start(_Ctx, Span, _) ->
     Span.
 
 -spec on_end(opentelemetry:span(), ot_span_processor:processor_config())

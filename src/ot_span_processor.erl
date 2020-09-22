@@ -23,5 +23,8 @@
 
 -export_type([processor_config/0]).
 
--callback on_start(opentelemetry:span(), processor_config()) -> opentelemetry:span().
--callback on_end(opentelemetry:span(), processor_config()) -> true | dropped | {error, invalid_span} | {error, no_export_buffer}.
+-callback on_start(ot_ctx:t(), opentelemetry:span(), processor_config()) -> opentelemetry:span().
+-callback on_end(opentelemetry:span(), processor_config()) -> true |
+                                                              dropped |
+                                                              {error, invalid_span} |
+                                                              {error, no_export_buffer}.

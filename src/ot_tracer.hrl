@@ -8,7 +8,7 @@
          module                        :: module(),
          span_module                   :: module(),
          ctx_module                    :: module(),
-         on_start_processors           :: fun((opentelemetry:span()) -> opentelemetry:span()),
+         on_start_processors           :: fun((ot_ctx:t(), opentelemetry:span()) -> opentelemetry:span()),
          on_end_processors             :: fun((opentelemetry:span()) -> boolean() | {error, term()}),
          sampler                       :: ot_sampler:t(),
          instrumentation_library       :: ot_tracer_server:instrumentation_library() | undefined,

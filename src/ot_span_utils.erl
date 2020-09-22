@@ -18,7 +18,7 @@
 %%%-------------------------------------------------------------------------
 -module(ot_span_utils).
 
--export([start_span/2,
+-export([start_span/3,
          end_span/1]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
@@ -28,10 +28,9 @@
 %% sampling bit is the first bit in 8-bit trace options
 -define(IS_ENABLED(X), (X band 1) =/= 0).
 
--spec start_span(opentelemetry:span_name(), ot_span:start_opts())
+-spec start_span(opentelemetry:span_name(), opentelemetry:span_ctx() | undefined, ot_span:start_opts())
                 -> {opentelemetry:span_ctx(), opentelemetry:span() | undefined}.
-start_span(Name, Opts) ->
-    Parent = maps:get(parent, Opts, undefined),
+start_span(Name, Parent, Opts) ->
     Attributes = maps:get(attributes, Opts, []),
     Links = maps:get(links, Opts, []),
     Kind = maps:get(kind, Opts, ?SPAN_KIND_INTERNAL),
