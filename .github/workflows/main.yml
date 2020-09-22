@@ -37,3 +37,6 @@ jobs:
     - uses: codecov/codecov-action@v1
       with:
         file: _build/test/covertool/opentelemetry.covertool.xml
+    - uses: codecov/codecov-action@v1
+      with:
+        file: _build/test/covertool/opentelemetry_api.covertool.xml
