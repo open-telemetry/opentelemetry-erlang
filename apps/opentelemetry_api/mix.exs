@@ -52,7 +52,8 @@ defmodule OpenTelemetry.MixProject do
     end)
     |> Enum.concat([
       {:cmark, "~> 0.7", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.21", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.21", only: :dev, runtime: false},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
     ])
   end
 
@@ -60,18 +61,21 @@ defmodule OpenTelemetry.MixProject do
     [
       description: "OpenTelemetry API",
       build_tools: ["rebar3", "mix"],
-      files: ~w(lib mix.exs README.md LICENSE CODEOWNERS rebar.config rebar.lock VERSION include src),
+      files:
+        ~w(lib mix.exs README.md LICENSE CODEOWNERS rebar.config rebar.lock VERSION include src),
       licenses: ["Apache-2.0"],
-      links: %{"GitHub" => "https://github.com/open-telemetry/opentelemetry-erlang-api",
-               "OpenTelemetry.io" => "https://opentelemetry.io"}
+      links: %{
+        "GitHub" => "https://github.com/open-telemetry/opentelemetry-erlang-api",
+        "OpenTelemetry.io" => "https://opentelemetry.io"
+      }
     ]
   end
 
   def erlang_docs() do
     files =
       for file <- Path.wildcard("edoc/*.md"),
-        file != "edoc/README.md",
-        do: {String.to_atom(file), [title: Path.basename(file, ".md")]}
+          file != "edoc/README.md",
+          do: {String.to_atom(file), [title: Path.basename(file, ".md")]}
 
     [{:"README.md", [title: "Overview"]} | files]
   end

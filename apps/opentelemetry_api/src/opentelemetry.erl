@@ -77,7 +77,6 @@
               attributes/0,
               event/0,
               events/0,
-              stack_trace/0,
               tracestate/0,
               status/0,
               resource/0,
@@ -118,8 +117,6 @@
 %% RFC0020 characters (i.e., the range 0x20 to 0x7E) except ',' and '='.
 %% Note that this also excludes tabs, newlines, carriage returns, etc.
 -type tracestate()         :: [{unicode:latin1_chardata(), unicode:latin1_chardata()}].
-
--type stack_trace()        :: [erlang:stack_item()].
 
 -type resource()           :: #{unicode:unicode_binary() => unicode:unicode_binary()}.
 

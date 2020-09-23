@@ -37,7 +37,7 @@
 -type traced_fun(T) :: fun((opentelemetry:span_ctx()) -> T).
 -type tracer_ctx() :: term().
 
--export_type([traced_fun/1]).
+-export_type([traced_fun/1, tracer_ctx/0]).
 
 -callback start_span(opentelemetry:tracer(),
                      opentelemetry:span_name(),

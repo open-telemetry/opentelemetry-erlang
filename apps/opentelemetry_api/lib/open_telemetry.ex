@@ -36,7 +36,7 @@ defmodule OpenTelemetry do
   TracerContext refers to the data kept in process by the tracer to track
   the current SpanContext and the parent.
   """
-  @type tracer_ctx() :: :opentelemetry.tracer_ctx()
+  @type tracer_ctx() :: :ot_tracer.tracer_ctx()
 
   @typedoc """
   Span represents a single operation within a trace. Spans can be
@@ -48,6 +48,8 @@ defmodule OpenTelemetry do
   contiguous - there may be gaps or overlaps between spans in a trace.
   """
   @type span() :: :opentelemetry.span()
+
+  @type span_kind() :: :opentelemetry.span_kind()
 
   @typedoc """
   TraceId is a unique identifier for a trace. All spans from the same trace share
@@ -63,8 +65,8 @@ defmodule OpenTelemetry do
   """
   @type span_id() :: non_neg_integer()
 
-  @type attribute_key() :: String.t()
-  @type attribute_value() :: String.t() | integer() | float() | boolean()
+  @type attribute_key() :: :opentelemetry.attribute_key()
+  @type attribute_value() :: :opentelemetry.attribute_value()
 
   @typedoc """
   Attributes are a collection of key/value pairs. The value can be a string,
@@ -78,7 +80,7 @@ defmodule OpenTelemetry do
        {"abc.com/myattribute", True}
        {"abc.com/score", 10.239}]
   """
-  @type attributes() :: [{attribute_key(), attribute_value()}]
+  @type attributes() :: :opentelemetry.attributes()
 
   @typedoc """
   Tracestate represents tracing-system specific context in a list of key-value pairs.
@@ -98,6 +100,7 @@ defmodule OpenTelemetry do
   traces or when the handler receives a request from a different project.
   """
   @type link() :: :opentelemetry.link()
+  @type links() :: :opentelemetry.links()
 
   @typedoc """
   An Event is a time-stamped annotation of the span, consisting of user-supplied
