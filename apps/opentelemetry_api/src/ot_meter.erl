@@ -33,7 +33,7 @@
 -callback register_observer(opentelemetry:meter(), ot_meter:name(), ot_observer:callback()) -> ok | unknown_instrument.
 -callback set_observer_callback(opentelemetry:meter(), ot_meter:name(), ot_observer:callback()) -> ok | unknown_instrument.
 
--callback observe(ot_observer:observer_result(), number(), labels()) -> ok.
+-callback observe(ot_observer:observer_instrument(), number(), labels()) -> ok.
 
 -export([new_instrument/4,
          new_instruments/2,
