@@ -1,0 +1,84 @@
+name: Elixir
+
+on:
+  pull_request:
+    branches:
+      - 'master'
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    name: Test on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
+    strategy:
+      matrix:
+        otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
+        elixir: ['1.10.4']
+        os: [ubuntu-latest]
+    env:
+      OTP_VERSION: ${{ matrix.otp_version }}
+      ELIXIR_VERSION: ${{ matrix.elixir }}
+    defaults:
+      run:
+        working-directory: apps/opentelemetry_api/
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{ matrix.otp_version }}
+          elixir-version: ${{ matrix.elixir }}
+      - run: mix deps.get
+        name: Deps
+      - uses: actions/cache@v1
+        with:
+          path: _build
+          key: build-${{ hashFiles('/apps/opentelemetry_api/mix.lock') }}
+      - uses: actions/cache@v2
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock', matrix.otp_version, matrix.elixir)) }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
+      - run: mix test --cover
+        name: ExUnit
+      - uses: codecov/codecov-action@v1
+        with:
+          file: apps/opentelemetry_api/coverage.xml
+          env_vars: OTP_VERSION,ELIXIR_VERSION
+          flags: api,elixir
+  dialyze:
+    runs-on: ${{ matrix.os }}
+    name: Dialyze on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
+    strategy:
+      matrix:
+        otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
+        elixir: ['1.10.4']
+        os: [ubuntu-latest]
+    env:
+      OTP_VERSION: ${{ matrix.otp_version }}
+      ELIXIR_VERSION: ${{ matrix.elixir }}
+    defaults:
+      run:
+        working-directory: apps/opentelemetry_api/
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{ matrix.otp_version }}
+          elixir-version: ${{ matrix.elixir }}
+      - run: mix deps.get
+        name: Deps
+      - uses: actions/cache@v1
+        with:
+          path: _build
+          key: build-${{ hashFiles('/apps/opentelemetry_api/mix.lock') }}
+      - uses: actions/cache@v2
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock', matrix.otp_version, matrix.elixir)) }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
+      - run: mix dialyzer
+        name: Dialyzer

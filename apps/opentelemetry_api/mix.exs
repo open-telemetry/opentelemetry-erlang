@@ -17,6 +17,7 @@ defmodule OpenTelemetry.MixProject do
       name: "OpenTelemetry API",
       # source_url: "https://github.com/USER/PROJECT",
       # homepage_url: "http://YOUR_PROJECT_HOMEPAGE",
+      test_coverage: [tool: :covertool],
       docs: [
         markdown_processor: ExDoc.Markdown.Cmark,
         main: "OpenTelemetry",
@@ -53,7 +54,8 @@ defmodule OpenTelemetry.MixProject do
     |> Enum.concat([
       {:cmark, "~> 0.7", only: :dev, runtime: false},
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:covertool, ">= 0.0.0", only: :test}
     ])
   end
 
