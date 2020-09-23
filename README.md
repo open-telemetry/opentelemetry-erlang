@@ -17,7 +17,38 @@ If you are instrumenting a project your application should only depend on the [O
 
 This repository is the Erlang's SDK implementation and should be included in the final release and configured to setup the sampler, span processors and span exporters.
 
-## Using
+## Usage
+
+### Hex Dependencies
+
+It is recommended to use the versions published on hex.pm for [OpenTelemetry
+API](https://hex.pm/packages/opentelemetry_api) and [OpenTelemetry
+SDK](https://hex.pm/packages/opentelemetry).
+
+### Git Dependencies
+
+Because the OpenTelemetry OTP Applications are kept in a single repository,
+under the directory `apps`, either [rebar3's](https://rebar3.org) `git_subdir`
+(rebar 3.14 or above is required) or
+[mix's](](https://elixir-lang.org/getting-started/mix-otp/introduction-to-mix.html))
+`sparse` feature must be used when using as Git dependencies in a project. The
+blocks below shows how in rebar3 and mix the git repo for the API and/or SDK
+Applications can be used.
+
+``` erlang
+{opentelemetry_api, {git_subdir,
+"http://github.com/open-telemetry/opentelemetry-erlang", {branch, "master"}, "apps/opentelemetry_api"}}
+{opentelemetry, {git_subdir,
+"http://github.com/open-telemetry/opentelemetry-erlang", {branch, "master"}, "apps/opentelemetry"}}
+```
+
+``` elixir
+{:opentelemetry_api, github: "open-telemetry/opentelemetry-erlang", sparse:
+"apps/opentelemetry_api"},
+{:opentelemetry, github: "open-telemetry/opentelemetry-erlang", sparse: "apps/opentelemetry"},
+```
+
+### Including in Release
 
 In an Erlang project add `opentelemetry` as the first element of the release's applications:
 
