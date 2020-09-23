@@ -15,17 +15,51 @@
 %% @doc
 %% @end
 %%%-------------------------------------------------------------------------
--module(ot_benchmarks).
+-module(ot_meter_noop).
 
--export([run/0]).
+-behaviour(ot_meter).
 
--include_lib("opentelemetry_api/include/tracer.hrl").
+-export([new_instrument/4,
+         new_instruments/2,
+         labels/2,
+         record/3,
+         record/4,
+         record_batch/3,
+         bind/3,
+         release/2,
+         set_observer_callback/3,
+         register_observer/3,
+         observe/3]).
 
-run() ->
-    Iterations = 10,
-    PDictCtxFun = fun() ->
-                      [?start_span(<<"span-", (integer_to_binary(X))/binary>>)
-                       || X <- lists:seq(1, Iterations)]
-                  end,
-    benchee:run(#{<<"pdict_ctx">> => PDictCtxFun}),
+new_instrument(_, _, _, _) ->
+    true.
+
+new_instruments(_, _) ->
+    true.
+
+labels(_, _) ->
+    #{}.
+
+record(_, _, _) ->
+    ok.
+
+record(_, _, _, _) ->
+    ok.
+
+record_batch(_, _, _) ->
+    ok.
+
+bind(_, _, _) ->
+    [].
+
+release(_, _) ->
+    ok.
+
+set_observer_callback(_, _, _) ->
+    ok.
+
+register_observer(_, _, _) ->
+    ok.
+
+observe(_, _, _) ->
     ok.

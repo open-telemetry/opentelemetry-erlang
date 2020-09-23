@@ -9,17 +9,14 @@ on:
       - 'master'
 
 jobs:
-  build:
-    name: Test on OTP ${{ matrix.otp_version }} and ${{ matrix.os }}
+  erlang_tests:
+    name: OTP ${{ matrix.otp_version }}
     runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
         otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
         os: [ubuntu-latest]
-
-    env:
-      OTP_VERSION: ${{ matrix.otp_version }}
 
     steps:
     - uses: actions/checkout@v2
@@ -30,9 +27,7 @@ jobs:
     - name: Compile
       run: rebar3 compile
     - name: EUnit tests
-      run: rebar3 eunit --cover
-    - name: Common Test tests
-      run: rebar3 ct --cover
+      run: rebar3 eunit
     - name: Dialyzer
       run: rebar3 dialyzer
     - name: XRef
@@ -42,10 +37,19 @@ jobs:
     - uses: codecov/codecov-action@v1
       with:
         file: _build/test/covertool/opentelemetry.covertool.xml
-        env_vars: OTP_VERSION
-        flags: sdk
-    - uses: codecov/codecov-action@v1
-      with:
-        file: _build/test/covertool/opentelemetry_api.covertool.xml
-        env_vars: OTP_VERSION
-        flags: api
+
+  elixir_tests:
+    runs-on: ubuntu-latest
+    name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+    strategy:
+      matrix:
+        otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
+        elixir: ['1.9.4']
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{matrix.otp_version}}
+          elixir-version: ${{matrix.elixir}}
+      - run: mix deps.get
+      - run: mix test
