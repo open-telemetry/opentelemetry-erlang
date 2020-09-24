@@ -68,9 +68,9 @@ jobs:
       with:
         path: |
           _build
-        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles(format('{0}{1}', github.workspace, '/rebar.lock')) }}
+        key: ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-${{ hashFiles(format('{0}{1}', github.workspace, '/rebar.lock')) }}
         restore-keys: |
-          ${{ runner.os }}-build-${{ matrix.otp_version }}-
+          ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-
     - name: Compile
       run: rebar3 compile
     - name: Dialyzer

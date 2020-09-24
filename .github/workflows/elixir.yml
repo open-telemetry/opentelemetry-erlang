@@ -33,9 +33,9 @@ jobs:
         name: Cache
         with:
           path: |
-            deps
-            _build
-          key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock')) }}
+            apps/opentelemetry_api/deps
+            apps/opentelemetry_api/_build
+          key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-v2-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock')) }}
           restore-keys: |
             ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-
       - run: mix deps.get
@@ -52,7 +52,7 @@ jobs:
     name: Dialyze on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
+        otp_version: ['23.0.2', '22.3.4.2']
         elixir: ['1.10.4']
         os: [ubuntu-latest]
     env:
@@ -71,9 +71,9 @@ jobs:
         name: Cache
         with:
           path: |
-            deps
-            _build
-          key: ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-${{ matrix.elixir }}-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock')) }}
+            apps/opentelemetry_api/deps
+            apps/opentelemetry_api/_build
+          key: ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-${{ matrix.elixir }}-v2-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock')) }}
           restore-keys: |
             ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-
       - run: mix deps.get
