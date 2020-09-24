@@ -83,6 +83,7 @@
               instrument_kind/0,
               instrument_config/0,
               instrument_opts/0,
+              instrument_definition/0,
               number_kind/0,
               unit/0,
               measurement/0,

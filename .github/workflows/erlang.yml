@@ -1,0 +1,77 @@
+name: Erlang
+
+on:
+  pull_request:
+    branches:
+      - 'master'
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  build:
+    name: Test on OTP ${{ matrix.otp_version }} and ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
+        os: [ubuntu-latest]
+    env:
+      OTP_VERSION: ${{ matrix.otp_version }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: gleam-lang/setup-erlang@v1.0.0
+      with:
+        otp-version: ${{ matrix.otp_version }}
+    - uses: actions/cache@v2
+      name: Cache
+      with:
+        path: |
+          _build
+        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles(format('{0}{1}', github.workspace, '/rebar.lock')) }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ matrix.otp_version }}-
+    - name: Compile
+      run: rebar3 compile
+    - name: EUnit tests
+      run: rebar3 eunit --cover
+    - name: Common Test tests
+      run: rebar3 ct --cover
+    - name: XRef
+      run: rebar3 xref
+    - name: Covertool
+      run: rebar3 covertool generate
+    - uses: codecov/codecov-action@v1
+      with:
+        file: _build/test/covertool/opentelemetry.covertool.xml
+        env_vars: OTP_VERSION
+        flags: sdk,erlang
+    - uses: codecov/codecov-action@v1
+      with:
+        file: _build/test/covertool/opentelemetry_api.covertool.xml
+        env_vars: OTP_VERSION
+        flags: api,erlang
+  dialyzer:
+    name: Dialyze on OTP ${{ matrix.otp_version }} and ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
+        os: [ubuntu-latest]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: gleam-lang/setup-erlang@v1.0.0
+      with:
+        otp-version: ${{ matrix.otp_version }}
+    - uses: actions/cache@v2
+      name: Cache
+      with:
+        path: |
+          _build
+        key: ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-${{ hashFiles(format('{0}{1}', github.workspace, '/rebar.lock')) }}
+        restore-keys: |
+          ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-
+    - name: Compile
+      run: rebar3 compile
+    - name: Dialyzer
+      run: rebar3 dialyzer

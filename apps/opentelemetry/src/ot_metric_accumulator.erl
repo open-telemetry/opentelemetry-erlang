@@ -62,7 +62,7 @@ record(#active_instrument{key=Key,
                           aggregator=Aggregator}, Number) ->
     Aggregator:update(?ACTIVE_TAB, Key, InputType, Number).
 
--spec record(ot_meter:name(), ot_meter:label_set(), number()) -> boolean() | unknown_instrument.
+-spec record(ot_meter:name(), ot_meter:labels(), number()) -> boolean() | unknown_instrument.
 record(Name, LabelSet, Number) ->
     case lookup_active(Name, LabelSet) of
         unknown_instrument ->
@@ -77,7 +77,7 @@ observe(#instrument{name=Name}, Number, LabelSet) ->
     ot_metric_aggregator_last_value:update(?ACTIVE_TAB, {Name, LabelSet}, observer, Number),
     ok.
 
--spec lookup_active(instrument() | ot_meter:name(), ot_meter:label_set())
+-spec lookup_active(instrument() | ot_meter:name(), ot_meter:labels())
                    -> {ot_meter:number_kind(), module()} | unknown_instrument.
 lookup_active(Instrument=#instrument{name=Name}, LabelSet) ->
     MatchSpec = ?active_ms(Name, LabelSet),

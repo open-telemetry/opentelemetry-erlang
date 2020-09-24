@@ -29,7 +29,10 @@
 -type observer_instrument() :: term().
 -type observer_result() :: {module(), observer_instrument()}.
 
--export_type([callback/0, observer_result/0]).
+-export_type([callback/0,
+              instrument/0,
+              observer_result/0,
+              observer_instrument/0]).
 
 -callback set_callback(opentelemetry:meter(), ot_meter:name(), callback()) -> ok.
 -callback observe(instrument(), number(), ot_meter:labels()) -> ok.

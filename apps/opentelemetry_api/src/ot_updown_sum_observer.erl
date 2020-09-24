@@ -52,6 +52,6 @@ definition(Name, Opts) ->
 set_callback(Meter, Observer, Callback) ->
     ot_meter:set_observer_callback(Meter, Observer, Callback).
 
--spec observe(ot_observer:instrument(), number(), ot_meter:label_set()) -> ok.
+-spec observe(ot_observer:instrument(), number(), ot_meter:labels()) -> ok.
 observe(ObserverInstrument, Number, LabelSet) ->
     ot_meter:observe(ObserverInstrument, Number, LabelSet).

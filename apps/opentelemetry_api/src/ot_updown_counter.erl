@@ -52,7 +52,7 @@ definition(Name, Opts) ->
 add(BoundInstrument, Number) ->
     ot_meter:record(BoundInstrument, Number).
 
--spec add(opentelemetry:meter(), ot_meter:name(), number(), ot_meter:label_set()) -> ok.
+-spec add(opentelemetry:meter(), ot_meter:name(), number(), ot_meter:labels()) -> ok.
 add(Meter, Name, Number, LabelSet) ->
     ot_meter:record(Meter, Name, Number, LabelSet).
 
