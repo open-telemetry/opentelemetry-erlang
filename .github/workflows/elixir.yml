@@ -29,18 +29,17 @@ jobs:
         with:
           otp-version: ${{ matrix.otp_version }}
           elixir-version: ${{ matrix.elixir }}
+      - uses: actions/cache@v2
+        name: Cache
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-
       - run: mix deps.get
         name: Deps
-      - uses: actions/cache@v1
-        with:
-          path: _build
-          key: build-${{ hashFiles('/apps/opentelemetry_api/mix.lock') }}
-      - uses: actions/cache@v2
-        with:
-          path: deps
-          key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock', matrix.otp_version, matrix.elixir)) }}
-          restore-keys: |
-            ${{ runner.os }}-mix-
       - run: mix test --cover
         name: ExUnit
       - uses: codecov/codecov-action@v1
@@ -68,17 +67,16 @@ jobs:
         with:
           otp-version: ${{ matrix.otp_version }}
           elixir-version: ${{ matrix.elixir }}
+      - uses: actions/cache@v2
+        name: Cache
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-${{ matrix.elixir }}-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-
       - run: mix deps.get
         name: Deps
-      - uses: actions/cache@v1
-        with:
-          path: _build
-          key: build-${{ hashFiles('/apps/opentelemetry_api/mix.lock') }}
-      - uses: actions/cache@v2
-        with:
-          path: deps
-          key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock', matrix.otp_version, matrix.elixir)) }}
-          restore-keys: |
-            ${{ runner.os }}-mix-
       - run: mix dialyzer
         name: Dialyzer
