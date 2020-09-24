@@ -35,7 +35,7 @@
 update(Tab, Key, _, Number) ->
     select_replace(Tab, Key, Number).
 
--spec checkpoint(ets:tab(), {ot_meter:name(), ot_meter:label_set()}) -> boolean().
+-spec checkpoint(ets:tab(), {ot_meter:name(), ot_meter:labels()}) -> boolean().
 checkpoint(Tab, NameLabelSet) ->
     MS = ets:fun2ms(fun(A=#active_instrument{key=Key,
                                              aggregator=Aggregator,

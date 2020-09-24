@@ -72,14 +72,14 @@ record(_Meter, BoundInstrument, Number) when is_number(Number) ->
 record(_, _, _) ->
     ok.
 
--spec record(opentelemetry:meter(), ot_meter:name(), ot_meter:label_set(), number()) -> ok.
+-spec record(opentelemetry:meter(), ot_meter:name(), ot_meter:labels(), number()) -> ok.
 record(_Meter, Name, LabelSet, Number) when is_number(Number) ->
     _ = ot_metric_accumulator:record(Name, LabelSet, Number),
     ok;
 record(_, _, _, _) ->
     ok.
 
--spec record_batch(opentelemetry:meter(), [{ot_meter:name(), number()}], ot_meter:label_set()) -> ok.
+-spec record_batch(opentelemetry:meter(), [{ot_meter:name(), number()}], ot_meter:labels()) -> ok.
 record_batch(_Meter, Measures, LabelSet) ->
     [ot_metric_accumulator:record(Name, LabelSet, Number) || {Name, Number} <- Measures,  is_number(Number)],
     ok.
@@ -88,7 +88,7 @@ record_batch(_Meter, Measures, LabelSet) ->
 release(_Meter, _BoundInstrument) ->
     ok.
 
--spec bind(opentelemetry:meter(), instrument() | ot_meter:name(), ot_meter:label_set())
+-spec bind(opentelemetry:meter(), instrument() | ot_meter:name(), ot_meter:labels())
           -> bound_instrument().
 bind(_Meter, Instrument=#instrument{}, LabelSet) ->
     bind_instrument(Instrument, LabelSet);
@@ -131,7 +131,7 @@ set_observer_callback(_Meter, Name, Callback) ->
             gen_server:call(?MODULE, {register_observer, Name, Instrument, Callback})
     end.
 
--spec observe(instrument(), number(), ot_meter:label_set()) -> ok.
+-spec observe(instrument(), number(), ot_meter:labels()) -> ok.
 observe(ObserverInstrument, Number, LabelSet) when is_number(Number) ->
     ot_metric_accumulator:observe(ObserverInstrument, Number, LabelSet),
     ok;

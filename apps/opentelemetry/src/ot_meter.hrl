@@ -25,14 +25,14 @@
 
 -type aggregator() :: module().
 
--record(active_instrument, {key :: {ot_meter:name(), ot_meter:label_set()},
+-record(active_instrument, {key :: {ot_meter:name(), ot_meter:labels()},
                             instrument :: ot_meter:instrument(),
                             aggregator :: aggregator(),
                             checkpoint :: number() | undefined,
                             current :: number() | {number(), integer()} | term()}).
 -type active_instrument() :: #active_instrument{}.
 
--record(bound_instrument, {key :: {ot_meter:name(), ot_meter:label_set()},
+-record(bound_instrument, {key :: {ot_meter:name(), ot_meter:labels()},
                            number_kind :: ot_meter:number_kind(),
                            aggregator :: aggregator()}).
 -type bound_instrument() :: #bound_instrument{} | unknown_instrument.
