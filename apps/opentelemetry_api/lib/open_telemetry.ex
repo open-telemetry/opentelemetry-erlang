@@ -107,6 +107,7 @@ defmodule OpenTelemetry do
   text description and key-value pairs.
   """
   @type event() :: :opentelemetry.event()
+  @type event_name() :: :opentelemetry.event_name()
 
   @typedoc """
   An optional final status for this span. Semantically when Status
@@ -192,13 +193,13 @@ defmodule OpenTelemetry do
   @doc """
   Creates a `t:event/0`.
   """
-  @spec event(String.t(), attributes()) :: event()
+  @spec event(event_name(), attributes()) :: event()
   defdelegate event(name, attributes), to: :opentelemetry
 
   @doc """
   Creates a `t:event/0`.
   """
-  @spec event(integer(), String.t(), attributes()) :: event()
+  @spec event(integer(), event_name(), attributes()) :: event()
   defdelegate event(timestamp, name, attributes), to: :opentelemetry
 
   @doc """

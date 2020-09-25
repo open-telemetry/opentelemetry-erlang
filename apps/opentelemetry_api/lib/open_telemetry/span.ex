@@ -76,7 +76,7 @@ defmodule OpenTelemetry.Span do
   @doc """
   Add an event to the currently active Span.
   """
-  @spec add_event(String.t(), OpenTelemetry.attributes()) :: boolean()
+  @spec add_event(OpenTelemetry.event_name(), OpenTelemetry.attributes()) :: boolean()
   defmacro add_event(event, attributes) do
     quote do
       tracer = :opentelemetry.get_tracer(__MODULE__)
