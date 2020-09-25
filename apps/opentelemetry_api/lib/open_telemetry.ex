@@ -16,11 +16,11 @@ defmodule OpenTelemetry do
       OpenTelemetry.register_application_tracer(:this_otp_app)
 
       Tracer.start_span("some-span")
-      ...
+      # ...
       event = "ecto.query"
       ecto_attributes = OpenTelemetry.event([{"query", query}, {"total_time", total_time}])
       OpenTelemetry.Span.add_event(event, ecto_event)
-      ...
+      # ...
       Tracer.end_span()
   """
 
