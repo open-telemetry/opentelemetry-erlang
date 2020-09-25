@@ -1,14 +1,17 @@
 language-elixir:
-  - any: ['./**/*.exs', './**/*.ex']
+  - apps/**/*.ex
+  - apps/**/*.exs
 
 language-erlang:
-  - any: ['./**/*.erl', './**/*.hrl', './**/rebar.config']
+  - apps/**/*.erl
+  - apps/**/*.hrl
+  - apps/**/rebar.config
 
 scope-api:
-  - any: ['apps/opentelemetry_api/**']
+  - apps/opentelemetry_api/**
 
 scope-sdk:
-  - any: ['apps/opentelemetry/**']
+  - apps/opentelemetry/**
 
 scope-ci:
-  - any: ['.github/workflows/**']
+  - .github/workflows/**
