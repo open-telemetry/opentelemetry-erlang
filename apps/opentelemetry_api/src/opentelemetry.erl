@@ -126,39 +126,39 @@
 
 -spec set_default_tracer(tracer()) -> boolean().
 set_default_tracer(Tracer) ->
-    verify_and_set_term(Tracer, default_tracer, ot_tracer).
+    verify_and_set_term(Tracer, default_tracer, otel_tracer).
 
 -spec set_tracer(atom(), tracer()) -> boolean().
 set_tracer(Name, Tracer) ->
-    verify_and_set_term(Tracer, Name, ot_tracer).
+    verify_and_set_term(Tracer, Name, otel_tracer).
 
 -spec set_default_meter(meter()) -> boolean().
 set_default_meter(Meter) ->
-    verify_and_set_term(Meter, default_meter, ot_meter).
+    verify_and_set_term(Meter, default_meter, otel_meter).
 
 -spec set_meter(atom(), meter()) -> boolean().
 set_meter(Name, Meter) ->
-    verify_and_set_term(Meter, Name, ot_meter).
+    verify_and_set_term(Meter, Name, otel_meter).
 
 -spec register_tracer(atom(), string()) -> boolean().
 register_tracer(Name, Vsn) ->
-    ot_tracer_provider:register_tracer(Name, Vsn).
+    otel_tracer_provider:register_tracer(Name, Vsn).
 
 -spec register_application_tracer(atom()) -> boolean().
 register_application_tracer(Name) ->
-    ot_tracer_provider:register_application_tracer(Name).
+    otel_tracer_provider:register_application_tracer(Name).
 
 -spec register_meter(atom(), string()) -> boolean().
 register_meter(Name, Vsn) ->
-    ot_meter_provider:register_meter(Name, Vsn).
+    otel_meter_provider:register_meter(Name, Vsn).
 
 -spec register_application_meter(atom()) -> boolean().
 register_application_meter(Name) ->
-    ot_meter_provider:register_application_meter(Name).
+    otel_meter_provider:register_application_meter(Name).
 
 -spec get_tracer() -> tracer().
 get_tracer() ->
-    persistent_term:get({?MODULE, default_tracer}, {ot_tracer_noop, []}).
+    persistent_term:get({?MODULE, default_tracer}, {otel_tracer_noop, []}).
 
 -spec get_tracer(atom()) -> tracer().
 get_tracer(Name) ->
@@ -166,7 +166,7 @@ get_tracer(Name) ->
 
 -spec get_meter() -> meter().
 get_meter() ->
-    persistent_term:get({?MODULE, default_meter}, {ot_meter_noop, []}).
+    persistent_term:get({?MODULE, default_meter}, {otel_meter_noop, []}).
 
 -spec get_meter(atom()) -> meter().
 get_meter(Name) ->

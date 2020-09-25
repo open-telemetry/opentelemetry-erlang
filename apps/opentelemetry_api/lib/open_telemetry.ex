@@ -36,7 +36,7 @@ defmodule OpenTelemetry do
   TracerContext refers to the data kept in process by the tracer to track
   the current SpanContext and the parent.
   """
-  @type tracer_ctx() :: :ot_tracer.tracer_ctx()
+  @type tracer_ctx() :: :otel_tracer.tracer_ctx()
 
   @typedoc """
   Span represents a single operation within a trace. Spans can be

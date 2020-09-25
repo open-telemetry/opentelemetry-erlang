@@ -57,7 +57,7 @@ Then when the spans are started and finished in the application's code the `Trac
 
 ``` erlang
 Tracer = opentelemetry:get_tracer(pgo),
-ot_tracer:with_span(Tracer, <<"pgo:query/3">>, fun() -> ... end).
+otel_tracer:with_span(Tracer, <<"pgo:query/3">>, fun() -> ... end).
 ```
 
 A `Tracer` variable can be passed through your Application's calls so `get_tracer` only has to be called once, it is safe to store it in the state of a `gen_server` and to pass across process boundaries.

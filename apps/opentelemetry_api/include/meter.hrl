@@ -1,52 +1,52 @@
 %% macros for meters
 %% register a meter for an application with opentelemetry:register_application_meter(AppName)
 
--define(ot_current_meter, opentelemetry:get_meter(?MODULE)).
+-define(otel_current_meter, opentelemetry:get_meter(?MODULE)).
 
--define(ot_new_counter(Meter, Name, Opts),
-        ot_counter:new(?ot_current_meter, Name, Opts)).
+-define(otel_new_counter(Meter, Name, Opts),
+        otel_counter:new(?otel_current_meter, Name, Opts)).
 
--define(ot_new_updown_counter(Meter, Name, Opts),
-        ot_updown_counter:new(?ot_current_meter, Name, Opts)).
+-define(otel_new_updown_counter(Meter, Name, Opts),
+        otel_updown_counter:new(?otel_current_meter, Name, Opts)).
 
--define(ot_new_value_recorder(Meter, Name, Opts),
-        ot_value_recorder:new(?ot_current_meter, Name, Opts)).
+-define(otel_new_value_recorder(Meter, Name, Opts),
+        otel_value_recorder:new(?otel_current_meter, Name, Opts)).
 
--define(ot_new_sum_observer(Meter, Name, Opts),
-        ot_sum_observer:new(?ot_current_meter, Name, Opts)).
+-define(otel_new_sum_observer(Meter, Name, Opts),
+        otel_sum_observer:new(?otel_current_meter, Name, Opts)).
 
--define(ot_new_updown_observer(Meter, Name, Opts),
-        ot_updown_observer:new(?ot_current_meter, Name, Opts)).
+-define(otel_new_updown_observer(Meter, Name, Opts),
+        otel_updown_observer:new(?otel_current_meter, Name, Opts)).
 
--define(ot_new_value_observer(Meter, Name, Opts),
-        ot_value_observer:new(?ot_current_meter, Name, Opts)).
+-define(otel_new_value_observer(Meter, Name, Opts),
+        otel_value_observer:new(?otel_current_meter, Name, Opts)).
 
--define(ot_new_instruments(List),
-        ot_meter:new_instruments(?ot_current_meter, List)).
+-define(otel_new_instruments(List),
+        otel_meter:new_instruments(?otel_current_meter, List)).
 
--define(ot_counter_add(BoundCounter, Number),
-        ot_counter:add(BoundCounter, Number)).
+-define(otel_counter_add(BoundCounter, Number),
+        otel_counter:add(BoundCounter, Number)).
 
--define(ot_counter_add(Name, Number, LabelSet),
-        ot_counter:add(?ot_current_meter, Name, Number, LabelSet)).
+-define(otel_counter_add(Name, Number, LabelSet),
+        otel_counter:add(?otel_current_meter, Name, Number, LabelSet)).
 
--define(ot_measure_record(BoundMeasure, Number),
-        ot_measure:record(BoundMeasure, Number)).
+-define(otel_measure_record(BoundMeasure, Number),
+        otel_measure:record(BoundMeasure, Number)).
 
--define(ot_measure_record(Name, Number, LabelSet),
-        ot_measure:record(?ot_current_meter, Name, Number, LabelSet)).
+-define(otel_measure_record(Name, Number, LabelSet),
+        otel_measure:record(?otel_current_meter, Name, Number, LabelSet)).
 
--define(ot_bind(Name, LabelSet),
-        ot_meter:bind(?ot_current_meter, Name, LabelSet)).
+-define(otel_bind(Name, LabelSet),
+        otel_meter:bind(?otel_current_meter, Name, LabelSet)).
 
--define(ot_release(BoundInstrument),
-        ot_meter:release(?ot_current_meter, BoundInstrument)).
+-define(otel_release(BoundInstrument),
+        otel_meter:release(?otel_current_meter, BoundInstrument)).
 
--define(ot_record(Name, Number, LabelSet),
-        ot_meter:record(?ot_current_meter, Name, Number, LabelSet)).
+-define(otel_record(Name, Number, LabelSet),
+        otel_meter:record(?otel_current_meter, Name, Number, LabelSet)).
 
--define(ot_record(BoundInstrument, Number),
-        ot_meter:record(BoundInstrument, Number)).
+-define(otel_record(BoundInstrument, Number),
+        otel_meter:record(BoundInstrument, Number)).
 
--define(ot_record_batch(LabelSet, Measurements),
-        ot_meter:record_batch(?ot_current_meter, LabelSet, Measurements)).
+-define(otel_record_batch(LabelSet, Measurements),
+        otel_meter:record_batch(?otel_current_meter, LabelSet, Measurements)).

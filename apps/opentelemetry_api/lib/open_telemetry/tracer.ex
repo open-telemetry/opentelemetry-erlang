@@ -38,7 +38,7 @@ defmodule OpenTelemetry.Tracer do
   """
   defmacro start_span(name, opts \\ quote(do: %{})) do
     quote bind_quoted: [name: name, start_opts: opts] do
-      :ot_tracer.start_span(:opentelemetry.get_tracer(__MODULE__), name, start_opts)
+      :otel_tracer.start_span(:opentelemetry.get_tracer(__MODULE__), name, start_opts)
     end
   end
 
@@ -57,7 +57,7 @@ defmodule OpenTelemetry.Tracer do
   """
   defmacro start_inactive_span(name, opts \\ quote(do: %{})) do
     quote bind_quoted: [name: name, start_opts: opts] do
-      :ot_tracer.start_inactive_span(:opentelemetry.get_tracer(__MODULE__), name, start_opts)
+      :otel_tracer.start_inactive_span(:opentelemetry.get_tracer(__MODULE__), name, start_opts)
     end
   end
 
@@ -66,7 +66,7 @@ defmodule OpenTelemetry.Tracer do
   """
   defmacro set_span(span_ctx) do
     quote bind_quoted: [span_ctx: span_ctx] do
-      :ot_tracer.set_span(:opentelemetry.get_tracer(__MODULE__), span_ctx)
+      :otel_tracer.set_span(:opentelemetry.get_tracer(__MODULE__), span_ctx)
     end
   end
 
@@ -79,7 +79,7 @@ defmodule OpenTelemetry.Tracer do
   """
   defmacro end_span() do
     quote do
-      :ot_tracer.end_span(:opentelemetry.get_tracer(__MODULE__))
+      :otel_tracer.end_span(:opentelemetry.get_tracer(__MODULE__))
     end
   end
 
@@ -90,7 +90,7 @@ defmodule OpenTelemetry.Tracer do
   """
   defmacro with_span(name, start_opts \\ quote(do: %{}), do: block) do
     quote do
-      :ot_tracer.with_span(
+      :otel_tracer.with_span(
         :opentelemetry.get_tracer(__MODULE__),
         unquote(name),
         unquote(start_opts),
@@ -104,7 +104,7 @@ defmodule OpenTelemetry.Tracer do
   """
   defmacro current_ctx() do
     quote do
-      :ot_tracer.current_ctx(:opentelemetry.get_tracer(__MODULE__))
+      :otel_tracer.current_ctx(:opentelemetry.get_tracer(__MODULE__))
     end
   end
 
@@ -113,7 +113,7 @@ defmodule OpenTelemetry.Tracer do
   """
   defmacro current_span_ctx() do
     quote do
-      :ot_tracer.current_span_ctx(:opentelemetry.get_tracer(__MODULE__))
+      :otel_tracer.current_span_ctx(:opentelemetry.get_tracer(__MODULE__))
     end
   end
 end

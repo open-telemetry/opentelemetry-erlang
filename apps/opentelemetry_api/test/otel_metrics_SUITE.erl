@@ -20,14 +20,14 @@ end_per_suite(_Config) ->
 
 noop_metrics(_Config) ->
     Meter = opentelemetry:get_meter(),
-    ?assertMatch({ot_meter_noop, _}, Meter),
+    ?assertMatch({otel_meter_noop, _}, Meter),
 
-    ?assert(ot_counter:new(Meter, <<"noop-measure-1">>, #{description => <<"some description">>})),
+    ?assert(otel_counter:new(Meter, <<"noop-measure-1">>, #{description => <<"some description">>})),
 
     ok.
 
 macros(_Config) ->
-    ?ot_new_instruments([#{name => <<"macros-measure-1">>,
+    ?otel_new_instruments([#{name => <<"macros-measure-1">>,
                            description => <<"some description">>,
                            kind => counter,
                            label_keys => [],
@@ -38,7 +38,7 @@ macros(_Config) ->
 
 %% checks that opts from the user can't override static attributes of an instrument
 non_overridable(_Config) ->
-    {_, _, Instrument} = ot_counter:definition(<<"noop-measure-1">>, #{description => <<"some description">>,
+    {_, _, Instrument} = otel_counter:definition(<<"noop-measure-1">>, #{description => <<"some description">>,
                                                                        monotonic => false,
                                                                        synchronous => false}),
 

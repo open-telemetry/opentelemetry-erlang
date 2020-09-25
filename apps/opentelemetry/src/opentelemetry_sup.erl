@@ -34,36 +34,36 @@ init([Opts]) ->
                  period => 5},
 
     %% configuration server
-    TracerServer = #{id => ot_tracer_server,
-                     start => {ot_tracer_provider, start_link, [ot_tracer_server, Opts]},
+    TracerServer = #{id => otel_tracer_server,
+                     start => {otel_tracer_provider, start_link, [otel_tracer_server, Opts]},
                      restart => permanent,
                      shutdown => 5000,
                      type => worker,
-                     modules => [ot_tracer_provider, ot_tracer_server]},
+                     modules => [otel_tracer_provider, otel_tracer_server]},
 
     %%
-    MetricSup = #{id => ot_metric_sup,
-                  start => {ot_metric_sup, start_link, [Opts]},
+    MetricSup = #{id => otel_metric_sup,
+                  start => {otel_metric_sup, start_link, [Opts]},
                   restart => permanent,
                   shutdown => 5000,
                   type => supervisor,
-                  modules => [ot_metric_sup]},
+                  modules => [otel_metric_sup]},
 
     Processors = proplists:get_value(processors, Opts, []),
-    BatchProcessorOpts = proplists:get_value(ot_batch_processor, Processors, #{}),
-    BatchProcessor = #{id => ot_batch_processor,
-                       start => {ot_batch_processor, start_link, [BatchProcessorOpts]},
+    BatchProcessorOpts = proplists:get_value(otel_batch_processor, Processors, #{}),
+    BatchProcessor = #{id => otel_batch_processor,
+                       start => {otel_batch_processor, start_link, [BatchProcessorOpts]},
                        restart => permanent,
                        shutdown => 5000,
                        type => worker,
-                       modules => [ot_batch_processor]},
+                       modules => [otel_batch_processor]},
 
-    SpanSup = #{id => ot_span_sup,
-                start => {ot_span_sup, start_link, [Opts]},
+    SpanSup = #{id => otel_span_sup,
+                start => {otel_span_sup, start_link, [Opts]},
                 type => supervisor,
                 restart => permanent,
                 shutdown => 5000,
-                modules => [ot_span_sup]},
+                modules => [otel_span_sup]},
 
     %% `TracerServer' *must* start before the `BatchProcessor'
     %% `BatchProcessor' relies on getting the `Resource' from

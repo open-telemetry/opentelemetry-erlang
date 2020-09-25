@@ -8,13 +8,13 @@ defmodule OpenTelemetry.UpdownSumObserver do
 
   defmacro new(name, opts \\ %{}) do
     quote do
-      :ot_updown_sum_observer.new(:opentelemetry.get_meter(__MODULE__), unquote(name), unquote(opts))
+      :otel_updown_sum_observer.new(:opentelemetry.get_meter(__MODULE__), unquote(name), unquote(opts))
     end
   end
 
   defmacro set_callback(observer, callback) do
     quote do
-      :ot_meter.set_observer_callback(
+      :otel_meter.set_observer_callback(
         :opentelemetry.get_meter(__MODULE__),
         unquote(observer),
         unquote(callback)
@@ -22,6 +22,6 @@ defmodule OpenTelemetry.UpdownSumObserver do
     end
   end
 
-  defdelegate definition(name, opts), to: :ot_updown_sum_observer
-  defdelegate observe(observer_result, number, label_set), to: :ot_updown_sum_observer
+  defdelegate definition(name, opts), to: :otel_updown_sum_observer
+  defdelegate observe(observer_result, number, label_set), to: :otel_updown_sum_observer
 end
