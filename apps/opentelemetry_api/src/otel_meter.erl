@@ -17,7 +17,7 @@
 %%%-------------------------------------------------------------------------
 -module(otel_meter).
 
--include("meter.hrl").
+-include("otel_meter.hrl").
 
 -callback new_instrument(opentelemetry:meter(), name(), instrument_kind(), instrument_opts()) -> boolean().
 -callback new_instruments(opentelemetry:meter(), [instrument_opts()]) -> boolean().

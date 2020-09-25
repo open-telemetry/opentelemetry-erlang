@@ -90,7 +90,7 @@ Not registering does not cause any issues or crashes, OpenTelemetry simply will 
 When `register_application_tracer/1` is used to register a Tracer there are both Erlang and Elixir macros that make use of the current module's name to lookup the Tracer for you and can be used for Trace and Span operations:
 
 ``` erlang
--include_lib("opentelemetry_api/include/tracer.hrl").
+-include_lib("opentelemetry_api/include/otel_tracer.hrl").
 
 some_fun() ->
     ?with_span(<<"some_fun/0">>, #{}, 

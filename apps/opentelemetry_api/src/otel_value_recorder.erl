@@ -27,7 +27,7 @@
          record/4,
          measurement/2]).
 
--include("meter.hrl").
+-include("otel_meter.hrl").
 
 -define(PROPERTIES, #{monotonic => false,
                       synchronous => true}).

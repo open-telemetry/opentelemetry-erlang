@@ -6,7 +6,7 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include("opentelemetry.hrl").
--include("meter.hrl").
+-include("otel_meter.hrl").
 
 all() ->
     [noop_metrics, macros, non_overridable].

@@ -22,7 +22,7 @@
 
 -include_lib("inets/include/httpd.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
--include_lib("opentelemetry_api/include/tracer.hrl").
+-include_lib("opentelemetry_api/include/otel_tracer.hrl").
 
 run() ->
     {ok, _Pid} = inets:start(httpd, [{port, 5000},

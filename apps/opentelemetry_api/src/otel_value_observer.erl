@@ -27,7 +27,7 @@
          set_callback/3,
          observe/3]).
 
--include("meter.hrl").
+-include("otel_meter.hrl").
 
 -define(PROPERTIES, #{monotonic => false,
                       synchronous => false}).

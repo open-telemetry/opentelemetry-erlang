@@ -6,7 +6,7 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
--include_lib("opentelemetry_api/include/tracer.hrl").
+-include_lib("opentelemetry_api/include/otel_tracer.hrl").
 -include("otel_span.hrl").
 -include("otel_test_utils.hrl").
 

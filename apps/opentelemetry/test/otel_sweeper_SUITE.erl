@@ -12,7 +12,7 @@
 -include("otel_test_utils.hrl").
 -include("otel_span.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
--include_lib("opentelemetry_api/include/tracer.hrl").
+-include_lib("opentelemetry_api/include/otel_tracer.hrl").
 
 -include("../src/otel_span_ets.hrl").
 

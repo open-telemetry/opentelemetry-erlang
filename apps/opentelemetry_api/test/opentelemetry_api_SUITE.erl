@@ -6,7 +6,7 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include("opentelemetry.hrl").
--include("tracer.hrl").
+-include("otel_tracer.hrl").
 
 all() ->
     [noop_tracer, update_span_data, noop_with_span, macros, can_create_link_from_span].
