@@ -77,6 +77,7 @@
               attributes/0,
               event/0,
               events/0,
+              event_name/0,
               tracestate/0,
               status/0,
               resource/0,
@@ -106,6 +107,7 @@
                               ?SPAN_KIND_CONSUMER.
 -type event()              :: #event{}.
 -type events()             :: [#event{}].
+-type event_name()         :: unicode:unicode_binary() | atom().
 -type link()               :: #link{}.
 -type links()              :: [#link{}].
 -type status()             :: #status{}.
