@@ -164,6 +164,9 @@ to_attributes([{Key, Value} | Rest], Acc) when is_boolean(Value) ->
 to_attributes([{Key, Value} | Rest], Acc) when is_map(Value) ->
     to_attributes(Rest, [#{key => to_binary(Key),
                            values => #{value => {kvlist_value, maps:to_list(Value)}}} | Acc]);
+to_attributes([{Key, Value} | Rest], Acc) when is_tuple(Value) ->
+    to_attributes(Rest, [#{key => to_binary(Key),
+                           values => #{value => {array_value, tuple_to_list(Value)}}} | Acc]);
 to_attributes([{Key, Value} | Rest], Acc) when is_list(Value) ->
     case is_proplist(Value) of
         true ->
