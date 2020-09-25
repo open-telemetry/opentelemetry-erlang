@@ -1,8 +1,8 @@
 language-elixir:
-  - any: ['./**/*.exs', './**/*.ex']
+  - any: ['**/*.exs', '**/*.ex']
 
 language-erlang:
-  - any: ['./**/*.erl', './**/*.hrl', './**/rebar.config']
+  - any: ['**/*.erl', '**/*.hrl', '**/rebar.config']
 
 scope-api:
   - any: ['apps/opentelemetry_api/**']
