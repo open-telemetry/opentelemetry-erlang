@@ -22,7 +22,7 @@ jobs:
       ELIXIR_VERSION: ${{ matrix.elixir }}
     defaults:
       run:
-        working-directory: apps/opentelemetry_api/
+        working-directory: apps/api/
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-elixir@v1
@@ -33,9 +33,9 @@ jobs:
         name: Cache
         with:
           path: |
-            apps/opentelemetry_api/deps
-            apps/opentelemetry_api/_build
-          key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-v2-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock')) }}
+            apps/api/deps
+            apps/api/_build
+          key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-v2-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/api/mix.lock')) }}
           restore-keys: |
             ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-
       - run: mix deps.get
@@ -44,7 +44,7 @@ jobs:
         name: ExUnit
       - uses: codecov/codecov-action@v1
         with:
-          file: apps/opentelemetry_api/coverage.xml
+          file: apps/api/coverage.xml
           env_vars: OTP_VERSION,ELIXIR_VERSION
           flags: api,elixir
   dialyze:
@@ -60,7 +60,7 @@ jobs:
       ELIXIR_VERSION: ${{ matrix.elixir }}
     defaults:
       run:
-        working-directory: apps/opentelemetry_api/
+        working-directory: apps/api/
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-elixir@v1
@@ -71,9 +71,9 @@ jobs:
         name: Cache
         with:
           path: |
-            apps/opentelemetry_api/deps
-            apps/opentelemetry_api/_build
-          key: ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-${{ matrix.elixir }}-v2-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock')) }}
+            apps/api/deps
+            apps/api/_build
+          key: ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-${{ matrix.elixir }}-v2-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/api/mix.lock')) }}
           restore-keys: |
             ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-
       - run: mix deps.get
