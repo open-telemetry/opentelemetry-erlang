@@ -40,10 +40,10 @@
          get_tracer/1,
          get_meter/0,
          get_meter/1,
-         set_http_extractor/1,
-         get_http_extractor/0,
-         set_http_injector/1,
-         get_http_injector/0,
+         set_text_map_extractors/1,
+         get_text_map_extractors/0,
+         set_text_map_injectors/1,
+         get_text_map_injectors/0,
          timestamp/0,
          timestamp_to_nano/1,
          convert_timestamp/2,
@@ -81,7 +81,7 @@
               tracestate/0,
               status/0,
               resource/0,
-              http_headers/0]).
+              text_map/0]).
 
 -type tracer()             :: {module(), term()}.
 -type meter()              :: {module(), term()}.
@@ -122,7 +122,7 @@
 
 -type resource()           :: #{unicode:unicode_binary() => unicode:unicode_binary()}.
 
--type http_headers()       :: [{unicode:unicode_binary(), unicode:unicode_binary()}].
+-type text_map()       :: [{unicode:unicode_binary(), unicode:unicode_binary()}].
 
 -spec set_default_tracer(tracer()) -> boolean().
 set_default_tracer(Tracer) ->
@@ -172,21 +172,21 @@ get_meter() ->
 get_meter(Name) ->
     persistent_term:get({?MODULE, Name}, get_meter()).
 
-set_http_extractor(List) when is_list(List) ->
-    persistent_term:put({?MODULE, http_extractor}, List);
-set_http_extractor(_) ->
+set_text_map_extractors(List) when is_list(List) ->
+    persistent_term:put({?MODULE, text_map_extractors}, List);
+set_text_map_extractors(_) ->
     ok.
 
-set_http_injector(List) when is_list(List) ->
-    persistent_term:put({?MODULE, http_injector}, List);
-set_http_injector(_) ->
+set_text_map_injectors(List) when is_list(List) ->
+    persistent_term:put({?MODULE, text_map_injectors}, List);
+set_text_map_injectors(_) ->
     ok.
 
-get_http_extractor() ->
-    persistent_term:get({?MODULE, http_extractor}, []).
+get_text_map_extractors() ->
+    persistent_term:get({?MODULE, text_map_extractors}, []).
 
-get_http_injector() ->
-    persistent_term:get({?MODULE, http_injector}, []).
+get_text_map_injectors() ->
+    persistent_term:get({?MODULE, text_map_injectors}, []).
 
 %% @doc A monotonically increasing time provided by the Erlang runtime system in the native time unit.
 %% This value is the most accurate and precise timestamp available from the Erlang runtime and

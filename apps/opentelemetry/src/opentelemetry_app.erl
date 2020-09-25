@@ -27,7 +27,7 @@ start(_StartType, _StartArgs) ->
     Opts = application:get_all_env(opentelemetry),
 
     %% set the global propagators for HTTP based on the application env
-    setup_http_propagators(Opts),
+    setup_text_map_propagators(Opts),
 
     opentelemetry_sup:start_link(Opts).
 
@@ -45,8 +45,8 @@ stop(_State) ->
 
 %% internal functions
 
-setup_http_propagators(Opts) ->
-    Propagators = proplists:get_value(http_propagators, Opts, []),
+setup_text_map_propagators(Opts) ->
+    Propagators = proplists:get_value(text_map_propagators, Opts, []),
 
     {Extractors, Injectors} =
         lists:foldl(fun(F, {ExtractorsAcc, InjectorsAcc}) ->
@@ -54,5 +54,5 @@ setup_http_propagators(Opts) ->
                             {[Extractor | ExtractorsAcc], [Injector | InjectorsAcc]}
                     end, {[], []}, Propagators),
 
-    opentelemetry:set_http_extractor(Extractors),
-    opentelemetry:set_http_injector(Injectors).
+    opentelemetry:set_text_map_extractors(Extractors),
+    opentelemetry:set_text_map_injectors(Injectors).

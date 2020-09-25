@@ -36,15 +36,15 @@ init_per_group(Propagator, Config) when Propagator =:= w3c ;
     application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
 
-    {BaggageHttpExtractor, BaggageHttpInjector} = otel_baggage:get_http_propagators(),
-    {TraceHttpExtractor, TraceHttpInjector} = case Propagator of
-                                                  w3c -> otel_tracer_default:w3c_propagators();
-                                                  b3 -> otel_tracer_default:b3_propagators()
-                                              end,
-    opentelemetry:set_http_extractor([BaggageHttpExtractor,
-                                      TraceHttpExtractor]),
-    opentelemetry:set_http_injector([BaggageHttpInjector,
-                                     TraceHttpInjector]),
+    {BaggageTextMapExtractor, BaggageTextMapInjector} = otel_baggage:get_text_map_propagators(),
+    {TraceTextMapExtractor, TraceTextMapInjector} = case Propagator of
+                                                        w3c -> otel_tracer_default:w3c_propagators();
+                                                        b3 -> otel_tracer_default:b3_propagators()
+                                                    end,
+    opentelemetry:set_text_map_extractors([BaggageTextMapExtractor,
+                                           TraceTextMapExtractor]),
+    opentelemetry:set_text_map_injectors([BaggageTextMapInjector,
+                                          TraceTextMapInjector]),
 
     [{propagator, Propagator} | Config].
 
@@ -192,12 +192,12 @@ propagation(Config) ->
 
     otel_baggage:set("key-1", "value-1"),
     otel_baggage:set("key-2", "value-2"),
-    Headers = otel_propagation:http_inject([{<<"existing-header">>, <<"I exist">>}]),
+    Headers = otel_propagator:text_map_inject([{<<"existing-header">>, <<"I exist">>}]),
 
     EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
     EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
 
-    ?assertListsMatch([{<<"otcorrelations">>, "key-2=value-2,key-1=value-1"},
+    ?assertListsMatch([{<<"baggage">>, "key-2=value-2,key-1=value-1"},
                        {<<"existing-header">>, <<"I exist">>} |
                        trace_context(Propagator, EncodedTraceId, EncodedSpanId)], Headers),
 
@@ -213,7 +213,7 @@ propagation(Config) ->
 
     %% make header keys uppercase to validate the extractor is case insensitive
     BinaryHeaders = [{string:uppercase(Key), iolist_to_binary(Value)} || {Key, Value} <- Headers],
-    otel_propagation:http_extract(BinaryHeaders),
+    otel_propagator:text_map_extract(BinaryHeaders),
 
     ?assertEqual(#{"key-1" => "value-1",
                    "key-2" => "value-2"}, otel_baggage:get_all()),

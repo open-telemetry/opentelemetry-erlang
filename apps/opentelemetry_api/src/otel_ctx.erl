@@ -30,14 +30,10 @@
          detach/1,
          get_current/0,
 
-         http_extractor/1,
-         http_extractor/2,
-         http_injector/1,
-         http_injector/2,
-         http_extractor_fun/2,
-         http_extractor_fun/3,
-         http_injector_fun/2,
-         http_injector_fun/3]).
+         text_map_extractor/2,
+         text_map_injector/2,
+         text_map_extractor_fun/3,
+         text_map_injector_fun/3]).
 
 -type t() :: map().
 -type key() :: term().
@@ -115,28 +111,15 @@ detach(Token) ->
 
 %% Extractor and Injector setup functions
 
-http_extractor(FromText) ->
-    {fun ?MODULE:http_extractor_fun/2, FromText}.
+text_map_extractor(Key, FromText) ->
+    {fun ?MODULE:text_map_extractor_fun/3, {Key, FromText}}.
 
-http_extractor_fun(Headers, FromText) ->
-    New = FromText(Headers, ?MODULE:get_current()),
-    ?MODULE:attach(New).
-
-http_extractor(Key, FromText) ->
-    {fun ?MODULE:http_extractor_fun/3, {Key, FromText}}.
-
-http_extractor_fun(Headers, Key, FromText) ->
-    New = FromText(Headers, ?MODULE:get_value(Key, #{})),
+text_map_extractor_fun(TextMap, Key, FromText) ->
+    New = FromText(TextMap, ?MODULE:get_value(Key, #{})),
     ?MODULE:set_value(Key, New).
 
-http_injector(ToText) ->
-    {fun ?MODULE:http_injector_fun/2, ToText}.
+text_map_injector(Key, ToText) ->
+    {fun ?MODULE:text_map_injector_fun/3, {Key, ToText}}.
 
-http_injector_fun(Headers, ToText) ->
-    Headers ++ ToText(Headers, ?MODULE:get_current()).
-
-http_injector(Key, ToText) ->
-    {fun ?MODULE:http_injector_fun/3, {Key, ToText}}.
-
-http_injector_fun(Headers, Key, ToText) ->
-    Headers ++ ToText(Headers, ?MODULE:get_value(Key, #{})).
+text_map_injector_fun(TextMap, Key, ToText) ->
+    TextMap ++ ToText(?MODULE:get_value(Key, #{})).

@@ -20,7 +20,7 @@
 -export([ctx_key/0,
          set/2,
          get_all/0,
-         get_http_propagators/0]).
+         get_text_map_propagators/0]).
 
 -type key() :: string().
 -type value() :: string().
@@ -32,7 +32,7 @@
               value/0]).
 
 -define(BAGGAGE_KEY, '$__otel_baggage_ctx_key').
--define(BAGGAGE_HEADER, <<"otcorrelations">>).
+-define(BAGGAGE_HEADER, <<"baggage">>).
 
 ctx_key() ->
     ?BAGGAGE_KEY.
@@ -46,12 +46,12 @@ set(Key, Value) ->
 get_all() ->
     otel_ctx:get_value(?BAGGAGE_KEY, #{}).
 
--spec get_http_propagators() -> {otel_propagation:http_extractor(), otel_propagation:http_injector()}.
-get_http_propagators() ->
-    ToText = fun(_Headers, Baggage) ->
+-spec get_text_map_propagators() -> {otel_propagator:text_map_extractor(), otel_propagator:text_map_injector()}.
+get_text_map_propagators() ->
+    ToText = fun(Baggage) ->
                      case maps:fold(fun(Key, Value, Acc) ->
-                                              [$,, [Key, "=", Value] | Acc]
-                               end, [], Baggage) of
+                                            [$,, [Key, "=", Value] | Acc]
+                                    end, [], Baggage) of
                          [$, | List] ->
                              [{?BAGGAGE_HEADER, unicode:characters_to_list(List)}];
                          _ ->
@@ -71,8 +71,8 @@ get_http_propagators() ->
                                            end, CurrentBaggage, Pairs)
                        end
                end,
-    Inject = otel_ctx:http_injector(?BAGGAGE_KEY, ToText),
-    Extract = otel_ctx:http_extractor(?BAGGAGE_KEY, FromText),
+    Inject = otel_ctx:text_map_injector(?BAGGAGE_KEY, ToText),
+    Extract = otel_ctx:text_map_extractor(?BAGGAGE_KEY, FromText),
     {Extract, Inject}.
 
 %% find a header in a list, ignoring case
