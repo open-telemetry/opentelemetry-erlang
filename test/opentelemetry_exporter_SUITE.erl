@@ -110,7 +110,8 @@ span_round_trip(_Config) ->
               attributes = [
                   {<<"attr-2">>, <<"value-2">>},
                   {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
-                  {<<"proplist-key-1">>, [{proplistkey1, 456}, {<<"proplist-key-2">>, 9.345}]}
+                  {<<"proplist-key-1">>, [{proplistkey1, 456}, {<<"proplist-key-2">>, 9.345}]},
+                  {<<"tuple-key-1">>, {a, 123, [456, {1, 2}]}}
                 ],
               status = #status{code='Ok',
                                message = <<"">>},
@@ -180,7 +181,8 @@ verify_export(Config) ->
                                     {<<"attr-2">>, <<"value-2">>},
                                     {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
                                     {<<"proplist-key-1">>, [{proplistkey1, 456}, {<<"proplist-key-2">>, 9.345}]},
-                                    {<<"list-key-1">>, [listkey1, 123, <<"list-value-3">>]}
+                                    {<<"list-key-1">>, [listkey1, 123, <<"list-value-3">>]},
+                                    {<<"tuple-key-1">>, {a, 123, [456, {1, 2}]}}
                                    ]},
     true = ets:insert(Tid, ChildSpan),
 
