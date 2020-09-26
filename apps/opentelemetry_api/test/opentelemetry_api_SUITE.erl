@@ -6,7 +6,7 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include("opentelemetry.hrl").
--include("tracer.hrl").
+-include("otel_tracer.hrl").
 
 all() ->
     [noop_tracer, update_span_data, noop_with_span, macros, can_create_link_from_span].
@@ -23,9 +23,9 @@ can_create_link_from_span(_Config) ->
     SpanCtx = ?start_span(<<"span-1">>),
 
     %% extract individual values from span context
-    TraceId = ot_span:trace_id(SpanCtx),
-    SpanId = ot_span:span_id(SpanCtx),
-    Tracestate = ot_span:tracestate(SpanCtx),
+    TraceId = otel_span:trace_id(SpanCtx),
+    SpanId = otel_span:span_id(SpanCtx),
+    Tracestate = otel_span:tracestate(SpanCtx),
 
     %% end span, so there's no current span set
     ?end_span(),
@@ -107,14 +107,14 @@ update_span_data(_Config) ->
 
     Events = opentelemetry:events([{opentelemetry:timestamp(),
                                     <<"timed-event-name">>, []}]),
-    Status = ot_http_status:to_status(200),
+    Status = otel_http_status:to_status(200),
     ?assertMatch(#status{code = ?OTEL_STATUS_OK, message = <<"Ok">>}, Status),
 
     %% with spanctx and tracer passed as an argument
     Tracer = opentelemetry:get_tracer(),
-    ot_span:set_status(Tracer, SpanCtx1, Status),
+    otel_span:set_status(Tracer, SpanCtx1, Status),
 
-    ot_span:add_events(Tracer, SpanCtx1, Events),
+    otel_span:add_events(Tracer, SpanCtx1, Events),
 
     ?assertMatch(SpanCtx1, ?current_span_ctx()),
     ?end_span(),
@@ -123,10 +123,10 @@ update_span_data(_Config) ->
 
 noop_with_span(_Config) ->
     Tracer = opentelemetry:get_tracer(),
-    ?assertMatch({ot_tracer_noop, _}, Tracer),
+    ?assertMatch({otel_tracer_noop, _}, Tracer),
 
     Result = some_result,
-    ?assertEqual(Result, ot_tracer:with_span(Tracer, <<"span1">>, fun(_) -> Result end)),
+    ?assertEqual(Result, otel_tracer:with_span(Tracer, <<"span1">>, fun(_) -> Result end)),
     ok.
 
 macros(_Config) ->

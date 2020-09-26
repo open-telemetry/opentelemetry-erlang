@@ -85,7 +85,7 @@ Running benchmarks is done with [benchee](https://github.com/bencheeorg/benchee)
 ``` shell
 $ rebar3 as bench compile
 
-> ot_benchmarks:run().
+> otel_benchmarks:run().
 ```
 
 If an Elixir script is wanted for the benchmarks they could be run like:

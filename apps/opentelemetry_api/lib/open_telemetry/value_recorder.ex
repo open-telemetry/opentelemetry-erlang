@@ -8,13 +8,13 @@ defmodule OpenTelemetry.ValueRecorder do
 
   defmacro new(name, opts \\ %{}) do
     quote do
-      :ot_value_recorder.new(:opentelemetry.get_meter(__MODULE__), unquote(name), unquote(opts))
+      :otel_value_recorder.new(:opentelemetry.get_meter(__MODULE__), unquote(name), unquote(opts))
     end
   end
 
   defmacro record(name, number, label_set) do
     quote do
-      :ot_meter.record(
+      :otel_meter.record(
         :opentelemetry.get_meter(__MODULE__),
         unquote(name),
         unquote(number),
@@ -25,7 +25,7 @@ defmodule OpenTelemetry.ValueRecorder do
 
   defmacro record(bound_instrument, number) do
     quote do
-      :ot_meter.record(
+      :otel_meter.record(
         :opentelemetry.get_meter(__MODULE__),
         unquote(bound_instrument),
         unquote(number)
@@ -33,6 +33,6 @@ defmodule OpenTelemetry.ValueRecorder do
     end
   end
 
-  defdelegate definition(name, opts), to: :ot_value_recorder
-  defdelegate measurement(name_or_instrument, number), to: :ot_value_recorder
+  defdelegate definition(name, opts), to: :otel_value_recorder
+  defdelegate measurement(name_or_instrument, number), to: :otel_value_recorder
 end

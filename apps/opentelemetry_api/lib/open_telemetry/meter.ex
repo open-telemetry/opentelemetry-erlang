@@ -21,25 +21,25 @@ defmodule OpenTelemetry.Meter do
 
   defmacro new_instruments(list) do
     quote do
-      :ot_meter.new_instruments(:opentelemetry.get_meter(__MODULE__), unquote(list))
+      :otel_meter.new_instruments(:opentelemetry.get_meter(__MODULE__), unquote(list))
     end
   end
 
   defmacro bind(name, label_set) do
     quote do
-      :ot_meter.bind(:opentelemetry.get_meter(__MODULE__), unquote(name), unquote(label_set))
+      :otel_meter.bind(:opentelemetry.get_meter(__MODULE__), unquote(name), unquote(label_set))
     end
   end
 
   defmacro release(bound_instrument) do
     quote do
-      :ot_meter.release(:opentelemetry.get_meter(__MODULE__), unquote(bound_instrument))
+      :otel_meter.release(:opentelemetry.get_meter(__MODULE__), unquote(bound_instrument))
     end
   end
 
   defmacro record(name, number, label_set) do
     quote do
-      :ot_meter.record(
+      :otel_meter.record(
         :opentelemetry.get_meter(__MODULE__),
         unquote(name),
         unquote(number),
@@ -50,7 +50,7 @@ defmodule OpenTelemetry.Meter do
 
   defmacro record(bound_instrument, number) do
     quote do
-      :ot_meter.record(
+      :otel_meter.record(
         :opentelemetry.get_meter(__MODULE__),
         unquote(bound_instrument),
         unquote(number)
@@ -60,7 +60,7 @@ defmodule OpenTelemetry.Meter do
 
   defmacro record_batch(label_set, measurements) do
     quote do
-      :ot_meter.record_batch(
+      :otel_meter.record_batch(
         :opentelemetry.get_meter(__MODULE__),
         unquote(label_set),
         unquote(measurements)

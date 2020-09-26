@@ -31,19 +31,19 @@ defmodule OpenTelemetry.Span do
   Get the SpanId of a Span.
   """
   @spec span_id(OpenTelemetry.span_ctx()) :: OpenTelemetry.span_id()
-  defdelegate span_id(span), to: :ot_span
+  defdelegate span_id(span), to: :otel_span
 
   @doc """
   Get the TraceId of a Span.
   """
   @spec trace_id(OpenTelemetry.span_ctx()) :: OpenTelemetry.trace_id()
-  defdelegate trace_id(span), to: :ot_span
+  defdelegate trace_id(span), to: :otel_span
 
   @doc """
   Get the Tracestate of a Span.
   """
   @spec tracestate(OpenTelemetry.span_ctx()) :: OpenTelemetry.tracestate()
-  defdelegate tracestate(span), to: :ot_span
+  defdelegate tracestate(span), to: :otel_span
 
   @doc """
   Set an attribute with key and value on the currently active Span.
@@ -53,9 +53,9 @@ defmodule OpenTelemetry.Span do
     quote do
       tracer = :opentelemetry.get_tracer(__MODULE__)
 
-      :ot_span.set_attribute(
+      :otel_span.set_attribute(
         tracer,
-        :ot_tracer.current_span_ctx(tracer),
+        :otel_tracer.current_span_ctx(tracer),
         unquote(key),
         unquote(value)
       )
@@ -69,7 +69,7 @@ defmodule OpenTelemetry.Span do
   defmacro set_attributes(attributes) do
     quote do
       tracer = :opentelemetry.get_tracer(__MODULE__)
-      :ot_span.set_attributes(tracer, :ot_tracer.current_span_ctx(tracer), unquote(attributes))
+      :otel_span.set_attributes(tracer, :otel_tracer.current_span_ctx(tracer), unquote(attributes))
     end
   end
 
@@ -81,9 +81,9 @@ defmodule OpenTelemetry.Span do
     quote do
       tracer = :opentelemetry.get_tracer(__MODULE__)
 
-      :ot_span.add_event(
+      :otel_span.add_event(
         tracer,
-        :ot_tracer.current_span_ctx(tracer),
+        :otel_tracer.current_span_ctx(tracer),
         unquote(event),
         unquote(attributes)
       )
@@ -97,7 +97,7 @@ defmodule OpenTelemetry.Span do
   defmacro add_events(events) do
     quote do
       tracer = :opentelemetry.get_tracer(__MODULE__)
-      :ot_span.add_events(tracer, :ot_tracer.current_span_ctx(tracer), unquote(events))
+      :otel_span.add_events(tracer, :otel_tracer.current_span_ctx(tracer), unquote(events))
     end
   end
 
@@ -110,7 +110,7 @@ defmodule OpenTelemetry.Span do
   defmacro set_status(status) do
     quote do
       tracer = :opentelemetry.get_tracer(__MODULE__)
-      :ot_span.set_status(tracer, :ot_tracer.current_span_ctx(tracer), unquote(status))
+      :otel_span.set_status(tracer, :otel_tracer.current_span_ctx(tracer), unquote(status))
     end
   end
 
@@ -131,7 +131,7 @@ defmodule OpenTelemetry.Span do
   defmacro update_name(name) do
     quote do
       tracer = :opentelemetry.get_tracer(__MODULE__)
-      :ot_span.update_name(tracer, :ot_tracer.current_span_ctx(tracer), unquote(name))
+      :otel_span.update_name(tracer, :otel_tracer.current_span_ctx(tracer), unquote(name))
     end
   end
 end
