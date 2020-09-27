@@ -20,8 +20,8 @@
 -export([text_map_inject/1,
          text_map_extract/1]).
 
--callback inject(term()) -> ot_propagator:carrier().
--callback extract(ot_propagator:carrier(), term()) -> term().
+-callback inject(term()) -> carrier().
+-callback extract(carrier(), term()) -> term().
 
 -type text_map() :: [{binary(), binary()}].
 
