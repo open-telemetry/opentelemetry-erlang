@@ -29,8 +29,8 @@
 -type carrier() :: text_map().
 
 %% T is a carrier()
--type extractor(T) :: {fun((T, term(), fun()) -> ok), term()}.
--type injector(T) :: {fun((T, term(), fun()) -> T), term()}.
+-type extractor(T) :: {fun((T, term(), fun((carrier(), term()) -> term())) -> ok), term()}.
+-type injector(T) :: {fun((T, term(), fun((term()) -> carrier())) -> T), term()}.
 
 -type text_map_injector() :: injector(text_map()).
 -type text_map_extractor() :: extractor(text_map()).
