@@ -15,9 +15,11 @@
 %% @doc
 %% @end
 %%%-----------------------------------------------------------------------
--module(otel_propagation_http_b3).
+-module(otel_propagator_http_b3).
 
--export([inject/2,
+-behaviour(otel_propagator).
+
+-export([inject/1,
          extract/2]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
@@ -29,25 +31,24 @@
 
 -define(IS_SAMPLED(S), S =:= "1" orelse S =:= <<"1">> orelse S =:= "true" orelse S =:= <<"true">>).
 
--spec inject(otel_propagation:http_headers(), tracer_ctx() | undefined)
-            -> otel_propagation:http_headers().
-inject(_, #tracer_ctx{active=#span_ctx{trace_id=TraceId,
-                                       span_id=SpanId}}) when TraceId =:= 0
-                                                              ; SpanId =:= 0 ->
+-spec inject(tracer_ctx() | undefined) -> otel_propagator:text_map().
+inject(#tracer_ctx{active=#span_ctx{trace_id=TraceId,
+                                    span_id=SpanId}}) when TraceId =:= 0
+                                                           ; SpanId =:= 0 ->
     [];
-inject(_, #tracer_ctx{active=#span_ctx{trace_id=TraceId,
-                                       span_id=SpanId,
-                                       trace_flags=TraceOptions}}) ->
+inject(#tracer_ctx{active=#span_ctx{trace_id=TraceId,
+                                    span_id=SpanId,
+                                    trace_flags=TraceOptions}}) ->
     Options = case TraceOptions band 1 of 1 -> <<"1">>; _ -> <<"0">> end,
     EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
     EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
     [{?B3_TRACE_ID, iolist_to_binary(EncodedTraceId)},
      {?B3_SPAN_ID, iolist_to_binary(EncodedSpanId)},
      {?B3_SAMPLED, Options}];
-inject(_, undefined) ->
+inject(undefined) ->
     [].
 
--spec extract(otel_propagation:http_headers(), term()) -> opentelemetry:span_ctx() | undefined.
+-spec extract(otel_propagator:text_map(), term()) -> opentelemetry:span_ctx() | undefined.
 extract(Headers, _) when is_list(Headers) ->
     try
         TraceId = trace_id(Headers),

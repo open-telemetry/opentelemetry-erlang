@@ -31,7 +31,8 @@
          current_ctx/1,
          current_span_ctx/1,
          b3_propagators/0,
-         w3c_propagators/0]).
+         w3c_propagators/0,
+         text_map_propagators/1]).
 
 %% tracer access functions
 -export([span_module/1]).
@@ -158,20 +159,20 @@ current_ctx(Ctx, _Tracer) ->
 span_module({_, #tracer{span_module=SpanModule}}) ->
     SpanModule.
 
--spec b3_propagators() -> {otel_propagation:http_extractor(), otel_propagation:http_injector()}.
+-spec b3_propagators() -> {otel_propagator:text_map_extractor(), otel_propagator:text_map_injector()}.
 b3_propagators() ->
-    ToText = fun otel_propagation_http_b3:inject/2,
-    FromText = fun otel_propagation_http_b3:extract/2,
-    Injector = otel_ctx:http_injector(?TRACER_CTX, ToText),
-    Extractor = otel_ctx:http_extractor(?EXTERNAL_SPAN_CTX, FromText),
-    {Extractor, Injector}.
+    text_map_propagators(otel_propagator_http_b3).
 
--spec w3c_propagators() -> {otel_propagation:http_extractor(), otel_propagation:http_injector()}.
+-spec w3c_propagators() -> {otel_propagator:text_map_extractor(), otel_propagator:text_map_injector()}.
 w3c_propagators() ->
-    ToText = fun otel_propagation_http_w3c:inject/2,
-    FromText = fun otel_propagation_http_w3c:extract/2,
-    Injector = otel_ctx:http_injector(?TRACER_CTX, ToText),
-    Extractor = otel_ctx:http_extractor(?EXTERNAL_SPAN_CTX, FromText),
+    text_map_propagators(otel_propagator_http_w3c).
+
+-spec text_map_propagators(module()) -> {otel_propagator:text_map_extractor(), otel_propagator:text_map_injector()}.
+text_map_propagators(Module) ->
+    ToText = fun Module:inject/1,
+    FromText = fun Module:extract/2,
+    Injector = otel_ctx:text_map_injector(?TRACER_CTX, ToText),
+    Extractor = otel_ctx:text_map_extractor(?EXTERNAL_SPAN_CTX, FromText),
     {Extractor, Injector}.
 
 %% @doc Ends the span in the current pdict context. And sets the previous

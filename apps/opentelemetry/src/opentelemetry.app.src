@@ -9,8 +9,8 @@
     opentelemetry_api
    ]},
   {env, [{sampler, {always_on, #{}}},
-         {http_propagators, [fun otel_baggage:get_http_propagators/0,
-                             fun otel_tracer_default:w3c_propagators/0]},
+         {text_map_propagators, [fun otel_baggage:get_text_map_propagators/0,
+                                 fun otel_tracer_default:w3c_propagators/0]},
 
          %% list of disabled tracers
          {deny_list, []},

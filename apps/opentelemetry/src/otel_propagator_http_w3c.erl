@@ -15,9 +15,11 @@
 %% @doc
 %% @end
 %%%-----------------------------------------------------------------------
--module(otel_propagation_http_w3c).
+-module(otel_propagator_http_w3c).
 
--export([inject/2,
+-behaviour(otel_propagator).
+
+-export([inject/1,
          encode/1,
          extract/2,
          decode/1]).
@@ -38,18 +40,17 @@
 
 -define(MAX_TRACESTATE_PAIRS, 32).
 
--spec inject(otel_propagation:http_headers(), tracer_ctx() | undefined)
-            -> otel_propagation:http_headers().
-inject(_, #tracer_ctx{active=#span_ctx{trace_id=TraceId,
-                                       span_id=SpanId},
-                      previous=_})
+-spec inject(tracer_ctx() | undefined) -> otel_propagator:text_map().
+inject(#tracer_ctx{active=#span_ctx{trace_id=TraceId,
+                                    span_id=SpanId},
+                   previous=_})
   when TraceId =:= 0 orelse SpanId =:= 0 ->
     [];
-inject(_, #tracer_ctx{active=SpanCtx=#span_ctx{},
-                      previous=_}) ->
+inject(#tracer_ctx{active=SpanCtx=#span_ctx{},
+                   previous=_}) ->
     EncodedValue = encode(SpanCtx),
     [{?HEADER_KEY, EncodedValue} | encode_tracestate(SpanCtx)];
-inject(_, undefined) ->
+inject(undefined) ->
     [].
 
 -spec encode(opentelemetry:span_ctx()) -> binary().
@@ -67,7 +68,7 @@ encode_tracestate(#span_ctx{tracestate=Entries}) ->
     StateHeaderValue = lists:join($,, [[Key, $=, Value] || {Key, Value} <- Entries]),
     [{?STATE_HEADER_KEY, unicode:characters_to_binary(StateHeaderValue)}].
 
--spec extract(otel_propagation:http_headers(), term()) -> opentelemetry:span_ctx()| undefined.
+-spec extract(otel_propagator:http_headers(), term()) -> opentelemetry:span_ctx()| undefined.
 extract(Headers, _) when is_list(Headers) ->
     case header_take(?HEADER_KEY, Headers) of
         [{_, Value} | RestHeaders] ->
