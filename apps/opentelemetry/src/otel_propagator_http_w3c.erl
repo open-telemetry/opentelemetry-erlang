@@ -40,14 +40,12 @@
 
 -define(MAX_TRACESTATE_PAIRS, 32).
 
--spec inject(tracer_ctx() | undefined) -> otel_propagator:text_map().
-inject(#tracer_ctx{active=#span_ctx{trace_id=TraceId,
-                                    span_id=SpanId},
-                   previous=_})
+-spec inject(opentelemetry:span_ctx() | undefined) -> otel_propagator:text_map().
+inject(#span_ctx{trace_id=TraceId,
+                 span_id=SpanId})
   when TraceId =:= 0 orelse SpanId =:= 0 ->
     [];
-inject(#tracer_ctx{active=SpanCtx=#span_ctx{},
-                   previous=_}) ->
+inject(SpanCtx=#span_ctx{}) ->
     EncodedValue = encode(SpanCtx),
     [{?HEADER_KEY, EncodedValue} | encode_tracestate(SpanCtx)];
 inject(undefined) ->

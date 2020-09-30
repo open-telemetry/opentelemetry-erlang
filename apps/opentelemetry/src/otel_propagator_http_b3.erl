@@ -31,14 +31,14 @@
 
 -define(IS_SAMPLED(S), S =:= "1" orelse S =:= <<"1">> orelse S =:= "true" orelse S =:= <<"true">>).
 
--spec inject(tracer_ctx() | undefined) -> otel_propagator:text_map().
-inject(#tracer_ctx{active=#span_ctx{trace_id=TraceId,
-                                    span_id=SpanId}}) when TraceId =:= 0
-                                                           ; SpanId =:= 0 ->
+-spec inject(opentelemetry:span_ctx() | undefined) -> otel_propagator:text_map().
+inject(#span_ctx{trace_id=TraceId,
+                 span_id=SpanId}) when TraceId =:= 0
+                                       ; SpanId =:= 0 ->
     [];
-inject(#tracer_ctx{active=#span_ctx{trace_id=TraceId,
-                                    span_id=SpanId,
-                                    trace_flags=TraceOptions}}) ->
+inject(#span_ctx{trace_id=TraceId,
+                 span_id=SpanId,
+                 trace_flags=TraceOptions}) ->
     Options = case TraceOptions band 1 of 1 -> <<"1">>; _ -> <<"0">> end,
     EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
     EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),

@@ -2,7 +2,7 @@
 %% register a tracer for an application with opentelemetry:register_application_tracer(AppName)
 
 -define(current_tracer, opentelemetry:get_tracer(?MODULE)).
--define(current_span_ctx, otel_tracer:current_span_ctx(?current_tracer)).
+-define(current_span_ctx, otel_tracer:current_span_ctx()).
 
 -define(start_span(SpanName),
         otel_tracer:start_span(?current_tracer, SpanName, #{})).
@@ -10,23 +10,17 @@
 -define(start_span(SpanName, StartOpts),
         otel_tracer:start_span(?current_tracer, SpanName, StartOpts)).
 
--define(start_inactive_span(SpanName),
-        otel_tracer:start_inactive_span(?current_tracer, SpanName, #{})).
-
--define(start_inactive_span(SpanName, StartOpts),
-        otel_tracer:start_inactive_span(?current_tracer, SpanName, StartOpts)).
-
--define(set_span(SpanCtx),
-        otel_tracer:set_span(?current_tracer, SpanCtx)).
-
 -define(with_span(SpanName, StartOpts, Fun),
         otel_tracer:with_span(?current_tracer, SpanName, StartOpts, Fun)).
 
 -define(end_span(),
-        otel_tracer:end_span(?current_tracer)).
+        otel_tracer:end_span(?current_tracer, ?current_span_ctx)).
 
--define(current_span_ctx(),
-        otel_tracer:current_span_ctx(?current_tracer)).
+-define(end_span(SpanCtx),
+        otel_tracer:end_span(?current_tracer, SpanCtx)).
+
+-define(set_current_span(SpanCtx),
+        otel_tracer:set_current_span(SpanCtx)).
 
 -define(is_recording(),
         otel_span:is_recording(?current_tracer, ?current_span_ctx)).
