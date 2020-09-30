@@ -1,15 +1,15 @@
 version: '3'
 services:
   otel:
-    image: otel/opentelemetry-collector-contrib-dev
-    command: ["--config=/conf/otel-collector-config.yaml"]
+    image: otel/opentelemetry-collector-contrib-dev:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
     network_mode: host
     ports:
       - 9090:9090
       - 55681:55681
       - 55680:55680
     volumes:
-      - ./config/otel-collector-config.yaml:/conf/otel-collector-config.yaml
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
 
   zipkin:
     image: openzipkin/zipkin-slim

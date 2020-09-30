@@ -124,7 +124,7 @@ to_proto(#span{trace_id=TraceId,
       span_id                  => <<SpanId:64>>,
       parent_span_id           => ParentSpanId,
       trace_state              => to_tracestate_string(TraceState),
-      kind                     => Kind,
+      kind                     => to_otlp_kind(Kind),
       start_time_unix_nano     => to_unixnano(StartTime),
       end_time_unix_nano       => to_unixnano(EndTime),
       attributes               => to_attributes(Attributes),
@@ -189,7 +189,7 @@ to_binary(Term) -> Term.
 -spec to_status(opentelemetry:status()) -> opentelemetry_exporter_trace_service_pb:status().
 to_status(#status{code=Code,
                   message=Message}) ->
-    #{code => Code,
+    #{code => to_otlp_status(Code),
       message => Message};
 to_status(_) ->
     #{}.
@@ -227,3 +227,53 @@ to_tracestate_string(undefined) ->
     "";
 to_tracestate_string(List) ->
     lists:join($,, [[Key, $=, Value] || {Key, Value} <- List]).
+
+-spec to_otlp_kind(atom()) -> opentelemetry_exporter_trace_service_pb:'span.SpanKind'().
+to_otlp_kind(?SPAN_KIND_INTERNAL) ->
+    'SPAN_KIND_INTERNAL';
+to_otlp_kind(?SPAN_KIND_SERVER) ->
+    'SPAN_KIND_SERVER';
+to_otlp_kind(?SPAN_KIND_CLIENT) ->
+    'SPAN_KIND_CLIENT';
+to_otlp_kind(?SPAN_KIND_PRODUCER) ->
+    'SPAN_KIND_PRODUCER';
+to_otlp_kind(?SPAN_KIND_CONSUMER) ->
+    'SPAN_KIND_CONSUMER';
+to_otlp_kind(_) ->
+    'SPAN_KIND_UNSPECIFIED'.
+
+-spec to_otlp_status(atom()) -> opentelemetry_exporter_trace_service_pb:'span.StatusCode'().
+to_otlp_status(?OTEL_STATUS_OK) ->
+    'STATUS_CODE_OK';
+to_otlp_status(?OTEL_STATUS_CANCELLED) ->
+    'STATUS_CODE_CANCELLED';
+to_otlp_status(?OTEL_STATUS_UNKNOWN) ->
+    'STATUS_CODE_UNKNOWN_ERROR';
+to_otlp_status(?OTEL_STATUS_INVALID_ARGUMENT) ->
+    'STATUS_CODE_INVALID_ARGUMENT';
+to_otlp_status(?OTEL_STATUS_DEADLINE_EXCEEDED) ->
+    'STATUS_CODE_DEADLINE_EXCEEDED';
+to_otlp_status(?OTEL_STATUS_NOT_FOUND) ->
+    'STATUS_CODE_NOT_FOUND';
+to_otlp_status(?OTEL_STATUS_ALREADY_EXISTS) ->
+    'STATUS_CODE_ALREADY_EXISTS';
+to_otlp_status(?OTEL_STATUS_PERMISSION_DENIED) ->
+    'STATUS_CODE_PERMISSION_DENIED';
+to_otlp_status(?OTEL_STATUS_RESOURCE_EXHAUSTED) ->
+    'STATUS_CODE_RESOURCE_EXHAUSTED';
+to_otlp_status(?OTEL_STATUS_FAILED_PRECONDITION) ->
+    'STATUS_CODE_FAILED_PRECONDITION';
+to_otlp_status(?OTEL_STATUS_ABORTED) ->
+    'STATUS_CODE_ABORTED';
+to_otlp_status(?OTEL_STATUS_OUT_OF_RANGE) ->
+    'STATUS_CODE_OUT_OF_RANGE';
+to_otlp_status(?OTEL_STATUS_UNIMPLEMENTED) ->
+    'STATUS_CODE_UNIMPLEMENTED';
+to_otlp_status(?OTEL_STATUS_INTERNAL) ->
+    'STATUS_CODE_INTERNAL_ERROR';
+to_otlp_status(?OTEL_STATUS_UNAVAILABLE) ->
+    'STATUS_CODE_UNAVAILABLE';
+to_otlp_status(?OTEL_STATUS_DATA_LOSS) ->
+    'STATUS_CODE_DATA_LOSS';
+to_otlp_status(?OTEL_STATUS_UNAUTHENTICATED) ->
+    'STATUS_CODE_UNAUTHENTICATED'.
