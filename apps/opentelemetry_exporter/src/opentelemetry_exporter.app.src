@@ -1,0 +1,18 @@
+{application, opentelemetry_exporter,
+ [{description, "OpenTelemetry Protocol Exporter"},
+  {vsn, "git"},
+  {registered, []},
+  {applications,
+   [kernel,
+    stdlib,
+    inets,
+    grpcbox,
+    opentelemetry,
+    opentelemetry_api
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {licenses, ["Apache-2.0"]},
+  {links, [{"GitHub", "https://github.com/opentelemetry-beam/opentelemetry_exporter"}]}
+ ]}.
