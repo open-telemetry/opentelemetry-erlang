@@ -10,7 +10,7 @@
 
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
--include_lib("opentelemetry/include/ot_span.hrl").
+-include_lib("opentelemetry/include/otel_span.hrl").
 
 -define(DEFAULT_ENDPOINTS, [{http, "localhost", 9090, []}]).
 
@@ -74,7 +74,7 @@ shutdown(#state{channel_pid=Pid}) ->
 
 tab_to_proto(Tab, Resource) ->
     InstrumentationLibrarySpans = to_proto_by_instrumentation_library(Tab),
-    Attributes = ot_resource:attributes(Resource),
+    Attributes = otel_resource:attributes(Resource),
     ResourceSpans = [#{resource => #{attributes => to_attributes(Attributes),
                                      dropped_attributes_count => 0},
                        instrumentation_library_spans => InstrumentationLibrarySpans}],

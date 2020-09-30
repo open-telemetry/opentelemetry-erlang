@@ -6,7 +6,7 @@
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
--include_lib("opentelemetry/include/ot_span.hrl").
+-include_lib("opentelemetry/include/otel_span.hrl").
 
 all() ->
     [{group, functional}, {group, http_protobuf}, {group, grpc}].
@@ -142,7 +142,7 @@ verify_export(Config) ->
                                                 endpoints => [{http, "localhost", Port, []}]}),
     Tid = ets:new(span_tab, [duplicate_bag, {keypos, #span.instrumentation_library}]),
 
-    ?assertMatch(ok, opentelemetry_exporter:export(Tid, ot_resource:create([]), State)),
+    ?assertMatch(ok, opentelemetry_exporter:export(Tid, otel_resource:create([]), State)),
 
     TraceId = opentelemetry:generate_trace_id(),
     SpanId = opentelemetry:generate_span_id(),
@@ -188,8 +188,8 @@ verify_export(Config) ->
 
     ?assertMatch([#{instrumentation_library := undefined,
                     spans := [_, _]}], opentelemetry_exporter:to_proto_by_instrumentation_library(Tid)),
-    Resource = ot_resource_env_var:get_resource(),
-    ?assertMatch({ot_resource,[{<<"service.name">>,<<"my-test-service">>},{<<"service.version">>,<<"98da75ea6d38724743bf42b45565049238d86b3f">>}]}, Resource),
+    Resource = otel_resource_env_var:get_resource(),
+    ?assertMatch({otel_resource,[{<<"service.name">>,<<"my-test-service">>},{<<"service.version">>,<<"98da75ea6d38724743bf42b45565049238d86b3f">>}]}, Resource),
     ?assertMatch(ok, opentelemetry_exporter:export(Tid, Resource, State)),
 
     ok.
