@@ -20,6 +20,8 @@ jobs:
       OTP_VERSION: ${{ matrix.otp_version }}
     steps:
     - uses: actions/checkout@v2
+    - name: Run Collector
+      run: docker-compose up -d
     - uses: gleam-lang/setup-erlang@v1.0.0
       with:
         otp-version: ${{ matrix.otp_version }}
@@ -51,6 +53,11 @@ jobs:
         file: _build/test/covertool/opentelemetry_api.covertool.xml
         env_vars: OTP_VERSION
         flags: api,erlang
+    - uses: codecov/codecov-action@v1
+      with:
+        file: _build/test/covertool/opentelemetry_exporter.covertool.xml
+        env_vars: OTP_VERSION
+        flags: exporter,erlang
   dialyzer:
     name: Dialyze on OTP ${{ matrix.otp_version }} and ${{ matrix.os }}
     runs-on: ${{ matrix.os }}

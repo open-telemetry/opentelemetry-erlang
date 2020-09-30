@@ -15,7 +15,7 @@ For an Erlang release in `sys.config`:
 ``` erlang
 {opentelemetry,
   [{processors, 
-    [{ot_batch_processor,
+    [{otel_batch_processor,
         #{exporter => {opentelemetry_exporter, #{endpoints => [{http, "localhost", 9090, []}]}}}}]}]}
 ```
 
@@ -24,7 +24,7 @@ The default protocol is `http_protobuf`, to override this and use grpc add `prot
 ``` erlang
 {opentelemetry,
   [{processors, 
-    [{ot_batch_processor,
+    [{otel_batch_processor,
         #{exporter => {opentelemetry_exporter, #{protocol => grpc,
                                                  endpoints => [{http, "localhost", 9090, []}]}}}}]}]}
 ```
@@ -32,8 +32,10 @@ The default protocol is `http_protobuf`, to override this and use grpc add `prot
 An Elixir release uses `releases.exs`:
 
 ``` elixir
-config :opentelemetry,
-    :processors, ot_batch_processor: %{exporter: {:opentelemetry_exporter, %{endpoints: [{:http, 'localhost', 9090, []}]}}}
+config :opentelemetry, :processors,
+  otel_batch_processor: %{
+    exporter: {:opentelemetry_exporter, %{endpoints: [{:http, 'localhost', 9090, []}]}}
+  }
 ```
 
 ## Contributing
