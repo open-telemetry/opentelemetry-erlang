@@ -8,7 +8,7 @@ services:
       - 55681:55681
       - 55680:55680
     volumes:
-      - ./apps/opentelemetry_exporter/config/otel-collector-config.yaml:/conf/otel-collector-config.yaml
+      - ./config/otel-collector-config.yaml:/conf/otel-collector-config.yaml:ro
 
   zipkin:
     image: openzipkin/zipkin-slim
