@@ -3,16 +3,16 @@ receivers:
   otlp:
     protocols:
       grpc:
-        endpoint: "localhost:55680"
+        endpoint: "0.0.0.0:55680"
       http:
-        endpoint: "localhost:55681"
+        endpoint: "0.0.0.0:55681"
 processors:
   batch:
     send_batch_size: 1024
     timeout: 5s
 exporters:
   zipkin:
-    endpoint: "http://localhost:9411/api/v2/spans"
+    endpoint: "http://zipkin:9411/api/v2/spans"
 extensions:
   zpages: {}
 service:

@@ -30,7 +30,7 @@ jobs:
       with:
         path: |
           _build
-        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles(format('{0}{1}', github.workspace, '/rebar.lock')) }}
+        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles(format('rebar.lock')) }}
         restore-keys: |
           ${{ runner.os }}-build-${{ matrix.otp_version }}-
     - name: Compile
@@ -79,7 +79,7 @@ jobs:
       with:
         path: |
           _build
-        key: ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-${{ hashFiles(format('{0}{1}', github.workspace, '/rebar.lock')) }}
+        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}
         restore-keys: |
           ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-
     - name: Compile

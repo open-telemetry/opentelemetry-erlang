@@ -48,8 +48,8 @@
 
 
 %% enumerated types
--type 'span.SpanKind'() :: 'SPAN_KIND_UNSPECIFIED' | 'INTERNAL' | 'SERVER' | 'CLIENT' | 'PRODUCER' | 'CONSUMER'.
--type 'status.StatusCode'() :: 'Ok' | 'Cancelled' | 'UnknownError' | 'InvalidArgument' | 'DeadlineExceeded' | 'NotFound' | 'AlreadyExists' | 'PermissionDenied' | 'ResourceExhausted' | 'FailedPrecondition' | 'Aborted' | 'OutOfRange' | 'Unimplemented' | 'InternalError' | 'Unavailable' | 'DataLoss' | 'Unauthenticated'.
+-type 'span.SpanKind'() :: 'SPAN_KIND_UNSPECIFIED' | 'SPAN_KIND_INTERNAL' | 'SPAN_KIND_SERVER' | 'SPAN_KIND_CLIENT' | 'SPAN_KIND_PRODUCER' | 'SPAN_KIND_CONSUMER'.
+-type 'status.StatusCode'() :: 'STATUS_CODE_OK' | 'STATUS_CODE_CANCELLED' | 'STATUS_CODE_UNKNOWN_ERROR' | 'STATUS_CODE_INVALID_ARGUMENT' | 'STATUS_CODE_DEADLINE_EXCEEDED' | 'STATUS_CODE_NOT_FOUND' | 'STATUS_CODE_ALREADY_EXISTS' | 'STATUS_CODE_PERMISSION_DENIED' | 'STATUS_CODE_RESOURCE_EXHAUSTED' | 'STATUS_CODE_FAILED_PRECONDITION' | 'STATUS_CODE_ABORTED' | 'STATUS_CODE_OUT_OF_RANGE' | 'STATUS_CODE_UNIMPLEMENTED' | 'STATUS_CODE_INTERNAL_ERROR' | 'STATUS_CODE_UNAVAILABLE' | 'STATUS_CODE_DATA_LOSS' | 'STATUS_CODE_UNAUTHENTICATED'.
 -export_type(['span.SpanKind'/0, 'status.StatusCode'/0]).
 
 %% message types
@@ -92,7 +92,7 @@
         trace_state             => iodata(),        % = 3
         parent_span_id          => iodata(),        % = 4
         name                    => iodata(),        % = 5
-        kind                    => 'SPAN_KIND_UNSPECIFIED' | 'INTERNAL' | 'SERVER' | 'CLIENT' | 'PRODUCER' | 'CONSUMER' | integer(), % = 6, enum span.SpanKind
+        kind                    => 'SPAN_KIND_UNSPECIFIED' | 'SPAN_KIND_INTERNAL' | 'SPAN_KIND_SERVER' | 'SPAN_KIND_CLIENT' | 'SPAN_KIND_PRODUCER' | 'SPAN_KIND_CONSUMER' | integer(), % = 6, enum span.SpanKind
         start_time_unix_nano    => non_neg_integer(), % = 7, 64 bits
         end_time_unix_nano      => non_neg_integer(), % = 8, 64 bits
         attributes              => [key_value()],   % = 9
@@ -105,7 +105,7 @@
        }.
 
 -type status() ::
-      #{code                    => 'Ok' | 'Cancelled' | 'UnknownError' | 'InvalidArgument' | 'DeadlineExceeded' | 'NotFound' | 'AlreadyExists' | 'PermissionDenied' | 'ResourceExhausted' | 'FailedPrecondition' | 'Aborted' | 'OutOfRange' | 'Unimplemented' | 'InternalError' | 'Unavailable' | 'DataLoss' | 'Unauthenticated' | integer(), % = 1, enum status.StatusCode
+      #{code                    => 'STATUS_CODE_OK' | 'STATUS_CODE_CANCELLED' | 'STATUS_CODE_UNKNOWN_ERROR' | 'STATUS_CODE_INVALID_ARGUMENT' | 'STATUS_CODE_DEADLINE_EXCEEDED' | 'STATUS_CODE_NOT_FOUND' | 'STATUS_CODE_ALREADY_EXISTS' | 'STATUS_CODE_PERMISSION_DENIED' | 'STATUS_CODE_RESOURCE_EXHAUSTED' | 'STATUS_CODE_FAILED_PRECONDITION' | 'STATUS_CODE_ABORTED' | 'STATUS_CODE_OUT_OF_RANGE' | 'STATUS_CODE_UNIMPLEMENTED' | 'STATUS_CODE_INTERNAL_ERROR' | 'STATUS_CODE_UNAVAILABLE' | 'STATUS_CODE_DATA_LOSS' | 'STATUS_CODE_UNAUTHENTICATED' | integer(), % = 1, enum status.StatusCode
         message                 => iodata()         % = 2
        }.
 
@@ -495,7 +495,7 @@ encode_msg_status(#{} = M, Bin, TrUserData) ->
 	   #{code := F1} ->
 	       begin
 		 TrF1 = id(F1, TrUserData),
-		 if TrF1 =:= 'Ok'; TrF1 =:= 0 -> Bin;
+		 if TrF1 =:= 'STATUS_CODE_OK'; TrF1 =:= 0 -> Bin;
 		    true -> 'e_enum_status.StatusCode'(TrF1, <<Bin/binary, 8>>, TrUserData)
 		 end
 	       end;
@@ -730,30 +730,30 @@ e_field_resource_attributes([Elem | Rest], Bin, TrUserData) -> Bin2 = <<Bin/bina
 e_field_resource_attributes([], Bin, _TrUserData) -> Bin.
 
 'e_enum_span.SpanKind'('SPAN_KIND_UNSPECIFIED', Bin, _TrUserData) -> <<Bin/binary, 0>>;
-'e_enum_span.SpanKind'('INTERNAL', Bin, _TrUserData) -> <<Bin/binary, 1>>;
-'e_enum_span.SpanKind'('SERVER', Bin, _TrUserData) -> <<Bin/binary, 2>>;
-'e_enum_span.SpanKind'('CLIENT', Bin, _TrUserData) -> <<Bin/binary, 3>>;
-'e_enum_span.SpanKind'('PRODUCER', Bin, _TrUserData) -> <<Bin/binary, 4>>;
-'e_enum_span.SpanKind'('CONSUMER', Bin, _TrUserData) -> <<Bin/binary, 5>>;
+'e_enum_span.SpanKind'('SPAN_KIND_INTERNAL', Bin, _TrUserData) -> <<Bin/binary, 1>>;
+'e_enum_span.SpanKind'('SPAN_KIND_SERVER', Bin, _TrUserData) -> <<Bin/binary, 2>>;
+'e_enum_span.SpanKind'('SPAN_KIND_CLIENT', Bin, _TrUserData) -> <<Bin/binary, 3>>;
+'e_enum_span.SpanKind'('SPAN_KIND_PRODUCER', Bin, _TrUserData) -> <<Bin/binary, 4>>;
+'e_enum_span.SpanKind'('SPAN_KIND_CONSUMER', Bin, _TrUserData) -> <<Bin/binary, 5>>;
 'e_enum_span.SpanKind'(V, Bin, _TrUserData) -> e_varint(V, Bin).
 
-'e_enum_status.StatusCode'('Ok', Bin, _TrUserData) -> <<Bin/binary, 0>>;
-'e_enum_status.StatusCode'('Cancelled', Bin, _TrUserData) -> <<Bin/binary, 1>>;
-'e_enum_status.StatusCode'('UnknownError', Bin, _TrUserData) -> <<Bin/binary, 2>>;
-'e_enum_status.StatusCode'('InvalidArgument', Bin, _TrUserData) -> <<Bin/binary, 3>>;
-'e_enum_status.StatusCode'('DeadlineExceeded', Bin, _TrUserData) -> <<Bin/binary, 4>>;
-'e_enum_status.StatusCode'('NotFound', Bin, _TrUserData) -> <<Bin/binary, 5>>;
-'e_enum_status.StatusCode'('AlreadyExists', Bin, _TrUserData) -> <<Bin/binary, 6>>;
-'e_enum_status.StatusCode'('PermissionDenied', Bin, _TrUserData) -> <<Bin/binary, 7>>;
-'e_enum_status.StatusCode'('ResourceExhausted', Bin, _TrUserData) -> <<Bin/binary, 8>>;
-'e_enum_status.StatusCode'('FailedPrecondition', Bin, _TrUserData) -> <<Bin/binary, 9>>;
-'e_enum_status.StatusCode'('Aborted', Bin, _TrUserData) -> <<Bin/binary, 10>>;
-'e_enum_status.StatusCode'('OutOfRange', Bin, _TrUserData) -> <<Bin/binary, 11>>;
-'e_enum_status.StatusCode'('Unimplemented', Bin, _TrUserData) -> <<Bin/binary, 12>>;
-'e_enum_status.StatusCode'('InternalError', Bin, _TrUserData) -> <<Bin/binary, 13>>;
-'e_enum_status.StatusCode'('Unavailable', Bin, _TrUserData) -> <<Bin/binary, 14>>;
-'e_enum_status.StatusCode'('DataLoss', Bin, _TrUserData) -> <<Bin/binary, 15>>;
-'e_enum_status.StatusCode'('Unauthenticated', Bin, _TrUserData) -> <<Bin/binary, 16>>;
+'e_enum_status.StatusCode'('STATUS_CODE_OK', Bin, _TrUserData) -> <<Bin/binary, 0>>;
+'e_enum_status.StatusCode'('STATUS_CODE_CANCELLED', Bin, _TrUserData) -> <<Bin/binary, 1>>;
+'e_enum_status.StatusCode'('STATUS_CODE_UNKNOWN_ERROR', Bin, _TrUserData) -> <<Bin/binary, 2>>;
+'e_enum_status.StatusCode'('STATUS_CODE_INVALID_ARGUMENT', Bin, _TrUserData) -> <<Bin/binary, 3>>;
+'e_enum_status.StatusCode'('STATUS_CODE_DEADLINE_EXCEEDED', Bin, _TrUserData) -> <<Bin/binary, 4>>;
+'e_enum_status.StatusCode'('STATUS_CODE_NOT_FOUND', Bin, _TrUserData) -> <<Bin/binary, 5>>;
+'e_enum_status.StatusCode'('STATUS_CODE_ALREADY_EXISTS', Bin, _TrUserData) -> <<Bin/binary, 6>>;
+'e_enum_status.StatusCode'('STATUS_CODE_PERMISSION_DENIED', Bin, _TrUserData) -> <<Bin/binary, 7>>;
+'e_enum_status.StatusCode'('STATUS_CODE_RESOURCE_EXHAUSTED', Bin, _TrUserData) -> <<Bin/binary, 8>>;
+'e_enum_status.StatusCode'('STATUS_CODE_FAILED_PRECONDITION', Bin, _TrUserData) -> <<Bin/binary, 9>>;
+'e_enum_status.StatusCode'('STATUS_CODE_ABORTED', Bin, _TrUserData) -> <<Bin/binary, 10>>;
+'e_enum_status.StatusCode'('STATUS_CODE_OUT_OF_RANGE', Bin, _TrUserData) -> <<Bin/binary, 11>>;
+'e_enum_status.StatusCode'('STATUS_CODE_UNIMPLEMENTED', Bin, _TrUserData) -> <<Bin/binary, 12>>;
+'e_enum_status.StatusCode'('STATUS_CODE_INTERNAL_ERROR', Bin, _TrUserData) -> <<Bin/binary, 13>>;
+'e_enum_status.StatusCode'('STATUS_CODE_UNAVAILABLE', Bin, _TrUserData) -> <<Bin/binary, 14>>;
+'e_enum_status.StatusCode'('STATUS_CODE_DATA_LOSS', Bin, _TrUserData) -> <<Bin/binary, 15>>;
+'e_enum_status.StatusCode'('STATUS_CODE_UNAUTHENTICATED', Bin, _TrUserData) -> <<Bin/binary, 16>>;
 'e_enum_status.StatusCode'(V, Bin, _TrUserData) -> e_varint(V, Bin).
 
 -compile({nowarn_unused_function,e_type_sint/3}).
@@ -1406,7 +1406,7 @@ skip_32_span(<<_:32, Rest/binary>>, Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, 
 skip_64_span(<<_:64, Rest/binary>>, Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     dfp_read_field_def_span(Rest, Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData).
 
-decode_msg_status(Bin, TrUserData) -> dfp_read_field_def_status(Bin, 0, 0, id('Ok', TrUserData), id(<<>>, TrUserData), TrUserData).
+decode_msg_status(Bin, TrUserData) -> dfp_read_field_def_status(Bin, 0, 0, id('STATUS_CODE_OK', TrUserData), id(<<>>, TrUserData), TrUserData).
 
 dfp_read_field_def_status(<<8, Rest/binary>>, Z1, Z2, F@_1, F@_2, TrUserData) -> d_field_status_code(Rest, Z1, Z2, F@_1, F@_2, TrUserData);
 dfp_read_field_def_status(<<18, Rest/binary>>, Z1, Z2, F@_1, F@_2, TrUserData) -> d_field_status_message(Rest, Z1, Z2, F@_1, F@_2, TrUserData);
@@ -1830,30 +1830,30 @@ skip_32_resource(<<_:32, Rest/binary>>, Z1, Z2, F@_1, F@_2, TrUserData) -> dfp_r
 skip_64_resource(<<_:64, Rest/binary>>, Z1, Z2, F@_1, F@_2, TrUserData) -> dfp_read_field_def_resource(Rest, Z1, Z2, F@_1, F@_2, TrUserData).
 
 'd_enum_span.SpanKind'(0) -> 'SPAN_KIND_UNSPECIFIED';
-'d_enum_span.SpanKind'(1) -> 'INTERNAL';
-'d_enum_span.SpanKind'(2) -> 'SERVER';
-'d_enum_span.SpanKind'(3) -> 'CLIENT';
-'d_enum_span.SpanKind'(4) -> 'PRODUCER';
-'d_enum_span.SpanKind'(5) -> 'CONSUMER';
+'d_enum_span.SpanKind'(1) -> 'SPAN_KIND_INTERNAL';
+'d_enum_span.SpanKind'(2) -> 'SPAN_KIND_SERVER';
+'d_enum_span.SpanKind'(3) -> 'SPAN_KIND_CLIENT';
+'d_enum_span.SpanKind'(4) -> 'SPAN_KIND_PRODUCER';
+'d_enum_span.SpanKind'(5) -> 'SPAN_KIND_CONSUMER';
 'd_enum_span.SpanKind'(V) -> V.
 
-'d_enum_status.StatusCode'(0) -> 'Ok';
-'d_enum_status.StatusCode'(1) -> 'Cancelled';
-'d_enum_status.StatusCode'(2) -> 'UnknownError';
-'d_enum_status.StatusCode'(3) -> 'InvalidArgument';
-'d_enum_status.StatusCode'(4) -> 'DeadlineExceeded';
-'d_enum_status.StatusCode'(5) -> 'NotFound';
-'d_enum_status.StatusCode'(6) -> 'AlreadyExists';
-'d_enum_status.StatusCode'(7) -> 'PermissionDenied';
-'d_enum_status.StatusCode'(8) -> 'ResourceExhausted';
-'d_enum_status.StatusCode'(9) -> 'FailedPrecondition';
-'d_enum_status.StatusCode'(10) -> 'Aborted';
-'d_enum_status.StatusCode'(11) -> 'OutOfRange';
-'d_enum_status.StatusCode'(12) -> 'Unimplemented';
-'d_enum_status.StatusCode'(13) -> 'InternalError';
-'d_enum_status.StatusCode'(14) -> 'Unavailable';
-'d_enum_status.StatusCode'(15) -> 'DataLoss';
-'d_enum_status.StatusCode'(16) -> 'Unauthenticated';
+'d_enum_status.StatusCode'(0) -> 'STATUS_CODE_OK';
+'d_enum_status.StatusCode'(1) -> 'STATUS_CODE_CANCELLED';
+'d_enum_status.StatusCode'(2) -> 'STATUS_CODE_UNKNOWN_ERROR';
+'d_enum_status.StatusCode'(3) -> 'STATUS_CODE_INVALID_ARGUMENT';
+'d_enum_status.StatusCode'(4) -> 'STATUS_CODE_DEADLINE_EXCEEDED';
+'d_enum_status.StatusCode'(5) -> 'STATUS_CODE_NOT_FOUND';
+'d_enum_status.StatusCode'(6) -> 'STATUS_CODE_ALREADY_EXISTS';
+'d_enum_status.StatusCode'(7) -> 'STATUS_CODE_PERMISSION_DENIED';
+'d_enum_status.StatusCode'(8) -> 'STATUS_CODE_RESOURCE_EXHAUSTED';
+'d_enum_status.StatusCode'(9) -> 'STATUS_CODE_FAILED_PRECONDITION';
+'d_enum_status.StatusCode'(10) -> 'STATUS_CODE_ABORTED';
+'d_enum_status.StatusCode'(11) -> 'STATUS_CODE_OUT_OF_RANGE';
+'d_enum_status.StatusCode'(12) -> 'STATUS_CODE_UNIMPLEMENTED';
+'d_enum_status.StatusCode'(13) -> 'STATUS_CODE_INTERNAL_ERROR';
+'d_enum_status.StatusCode'(14) -> 'STATUS_CODE_UNAVAILABLE';
+'d_enum_status.StatusCode'(15) -> 'STATUS_CODE_DATA_LOSS';
+'d_enum_status.StatusCode'(16) -> 'STATUS_CODE_UNAUTHENTICATED';
 'd_enum_status.StatusCode'(V) -> V.
 
 read_group(Bin, FieldNum) ->
@@ -2646,33 +2646,33 @@ v_msg_resource(X, Path, _TrUserData) -> mk_type_error({expected_msg, resource}, 
 -compile({nowarn_unused_function,'v_enum_span.SpanKind'/3}).
 -dialyzer({nowarn_function,'v_enum_span.SpanKind'/3}).
 'v_enum_span.SpanKind'('SPAN_KIND_UNSPECIFIED', _Path, _TrUserData) -> ok;
-'v_enum_span.SpanKind'('INTERNAL', _Path, _TrUserData) -> ok;
-'v_enum_span.SpanKind'('SERVER', _Path, _TrUserData) -> ok;
-'v_enum_span.SpanKind'('CLIENT', _Path, _TrUserData) -> ok;
-'v_enum_span.SpanKind'('PRODUCER', _Path, _TrUserData) -> ok;
-'v_enum_span.SpanKind'('CONSUMER', _Path, _TrUserData) -> ok;
+'v_enum_span.SpanKind'('SPAN_KIND_INTERNAL', _Path, _TrUserData) -> ok;
+'v_enum_span.SpanKind'('SPAN_KIND_SERVER', _Path, _TrUserData) -> ok;
+'v_enum_span.SpanKind'('SPAN_KIND_CLIENT', _Path, _TrUserData) -> ok;
+'v_enum_span.SpanKind'('SPAN_KIND_PRODUCER', _Path, _TrUserData) -> ok;
+'v_enum_span.SpanKind'('SPAN_KIND_CONSUMER', _Path, _TrUserData) -> ok;
 'v_enum_span.SpanKind'(V, Path, TrUserData) when is_integer(V) -> v_type_sint32(V, Path, TrUserData);
 'v_enum_span.SpanKind'(X, Path, _TrUserData) -> mk_type_error({invalid_enum, 'span.SpanKind'}, X, Path).
 
 -compile({nowarn_unused_function,'v_enum_status.StatusCode'/3}).
 -dialyzer({nowarn_function,'v_enum_status.StatusCode'/3}).
-'v_enum_status.StatusCode'('Ok', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('Cancelled', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('UnknownError', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('InvalidArgument', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('DeadlineExceeded', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('NotFound', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('AlreadyExists', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('PermissionDenied', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('ResourceExhausted', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('FailedPrecondition', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('Aborted', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('OutOfRange', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('Unimplemented', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('InternalError', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('Unavailable', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('DataLoss', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('Unauthenticated', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_OK', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_CANCELLED', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_UNKNOWN_ERROR', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_INVALID_ARGUMENT', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_DEADLINE_EXCEEDED', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_NOT_FOUND', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_ALREADY_EXISTS', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_PERMISSION_DENIED', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_RESOURCE_EXHAUSTED', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_FAILED_PRECONDITION', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_ABORTED', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_OUT_OF_RANGE', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_UNIMPLEMENTED', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_INTERNAL_ERROR', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_UNAVAILABLE', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_DATA_LOSS', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_UNAUTHENTICATED', _Path, _TrUserData) -> ok;
 'v_enum_status.StatusCode'(V, Path, TrUserData) when is_integer(V) -> v_type_sint32(V, Path, TrUserData);
 'v_enum_status.StatusCode'(X, Path, _TrUserData) -> mk_type_error({invalid_enum, 'status.StatusCode'}, X, Path).
 
@@ -2770,10 +2770,11 @@ cons(Elem, Acc, _TrUserData) -> [Elem | Acc].
 
 
 get_msg_defs() ->
-    [{{enum, 'span.SpanKind'}, [{'SPAN_KIND_UNSPECIFIED', 0}, {'INTERNAL', 1}, {'SERVER', 2}, {'CLIENT', 3}, {'PRODUCER', 4}, {'CONSUMER', 5}]},
+    [{{enum, 'span.SpanKind'}, [{'SPAN_KIND_UNSPECIFIED', 0}, {'SPAN_KIND_INTERNAL', 1}, {'SPAN_KIND_SERVER', 2}, {'SPAN_KIND_CLIENT', 3}, {'SPAN_KIND_PRODUCER', 4}, {'SPAN_KIND_CONSUMER', 5}]},
      {{enum, 'status.StatusCode'},
-      [{'Ok', 0}, {'Cancelled', 1}, {'UnknownError', 2}, {'InvalidArgument', 3}, {'DeadlineExceeded', 4}, {'NotFound', 5}, {'AlreadyExists', 6}, {'PermissionDenied', 7}, {'ResourceExhausted', 8}, {'FailedPrecondition', 9}, {'Aborted', 10},
-       {'OutOfRange', 11}, {'Unimplemented', 12}, {'InternalError', 13}, {'Unavailable', 14}, {'DataLoss', 15}, {'Unauthenticated', 16}]},
+      [{'STATUS_CODE_OK', 0}, {'STATUS_CODE_CANCELLED', 1}, {'STATUS_CODE_UNKNOWN_ERROR', 2}, {'STATUS_CODE_INVALID_ARGUMENT', 3}, {'STATUS_CODE_DEADLINE_EXCEEDED', 4}, {'STATUS_CODE_NOT_FOUND', 5}, {'STATUS_CODE_ALREADY_EXISTS', 6},
+       {'STATUS_CODE_PERMISSION_DENIED', 7}, {'STATUS_CODE_RESOURCE_EXHAUSTED', 8}, {'STATUS_CODE_FAILED_PRECONDITION', 9}, {'STATUS_CODE_ABORTED', 10}, {'STATUS_CODE_OUT_OF_RANGE', 11}, {'STATUS_CODE_UNIMPLEMENTED', 12}, {'STATUS_CODE_INTERNAL_ERROR', 13},
+       {'STATUS_CODE_UNAVAILABLE', 14}, {'STATUS_CODE_DATA_LOSS', 15}, {'STATUS_CODE_UNAUTHENTICATED', 16}]},
      {{msg, export_trace_service_request}, [#{name => resource_spans, fnum => 1, rnum => 2, type => {msg, resource_spans}, occurrence => repeated, opts => []}]}, {{msg, export_trace_service_response}, []},
      {{msg, resource_spans},
       [#{name => resource, fnum => 1, rnum => 2, type => {msg, resource}, occurrence => optional, opts => []},
@@ -2878,10 +2879,11 @@ find_msg_def(resource) -> [#{name => attributes, fnum => 1, rnum => 2, type => {
 find_msg_def(_) -> error.
 
 
-find_enum_def('span.SpanKind') -> [{'SPAN_KIND_UNSPECIFIED', 0}, {'INTERNAL', 1}, {'SERVER', 2}, {'CLIENT', 3}, {'PRODUCER', 4}, {'CONSUMER', 5}];
+find_enum_def('span.SpanKind') -> [{'SPAN_KIND_UNSPECIFIED', 0}, {'SPAN_KIND_INTERNAL', 1}, {'SPAN_KIND_SERVER', 2}, {'SPAN_KIND_CLIENT', 3}, {'SPAN_KIND_PRODUCER', 4}, {'SPAN_KIND_CONSUMER', 5}];
 find_enum_def('status.StatusCode') ->
-    [{'Ok', 0}, {'Cancelled', 1}, {'UnknownError', 2}, {'InvalidArgument', 3}, {'DeadlineExceeded', 4}, {'NotFound', 5}, {'AlreadyExists', 6}, {'PermissionDenied', 7}, {'ResourceExhausted', 8}, {'FailedPrecondition', 9}, {'Aborted', 10},
-     {'OutOfRange', 11}, {'Unimplemented', 12}, {'InternalError', 13}, {'Unavailable', 14}, {'DataLoss', 15}, {'Unauthenticated', 16}];
+    [{'STATUS_CODE_OK', 0}, {'STATUS_CODE_CANCELLED', 1}, {'STATUS_CODE_UNKNOWN_ERROR', 2}, {'STATUS_CODE_INVALID_ARGUMENT', 3}, {'STATUS_CODE_DEADLINE_EXCEEDED', 4}, {'STATUS_CODE_NOT_FOUND', 5}, {'STATUS_CODE_ALREADY_EXISTS', 6},
+     {'STATUS_CODE_PERMISSION_DENIED', 7}, {'STATUS_CODE_RESOURCE_EXHAUSTED', 8}, {'STATUS_CODE_FAILED_PRECONDITION', 9}, {'STATUS_CODE_ABORTED', 10}, {'STATUS_CODE_OUT_OF_RANGE', 11}, {'STATUS_CODE_UNIMPLEMENTED', 12}, {'STATUS_CODE_INTERNAL_ERROR', 13},
+     {'STATUS_CODE_UNAVAILABLE', 14}, {'STATUS_CODE_DATA_LOSS', 15}, {'STATUS_CODE_UNAUTHENTICATED', 16}];
 find_enum_def(_) -> error.
 
 
@@ -2894,56 +2896,56 @@ enum_value_by_symbol('status.StatusCode', Sym) -> 'enum_value_by_symbol_status.S
 
 
 'enum_symbol_by_value_span.SpanKind'(0) -> 'SPAN_KIND_UNSPECIFIED';
-'enum_symbol_by_value_span.SpanKind'(1) -> 'INTERNAL';
-'enum_symbol_by_value_span.SpanKind'(2) -> 'SERVER';
-'enum_symbol_by_value_span.SpanKind'(3) -> 'CLIENT';
-'enum_symbol_by_value_span.SpanKind'(4) -> 'PRODUCER';
-'enum_symbol_by_value_span.SpanKind'(5) -> 'CONSUMER'.
+'enum_symbol_by_value_span.SpanKind'(1) -> 'SPAN_KIND_INTERNAL';
+'enum_symbol_by_value_span.SpanKind'(2) -> 'SPAN_KIND_SERVER';
+'enum_symbol_by_value_span.SpanKind'(3) -> 'SPAN_KIND_CLIENT';
+'enum_symbol_by_value_span.SpanKind'(4) -> 'SPAN_KIND_PRODUCER';
+'enum_symbol_by_value_span.SpanKind'(5) -> 'SPAN_KIND_CONSUMER'.
 
 
 'enum_value_by_symbol_span.SpanKind'('SPAN_KIND_UNSPECIFIED') -> 0;
-'enum_value_by_symbol_span.SpanKind'('INTERNAL') -> 1;
-'enum_value_by_symbol_span.SpanKind'('SERVER') -> 2;
-'enum_value_by_symbol_span.SpanKind'('CLIENT') -> 3;
-'enum_value_by_symbol_span.SpanKind'('PRODUCER') -> 4;
-'enum_value_by_symbol_span.SpanKind'('CONSUMER') -> 5.
+'enum_value_by_symbol_span.SpanKind'('SPAN_KIND_INTERNAL') -> 1;
+'enum_value_by_symbol_span.SpanKind'('SPAN_KIND_SERVER') -> 2;
+'enum_value_by_symbol_span.SpanKind'('SPAN_KIND_CLIENT') -> 3;
+'enum_value_by_symbol_span.SpanKind'('SPAN_KIND_PRODUCER') -> 4;
+'enum_value_by_symbol_span.SpanKind'('SPAN_KIND_CONSUMER') -> 5.
 
-'enum_symbol_by_value_status.StatusCode'(0) -> 'Ok';
-'enum_symbol_by_value_status.StatusCode'(1) -> 'Cancelled';
-'enum_symbol_by_value_status.StatusCode'(2) -> 'UnknownError';
-'enum_symbol_by_value_status.StatusCode'(3) -> 'InvalidArgument';
-'enum_symbol_by_value_status.StatusCode'(4) -> 'DeadlineExceeded';
-'enum_symbol_by_value_status.StatusCode'(5) -> 'NotFound';
-'enum_symbol_by_value_status.StatusCode'(6) -> 'AlreadyExists';
-'enum_symbol_by_value_status.StatusCode'(7) -> 'PermissionDenied';
-'enum_symbol_by_value_status.StatusCode'(8) -> 'ResourceExhausted';
-'enum_symbol_by_value_status.StatusCode'(9) -> 'FailedPrecondition';
-'enum_symbol_by_value_status.StatusCode'(10) -> 'Aborted';
-'enum_symbol_by_value_status.StatusCode'(11) -> 'OutOfRange';
-'enum_symbol_by_value_status.StatusCode'(12) -> 'Unimplemented';
-'enum_symbol_by_value_status.StatusCode'(13) -> 'InternalError';
-'enum_symbol_by_value_status.StatusCode'(14) -> 'Unavailable';
-'enum_symbol_by_value_status.StatusCode'(15) -> 'DataLoss';
-'enum_symbol_by_value_status.StatusCode'(16) -> 'Unauthenticated'.
+'enum_symbol_by_value_status.StatusCode'(0) -> 'STATUS_CODE_OK';
+'enum_symbol_by_value_status.StatusCode'(1) -> 'STATUS_CODE_CANCELLED';
+'enum_symbol_by_value_status.StatusCode'(2) -> 'STATUS_CODE_UNKNOWN_ERROR';
+'enum_symbol_by_value_status.StatusCode'(3) -> 'STATUS_CODE_INVALID_ARGUMENT';
+'enum_symbol_by_value_status.StatusCode'(4) -> 'STATUS_CODE_DEADLINE_EXCEEDED';
+'enum_symbol_by_value_status.StatusCode'(5) -> 'STATUS_CODE_NOT_FOUND';
+'enum_symbol_by_value_status.StatusCode'(6) -> 'STATUS_CODE_ALREADY_EXISTS';
+'enum_symbol_by_value_status.StatusCode'(7) -> 'STATUS_CODE_PERMISSION_DENIED';
+'enum_symbol_by_value_status.StatusCode'(8) -> 'STATUS_CODE_RESOURCE_EXHAUSTED';
+'enum_symbol_by_value_status.StatusCode'(9) -> 'STATUS_CODE_FAILED_PRECONDITION';
+'enum_symbol_by_value_status.StatusCode'(10) -> 'STATUS_CODE_ABORTED';
+'enum_symbol_by_value_status.StatusCode'(11) -> 'STATUS_CODE_OUT_OF_RANGE';
+'enum_symbol_by_value_status.StatusCode'(12) -> 'STATUS_CODE_UNIMPLEMENTED';
+'enum_symbol_by_value_status.StatusCode'(13) -> 'STATUS_CODE_INTERNAL_ERROR';
+'enum_symbol_by_value_status.StatusCode'(14) -> 'STATUS_CODE_UNAVAILABLE';
+'enum_symbol_by_value_status.StatusCode'(15) -> 'STATUS_CODE_DATA_LOSS';
+'enum_symbol_by_value_status.StatusCode'(16) -> 'STATUS_CODE_UNAUTHENTICATED'.
 
 
-'enum_value_by_symbol_status.StatusCode'('Ok') -> 0;
-'enum_value_by_symbol_status.StatusCode'('Cancelled') -> 1;
-'enum_value_by_symbol_status.StatusCode'('UnknownError') -> 2;
-'enum_value_by_symbol_status.StatusCode'('InvalidArgument') -> 3;
-'enum_value_by_symbol_status.StatusCode'('DeadlineExceeded') -> 4;
-'enum_value_by_symbol_status.StatusCode'('NotFound') -> 5;
-'enum_value_by_symbol_status.StatusCode'('AlreadyExists') -> 6;
-'enum_value_by_symbol_status.StatusCode'('PermissionDenied') -> 7;
-'enum_value_by_symbol_status.StatusCode'('ResourceExhausted') -> 8;
-'enum_value_by_symbol_status.StatusCode'('FailedPrecondition') -> 9;
-'enum_value_by_symbol_status.StatusCode'('Aborted') -> 10;
-'enum_value_by_symbol_status.StatusCode'('OutOfRange') -> 11;
-'enum_value_by_symbol_status.StatusCode'('Unimplemented') -> 12;
-'enum_value_by_symbol_status.StatusCode'('InternalError') -> 13;
-'enum_value_by_symbol_status.StatusCode'('Unavailable') -> 14;
-'enum_value_by_symbol_status.StatusCode'('DataLoss') -> 15;
-'enum_value_by_symbol_status.StatusCode'('Unauthenticated') -> 16.
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_OK') -> 0;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_CANCELLED') -> 1;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_UNKNOWN_ERROR') -> 2;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_INVALID_ARGUMENT') -> 3;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_DEADLINE_EXCEEDED') -> 4;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_NOT_FOUND') -> 5;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_ALREADY_EXISTS') -> 6;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_PERMISSION_DENIED') -> 7;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_RESOURCE_EXHAUSTED') -> 8;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_FAILED_PRECONDITION') -> 9;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_ABORTED') -> 10;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_OUT_OF_RANGE') -> 11;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_UNIMPLEMENTED') -> 12;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_INTERNAL_ERROR') -> 13;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_UNAVAILABLE') -> 14;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_DATA_LOSS') -> 15;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_UNAUTHENTICATED') -> 16.
 
 
 get_service_names() -> ['opentelemetry.proto.collector.trace.v1.TraceService'].
