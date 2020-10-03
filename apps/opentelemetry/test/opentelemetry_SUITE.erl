@@ -190,9 +190,9 @@ update_span_data(Config) ->
 
     %% with spanctx and tracer passed as an argument
     Tracer = opentelemetry:get_tracer(),
-    otel_span:set_status(Tracer, SpanCtx1, Status),
+    otel_tracer:set_status(Tracer, SpanCtx1, Status),
 
-    otel_span:add_events(Tracer, SpanCtx1, Events),
+    otel_tracer:add_events(Tracer, SpanCtx1, Events),
 
     ?assertMatch(SpanCtx1, ?current_span_ctx),
     ?end_span(SpanCtx1),

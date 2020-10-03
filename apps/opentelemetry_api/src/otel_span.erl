@@ -22,13 +22,7 @@
          trace_id/1,
          span_id/1,
          tracestate/1,
-         is_recording/2,
-         set_attribute/4,
-         set_attributes/3,
-         add_event/4,
-         add_events/3,
-         set_status/3,
-         update_name/3]).
+         is_recording/2]).
 
 -include("opentelemetry.hrl").
 
@@ -42,19 +36,6 @@
                         kind => opentelemetry:span_kind()}.
 
 -export_type([start_opts/0]).
-
--callback get_ctx(opentelemetry:span()) -> opentelemetry:span_ctx().
--callback set_attribute(opentelemetry:span_ctx(),
-                        opentelemetry:attribute_key(),
-                        opentelemetry:attribute_value()) -> boolean().
--callback set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes()) -> boolean().
--callback add_event(opentelemetry:span_ctx(), opentelemetry:event_name(), opentelemetry:attributes()) -> boolean().
--callback add_events(opentelemetry:span_ctx(), opentelemetry:events()) -> boolean().
--callback set_status(opentelemetry:span_ctx(), opentelemetry:status()) -> boolean().
--callback update_name(opentelemetry:span_ctx(), opentelemetry:span_name()) -> boolean().
-
-%% handy macros so we don't have function name typos
--define(DO(Tracer, SpanCtx, Args), do_span_function(?FUNCTION_NAME, Tracer, SpanCtx, Args)).
 
 -spec get_ctx(Tracer, Span) -> SpanCtx when
       Tracer :: opentelemetry:tracer(),
@@ -72,79 +53,15 @@ is_recording(otel_span_noop, _) ->
 is_recording(_Tracer, SpanCtx) ->
     ?is_recording(SpanCtx).
 
--spec set_attribute(Tracer, SpanCtx, Key, Value) -> boolean() when
-      Tracer :: opentelemetry:tracer(),
-      Key :: opentelemetry:attribute_key(),
-      Value :: opentelemetry:attribute_value(),
-      SpanCtx :: opentelemetry:span_ctx().
-set_attribute(Tracer, SpanCtx, Key, Value) when ?is_recording(SpanCtx) ->
-    ?DO(Tracer, SpanCtx, [Key, Value]);
-set_attribute(_, _, _, _) ->
-    false.
-
--spec set_attributes(Tracer, SpanCtx, Attributes) -> boolean() when
-      Tracer :: opentelemetry:tracer(),
-      Attributes :: opentelemetry:attributes(),
-      SpanCtx :: opentelemetry:span_ctx().
-set_attributes(Tracer, SpanCtx, Attributes) when ?is_recording(SpanCtx) , is_list(Attributes) ->
-    ?DO(Tracer, SpanCtx, [Attributes]);
-set_attributes(_, _, _) ->
-    false.
-
--spec add_event(Tracer, SpanCtx, Name, Attributes) -> boolean() when
-      Tracer :: opentelemetry:tracer(),
-      Name :: opentelemetry:event_name(),
-      Attributes :: opentelemetry:attributes(),
-      SpanCtx :: opentelemetry:span_ctx().
-add_event(Tracer, SpanCtx, Name, Attributes) when ?is_recording(SpanCtx) ->
-    ?DO(Tracer, SpanCtx, [Name, Attributes]);
-add_event(_, _, _, _) ->
-    false.
-
--spec add_events(Tracer, SpanCtx, Events) -> boolean() when
-      Tracer :: opentelemetry:tracer(),
-      Events :: opentelemetry:events(),
-      SpanCtx :: opentelemetry:span_ctx().
-add_events(Tracer, SpanCtx, Events) when ?is_recording(SpanCtx) , is_list(Events)  ->
-    ?DO(Tracer, SpanCtx, [Events]);
-add_events(_, _, _) ->
-    false.
-
--spec set_status(Tracer, SpanCtx, Status) -> boolean() when
-      Tracer :: opentelemetry:tracer(),
-      Status :: opentelemetry:status(),
-      SpanCtx :: opentelemetry:span_ctx().
-set_status(Tracer, SpanCtx, Status) when ?is_recording(SpanCtx) ->
-    ?DO(Tracer, SpanCtx, [Status]);
-set_status(_, _, _) ->
-    false.
-
--spec update_name(Tracer, SpanCtx, Name) -> boolean() when
-      Tracer :: opentelemetry:tracer(),
-      Name :: opentelemetry:span_name(),
-      SpanCtx :: opentelemetry:span_ctx().
-update_name(Tracer, SpanCtx, SpanName) when ?is_recording(SpanCtx) ->
-    ?DO(Tracer, SpanCtx, [SpanName]);
-update_name(_, _, _) ->
-    false.
-
 %% accessors
 -spec trace_id(opentelemetry:span_ctx()) -> opentelemetry:trace_id().
-trace_id(#span_ctx{ trace_id = TraceId }) -> TraceId.
+trace_id(#span_ctx{trace_id=TraceId }) ->
+    TraceId.
 
 -spec span_id(opentelemetry:span_ctx()) -> opentelemetry:span_id().
-span_id(#span_ctx{ span_id = SpanId }) -> SpanId.
+span_id(#span_ctx{span_id=SpanId }) ->
+    SpanId.
 
 -spec tracestate(opentelemetry:span_ctx()) -> opentelemetry:tracestate().
-tracestate(#span_ctx{ tracestate = Tracestate }) -> Tracestate.
-
-%% internal functions
-
-do_span_function(Function, Tracer, SpanCtx, Args) ->
-    SpanModule = otel_tracer:span_module(Tracer),
-    apply_span_function(SpanModule, Function, [SpanCtx | Args]).
-
-apply_span_function(otel_span_noop, _Function, _Args) ->
-    ok;
-apply_span_function(SpanModule, Function, Args) ->
-    erlang:apply(SpanModule, Function, Args).
+tracestate(#span_ctx{tracestate=Tracestate}) ->
+    Tracestate.

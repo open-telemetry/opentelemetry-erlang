@@ -18,7 +18,6 @@
 %%%-------------------------------------------------------------------------
 -module(otel_span_ets).
 
--behaviour(otel_span).
 -behaviour(gen_server).
 
 -export([start_link/1,

@@ -25,10 +25,13 @@
          with_span/4,
          end_span/2,
          b3_propagators/0,
-         w3c_propagators/0]).
-
-%% tracer access functions
--export([span_module/1]).
+         w3c_propagators/0,
+         set_attribute/4,
+         set_attributes/3,
+         add_event/4,
+         add_events/3,
+         set_status/3,
+         update_name/3]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_tracer.hrl").
@@ -89,9 +92,6 @@ with_span(Tracer, SpanName, Opts, Fun) ->
         otel_ctx:attach(Ctx)
     end.
 
-span_module({_, #tracer{span_module=SpanModule}}) ->
-    SpanModule.
-
 -spec b3_propagators() -> {otel_propagator:text_map_extractor(), otel_propagator:text_map_injector()}.
 b3_propagators() ->
     otel_tracer:text_map_propagators(otel_propagator_http_b3).
@@ -105,3 +105,49 @@ w3c_propagators() ->
 %% @doc Ends the Span by setting the the `end_time' and calling the `OnEnd' Span Processors.
 end_span({_, #tracer{on_end_processors=Processors}}, SpanCtx) ->
     otel_span_ets:end_span(SpanCtx, Processors).
+
+%% Span operations
+
+-spec set_attribute(Tracer, SpanCtx, Key, Value) -> boolean() when
+      Tracer :: opentelemetry:tracer(),
+      Key :: opentelemetry:attribute_key(),
+      Value :: opentelemetry:attribute_value(),
+      SpanCtx :: opentelemetry:span_ctx().
+set_attribute(_, SpanCtx, Key, Value) ->
+    otel_span_ets:set_attribute(SpanCtx, Key, Value).
+
+-spec set_attributes(Tracer, SpanCtx, Attributes) -> boolean() when
+      Tracer :: opentelemetry:tracer(),
+      Attributes :: opentelemetry:attributes(),
+      SpanCtx :: opentelemetry:span_ctx().
+set_attributes(_, SpanCtx, Attributes) ->
+    otel_span_ets:set_attributes(SpanCtx, Attributes).
+
+-spec add_event(Tracer, SpanCtx, Name, Attributes) -> boolean() when
+      Tracer :: opentelemetry:tracer(),
+      Name :: opentelemetry:event_name(),
+      Attributes :: opentelemetry:attributes(),
+      SpanCtx :: opentelemetry:span_ctx().
+add_event(_, SpanCtx, Name, Attributes) ->
+    otel_span_ets:add_event(SpanCtx, Name, Attributes).
+
+-spec add_events(Tracer, SpanCtx, Events) -> boolean() when
+      Tracer :: opentelemetry:tracer(),
+      Events :: opentelemetry:events(),
+      SpanCtx :: opentelemetry:span_ctx().
+add_events(_, SpanCtx, Events) ->
+    otel_span_ets:add_events(SpanCtx, Events).
+
+-spec set_status(Tracer, SpanCtx, Status) -> boolean() when
+      Tracer :: opentelemetry:tracer(),
+      Status :: opentelemetry:status(),
+      SpanCtx :: opentelemetry:span_ctx().
+set_status(_, SpanCtx, Status) ->
+    otel_span_ets:set_status(SpanCtx, Status).
+
+-spec update_name(Tracer, SpanCtx, Name) -> boolean() when
+      Tracer :: opentelemetry:tracer(),
+      Name :: opentelemetry:span_name(),
+      SpanCtx :: opentelemetry:span_ctx().
+update_name(_, SpanCtx, SpanName) ->
+    otel_span_ets:update_name(SpanCtx, SpanName).

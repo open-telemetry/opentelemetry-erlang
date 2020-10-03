@@ -6,8 +6,6 @@
 -record(tracer,
         {
          module                        :: module(),
-         span_module                   :: module(),
-         ctx_module                    :: module(),
          on_start_processors           :: fun((otel_ctx:t(), opentelemetry:span()) -> opentelemetry:span()),
          on_end_processors             :: fun((opentelemetry:span()) -> boolean() | {error, term()}),
          sampler                       :: otel_sampler:t(),

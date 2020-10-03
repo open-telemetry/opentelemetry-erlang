@@ -26,22 +26,22 @@
         otel_span:is_recording(?current_tracer, ?current_span_ctx)).
 
 -define(set_attribute(Key, Value),
-        otel_span:set_attribute(?current_tracer, ?current_span_ctx, Key, Value)).
+        otel_tracer:set_attribute(?current_tracer, ?current_span_ctx, Key, Value)).
 
 -define(set_attributes(Attributes),
-        otel_span:set_attributes(?current_tracer, ?current_span_ctx, Attributes)).
+        otel_tracer:set_attributes(?current_tracer, ?current_span_ctx, Attributes)).
 
 -define(add_event(Event),
-        otel_span:add_event(?current_tracer, ?current_span_ctx, Event)).
+        otel_tracer:add_event(?current_tracer, ?current_span_ctx, Event)).
 
 -define(add_events(Events),
-        otel_span:add_events(?current_tracer, ?current_span_ctx, Events)).
+        otel_tracer:add_events(?current_tracer, ?current_span_ctx, Events)).
 
 -define(add_links(Links),
-        otel_span:add_links(?current_tracer, ?current_span_ctx, Links)).
+        otel_tracer:add_links(?current_tracer, ?current_span_ctx, Links)).
 
 -define(set_status(Status),
-        otel_span:set_status(?current_tracer, ?current_span_ctx, Status)).
+        otel_tracer:set_status(?current_tracer, ?current_span_ctx, Status)).
 
 -define(update_name(Name),
-        otel_span:update_name(?current_tracer, ?current_span_ctx, Name)).
+        otel_tracer:update_name(?current_tracer, ?current_span_ctx, Name)).
