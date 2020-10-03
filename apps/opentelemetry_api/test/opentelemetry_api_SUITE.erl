@@ -121,11 +121,8 @@ update_span_data(_Config) ->
     Status = otel_http_status:to_status(200),
     ?assertMatch(#status{code = ?OTEL_STATUS_OK, message = <<"Ok">>}, Status),
 
-    %% with spanctx and tracer passed as an argument
-    Tracer = opentelemetry:get_tracer(),
-    otel_span:set_status(Tracer, SpanCtx1, Status),
-
-    otel_span:add_events(Tracer, SpanCtx1, Events),
+    otel_span:set_status(SpanCtx1, Status),
+    otel_span:add_events(SpanCtx1, Events),
 
     ?assertMatch(SpanCtx1, ?current_span_ctx),
     ?end_span(),

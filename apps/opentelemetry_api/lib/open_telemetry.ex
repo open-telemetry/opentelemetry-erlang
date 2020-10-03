@@ -126,6 +126,10 @@ defmodule OpenTelemetry do
   @spec register_application_tracer(atom()) :: boolean()
   defdelegate register_application_tracer(otp_app), to: :opentelemetry
 
+  defdelegate get_tracer(name), to: :opentelemetry
+  defdelegate register_tracer(name, vsn), to: :opentelemetry
+  defdelegate set_default_tracer(t), to: :opentelemetry
+
   @spec register_application_meter(atom()) :: boolean()
   defdelegate register_application_meter(name), to: :opentelemetry
 

@@ -9,13 +9,35 @@ on:
       - 'master'
 
 jobs:
-  build:
+  sdk_tests:
     runs-on: ${{ matrix.os }}
     name: Test on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
-        elixir: ['1.10.4']
+        otp_version: ['23.1', '22.3.4.2', '21.3.8.16']
+        elixir: ['1.11.1']
+        os: [ubuntu-latest]
+    env:
+      OTP_VERSION: ${{ matrix.otp_version }}
+      ELIXIR_VERSION: ${{ matrix.elixir }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{ matrix.otp_version }}
+          elixir-version: ${{ matrix.elixir }}
+      - name: Compile
+        run: rebar3 as test compile
+      - name: ExUnit
+        run: mix test test/otel_tests.exs
+
+  api_tests:
+    runs-on: ${{ matrix.os }}
+    name: Test on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
+    strategy:
+      matrix:
+        otp_version: ['23.1', '22.3.4.2', '21.3.8.16']
+        elixir: ['1.11.1']
         os: [ubuntu-latest]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
@@ -48,13 +70,14 @@ jobs:
           file: apps/opentelemetry_api/coverage.xml
           env_vars: OTP_VERSION,ELIXIR_VERSION
           flags: api,elixir
+
   dialyze:
     runs-on: ${{ matrix.os }}
     name: Dialyze on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['23.0.2', '22.3.4.2']
-        elixir: ['1.10.4']
+        otp_version: ['23.1']
+        elixir: ['1.11.1']
         os: [ubuntu-latest]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}

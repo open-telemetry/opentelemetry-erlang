@@ -3,6 +3,7 @@ services:
   otel:
     image: otel/opentelemetry-collector-contrib-dev
     command: ["--config=/conf/otel-collector-config.yaml"]
+    privileged: true
     ports:
       - 55681:55681
       - 55680:55680
@@ -15,3 +16,4 @@ services:
     image: openzipkin/zipkin-slim
     ports:
       - 9411:9411
+    privileged: true

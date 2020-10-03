@@ -52,18 +52,6 @@ defmodule OpenTelemetry.Tracer do
   end
 
   @doc """
-  End the Span. Sets the end timestamp for the currently active Span. This has no effect on any
-  child Spans that may exist of this Span.
-
-  The Context is unchanged.
-  """
-  defmacro end_span() do
-    quote do
-     :otel_tracer.end_span(:opentelemetry.get_tracer(__MODULE__))
-    end
-  end
-
-  @doc """
   Creates a new span which is set to the currently active Span in the Context of the block.
   The Span is ended automatically when the `block` completes and the Context is what it was
   before the block.
@@ -84,9 +72,85 @@ defmodule OpenTelemetry.Tracer do
   @doc """
   Returns the currently active `t:OpenTelemetry.span_ctx/0`.
   """
-  defmacro current_span_ctx() do
-    quote do
-      :otel_tracer.current_span_ctx()
-    end
+  def current_span_ctx() do
+    :otel_tracer.current_span_ctx()
+  end
+
+  @doc """
+  End the Span. Sets the end timestamp for the currently active Span. This has no effect on any
+  child Spans that may exist of this Span.
+
+  The Context is unchanged.
+  """
+  def end_span() do
+    :otel_span.end_span(:otel_tracer.current_span_ctx())
+  end
+
+  @doc """
+  Set an attribute with key and value on the currently active Span.
+  """
+  @spec set_attribute(OpenTelemetry.attribute_key(), OpenTelemetry.attribute_value()) :: boolean()
+  def set_attribute(key, value) do
+    :otel_span.set_attribute(
+      :otel_tracer.current_span_ctx(),
+      key,
+      value
+    )
+  end
+
+  @doc """
+  Add a list of attributes to the currently active Span.
+  """
+  @spec set_attributes(OpenTelemetry.attributes()) :: boolean()
+  def set_attributes(attributes) do
+    :otel_span.set_attributes(:otel_tracer.current_span_ctx(), attributes)
+  end
+
+  @doc """
+  Add an event to the currently active Span.
+  """
+  @spec add_event(OpenTelemetry.event_name(), OpenTelemetry.attributes()) :: boolean()
+  def add_event(event, attributes) do
+    :otel_span.add_event(
+      :otel_tracer.current_span_ctx(),
+      event,
+      attributes
+    )
+  end
+
+  @doc """
+  Add a list of events to the currently active Span.
+  """
+  @spec add_events([OpenTelemetry.event()]) :: boolean()
+  def add_events(events) do
+    :otel_span.add_events(:otel_tracer.current_span_ctx(), events)
+  end
+
+  @doc """
+  Sets the Status of the currently active Span.
+
+  If used, this will override the default Span Status, which is `Ok`.
+  """
+  @spec set_status(OpenTelemetry.status()) :: boolean()
+  def set_status(status) do
+    :otel_span.set_status(:otel_tracer.current_span_ctx(), status)
+  end
+
+  @doc """
+  Updates the Span name.
+
+  It is highly discouraged to update the name of a Span after its creation. Span name is
+  often used to group, filter and identify the logical groups of spans. And often, filtering
+  logic will be implemented before the Span creation for performance reasons. Thus the name
+  update may interfere with this logic.
+
+  The function name is called UpdateName to differentiate this function from the regular
+  property setter. It emphasizes that this operation signifies a major change for a Span
+  and may lead to re-calculation of sampling or filtering decisions made previously
+  depending on the implementation.
+  """
+  @spec update_name(String.t()) :: boolean()
+  def update_name(name) do
+    :otel_span.update_name(:otel_tracer.current_span_ctx(), name)
   end
 end
