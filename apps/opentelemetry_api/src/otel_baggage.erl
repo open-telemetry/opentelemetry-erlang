@@ -59,7 +59,7 @@ clear() ->
 
 -spec get_text_map_propagators() -> {otel_propagator:text_map_extractor(), otel_propagator:text_map_injector()}.
 get_text_map_propagators() ->
-    ToText = fun(Baggage) ->
+    ToText = fun(Baggage) when is_map(Baggage) ->
                      case maps:fold(fun(Key, Value, Acc) ->
                                             [$,, [Key, "=", Value] | Acc]
                                     end, [], Baggage) of
@@ -67,7 +67,9 @@ get_text_map_propagators() ->
                              [{?BAGGAGE_HEADER, unicode:characters_to_list(List)}];
                          _ ->
                              []
-                     end
+                     end;
+                (_) ->
+                     []
              end,
     FromText = fun(Headers, CurrentBaggage) ->
                        case lookup(?BAGGAGE_HEADER, Headers) of

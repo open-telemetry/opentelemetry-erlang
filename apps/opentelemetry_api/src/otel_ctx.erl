@@ -125,4 +125,4 @@ text_map_injector(Key, ToText) ->
     {fun ?MODULE:text_map_injector_fun/3, {Key, ToText}}.
 
 text_map_injector_fun(TextMap, Key, ToText) ->
-    TextMap ++ ToText(?MODULE:get_value(Key, #{})).
+    TextMap ++ ToText(?MODULE:get_value(Key, undefined)).

@@ -29,7 +29,7 @@ defmodule OpenTelemetry.Tracer do
         }
 
   @doc """
-  Starts a new span and makes it the current active span of the current process.
+  Starts a new span and does not make it the current active span of the current process.
 
   The current active Span is used as the parent of the created Span unless a `parent` is given in the
   `t:start_opts/0` argument or there is no active Span. If there is neither a current Span or a
@@ -43,30 +43,11 @@ defmodule OpenTelemetry.Tracer do
   end
 
   @doc """
-  Starts a new span but does not make it the current active span of the current process.
-
-  This is particularly useful when creating a child Span that is for a new process. Before spawning
-  the new process start an inactive Span, which uses the current context as the parent, then
-  pass this new SpanContext as an argument to the spawned function and in that function use
-  `set_span/1`.
-
-  The current active Span is used as the parent of the created Span unless a `parent` is given in the
-  `t:start_opts/0` argument or there is no active Span. If there is neither a current Span or a
-  `parent` option given then the Tracer checks for an extracted SpanContext to use as the parent. If
-  there is also no extracted context then the created Span is a root Span.
-  """
-  defmacro start_inactive_span(name, opts \\ quote(do: %{})) do
-    quote bind_quoted: [name: name, start_opts: opts] do
-      :otel_tracer.start_inactive_span(:opentelemetry.get_tracer(__MODULE__), name, start_opts)
-    end
-  end
-
-  @doc """
   Takes a `t:OpenTelemetry.span_ctx/0` and the Tracer sets it to the currently active Span.
   """
-  defmacro set_span(span_ctx) do
+  defmacro set_current_span(span_ctx) do
     quote bind_quoted: [span_ctx: span_ctx] do
-      :otel_tracer.set_span(:opentelemetry.get_tracer(__MODULE__), span_ctx)
+      :otel_tracer.set_current_span(span_ctx)
     end
   end
 
@@ -74,17 +55,18 @@ defmodule OpenTelemetry.Tracer do
   End the Span. Sets the end timestamp for the currently active Span. This has no effect on any
   child Spans that may exist of this Span.
 
-  The default Tracer in the OpenTelemetry Erlang/Elixir SDK will then set the parent, if there
-  is a local parent of the current Span, to the current active Span.
+  The Context is unchanged.
   """
   defmacro end_span() do
     quote do
-      :otel_tracer.end_span(:opentelemetry.get_tracer(__MODULE__))
+     :otel_tracer.end_span(:opentelemetry.get_tracer(__MODULE__))
     end
   end
 
   @doc """
-  Creates a new span which is ended automatically when the `block` completes.
+  Creates a new span which is set to the currently active Span in the Context of the block.
+  The Span is ended automatically when the `block` completes and the Context is what it was
+  before the block.
 
   See `start_span/2` and `end_span/0`.
   """
@@ -100,20 +82,11 @@ defmodule OpenTelemetry.Tracer do
   end
 
   @doc """
-  Returns the currently active `t:OpenTelemetry.tracer_ctx/0`.
-  """
-  defmacro current_ctx() do
-    quote do
-      :otel_tracer.current_ctx(:opentelemetry.get_tracer(__MODULE__))
-    end
-  end
-
-  @doc """
   Returns the currently active `t:OpenTelemetry.span_ctx/0`.
   """
   defmacro current_span_ctx() do
     quote do
-      :otel_tracer.current_span_ctx(:opentelemetry.get_tracer(__MODULE__))
+      :otel_tracer.current_span_ctx()
     end
   end
 end

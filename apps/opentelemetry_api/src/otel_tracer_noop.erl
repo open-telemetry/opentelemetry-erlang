@@ -21,16 +21,10 @@
 
 -export([start_span/3,
          start_span/4,
-         start_inactive_span/3,
-         start_inactive_span/4,
-         set_span/2,
          with_span/3,
          with_span/4,
-         end_span/1,
          end_span/2,
-         span_module/1,
-         current_ctx/1,
-         current_span_ctx/1]).
+         span_module/1]).
 
 -include("opentelemetry.hrl").
 
@@ -51,45 +45,27 @@ start_span(_, _Name, _) ->
 start_span(Ctx, _, _Name, _) ->
     {?NOOP_SPAN_CTX, Ctx}.
 
--spec start_inactive_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts())
-                 -> opentelemetry:span_ctx().
-start_inactive_span(_, _Name, _Opts) ->
-    ?NOOP_SPAN_CTX.
-
--spec start_inactive_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(),
-                          otel_span:start_opts()) -> {opentelemetry:span_ctx(), otel_ctx:t()}.
-start_inactive_span(Ctx, _, _Name, _Opts) ->
-    {?NOOP_SPAN_CTX, Ctx}.
-
--spec set_span(opentelemetry:tracer(), opentelemetry:span_ctx()) -> ok.
-set_span(_, _SpanCtx) ->
-    ok.
-
 -spec with_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_tracer:traced_fun(T)) -> T.
-with_span(_, _SpanName, Fun) ->
-    Fun(?NOOP_SPAN_CTX).
+with_span(Tracer, SpanName, Fun) ->
+    with_span(Tracer, SpanName, #{}, Fun).
 
 -spec with_span(opentelemetry:tracer(), opentelemetry:span_name(),
                 otel_span:start_opts(), otel_tracer:traced_fun(T)) -> T.
 with_span(_, _SpanName, _Opts, Fun) ->
-    Fun(?NOOP_SPAN_CTX).
-
--spec current_ctx(opentelemetry:tracer()) -> otel_tracer:tracer_ctx().
-current_ctx(_Tracer) ->
-    ?NOOP_TRACER_CTX.
-
--spec current_span_ctx(opentelemetry:tracer()) -> opentelemetry:span_ctx().
-current_span_ctx(_) ->
-    ?NOOP_SPAN_CTX.
+    Ctx = otel_ctx:get_current(),
+    SpanCtx = ?NOOP_SPAN_CTX,
+    Ctx1 = otel_tracer:set_current_span(Ctx, SpanCtx),
+    otel_ctx:attach(Ctx1),
+    try
+        Fun(SpanCtx)
+    after
+        otel_ctx:attach(Ctx)
+    end.
 
 span_module(_) ->
     otel_span_noop.
 
--spec end_span(otel_ctx:t() | opentelemetry:tracer(), opentelemetry:tracer() | opentelemetry:span_ctx())
+-spec end_span(opentelemetry:tracer(), opentelemetry:span_ctx())
               -> boolean() | {error, term()}.
 end_span(_, _) ->
-    true.
-
--spec end_span(opentelemetry:tracer()) -> boolean() | {error, term()}.
-end_span(_) ->
     true.
