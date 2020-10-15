@@ -11,9 +11,12 @@ defmodule OpenTelemetryTest do
   @fields Record.extract(:link, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
   Record.defrecordp(:link, @fields)
 
-  test "current_span tracks nesting" do
-    _ctx1 = Tracer.start_span("span-1")
+  test "current_span tracks last set_span" do
+    ctx1 = Tracer.start_span("span-1")
+    assert :undefined == Tracer.current_span_ctx()
+    Tracer.set_current_span(ctx1)
     ctx2 = Tracer.start_span("span-2")
+    Tracer.set_current_span(ctx2)
 
     assert ctx2 == Tracer.current_span_ctx()
   end
@@ -36,15 +39,6 @@ defmodule OpenTelemetryTest do
     assert [] == ts
     assert [{"attr-1", "value-1"}] == a
 
-  end
-
-  test "closing a span makes the parent current" do
-    ctx1 = Tracer.start_span("span-1")
-    ctx2 = Tracer.start_span("span-2")
-
-    assert ctx2 == Tracer.current_span_ctx()
-    OpenTelemetry.Tracer.end_span()
-    assert ctx1 == Tracer.current_span_ctx()
   end
 
   test "macro start_span" do

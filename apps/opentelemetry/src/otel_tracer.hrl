@@ -17,16 +17,3 @@
         }).
 -type tracer() :: #tracer{}.
 
-%% Tracer Context is a recursive record to store the currently
-%% active Span Context and the previous Tracer Context so when
-%% the currenly active Span is ended the previous Tracer Context
-%% becomes active again.
--record(tracer_ctx,
-        {
-         %% the currently active span ctx
-         active :: opentelemetry:span_ctx() | undefined,
-         %% the tracer_ctx at the time the active span ctx
-         %% was made the active span ctx
-         previous :: #tracer_ctx{} | undefined
-        }).
--type tracer_ctx() :: #tracer_ctx{}.
