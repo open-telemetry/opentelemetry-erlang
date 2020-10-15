@@ -12,7 +12,10 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc Ctx is responsible for propagating values within a process that
+%% are associated with a particular Trace or set of Baggage.
+%% `OpenTelemetry.Tracer` and `OpenTelemetry.Baggage` handle updating
+%% the Context.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_ctx).

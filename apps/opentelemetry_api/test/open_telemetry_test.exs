@@ -3,6 +3,8 @@ defmodule OpenTelemetryTest do
 
   require OpenTelemetry.Tracer, as: Tracer
   require OpenTelemetry.Span, as: Span
+  require OpenTelemetry.Baggage, as: Baggage
+  require OpenTelemetry.Ctx, as: Ctx
 
   require Record
   @fields Record.extract(:span_ctx, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
@@ -63,4 +65,42 @@ defmodule OpenTelemetryTest do
       assert []   = Span.tracestate(span)
     end
   end
+
+  test "baggage api from elixir" do
+    Baggage.set(%{"a" => "b"})
+    assert %{"a" => "b"} = Baggage.get_all()
+
+    Baggage.set(%{"a" => "c"})
+    assert %{"a" => "c"} = Baggage.get_all()
+
+    Baggage.clear()
+    assert 0 = :erlang.map_size(Baggage.get_all())
+  end
+
+  test "context api from elixir" do
+    ctx = Ctx.new()
+    ctx = Ctx.set_value(ctx, :somekey, :somevalue)
+    assert :somevalue = Ctx.get_value(ctx, :somekey, "default")
+
+    # attach the context and get value from implicit attached context
+    Ctx.attach(ctx)
+    assert :somevalue = Ctx.get_value(:somekey, "default")
+  end
+
+  test "baggage across contexts" do
+    ctx = Ctx.get_current()
+
+    Baggage.set(%{"a" => "b"})
+    assert %{"a" => "b"} = Baggage.get_all()
+
+    # attach the empty context
+    # gets a token for the context
+    token = Ctx.attach(ctx)
+    assert 0 = :erlang.map_size(Baggage.get_all())
+
+    # return to the context in the pdict before the attach
+    Ctx.detach(token)
+    assert %{"a" => "b"} = Baggage.get_all()
+  end
+
 end

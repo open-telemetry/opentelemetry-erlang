@@ -233,7 +233,7 @@ propagation(Config) ->
     ?assertEqual(undefined, ?current_span_ctx),
 
     %% clear our baggage from the context to test extraction
-    otel_ctx:remove(otel_baggage:ctx_key()),
+    otel_baggage:clear(),
     ?assertEqual(#{}, otel_baggage:get_all()),
 
     %% make header keys uppercase to validate the extractor is case insensitive

@@ -12,14 +12,17 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc Baggage is used to annotate telemetry, adding context and
+%% information to metrics, traces, and logs. It is represented by a set
+%% of name/value pairs describing user-defined properties.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_baggage).
 
--export([ctx_key/0,
+-export([set/1,
          set/2,
          get_all/0,
+         clear/0,
          get_text_map_propagators/0]).
 
 -type key() :: string().
@@ -34,8 +37,12 @@
 -define(BAGGAGE_KEY, '$__otel_baggage_ctx_key').
 -define(BAGGAGE_HEADER, <<"baggage">>).
 
-ctx_key() ->
-    ?BAGGAGE_KEY.
+-spec set(#{key() => value()} | [{key(), value()}]) -> ok.
+set(KeyValues) when is_list(KeyValues) ->
+    set(maps:from_list(KeyValues));
+set(KeyValues) when is_map(KeyValues) ->
+    Baggage = otel_ctx:get_value(?BAGGAGE_KEY, #{}),
+    otel_ctx:set_value(?BAGGAGE_KEY, maps:merge(Baggage, KeyValues)).
 
 -spec set(key(), value()) -> ok.
 set(Key, Value) ->
@@ -45,6 +52,10 @@ set(Key, Value) ->
 -spec get_all() -> t().
 get_all() ->
     otel_ctx:get_value(?BAGGAGE_KEY, #{}).
+
+-spec clear() -> ok.
+clear() ->
+    otel_ctx:set_value(?BAGGAGE_KEY, #{}).
 
 -spec get_text_map_propagators() -> {otel_propagator:text_map_extractor(), otel_propagator:text_map_injector()}.
 get_text_map_propagators() ->
