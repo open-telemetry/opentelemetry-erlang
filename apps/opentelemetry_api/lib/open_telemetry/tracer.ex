@@ -45,10 +45,8 @@ defmodule OpenTelemetry.Tracer do
   @doc """
   Takes a `t:OpenTelemetry.span_ctx/0` and the Tracer sets it to the currently active Span.
   """
-  defmacro set_current_span(span_ctx) do
-    quote bind_quoted: [span_ctx: span_ctx] do
-      :otel_tracer.set_current_span(span_ctx)
-    end
+  def set_current_span(span_ctx) do
+    :otel_tracer.set_current_span(span_ctx)
   end
 
   @doc """
