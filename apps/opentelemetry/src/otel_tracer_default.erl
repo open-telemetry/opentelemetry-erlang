@@ -23,31 +23,30 @@
          start_span/4,
          with_span/3,
          with_span/4,
-         end_span/2,
          b3_propagators/0,
          w3c_propagators/0]).
 
-%% tracer access functions
--export([span_module/1]).
-
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_tracer.hrl").
+-include("otel_span_ets.hrl").
 
 %% @doc Creates a Span and sets it to the current active Span in the process's Tracer Context.
 -spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts())
                 -> opentelemetry:span_ctx().
-start_span(Tracer, Name, Opts) ->
+start_span(Tracer={_, #tracer{on_end_processors=OnEndProcessors}}, Name, Opts) ->
     {SpanCtx, _} = start_span(otel_ctx:get_current(), Tracer, Name, Opts),
-    SpanCtx.
+    SpanCtx#span_ctx{span_sdk={otel_span_ets, OnEndProcessors}}.
 
 %% @doc Starts an inactive Span and returns its SpanCtx.
 -spec start_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(),
                  otel_span:start_opts()) -> {opentelemetry:span_ctx(), otel_ctx:t()}.
 start_span(Ctx, Tracer={_, #tracer{on_start_processors=Processors,
+                                   on_end_processors=OnEndProcessors,
                                    instrumentation_library=InstrumentationLibrary}}, Name, Opts) ->
     ParentSpanCtx = maybe_parent_span_ctx(Ctx),
     Opts1 = maybe_set_sampler(Tracer, Opts),
-    {otel_span_ets:start_span(Ctx, Name, ParentSpanCtx, Opts1, Processors, InstrumentationLibrary), Ctx}.
+    SpanCtx = otel_span_ets:start_span(Ctx, Name, ParentSpanCtx, Opts1, Processors, InstrumentationLibrary),
+    {SpanCtx#span_ctx{span_sdk={otel_span_ets, OnEndProcessors}}, Ctx}.
 
 maybe_set_sampler(_Tracer, Opts) when is_map_key(sampler, Opts) ->
     Opts;
@@ -82,15 +81,12 @@ with_span(Tracer, SpanName, Opts, Fun) ->
     try
         Fun(SpanCtx)
     after
-        %% passing TracerCtx directly ensures that this `end_span' ends the span started
+        %% passing SpanCtx directly ensures that this `end_span' ends the span started
         %% in this function. If spans in `Fun()' were started and not finished properly
         %% they will be abandoned and it be up to the `otel_span_sweeper' to eventually remove them.
-        _ = end_span(Tracer, SpanCtx),
+        _ = otel_span_ets:end_span(SpanCtx),
         otel_ctx:attach(Ctx)
     end.
-
-span_module({_, #tracer{span_module=SpanModule}}) ->
-    SpanModule.
 
 -spec b3_propagators() -> {otel_propagator:text_map_extractor(), otel_propagator:text_map_injector()}.
 b3_propagators() ->
@@ -99,9 +95,3 @@ b3_propagators() ->
 -spec w3c_propagators() -> {otel_propagator:text_map_extractor(), otel_propagator:text_map_injector()}.
 w3c_propagators() ->
     otel_tracer:text_map_propagators(otel_propagator_http_w3c).
-
--spec end_span(opentelemetry:tracer(), opentelemetry:span_ctx())
-              -> boolean() | {error, term()}.
-%% @doc Ends the Span by setting the the `end_time' and calling the `OnEnd' Span Processors.
-end_span({_, #tracer{on_end_processors=Processors}}, SpanCtx) ->
-    otel_span_ets:end_span(SpanCtx, Processors).

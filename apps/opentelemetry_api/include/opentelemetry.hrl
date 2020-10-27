@@ -49,7 +49,11 @@
           %% this field is not propagated and is only here as an implementation optimization
           %% If true updates like adding events are done on the span. The same as if the
           %% trace flags lowest bit is 1 but simply not propagated.
-          is_recording      :: boolean() | undefined
+          is_recording      :: boolean() | undefined,
+
+          %% the sdk must put a module to call in the SDK for span operations
+          %% and include an optional term of configuration it needs
+          span_sdk          :: {module(), term()} | undefined
          }).
 
 -record(link, {

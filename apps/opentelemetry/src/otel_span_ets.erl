@@ -18,7 +18,6 @@
 %%%-------------------------------------------------------------------------
 -module(otel_span_ets).
 
--behaviour(otel_span).
 -behaviour(gen_server).
 
 -export([start_link/1,
@@ -58,8 +57,8 @@ start_span(Ctx, Name, ParentSpanCtx, Opts, Processors, InstrumentationLibrary) -
     _ = storage_insert(Span2),
     SpanCtx.
 
-end_span(SpanCtx) ->
-    end_span(SpanCtx, fun(Span) -> Span end).
+end_span(SpanCtx=#span_ctx{span_sdk={_, OnEndProcessors}}) ->
+    end_span(SpanCtx, OnEndProcessors).
 
 %% @doc End a span based on its context and send to reporter.
 -spec end_span(opentelemetry:span_ctx(), fun()) -> boolean() | {error, term()}.

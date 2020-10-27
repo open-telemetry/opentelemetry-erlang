@@ -46,73 +46,44 @@ defmodule OpenTelemetry.Span do
   defdelegate tracestate(span), to: :otel_span
 
   @doc """
+  End the Span. Sets the end timestamp for the currently active Span. This has no effect on any
+  child Spans that may exist of this Span.
+
+  The Context is unchanged.
+  """
+  defdelegate end_span(span_ctx), to: :otel_span
+
+  @doc """
   Set an attribute with key and value on the currently active Span.
   """
-  @spec set_attribute(OpenTelemetry.attribute_key(), OpenTelemetry.attribute_value()) :: boolean()
-  defmacro set_attribute(key, value) do
-    quote do
-      tracer = :opentelemetry.get_tracer(__MODULE__)
-
-      :otel_span.set_attribute(
-        tracer,
-        :otel_tracer.current_span_ctx(tracer),
-        unquote(key),
-        unquote(value)
-      )
-    end
-  end
+  @spec set_attribute(OpenTelemetry.span_ctx(), OpenTelemetry.attribute_key(), OpenTelemetry.attribute_value()) :: boolean()
+  defdelegate set_attribute(span_ctx, key, value), to: :otel_span
 
   @doc """
   Add a list of attributes to the currently active Span.
   """
-  @spec set_attributes(OpenTelemetry.attributes()) :: boolean()
-  defmacro set_attributes(attributes) do
-    quote do
-      tracer = :opentelemetry.get_tracer(__MODULE__)
-      :otel_span.set_attributes(tracer, :otel_tracer.current_span_ctx(tracer), unquote(attributes))
-    end
-  end
+  @spec set_attributes(OpenTelemetry.span_ctx(), OpenTelemetry.attributes()) :: boolean()
+  defdelegate set_attributes(span_ctx, attributes), to: :otel_span
 
   @doc """
   Add an event to the currently active Span.
   """
-  @spec add_event(OpenTelemetry.event_name(), OpenTelemetry.attributes()) :: boolean()
-  defmacro add_event(event, attributes) do
-    quote do
-      tracer = :opentelemetry.get_tracer(__MODULE__)
-
-      :otel_span.add_event(
-        tracer,
-        :otel_tracer.current_span_ctx(tracer),
-        unquote(event),
-        unquote(attributes)
-      )
-    end
-  end
+  @spec add_event(OpenTelemetry.span_ctx(), OpenTelemetry.event_name(), OpenTelemetry.attributes()) :: boolean()
+  defdelegate add_event(span_ctx, event, attributes), to: :otel_span
 
   @doc """
   Add a list of events to the currently active Span.
   """
-  @spec add_events([OpenTelemetry.event()]) :: boolean()
-  defmacro add_events(events) do
-    quote do
-      tracer = :opentelemetry.get_tracer(__MODULE__)
-      :otel_span.add_events(tracer, :otel_tracer.current_span_ctx(tracer), unquote(events))
-    end
-  end
+  @spec add_events(OpenTelemetry.span_ctx(), [OpenTelemetry.event()]) :: boolean()
+  defdelegate add_events(span_ctx, events), to: :otel_span
 
   @doc """
   Sets the Status of the currently active Span.
 
   If used, this will override the default Span Status, which is `Ok`.
   """
-  @spec set_status(OpenTelemetry.status()) :: boolean()
-  defmacro set_status(status) do
-    quote do
-      tracer = :opentelemetry.get_tracer(__MODULE__)
-      :otel_span.set_status(tracer, :otel_tracer.current_span_ctx(tracer), unquote(status))
-    end
-  end
+  @spec set_status(OpenTelemetry.span_ctx(), OpenTelemetry.status()) :: boolean()
+  defdelegate set_status(span_ctx, status), to: :otel_span
 
   @doc """
   Updates the Span name.
@@ -127,11 +98,6 @@ defmodule OpenTelemetry.Span do
   and may lead to re-calculation of sampling or filtering decisions made previously
   depending on the implementation.
   """
-  @spec update_name(String.t()) :: boolean()
-  defmacro update_name(name) do
-    quote do
-      tracer = :opentelemetry.get_tracer(__MODULE__)
-      :otel_span.update_name(tracer, :otel_tracer.current_span_ctx(tracer), unquote(name))
-    end
-  end
+  @spec update_name(OpenTelemetry.span_ctx(), String.t()) :: boolean()
+  defdelegate update_name(span_ctx, name), to: :otel_span
 end

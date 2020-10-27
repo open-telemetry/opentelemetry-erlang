@@ -13,35 +13,35 @@
 -define(with_span(SpanName, StartOpts, Fun),
         otel_tracer:with_span(?current_tracer, SpanName, StartOpts, Fun)).
 
--define(end_span(),
-        otel_tracer:end_span(?current_tracer, ?current_span_ctx)).
-
--define(end_span(SpanCtx),
-        otel_tracer:end_span(?current_tracer, SpanCtx)).
-
 -define(set_current_span(SpanCtx),
         otel_tracer:set_current_span(SpanCtx)).
 
+-define(end_span(),
+        otel_span:end_span(?current_span_ctx)).
+
+-define(end_span(SpanCtx),
+        otel_span:end_span(SpanCtx)).
+
 -define(is_recording(),
-        otel_span:is_recording(?current_tracer, ?current_span_ctx)).
+        otel_span:is_recording(?current_span_ctx)).
 
 -define(set_attribute(Key, Value),
-        otel_span:set_attribute(?current_tracer, ?current_span_ctx, Key, Value)).
+        otel_span:set_attribute(?current_span_ctx, Key, Value)).
 
 -define(set_attributes(Attributes),
-        otel_span:set_attributes(?current_tracer, ?current_span_ctx, Attributes)).
+        otel_span:set_attributes(?current_span_ctx, Attributes)).
 
 -define(add_event(Event),
-        otel_span:add_event(?current_tracer, ?current_span_ctx, Event)).
+        otel_span:add_event(?current_span_ctx, Event)).
 
 -define(add_events(Events),
-        otel_span:add_events(?current_tracer, ?current_span_ctx, Events)).
+        otel_span:add_events(?current_span_ctx, Events)).
 
 -define(add_links(Links),
-        otel_span:add_links(?current_tracer, ?current_span_ctx, Links)).
+        otel_span:add_links(?current_span_ctx, Links)).
 
 -define(set_status(Status),
-        otel_span:set_status(?current_tracer, ?current_span_ctx, Status)).
+        otel_span:set_status(?current_span_ctx, Status)).
 
 -define(update_name(Name),
-        otel_span:update_name(?current_tracer, ?current_span_ctx, Name)).
+        otel_span:update_name(?current_span_ctx, Name)).

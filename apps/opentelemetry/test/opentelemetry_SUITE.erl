@@ -113,7 +113,7 @@ with_span(Config) ->
 
     ?assertMatch(SpanCtx1, ?current_span_ctx),
 
-    otel_tracer:end_span(Tracer, SpanCtx1),
+    otel_span:end_span(SpanCtx1),
     [_Span1] = assert_exported(Tid, SpanCtx1),
 
     ok.
@@ -188,11 +188,9 @@ update_span_data(Config) ->
                                     <<"event-name">>, []}]),
     Status = opentelemetry:status(0, <<"status">>),
 
-    %% with spanctx and tracer passed as an argument
-    Tracer = opentelemetry:get_tracer(),
-    otel_span:set_status(Tracer, SpanCtx1, Status),
+    otel_span:set_status(SpanCtx1, Status),
 
-    otel_span:add_events(Tracer, SpanCtx1, Events),
+    otel_span:add_events(SpanCtx1, Events),
 
     ?assertMatch(SpanCtx1, ?current_span_ctx),
     ?end_span(SpanCtx1),
@@ -268,7 +266,7 @@ tracer_instrumentation_library(Config) ->
 
     SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{}),
 
-    otel_tracer:end_span(Tracer, SpanCtx1),
+    otel_span:end_span(SpanCtx1),
 
     [Span1] = assert_exported(Tid, SpanCtx1),
 
@@ -292,15 +290,14 @@ tracer_previous_ctx(Config) ->
     {SpanCtx3, _Ctx1} = otel_tracer:start_span(Ctx, Tracer, <<"span-3">>, #{}),
 
     %% end SpanCtx3, even though it isn't the parent SpanCtx1
-    %% otel_tracer:end_span(Ctx1, Tracer),
-    otel_tracer:end_span(Tracer, SpanCtx3),
+    otel_span:end_span(SpanCtx3),
 
     ?assertEqual(SpanCtx1, ?current_span_ctx),
 
-    otel_tracer:end_span(Tracer, SpanCtx1),
+    otel_span:end_span(SpanCtx1),
 
     ?set_current_span(SpanCtx2),
-    otel_tracer:end_span(Tracer, SpanCtx2),
+    otel_span:end_span(SpanCtx2),
 
     assert_all_exported(Tid, [SpanCtx3, SpanCtx1, SpanCtx2]),
 
@@ -322,10 +319,10 @@ attach_ctx(Config) ->
     erlang:spawn(fun() ->
                          otel_ctx:attach(Ctx),
                          ?set_current_span(SpanCtx2),
-                         otel_tracer:end_span(Tracer, SpanCtx2)
+                         otel_span:end_span(SpanCtx2)
                  end),
 
-    otel_tracer:end_span(Tracer, SpanCtx1),
+    otel_span:end_span(SpanCtx1),
 
     assert_all_exported(Tid, [SpanCtx1, SpanCtx2]),
 
@@ -349,7 +346,7 @@ reset_after(Config) ->
         otel_ctx:attach(Ctx)
     end,
 
-    otel_tracer:end_span(Tracer, SpanCtx1),
+    otel_span:end_span(SpanCtx1),
 
     assert_all_exported(Tid, [SpanCtx1]),
 

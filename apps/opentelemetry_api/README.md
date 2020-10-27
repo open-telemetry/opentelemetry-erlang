@@ -47,7 +47,7 @@ defmodule MyApp do
   use Application
 
   def start(_type, _args) do
-    _ = OpenTelemetry.register_application_tracer(:my_app),
+    _ = OpenTelemetry.register_application_tracer(:my_app)
     ...
   end
 end
