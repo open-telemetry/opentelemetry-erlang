@@ -22,8 +22,8 @@
 -export([setup/2,
          always_on/7,
          always_off/7,
-         parent_or_else/7,
-         probability/7]).
+         parent_based/7,
+         trace_id_ratio_based/7]).
 
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
@@ -45,34 +45,26 @@
               t/0]).
 
 -define(MAX_VALUE, 9223372036854775807). %% 2^63 - 1
--define(DEFAULT_PROBABILITY, 0.5).
 
 -spec setup(atom() | module(), map()) -> t().
 setup(always_on, _Opts) ->
     {fun ?MODULE:always_on/7, []};
 setup(always_off, _Opts) ->
     {fun ?MODULE:always_off/7, []};
-setup(parent_or_else, #{delegate_sampler := {DelegateSampler, DelegateOpts}})
-  when is_atom(DelegateSampler) ->
-    {fun ?MODULE:parent_or_else/7, setup(DelegateSampler, DelegateOpts)};
-setup(parent_or_else, _Opts) ->
-    ?LOG_INFO("no delegate_sampler opt found for sampler parent_or_else. always_on will be used for root spans"),
-    {fun ?MODULE:parent_or_else/7, setup(always_on, #{})};
-setup(probability, Opts) ->
-    IdUpperBound =
-        case maps:get(probability, Opts, ?DEFAULT_PROBABILITY) of
-            P when P =:= 0.0 ->
-                0;
-            P when P =:= 1.0 ->
-                ?MAX_VALUE;
-            P when P >= 0.0 andalso P =< 1.0 ->
-                P * ?MAX_VALUE
-        end,
+setup(parent_based, Opts) ->
+    Config = parent_based_config(Opts),
+    {fun ?MODULE:parent_based/7, Config};
+setup(trace_id_ratio_based, Probability) ->
+    IdUpperBound = case Probability of
+                       P when P =:= 0.0 ->
+                           0;
+                       P when P =:= 1.0 ->
+                           ?MAX_VALUE;
+                       P when P >= 0.0 andalso P =< 1.0 ->
+                           P * ?MAX_VALUE
+                   end,
 
-    IgnoreParentFlag = maps:get(ignore_parent_flag, Opts, false),
-    OnlyRoot = maps:get(only_rootel_spans, Opts, true),
-
-    {fun ?MODULE:probability/7, {IdUpperBound, IgnoreParentFlag, OnlyRoot}};
+    {fun ?MODULE:trace_id_ratio_based/7, IdUpperBound};
 setup(Sampler, Opts) ->
     Sampler:setup(Opts).
 
@@ -82,40 +74,60 @@ always_on(_TraceId, _SpanCtx, _Links, _SpanName, _Kind, _Attributes, _Opts) ->
 always_off(_TraceId, _SpanCtx, _Links, _SpanName, _Kind, _Attributes, _Opts) ->
     {?NOT_RECORD, []}.
 
-parent_or_else(_, #span_ctx{trace_flags=TraceFlags}, _, _, _, _, _) when ?IS_SPAN_ENABLED(TraceFlags) ->
-    {?RECORD_AND_SAMPLED, []};
-parent_or_else(_, #span_ctx{trace_flags=_TraceFlags}, _, _, _, _, _) ->
-    {?NOT_RECORD, []};
-parent_or_else(TraceId, SpanCtx, Links, SpanName, Kind, Attributes, {DelegateSampler, DelegateOpts}) ->
-    DelegateSampler(TraceId, SpanCtx, Links, SpanName, Kind, Attributes, DelegateOpts).
+parent_based_config(Opts=#{root := {RootSampler, RootOpts}})
+  when is_atom(RootSampler)->
+    {RemoteParentSampled, RemoteParentSampledOpts}
+        = maps:get(remote_parent_sampled, Opts, {always_on, #{}}),
+    {RemoteParentNotSampled, RemoteParentNotSampledOpts}
+        = maps:get(remote_parent_not_sampled, Opts, {always_off, #{}}),
+    {LocalParentSampled, LocalParentSampledOpts}
+        = maps:get(local_parent_sampled, Opts, {always_on, #{}}),
+    {LocalParentNotSampled, LocalParentNotSampledOpts}
+        = maps:get(local_parent_not_sampled, Opts, {always_off, #{}}),
 
-probability(TraceId, Parent, _, _, _, _, {IdUpperBound,
-                                          IgnoreParentFlag,
-                                          _OnlyRoot})
-  when IgnoreParentFlag =:= true orelse Parent =:= undefined ->
-    {do_probability_sample(TraceId, IdUpperBound), []};
-probability(_, #span_ctx{trace_flags=TraceFlags}, _, _, _, _, {_IdUpperBound,
-                                                               _IgnoreParentFlag,
-                                                               _OnlyRoot})
+    #{root => setup(RootSampler, RootOpts),
+      remote_parent_sampled =>
+          setup(RemoteParentSampled, RemoteParentSampledOpts),
+      remote_parent_not_sampled =>
+          setup(RemoteParentNotSampled, RemoteParentNotSampledOpts),
+      local_parent_sampled =>
+          setup(LocalParentSampled, LocalParentSampledOpts),
+      local_parent_not_sampled =>
+          setup(LocalParentNotSampled, LocalParentNotSampledOpts)};
+parent_based_config(Opts) ->
+    ?LOG_INFO("no root opt found for sampler parent_based. always_on will be used for root spans"),
+    parent_based_config(Opts#{root => {always_on, #{}}}).
+
+parent_based(TraceId, SpanCtx, Links, SpanName, Kind, Attributes, Opts) ->
+    {Sampler, SamplerOpts} = parent_based_sampler(SpanCtx, Opts),
+    Sampler(TraceId, SpanCtx, Links, SpanName, Kind, Attributes, SamplerOpts).
+
+%% remote parent sampled
+parent_based_sampler(#span_ctx{trace_flags=TraceFlags,
+                               is_remote=true}, #{remote_parent_sampled := SamplerAndOpts})
   when ?IS_SPAN_ENABLED(TraceFlags) ->
-    {?RECORD_AND_SAMPLED, []};
-probability(TraceId, #span_ctx{is_remote=IsRemote}, _, _, _, _, {IdUpperBound,
-                                                                 _IgnoreParentFlag,
-                                                                 OnlyRoot}) ->
-    case OnlyRoot =:= false andalso IsRemote =:= true
-        andalso do_probability_sample(TraceId, IdUpperBound) of
-        ?RECORD_AND_SAMPLED ->
-            {?RECORD_AND_SAMPLED, []};
-        _ ->
-            {?NOT_RECORD, []}
-    end.
+    SamplerAndOpts;
+%% remote parent not sampled
+parent_based_sampler(#span_ctx{is_remote=true}, #{remote_parent_not_sampled := SamplerAndOpts}) ->
+    SamplerAndOpts;
+%% local parent sampled
+parent_based_sampler(#span_ctx{trace_flags=TraceFlags,
+                               is_remote=false}, #{local_parent_sampled := SamplerAndOpts})
+  when ?IS_SPAN_ENABLED(TraceFlags) ->
+    SamplerAndOpts;
+%% local parent not sampled
+parent_based_sampler(#span_ctx{is_remote=false}, #{local_parent_not_sampled := SamplerAndOpts}) ->
+    SamplerAndOpts;
+%% root
+parent_based_sampler(_SpanCtx, #{root := SamplerAndOpts}) ->
+    SamplerAndOpts.
 
-do_probability_sample(TraceId, IdUpperBound) ->
+trace_id_ratio_based(TraceId, _, _, _, _, _, IdUpperBound) ->
     Lower64Bits = TraceId band ?MAX_VALUE,
     case erlang:abs(Lower64Bits) < IdUpperBound of
         true ->
-            ?RECORD_AND_SAMPLED;
+            {?RECORD_AND_SAMPLED, []};
         false ->
-            ?NOT_RECORD
+            {?NOT_RECORD, []}
     end.
 
