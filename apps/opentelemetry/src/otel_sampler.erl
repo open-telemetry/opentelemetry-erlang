@@ -20,6 +20,7 @@
 -module(otel_sampler).
 
 -export([setup/2,
+         get_description/1,
          always_on/7,
          always_off/7,
          parent_based/7,
@@ -30,15 +31,18 @@
 -include("otel_sampler.hrl").
 -include("otel_span.hrl").
 
+-callback setup(module(), map()) -> t().
+
 -type sampling_decision() :: ?NOT_RECORD | ?RECORD | ?RECORD_AND_SAMPLED.
--type sampling_result() :: {sampling_decision(), opentelemetry:attributes()}.
+-type sampling_result() :: {sampling_decision(), opentelemetry:attributes(), opentelemetry:tracestate()}.
+-type description() :: unicode:unicode_binary().
 -type sampler() :: {fun((opentelemetry:trace_id(),
                          opentelemetry:span_ctx() | undefined,
                          opentelemetry:links(),
                          opentelemetry:span_name(),
                          opentelemetry:kind(),
                          opentelemetry:attributes(),
-                         term()) -> sampling_result()), term()}.
+                         term()) -> sampling_result()), description(), term()}.
 -opaque t() :: sampler().
 -export_type([sampling_result/0,
               sampling_decision/0,
@@ -48,12 +52,12 @@
 
 -spec setup(atom() | module(), map()) -> t().
 setup(always_on, _Opts) ->
-    {fun ?MODULE:always_on/7, []};
+    {fun ?MODULE:always_on/7, <<"AlwaysOnSampler">>, []};
 setup(always_off, _Opts) ->
-    {fun ?MODULE:always_off/7, []};
+    {fun ?MODULE:always_off/7, <<"AlwaysOffSampler">>, []};
 setup(parent_based, Opts) ->
     Config = parent_based_config(Opts),
-    {fun ?MODULE:parent_based/7, Config};
+    {fun ?MODULE:parent_based/7, <<"ParentBased{}">>, Config};
 setup(trace_id_ratio_based, Probability) ->
     IdUpperBound = case Probability of
                        P when P =:= 0.0 ->
@@ -63,16 +67,20 @@ setup(trace_id_ratio_based, Probability) ->
                        P when P >= 0.0 andalso P =< 1.0 ->
                            P * ?MAX_VALUE
                    end,
-
-    {fun ?MODULE:trace_id_ratio_based/7, IdUpperBound};
+    Description = unicode:characters_to_binary(io_lib:format("TraceIdRatioBased{~.6f}", [Probability])),
+    {fun ?MODULE:trace_id_ratio_based/7, Description, IdUpperBound};
 setup(Sampler, Opts) ->
     Sampler:setup(Opts).
 
-always_on(_TraceId, _SpanCtx, _Links, _SpanName, _Kind, _Attributes, _Opts) ->
-    {?RECORD_AND_SAMPLED, []}.
+always_on(_TraceId, SpanCtx, _Links, _SpanName, _Kind, _Attributes, _Opts) ->
+    {?RECORD_AND_SAMPLED, [], tracestate(SpanCtx)}.
 
-always_off(_TraceId, _SpanCtx, _Links, _SpanName, _Kind, _Attributes, _Opts) ->
-    {?NOT_RECORD, []}.
+always_off(_TraceId, SpanCtx, _Links, _SpanName, _Kind, _Attributes, _Opts) ->
+    {?NOT_RECORD, [], tracestate(SpanCtx)}.
+
+-spec get_description(sampler()) -> description().
+get_description({_Fun, Description, _Opts}) ->
+    Description.
 
 parent_based_config(Opts=#{root := {RootSampler, RootOpts}})
   when is_atom(RootSampler)->
@@ -99,7 +107,7 @@ parent_based_config(Opts) ->
     parent_based_config(Opts#{root => {always_on, #{}}}).
 
 parent_based(TraceId, SpanCtx, Links, SpanName, Kind, Attributes, Opts) ->
-    {Sampler, SamplerOpts} = parent_based_sampler(SpanCtx, Opts),
+    {Sampler, _Description, SamplerOpts} = parent_based_sampler(SpanCtx, Opts),
     Sampler(TraceId, SpanCtx, Links, SpanName, Kind, Attributes, SamplerOpts).
 
 %% remote parent sampled
@@ -122,12 +130,18 @@ parent_based_sampler(#span_ctx{is_remote=false}, #{local_parent_not_sampled := S
 parent_based_sampler(_SpanCtx, #{root := SamplerAndOpts}) ->
     SamplerAndOpts.
 
-trace_id_ratio_based(TraceId, _, _, _, _, _, IdUpperBound) ->
+trace_id_ratio_based(TraceId, SpanCtx, _, _, _, _, IdUpperBound) ->
     Lower64Bits = TraceId band ?MAX_VALUE,
     case erlang:abs(Lower64Bits) < IdUpperBound of
         true ->
-            {?RECORD_AND_SAMPLED, []};
+            {?RECORD_AND_SAMPLED, [], tracestate(SpanCtx)};
         false ->
-            {?NOT_RECORD, []}
+            {?NOT_RECORD, [], tracestate(SpanCtx)}
     end.
 
+tracestate(#span_ctx{tracestate=undefined}) ->
+    [];
+tracestate(#span_ctx{tracestate=TraceState}) ->
+    TraceState;
+tracestate(undefined) ->
+    [].
