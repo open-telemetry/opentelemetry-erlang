@@ -45,12 +45,11 @@ new_span(Name, undefined, Sampler, StartTime, Kind, Attributes, Links) ->
                      trace_flags=0},
     new_span(Name, Span, Sampler, StartTime, Kind, Attributes, Links);
 new_span(Name, Parent=#span_ctx{trace_id=TraceId,
-                                tracestate=Tracestate,
                                 span_id=ParentSpanId}, Sampler, StartTime, Kind, Attributes, Links) ->
     SpanId = opentelemetry:generate_span_id(),
     SpanCtx = Parent#span_ctx{span_id=SpanId},
 
-    {TraceFlags, IsRecording, SamplerAttributes} =
+    {TraceFlags, IsRecording, SamplerAttributes, TraceState} =
         sample(Sampler, TraceId, case Parent of
                                      #span_ctx{span_id=undefined} ->
                                          undefined;
@@ -61,7 +60,7 @@ new_span(Name, Parent=#span_ctx{trace_id=TraceId,
 
     Span = #span{trace_id=TraceId,
                  span_id=SpanId,
-                 tracestate=Tracestate,
+                 tracestate=TraceState,
                  start_time=StartTime,
                  parent_span_id=ParentSpanId,
                  kind=Kind,
@@ -88,14 +87,14 @@ end_span(Span) ->
 
 %%
 
-sample({Sampler, Opts}, TraceId, Parent, Links, SpanName, Kind, Attributes) ->
-    {Decision, NewAttributes} = Sampler(TraceId, Parent, Links,
-                                        SpanName, Kind, Attributes, Opts),
+sample({Sampler, _Description, Opts}, TraceId, Parent, Links, SpanName, Kind, Attributes) ->
+    {Decision, NewAttributes, TraceState} = Sampler(TraceId, Parent, Links,
+                                                    SpanName, Kind, Attributes, Opts),
     case Decision of
         ?NOT_RECORD ->
-            {0, false, NewAttributes};
+            {0, false, NewAttributes, TraceState};
         ?RECORD ->
-            {0, true, NewAttributes};
+            {0, true, NewAttributes, TraceState};
         ?RECORD_AND_SAMPLED ->
-            {1, true, NewAttributes}
+            {1, true, NewAttributes, TraceState}
     end.
