@@ -52,7 +52,7 @@
         }).
 
 init(Opts) ->
-    {Sampler, SamplerOpts} = proplists:get_value(sampler, Opts, {always_on, #{}}),
+    {Sampler, SamplerOpts} = proplists:get_value(sampler, Opts, {parent_based, #{root => {always_on, #{}}}}),
     SamplerFun = otel_sampler:setup(Sampler, SamplerOpts),
     Processors = proplists:get_value(processors, Opts, []),
     DenyList = proplists:get_value(deny_list, Opts, []),
