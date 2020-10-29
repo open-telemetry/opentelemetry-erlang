@@ -32,6 +32,10 @@ get_description(_Config) ->
 
     ?assertEqual(<<"TraceIdRatioBased{0.500000}">>, otel_sampler:get_description(Sampler)),
 
+    ParentBasedSampler = otel_sampler:setup(parent_based, #{root => {trace_id_ratio_based, Probability}}),
+    ?assertEqual(<<"ParentBased{root:TraceIdRatioBased{0.500000},remoteParentSampled:AlwaysOnSampler,remoteParentNotSampled:AlwaysOffSampler,localParentSampled:AlwaysOnSampler,localParentNotSampled:AlwaysOffSampler}">>,
+                 otel_sampler:get_description(ParentBasedSampler)),
+
     ok.
 
 trace_id_ratio_based(_Config) ->

@@ -51,13 +51,13 @@
 -define(MAX_VALUE, 9223372036854775807). %% 2^63 - 1
 
 -spec setup(atom() | module(), map()) -> t().
-setup(always_on, _Opts) ->
-    {fun ?MODULE:always_on/7, <<"AlwaysOnSampler">>, []};
-setup(always_off, _Opts) ->
-    {fun ?MODULE:always_off/7, <<"AlwaysOffSampler">>, []};
+setup(always_on, Opts) ->
+    {fun ?MODULE:always_on/7, description(always_on, Opts), []};
+setup(always_off, Opts) ->
+    {fun ?MODULE:always_off/7, description(always_off, Opts), []};
 setup(parent_based, Opts) ->
-    Config = parent_based_config(Opts),
-    {fun ?MODULE:parent_based/7, <<"ParentBased{}">>, Config};
+    {Config, Description} = parent_based_config(Opts),
+    {fun ?MODULE:parent_based/7, Description, Config};
 setup(trace_id_ratio_based, Probability) ->
     IdUpperBound = case Probability of
                        P when P =:= 0.0 ->
@@ -67,8 +67,7 @@ setup(trace_id_ratio_based, Probability) ->
                        P when P >= 0.0 andalso P =< 1.0 ->
                            P * ?MAX_VALUE
                    end,
-    Description = unicode:characters_to_binary(io_lib:format("TraceIdRatioBased{~.6f}", [Probability])),
-    {fun ?MODULE:trace_id_ratio_based/7, Description, IdUpperBound};
+    {fun ?MODULE:trace_id_ratio_based/7, description(trace_id_ratio_based, Probability), IdUpperBound};
 setup(Sampler, Opts) ->
     Sampler:setup(Opts).
 
@@ -93,15 +92,16 @@ parent_based_config(Opts=#{root := {RootSampler, RootOpts}})
     {LocalParentNotSampled, LocalParentNotSampledOpts}
         = maps:get(local_parent_not_sampled, Opts, {always_off, #{}}),
 
-    #{root => setup(RootSampler, RootOpts),
-      remote_parent_sampled =>
-          setup(RemoteParentSampled, RemoteParentSampledOpts),
-      remote_parent_not_sampled =>
-          setup(RemoteParentNotSampled, RemoteParentNotSampledOpts),
-      local_parent_sampled =>
-          setup(LocalParentSampled, LocalParentSampledOpts),
-      local_parent_not_sampled =>
-          setup(LocalParentNotSampled, LocalParentNotSampledOpts)};
+    ParentBasedConfig = #{root => setup(RootSampler, RootOpts),
+                          remote_parent_sampled =>
+                              setup(RemoteParentSampled, RemoteParentSampledOpts),
+                          remote_parent_not_sampled =>
+                              setup(RemoteParentNotSampled, RemoteParentNotSampledOpts),
+                          local_parent_sampled =>
+                              setup(LocalParentSampled, LocalParentSampledOpts),
+                          local_parent_not_sampled =>
+                              setup(LocalParentNotSampled, LocalParentNotSampledOpts)},
+    {ParentBasedConfig, description(parent_based, ParentBasedConfig)};
 parent_based_config(Opts) ->
     ?LOG_INFO("no root opt found for sampler parent_based. always_on will be used for root spans"),
     parent_based_config(Opts#{root => {always_on, #{}}}).
@@ -145,3 +145,21 @@ tracestate(#span_ctx{tracestate=TraceState}) ->
     TraceState;
 tracestate(undefined) ->
     [].
+
+description(always_on, _) ->
+    <<"AlwaysOnSampler">>;
+description(always_off, _) ->
+    <<"AlwaysOffSampler">>;
+description(trace_id_ratio_based, Probability) ->
+    unicode:characters_to_binary(io_lib:format("TraceIdRatioBased{~.6f}", [Probability]));
+description(parent_based, #{root := RootSampler,
+                            remote_parent_sampled := RemoteParentSampler,
+                            remote_parent_not_sampled := RemoteParentNotSampler,
+                            local_parent_sampled := LocalParentSampler,
+                            local_parent_not_sampled := LocalParentNotSampler}) ->
+    <<"ParentBased{root:", (get_description(RootSampler))/binary,
+      ",remoteParentSampled:", (get_description(RemoteParentSampler))/binary,
+      ",remoteParentNotSampled:", (get_description(RemoteParentNotSampler))/binary,
+      ",localParentSampled:", (get_description(LocalParentSampler))/binary,
+      ",localParentNotSampled:", (get_description(LocalParentNotSampler))/binary,
+      "}">>.
