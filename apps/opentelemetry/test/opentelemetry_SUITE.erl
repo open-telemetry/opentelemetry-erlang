@@ -17,7 +17,7 @@ all() ->
 
 all_testcases() ->
     [with_span, macros, child_spans, update_span_data, tracer_instrumentation_library,
-     tracer_previous_ctx, stop_temporary_app, reset_after, attach_ctx].
+     tracer_previous_ctx, stop_temporary_app, reset_after, attach_ctx, default_sampler].
 
 groups() ->
     [{w3c, [], [propagation]},
@@ -363,6 +363,62 @@ stop_temporary_app(_Config) ->
     SpanCtx2 = ?start_span(<<"span-2">>),
     ?assertMatch(#span_ctx{trace_id=0,
                            span_id=0}, SpanCtx2),
+    ok.
+
+default_sampler(_Config) ->
+    %% Tid = ?config(tid, Config),
+
+    Tracer = opentelemetry:get_tracer(),
+
+    %% root span should be sampled by default sampler
+    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{}),
+    ?assertMatch(true, SpanCtx1#span_ctx.is_recording),
+
+    %% hack to set the created span as local not sampled
+    ?set_current_span(SpanCtx1#span_ctx{is_remote=false,
+                                        is_recording=false,
+                                        trace_flags=0}),
+
+    %% local not sampled should default to not sampled
+    SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-2">>, #{}),
+    ?assertMatch(false, SpanCtx2#span_ctx.is_recording),
+
+    %% hack to set the created span as local not sampled
+    ?set_current_span(SpanCtx1#span_ctx{is_remote=false,
+                                        is_recording=true,
+                                        trace_flags=1}),
+
+    %% local not sampled should default to not sampled
+    SpanCtx3 = otel_tracer:start_span(Tracer, <<"span-3">>, #{}),
+    ?assertMatch(true, SpanCtx3#span_ctx.is_recording),
+
+    %% hack to set the created span as remote not sampled
+    ?set_current_span(SpanCtx1#span_ctx{is_remote=true,
+                                        is_recording=false,
+                                        trace_flags=0}),
+
+    %% remote not sampled should default to not sampled
+    SpanCtx4 = otel_tracer:start_span(Tracer, <<"span-4">>, #{}),
+    ?assertMatch(false, SpanCtx4#span_ctx.is_recording),
+
+    %% hack to set the created span as remote not sampled
+    ?set_current_span(SpanCtx1#span_ctx{is_remote=true,
+                                        is_recording=true,
+                                        trace_flags=1}),
+
+    %% remote not sampled should default to not sampled
+    SpanCtx5 = otel_tracer:start_span(Tracer, <<"span-5">>, #{}),
+    ?assertMatch(true, SpanCtx5#span_ctx.is_recording),
+
+    %% hack to set the created span as local not sampled but recording
+    ?set_current_span(SpanCtx1#span_ctx{is_remote=false,
+                                        is_recording=true,
+                                        trace_flags=0}),
+
+    %% local not sampled but is recorded should default to sampled
+    SpanCtx6 = otel_tracer:start_span(Tracer, <<"span-6">>, #{}),
+    ?assertMatch(false, SpanCtx6#span_ctx.is_recording),
+
     ok.
 
 %%

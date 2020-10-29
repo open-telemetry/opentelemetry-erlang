@@ -6,7 +6,6 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
--include("otel_sampler.hrl").
 
 all() ->
     [exporting_timeout_test].
@@ -17,8 +16,8 @@ exporting_timeout_test(_Config) ->
     process_flag(trap_exit, true),
 
     {ok, Pid} = otel_batch_processor:start_link(#{exporter => ?MODULE,
-                                                exporting_timeout_ms => 1,
-                                                scheduled_delay_ms => 1}),
+                                                  exporting_timeout_ms => 1,
+                                                  scheduled_delay_ms => 1}),
 
     receive
         {'EXIT', Pid, _} ->
