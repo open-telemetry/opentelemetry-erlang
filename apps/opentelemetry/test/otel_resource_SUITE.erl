@@ -16,7 +16,7 @@ all() ->
     [startup, os_env_resource, app_env_resource, combining].
 
 startup(_Config) ->
-    os:putenv("OTEL_RESOURCE_LABELS", "service.name=cttest,service.version=1.1.1"),
+    os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=1.1.1"),
 
     {ok, _} = application:ensure_all_started(opentelemetry),
     {_, Tracer} = opentelemetry:get_tracer(),
