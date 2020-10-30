@@ -130,7 +130,7 @@ span_round_trip(_Config) ->
 
 %% insert a couple spans and export to locally running otel collector
 verify_export(Config) ->
-    os:putenv("OTEL_RESOURCE_LABELS", "service.name=my-test-service,service.version=98da75ea6d38724743bf42b45565049238d86b3f"),
+    os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=my-test-service,service.version=98da75ea6d38724743bf42b45565049238d86b3f"),
     Protocol = ?config(protocol, Config),
     Port = case Protocol of
                grpc ->

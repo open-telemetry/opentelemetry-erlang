@@ -21,7 +21,7 @@
 -export([get_resource/0,
          parse/1]).
 
--define(OS_ENV, "OTEL_RESOURCE_LABELS").
+-define(OS_ENV, "OTEL_RESOURCE_ATTRIBUTES").
 -define(LABEL_LIST_SPLITTER, ",").
 -define(LABEL_KEY_VALUE_SPLITTER, "=").
 
