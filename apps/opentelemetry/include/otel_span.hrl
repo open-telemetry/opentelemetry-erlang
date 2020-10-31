@@ -63,7 +63,7 @@
           status                  :: opentelemetry:status() | undefined,
 
           %% 8-bit integer, lowest bit is if it is sampled
-          trace_options = 1       :: integer() | undefined,
+          trace_flags = 1         :: integer() | undefined,
 
           %% this field is not propagated and is only here as an implementation optimization
           %% If true updates like adding events are done on the span. The same as if the

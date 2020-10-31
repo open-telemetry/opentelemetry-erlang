@@ -22,7 +22,7 @@
 %% is actually used (at the time of exporting).
 
 %% for use in guards: sampling bit is the first bit in 8-bit trace options
--define(IS_SPAN_ENABLED(TraceOptions), (TraceOptions band 1) =/= 0).
+-define(IS_SAMPLED(TraceFlags), (TraceFlags band 1) =/= 0).
 
 -define(SPAN_KIND_INTERNAL, 'INTERNAL').
 -define(SPAN_KIND_SERVER, 'SERVER').
@@ -32,9 +32,9 @@
 
 -record(span_ctx, {
           %% 128 bit int trace id
-          trace_id          :: opentelemetry:trace_id() | undefined,
+          trace_id          :: opentelemetry:trace_id(),
           %% 64 bit int span id
-          span_id           :: opentelemetry:span_id() | undefined,
+          span_id           :: opentelemetry:span_id(),
           %% 8-bit integer, lowest bit is if it is sampled
           trace_flags = 1   :: integer() | undefined,
           %% Tracestate represents tracing-system specific context in a list of key-value pairs.

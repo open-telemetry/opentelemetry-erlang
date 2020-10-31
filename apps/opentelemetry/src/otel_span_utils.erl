@@ -25,38 +25,24 @@
 -include("otel_sampler.hrl").
 -include("otel_span.hrl").
 
-%% sampling bit is the first bit in 8-bit trace options
--define(IS_ENABLED(X), (X band 1) =/= 0).
-
--spec start_span(opentelemetry:span_name(), opentelemetry:span_ctx() | undefined, otel_span:start_opts())
+-spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_span:start_opts())
                 -> {opentelemetry:span_ctx(), opentelemetry:span() | undefined}.
-start_span(Name, Parent, Opts) ->
+start_span(Ctx, Name, Opts) ->
     Attributes = maps:get(attributes, Opts, []),
     Links = maps:get(links, Opts, []),
     Kind = maps:get(kind, Opts, ?SPAN_KIND_INTERNAL),
     Sampler = maps:get(sampler, Opts),
     StartTime = maps:get(start_time, Opts, opentelemetry:timestamp()),
-    new_span(Name, Parent, Sampler, StartTime, Kind, Attributes, Links).
+    new_span(Ctx, Name, Sampler, StartTime, Kind, Attributes, Links).
 
-%% if parent is undefined create a new trace id
-new_span(Name, undefined, Sampler, StartTime, Kind, Attributes, Links) ->
-    TraceId = opentelemetry:generate_trace_id(),
-    Span = #span_ctx{trace_id=TraceId,
-                     trace_flags=0},
-    new_span(Name, Span, Sampler, StartTime, Kind, Attributes, Links);
-new_span(Name, Parent=#span_ctx{trace_id=TraceId,
-                                span_id=ParentSpanId}, Sampler, StartTime, Kind, Attributes, Links) ->
-    SpanId = opentelemetry:generate_span_id(),
-    SpanCtx = Parent#span_ctx{span_id=SpanId},
-
+new_span(Ctx, Name, Sampler, StartTime, Kind, Attributes, Links) ->
+    ParentTraceId = trace_id(Ctx),
     {TraceFlags, IsRecording, SamplerAttributes, TraceState} =
-        sample(Sampler, TraceId, case Parent of
-                                     #span_ctx{span_id=undefined} ->
-                                         undefined;
-                                     _ ->
-                                         Parent
-                                 end,
-               Links, Name, Kind, Attributes),
+        sample(Ctx, Sampler, ParentTraceId, Links, Name, Kind, Attributes),
+
+    {NewSpanCtx, ParentSpanId} = new_span_ctx(Ctx),
+    TraceId = NewSpanCtx#span_ctx.trace_id,
+    SpanId = NewSpanCtx#span_ctx.span_id,
 
     Span = #span{trace_id=TraceId,
                  span_id=SpanId,
@@ -67,10 +53,38 @@ new_span(Name, Parent=#span_ctx{trace_id=TraceId,
                  name=Name,
                  attributes=Attributes++SamplerAttributes,
                  links=Links,
+                 trace_flags=TraceFlags,
                  is_recording=IsRecording},
 
-    {SpanCtx#span_ctx{trace_flags=TraceFlags,
-                      is_recording=IsRecording}, Span}.
+    {NewSpanCtx#span_ctx{trace_flags=TraceFlags,
+                         is_valid=true,
+                         is_recording=IsRecording}, Span}.
+
+trace_id(Ctx) ->
+    case otel_tracer:current_span_ctx(Ctx) of
+        #span_ctx{trace_id=TraceId} ->
+            TraceId;
+        _ ->
+            undefined
+    end.
+
+-spec new_span_ctx(otel_ctx:t()) -> {opentelemetry:span_ctx(), opentelemetry:span_id()}.
+new_span_ctx(Ctx) ->
+    case otel_tracer:current_span_ctx(Ctx) of
+        undefined ->
+            {root_span_ctx(), undefined};
+        #span_ctx{is_valid=false} ->
+            {root_span_ctx(), undefined};
+        ParentSpanCtx=#span_ctx{span_id=ParentSpanId} ->
+            %% keep the rest of the parent span ctx, simply need to update the span_id
+            {ParentSpanCtx#span_ctx{span_id=opentelemetry:generate_span_id()}, ParentSpanId}
+    end.
+
+root_span_ctx() ->
+    #span_ctx{trace_id=opentelemetry:generate_trace_id(),
+              span_id=opentelemetry:generate_span_id(),
+              is_valid=true,
+              trace_flags=0}.
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -79,7 +93,7 @@ new_span(Name, Parent=#span_ctx{trace_id=TraceId,
 %%--------------------------------------------------------------------
 -spec end_span(opentelemetry:span()) -> opentelemetry:span().
 end_span(Span=#span{end_time=undefined,
-                    trace_options=TraceOptions}) when ?IS_ENABLED(TraceOptions) ->
+                    trace_flags=TraceFlags}) when ?IS_SAMPLED(TraceFlags) ->
     EndTime = opentelemetry:timestamp(),
     Span#span{end_time=EndTime};
 end_span(Span) ->
@@ -87,14 +101,14 @@ end_span(Span) ->
 
 %%
 
-sample({Sampler, _Description, Opts}, TraceId, Parent, Links, SpanName, Kind, Attributes) ->
-    {Decision, NewAttributes, TraceState} = Sampler(TraceId, Parent, Links,
-                                                    SpanName, Kind, Attributes, Opts),
+sample(Ctx, {Sampler, _Description, Opts}, TraceId, Links, SpanName, Kind, Attributes) ->
+    {Decision, NewAttributes, TraceState} = Sampler(Ctx, TraceId, Links, SpanName,
+                                                    Kind, Attributes, Opts),
     case Decision of
-        ?NOT_RECORD ->
+        ?DROP ->
             {0, false, NewAttributes, TraceState};
-        ?RECORD ->
+        ?RECORD_ONLY ->
             {0, true, NewAttributes, TraceState};
-        ?RECORD_AND_SAMPLED ->
+        ?RECORD_AND_SAMPLE ->
             {1, true, NewAttributes, TraceState}
     end.

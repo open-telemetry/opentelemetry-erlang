@@ -33,11 +33,11 @@
 
 -callback setup(module(), map()) -> t().
 
--type sampling_decision() :: ?NOT_RECORD | ?RECORD | ?RECORD_AND_SAMPLED.
+-type sampling_decision() :: ?DROP | ?RECORD_ONLY | ?RECORD_AND_SAMPLE.
 -type sampling_result() :: {sampling_decision(), opentelemetry:attributes(), opentelemetry:tracestate()}.
 -type description() :: unicode:unicode_binary().
--type sampler() :: {fun((opentelemetry:trace_id(),
-                         opentelemetry:span_ctx() | undefined,
+-type sampler() :: {fun((otel_ctx:t(),
+                         opentelemetry:trace_id(),
                          opentelemetry:links(),
                          opentelemetry:span_name(),
                          opentelemetry:kind(),
@@ -71,11 +71,11 @@ setup(trace_id_ratio_based, Probability) ->
 setup(Sampler, Opts) ->
     Sampler:setup(Opts).
 
-always_on(_TraceId, SpanCtx, _Links, _SpanName, _Kind, _Attributes, _Opts) ->
-    {?RECORD_AND_SAMPLED, [], tracestate(SpanCtx)}.
+always_on(Ctx, _TraceId, _Links, _SpanName, _Kind, _Attributes, _Opts) ->
+    {?RECORD_AND_SAMPLE, [], tracestate(Ctx)}.
 
-always_off(_TraceId, SpanCtx, _Links, _SpanName, _Kind, _Attributes, _Opts) ->
-    {?NOT_RECORD, [], tracestate(SpanCtx)}.
+always_off(Ctx, _TraceId, _Links, _SpanName, _Kind, _Attributes, _Opts) ->
+    {?DROP, [], tracestate(Ctx)}.
 
 -spec get_description(sampler()) -> description().
 get_description({_Fun, Description, _Opts}) ->
@@ -106,14 +106,15 @@ parent_based_config(Opts) ->
     ?LOG_INFO("no root opt found for sampler parent_based. always_on will be used for root spans"),
     parent_based_config(Opts#{root => {always_on, #{}}}).
 
-parent_based(TraceId, SpanCtx, Links, SpanName, Kind, Attributes, Opts) ->
-    {Sampler, _Description, SamplerOpts} = parent_based_sampler(SpanCtx, Opts),
-    Sampler(TraceId, SpanCtx, Links, SpanName, Kind, Attributes, SamplerOpts).
+parent_based(Ctx, TraceId, Links, SpanName, Kind, Attributes, Opts) ->
+    ParentSpanCtx = otel_tracer:current_span_ctx(Ctx),
+    {Sampler, _Description, SamplerOpts} = parent_based_sampler(ParentSpanCtx, Opts),
+    Sampler(Ctx, TraceId, Links, SpanName, Kind, Attributes, SamplerOpts).
 
 %% remote parent sampled
 parent_based_sampler(#span_ctx{trace_flags=TraceFlags,
                                is_remote=true}, #{remote_parent_sampled := SamplerAndOpts})
-  when ?IS_SPAN_ENABLED(TraceFlags) ->
+  when ?IS_SAMPLED(TraceFlags) ->
     SamplerAndOpts;
 %% remote parent not sampled
 parent_based_sampler(#span_ctx{is_remote=true}, #{remote_parent_not_sampled := SamplerAndOpts}) ->
@@ -121,7 +122,7 @@ parent_based_sampler(#span_ctx{is_remote=true}, #{remote_parent_not_sampled := S
 %% local parent sampled
 parent_based_sampler(#span_ctx{trace_flags=TraceFlags,
                                is_remote=false}, #{local_parent_sampled := SamplerAndOpts})
-  when ?IS_SPAN_ENABLED(TraceFlags) ->
+  when ?IS_SAMPLED(TraceFlags) ->
     SamplerAndOpts;
 %% local parent not sampled
 parent_based_sampler(#span_ctx{is_remote=false}, #{local_parent_not_sampled := SamplerAndOpts}) ->
@@ -130,20 +131,28 @@ parent_based_sampler(#span_ctx{is_remote=false}, #{local_parent_not_sampled := S
 parent_based_sampler(_SpanCtx, #{root := SamplerAndOpts}) ->
     SamplerAndOpts.
 
-trace_id_ratio_based(TraceId, SpanCtx, _, _, _, _, IdUpperBound) ->
+
+trace_id_ratio_based(Ctx, undefined, _, _, _, _, _IdUpperBound) ->
+    {?DROP, [], tracestate(Ctx)};
+trace_id_ratio_based(Ctx, 0, _, _, _, _, _IdUpperBound) ->
+    {?DROP, [], tracestate(Ctx)};
+trace_id_ratio_based(Ctx, TraceId, _, _, _, _, IdUpperBound) ->
     Lower64Bits = TraceId band ?MAX_VALUE,
     case erlang:abs(Lower64Bits) < IdUpperBound of
         true ->
-            {?RECORD_AND_SAMPLED, [], tracestate(SpanCtx)};
+            {?RECORD_AND_SAMPLE, [], tracestate(Ctx)};
         false ->
-            {?NOT_RECORD, [], tracestate(SpanCtx)}
+            {?DROP, [], tracestate(Ctx)}
     end.
 
-tracestate(#span_ctx{tracestate=undefined}) ->
+tracestate(Ctx) ->
+    tracestate_(otel_tracer:current_span_ctx(Ctx)).
+
+tracestate_(#span_ctx{tracestate=undefined}) ->
     [];
-tracestate(#span_ctx{tracestate=TraceState}) ->
+tracestate_(#span_ctx{tracestate=TraceState}) ->
     TraceState;
-tracestate(undefined) ->
+tracestate_(undefined) ->
     [].
 
 description(always_on, _) ->
