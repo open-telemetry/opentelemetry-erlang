@@ -111,9 +111,10 @@ update_name(SpanCtx=#span_ctx{span_sdk={Module, _}}, SpanName) when ?is_recordin
 update_name(_, _) ->
     false.
 
--spec end_span(SpanCtx) -> boolean() when
+-spec end_span(SpanCtx) -> SpanCtx when
       SpanCtx :: opentelemetry:span_ctx().
 end_span(SpanCtx=#span_ctx{span_sdk={Module, _}}) when ?is_recording(SpanCtx) ->
-    Module:end_span(SpanCtx);
-end_span(_) ->
-    false.
+    _ = Module:end_span(SpanCtx),
+    SpanCtx#span_ctx{is_recording=false};
+end_span(SpanCtx) ->
+    SpanCtx.

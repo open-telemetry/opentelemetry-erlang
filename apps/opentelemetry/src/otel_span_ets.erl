@@ -73,7 +73,8 @@ end_span(#span_ctx{span_id=SpanId,
                    tracestate=Tracestate}, Processors) ->
     case ets:take(?SPAN_TAB, SpanId) of
         [Span] ->
-            Span1 = otel_span_utils:end_span(Span#span{tracestate=Tracestate}),
+            Span1 = otel_span_utils:end_span(Span#span{tracestate=Tracestate,
+                                                       is_recording=false}),
             Processors(Span1);
         _ ->
             false

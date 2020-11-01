@@ -78,10 +78,10 @@ defmodule OpenTelemetry.Tracer do
   End the Span. Sets the end timestamp for the currently active Span. This has no effect on any
   child Spans that may exist of this Span.
 
-  The Context is unchanged.
+  The Span in the current Context has its `is_recording` set to `false`.
   """
   def end_span() do
-    :otel_span.end_span(:otel_tracer.current_span_ctx())
+    :otel_tracer.end_span()
   end
 
   @doc """
