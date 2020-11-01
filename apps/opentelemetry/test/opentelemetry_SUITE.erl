@@ -427,8 +427,8 @@ record_but_not_sample(Config) ->
                "as a valid recorded span but is not sent to the exporter."),
     Tid = ?config(tid, Config),
 
-    Sampler = {fun static_sampler:sample/7, #{<<"span-record-and-sample">> => ?RECORD_AND_SAMPLE,
-                                              <<"span-record">> => ?RECORD_ONLY}},
+    Sampler = otel_sampler:setup(static_sampler, #{<<"span-record-and-sample">> => ?RECORD_AND_SAMPLE,
+                                                   <<"span-record">> => ?RECORD_ONLY}),
 
     Tracer = opentelemetry:get_tracer(),
 
@@ -450,6 +450,7 @@ record_but_not_sample(Config) ->
 
     assert_all_exported(Tid, [SpanCtx1]),
 
+    %% span-2 is recorded but not sampled, so should not show up in the export table
     assert_not_exported(Tid, SpanCtx2),
 
     ok.

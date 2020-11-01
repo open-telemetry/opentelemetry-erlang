@@ -9,7 +9,7 @@
 -include("otel_sampler.hrl").
 
 all() ->
-    [trace_id_ratio_based, parent_based, get_description].
+    [trace_id_ratio_based, parent_based, get_description, custom_sampler_module].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
@@ -126,4 +126,12 @@ parent_based(_Config) ->
                                                                                  is_remote=true}),
                                      DoNotSample, [], SpanName, undefined, [], Opts1)),
 
+    ok.
+
+custom_sampler_module(_Config) ->
+    SpanName = <<"span-name">>,
+    {Sampler, _, Opts} = otel_sampler:setup(static_sampler, #{SpanName => ?DROP}),
+    ?assertMatch({?DROP, [], []},
+                 Sampler(otel_ctx:new(), opentelemetry:generate_trace_id(), [],
+                         SpanName, undefined, [], Opts)),
     ok.

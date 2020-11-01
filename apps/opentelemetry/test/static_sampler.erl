@@ -8,4 +8,4 @@
 setup(Opts) ->
     {fun(_, _, _, SpanName, _, _, Opts1) ->
              {maps:get(SpanName, Opts1, ?DROP), [], []}
-    end, <<"StaticSampler">>, Opts}.
+     end, <<"StaticSampler">>, Opts}.
