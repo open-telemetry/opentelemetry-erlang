@@ -96,6 +96,28 @@ defmodule OpenTelemetry.Span do
   defdelegate add_events(span_ctx, events), to: :otel_span
 
   @doc """
+  Record an exception as an event, following the semantics convetions for exceptions.
+
+  If trace is not provided, the stacktrace is retrieved from `Process.info/2`
+  """
+  @spec record_exception(OpenTelemetry.span_ctx(), Exception.t()) :: boolean()
+  def record_exception(span_ctx, exception, trace \\ nil, attributes \\ [])
+
+  def record_exception(span_ctx, exception, trace, attributes) when is_exception(exception) do
+    exception_type = to_string(exception.__struct__)
+
+    exception_attributes = [
+      {"exception.type", exception_type},
+      {"exception.message", Exception.message(exception)},
+      {"exception.stacktrace", Exception.format_stacktrace(trace)}
+    ]
+
+    add_event(span_ctx, "exception", exception_attributes ++ attributes)
+  end
+
+  def record_exception(_, _, _, _), do: false
+
+  @doc """
   Sets the Status of the currently active Span.
 
   If used, this will override the default Span Status, which is `ok`.

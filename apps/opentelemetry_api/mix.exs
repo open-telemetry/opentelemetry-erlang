@@ -9,7 +9,7 @@ defmodule OpenTelemetry.MixProject do
       app: app,
       version: version(Keyword.fetch!(desc, :vsn)),
       description: to_string(Keyword.fetch!(desc, :description)),
-      elixir: "~> 1.8",
+      elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       # We should never have dependencies
       deps: deps(Keyword.fetch!(config, :deps)),
