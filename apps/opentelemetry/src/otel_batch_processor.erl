@@ -88,6 +88,8 @@ on_start(_Ctx, Span, _) ->
 
 -spec on_end(opentelemetry:span(), otel_span_processor:processor_config())
             -> true | dropped | {error, invalid_span} | {error, no_export_buffer}.
+on_end(#span{trace_flags=TraceFlags}, _) when not(?IS_SAMPLED(TraceFlags)) ->
+    dropped;
 on_end(Span=#span{}, _) ->
     do_insert(Span);
 on_end(_Span, _) ->

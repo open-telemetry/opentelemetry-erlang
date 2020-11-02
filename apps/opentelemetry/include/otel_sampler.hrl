@@ -16,6 +16,6 @@
 %% @end
 %%%-------------------------------------------------------------------------
 
--define(NOT_RECORD, not_record).
--define(RECORD, record).
--define(RECORD_AND_SAMPLED, record_and_sampled).
+-define(DROP, drop).
+-define(RECORD_ONLY, record_only).
+-define(RECORD_AND_SAMPLE, record_and_sample).

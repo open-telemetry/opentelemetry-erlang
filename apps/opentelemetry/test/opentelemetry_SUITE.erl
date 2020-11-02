@@ -9,6 +9,7 @@
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").
 -include("otel_span.hrl").
 -include("otel_test_utils.hrl").
+-include("otel_sampler.hrl").
 
 all() ->
     [all_testcases(),
@@ -17,7 +18,8 @@ all() ->
 
 all_testcases() ->
     [with_span, macros, child_spans, update_span_data, tracer_instrumentation_library,
-     tracer_previous_ctx, stop_temporary_app, reset_after, attach_ctx, default_sampler].
+     tracer_previous_ctx, stop_temporary_app, reset_after, attach_ctx, default_sampler,
+     record_but_not_sample].
 
 groups() ->
     [{w3c, [], [propagation]},
@@ -209,6 +211,9 @@ propagation(Config) ->
                       span_id=SpanId} = ?start_span(<<"span-1">>),
     ?set_current_span(SpanCtx),
 
+    ?assertMatch(#span_ctx{trace_flags=1}, ?current_span_ctx),
+    ?assertMatch(#span_ctx{is_recording=true}, ?current_span_ctx),
+
     otel_baggage:set("key-1", "value-1"),
     otel_baggage:set("key-2", "value-2"),
     Headers = otel_propagator:text_map_inject([{<<"existing-header">>, <<"I exist">>}]),
@@ -241,11 +246,9 @@ propagation(Config) ->
     ?assertEqual(#{"key-1" => "value-1",
                    "key-2" => "value-2"}, otel_baggage:get_all()),
 
-    %% extracted remote spans are not set to the active span
-    %% instead they are stored under a special "external span"
-    %% key and then used as the parent if current active span
-    %% is undefined or invalid
-    ?assertEqual(undefined, ?current_span_ctx),
+    %% extracted remote spans are set to the active span
+    %% but with `is_recording' false
+    ?assertMatch(#span_ctx{is_recording=false}, ?current_span_ctx),
 
     #span_ctx{trace_id=TraceId2,
               span_id=_SpanId2} = ?start_span(<<"span-2">>),
@@ -366,8 +369,6 @@ stop_temporary_app(_Config) ->
     ok.
 
 default_sampler(_Config) ->
-    %% Tid = ?config(tid, Config),
-
     Tracer = opentelemetry:get_tracer(),
 
     %% root span should be sampled by default sampler
@@ -418,6 +419,39 @@ default_sampler(_Config) ->
     %% local not sampled but is recorded should default to sampled
     SpanCtx6 = otel_tracer:start_span(Tracer, <<"span-6">>, #{}),
     ?assertMatch(false, SpanCtx6#span_ctx.is_recording),
+
+    ok.
+
+record_but_not_sample(Config) ->
+    ct:comment("Test that a Span that the sampler returns RECORD_ONLY for gets created"
+               "as a valid recorded span but is not sent to the exporter."),
+    Tid = ?config(tid, Config),
+
+    Sampler = otel_sampler:setup(static_sampler, #{<<"span-record-and-sample">> => ?RECORD_AND_SAMPLE,
+                                                   <<"span-record">> => ?RECORD_ONLY}),
+
+    Tracer = opentelemetry:get_tracer(),
+
+    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-record-and-sample">>, #{sampler => Sampler}),
+    ?assertEqual(true, SpanCtx1#span_ctx.is_recording),
+    ?assertEqual(1, SpanCtx1#span_ctx.trace_flags),
+
+    ?set_current_span(SpanCtx1),
+    ?assertMatch(SpanCtx1, ?current_span_ctx),
+
+    SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-record">>, #{sampler => Sampler}),
+    ?assertEqual(true, SpanCtx2#span_ctx.is_recording),
+    ?assertEqual(0, SpanCtx2#span_ctx.trace_flags),
+
+    ?set_current_span(SpanCtx2),
+    otel_span:end_span(SpanCtx2),
+
+    otel_span:end_span(SpanCtx1),
+
+    assert_all_exported(Tid, [SpanCtx1]),
+
+    %% span-2 is recorded but not sampled, so should not show up in the export table
+    assert_not_exported(Tid, SpanCtx2),
 
     ok.
 

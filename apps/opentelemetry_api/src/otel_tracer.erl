@@ -21,11 +21,11 @@
          start_span/4,
          with_span/3,
          with_span/4,
+         non_recording_span/3,
          set_current_span/1,
          set_current_span/2,
          current_span_ctx/0,
          current_span_ctx/1,
-         current_external_span_ctx/0,
          text_map_propagators/1,
          end_span/0,
          set_attribute/2,
@@ -38,8 +38,6 @@
 -include("opentelemetry.hrl").
 
 -define(CURRENT_SPAN_CTX, {?MODULE, span_ctx}).
-%% the span context extracted with a propagator
--define(EXTERNAL_SPAN_CTX, {?MODULE, external_span_ctx}).
 
 -define(is_recording(SpanCtx), SpanCtx =/= undefined andalso SpanCtx#span_ctx.is_recording =:= true).
 
@@ -76,6 +74,16 @@ with_span(Tracer={Module, _}, SpanName, Fun) when is_atom(Module) ->
 with_span(Tracer={Module, _}, SpanName, Opts, Fun) when is_atom(Module) ->
     Module:with_span(Tracer, SpanName, Opts, Fun).
 
+%% @doc Returns a `span_ctx' record with `is_recording' set to `false'. This is mainly
+%% for use in propagators when they extract a Span to be used as a parent.
+-spec non_recording_span(opentelemetry:trace_id(), opentelemetry:span_id(), opentelemetry:trace_flags())
+                        -> opentelemetry:span_ctx().
+non_recording_span(TraceId, SpanId, Traceflags) ->
+    #span_ctx{trace_id=TraceId,
+              span_id=SpanId,
+              is_recording=false,
+              trace_flags=Traceflags}.
+
 -spec set_current_span(opentelemetry:span_ctx()) -> ok.
 set_current_span(SpanCtx) ->
     otel_ctx:set_value(?CURRENT_SPAN_CTX, SpanCtx).
@@ -92,15 +100,12 @@ current_span_ctx() ->
 current_span_ctx(Ctx) ->
     otel_ctx:get_value(Ctx, ?CURRENT_SPAN_CTX, undefined).
 
-current_external_span_ctx() ->
-    otel_ctx:get_value(?EXTERNAL_SPAN_CTX).
-
 -spec text_map_propagators(module()) -> {otel_propagator:text_map_extractor(), otel_propagator:text_map_injector()}.
 text_map_propagators(Module) ->
     ToText = fun Module:inject/1,
     FromText = fun Module:extract/2,
     Injector = otel_ctx:text_map_injector(?CURRENT_SPAN_CTX, ToText),
-    Extractor = otel_ctx:text_map_extractor(?EXTERNAL_SPAN_CTX, FromText),
+    Extractor = otel_ctx:text_map_extractor(?CURRENT_SPAN_CTX, FromText),
     {Extractor, Injector}.
 
 %% Span operations

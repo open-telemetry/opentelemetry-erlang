@@ -29,7 +29,7 @@
 -define(B3_SPAN_ID, <<"X-B3-SpanId">>).
 -define(B3_SAMPLED, <<"X-B3-Sampled">>).
 
--define(IS_SAMPLED(S), S =:= "1" orelse S =:= <<"1">> orelse S =:= "true" orelse S =:= <<"true">>).
+-define(B3_IS_SAMPLED(S), S =:= "1" orelse S =:= <<"1">> orelse S =:= "true" orelse S =:= <<"true">>).
 
 -spec inject(opentelemetry:span_ctx() | undefined) -> otel_propagator:text_map().
 inject(#span_ctx{trace_id=TraceId,
@@ -54,9 +54,9 @@ extract(Headers, _) when is_list(Headers) ->
         TraceId = trace_id(Headers),
         SpanId = span_id(Headers),
         Sampled = lookup(?B3_SAMPLED, Headers),
-        #span_ctx{trace_id=string_to_integer(TraceId, 16),
-                  span_id=string_to_integer(SpanId, 16),
-                  trace_flags=case Sampled of True when ?IS_SAMPLED(True) -> 1; _ -> 0 end}
+        otel_tracer:non_recording_span(string_to_integer(TraceId, 16),
+                                       string_to_integer(SpanId, 16),
+                                       case Sampled of True when ?B3_IS_SAMPLED(True) -> 1; _ -> 0 end)
     catch
         throw:invalid ->
             undefined;

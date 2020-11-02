@@ -43,29 +43,14 @@ start_span(Tracer={_, #tracer{on_end_processors=OnEndProcessors}}, Name, Opts) -
 start_span(Ctx, Tracer={_, #tracer{on_start_processors=Processors,
                                    on_end_processors=OnEndProcessors,
                                    instrumentation_library=InstrumentationLibrary}}, Name, Opts) ->
-    ParentSpanCtx = maybe_parent_span_ctx(Ctx),
     Opts1 = maybe_set_sampler(Tracer, Opts),
-    SpanCtx = otel_span_ets:start_span(Ctx, Name, ParentSpanCtx, Opts1, Processors, InstrumentationLibrary),
+    SpanCtx = otel_span_ets:start_span(Ctx, Name, Opts1, Processors, InstrumentationLibrary),
     {SpanCtx#span_ctx{span_sdk={otel_span_ets, OnEndProcessors}}, Ctx}.
 
 maybe_set_sampler(_Tracer, Opts) when is_map_key(sampler, Opts) ->
     Opts;
 maybe_set_sampler({_, #tracer{sampler=Sampler}}, Opts) ->
     Opts#{sampler => Sampler}.
-
-%% returns the span `start_opts' map with the parent span ctx set
-%% based on the current tracer ctx, the ctx passed to `start_span'
-%% or `start_inactive_span' and in the case none of those are defined it
-%% checks the `EXTERNAL_SPAN_CTX' which can be set by a propagator extractor.
--spec maybe_parent_span_ctx(otel_ctx:t()) -> opentelemetry:span_ctx() | undefined.
-maybe_parent_span_ctx(Ctx) ->
-    case otel_tracer:current_span_ctx(Ctx) of
-        ActiveSpanCtx=#span_ctx{} ->
-            ActiveSpanCtx;
-        _ ->
-            otel_tracer:current_external_span_ctx()
-            %% otel_ctx:get_value(?EXTERNAL_SPAN_CTX)
-    end.
 
 -spec with_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_tracer:traced_fun()) -> ok.
 with_span(Tracer, SpanName, Fun) ->

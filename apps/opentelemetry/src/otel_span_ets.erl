@@ -25,7 +25,7 @@
          handle_call/3,
          handle_cast/2]).
 
--export([start_span/6,
+-export([start_span/5,
          end_span/1,
          end_span/2,
          get_ctx/1,
@@ -47,15 +47,21 @@ start_link(Opts) ->
     gen_server:start_link(?MODULE, Opts, []).
 
 %% @doc Start a span and insert into the active span ets table.
--spec start_span(otel_ctx:t(), opentelemetry:span_name(), opentelemetry:span_ctx() | undefined,
-                 otel_span:start_opts(), fun(), otel_tracer_server:instrumentation_library())
-                -> opentelemetry:span_ctx().
-start_span(Ctx, Name, ParentSpanCtx, Opts, Processors, InstrumentationLibrary) ->
-    {SpanCtx, Span} = otel_span_utils:start_span(Name, ParentSpanCtx, Opts),
-    Span1 = Span#span{instrumentation_library=InstrumentationLibrary},
-    Span2 = Processors(Ctx, Span1),
-    _ = storage_insert(Span2),
-    SpanCtx.
+-spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_span:start_opts(),
+                 fun(), otel_tracer_server:instrumentation_library()) -> opentelemetry:span_ctx().
+start_span(Ctx, Name, Opts, Processors, InstrumentationLibrary) ->
+    case otel_span_utils:start_span(Ctx, Name, Opts) of
+        {SpanCtx=#span_ctx{is_recording=true}, Span=#span{}} ->
+            Span1 = Span#span{instrumentation_library=InstrumentationLibrary},
+            Span2 = Processors(Ctx, Span1),
+            _ = storage_insert(Span2),
+            SpanCtx;
+        {SpanCtx, Span=#span{}} ->
+            %% span isn't recorded so don't run processors
+            %% but we do insert to ets table?
+            _ = storage_insert(Span),
+            SpanCtx
+    end.
 
 end_span(SpanCtx=#span_ctx{span_sdk={_, OnEndProcessors}}) ->
     end_span(SpanCtx, OnEndProcessors).
@@ -63,8 +69,8 @@ end_span(SpanCtx=#span_ctx{span_sdk={_, OnEndProcessors}}) ->
 %% @doc End a span based on its context and send to reporter.
 -spec end_span(opentelemetry:span_ctx(), fun()) -> boolean() | {error, term()}.
 end_span(#span_ctx{span_id=SpanId,
-                   tracestate=Tracestate,
-                   trace_flags=TraceOptions}, Processors) when ?IS_SPAN_ENABLED(TraceOptions) ->
+                   is_recording=true,
+                   tracestate=Tracestate}, Processors) ->
     case ets:take(?SPAN_TAB, SpanId) of
         [Span] ->
             Span1 = otel_span_utils:end_span(Span#span{tracestate=Tracestate}),
@@ -136,6 +142,8 @@ update_name(#span_ctx{span_id=SpanId}, Name) ->
 
 %%
 
+storage_insert(undefined) ->
+    ok;
 storage_insert(Span) ->
     ets:insert(?SPAN_TAB, Span).
 
