@@ -110,9 +110,12 @@ text_map_propagators(Module) ->
 
 %% Span operations
 
--spec end_span() -> boolean() | {error, term()}.
+-spec end_span() -> opentelemetry:span_ctx().
 end_span() ->
-    otel_span:end_span(current_span_ctx()).
+    EndedSpanCtx = otel_span:end_span(current_span_ctx()),
+    %% this is done to set `is_recording' to `false' after ending
+    _ = set_current_span(EndedSpanCtx),
+    EndedSpanCtx.
 
 -spec set_attribute(Key, Value) -> boolean() when
       Key :: opentelemetry:attribute_key(),

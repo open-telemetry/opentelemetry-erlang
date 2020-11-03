@@ -127,6 +127,8 @@ update_span_data(_Config) ->
     ?assertMatch(SpanCtx1, ?current_span_ctx),
     ?end_span(),
 
+    ?assertMatch(#span_ctx{is_recording=false}, ?current_span_ctx),
+
     ok.
 
 noop_with_span(_Config) ->

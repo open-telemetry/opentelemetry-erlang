@@ -7,6 +7,8 @@ defmodule OtelTests do
   require Record
   @fields Record.extract(:span, from_lib: "opentelemetry/include/otel_span.hrl")
   Record.defrecordp(:span, @fields)
+  @fields Record.extract(:span_ctx, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
+  Record.defrecordp(:span_ctx, @fields)
 
   test "use Tracer to set attributes" do
     :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
@@ -28,7 +30,7 @@ defmodule OtelTests do
     Span.set_attribute(s, "attr-1", "value-1")
     Span.set_attributes(s, [{"attr-2", "value-2"}])
 
-    assert :true = Span.end_span(s)
+    assert span_ctx() = Span.end_span(s)
 
     assert_receive {:span, span(name: "span-2", attributes: [{"attr-1", "value-1"},
                                                              {"attr-2", "value-2"}])}

@@ -49,7 +49,7 @@ defmodule OpenTelemetry.Span do
   End the Span. Sets the end timestamp for the currently active Span. This has no effect on any
   child Spans that may exist of this Span.
 
-  The Context is unchanged.
+  The Span Context is returned with `is_recording` set to `false`.
   """
   defdelegate end_span(span_ctx), to: :otel_span
 

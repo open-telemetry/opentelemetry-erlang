@@ -65,6 +65,7 @@
               meter/0,
               trace_id/0,
               span_id/0,
+              trace_flags/0,
               timestamp/0,
               span_name/0,
               span_ctx/0,
@@ -88,6 +89,8 @@
 
 -type trace_id()           :: non_neg_integer().
 -type span_id()            :: non_neg_integer().
+
+-type trace_flags()        :: non_neg_integer().
 
 -type timestamp() :: integer().
 
@@ -355,30 +358,24 @@ uniform(X) ->
 
 -spec verify_and_set_term(module() | {module(), term()}, term(), atom()) -> boolean().
 verify_and_set_term(Module, TermKey, Behaviour) ->
-    case verify_behaviour(Module, Behaviour) of
+    case verify_module_exists(Module) of
         true ->
             persistent_term:put({?MODULE, TermKey}, Module),
             true;
         false ->
-            ?LOG_WARNING("Module ~p does not implement behaviour ~p. "
-                         "A noop ~p will be used until a module implementing "
-                         "the behaviour is configured.",
+            ?LOG_WARNING("Module ~p does not exist. "
+                         "A noop ~p will be used until a module is configured.",
                          [Module, Behaviour, Behaviour]),
             false
     end.
 
--spec verify_behaviour(module() | {module(), term()}, atom()) -> boolean().
-verify_behaviour({Module, _}, Behaviour) ->
-    verify_behaviour(Module, Behaviour);
-verify_behaviour(Module, Behaviour) ->
-    try Module:module_info(attributes) of
-        Attributes ->
-            case lists:keyfind(behaviour, 1, Attributes) of
-                {behaviour, Behaviours} ->
-                    lists:member(Behaviour, Behaviours);
-                _ ->
-                    false
-            end
+-spec verify_module_exists(module() | {module(), term()}) -> boolean().
+verify_module_exists({Module, _}) ->
+    verify_module_exists(Module);
+verify_module_exists(Module) ->
+    try Module:module_info() of
+        _ ->
+          true
     catch
         error:undef ->
             false
