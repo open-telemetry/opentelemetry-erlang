@@ -113,7 +113,7 @@ span_round_trip(_Config) ->
                   {<<"proplist-key-1">>, [{proplistkey1, 456}, {<<"proplist-key-2">>, 9.345}]},
                   {<<"tuple-key-1">>, {a, 123, [456, {1, 2}]}}
                 ],
-              status = #status{code='Ok',
+              status = #status{code=?OTEL_STATUS_OK,
                                message = <<"">>},
               instrumentation_library = #instrumentation_library{name = <<"tracer-1">>,
                                                                  version = <<"0.0.1">>}},
@@ -160,6 +160,8 @@ verify_export(Config) ->
                         #event{system_time_nano=erlang:system_time(nanosecond),
                                name = <<"event-2">>,
                                attributes = [{<<"attr-3">>, <<"value-3">>}]}],
+              status = #status{code=?OTEL_STATUS_UNSET,
+                               message = <<"hello I'm unset">>},
               attributes = [{<<"attr-2">>, <<"value-2">>}]},
     true = ets:insert(Tid, ParentSpan),
 
@@ -176,6 +178,8 @@ verify_export(Config) ->
                                 #event{system_time_nano=erlang:system_time(nanosecond),
                                        name = <<"event-2">>,
                                        attributes = [{<<"attr-3">>, <<"value-3">>}]}],
+                      status = #status{code=?OTEL_STATUS_ERROR,
+                                       message = <<"hello I'm an error">>},
                       attributes = [
                                     {atom_attr, atom_value},
                                     {<<"attr-2">>, <<"value-2">>},

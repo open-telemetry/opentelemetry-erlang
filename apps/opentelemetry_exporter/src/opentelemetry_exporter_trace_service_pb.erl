@@ -17,6 +17,7 @@
 -export([find_enum_def/1, fetch_enum_def/1]).
 -export([enum_symbol_by_value/2, enum_value_by_symbol/2]).
 -export(['enum_symbol_by_value_span.SpanKind'/1, 'enum_value_by_symbol_span.SpanKind'/1]).
+-export(['enum_symbol_by_value_status.DeprecatedStatusCode'/1, 'enum_value_by_symbol_status.DeprecatedStatusCode'/1]).
 -export(['enum_symbol_by_value_status.StatusCode'/1, 'enum_value_by_symbol_status.StatusCode'/1]).
 -export([get_service_names/0]).
 -export([get_service_def/1]).
@@ -49,8 +50,9 @@
 
 %% enumerated types
 -type 'span.SpanKind'() :: 'SPAN_KIND_UNSPECIFIED' | 'SPAN_KIND_INTERNAL' | 'SPAN_KIND_SERVER' | 'SPAN_KIND_CLIENT' | 'SPAN_KIND_PRODUCER' | 'SPAN_KIND_CONSUMER'.
--type 'status.StatusCode'() :: 'STATUS_CODE_OK' | 'STATUS_CODE_CANCELLED' | 'STATUS_CODE_UNKNOWN_ERROR' | 'STATUS_CODE_INVALID_ARGUMENT' | 'STATUS_CODE_DEADLINE_EXCEEDED' | 'STATUS_CODE_NOT_FOUND' | 'STATUS_CODE_ALREADY_EXISTS' | 'STATUS_CODE_PERMISSION_DENIED' | 'STATUS_CODE_RESOURCE_EXHAUSTED' | 'STATUS_CODE_FAILED_PRECONDITION' | 'STATUS_CODE_ABORTED' | 'STATUS_CODE_OUT_OF_RANGE' | 'STATUS_CODE_UNIMPLEMENTED' | 'STATUS_CODE_INTERNAL_ERROR' | 'STATUS_CODE_UNAVAILABLE' | 'STATUS_CODE_DATA_LOSS' | 'STATUS_CODE_UNAUTHENTICATED'.
--export_type(['span.SpanKind'/0, 'status.StatusCode'/0]).
+-type 'status.DeprecatedStatusCode'() :: 'DEPRECATED_STATUS_CODE_OK' | 'DEPRECATED_STATUS_CODE_CANCELLED' | 'DEPRECATED_STATUS_CODE_UNKNOWN_ERROR' | 'DEPRECATED_STATUS_CODE_INVALID_ARGUMENT' | 'DEPRECATED_STATUS_CODE_DEADLINE_EXCEEDED' | 'DEPRECATED_STATUS_CODE_NOT_FOUND' | 'DEPRECATED_STATUS_CODE_ALREADY_EXISTS' | 'DEPRECATED_STATUS_CODE_PERMISSION_DENIED' | 'DEPRECATED_STATUS_CODE_RESOURCE_EXHAUSTED' | 'DEPRECATED_STATUS_CODE_FAILED_PRECONDITION' | 'DEPRECATED_STATUS_CODE_ABORTED' | 'DEPRECATED_STATUS_CODE_OUT_OF_RANGE' | 'DEPRECATED_STATUS_CODE_UNIMPLEMENTED' | 'DEPRECATED_STATUS_CODE_INTERNAL_ERROR' | 'DEPRECATED_STATUS_CODE_UNAVAILABLE' | 'DEPRECATED_STATUS_CODE_DATA_LOSS' | 'DEPRECATED_STATUS_CODE_UNAUTHENTICATED'.
+-type 'status.StatusCode'() :: 'STATUS_CODE_UNSET' | 'STATUS_CODE_OK' | 'STATUS_CODE_ERROR'.
+-export_type(['span.SpanKind'/0, 'status.DeprecatedStatusCode'/0, 'status.StatusCode'/0]).
 
 %% message types
 -type export_trace_service_request() ::
@@ -105,8 +107,9 @@
        }.
 
 -type status() ::
-      #{code                    => 'STATUS_CODE_OK' | 'STATUS_CODE_CANCELLED' | 'STATUS_CODE_UNKNOWN_ERROR' | 'STATUS_CODE_INVALID_ARGUMENT' | 'STATUS_CODE_DEADLINE_EXCEEDED' | 'STATUS_CODE_NOT_FOUND' | 'STATUS_CODE_ALREADY_EXISTS' | 'STATUS_CODE_PERMISSION_DENIED' | 'STATUS_CODE_RESOURCE_EXHAUSTED' | 'STATUS_CODE_FAILED_PRECONDITION' | 'STATUS_CODE_ABORTED' | 'STATUS_CODE_OUT_OF_RANGE' | 'STATUS_CODE_UNIMPLEMENTED' | 'STATUS_CODE_INTERNAL_ERROR' | 'STATUS_CODE_UNAVAILABLE' | 'STATUS_CODE_DATA_LOSS' | 'STATUS_CODE_UNAUTHENTICATED' | integer(), % = 1, optional: enum status.StatusCode
-        message                 => iodata()         % = 2, (optional)
+      #{deprecated_code         => 'DEPRECATED_STATUS_CODE_OK' | 'DEPRECATED_STATUS_CODE_CANCELLED' | 'DEPRECATED_STATUS_CODE_UNKNOWN_ERROR' | 'DEPRECATED_STATUS_CODE_INVALID_ARGUMENT' | 'DEPRECATED_STATUS_CODE_DEADLINE_EXCEEDED' | 'DEPRECATED_STATUS_CODE_NOT_FOUND' | 'DEPRECATED_STATUS_CODE_ALREADY_EXISTS' | 'DEPRECATED_STATUS_CODE_PERMISSION_DENIED' | 'DEPRECATED_STATUS_CODE_RESOURCE_EXHAUSTED' | 'DEPRECATED_STATUS_CODE_FAILED_PRECONDITION' | 'DEPRECATED_STATUS_CODE_ABORTED' | 'DEPRECATED_STATUS_CODE_OUT_OF_RANGE' | 'DEPRECATED_STATUS_CODE_UNIMPLEMENTED' | 'DEPRECATED_STATUS_CODE_INTERNAL_ERROR' | 'DEPRECATED_STATUS_CODE_UNAVAILABLE' | 'DEPRECATED_STATUS_CODE_DATA_LOSS' | 'DEPRECATED_STATUS_CODE_UNAUTHENTICATED' | integer(), % = 1, optional: enum status.DeprecatedStatusCode
+        message                 => iodata(),        % = 2, (optional)
+        code                    => 'STATUS_CODE_UNSET' | 'STATUS_CODE_OK' | 'STATUS_CODE_ERROR' | integer() % = 3, optional: enum status.StatusCode
        }.
 
 -type any_value() ::
@@ -492,25 +495,35 @@ encode_msg_status(Msg, TrUserData) -> encode_msg_status(Msg, <<>>, TrUserData).
 
 encode_msg_status(#{} = M, Bin, TrUserData) ->
     B1 = case M of
-             #{code := F1} ->
+             #{deprecated_code := F1} ->
                  begin
                      TrF1 = id(F1, TrUserData),
-                     if TrF1 =:= 'STATUS_CODE_OK'; TrF1 =:= 0 -> Bin;
-                        true -> 'e_enum_status.StatusCode'(TrF1, <<Bin/binary, 8>>, TrUserData)
+                     if TrF1 =:= 'DEPRECATED_STATUS_CODE_OK'; TrF1 =:= 0 -> Bin;
+                        true -> 'e_enum_status.DeprecatedStatusCode'(TrF1, <<Bin/binary, 8>>, TrUserData)
                      end
                  end;
              _ -> Bin
          end,
+    B2 = case M of
+             #{message := F2} ->
+                 begin
+                     TrF2 = id(F2, TrUserData),
+                     case is_empty_string(TrF2) of
+                         true -> B1;
+                         false -> e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
+                     end
+                 end;
+             _ -> B1
+         end,
     case M of
-        #{message := F2} ->
+        #{code := F3} ->
             begin
-                TrF2 = id(F2, TrUserData),
-                case is_empty_string(TrF2) of
-                    true -> B1;
-                    false -> e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
+                TrF3 = id(F3, TrUserData),
+                if TrF3 =:= 'STATUS_CODE_UNSET'; TrF3 =:= 0 -> B2;
+                   true -> 'e_enum_status.StatusCode'(TrF3, <<B2/binary, 24>>, TrUserData)
                 end
             end;
-        _ -> B1
+        _ -> B2
     end.
 
 encode_msg_any_value(Msg, TrUserData) -> encode_msg_any_value(Msg, <<>>, TrUserData).
@@ -818,23 +831,28 @@ e_field_resource_attributes([], Bin, _TrUserData) -> Bin.
 'e_enum_span.SpanKind'('SPAN_KIND_CONSUMER', Bin, _TrUserData) -> <<Bin/binary, 5>>;
 'e_enum_span.SpanKind'(V, Bin, _TrUserData) -> e_varint(V, Bin).
 
-'e_enum_status.StatusCode'('STATUS_CODE_OK', Bin, _TrUserData) -> <<Bin/binary, 0>>;
-'e_enum_status.StatusCode'('STATUS_CODE_CANCELLED', Bin, _TrUserData) -> <<Bin/binary, 1>>;
-'e_enum_status.StatusCode'('STATUS_CODE_UNKNOWN_ERROR', Bin, _TrUserData) -> <<Bin/binary, 2>>;
-'e_enum_status.StatusCode'('STATUS_CODE_INVALID_ARGUMENT', Bin, _TrUserData) -> <<Bin/binary, 3>>;
-'e_enum_status.StatusCode'('STATUS_CODE_DEADLINE_EXCEEDED', Bin, _TrUserData) -> <<Bin/binary, 4>>;
-'e_enum_status.StatusCode'('STATUS_CODE_NOT_FOUND', Bin, _TrUserData) -> <<Bin/binary, 5>>;
-'e_enum_status.StatusCode'('STATUS_CODE_ALREADY_EXISTS', Bin, _TrUserData) -> <<Bin/binary, 6>>;
-'e_enum_status.StatusCode'('STATUS_CODE_PERMISSION_DENIED', Bin, _TrUserData) -> <<Bin/binary, 7>>;
-'e_enum_status.StatusCode'('STATUS_CODE_RESOURCE_EXHAUSTED', Bin, _TrUserData) -> <<Bin/binary, 8>>;
-'e_enum_status.StatusCode'('STATUS_CODE_FAILED_PRECONDITION', Bin, _TrUserData) -> <<Bin/binary, 9>>;
-'e_enum_status.StatusCode'('STATUS_CODE_ABORTED', Bin, _TrUserData) -> <<Bin/binary, 10>>;
-'e_enum_status.StatusCode'('STATUS_CODE_OUT_OF_RANGE', Bin, _TrUserData) -> <<Bin/binary, 11>>;
-'e_enum_status.StatusCode'('STATUS_CODE_UNIMPLEMENTED', Bin, _TrUserData) -> <<Bin/binary, 12>>;
-'e_enum_status.StatusCode'('STATUS_CODE_INTERNAL_ERROR', Bin, _TrUserData) -> <<Bin/binary, 13>>;
-'e_enum_status.StatusCode'('STATUS_CODE_UNAVAILABLE', Bin, _TrUserData) -> <<Bin/binary, 14>>;
-'e_enum_status.StatusCode'('STATUS_CODE_DATA_LOSS', Bin, _TrUserData) -> <<Bin/binary, 15>>;
-'e_enum_status.StatusCode'('STATUS_CODE_UNAUTHENTICATED', Bin, _TrUserData) -> <<Bin/binary, 16>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_OK', Bin, _TrUserData) -> <<Bin/binary, 0>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_CANCELLED', Bin, _TrUserData) -> <<Bin/binary, 1>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_UNKNOWN_ERROR', Bin, _TrUserData) -> <<Bin/binary, 2>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_INVALID_ARGUMENT', Bin, _TrUserData) -> <<Bin/binary, 3>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_DEADLINE_EXCEEDED', Bin, _TrUserData) -> <<Bin/binary, 4>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_NOT_FOUND', Bin, _TrUserData) -> <<Bin/binary, 5>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_ALREADY_EXISTS', Bin, _TrUserData) -> <<Bin/binary, 6>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_PERMISSION_DENIED', Bin, _TrUserData) -> <<Bin/binary, 7>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_RESOURCE_EXHAUSTED', Bin, _TrUserData) -> <<Bin/binary, 8>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_FAILED_PRECONDITION', Bin, _TrUserData) -> <<Bin/binary, 9>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_ABORTED', Bin, _TrUserData) -> <<Bin/binary, 10>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_OUT_OF_RANGE', Bin, _TrUserData) -> <<Bin/binary, 11>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_UNIMPLEMENTED', Bin, _TrUserData) -> <<Bin/binary, 12>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_INTERNAL_ERROR', Bin, _TrUserData) -> <<Bin/binary, 13>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_UNAVAILABLE', Bin, _TrUserData) -> <<Bin/binary, 14>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_DATA_LOSS', Bin, _TrUserData) -> <<Bin/binary, 15>>;
+'e_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_UNAUTHENTICATED', Bin, _TrUserData) -> <<Bin/binary, 16>>;
+'e_enum_status.DeprecatedStatusCode'(V, Bin, _TrUserData) -> e_varint(V, Bin).
+
+'e_enum_status.StatusCode'('STATUS_CODE_UNSET', Bin, _TrUserData) -> <<Bin/binary, 0>>;
+'e_enum_status.StatusCode'('STATUS_CODE_OK', Bin, _TrUserData) -> <<Bin/binary, 1>>;
+'e_enum_status.StatusCode'('STATUS_CODE_ERROR', Bin, _TrUserData) -> <<Bin/binary, 2>>;
 'e_enum_status.StatusCode'(V, Bin, _TrUserData) -> e_varint(V, Bin).
 
 -compile({nowarn_unused_function,e_type_sint/3}).
@@ -1582,56 +1600,63 @@ skip_32_span(<<_:32, Rest/binary>>, Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, 
 skip_64_span(<<_:64, Rest/binary>>, Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData) ->
     dfp_read_field_def_span(Rest, Z1, Z2, F@_1, F@_2, F@_3, F@_4, F@_5, F@_6, F@_7, F@_8, F@_9, F@_10, F@_11, F@_12, F@_13, F@_14, F@_15, TrUserData).
 
-decode_msg_status(Bin, TrUserData) -> dfp_read_field_def_status(Bin, 0, 0, id('STATUS_CODE_OK', TrUserData), id(<<>>, TrUserData), TrUserData).
+decode_msg_status(Bin, TrUserData) -> dfp_read_field_def_status(Bin, 0, 0, id('DEPRECATED_STATUS_CODE_OK', TrUserData), id(<<>>, TrUserData), id('STATUS_CODE_UNSET', TrUserData), TrUserData).
 
-dfp_read_field_def_status(<<8, Rest/binary>>, Z1, Z2, F@_1, F@_2, TrUserData) -> d_field_status_code(Rest, Z1, Z2, F@_1, F@_2, TrUserData);
-dfp_read_field_def_status(<<18, Rest/binary>>, Z1, Z2, F@_1, F@_2, TrUserData) -> d_field_status_message(Rest, Z1, Z2, F@_1, F@_2, TrUserData);
-dfp_read_field_def_status(<<>>, 0, 0, F@_1, F@_2, _) -> #{code => F@_1, message => F@_2};
-dfp_read_field_def_status(Other, Z1, Z2, F@_1, F@_2, TrUserData) -> dg_read_field_def_status(Other, Z1, Z2, F@_1, F@_2, TrUserData).
+dfp_read_field_def_status(<<8, Rest/binary>>, Z1, Z2, F@_1, F@_2, F@_3, TrUserData) -> d_field_status_deprecated_code(Rest, Z1, Z2, F@_1, F@_2, F@_3, TrUserData);
+dfp_read_field_def_status(<<18, Rest/binary>>, Z1, Z2, F@_1, F@_2, F@_3, TrUserData) -> d_field_status_message(Rest, Z1, Z2, F@_1, F@_2, F@_3, TrUserData);
+dfp_read_field_def_status(<<24, Rest/binary>>, Z1, Z2, F@_1, F@_2, F@_3, TrUserData) -> d_field_status_code(Rest, Z1, Z2, F@_1, F@_2, F@_3, TrUserData);
+dfp_read_field_def_status(<<>>, 0, 0, F@_1, F@_2, F@_3, _) -> #{deprecated_code => F@_1, message => F@_2, code => F@_3};
+dfp_read_field_def_status(Other, Z1, Z2, F@_1, F@_2, F@_3, TrUserData) -> dg_read_field_def_status(Other, Z1, Z2, F@_1, F@_2, F@_3, TrUserData).
 
-dg_read_field_def_status(<<1:1, X:7, Rest/binary>>, N, Acc, F@_1, F@_2, TrUserData) when N < 32 - 7 -> dg_read_field_def_status(Rest, N + 7, X bsl N + Acc, F@_1, F@_2, TrUserData);
-dg_read_field_def_status(<<0:1, X:7, Rest/binary>>, N, Acc, F@_1, F@_2, TrUserData) ->
+dg_read_field_def_status(<<1:1, X:7, Rest/binary>>, N, Acc, F@_1, F@_2, F@_3, TrUserData) when N < 32 - 7 -> dg_read_field_def_status(Rest, N + 7, X bsl N + Acc, F@_1, F@_2, F@_3, TrUserData);
+dg_read_field_def_status(<<0:1, X:7, Rest/binary>>, N, Acc, F@_1, F@_2, F@_3, TrUserData) ->
     Key = X bsl N + Acc,
     case Key of
-        8 -> d_field_status_code(Rest, 0, 0, F@_1, F@_2, TrUserData);
-        18 -> d_field_status_message(Rest, 0, 0, F@_1, F@_2, TrUserData);
+        8 -> d_field_status_deprecated_code(Rest, 0, 0, F@_1, F@_2, F@_3, TrUserData);
+        18 -> d_field_status_message(Rest, 0, 0, F@_1, F@_2, F@_3, TrUserData);
+        24 -> d_field_status_code(Rest, 0, 0, F@_1, F@_2, F@_3, TrUserData);
         _ ->
             case Key band 7 of
-                0 -> skip_varint_status(Rest, 0, 0, F@_1, F@_2, TrUserData);
-                1 -> skip_64_status(Rest, 0, 0, F@_1, F@_2, TrUserData);
-                2 -> skip_length_delimited_status(Rest, 0, 0, F@_1, F@_2, TrUserData);
-                3 -> skip_group_status(Rest, Key bsr 3, 0, F@_1, F@_2, TrUserData);
-                5 -> skip_32_status(Rest, 0, 0, F@_1, F@_2, TrUserData)
+                0 -> skip_varint_status(Rest, 0, 0, F@_1, F@_2, F@_3, TrUserData);
+                1 -> skip_64_status(Rest, 0, 0, F@_1, F@_2, F@_3, TrUserData);
+                2 -> skip_length_delimited_status(Rest, 0, 0, F@_1, F@_2, F@_3, TrUserData);
+                3 -> skip_group_status(Rest, Key bsr 3, 0, F@_1, F@_2, F@_3, TrUserData);
+                5 -> skip_32_status(Rest, 0, 0, F@_1, F@_2, F@_3, TrUserData)
             end
     end;
-dg_read_field_def_status(<<>>, 0, 0, F@_1, F@_2, _) -> #{code => F@_1, message => F@_2}.
+dg_read_field_def_status(<<>>, 0, 0, F@_1, F@_2, F@_3, _) -> #{deprecated_code => F@_1, message => F@_2, code => F@_3}.
 
-d_field_status_code(<<1:1, X:7, Rest/binary>>, N, Acc, F@_1, F@_2, TrUserData) when N < 57 -> d_field_status_code(Rest, N + 7, X bsl N + Acc, F@_1, F@_2, TrUserData);
-d_field_status_code(<<0:1, X:7, Rest/binary>>, N, Acc, _, F@_2, TrUserData) ->
-    {NewFValue, RestF} = {id('d_enum_status.StatusCode'(begin <<Res:32/signed-native>> = <<(X bsl N + Acc):32/unsigned-native>>, id(Res, TrUserData) end), TrUserData), Rest},
-    dfp_read_field_def_status(RestF, 0, 0, NewFValue, F@_2, TrUserData).
+d_field_status_deprecated_code(<<1:1, X:7, Rest/binary>>, N, Acc, F@_1, F@_2, F@_3, TrUserData) when N < 57 -> d_field_status_deprecated_code(Rest, N + 7, X bsl N + Acc, F@_1, F@_2, F@_3, TrUserData);
+d_field_status_deprecated_code(<<0:1, X:7, Rest/binary>>, N, Acc, _, F@_2, F@_3, TrUserData) ->
+    {NewFValue, RestF} = {id('d_enum_status.DeprecatedStatusCode'(begin <<Res:32/signed-native>> = <<(X bsl N + Acc):32/unsigned-native>>, id(Res, TrUserData) end), TrUserData), Rest},
+    dfp_read_field_def_status(RestF, 0, 0, NewFValue, F@_2, F@_3, TrUserData).
 
-d_field_status_message(<<1:1, X:7, Rest/binary>>, N, Acc, F@_1, F@_2, TrUserData) when N < 57 -> d_field_status_message(Rest, N + 7, X bsl N + Acc, F@_1, F@_2, TrUserData);
-d_field_status_message(<<0:1, X:7, Rest/binary>>, N, Acc, F@_1, _, TrUserData) ->
+d_field_status_message(<<1:1, X:7, Rest/binary>>, N, Acc, F@_1, F@_2, F@_3, TrUserData) when N < 57 -> d_field_status_message(Rest, N + 7, X bsl N + Acc, F@_1, F@_2, F@_3, TrUserData);
+d_field_status_message(<<0:1, X:7, Rest/binary>>, N, Acc, F@_1, _, F@_3, TrUserData) ->
     {NewFValue, RestF} = begin Len = X bsl N + Acc, <<Bytes:Len/binary, Rest2/binary>> = Rest, {id(binary:copy(Bytes), TrUserData), Rest2} end,
-    dfp_read_field_def_status(RestF, 0, 0, F@_1, NewFValue, TrUserData).
+    dfp_read_field_def_status(RestF, 0, 0, F@_1, NewFValue, F@_3, TrUserData).
 
-skip_varint_status(<<1:1, _:7, Rest/binary>>, Z1, Z2, F@_1, F@_2, TrUserData) -> skip_varint_status(Rest, Z1, Z2, F@_1, F@_2, TrUserData);
-skip_varint_status(<<0:1, _:7, Rest/binary>>, Z1, Z2, F@_1, F@_2, TrUserData) -> dfp_read_field_def_status(Rest, Z1, Z2, F@_1, F@_2, TrUserData).
+d_field_status_code(<<1:1, X:7, Rest/binary>>, N, Acc, F@_1, F@_2, F@_3, TrUserData) when N < 57 -> d_field_status_code(Rest, N + 7, X bsl N + Acc, F@_1, F@_2, F@_3, TrUserData);
+d_field_status_code(<<0:1, X:7, Rest/binary>>, N, Acc, F@_1, F@_2, _, TrUserData) ->
+    {NewFValue, RestF} = {id('d_enum_status.StatusCode'(begin <<Res:32/signed-native>> = <<(X bsl N + Acc):32/unsigned-native>>, id(Res, TrUserData) end), TrUserData), Rest},
+    dfp_read_field_def_status(RestF, 0, 0, F@_1, F@_2, NewFValue, TrUserData).
 
-skip_length_delimited_status(<<1:1, X:7, Rest/binary>>, N, Acc, F@_1, F@_2, TrUserData) when N < 57 -> skip_length_delimited_status(Rest, N + 7, X bsl N + Acc, F@_1, F@_2, TrUserData);
-skip_length_delimited_status(<<0:1, X:7, Rest/binary>>, N, Acc, F@_1, F@_2, TrUserData) ->
+skip_varint_status(<<1:1, _:7, Rest/binary>>, Z1, Z2, F@_1, F@_2, F@_3, TrUserData) -> skip_varint_status(Rest, Z1, Z2, F@_1, F@_2, F@_3, TrUserData);
+skip_varint_status(<<0:1, _:7, Rest/binary>>, Z1, Z2, F@_1, F@_2, F@_3, TrUserData) -> dfp_read_field_def_status(Rest, Z1, Z2, F@_1, F@_2, F@_3, TrUserData).
+
+skip_length_delimited_status(<<1:1, X:7, Rest/binary>>, N, Acc, F@_1, F@_2, F@_3, TrUserData) when N < 57 -> skip_length_delimited_status(Rest, N + 7, X bsl N + Acc, F@_1, F@_2, F@_3, TrUserData);
+skip_length_delimited_status(<<0:1, X:7, Rest/binary>>, N, Acc, F@_1, F@_2, F@_3, TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
-    dfp_read_field_def_status(Rest2, 0, 0, F@_1, F@_2, TrUserData).
+    dfp_read_field_def_status(Rest2, 0, 0, F@_1, F@_2, F@_3, TrUserData).
 
-skip_group_status(Bin, FNum, Z2, F@_1, F@_2, TrUserData) ->
+skip_group_status(Bin, FNum, Z2, F@_1, F@_2, F@_3, TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_status(Rest, 0, Z2, F@_1, F@_2, TrUserData).
+    dfp_read_field_def_status(Rest, 0, Z2, F@_1, F@_2, F@_3, TrUserData).
 
-skip_32_status(<<_:32, Rest/binary>>, Z1, Z2, F@_1, F@_2, TrUserData) -> dfp_read_field_def_status(Rest, Z1, Z2, F@_1, F@_2, TrUserData).
+skip_32_status(<<_:32, Rest/binary>>, Z1, Z2, F@_1, F@_2, F@_3, TrUserData) -> dfp_read_field_def_status(Rest, Z1, Z2, F@_1, F@_2, F@_3, TrUserData).
 
-skip_64_status(<<_:64, Rest/binary>>, Z1, Z2, F@_1, F@_2, TrUserData) -> dfp_read_field_def_status(Rest, Z1, Z2, F@_1, F@_2, TrUserData).
+skip_64_status(<<_:64, Rest/binary>>, Z1, Z2, F@_1, F@_2, F@_3, TrUserData) -> dfp_read_field_def_status(Rest, Z1, Z2, F@_1, F@_2, F@_3, TrUserData).
 
 decode_msg_any_value(Bin, TrUserData) -> dfp_read_field_def_any_value(Bin, 0, 0, id('$undef', TrUserData), TrUserData).
 
@@ -2075,23 +2100,28 @@ skip_64_resource(<<_:64, Rest/binary>>, Z1, Z2, F@_1, F@_2, TrUserData) -> dfp_r
 'd_enum_span.SpanKind'(5) -> 'SPAN_KIND_CONSUMER';
 'd_enum_span.SpanKind'(V) -> V.
 
-'d_enum_status.StatusCode'(0) -> 'STATUS_CODE_OK';
-'d_enum_status.StatusCode'(1) -> 'STATUS_CODE_CANCELLED';
-'d_enum_status.StatusCode'(2) -> 'STATUS_CODE_UNKNOWN_ERROR';
-'d_enum_status.StatusCode'(3) -> 'STATUS_CODE_INVALID_ARGUMENT';
-'d_enum_status.StatusCode'(4) -> 'STATUS_CODE_DEADLINE_EXCEEDED';
-'d_enum_status.StatusCode'(5) -> 'STATUS_CODE_NOT_FOUND';
-'d_enum_status.StatusCode'(6) -> 'STATUS_CODE_ALREADY_EXISTS';
-'d_enum_status.StatusCode'(7) -> 'STATUS_CODE_PERMISSION_DENIED';
-'d_enum_status.StatusCode'(8) -> 'STATUS_CODE_RESOURCE_EXHAUSTED';
-'d_enum_status.StatusCode'(9) -> 'STATUS_CODE_FAILED_PRECONDITION';
-'d_enum_status.StatusCode'(10) -> 'STATUS_CODE_ABORTED';
-'d_enum_status.StatusCode'(11) -> 'STATUS_CODE_OUT_OF_RANGE';
-'d_enum_status.StatusCode'(12) -> 'STATUS_CODE_UNIMPLEMENTED';
-'d_enum_status.StatusCode'(13) -> 'STATUS_CODE_INTERNAL_ERROR';
-'d_enum_status.StatusCode'(14) -> 'STATUS_CODE_UNAVAILABLE';
-'d_enum_status.StatusCode'(15) -> 'STATUS_CODE_DATA_LOSS';
-'d_enum_status.StatusCode'(16) -> 'STATUS_CODE_UNAUTHENTICATED';
+'d_enum_status.DeprecatedStatusCode'(0) -> 'DEPRECATED_STATUS_CODE_OK';
+'d_enum_status.DeprecatedStatusCode'(1) -> 'DEPRECATED_STATUS_CODE_CANCELLED';
+'d_enum_status.DeprecatedStatusCode'(2) -> 'DEPRECATED_STATUS_CODE_UNKNOWN_ERROR';
+'d_enum_status.DeprecatedStatusCode'(3) -> 'DEPRECATED_STATUS_CODE_INVALID_ARGUMENT';
+'d_enum_status.DeprecatedStatusCode'(4) -> 'DEPRECATED_STATUS_CODE_DEADLINE_EXCEEDED';
+'d_enum_status.DeprecatedStatusCode'(5) -> 'DEPRECATED_STATUS_CODE_NOT_FOUND';
+'d_enum_status.DeprecatedStatusCode'(6) -> 'DEPRECATED_STATUS_CODE_ALREADY_EXISTS';
+'d_enum_status.DeprecatedStatusCode'(7) -> 'DEPRECATED_STATUS_CODE_PERMISSION_DENIED';
+'d_enum_status.DeprecatedStatusCode'(8) -> 'DEPRECATED_STATUS_CODE_RESOURCE_EXHAUSTED';
+'d_enum_status.DeprecatedStatusCode'(9) -> 'DEPRECATED_STATUS_CODE_FAILED_PRECONDITION';
+'d_enum_status.DeprecatedStatusCode'(10) -> 'DEPRECATED_STATUS_CODE_ABORTED';
+'d_enum_status.DeprecatedStatusCode'(11) -> 'DEPRECATED_STATUS_CODE_OUT_OF_RANGE';
+'d_enum_status.DeprecatedStatusCode'(12) -> 'DEPRECATED_STATUS_CODE_UNIMPLEMENTED';
+'d_enum_status.DeprecatedStatusCode'(13) -> 'DEPRECATED_STATUS_CODE_INTERNAL_ERROR';
+'d_enum_status.DeprecatedStatusCode'(14) -> 'DEPRECATED_STATUS_CODE_UNAVAILABLE';
+'d_enum_status.DeprecatedStatusCode'(15) -> 'DEPRECATED_STATUS_CODE_DATA_LOSS';
+'d_enum_status.DeprecatedStatusCode'(16) -> 'DEPRECATED_STATUS_CODE_UNAUTHENTICATED';
+'d_enum_status.DeprecatedStatusCode'(V) -> V.
+
+'d_enum_status.StatusCode'(0) -> 'STATUS_CODE_UNSET';
+'d_enum_status.StatusCode'(1) -> 'STATUS_CODE_OK';
+'d_enum_status.StatusCode'(2) -> 'STATUS_CODE_ERROR';
 'd_enum_status.StatusCode'(V) -> V.
 
 read_group(Bin, FieldNum) ->
@@ -2362,14 +2392,19 @@ merge_msg_span(PMsg, NMsg, TrUserData) ->
 merge_msg_status(PMsg, NMsg, _) ->
     S1 = #{},
     S2 = case {PMsg, NMsg} of
-             {_, #{code := NFcode}} -> S1#{code => NFcode};
-             {#{code := PFcode}, _} -> S1#{code => PFcode};
+             {_, #{deprecated_code := NFdeprecated_code}} -> S1#{deprecated_code => NFdeprecated_code};
+             {#{deprecated_code := PFdeprecated_code}, _} -> S1#{deprecated_code => PFdeprecated_code};
              _ -> S1
          end,
+    S3 = case {PMsg, NMsg} of
+             {_, #{message := NFmessage}} -> S2#{message => NFmessage};
+             {#{message := PFmessage}, _} -> S2#{message => PFmessage};
+             _ -> S2
+         end,
     case {PMsg, NMsg} of
-        {_, #{message := NFmessage}} -> S2#{message => NFmessage};
-        {#{message := PFmessage}, _} -> S2#{message => PFmessage};
-        _ -> S2
+        {_, #{code := NFcode}} -> S3#{code => NFcode};
+        {#{code := PFcode}, _} -> S3#{code => PFcode};
+        _ -> S3
     end.
 
 -compile({nowarn_unused_function,merge_msg_any_value/3}).
@@ -2743,15 +2778,20 @@ v_msg_span(X, Path, _TrUserData) -> mk_type_error({expected_msg, span}, X, Path)
 -dialyzer({nowarn_function,v_msg_status/3}).
 v_msg_status(#{} = M, Path, TrUserData) ->
     case M of
-        #{code := F1} -> 'v_enum_status.StatusCode'(F1, [code | Path], TrUserData);
+        #{deprecated_code := F1} -> 'v_enum_status.DeprecatedStatusCode'(F1, [deprecated_code | Path], TrUserData);
         _ -> ok
     end,
     case M of
         #{message := F2} -> v_type_string(F2, [message | Path], TrUserData);
         _ -> ok
     end,
-    lists:foreach(fun (code) -> ok;
+    case M of
+        #{code := F3} -> 'v_enum_status.StatusCode'(F3, [code | Path], TrUserData);
+        _ -> ok
+    end,
+    lists:foreach(fun (deprecated_code) -> ok;
                       (message) -> ok;
+                      (code) -> ok;
                       (OtherKey) -> mk_type_error({extraneous_key, OtherKey}, M, Path)
                   end,
                   maps:keys(M)),
@@ -2916,25 +2956,33 @@ v_msg_resource(X, Path, _TrUserData) -> mk_type_error({expected_msg, resource}, 
 'v_enum_span.SpanKind'(V, Path, TrUserData) when is_integer(V) -> v_type_sint32(V, Path, TrUserData);
 'v_enum_span.SpanKind'(X, Path, _TrUserData) -> mk_type_error({invalid_enum, 'span.SpanKind'}, X, Path).
 
+-compile({nowarn_unused_function,'v_enum_status.DeprecatedStatusCode'/3}).
+-dialyzer({nowarn_function,'v_enum_status.DeprecatedStatusCode'/3}).
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_OK', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_CANCELLED', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_UNKNOWN_ERROR', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_INVALID_ARGUMENT', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_DEADLINE_EXCEEDED', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_NOT_FOUND', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_ALREADY_EXISTS', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_PERMISSION_DENIED', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_RESOURCE_EXHAUSTED', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_FAILED_PRECONDITION', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_ABORTED', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_OUT_OF_RANGE', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_UNIMPLEMENTED', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_INTERNAL_ERROR', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_UNAVAILABLE', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_DATA_LOSS', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_UNAUTHENTICATED', _Path, _TrUserData) -> ok;
+'v_enum_status.DeprecatedStatusCode'(V, Path, TrUserData) when is_integer(V) -> v_type_sint32(V, Path, TrUserData);
+'v_enum_status.DeprecatedStatusCode'(X, Path, _TrUserData) -> mk_type_error({invalid_enum, 'status.DeprecatedStatusCode'}, X, Path).
+
 -compile({nowarn_unused_function,'v_enum_status.StatusCode'/3}).
 -dialyzer({nowarn_function,'v_enum_status.StatusCode'/3}).
+'v_enum_status.StatusCode'('STATUS_CODE_UNSET', _Path, _TrUserData) -> ok;
 'v_enum_status.StatusCode'('STATUS_CODE_OK', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('STATUS_CODE_CANCELLED', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('STATUS_CODE_UNKNOWN_ERROR', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('STATUS_CODE_INVALID_ARGUMENT', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('STATUS_CODE_DEADLINE_EXCEEDED', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('STATUS_CODE_NOT_FOUND', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('STATUS_CODE_ALREADY_EXISTS', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('STATUS_CODE_PERMISSION_DENIED', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('STATUS_CODE_RESOURCE_EXHAUSTED', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('STATUS_CODE_FAILED_PRECONDITION', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('STATUS_CODE_ABORTED', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('STATUS_CODE_OUT_OF_RANGE', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('STATUS_CODE_UNIMPLEMENTED', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('STATUS_CODE_INTERNAL_ERROR', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('STATUS_CODE_UNAVAILABLE', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('STATUS_CODE_DATA_LOSS', _Path, _TrUserData) -> ok;
-'v_enum_status.StatusCode'('STATUS_CODE_UNAUTHENTICATED', _Path, _TrUserData) -> ok;
+'v_enum_status.StatusCode'('STATUS_CODE_ERROR', _Path, _TrUserData) -> ok;
 'v_enum_status.StatusCode'(V, Path, TrUserData) when is_integer(V) -> v_type_sint32(V, Path, TrUserData);
 'v_enum_status.StatusCode'(X, Path, _TrUserData) -> mk_type_error({invalid_enum, 'status.StatusCode'}, X, Path).
 
@@ -3035,24 +3083,25 @@ cons(Elem, Acc, _TrUserData) -> [Elem | Acc].
 
 get_msg_defs() ->
     [{{enum, 'span.SpanKind'}, [{'SPAN_KIND_UNSPECIFIED', 0}, {'SPAN_KIND_INTERNAL', 1}, {'SPAN_KIND_SERVER', 2}, {'SPAN_KIND_CLIENT', 3}, {'SPAN_KIND_PRODUCER', 4}, {'SPAN_KIND_CONSUMER', 5}]},
-     {{enum, 'status.StatusCode'},
-      [{'STATUS_CODE_OK', 0},
-       {'STATUS_CODE_CANCELLED', 1},
-       {'STATUS_CODE_UNKNOWN_ERROR', 2},
-       {'STATUS_CODE_INVALID_ARGUMENT', 3},
-       {'STATUS_CODE_DEADLINE_EXCEEDED', 4},
-       {'STATUS_CODE_NOT_FOUND', 5},
-       {'STATUS_CODE_ALREADY_EXISTS', 6},
-       {'STATUS_CODE_PERMISSION_DENIED', 7},
-       {'STATUS_CODE_RESOURCE_EXHAUSTED', 8},
-       {'STATUS_CODE_FAILED_PRECONDITION', 9},
-       {'STATUS_CODE_ABORTED', 10},
-       {'STATUS_CODE_OUT_OF_RANGE', 11},
-       {'STATUS_CODE_UNIMPLEMENTED', 12},
-       {'STATUS_CODE_INTERNAL_ERROR', 13},
-       {'STATUS_CODE_UNAVAILABLE', 14},
-       {'STATUS_CODE_DATA_LOSS', 15},
-       {'STATUS_CODE_UNAUTHENTICATED', 16}]},
+     {{enum, 'status.DeprecatedStatusCode'},
+      [{'DEPRECATED_STATUS_CODE_OK', 0},
+       {'DEPRECATED_STATUS_CODE_CANCELLED', 1},
+       {'DEPRECATED_STATUS_CODE_UNKNOWN_ERROR', 2},
+       {'DEPRECATED_STATUS_CODE_INVALID_ARGUMENT', 3},
+       {'DEPRECATED_STATUS_CODE_DEADLINE_EXCEEDED', 4},
+       {'DEPRECATED_STATUS_CODE_NOT_FOUND', 5},
+       {'DEPRECATED_STATUS_CODE_ALREADY_EXISTS', 6},
+       {'DEPRECATED_STATUS_CODE_PERMISSION_DENIED', 7},
+       {'DEPRECATED_STATUS_CODE_RESOURCE_EXHAUSTED', 8},
+       {'DEPRECATED_STATUS_CODE_FAILED_PRECONDITION', 9},
+       {'DEPRECATED_STATUS_CODE_ABORTED', 10},
+       {'DEPRECATED_STATUS_CODE_OUT_OF_RANGE', 11},
+       {'DEPRECATED_STATUS_CODE_UNIMPLEMENTED', 12},
+       {'DEPRECATED_STATUS_CODE_INTERNAL_ERROR', 13},
+       {'DEPRECATED_STATUS_CODE_UNAVAILABLE', 14},
+       {'DEPRECATED_STATUS_CODE_DATA_LOSS', 15},
+       {'DEPRECATED_STATUS_CODE_UNAUTHENTICATED', 16}]},
+     {{enum, 'status.StatusCode'}, [{'STATUS_CODE_UNSET', 0}, {'STATUS_CODE_OK', 1}, {'STATUS_CODE_ERROR', 2}]},
      {{msg, export_trace_service_request}, [#{name => resource_spans, fnum => 1, rnum => 2, type => {msg, resource_spans}, occurrence => repeated, opts => []}]},
      {{msg, export_trace_service_response}, []},
      {{msg, resource_spans},
@@ -3087,7 +3136,10 @@ get_msg_defs() ->
        #{name => links, fnum => 13, rnum => 14, type => {msg, link}, occurrence => repeated, opts => []},
        #{name => dropped_links_count, fnum => 14, rnum => 15, type => uint32, occurrence => optional, opts => []},
        #{name => status, fnum => 15, rnum => 16, type => {msg, status}, occurrence => optional, opts => []}]},
-     {{msg, status}, [#{name => code, fnum => 1, rnum => 2, type => {enum, 'status.StatusCode'}, occurrence => optional, opts => []}, #{name => message, fnum => 2, rnum => 3, type => string, occurrence => optional, opts => []}]},
+     {{msg, status},
+      [#{name => deprecated_code, fnum => 1, rnum => 2, type => {enum, 'status.DeprecatedStatusCode'}, occurrence => optional, opts => [deprecated]},
+       #{name => message, fnum => 2, rnum => 3, type => string, occurrence => optional, opts => []},
+       #{name => code, fnum => 3, rnum => 4, type => {enum, 'status.StatusCode'}, occurrence => optional, opts => []}]},
      {{msg, any_value},
       [#{name => value, rnum => 2,
          fields =>
@@ -3116,7 +3168,7 @@ get_msg_or_group_names() ->
     [export_trace_service_request, export_trace_service_response, resource_spans, instrumentation_library_spans, event, link, span, status, any_value, array_value, key_value_list, key_value, string_key_value, instrumentation_library, resource].
 
 
-get_enum_names() -> ['span.SpanKind', 'status.StatusCode'].
+get_enum_names() -> ['span.SpanKind', 'status.DeprecatedStatusCode', 'status.StatusCode'].
 
 
 fetch_msg_def(MsgName) ->
@@ -3167,7 +3219,10 @@ find_msg_def(span) ->
      #{name => links, fnum => 13, rnum => 14, type => {msg, link}, occurrence => repeated, opts => []},
      #{name => dropped_links_count, fnum => 14, rnum => 15, type => uint32, occurrence => optional, opts => []},
      #{name => status, fnum => 15, rnum => 16, type => {msg, status}, occurrence => optional, opts => []}];
-find_msg_def(status) -> [#{name => code, fnum => 1, rnum => 2, type => {enum, 'status.StatusCode'}, occurrence => optional, opts => []}, #{name => message, fnum => 2, rnum => 3, type => string, occurrence => optional, opts => []}];
+find_msg_def(status) ->
+    [#{name => deprecated_code, fnum => 1, rnum => 2, type => {enum, 'status.DeprecatedStatusCode'}, occurrence => optional, opts => [deprecated]},
+     #{name => message, fnum => 2, rnum => 3, type => string, occurrence => optional, opts => []},
+     #{name => code, fnum => 3, rnum => 4, type => {enum, 'status.StatusCode'}, occurrence => optional, opts => []}];
 find_msg_def(any_value) ->
     [#{name => value, rnum => 2,
        fields =>
@@ -3187,32 +3242,35 @@ find_msg_def(_) -> error.
 
 
 find_enum_def('span.SpanKind') -> [{'SPAN_KIND_UNSPECIFIED', 0}, {'SPAN_KIND_INTERNAL', 1}, {'SPAN_KIND_SERVER', 2}, {'SPAN_KIND_CLIENT', 3}, {'SPAN_KIND_PRODUCER', 4}, {'SPAN_KIND_CONSUMER', 5}];
-find_enum_def('status.StatusCode') ->
-    [{'STATUS_CODE_OK', 0},
-     {'STATUS_CODE_CANCELLED', 1},
-     {'STATUS_CODE_UNKNOWN_ERROR', 2},
-     {'STATUS_CODE_INVALID_ARGUMENT', 3},
-     {'STATUS_CODE_DEADLINE_EXCEEDED', 4},
-     {'STATUS_CODE_NOT_FOUND', 5},
-     {'STATUS_CODE_ALREADY_EXISTS', 6},
-     {'STATUS_CODE_PERMISSION_DENIED', 7},
-     {'STATUS_CODE_RESOURCE_EXHAUSTED', 8},
-     {'STATUS_CODE_FAILED_PRECONDITION', 9},
-     {'STATUS_CODE_ABORTED', 10},
-     {'STATUS_CODE_OUT_OF_RANGE', 11},
-     {'STATUS_CODE_UNIMPLEMENTED', 12},
-     {'STATUS_CODE_INTERNAL_ERROR', 13},
-     {'STATUS_CODE_UNAVAILABLE', 14},
-     {'STATUS_CODE_DATA_LOSS', 15},
-     {'STATUS_CODE_UNAUTHENTICATED', 16}];
+find_enum_def('status.DeprecatedStatusCode') ->
+    [{'DEPRECATED_STATUS_CODE_OK', 0},
+     {'DEPRECATED_STATUS_CODE_CANCELLED', 1},
+     {'DEPRECATED_STATUS_CODE_UNKNOWN_ERROR', 2},
+     {'DEPRECATED_STATUS_CODE_INVALID_ARGUMENT', 3},
+     {'DEPRECATED_STATUS_CODE_DEADLINE_EXCEEDED', 4},
+     {'DEPRECATED_STATUS_CODE_NOT_FOUND', 5},
+     {'DEPRECATED_STATUS_CODE_ALREADY_EXISTS', 6},
+     {'DEPRECATED_STATUS_CODE_PERMISSION_DENIED', 7},
+     {'DEPRECATED_STATUS_CODE_RESOURCE_EXHAUSTED', 8},
+     {'DEPRECATED_STATUS_CODE_FAILED_PRECONDITION', 9},
+     {'DEPRECATED_STATUS_CODE_ABORTED', 10},
+     {'DEPRECATED_STATUS_CODE_OUT_OF_RANGE', 11},
+     {'DEPRECATED_STATUS_CODE_UNIMPLEMENTED', 12},
+     {'DEPRECATED_STATUS_CODE_INTERNAL_ERROR', 13},
+     {'DEPRECATED_STATUS_CODE_UNAVAILABLE', 14},
+     {'DEPRECATED_STATUS_CODE_DATA_LOSS', 15},
+     {'DEPRECATED_STATUS_CODE_UNAUTHENTICATED', 16}];
+find_enum_def('status.StatusCode') -> [{'STATUS_CODE_UNSET', 0}, {'STATUS_CODE_OK', 1}, {'STATUS_CODE_ERROR', 2}];
 find_enum_def(_) -> error.
 
 
 enum_symbol_by_value('span.SpanKind', Value) -> 'enum_symbol_by_value_span.SpanKind'(Value);
+enum_symbol_by_value('status.DeprecatedStatusCode', Value) -> 'enum_symbol_by_value_status.DeprecatedStatusCode'(Value);
 enum_symbol_by_value('status.StatusCode', Value) -> 'enum_symbol_by_value_status.StatusCode'(Value).
 
 
 enum_value_by_symbol('span.SpanKind', Sym) -> 'enum_value_by_symbol_span.SpanKind'(Sym);
+enum_value_by_symbol('status.DeprecatedStatusCode', Sym) -> 'enum_value_by_symbol_status.DeprecatedStatusCode'(Sym);
 enum_value_by_symbol('status.StatusCode', Sym) -> 'enum_value_by_symbol_status.StatusCode'(Sym).
 
 
@@ -3231,42 +3289,51 @@ enum_value_by_symbol('status.StatusCode', Sym) -> 'enum_value_by_symbol_status.S
 'enum_value_by_symbol_span.SpanKind'('SPAN_KIND_PRODUCER') -> 4;
 'enum_value_by_symbol_span.SpanKind'('SPAN_KIND_CONSUMER') -> 5.
 
-'enum_symbol_by_value_status.StatusCode'(0) -> 'STATUS_CODE_OK';
-'enum_symbol_by_value_status.StatusCode'(1) -> 'STATUS_CODE_CANCELLED';
-'enum_symbol_by_value_status.StatusCode'(2) -> 'STATUS_CODE_UNKNOWN_ERROR';
-'enum_symbol_by_value_status.StatusCode'(3) -> 'STATUS_CODE_INVALID_ARGUMENT';
-'enum_symbol_by_value_status.StatusCode'(4) -> 'STATUS_CODE_DEADLINE_EXCEEDED';
-'enum_symbol_by_value_status.StatusCode'(5) -> 'STATUS_CODE_NOT_FOUND';
-'enum_symbol_by_value_status.StatusCode'(6) -> 'STATUS_CODE_ALREADY_EXISTS';
-'enum_symbol_by_value_status.StatusCode'(7) -> 'STATUS_CODE_PERMISSION_DENIED';
-'enum_symbol_by_value_status.StatusCode'(8) -> 'STATUS_CODE_RESOURCE_EXHAUSTED';
-'enum_symbol_by_value_status.StatusCode'(9) -> 'STATUS_CODE_FAILED_PRECONDITION';
-'enum_symbol_by_value_status.StatusCode'(10) -> 'STATUS_CODE_ABORTED';
-'enum_symbol_by_value_status.StatusCode'(11) -> 'STATUS_CODE_OUT_OF_RANGE';
-'enum_symbol_by_value_status.StatusCode'(12) -> 'STATUS_CODE_UNIMPLEMENTED';
-'enum_symbol_by_value_status.StatusCode'(13) -> 'STATUS_CODE_INTERNAL_ERROR';
-'enum_symbol_by_value_status.StatusCode'(14) -> 'STATUS_CODE_UNAVAILABLE';
-'enum_symbol_by_value_status.StatusCode'(15) -> 'STATUS_CODE_DATA_LOSS';
-'enum_symbol_by_value_status.StatusCode'(16) -> 'STATUS_CODE_UNAUTHENTICATED'.
+'enum_symbol_by_value_status.DeprecatedStatusCode'(0) -> 'DEPRECATED_STATUS_CODE_OK';
+'enum_symbol_by_value_status.DeprecatedStatusCode'(1) -> 'DEPRECATED_STATUS_CODE_CANCELLED';
+'enum_symbol_by_value_status.DeprecatedStatusCode'(2) -> 'DEPRECATED_STATUS_CODE_UNKNOWN_ERROR';
+'enum_symbol_by_value_status.DeprecatedStatusCode'(3) -> 'DEPRECATED_STATUS_CODE_INVALID_ARGUMENT';
+'enum_symbol_by_value_status.DeprecatedStatusCode'(4) -> 'DEPRECATED_STATUS_CODE_DEADLINE_EXCEEDED';
+'enum_symbol_by_value_status.DeprecatedStatusCode'(5) -> 'DEPRECATED_STATUS_CODE_NOT_FOUND';
+'enum_symbol_by_value_status.DeprecatedStatusCode'(6) -> 'DEPRECATED_STATUS_CODE_ALREADY_EXISTS';
+'enum_symbol_by_value_status.DeprecatedStatusCode'(7) -> 'DEPRECATED_STATUS_CODE_PERMISSION_DENIED';
+'enum_symbol_by_value_status.DeprecatedStatusCode'(8) -> 'DEPRECATED_STATUS_CODE_RESOURCE_EXHAUSTED';
+'enum_symbol_by_value_status.DeprecatedStatusCode'(9) -> 'DEPRECATED_STATUS_CODE_FAILED_PRECONDITION';
+'enum_symbol_by_value_status.DeprecatedStatusCode'(10) -> 'DEPRECATED_STATUS_CODE_ABORTED';
+'enum_symbol_by_value_status.DeprecatedStatusCode'(11) -> 'DEPRECATED_STATUS_CODE_OUT_OF_RANGE';
+'enum_symbol_by_value_status.DeprecatedStatusCode'(12) -> 'DEPRECATED_STATUS_CODE_UNIMPLEMENTED';
+'enum_symbol_by_value_status.DeprecatedStatusCode'(13) -> 'DEPRECATED_STATUS_CODE_INTERNAL_ERROR';
+'enum_symbol_by_value_status.DeprecatedStatusCode'(14) -> 'DEPRECATED_STATUS_CODE_UNAVAILABLE';
+'enum_symbol_by_value_status.DeprecatedStatusCode'(15) -> 'DEPRECATED_STATUS_CODE_DATA_LOSS';
+'enum_symbol_by_value_status.DeprecatedStatusCode'(16) -> 'DEPRECATED_STATUS_CODE_UNAUTHENTICATED'.
 
 
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_OK') -> 0;
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_CANCELLED') -> 1;
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_UNKNOWN_ERROR') -> 2;
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_INVALID_ARGUMENT') -> 3;
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_DEADLINE_EXCEEDED') -> 4;
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_NOT_FOUND') -> 5;
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_ALREADY_EXISTS') -> 6;
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_PERMISSION_DENIED') -> 7;
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_RESOURCE_EXHAUSTED') -> 8;
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_FAILED_PRECONDITION') -> 9;
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_ABORTED') -> 10;
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_OUT_OF_RANGE') -> 11;
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_UNIMPLEMENTED') -> 12;
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_INTERNAL_ERROR') -> 13;
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_UNAVAILABLE') -> 14;
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_DATA_LOSS') -> 15;
-'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_UNAUTHENTICATED') -> 16.
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_OK') -> 0;
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_CANCELLED') -> 1;
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_UNKNOWN_ERROR') -> 2;
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_INVALID_ARGUMENT') -> 3;
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_DEADLINE_EXCEEDED') -> 4;
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_NOT_FOUND') -> 5;
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_ALREADY_EXISTS') -> 6;
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_PERMISSION_DENIED') -> 7;
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_RESOURCE_EXHAUSTED') -> 8;
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_FAILED_PRECONDITION') -> 9;
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_ABORTED') -> 10;
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_OUT_OF_RANGE') -> 11;
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_UNIMPLEMENTED') -> 12;
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_INTERNAL_ERROR') -> 13;
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_UNAVAILABLE') -> 14;
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_DATA_LOSS') -> 15;
+'enum_value_by_symbol_status.DeprecatedStatusCode'('DEPRECATED_STATUS_CODE_UNAUTHENTICATED') -> 16.
+
+'enum_symbol_by_value_status.StatusCode'(0) -> 'STATUS_CODE_UNSET';
+'enum_symbol_by_value_status.StatusCode'(1) -> 'STATUS_CODE_OK';
+'enum_symbol_by_value_status.StatusCode'(2) -> 'STATUS_CODE_ERROR'.
+
+
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_UNSET') -> 0;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_OK') -> 1;
+'enum_value_by_symbol_status.StatusCode'('STATUS_CODE_ERROR') -> 2.
 
 
 get_service_names() -> ['opentelemetry.proto.collector.trace.v1.TraceService'].
@@ -3359,11 +3426,13 @@ msg_name_to_fqbin(E) -> error({gpb_error, {badmsg, E}}).
 
 
 fqbin_to_enum_name(<<"opentelemetry.proto.trace.v1.Span.SpanKind">>) -> 'span.SpanKind';
+fqbin_to_enum_name(<<"opentelemetry.proto.trace.v1.Status.DeprecatedStatusCode">>) -> 'status.DeprecatedStatusCode';
 fqbin_to_enum_name(<<"opentelemetry.proto.trace.v1.Status.StatusCode">>) -> 'status.StatusCode';
 fqbin_to_enum_name(E) -> error({gpb_error, {badenum, E}}).
 
 
 enum_name_to_fqbin('span.SpanKind') -> <<"opentelemetry.proto.trace.v1.Span.SpanKind">>;
+enum_name_to_fqbin('status.DeprecatedStatusCode') -> <<"opentelemetry.proto.trace.v1.Status.DeprecatedStatusCode">>;
 enum_name_to_fqbin('status.StatusCode') -> <<"opentelemetry.proto.trace.v1.Status.StatusCode">>;
 enum_name_to_fqbin(E) -> error({gpb_error, {badenum, E}}).
 
@@ -3424,7 +3493,7 @@ get_rpc_containment(P) -> error({gpb_error, {badproto, P}}).
 
 
 get_enum_containment("trace_service") -> [];
-get_enum_containment("trace") -> ['span.SpanKind', 'status.StatusCode'];
+get_enum_containment("trace") -> ['span.SpanKind', 'status.DeprecatedStatusCode', 'status.StatusCode'];
 get_enum_containment("common") -> [];
 get_enum_containment("resource") -> [];
 get_enum_containment(P) -> error({gpb_error, {badproto, P}}).
@@ -3454,6 +3523,7 @@ get_proto_by_service_name_as_fqbin(E) -> error({gpb_error, {badservice, E}}).
 
 get_proto_by_enum_name_as_fqbin(<<"opentelemetry.proto.trace.v1.Span.SpanKind">>) -> "trace";
 get_proto_by_enum_name_as_fqbin(<<"opentelemetry.proto.trace.v1.Status.StatusCode">>) -> "trace";
+get_proto_by_enum_name_as_fqbin(<<"opentelemetry.proto.trace.v1.Status.DeprecatedStatusCode">>) -> "trace";
 get_proto_by_enum_name_as_fqbin(E) -> error({gpb_error, {badenum, E}}).
 
 

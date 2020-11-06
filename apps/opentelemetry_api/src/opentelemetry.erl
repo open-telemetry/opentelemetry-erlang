@@ -81,6 +81,7 @@
               event_name/0,
               tracestate/0,
               status/0,
+              status_code/0,
               resource/0,
               text_map/0]).
 
@@ -114,6 +115,7 @@
 -type link()               :: #link{}.
 -type links()              :: [#link{}].
 -type status()             :: #status{}.
+-type status_code()        :: ?OTEL_STATUS_UNSET | ?OTEL_STATUS_OK | ?OTEL_STATUS_ERROR.
 
 %% The key must begin with a lowercase letter, and can only contain
 %% lowercase letters 'a'-'z', digits '0'-'9', underscores '_', dashes
@@ -324,7 +326,7 @@ events(List) ->
                     end, List).
 
 -spec status(Code, Message) -> status() | undefined when
-      Code :: atom(),
+      Code :: status_code(),
       Message :: unicode:unicode_binary().
 status(Code, Message) when is_atom(Code),
                            is_binary(Message) ->
