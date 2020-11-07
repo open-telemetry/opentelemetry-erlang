@@ -118,8 +118,8 @@ update_span_data(_Config) ->
 
     Events = opentelemetry:events([{opentelemetry:timestamp(),
                                     <<"timed-event-name">>, []}]),
-    Status = otel_http_status:to_status(200),
-    ?assertMatch(#status{code = ?OTEL_STATUS_OK, message = <<"Ok">>}, Status),
+    Status = opentelemetry:status(?OTEL_STATUS_OK, <<"This is Ok">>),
+    ?assertMatch(#status{code = ?OTEL_STATUS_OK, message = <<"This is Ok">>}, Status),
 
     otel_span:set_status(SpanCtx1, Status),
     otel_span:add_events(SpanCtx1, Events),

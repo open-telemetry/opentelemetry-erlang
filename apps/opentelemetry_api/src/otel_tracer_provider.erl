@@ -50,7 +50,6 @@ resource() ->
             undefined
     end.
 
-
 -spec register_tracer(atom(), string()) -> boolean().
 register_tracer(Name, Vsn) ->
     try
