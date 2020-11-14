@@ -24,8 +24,7 @@
          extract/2,
          decode/1]).
 
--include_lib("opentelemetry_api/include/opentelemetry.hrl").
--include("otel_tracer.hrl").
+-include("opentelemetry.hrl").
 
 -define(VERSION, <<"00">>).
 
@@ -66,7 +65,7 @@ encode_tracestate(#span_ctx{tracestate=Entries}) ->
     StateHeaderValue = lists:join($,, [[Key, $=, Value] || {Key, Value} <- Entries]),
     [{?STATE_HEADER_KEY, unicode:characters_to_binary(StateHeaderValue)}].
 
--spec extract(otel_propagator:http_headers(), term()) -> opentelemetry:span_ctx()| undefined.
+-spec extract(otel_propagator:text_map(), term()) -> opentelemetry:span_ctx()| undefined.
 extract(Headers, _) when is_list(Headers) ->
     case header_take(?HEADER_KEY, Headers) of
         [{_, Value} | RestHeaders] ->

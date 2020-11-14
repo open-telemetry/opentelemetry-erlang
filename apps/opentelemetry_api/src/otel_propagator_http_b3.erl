@@ -22,8 +22,7 @@
 -export([inject/1,
          extract/2]).
 
--include_lib("opentelemetry_api/include/opentelemetry.hrl").
--include("otel_tracer.hrl").
+-include("opentelemetry.hrl").
 
 -define(B3_TRACE_ID, <<"X-B3-TraceId">>).
 -define(B3_SPAN_ID, <<"X-B3-SpanId">>).
