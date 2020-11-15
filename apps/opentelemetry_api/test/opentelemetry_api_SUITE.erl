@@ -115,6 +115,7 @@ update_span_data(_Config) ->
     ?set_current_span(SpanCtx1),
 
     ?set_attribute(<<"key-1">>, <<"value-1">>),
+    ?add_event(<<"event-1">>, [{<<"attr-1">>, <<"value-1">>}]),
 
     Events = opentelemetry:events([{opentelemetry:timestamp(),
                                     <<"timed-event-name">>, []}]),

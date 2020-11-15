@@ -33,8 +33,8 @@
 -define(set_attributes(Attributes),
         otel_span:set_attributes(?current_span_ctx, Attributes)).
 
--define(add_event(Event),
-        otel_span:add_event(?current_span_ctx, Event)).
+-define(add_event(Name, Attributes),
+        otel_span:add_event(?current_span_ctx, Name, Attributes)).
 
 -define(add_events(Events),
         otel_span:add_events(?current_span_ctx, Events)).
