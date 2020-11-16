@@ -44,9 +44,13 @@ Applications can be used.
 
 ``` elixir
 {:opentelemetry_api, github: "open-telemetry/opentelemetry-erlang", sparse:
-"apps/opentelemetry_api"},
+"apps/opentelemetry_api", override: true},
 {:opentelemetry, github: "open-telemetry/opentelemetry-erlang", sparse: "apps/opentelemetry"},
 ```
+
+The `override: true` is required because the SDK Application, `opentelemetry`, has
+the API in its `deps` list of its `rebar.config` as a hex dependency and this will
+clash when `mix` tries to resolve the dependencies and fail without the override.
 
 ### Including in Release
 
