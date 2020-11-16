@@ -45,12 +45,15 @@ Applications can be used.
 ``` elixir
 {:opentelemetry_api, github: "open-telemetry/opentelemetry-erlang", sparse:
 "apps/opentelemetry_api", override: true},
-{:opentelemetry, github: "open-telemetry/opentelemetry-erlang", sparse: "apps/opentelemetry"},
+{:opentelemetry, github: "open-telemetry/opentelemetry-erlang", sparse: "apps/opentelemetry", override: true},
 ```
 
 The `override: true` is required because the SDK Application, `opentelemetry`, has
 the API in its `deps` list of its `rebar.config` as a hex dependency and this will
-clash when `mix` tries to resolve the dependencies and fail without the override.
+clash when `mix` tries to resolve the dependencies and fail without the
+override. `override: true` is also used on the SDK because the
+`opentelemetry_exporter` application depends on it and the API as hex deps so if
+it is included the override is necessary.
 
 ### Including in Release
 
