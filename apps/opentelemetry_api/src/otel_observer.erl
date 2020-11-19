@@ -23,7 +23,7 @@
 %% value containing all information needed by the SDK to record an update
 -type instrument() :: term().
 
--type callback() :: fun((observer_instrument()) -> ok).
+-type callback() :: fun((observer_result()) -> ok).
 
 %% value containing all information needed by the SDK to record an update
 -type observer_instrument() :: term().
