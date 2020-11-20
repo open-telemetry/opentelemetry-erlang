@@ -14,5 +14,5 @@
   {modules, []},
 
   {licenses, ["Apache-2.0"]},
-  {links, [{"GitHub", "https://github.com/opentelemetry-beam/opentelemetry_exporter"}]}
+  {links, [{"GitHub", "https://github.com/open-telemetry/opentelemetry-erlang"}]}
  ]}.
