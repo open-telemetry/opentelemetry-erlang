@@ -67,7 +67,7 @@ defmodule OpenTelemetry.MixProject do
         ~w(lib mix.exs README.md LICENSE rebar.config VERSION include src),
       licenses: ["Apache-2.0"],
       links: %{
-        "GitHub" => "https://github.com/open-telemetry/opentelemetry-erlang-api",
+        "GitHub" => "https://github.com/open-telemetry/opentelemetry-erlang",
         "OpenTelemetry.io" => "https://opentelemetry.io"
       }
     ]
