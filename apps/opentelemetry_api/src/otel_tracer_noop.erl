@@ -38,17 +38,34 @@
                                  trace_flags=0,
                                  tracestate=[],
                                  is_valid=false,
-                                 is_recording=false}).
+                                 is_recording=false,
+                                 span_sdk=undefined}).
 -define(NOOP_TRACER_CTX, []).
 
 -spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts()) -> opentelemetry:span_ctx().
-start_span(_, _Name, _) ->
-    ?NOOP_SPAN_CTX.
+start_span(Tracer, SpanName, Opts) ->
+    {SpanCtx, _} = start_span(otel_ctx:get_current(), Tracer, SpanName, Opts),
+    SpanCtx.
 
 -spec start_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts())
                 -> {opentelemetry:span_ctx(), otel_ctx:t()}.
-start_span(Ctx, _, _Name, _) ->
-    {?NOOP_SPAN_CTX, Ctx}.
+start_span(Ctx, _, _SpanName, _) ->
+    %% Spec: Behavior of the API in the absence of an installed SDK
+    case otel_tracer:current_span_ctx(Ctx) of
+        Parent=#span_ctx{trace_id=TraceId,
+                         is_recording=false} when TraceId =/= 0 ->
+            %% if the parent is a non-recording Span it MAY return the parent Span
+            {Parent, Ctx};
+        Parent=#span_ctx{trace_id=TraceId} when TraceId =/= 0 ->
+            %% API MUST create a non-recording Span with the SpanContext in the parent Context
+            SpanCtx = Parent#span_ctx{span_id=opentelemetry:generate_span_id(),
+                                      is_recording=false},
+            {SpanCtx, Ctx};
+        _ ->
+            %% If the parent Context contains no valid Span,
+            %% an empty non-recording Span MUST be returned
+            {?NOOP_SPAN_CTX, Ctx}
+    end.
 
 -spec with_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_tracer:traced_fun(T)) -> T.
 with_span(Tracer, SpanName, Fun) ->
@@ -56,9 +73,9 @@ with_span(Tracer, SpanName, Fun) ->
 
 -spec with_span(opentelemetry:tracer(), opentelemetry:span_name(),
                 otel_span:start_opts(), otel_tracer:traced_fun(T)) -> T.
-with_span(_, _SpanName, _Opts, Fun) ->
+with_span(Tracer, SpanName, Opts, Fun) ->
     Ctx = otel_ctx:get_current(),
-    SpanCtx = ?NOOP_SPAN_CTX,
+    {SpanCtx, _} = start_span(Ctx, Tracer, SpanName, Opts),
     Ctx1 = otel_tracer:set_current_span(Ctx, SpanCtx),
     otel_ctx:attach(Ctx1),
     try

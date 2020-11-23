@@ -22,6 +22,7 @@
          span_id/1,
          tracestate/1,
          is_recording/1,
+         is_valid/1,
          set_attribute/3,
          set_attributes/2,
          add_event/3,
@@ -47,6 +48,15 @@
       SpanCtx :: opentelemetry:span_ctx().
 is_recording(SpanCtx) ->
     ?is_recording(SpanCtx).
+
+-spec is_valid(SpanCtx) -> boolean() when
+      SpanCtx :: opentelemetry:span_ctx().
+is_valid(#span_ctx{trace_id=TraceId,
+                   span_id=SpanId}) when TraceId =/= 0 ,
+                                         SpanId =/= 0 ->
+    true;
+is_valid(_) ->
+    false.
 
 %% accessors
 -spec trace_id(opentelemetry:span_ctx()) -> opentelemetry:trace_id().
