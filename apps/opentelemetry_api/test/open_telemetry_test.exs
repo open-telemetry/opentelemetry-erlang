@@ -14,11 +14,15 @@ defmodule OpenTelemetryTest do
   Record.defrecordp(:link, @fields)
 
   test "current_span tracks last set_span" do
-    ctx1 = Tracer.start_span("span-1")
+    ctx1 = Tracer.start_span("span-1", %{kind: OpenTelemetry.span_kind_server()})
     assert :undefined == Tracer.current_span_ctx()
     Tracer.set_current_span(ctx1)
-    ctx2 = Tracer.start_span("span-2")
+    ctx2 = Tracer.start_span("span-2", %{kind: OpenTelemetry.span_kind_internal()})
     Tracer.set_current_span(ctx2)
+
+    status_error = OpenTelemetry.status_code_error()
+    status = OpenTelemetry.status(status_error, "i'm an error status")
+    Tracer.set_status(status)
 
     assert ctx2 == Tracer.current_span_ctx()
   end
@@ -45,19 +49,27 @@ defmodule OpenTelemetryTest do
 
   test "macro start_span" do
     Tracer.with_span "span-1", %{kind: OpenTelemetry.span_kind_client()} do
-      Tracer.with_span "span-2" do
+      Tracer.with_span "span-2", %{kind: OpenTelemetry.span_kind_consumer()} do
         Tracer.set_attribute("attr-1", "value-1")
 
         event1 = OpenTelemetry.event("event-1", [])
         event2 = OpenTelemetry.event("event-2", [])
-
         Tracer.add_events([event1, event2])
+
+        status_ok = OpenTelemetry.status_code_ok()
+        status = OpenTelemetry.status(status_ok, "i'm an ok status")
+
+        Tracer.set_status(status)
       end
     end
   end
 
   test "can deconstruct a span context" do
-    Tracer.with_span "span-1" do
+    Tracer.with_span "span-1", %{kind: OpenTelemetry.span_kind_producer()} do
+      status_unset = OpenTelemetry.status_code_unset()
+      status = OpenTelemetry.status(status_unset, "i'm an unset status")
+      Tracer.set_status(status)
+
       span = Tracer.current_span_ctx()
 
       assert nil != Span.trace_id(span)
