@@ -54,6 +54,16 @@ defmodule OpenTelemetry.Span do
   defdelegate end_span(span_ctx), to: :otel_span
 
   @doc """
+
+  """
+  defdelegate is_recording(span_ctx), to: :otel_span
+
+  @doc """
+
+  """
+  defdelegate is_valid(span_ctx), to: :otel_span
+
+  @doc """
   Set an attribute with key and value on the currently active Span.
   """
   @spec set_attribute(OpenTelemetry.span_ctx(), OpenTelemetry.attribute_key(), OpenTelemetry.attribute_value()) :: boolean()
