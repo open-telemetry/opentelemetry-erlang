@@ -44,7 +44,7 @@ defmodule OpenTelemetryTest do
   end
 
   test "macro start_span" do
-    Tracer.with_span "span-1" do
+    Tracer.with_span "span-1", %{kind: OpenTelemetry.span_kind_client()} do
       Tracer.with_span "span-2" do
         Tracer.set_attribute("attr-1", "value-1")
 

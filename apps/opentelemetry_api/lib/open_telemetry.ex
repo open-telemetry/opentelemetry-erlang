@@ -109,6 +109,8 @@ defmodule OpenTelemetry do
   @type event() :: :opentelemetry.event()
   @type event_name() :: :opentelemetry.event_name()
 
+  @type status_code() :: :opentelemetry.status_code()
+
   @typedoc """
   An optional final status for this span. Semantically when Status
   wasn't set it means span ended without errors and assume `Ok`.
@@ -165,6 +167,54 @@ defmodule OpenTelemetry do
   defdelegate convert_timestamp(timestamp, unit), to: :opentelemetry
 
   # span item functions
+
+  @doc """
+  Creates a `t:span_kind/0`.
+  """
+  @spec span_kind_internal() :: span_kind()
+  defdelegate span_kind_internal(), to: :opentelemetry
+
+  @doc """
+  Creates a `t:span_kind/0`.
+  """
+  @spec span_kind_server() :: span_kind()
+  defdelegate span_kind_server(), to: :opentelemetry
+
+  @doc """
+  Creates a `t:span_kind/0`.
+  """
+  @spec span_kind_client() :: span_kind()
+  defdelegate span_kind_client(), to: :opentelemetry
+
+  @doc """
+  Creates a `t:span_kind/0`.
+  """
+  @spec span_kind_producer() :: span_kind()
+  defdelegate span_kind_producer(), to: :opentelemetry
+
+  @doc """
+  Creates a `t:span_kind/0`.
+  """
+  @spec span_kind_consumer() :: span_kind()
+  defdelegate span_kind_consumer(), to: :opentelemetry
+
+  @doc """
+  Creates a `t:status_code/0`.
+  """
+  @spec status_code_unset() :: status_code()
+  defdelegate status_code_unset(), to: :opentelemetry
+
+  @doc """
+  Creates a `t:status_code/0`.
+  """
+  @spec status_code_ok() :: status_code()
+  defdelegate status_code_ok(), to: :opentelemetry
+
+  @doc """
+  Creates a `t:status_code/0`.
+  """
+  @spec status_code_error() :: status_code()
+  defdelegate status_code_error(), to: :opentelemetry
 
   @doc """
   Creates a `t:link/0`.

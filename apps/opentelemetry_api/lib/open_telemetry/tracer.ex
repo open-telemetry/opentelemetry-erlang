@@ -12,7 +12,7 @@ defmodule OpenTelemetry.Tracer do
 
       require OpenTelemetry.Tracer
 
-      OpenTelemetry.Tracer.with_span "span-1" do
+      OpenTelemetry.Tracer.with_span "span-1", %{kind: OpenTelemetry.span_kind_client()} do
         ... do something ...
       end
   """

@@ -47,6 +47,14 @@
          timestamp/0,
          timestamp_to_nano/1,
          convert_timestamp/2,
+         span_kind_internal/0,
+         span_kind_server/0,
+         span_kind_client/0,
+         span_kind_producer/0,
+         span_kind_consumer/0,
+         status_code_unset/0,
+         status_code_ok/0,
+         status_code_error/0,
          links/1,
          link/1,
          link/2,
@@ -222,6 +230,38 @@ timestamp_to_nano(Timestamp) ->
 convert_timestamp(Timestamp, Unit) ->
     Offset = erlang:time_offset(),
     erlang:convert_time_unit(Timestamp + Offset, native, Unit).
+
+-spec span_kind_internal() -> span_kind().
+span_kind_internal() ->
+    ?SPAN_KIND_INTERNAL.
+
+-spec span_kind_server() -> span_kind().
+span_kind_server() ->
+    ?SPAN_KIND_SERVER.
+
+-spec span_kind_client() -> span_kind().
+span_kind_client() ->
+    ?SPAN_KIND_CLIENT.
+
+-spec span_kind_producer() -> span_kind().
+span_kind_producer() ->
+    ?SPAN_KIND_PRODUCER.
+
+-spec span_kind_consumer() -> span_kind().
+span_kind_consumer() ->
+    ?SPAN_KIND_CONSUMER.
+
+-spec status_code_unset() -> status_code().
+status_code_unset() ->
+    ?OTEL_STATUS_UNSET.
+
+-spec status_code_ok() -> status_code().
+status_code_ok() ->
+    ?OTEL_STATUS_OK.
+
+-spec status_code_error() -> status_code().
+status_code_error() ->
+    ?OTEL_STATUS_ERROR.
 
 -spec links([{TraceId, SpanId, Attributes, TraceState} | span_ctx() | {span_ctx(), Attributes}]) -> links() when
       TraceId :: trace_id(),

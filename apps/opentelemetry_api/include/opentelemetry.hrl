@@ -24,6 +24,7 @@
 %% for use in guards: sampling bit is the first bit in 8-bit trace options
 -define(IS_SAMPLED(TraceFlags), (TraceFlags band 1) =/= 0).
 
+%% if updated also update the functions in src/opentelemetry.erl and lib/open_telemetry.ex
 -define(SPAN_KIND_INTERNAL, 'INTERNAL').
 -define(SPAN_KIND_SERVER, 'SERVER').
 -define(SPAN_KIND_CLIENT, 'CLIENT').
@@ -75,6 +76,7 @@
           message :: unicode:unicode_binary()
          }).
 
+%% if updated also update the functions in src/opentelemetry.erl and lib/open_telemetry.ex
 -define(OTEL_STATUS_UNSET, 'Unset').
 -define(OTEL_STATUS_OK, 'Ok').
 -define(OTEL_STATUS_ERROR, 'Error').
