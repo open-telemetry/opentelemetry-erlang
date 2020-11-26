@@ -53,7 +53,7 @@ defmodule OpenTelemetry.MixProject do
     end)
     |> Enum.concat([
       {:cmark, "~> 0.7", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.21", only: :dev, runtime: false},
+      {:ex_doc, "0.21.0", only: :dev, runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:covertool, ">= 0.0.0", only: :test}
     ])
@@ -64,10 +64,10 @@ defmodule OpenTelemetry.MixProject do
       description: "OpenTelemetry API",
       build_tools: ["rebar3", "mix"],
       files:
-        ~w(lib mix.exs README.md LICENSE CODEOWNERS rebar.config rebar.lock VERSION include src),
+        ~w(lib mix.exs README.md LICENSE rebar.config VERSION include src),
       licenses: ["Apache-2.0"],
       links: %{
-        "GitHub" => "https://github.com/open-telemetry/opentelemetry-erlang-api",
+        "GitHub" => "https://github.com/open-telemetry/opentelemetry-erlang",
         "OpenTelemetry.io" => "https://opentelemetry.io"
       }
     ]

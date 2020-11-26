@@ -19,27 +19,24 @@
 %%%-------------------------------------------------------------------------
 -module(otel_instrument).
 
-%% @doc Calls the SDK to create a new instrument which can then be referenced
-%% by name.
-%% @end
+%% Calls the SDK to create a new instrument which can then be referenced by name.
 -callback new(opentelemetry:meter(), otel_meter:name()) -> boolean().
 -callback new(opentelemetry:meter(), otel_meter:name(), otel_meter:instrument_opts()) -> boolean().
 
-%% @doc Returns an instrument definition which can be used to create a new instrument
+%% Returns an instrument definition which can be used to create a new instrument
 %% by passing to `otel_meter:new_instruments/1'
-%% @end
 -callback definition(otel_meter:name()) -> otel_meter:instrument_definition().
 -callback definition(otel_meter:name(), otel_meter:instrument_opts()) -> otel_meter:instrument_definition().
 
-%% @doc Used by additive instruments to record measurements.
+%% Used by additive instruments to record measurements.
 -callback add(otel_meter:bound_instrument(), number()) -> ok.
 -callback add(opentelemetry:meter(), otel_meter:name(), number(), otel_meter:labels()) -> ok.
 
-%% @doc Used by non-additive instruments to record measurements.
+%% Used by non-additive instruments to record measurements.
 -callback record(otel_meter:bound_instrument(), number()) -> ok.
 -callback record(opentelemetry:meter(), otel_meter:name(), number(), otel_meter:labels()) -> ok.
 
-%% @doc Returns a measurement tuple that can be based to a batch recording through `otel_meter:batch_record/3'
+%% Returns a measurement tuple that can be based to a batch recording through `otel_meter:batch_record/3'
 -callback measurement(otel_meter:bound_instrument() | otel_meter:name(), number()) ->
     {otel_meter:bound_instrument() | otel_meter:name(), number()}.
 
