@@ -188,8 +188,8 @@ handle_cast(_Msg, State) ->
 
 %% TODO: use a counter ref for `sum' and `mmsc' aggregated
 %% instruments with `input_type' `integer'?
-bind_instrument(Instrument, LabelSet) ->
-    otel_metric_accumulator:lookup_active(Instrument, LabelSet).
+bind_instrument(Instrument = #instrument { name = Name }, LabelSet) ->
+  { { Name, LabelSet  }, otel_metric_accumulator:lookup_active(Instrument, LabelSet) }.
 
 insert_new_instrument(Name, InstrumentKind, Opts) ->
     case instrument(Name, InstrumentKind, Opts) of
