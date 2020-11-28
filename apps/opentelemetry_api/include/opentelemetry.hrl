@@ -75,6 +75,6 @@
           message :: unicode:unicode_binary()
          }).
 
--define(OTEL_STATUS_UNSET, 'Unset').
--define(OTEL_STATUS_OK, 'Ok').
--define(OTEL_STATUS_ERROR, 'Error').
+-define(OTEL_STATUS_UNSET, unset).
+-define(OTEL_STATUS_OK, ok).
+-define(OTEL_STATUS_ERROR, error).
