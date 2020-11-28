@@ -15,7 +15,7 @@ all() ->
 
 groups() ->
     [{without_api, [shuffle], [observer, counter, mmsc]},
-     {with_api, [shuffle], [e2e_test]}].
+     {with_api, [shuffle], [bind_test, e2e_test]}].
 
 init_per_suite(Config) ->
     Config.
@@ -35,6 +35,24 @@ init_per_group(with_api, Config) ->
 
 end_per_group(_, _Config) ->
     _ = application:stop(opentelemetry),
+    ok.
+
+bind_test(_Config) ->
+    ?assertMatch({otel_meter_default, _}, ?otel_current_meter),
+
+    ?otel_new_instruments([{mycounter, otel_counter, #{monotonic => true,
+                                                       synchronous => true}}]),
+
+    BoundCounter = ?otel_bind(mycounter, []),
+
+    ?otel_counter_add(BoundCounter, 4),
+    ?otel_counter_add(BoundCounter, 5),
+
+    otel_metric_accumulator:collect(),
+    Records = otel_metric_integrator:read(),
+
+    ?assertMatch(#{{mycounter, []} := #{value := 9}}, Records),
+
     ok.
 
 e2e_test(_Config) ->
