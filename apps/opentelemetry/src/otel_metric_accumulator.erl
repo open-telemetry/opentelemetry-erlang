@@ -159,10 +159,16 @@ run_observer(#observer{instrument=ObserverInstrument,
 
 aggregator(#instrument{kind=otel_counter}) ->
     otel_metric_aggregator_sum;
+aggregator(#instrument{kind=otel_updown_counter}) ->
+    otel_metric_aggregator_sum;
 aggregator(#instrument{kind=otel_sum_observer}) ->
     otel_metric_aggregator_last_value;
+aggregator(#instrument{kind=otel_updown_sum_observer}) ->
+    otel_metric_aggregator_last_value;
 aggregator(#instrument{kind=otel_value_recorder}) ->
-    otel_metric_aggregator_mmsc.
+    otel_metric_aggregator_mmsc;
+aggregator(#instrument{kind=otel_value_observer}) ->
+    otel_metric_aggregator_last_value.
 
 add_active_instrument(Instrument=#instrument{number_kind=InputType}, Name, LabelSet) ->
     Aggregator = aggregator(Instrument),
