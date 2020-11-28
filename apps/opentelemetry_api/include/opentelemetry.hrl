@@ -24,11 +24,11 @@
 %% for use in guards: sampling bit is the first bit in 8-bit trace options
 -define(IS_SAMPLED(TraceFlags), (TraceFlags band 1) =/= 0).
 
--define(SPAN_KIND_INTERNAL, 'INTERNAL').
--define(SPAN_KIND_SERVER, 'SERVER').
--define(SPAN_KIND_CLIENT, 'CLIENT').
--define(SPAN_KIND_PRODUCER, 'PRODUCER').
--define(SPAN_KIND_CONSUMER, 'CONSUMER').
+-define(SPAN_KIND_INTERNAL, internal).
+-define(SPAN_KIND_SERVER, server).
+-define(SPAN_KIND_CLIENT, client).
+-define(SPAN_KIND_PRODUCER, producer).
+-define(SPAN_KIND_CONSUMER, consumer).
 
 -record(span_ctx, {
           %% 128 bit int trace id
