@@ -40,7 +40,12 @@
                         links => opentelemetry:links(),
                         is_recording => boolean(),
                         start_time => opentelemetry:timestamp(),
-                        kind => opentelemetry:span_kind()}.
+                        kind => opentelemetry:span_kind(),
+                        context => otel_ctx:t(),
+                        parent =>
+                            opentelemetry:span_ctx() |
+                            {opentelemetry:trace_id(),
+                             opentelemetry:span_id()}}.
 
 -export_type([start_opts/0]).
 

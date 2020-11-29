@@ -17,16 +17,7 @@ defmodule OpenTelemetry.Tracer do
       end
   """
 
-  @type start_opts() :: %{
-          optional(:parent) => OpenTelemetry.span() | OpenTelemetry.span_ctx(),
-          optional(:attributes) => OpenTelemetry.attributes(),
-          # TODO sampler should is an opaque type defined in the implementation
-          optional(:sampler) => term(),
-          optional(:links) => OpenTelemetry.links(),
-          optional(:is_recording) => boolean(),
-          optional(:start_time) => :opentelemetry.timestamp(),
-          optional(:kind) => OpenTelemetry.span_kind()
-        }
+  @type start_opts() :: :otel_span.start_opts()
 
   @doc """
   Starts a new span and does not make it the current active span of the current process.
@@ -36,8 +27,8 @@ defmodule OpenTelemetry.Tracer do
   `parent` option given then the Tracer checks for an extracted SpanContext to use as the parent. If
   there is also no extracted context then the created Span is a root Span.
   """
-  defmacro start_span(name, opts \\ quote(do: %{})) do
-    quote bind_quoted: [name: name, start_opts: opts] do
+  defmacro start_span(name, start_opts \\ quote(do: %{})) do
+    quote bind_quoted: [name: name, start_opts: start_opts] do
       :otel_tracer.start_span(:opentelemetry.get_tracer(__MODULE__), name, start_opts)
     end
   end
@@ -47,6 +38,19 @@ defmodule OpenTelemetry.Tracer do
   """
   def set_current_span(span_ctx) do
     :otel_tracer.set_current_span(span_ctx)
+  end
+
+  @doc """
+  Constructs a `t:OpenTelemetry.span_ctx/0` based on a trace id and a span id.
+
+  This function can be useful for reconstructing a t:OpenTelemetry.span_ctx/0`
+  when continuing a trace that first began in another process or even in another
+  system.
+  """
+  @spec set_current_span(OpenTelemetry.trace_id(), OpenTelemetry.span_id()) ::
+          OpenTelemetry.span_ctx()
+  def set_current_span(trace_id, span_id) when is_integer(trace_id) and is_integer(span_id) do
+    :otel_tracer.set_current_span(trace_id, span_id)
   end
 
   @doc """
@@ -89,11 +93,7 @@ defmodule OpenTelemetry.Tracer do
   """
   @spec set_attribute(OpenTelemetry.attribute_key(), OpenTelemetry.attribute_value()) :: boolean()
   def set_attribute(key, value) do
-    :otel_span.set_attribute(
-      :otel_tracer.current_span_ctx(),
-      key,
-      value
-    )
+    :otel_span.set_attribute(:otel_tracer.current_span_ctx(), key, value)
   end
 
   @doc """
@@ -109,11 +109,7 @@ defmodule OpenTelemetry.Tracer do
   """
   @spec add_event(OpenTelemetry.event_name(), OpenTelemetry.attributes()) :: boolean()
   def add_event(event, attributes) do
-    :otel_span.add_event(
-      :otel_tracer.current_span_ctx(),
-      event,
-      attributes
-    )
+    :otel_span.add_event(:otel_tracer.current_span_ctx(), event, attributes)
   end
 
   @doc """

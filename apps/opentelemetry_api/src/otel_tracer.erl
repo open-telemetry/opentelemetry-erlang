@@ -59,11 +59,13 @@
 -spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts())
                 -> opentelemetry:span_ctx().
 start_span(Tracer={Module, _}, Name, Opts) ->
+    resolve_current_ctx(Opts),
     Module:start_span(Tracer, Name, Opts).
 
 -spec start_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts())
                 -> {opentelemetry:span_ctx(), otel_ctx:t()}.
 start_span(Ctx, Tracer={Module, _}, Name, Opts) ->
+    resolve_current_ctx(Opts),
     Module:start_span(Ctx, Tracer, Name, Opts).
 
 -spec with_span(opentelemetry:tracer(), opentelemetry:span_name(), traced_fun(T)) -> T.
@@ -72,6 +74,7 @@ with_span(Tracer={Module, _}, SpanName, Fun) when is_atom(Module) ->
 
 -spec with_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts(), traced_fun(T)) -> T.
 with_span(Tracer={Module, _}, SpanName, Opts, Fun) when is_atom(Module) ->
+    resolve_current_ctx(Opts),
     Module:with_span(Tracer, SpanName, Opts, Fun).
 
 %% @doc Returns a `span_ctx' record with `is_recording' set to `false'. This is mainly
@@ -84,11 +87,23 @@ non_recording_span(TraceId, SpanId, Traceflags) ->
               is_recording=false,
               trace_flags=Traceflags}.
 
--spec set_current_span(opentelemetry:span_ctx()) -> ok.
+-spec set_current_span(opentelemetry:span_ctx() | undefined) -> ok.
 set_current_span(SpanCtx) ->
     otel_ctx:set_value(?CURRENT_SPAN_CTX, SpanCtx).
 
--spec set_current_span(otel_ctx:t(), opentelemetry:span_ctx()) -> otel_ctx:t() | undefined.
+-spec set_current_span(opentelemetry:trace_id() | otel_ctx:t(), opentelemetry:span_id() | opentelemetry:span_ctx() | undefined)
+                      -> opentelemetry:span_ctx() | undefined.
+set_current_span(TraceId, SpanId) when is_integer(TraceId) and is_integer(SpanId) ->
+    SpanCtx =
+        #span_ctx{trace_id=TraceId,
+                  span_id=SpanId,
+                  is_valid=true,
+                  is_remote=true,
+                  trace_flags=1,
+                  is_recording=true},
+
+    otel_ctx:set_value(?CURRENT_SPAN_CTX, SpanCtx),
+    SpanCtx;
 set_current_span(Ctx, SpanCtx) ->
     otel_ctx:set_value(Ctx, ?CURRENT_SPAN_CTX, SpanCtx).
 
@@ -154,3 +169,16 @@ set_status(Status) ->
       Name :: opentelemetry:span_name().
 update_name(SpanName) ->
     otel_span:update_name(current_span_ctx(), SpanName).
+
+%% Sets the current active span context, based on the provided options.
+-spec resolve_current_ctx(otel_span:start_opts()) -> ok.
+resolve_current_ctx(Opts) when is_map(Opts) ->
+    case maps:get(parent, Opts, nil) of
+        undefined -> otel_tracer:set_current_span(undefined);
+        #span_ctx{}=SpanCtx -> otel_tracer:set_current_span(SpanCtx);
+        {TraceId, SpanId} -> otel_tracer:set_current_span(TraceId, SpanId);
+        _ -> nil
+    end,
+    ok;
+resolve_current_ctx(_) ->
+    ok.

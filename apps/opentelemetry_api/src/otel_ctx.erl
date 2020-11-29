@@ -103,7 +103,7 @@ get_current() ->
             #{}
     end.
 
--spec attach(map()) -> token().
+-spec attach(map() | opentelemetry:span_ctx()) -> token().
 attach(Ctx) ->
     erlang:put(?CURRENT_CTX, Ctx).
 
