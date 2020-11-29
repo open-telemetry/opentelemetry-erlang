@@ -108,7 +108,7 @@ add_events(_, _) ->
     false.
 
 -spec record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) -> boolean() when
-      SpanCtx :: opentelemetry:status(),
+      SpanCtx :: opentelemetry:span_ctx(),
       Class :: atom(),
       Term :: term(),
       Stacktrace :: list(any()),
@@ -119,7 +119,7 @@ record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) ->
     add_event(SpanCtx, <<"exception">>, ExceptionAttributes ++ Attributes).
 
 -spec record_exception(SpanCtx, Class, Term,  Message, Stacktrace, Attributes) -> boolean() when
-      SpanCtx :: opentelemetry:status(),
+      SpanCtx :: opentelemetry:span_ctx(),
       Class :: atom(),
       Term :: term(),
       Message :: unicode:unicode_binary(),
