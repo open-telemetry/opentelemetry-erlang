@@ -468,10 +468,11 @@ record_exception_works(Config) ->
             ?end_span(SpanCtx),
             [Span] = assert_exported(Tid, SpanCtx),
             [Event] = Span#span.events,
-            ?assertEqual(Event#event.name, <<"exception">>),
-            ?assertEqual(Event#event.attributes, [{<<"exception.type">>, ["throw",58,"my_error"]},
-                                                  {<<"exception.stacktrace">>, io_lib:format("~p", [Stacktrace])},
-                                                  {"some-attribute","value"}]),
+            ?assertEqual(<<"exception">>, Event#event.name),
+            ?assertEqual([{<<"exception.type">>, ["throw",58,"my_error"]},
+                          {<<"exception.stacktrace">>, io_lib:format("~p", [Stacktrace])},
+                          {"some-attribute","value"}],
+                         Event#event.attributes),
             ok
     end.
 
@@ -487,11 +488,12 @@ record_exception_with_message_works(Config) ->
             ?end_span(SpanCtx),
             [Span] = assert_exported(Tid, SpanCtx),
             [Event] = Span#span.events,
-            ?assertEqual(Event#event.name, <<"exception">>),
-            ?assertEqual(Event#event.attributes, [{<<"exception.type">>, ["throw",58,"my_error"]},
-                                                  {<<"exception.stacktrace">>, io_lib:format("~p", [Stacktrace])},
-                                                  {<<"exception.message">>, "My message"},
-                                                  {"some-attribute","value"}]),
+            ?assertEqual(<<"exception">>, Event#event.name),
+            ?assertEqual([{<<"exception.type">>, ["throw",58,"my_error"]},
+                          {<<"exception.stacktrace">>, io_lib:format("~p", [Stacktrace])},
+                          {<<"exception.message">>, "My message"},
+                          {"some-attribute","value"}],
+                         Event#event.attributes),
             ok
     end.
 
