@@ -13,7 +13,10 @@ Requires OTP 21.3 or above.
 
 The [OpenTelemetry specification](https://github.com/open-telemetry/opentelemetry-specification) defines a language library as having 2 components, the API and the SDK. The API must not only define the interfaces of any implementation in that language but also be able to function as a noop implementation of the tracer. The SDK is the default implementation of the API that must be optional.
 
-If you are instrumenting a project your application should only depend on the [OpenTelemetry API](https://github.com/open-telemetry/opentelemetry-erlang-api/) application. 
+When instrumenting a project your application should only depend on the
+[OpenTelemetry API](https://hex.pm/packages/opentelemetry_api) application,
+found in directory `apps/opentelemetry_api` of this repo which is published as
+the hex package [opentelemetry_api](https://hex.pm/packages/opentelemetry_api). 
 
 This repository is the Erlang's SDK implementation and should be included in the final release and configured to setup the sampler, span processors and span exporters.
 
