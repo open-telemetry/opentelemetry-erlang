@@ -126,10 +126,10 @@ record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) ->
       Stacktrace :: list(any()),
       Attributes :: opentelemetry:attributes().
 record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) ->
-    ExceptionAttributes = [{"exception.type", io_lib:format("~p:~p", [Class, Term])},
-                           {"exception.stacktrace", io_lib:format("~p", [Stacktrace])},
-                           {"exception.message", Message}],
-    add_event(SpanCtx, "exception", ExceptionAttributes ++ Attributes).
+    ExceptionAttributes = [{<<"exception.type">>, io_lib:format("~p:~p", [Class, Term])},
+                           {<<"exception.stacktrace">>, io_lib:format("~p", [Stacktrace])},
+                           {<<"exception.message">>, Message}],
+    add_event(SpanCtx, <<"exception">>, ExceptionAttributes ++ Attributes).
 
 -spec set_status(SpanCtx, Status) -> boolean() when
       Status :: opentelemetry:status(),

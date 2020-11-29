@@ -19,7 +19,7 @@ all() ->
 all_testcases() ->
     [with_span, macros, child_spans, update_span_data, tracer_instrumentation_library,
      tracer_previous_ctx, stop_temporary_app, reset_after, attach_ctx, default_sampler,
-     record_but_not_sample, record_exception_works].
+     record_but_not_sample, record_exception_works, record_exception_with_message_works].
 
 groups() ->
     [{w3c, [], [propagation]},
@@ -470,8 +470,28 @@ record_exception_works(Config) ->
             [Event] = Span#span.events,
             ?assertEqual(Event#event.name, <<"exception">>),
             ?assertEqual(Event#event.attributes, [{<<"exception.type">>, ["throw",58,"my_error"]},
-                                                    {<<"exception.stacktrace">>, io_lib:format("~p", [Stacktrace])},
-                                                    {"some-attribute","value"}]),
+                                                  {<<"exception.stacktrace">>, io_lib:format("~p", [Stacktrace])},
+                                                  {"some-attribute","value"}]),
+            ok
+    end.
+
+record_exception_with_message_works(Config) ->
+    Tid = ?config(tid, Config),
+    SpanCtx = ?start_span(<<"span-1">>),
+    try throw(my_error) of
+        _ ->
+        ok
+    catch
+        Class:Term:Stacktrace ->
+            otel_span:record_exception(SpanCtx, Class, Term, "My message", Stacktrace, [{"some-attribute", "value"}]),
+            ?end_span(SpanCtx),
+            [Span] = assert_exported(Tid, SpanCtx),
+            [Event] = Span#span.events,
+            ?assertEqual(Event#event.name, <<"exception">>),
+            ?assertEqual(Event#event.attributes, [{<<"exception.type">>, ["throw",58,"my_error"]},
+                                                  {<<"exception.stacktrace">>, io_lib:format("~p", [Stacktrace])},
+                                                  {<<"exception.message">>, "My message"},
+                                                  {"some-attribute","value"}]),
             ok
     end.
 
