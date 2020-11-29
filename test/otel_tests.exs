@@ -19,8 +19,11 @@ defmodule OtelTests do
       Tracer.set_attributes([{"attr-2", "value-2"}])
     end
 
-    assert_receive {:span, span(name: "span-1", attributes: [{"attr-1", "value-1"},
-                                                             {"attr-2", "value-2"}])}
+    assert_receive {:span,
+                    span(
+                      name: "span-1",
+                      attributes: [{"attr-1", "value-1"}, {"attr-2", "value-2"}]
+                    )}
   end
 
   test "use Span to set attributes" do
@@ -32,8 +35,10 @@ defmodule OtelTests do
 
     assert span_ctx() = Span.end_span(s)
 
-    assert_receive {:span, span(name: "span-2", attributes: [{"attr-1", "value-1"},
-                                                             {"attr-2", "value-2"}])}
+    assert_receive {:span,
+                    span(
+                      name: "span-2",
+                      attributes: [{"attr-1", "value-1"}, {"attr-2", "value-2"}]
+                    )}
   end
-
 end
