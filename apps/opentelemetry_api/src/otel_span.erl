@@ -27,6 +27,8 @@
          set_attributes/2,
          add_event/3,
          add_events/2,
+         record_exception/5,
+         record_exception/6,
          set_status/2,
          update_name/2,
          end_span/1]).
@@ -104,6 +106,30 @@ add_events(SpanCtx=#span_ctx{span_sdk={Module, _}}, Events) when ?is_recording(S
     Module:add_events(SpanCtx, Events);
 add_events(_, _) ->
     false.
+
+-spec record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) -> boolean() when
+      SpanCtx :: opentelemetry:status(),
+      Class :: atom(),
+      Term :: term(),
+      Stacktrace :: list(any()),
+      Attributes :: opentelemetry:attributes().
+record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) ->
+    ExceptionAttributes = [{"exception.type", io_lib:format("~p:~p", [Class, Term])},
+                           {"exception.stacktrace", io_lib:format("~p", [Stacktrace])}],
+    add_event(SpanCtx, "exception", ExceptionAttributes ++ Attributes).
+
+-spec record_exception(SpanCtx, Class, Term,  Message, Stacktrace, Attributes) -> boolean() when
+      SpanCtx :: opentelemetry:status(),
+      Class :: atom(),
+      Term :: term(),
+      Message :: unicode:unicode_binary(),
+      Stacktrace :: list(any()),
+      Attributes :: opentelemetry:attributes().
+record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) ->
+    ExceptionAttributes = [{"exception.type", io_lib:format("~p:~p", [Class, Term])},
+                           {"exception.stacktrace", io_lib:format("~p", [Stacktrace])},
+                           {"exception.message", Message}],
+    add_event(SpanCtx, "exception", ExceptionAttributes ++ Attributes).
 
 -spec set_status(SpanCtx, Status) -> boolean() when
       Status :: opentelemetry:status(),

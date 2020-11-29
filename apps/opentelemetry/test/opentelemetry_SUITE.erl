@@ -19,7 +19,7 @@ all() ->
 all_testcases() ->
     [with_span, macros, child_spans, update_span_data, tracer_instrumentation_library,
      tracer_previous_ctx, stop_temporary_app, reset_after, attach_ctx, default_sampler,
-     record_but_not_sample].
+     record_but_not_sample, record_exception_works].
 
 groups() ->
     [{w3c, [], [propagation]},
@@ -455,6 +455,21 @@ record_but_not_sample(Config) ->
     assert_not_exported(Tid, SpanCtx2),
 
     ok.
+
+record_exception_works(_Config) ->
+    SpanCtx = ?start_span(<<"span-1">>),
+    try throw(my_error) of
+        _ ->
+        ok
+    catch
+        Class:Term:Stacktrace ->
+            otel_span:record_exception(SpanCtx, Class, Term, Stacktrace, [{"some-attribute", "value"}])
+    end,
+    ?assertEqual([#event{name = "exception",
+                         attributes=[{"some-attribute", "value"}]}],
+                 SpanCtx#span.events),
+    ok.
+
 
 %%
 
