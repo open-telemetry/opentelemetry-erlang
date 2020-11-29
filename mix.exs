@@ -10,7 +10,9 @@ defmodule OtelElixirTests.MixProject do
   end
 
   def deps do
-    [{:opentelemetry, path: "apps/opentelemetry", only: :test},
-     {:opentelemetry_api, path: "apps/opentelemetry_api", only: :test, override: true}]
+    [
+      {:opentelemetry, path: "apps/opentelemetry", only: :test},
+      {:opentelemetry_api, path: "apps/opentelemetry_api", only: :test, override: true}
+    ]
   end
 end

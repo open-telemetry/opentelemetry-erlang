@@ -9,6 +9,25 @@ on:
       - 'master'
 
 jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-elixir@v1
+        with:
+          otp-version: '23.1'
+          elixir-version: '1.11.1'
+      - uses: actions/cache@v2
+        name: Cache
+        with:
+          path: |
+            apps/opentelemetry_api/deps
+          key: v2-${{ hashFiles('apps/opentelemetry_api/mix.lock') }}
+      - run: mix format --check-formatted
+      - run: mix deps.get
+        working-directory: apps/opentelemetry_api/
+      - run: mix format --check-formatted
+        working-directory: apps/opentelemetry_api/
   sdk_tests:
     runs-on: ${{ matrix.os }}
     name: Test on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}

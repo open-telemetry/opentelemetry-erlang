@@ -16,13 +16,22 @@ defmodule OpenTelemetry.UpdownCounter do
 
   defmacro add(name, number, label_set) do
     quote do
-      :otel_meter.record(:opentelemetry.get_meter(__MODULE__), unquote(name), unquote(number), unquote(label_set))
+      :otel_meter.record(
+        :opentelemetry.get_meter(__MODULE__),
+        unquote(name),
+        unquote(number),
+        unquote(label_set)
+      )
     end
   end
 
   defmacro add(bound_instrument, number) do
     quote do
-      :otel_meter.record(:opentelemetry.get_meter(__MODULE__), unquote(bound_instrument), unquote(number))
+      :otel_meter.record(
+        :opentelemetry.get_meter(__MODULE__),
+        unquote(bound_instrument),
+        unquote(number)
+      )
     end
   end
 

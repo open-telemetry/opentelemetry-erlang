@@ -8,7 +8,11 @@ defmodule OpenTelemetry.UpdownSumObserver do
 
   defmacro new(name, opts \\ %{}) do
     quote do
-      :otel_updown_sum_observer.new(:opentelemetry.get_meter(__MODULE__), unquote(name), unquote(opts))
+      :otel_updown_sum_observer.new(
+        :opentelemetry.get_meter(__MODULE__),
+        unquote(name),
+        unquote(opts)
+      )
     end
   end
 
