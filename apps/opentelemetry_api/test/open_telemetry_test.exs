@@ -40,7 +40,6 @@ defmodule OpenTelemetryTest do
     assert 2 == s
     assert [] == ts
     assert [{"attr-1", "value-1"}] == a
-
   end
 
   test "macro start_span" do
@@ -62,7 +61,7 @@ defmodule OpenTelemetryTest do
 
       assert nil != Span.trace_id(span)
       assert nil != Span.span_id(span)
-      assert []   = Span.tracestate(span)
+      assert [] = Span.tracestate(span)
     end
   end
 
@@ -102,5 +101,4 @@ defmodule OpenTelemetryTest do
     Ctx.detach(token)
     assert %{"a" => "b"} = Baggage.get_all()
   end
-
 end
