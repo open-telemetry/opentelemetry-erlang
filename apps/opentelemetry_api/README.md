@@ -1,140 +1,179 @@
-# Erlang/Elixir OpenTelemetry API
+# OpenTelemetry API
+
+OpenTelemetry API in Erlang.
 
 [![EEF Observability WG project](https://img.shields.io/badge/EEF-Observability-black)](https://github.com/erlef/eef-observability-wg)
-[![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry)](https://hex.pm/packages/opentelemetry_api)
-![Build Status](https://github.com/open-telemetry/opentelemetry-erlang-api/workflows/Common%20Test/badge.svg)
+[![Gitter chat](https://badges.gitter.im/open-telemetry/opentelemetry-erlang.svg)](https://gitter.im/open-telemetry/opentelemetry-erlang)
 
-This is the API portion of [OpenTelemetry](https://opentelemetry.io/) for Erlang and Elixir Applications.
+[![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry_api)](https://hex.pm/packages/opentelemetry_api)
+[![License - Apache-2.0](https://img.shields.io/hexpm/l/opentelemetry_api)](LICENSE)
 
-This is a library, it does not start any processes, and should be the only OpenTelemetry dependency of Erlang/Elixir Applications. 
+![Build Status - Erlang](https://github.com/open-telemetry/opentelemetry-erlang/workflows/Erlang/badge.svg)
+![Build Status - Elixir](https://github.com/open-telemetry/opentelemetry-erlang/workflows/Elixir/badge.svg)
 
-The end user of your Application can then choose to include the [OpenTelemetry implementation](https://github.com/open-telemetry/opentelemetry-erlang) Application. If the implementation Application is not in the final release the OpenTelemetry instrumentation will all be no-ops. This means no processes started, no ETS tables created and nothing added to the process dictionary.
+---
 
-This separation is done so you should feel comfortable instrumenting your Erlang/Elixir Application with OpenTelemetry and not worry that a complicated dependency is being forced on your users.
+## Features
 
-## Use
+OpenTelemetry API (`opentelemetry_api` package) is a library application to provide interfaces for instrumentation. Most interfaces are under `opentelemetry` module.
 
-When instrumenting an Application to be used as a dependency of other projects it is best practice to register a `Tracer` with a name and a version using the Application's name and version. This should be the name and version of the Application that has the `opentelemetry` calls being written in it, not the name of the Application it might be being used to instrument. For example, an [Elli](https://github.com/elli-lib/elli) middleware to add tracing to the Elli HTTP server would *not* be named `elli`, it would be the name of the middleware Application, like `opentelemetry_elli`.
+It also provides no-op implemention without starting processes, creating ETS tables, or changing the process dictionary.
 
-Registration is done through a single process and uses a [persistent_term](https://erlang.org/doc/man/persistent_term.html), so should be done only once per-Application. Updating a registration is allowed, so updating the version on a release upgrade can, and should, be done, but will involve the performance penalty of updating a [persistent_term](https://erlang.org/doc/man/persistent_term.html).
+## Installation
 
-Naming the `Tracers` provides additional metadata on spans and allows the user of your Application to disable the traces from the dependency if it is needed.
+Add [`opentelemetry_api`](https://hex.pm/packages/opentelemetry_api) to your dependencies.
 
-### Dependency in Elixir
+`rebar.config`:
 
-``` elixir
-def deps do
+```erlang
+{deps, [{opentelemetry_api, "~> 0.6.0"}]}.
+```
+
+`mix.exs`:
+
+```elixir
+defp deps() do
   [
     {:opentelemetry_api, "~> 0.6.0"}
   ]
 end
 ```
 
-### Registering and Using Tracers Directly
+## Configuring OpenTelemetry SDK
 
-If it is a runnable application then this registration should happen in `start/2`, example below is adding `Tracer` registration to the Postgres library [pgo](https://github.com/erleans/pgo):
+Since OpenTelemetry API provides only no-op implementation, your project has to include the implementation of it to do the actual jobs.
 
-``` erlang
+`opentelemetry` package implements the OpenTelemetry SDK in Erlang. Check out the [documentation](../opentelemetry/) on how to add and configure the package.
+
+To use own implementation, check out following functions:
+
+- `opentelemetry:set_default_tracer/2`
+- `opentelemetry:set_default_meter/2`
+
+## Using OpenTelemetry instrumentation packages
+
+You may use existing packages for instrumenting other packages. [Search hex with `opentelemetry_`](https://hex.pm/packages?search=opentelemetry_&sort=recent_downloads) to find such packages.
+
+Following are examples:
+
+- [opentelemetry_elli](https://hex.pm/packages/opentelemetry_elli): Elli
+- [opentelemetry_ecto](https://hex.pm/packages/opentelemetry_ecto): Ecto
+- [opentelemetry_phoenix](https://hex.pm/packages/opentelemetry_phoenix): Phoenix
+
+Check out their documentation how to use them.
+
+## Tracing
+
+### Registring a tracer
+
+You can register a tracer manually with `register_tracer/2`.
+
+Since registering a tracer with OTP application name and version is recommended, this library provides a function for "application tracer" which is a tracer with OTP application name and version.
+
+To register an application tracer when the application starts, call `register_application_tracer/1` in `start/2`.
+
+Erlang:
+
+```erlang
 start(_StartType, _StartArgs) ->
-    _ = opentelemetry:register_application_tracer(pgo),
+    _ = opentelemetry:register_application_tracer(my_app),
 ...
 ```
 
-Or for an Elixir Application named `MyApp`:
+Elixir:
 
-``` elixir
-defmodule MyApp do
+```elixir
+defmodule MyApp.Application do
   use Application
 
+  @impl Application
   def start(_type, _args) do
-    _ = OpenTelemetry.register_application_tracer(:my_app)
-    ...
+    OpenTelemetry.register_application_tracer(:my_app)
   end
 end
 ```
 
-Then when the spans are started and finished in the application's code the `Tracer` is fetched with `get_tracer/1` and passed to `with_span/3` or `start_span/3`:
+Instead of using `start/2`, you may register the tracer in a function that is called once before the library would create any spans.
 
-``` erlang
-Tracer = opentelemetry:get_tracer(pgo),
-otel_tracer:with_span(Tracer, <<"pgo:query/3">>, fun() -> ... end).
-```
+For example, the [Elli](https://github.com/elli-lib/elli) middleware for OpenTelemetry instrumentation registers the `Tracer` during Elli startup:
 
-A `Tracer` variable can be passed through your Application's calls so `get_tracer` only has to be called once, it is safe to store it in the state of a `gen_server` and to pass across process boundaries.
-
-If the application does not have a `start/2` there may be another function that is always called before the library would create any spans. For example, the [Elli](https://github.com/elli-lib/elli) middleware for OpenTelemetry instrumentation registers the `Tracer` during Elli startup:
-
-``` erlang
+```erlang
 handle_event(elli_startup, _Args, _Config) ->
     _ = opentelemetry:register_application_tracer(opentelemetry_elli),
     ok;
 ```
 
-When there is no startup of any kind to hook into in the library itself it should export a function `register_application_tracer/0` to be used by any application that depends on it to do the registration:
+If there is no startup of any kind to hook into in the library itself, it is recommended to export a function `register_application_tracer/0` to be used by any application that depends on it to do the registration:
 
-``` erlang
--module(mylib).
+```erlang
+-module(my_lib).
 
 -export([register_tracer/0]).
 
 register_tracer() ->
-    _ = opentelemetry:register_application_tracer(mylib),
+    _ = opentelemetry:register_application_tracer(my_lib),
     ok.
 ```
 
-Not registering does not cause any issues or crashes, OpenTelemetry simply will fallback to the default `Tracer` if `get_tracer/1` is called with a name that is not registered.
+Please note that using a tracer without registration would not cause any issues, since OpenTelemetry simply will fallback to the default tracer in such cases.
 
+### Creating a span
 
-### Helper Macros for Application Tracers
+To create a span, get the tracer with `get_tracer/1` and pass it to other functions for spans.
 
-When `register_application_tracer/1` is used to register a Tracer there are both Erlang and Elixir macros that make use of the current module's name to lookup the Tracer for you and can be used for Trace and Span operations:
+Since a tracer value can be passed by function calls across process boundaries, it is safe to get the tracer once, store it (e.g. in a `gen_server`), and pass it to other functions, instead of getting the tracer every time.
 
-``` erlang
+```erlang
+Tracer = opentelemetry:get_tracer(my_app).
+
+% take a function
+otel_tracer:with_span(Tracer, <<"span-1">>, fun() -> ... end).
+
+% or start and end span manually
+otel_tracer.start_span(Tracer, <<"span-1">>).
+% ...
+otel_tracer.end_span(Tracer)
+```
+
+When an application tracer is registered with `register_application_tracer/1`, you may use Erlang or Elixir macros that look up the tracer with the current module's name and make use of the current module's name to lookup the tracer for you and use it, instead of passing the tracer around.
+
+```erlang
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").
 
 some_fun() ->
-    ?with_span(<<"some_fun/0">>, #{}, 
-        fun(_SpanCtx) -> 
+    ?with_span(<<"some_fun/0">>, #{},
+        fun(_SpanCtx) ->
             ...
             ?set_attribute(<<"key">>, <<"value">>),
             ...
         end),
 ```
 
-``` elixir
-require OpenTelemetry.Tracer
-require OpenTelemetry.Span
-      
-def some_fun() do
-    OpenTelemetry.Tracer.with_span "some-span" do
-      ...
+```elixir
+defmodule MyApp do
+  require OpenTelemetry.Tracer
+  require OpenTelemetry.Span
+
+  def ping do
+    OpenTelemetry.Tracer.with_span "span-1" do
       OpenTelemetry.Span.set_attribute("key", "value")
-      ...
+      # ...
     end
+
+    OpenTelemetry.Tracer.start_span("span-1")
+    # ...
+    OpenTelemetry.Tracer.end_span()
+  end
 end
 ```
 
-### Including the OpenTelemetry SDK
+## Writing OpenTelemetry Library
 
-For traces to actually be tracked, propagated and exported, the [opentelemetry](https://github.com/open-telemetry/opentelemetry-erlang) Application must be included as a dependency of your project, likely as part of a [Release](https://erlang.org/doc/design_principles/release_structure.html) and not as a dependency of an individual Application within the Release.
+Third-party libraries or frameworks SHOULD depend only on the OpenTelemetry API, so that the user of the libraries or frameworks can choose any implementation.
 
-See the [Using section](https://github.com/open-telemetry/opentelemetry-erlang#using) of the [OpenTelemetry-Erlang](https://github.com/open-telemetry/opentelemetry-erlang) repository for details.
+Please use the following conventions:
 
-### Exporters
+- Use `opentelemetry_<app>` for the package name and tracer name (e.g. `opentelemetry_foo` to provide OpenTelemetry integration of `foo` package)
+- Use the version of instrumenting package (e.g. version of `opentelemetry_foo` package), not the version of instrumented package (e.g. version of `foo` package)'s version for the tracer version
 
-Exporters can be found as separate Applications on Github under the [OpenTelemetry Beam Organization](https://github.com/opentelemetry-beam).
-
-- [Zipkin](https://hex.pm/packages/opentelemetry_zipkin)
-- [OpenTelemetry Collector](https://hex.pm/packages/opentelemetry_exporter)
-
-### HTTP Integrations
-
-- [Elli](https://hex.pm/packages/opentelemetry_elli)
-
-### Database Client Integration
-
-- [Ecto](https://hex.pm/packages/opentelemetry_ecto)
-
-## Contributing
-
-See the [contributing file](CONTRIBUTING.md).
+Note that registration is done through a single process and uses a [persistent_term](https://erlang.org/doc/man/persistent_term.html), thus updating the version on a release upgrade is possible but will involve the performance penalty of updating a persistent term.

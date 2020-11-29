@@ -5,6 +5,8 @@ defmodule OpenTelemetry.Ctx do
   `OpenTelemetry.Baggage` handle updating the Context.
   """
 
+  @type t :: :otel_ctx.t()
+
   defdelegate new(), to: :otel_ctx
   defdelegate attach(ctx), to: :otel_ctx
   defdelegate detach(token), to: :otel_ctx

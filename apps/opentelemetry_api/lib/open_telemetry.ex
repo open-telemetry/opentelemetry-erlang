@@ -1,6 +1,8 @@
 defmodule OpenTelemetry do
   @moduledoc """
-  An [OpenTelemetry](https://opentelemetry.io) Trace consists of 1 or more Spans that either have a
+  [OpenTelemetry](https://opentelemetry.io) API.
+
+  Trace consists of 1 or more Spans that either have a
   parent/child relationship or are linked together through a Link. Each Span has a TraceId (`t:trace_id/0`),
   SpanId (`t:span_id/0`), and a start and end time in nanoseconds.
 
@@ -16,11 +18,11 @@ defmodule OpenTelemetry do
       OpenTelemetry.register_application_tracer(:this_otp_app)
 
       Tracer.start_span("some-span")
-      ...
+      # ...
       event = "ecto.query"
       ecto_attributes = OpenTelemetry.event([{"query", query}, {"total_time", total_time}])
       OpenTelemetry.Span.add_event(event, ecto_event)
-      ...
+      # ...
       Tracer.end_span()
   """
 
@@ -116,7 +118,8 @@ defmodule OpenTelemetry do
   @type status() :: :opentelemetry.status()
 
   @doc """
-  Registering a [Named Tracer](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/api-tracing.md#obtaining-a-tracer) with the name of an OTP Application enables each module in
+  Registering a [Named Tracer](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.0.1/specification/trace/api.md#get-a-tracer)
+  with the name of an OTP Application enables each module in
   the Application to be mapped to the Named Tracer, named for the Application and using the
   version of the currently loaded Application by that name.
 
@@ -158,7 +161,7 @@ defmodule OpenTelemetry do
   defdelegate timestamp_to_nano(timestamp), to: :opentelemetry
 
   @doc """
-  Convert a native monotonic timestamp to POSIX time of any `:erlang.time_unit/0`.
+  Convert a native monotonic timestamp to POSIX time of any `t::erlang.time_unit/0`.
   Meaning the time since Epoch. Epoch is defined to be 00:00:00 UTC, 1970-01-01.
   """
   @spec convert_timestamp(integer(), :erlang.time_unit()) :: integer()
