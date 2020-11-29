@@ -456,20 +456,24 @@ record_but_not_sample(Config) ->
 
     ok.
 
-record_exception_works(_Config) ->
+record_exception_works(Config) ->
+    Tid = ?config(tid, Config),
     SpanCtx = ?start_span(<<"span-1">>),
     try throw(my_error) of
         _ ->
         ok
     catch
         Class:Term:Stacktrace ->
-            otel_span:record_exception(SpanCtx, Class, Term, Stacktrace, [{"some-attribute", "value"}])
-    end,
-    ?assertEqual([#event{name = "exception",
-                         attributes=[{"some-attribute", "value"}]}],
-                 SpanCtx#span.events),
-    ok.
-
+            otel_span:record_exception(SpanCtx, Class, Term, Stacktrace, [{"some-attribute", "value"}]),
+            ?end_span(SpanCtx),
+            [Span] = assert_exported(Tid, SpanCtx),
+            [Event] = Span#span.events,
+            ?assertEqual(Event#event.name, <<"exception">>),
+            ?assertEqual(Event#event.attributes, [{<<"exception.type">>, ["throw",58,"my_error"]},
+                                                    {<<"exception.stacktrace">>, io_lib:format("~p", [Stacktrace])},
+                                                    {"some-attribute","value"}]),
+            ok
+    end.
 
 %%
 
