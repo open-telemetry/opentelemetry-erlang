@@ -14,13 +14,13 @@ defmodule OpenTelemetryTest do
   Record.defrecordp(:link, @fields)
 
   test "current_span tracks last set_span" do
-    ctx1 = Tracer.start_span("span-1")
+    span_ctx1 = Tracer.start_span("span-1")
     assert :undefined == Tracer.current_span_ctx()
-    Tracer.set_current_span(ctx1)
-    ctx2 = Tracer.start_span("span-2")
-    Tracer.set_current_span(ctx2)
+    Tracer.set_current_span(span_ctx1)
+    span_ctx2 = Tracer.start_span("span-2")
+    Tracer.set_current_span(span_ctx2)
 
-    assert ctx2 == Tracer.current_span_ctx()
+    assert span_ctx2 == Tracer.current_span_ctx()
   end
 
   test "link creation" do

@@ -19,8 +19,8 @@
 
 -export([start_span/3,
          start_span/4,
-         with_span/3,
          with_span/4,
+         with_span/5,
          non_recording_span/3,
          set_current_span/1,
          set_current_span/2,
@@ -44,35 +44,33 @@
 -type traced_fun(T) :: fun((opentelemetry:span_ctx()) -> T).
 -type tracer_ctx() :: term().
 
--export_type([traced_fun/1, tracer_ctx/0]).
+-export_type([traced_fun/1,
+              tracer_ctx/0]).
 
--callback start_span(opentelemetry:tracer(),
-                     opentelemetry:span_name(),
-                     otel_span:start_opts()) -> opentelemetry:span_ctx().
 -callback start_span(otel_ctx:t(),
                      opentelemetry:tracer(),
                      opentelemetry:span_name(),
-                     otel_span:start_opts()) -> {opentelemetry:span_ctx(), otel_ctx:t()}.
--callback with_span(opentelemetry:tracer(), opentelemetry:span_name(), traced_fun(T)) -> T.
--callback with_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts(), traced_fun(T)) -> T.
+                     otel_span:start_opts()) -> opentelemetry:span_ctx().
+-callback with_span(otel_ctx:t(), opentelemetry:tracer(),
+                    opentelemetry:span_name(), otel_span:start_opts(), traced_fun(T)) -> T.
 
 -spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts())
                 -> opentelemetry:span_ctx().
 start_span(Tracer={Module, _}, Name, Opts) ->
-    Module:start_span(Tracer, Name, Opts).
+    Module:start_span(otel_ctx:get_current(), Tracer, Name, Opts).
 
 -spec start_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts())
-                -> {opentelemetry:span_ctx(), otel_ctx:t()}.
+                -> opentelemetry:span_ctx().
 start_span(Ctx, Tracer={Module, _}, Name, Opts) ->
     Module:start_span(Ctx, Tracer, Name, Opts).
 
--spec with_span(opentelemetry:tracer(), opentelemetry:span_name(), traced_fun(T)) -> T.
-with_span(Tracer={Module, _}, SpanName, Fun) when is_atom(Module) ->
-    Module:with_span(Tracer, SpanName, Fun).
-
 -spec with_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts(), traced_fun(T)) -> T.
 with_span(Tracer={Module, _}, SpanName, Opts, Fun) when is_atom(Module) ->
-    Module:with_span(Tracer, SpanName, Opts, Fun).
+    Module:with_span(otel_ctx:get_current(), Tracer, SpanName, Opts, Fun).
+
+-spec with_span(otel_ctx:t(), opentelemetry:tracer(), otel_span:start_opts(), opentelemetry:span_name(), traced_fun(T)) -> T.
+with_span(Ctx, Tracer={Module, _}, SpanName, Opts, Fun) when is_atom(Module) ->
+    Module:with_span(Ctx, Tracer, SpanName, Opts, Fun).
 
 %% @doc Returns a `span_ctx' record with `is_recording' set to `false'. This is mainly
 %% for use in propagators when they extract a Span to be used as a parent.

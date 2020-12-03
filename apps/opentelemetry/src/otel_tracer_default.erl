@@ -19,10 +19,8 @@
 
 -behaviour(otel_tracer).
 
--export([start_span/3,
-         start_span/4,
-         with_span/3,
-         with_span/4,
+-export([start_span/4,
+         with_span/5,
          b3_propagators/0,
          w3c_propagators/0]).
 
@@ -30,37 +28,25 @@
 -include("otel_tracer.hrl").
 -include("otel_span_ets.hrl").
 
-%% @doc Creates a Span and sets it to the current active Span in the process's Tracer Context.
--spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts())
-                -> opentelemetry:span_ctx().
-start_span(Tracer={_, #tracer{on_end_processors=OnEndProcessors}}, Name, Opts) ->
-    {SpanCtx, _} = start_span(otel_ctx:get_current(), Tracer, Name, Opts),
-    SpanCtx#span_ctx{span_sdk={otel_span_ets, OnEndProcessors}}.
-
 %% @doc Starts an inactive Span and returns its SpanCtx.
 -spec start_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(),
-                 otel_span:start_opts()) -> {opentelemetry:span_ctx(), otel_ctx:t()}.
+                 otel_span:start_opts()) -> opentelemetry:span_ctx().
 start_span(Ctx, Tracer={_, #tracer{on_start_processors=Processors,
                                    on_end_processors=OnEndProcessors,
                                    instrumentation_library=InstrumentationLibrary}}, Name, Opts) ->
     Opts1 = maybe_set_sampler(Tracer, Opts),
     SpanCtx = otel_span_ets:start_span(Ctx, Name, Opts1, Processors, InstrumentationLibrary),
-    {SpanCtx#span_ctx{span_sdk={otel_span_ets, OnEndProcessors}}, Ctx}.
+    SpanCtx#span_ctx{span_sdk={otel_span_ets, OnEndProcessors}}.
 
 maybe_set_sampler(_Tracer, Opts) when is_map_key(sampler, Opts) ->
     Opts;
 maybe_set_sampler({_, #tracer{sampler=Sampler}}, Opts) ->
     Opts#{sampler => Sampler}.
 
--spec with_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_tracer:traced_fun()) -> ok.
-with_span(Tracer, SpanName, Fun) ->
-    with_span(Tracer, SpanName, #{}, Fun).
-
--spec with_span(opentelemetry:tracer(), opentelemetry:span_name(),
+-spec with_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(),
                 otel_span:start_opts(), otel_tracer:traced_fun(T)) -> T.
-with_span(Tracer, SpanName, Opts, Fun) ->
-    Ctx = otel_ctx:get_current(),
-    {SpanCtx, _} = start_span(Ctx, Tracer, SpanName, Opts),
+with_span(Ctx, Tracer, SpanName, Opts, Fun) ->
+    SpanCtx = start_span(Ctx, Tracer, SpanName, Opts),
     Ctx1 = otel_tracer:set_current_span(Ctx, SpanCtx),
     otel_ctx:attach(Ctx1),
     try

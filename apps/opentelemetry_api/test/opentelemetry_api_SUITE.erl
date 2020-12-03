@@ -137,5 +137,5 @@ noop_with_span(_Config) ->
     ?assertMatch({otel_tracer_noop, _}, Tracer),
 
     Result = some_result,
-    ?assertEqual(Result, otel_tracer:with_span(Tracer, <<"span1">>, fun(_) -> Result end)),
+    ?assertEqual(Result, otel_tracer:with_span(Tracer, <<"span1">>, #{}, fun(_) -> Result end)),
     ok.
