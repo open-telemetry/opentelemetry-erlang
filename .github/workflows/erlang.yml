@@ -30,9 +30,9 @@ jobs:
       with:
         path: |
           _build
-        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles(format('rebar.lock')) }}
+        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles(format('rebar.lock')) }}-1
         restore-keys: |
-          ${{ runner.os }}-build-${{ matrix.otp_version }}-
+          ${{ runner.os }}-build-${{ matrix.otp_version }}-1-
     - name: Compile
       run: rebar3 compile
     - name: EUnit tests
@@ -79,9 +79,9 @@ jobs:
       with:
         path: |
           _build
-        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}
+        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}-1
         restore-keys: |
-          ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-
+          ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-1-
     - name: Compile
       run: rebar3 compile
     - name: Dialyzer

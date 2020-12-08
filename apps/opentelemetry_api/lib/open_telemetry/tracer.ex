@@ -18,7 +18,6 @@ defmodule OpenTelemetry.Tracer do
   """
 
   @type start_opts() :: %{
-          optional(:parent) => OpenTelemetry.span() | OpenTelemetry.span_ctx(),
           optional(:attributes) => OpenTelemetry.attributes(),
           # TODO sampler should is an opaque type defined in the implementation
           optional(:sampler) => term(),
@@ -31,10 +30,7 @@ defmodule OpenTelemetry.Tracer do
   @doc """
   Starts a new span and does not make it the current active span of the current process.
 
-  The current active Span is used as the parent of the created Span unless a `parent` is given in the
-  `t:start_opts/0` argument or there is no active Span. If there is neither a current Span or a
-  `parent` option given then the Tracer checks for an extracted SpanContext to use as the parent. If
-  there is also no extracted context then the created Span is a root Span.
+  The current active Span is used as the parent of the created Span.
   """
   defmacro start_span(name, opts \\ quote(do: %{})) do
     quote bind_quoted: [name: name, start_opts: opts] do
@@ -43,10 +39,29 @@ defmodule OpenTelemetry.Tracer do
   end
 
   @doc """
+  Starts a new span and does not make it the current active span of the current process.
+
+  The current active Span is used as the parent of the created Span.
+  """
+  defmacro start_span(ctx, name, opts) do
+    quote bind_quoted: [ctx: ctx, name: name, start_opts: opts] do
+      :otel_tracer.start_span(ctx, :opentelemetry.get_tracer(__MODULE__), name, start_opts)
+    end
+  end
+
+  @doc """
   Takes a `t:OpenTelemetry.span_ctx/0` and the Tracer sets it to the currently active Span.
   """
   def set_current_span(span_ctx) do
     :otel_tracer.set_current_span(span_ctx)
+  end
+
+  @doc """
+  Takes a `t:OpenTelemetry.ctx/0` and the `t:OpenTelemetry.span_ctx/0` and the Tracer sets
+  it to the current span in the pass Context.
+  """
+  def set_current_span(ctx, span_ctx) do
+    :otel_tracer.set_current_span(ctx, span_ctx)
   end
 
   @doc """
@@ -68,10 +83,36 @@ defmodule OpenTelemetry.Tracer do
   end
 
   @doc """
+  Creates a new span which is set to the currently active Span in the Context of the block.
+  The Span is ended automatically when the `block` completes and the Context is what it was
+  before the block.
+
+  See `start_span/2` and `end_span/0`.
+  """
+  defmacro with_span(ctx, name, start_opts, do: block) do
+    quote do
+      :otel_tracer.with_span(
+        unquote(ctx),
+        :opentelemetry.get_tracer(__MODULE__),
+        unquote(name),
+        unquote(start_opts),
+        fn _ -> unquote(block) end
+      )
+    end
+  end
+
+  @doc """
   Returns the currently active `t:OpenTelemetry.span_ctx/0`.
   """
   def current_span_ctx() do
     :otel_tracer.current_span_ctx()
+  end
+
+  @doc """
+  Returns the `t:OpenTelemetry.span_ctx/0` active in Context `ctx`.
+  """
+  def current_span_ctx(ctx) do
+    :otel_tracer.current_span_ctx(ctx)
   end
 
   @doc """

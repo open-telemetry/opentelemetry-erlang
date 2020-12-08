@@ -19,10 +19,8 @@
 
 -behaviour(otel_tracer).
 
--export([start_span/3,
-         start_span/4,
-         with_span/3,
-         with_span/4,
+-export([start_span/4,
+         with_span/5,
          end_span/2,
          set_attribute/4,
          set_attributes/3,
@@ -42,40 +40,30 @@
                                  span_sdk=undefined}).
 -define(NOOP_TRACER_CTX, []).
 
--spec start_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts()) -> opentelemetry:span_ctx().
-start_span(Tracer, SpanName, Opts) ->
-    {SpanCtx, _} = start_span(otel_ctx:get_current(), Tracer, SpanName, Opts),
-    SpanCtx.
-
 -spec start_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts())
-                -> {opentelemetry:span_ctx(), otel_ctx:t()}.
+                -> opentelemetry:span_ctx().
 start_span(Ctx, _, _SpanName, _) ->
     %% Spec: Behavior of the API in the absence of an installed SDK
     case otel_tracer:current_span_ctx(Ctx) of
         Parent=#span_ctx{trace_id=TraceId,
                          is_recording=false} when TraceId =/= 0 ->
             %% if the parent is a non-recording Span it MAY return the parent Span
-            {Parent, Ctx};
+            Parent;
         Parent=#span_ctx{trace_id=TraceId} when TraceId =/= 0 ->
             %% API MUST create a non-recording Span with the SpanContext in the parent Context
             SpanCtx = Parent#span_ctx{span_id=opentelemetry:generate_span_id(),
                                       is_recording=false},
-            {SpanCtx, Ctx};
+            SpanCtx;
         _ ->
             %% If the parent Context contains no valid Span,
             %% an empty non-recording Span MUST be returned
-            {?NOOP_SPAN_CTX, Ctx}
+            ?NOOP_SPAN_CTX
     end.
 
--spec with_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_tracer:traced_fun(T)) -> T.
-with_span(Tracer, SpanName, Fun) ->
-    with_span(Tracer, SpanName, #{}, Fun).
-
--spec with_span(opentelemetry:tracer(), opentelemetry:span_name(),
+-spec with_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(),
                 otel_span:start_opts(), otel_tracer:traced_fun(T)) -> T.
-with_span(Tracer, SpanName, Opts, Fun) ->
-    Ctx = otel_ctx:get_current(),
-    {SpanCtx, _} = start_span(Ctx, Tracer, SpanName, Opts),
+with_span(Ctx, Tracer, SpanName, Opts, Fun) ->
+    SpanCtx = start_span(Ctx, Tracer, SpanName, Opts),
     Ctx1 = otel_tracer:set_current_span(Ctx, SpanCtx),
     otel_ctx:attach(Ctx1),
     try

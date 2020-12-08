@@ -106,7 +106,7 @@ with_span(Config) ->
     otel_tracer:set_current_span(SpanCtx1),
 
     Result = some_result,
-    ?assertMatch(Result, otel_tracer:with_span(Tracer, <<"with-span-2">>,
+    ?assertMatch(Result, otel_tracer:with_span(Tracer, <<"with-span-2">>, #{},
                                                fun(SpanCtx2) ->
                                                        ?assertNotEqual(SpanCtx1, SpanCtx2),
                                                        ?assertEqual(SpanCtx2, ?current_span_ctx),
@@ -288,9 +288,10 @@ tracer_previous_ctx(Config) ->
     ?assertMatch(SpanCtx1, ?current_span_ctx),
 
     %% create a span that is not on the current context and with no parent
-    {SpanCtx2, Ctx} = otel_tracer:start_span(otel_ctx:new(), Tracer, <<"span-2">>, #{}),
-    %% start a new active span with SpanCtx2 as the parent
-    {SpanCtx3, _Ctx1} = otel_tracer:start_span(Ctx, Tracer, <<"span-3">>, #{}),
+    SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-2">>, #{}),
+    Ctx = otel_tracer:set_current_span(otel_ctx:new(), SpanCtx2),
+    %% start a new span with SpanCtx2 as the parent
+    SpanCtx3 = otel_tracer:start_span(Ctx, Tracer, <<"span-3">>, #{}),
 
     %% end SpanCtx3, even though it isn't the parent SpanCtx1
     otel_span:end_span(SpanCtx3),
@@ -316,7 +317,7 @@ attach_ctx(Config) ->
     ?assertMatch(SpanCtx1, ?current_span_ctx),
 
     %% create a span that is not set to active and with no parent
-    {SpanCtx2, _Ctx} = otel_tracer:start_span(otel_ctx:new(), Tracer, <<"span-2">>, #{}),
+    SpanCtx2 = otel_tracer:start_span(otel_ctx:new(), Tracer, <<"span-2">>, #{}),
     Ctx = otel_ctx:get_current(),
 
     erlang:spawn(fun() ->
