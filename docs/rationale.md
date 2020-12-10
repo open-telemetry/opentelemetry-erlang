@@ -28,10 +28,12 @@ the pre-1.0 world as functionality was floating from SDK to API at times.
 ### Experimental API (`opentelemetry_api_experimental`)
 
 The experimental package is where any API that is not stable when 1.0 is
-released must live. At this time (prior to 1.0) that means Metrics and Logging.
+released [MUST] live. At this time (prior to 1.0) that means Metrics and Logging.
 
 This package will always be 0.x because it is never stable and modules will be
 removed when they are moved to the stable API package.
+
+[MUST]: https://tools.ietf.org/html/rfc2119#section-1
 
 ### API (`opentelemetry_api`)
 
