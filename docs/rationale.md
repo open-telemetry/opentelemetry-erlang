@@ -1,7 +1,9 @@
 Rationale
 ---
 
-When creating a library, often times designs and decisions are made that get lost over time. This document tries to collect information on design decisions to answer common questions that may come up when you explore.
+When creating a library, often times designs and decisions are made that get
+lost over time. This document tries to collect information on design decisions
+to answer common questions that may come up when you explore.
 
 # Versioning and Releasing
 
