@@ -5,11 +5,15 @@ When creating a library, often times designs and decisions are made that get los
 
 # Versioning and Releasing
 
-The OTP Applications and OpenTelemetry Spec itself use semver v2.
+OTP Applications and the [OpenTelemetry Spec] itself use [semver v2].
 
-In this document references to OTP concepts is done by capitalizing the word
+In this document references to [OTP] concepts is done by capitalizing the word
 (for example Application and Release) while the generic term (like release) is
 lowercase).
+
+[OTP]: http://erlang.org/doc/system_architecture_intro/sys_arch_intro.html
+[OpenTelemetry Spec]: https://github.com/open-telemetry/opentelemetry-specification
+[semver v2]: https://semver.org/spec/v2.0.0.html 
 
 ## Module Prefix
 
