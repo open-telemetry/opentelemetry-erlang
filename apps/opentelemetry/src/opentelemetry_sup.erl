@@ -33,9 +33,12 @@ init([Opts]) ->
                  intensity => 1,
                  period => 5},
 
+    Detectors = proplists:get_value(detectors, Opts, []),
+    Resource = otel_resource:run_detectors(Detectors),
+
     %% configuration server
     TracerServer = #{id => otel_tracer_server,
-                     start => {otel_tracer_provider, start_link, [otel_tracer_server, Opts]},
+                     start => {otel_tracer_provider, start_link, [otel_tracer_server, Resource, Opts]},
                      restart => permanent,
                      shutdown => 5000,
                      type => worker,

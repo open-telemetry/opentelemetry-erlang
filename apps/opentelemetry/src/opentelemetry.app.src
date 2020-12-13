@@ -16,6 +16,9 @@
          %% list of disabled tracers
          {deny_list, []},
 
+         {detectors, [otel_resource_env_var,
+                      otel_resource_app_env]},
+
          %% list of span processors
          {processors, [%% #{id => my_processor,
                        %%   module => otel_batch_processor,
