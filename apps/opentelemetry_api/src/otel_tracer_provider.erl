@@ -19,7 +19,7 @@
 
 -behaviour(gen_server).
 
--export([start_link/3,
+-export([start_link/2,
          resource/0,
          register_application_tracer/1,
          register_tracer/2]).
@@ -31,15 +31,15 @@
 
 -type cb_state() :: term().
 
--callback init(otel_resource:t(), term()) -> {ok, cb_state()}.
+-callback init(term()) -> {ok, cb_state()}.
 -callback register_tracer(atom(), string(), cb_state()) -> boolean().
 -callback resource(cb_state()) -> term() | undefined.
 
 -record(state, {callback :: module(),
                 cb_state :: term()}).
 
-start_link(ProviderModule, Resource, Opts) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [ProviderModule, Resource, Opts], []).
+start_link(ProviderModule, Opts) ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [ProviderModule, Opts], []).
 
 -spec resource() -> term() | undefined.
 resource() ->
@@ -70,8 +70,8 @@ register_application_tracer(Name) ->
             false
     end.
 
-init([ProviderModule, Resource, Opts]) ->
-    case ProviderModule:init(Resource, Opts) of
+init([ProviderModule, Opts]) ->
+    case ProviderModule:init(Opts) of
         {ok, CbState} ->
             {ok, #state{callback=ProviderModule,
                         cb_state=CbState}};

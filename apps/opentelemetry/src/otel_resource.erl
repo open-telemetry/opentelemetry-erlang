@@ -20,7 +20,6 @@
 
 -export([create/1,
          merge/2,
-         run_detectors/1,
          attributes/1]).
 
 -type key() :: io_lib:latin1_string().
@@ -55,17 +54,6 @@ attributes({otel_resource, Resource}) ->
 -spec merge(t(), t()) -> t().
 merge({otel_resource, CurrentResource}, {otel_resource, OtherResource}) ->
     {otel_resource, lists:ukeymerge(1, CurrentResource, OtherResource)}.
-
-
--spec run_detectors(list()) -> t().
-run_detectors(Detectors) ->
-    lists:foldl(fun({Module, Config}, Resource) ->
-                        NewResource = Module:get_resource(Config),
-                        otel_resource:merge(Resource, NewResource);
-                   (Module, Resource) ->
-                        NewResource = Module:get_resource([]),
-                        otel_resource:merge(Resource, NewResource)
-                end, create([]), Detectors).
 
 %%
 

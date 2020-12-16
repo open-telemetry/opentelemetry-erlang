@@ -19,7 +19,7 @@
 
 -behaviour(otel_tracer_provider).
 
--export([init/2,
+-export([init/1,
          register_tracer/4,
          register_tracer/3,
          resource/1,
@@ -51,7 +51,9 @@
          telemetry_library :: telemetry_library()
         }).
 
-init(Resource, Opts) ->
+init(Opts) ->
+    Resource = otel_resource_detector:get_resource(),
+
     {Sampler, SamplerOpts} = proplists:get_value(sampler, Opts, {parent_based, #{root => {always_on, #{}}}}),
     SamplerFun = otel_sampler:setup(Sampler, SamplerOpts),
     Processors = proplists:get_value(processors, Opts, []),

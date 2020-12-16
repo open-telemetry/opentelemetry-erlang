@@ -13,7 +13,7 @@
 %% TODO: negative testing. What a valid value is is still in flux so nothing bothering
 %% to write tests to limit what can be a value only have them become valid values.
 all() ->
-    [startup, os_env_resource, app_env_resource, combining].
+    [startup, os_env_resource, app_env_resource, combining, crash_detector, timeout_detector].
 
 startup(_Config) ->
     os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=1.1.1"),
@@ -28,6 +28,44 @@ startup(_Config) ->
 
     ?assertMatch({otel_resource, [{<<"service.name">>, <<"cttest">>},
                                 {<<"service.version">>, <<"1.1.1">>}]}, Tracer#tracer.resource),
+    ok.
+
+crash_detector(_Config) ->
+    application:load(opentelemetry),
+    application:set_env(opentelemetry, resource, #{<<"c">> => <<"d">>}),
+    os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=2.1.1"),
+
+    otel_resource_detector:start_link([{resource_detectors, [otel_resource_env_var,
+                                                             {otel_resource_detector_test, error},
+                                                             otel_resource_app_env]},
+                                       {resource_detectors_timeout, 100}]),
+
+    {_, ResourceList} = otel_resource_detector:get_resource(),
+
+    ?assertListsMatch([{<<"service.name">>, <<"cttest">>},
+                       {<<"service.version">>, <<"2.1.1">>},
+                       {<<"c">>, <<"d">>}], ResourceList),
+
+    ok.
+
+timeout_detector(_Config) ->
+    application:load(opentelemetry),
+    application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
+    os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=3.1.1"),
+
+    otel_resource_detector:start_link([{resource_detectors, [otel_resource_env_var,
+                                                             {otel_resource_detector_test, sleep},
+                                                             otel_resource_app_env]},
+                                       {resource_detectors_timeout, 100}]),
+
+    {_, ResourceList} = otel_resource_detector:get_resource(),
+
+    ?assertListsMatch([{<<"service.name">>, <<"cttest">>},
+                       {<<"service.version">>, <<"3.1.1">>},
+                       {<<"e">>, <<"f">>}], ResourceList),
+
+    {_, []} = otel_resource_detector:get_resource(0),
+
     ok.
 
 os_env_resource(_Config) ->
