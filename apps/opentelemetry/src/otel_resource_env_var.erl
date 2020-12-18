@@ -18,14 +18,16 @@
 %%%-----------------------------------------------------------------------
 -module(otel_resource_env_var).
 
--export([get_resource/0,
+-behaviour(otel_resource_detector).
+
+-export([get_resource/1,
          parse/1]).
 
 -define(OS_ENV, "OTEL_RESOURCE_ATTRIBUTES").
 -define(LABEL_LIST_SPLITTER, ",").
 -define(LABEL_KEY_VALUE_SPLITTER, "=").
 
-get_resource() ->
+get_resource(_Config) ->
     otel_resource:create(parse(os:getenv(?OS_ENV))).
 
 %%
