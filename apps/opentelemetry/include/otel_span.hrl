@@ -42,8 +42,8 @@
           name                    :: unicode:unicode_binary() | atom(),
 
           %% Distinguishes between spans generated in a particular context. For example,
-          %% two spans with the same name may be distinguished using `CLIENT` (caller)
-          %% and `SERVER` (callee) to identify queueing latency associated with the span.status
+          %% two spans with the same name may be distinguished using `client` (caller)
+          %% and `server` (callee) to identify queueing latency associated with the span.status
           kind                    :: opentelemetry:span_kind() | undefined,
 
           start_time              :: opentelemetry:timestamp(),
