@@ -52,16 +52,12 @@
         }).
 
 init(Opts) ->
+    Resource = otel_resource_detector:get_resource(),
+
     {Sampler, SamplerOpts} = proplists:get_value(sampler, Opts, {parent_based, #{root => {always_on, #{}}}}),
     SamplerFun = otel_sampler:setup(Sampler, SamplerOpts),
     Processors = proplists:get_value(processors, Opts, []),
     DenyList = proplists:get_value(deny_list, Opts, []),
-
-    OSVarResource = otel_resource_env_var:get_resource(),
-    AppEnvResource = otel_resource_app_env:get_resource(),
-
-    %% merge the resource attributes with the OS env taking precedence
-    Resource = otel_resource:merge(OSVarResource, AppEnvResource),
 
     {ok, LibraryVsn} = application:get_key(opentelemetry, vsn),
     LibraryName = <<"opentelemetry">>,

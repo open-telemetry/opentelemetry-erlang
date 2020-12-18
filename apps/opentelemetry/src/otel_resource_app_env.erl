@@ -23,10 +23,12 @@
 %%%-----------------------------------------------------------------------
 -module(otel_resource_app_env).
 
--export([get_resource/0,
+-behaviour(otel_resource_detector).
+
+-export([get_resource/1,
          parse/1]).
 
-get_resource() ->
+get_resource(_Config) ->
     Attributes = parse(application:get_env(opentelemetry, resource, #{})),
     otel_resource:create(Attributes).
 

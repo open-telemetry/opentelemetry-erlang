@@ -33,6 +33,13 @@ init([Opts]) ->
                  intensity => 1,
                  period => 5},
 
+    Detectors =  #{id => otel_resource_detector,
+                   start => {otel_resource_detector, start_link, [Opts]},
+                   restart => permanent,
+                   shutdown => 5000,
+                   type => worker,
+                   modules => [otel_resource_detector]},
+
     %% configuration server
     TracerServer = #{id => otel_tracer_server,
                      start => {otel_tracer_provider, start_link, [otel_tracer_server, Opts]},
@@ -68,6 +75,6 @@ init([Opts]) ->
     %% `TracerServer' *must* start before the `BatchProcessor'
     %% `BatchProcessor' relies on getting the `Resource' from
     %% the `TracerServer' process
-    ChildSpecs = [MetricSup, TracerServer, BatchProcessor, SpanSup],
+    ChildSpecs = [Detectors, MetricSup, TracerServer, BatchProcessor, SpanSup],
 
     {ok, {SupFlags, ChildSpecs}}.
