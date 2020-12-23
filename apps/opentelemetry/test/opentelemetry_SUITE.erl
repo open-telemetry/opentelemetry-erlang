@@ -470,7 +470,7 @@ record_exception_works(Config) ->
             [Event] = Span#span.events,
             ?assertEqual(<<"exception">>, Event#event.name),
             ?assertEqual([{<<"exception.type">>, <<"throw:my_error">>},
-                          {<<"exception.stacktrace">>, list_to_binary(io_lib:format("~p", [Stacktrace]))},
+                          {<<"exception.stacktrace">>, list_to_binary(io_lib:format("~p", [Stacktrace], [{chars_limit, 50}]))},
                           {"some-attribute","value"}],
                          Event#event.attributes),
             ok
@@ -490,7 +490,7 @@ record_exception_with_message_works(Config) ->
             [Event] = Span#span.events,
             ?assertEqual(<<"exception">>, Event#event.name),
             ?assertEqual([{<<"exception.type">>, <<"throw:my_error">>},
-                          {<<"exception.stacktrace">>, list_to_binary(io_lib:format("~p", [Stacktrace]))},
+                          {<<"exception.stacktrace">>, list_to_binary(io_lib:format("~p", [Stacktrace], [{chars_limit, 50}]))},
                           {<<"exception.message">>, "My message"},
                           {"some-attribute","value"}],
                          Event#event.attributes),

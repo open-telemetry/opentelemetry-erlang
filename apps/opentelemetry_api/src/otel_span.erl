@@ -114,8 +114,8 @@ add_events(_, _) ->
       Stacktrace :: list(any()),
       Attributes :: opentelemetry:attributes().
 record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) ->
-    ExceptionAttributes = [{<<"exception.type">>, iolist_to_binary(io_lib:format("~p:~p", [Class, Term]))},
-                           {<<"exception.stacktrace">>, iolist_to_binary(io_lib:format("~p", [Stacktrace]))}],
+    ExceptionAttributes = [{<<"exception.type">>, iolist_to_binary(io_lib:format("~p:~p", [Class, Term], [{chars_limit, 50}]))},
+                           {<<"exception.stacktrace">>, iolist_to_binary(io_lib:format("~p", [Stacktrace], [{chars_limit, 50}]))}],
     add_event(SpanCtx, <<"exception">>, ExceptionAttributes ++ Attributes).
 
 -spec record_exception(SpanCtx, Class, Term,  Message, Stacktrace, Attributes) -> boolean() when
@@ -126,8 +126,8 @@ record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) ->
       Stacktrace :: list(any()),
       Attributes :: opentelemetry:attributes().
 record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) ->
-    ExceptionAttributes = [{<<"exception.type">>, iolist_to_binary(io_lib:format("~p:~p", [Class, Term]))},
-                           {<<"exception.stacktrace">>, iolist_to_binary(io_lib:format("~p", [Stacktrace]))},
+    ExceptionAttributes = [{<<"exception.type">>, iolist_to_binary(io_lib:format("~p:~p", [Class, Term], [{chars_limit, 50}]))},
+                           {<<"exception.stacktrace">>, iolist_to_binary(io_lib:format("~p", [Stacktrace], [{chars_limit, 50}]))},
                            {<<"exception.message">>, Message}],
     add_event(SpanCtx, <<"exception">>, ExceptionAttributes ++ Attributes).
 
