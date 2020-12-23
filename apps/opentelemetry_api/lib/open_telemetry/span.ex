@@ -95,6 +95,12 @@ defmodule OpenTelemetry.Span do
   @spec add_events(OpenTelemetry.span_ctx(), [OpenTelemetry.event()]) :: boolean()
   defdelegate add_events(span_ctx, events), to: :otel_span
 
+  defguardp is_exception?(term)
+            when is_map(term) and :erlang.is_map_key(:__struct__, term) and
+                   is_atom(:erlang.map_get(:__struct__, term)) and
+                   :erlang.is_map_key(:__exception__, term) and
+                   :erlang.map_get(:__exception__, term) == true
+
   @doc """
   Record an exception as an event, following the semantics convetions for exceptions.
 
@@ -103,7 +109,7 @@ defmodule OpenTelemetry.Span do
   @spec record_exception(OpenTelemetry.span_ctx(), Exception.t()) :: boolean()
   def record_exception(span_ctx, exception, trace \\ nil, attributes \\ [])
 
-  def record_exception(span_ctx, exception, trace, attributes) when is_exception(exception) do
+  def record_exception(span_ctx, exception, trace, attributes) when is_exception?(exception) do
     exception_type = to_string(exception.__struct__)
 
     exception_attributes = [
