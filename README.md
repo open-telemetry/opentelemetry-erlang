@@ -129,4 +129,4 @@ Approvers:
 Maintainers:
 - [Łukasz Jan Niemier](https://github.com/hauleth), Remote Technology, Inc.
 - [Ilya Khaprov](https://github.com/deadtrickster), KOBIL Systems
-- [Tristan Sloughter](https://github.com/tsloughter), Postmates Inc.
+- [Tristan Sloughter](https://github.com/tsloughter)
