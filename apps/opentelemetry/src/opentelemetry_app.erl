@@ -24,7 +24,8 @@
          stop/1]).
 
 start(_StartType, _StartArgs) ->
-    Opts = application:get_all_env(opentelemetry),
+    Opts = otel_configuration:merge_with_os(
+             application:get_all_env(opentelemetry)),
 
     %% set the global propagators for HTTP based on the application env
     setup_text_map_propagators(Opts),

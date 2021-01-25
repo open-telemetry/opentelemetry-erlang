@@ -19,7 +19,7 @@
 %%%-------------------------------------------------------------------------
 -module(otel_sampler).
 
--export([setup/2,
+-export([setup/1,
          get_description/1,
          always_on/7,
          always_off/7,
@@ -50,7 +50,12 @@
 
 -define(MAX_VALUE, 9223372036854775807). %% 2^63 - 1
 
--spec setup(atom() | module(), map()) -> t().
+-spec setup(atom() | {atom() | module(), term()}) -> t().
+setup({Sampler, Opts}) ->
+    setup(Sampler, Opts);
+setup(Sampler) when is_atom(Sampler) ->
+    setup(Sampler, #{}).
+
 setup(always_on, Opts) ->
     {fun ?MODULE:always_on/7, description(always_on, Opts), []};
 setup(always_off, Opts) ->
