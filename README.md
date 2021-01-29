@@ -124,7 +124,7 @@ $ python3 test.py http://127.0.0.1:5000/test
 ## Contributing
 
 Approvers:
-- [Fred Hebert](https://github.com/ferd), Postmates Inc.
+- [Fred Hebert](https://github.com/ferd), Honeycomb
 
 Maintainers:
 - [Łukasz Jan Niemier](https://github.com/hauleth), Remote Technology, Inc.
