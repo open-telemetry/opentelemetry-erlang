@@ -116,7 +116,7 @@ defmodule OpenTelemetry do
   @type status() :: :opentelemetry.status()
 
   @doc """
-  Registering a [Named Tracer](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/api-tracing.md#obtaining-a-tracer) with the name of an OTP Application enables each module in
+  Registering a [Named Tracer](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/api-tracing.md#obtaining-a-tracer) with the name of an OTP Application enables each module in
   the Application to be mapped to the Named Tracer, named for the Application and using the
   version of the currently loaded Application by that name.
 

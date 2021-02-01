@@ -40,9 +40,9 @@ Applications can be used.
 
 ``` erlang
 {opentelemetry_api, {git_subdir,
-"http://github.com/open-telemetry/opentelemetry-erlang", {branch, "master"}, "apps/opentelemetry_api"}}
+"http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry_api"}}
 {opentelemetry, {git_subdir,
-"http://github.com/open-telemetry/opentelemetry-erlang", {branch, "master"}, "apps/opentelemetry"}}
+"http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry"}}
 ```
 
 ``` elixir
