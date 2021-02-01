@@ -71,6 +71,96 @@ defmodule OtelTests do
                     )}
   end
 
+  test "create child Span in Task" do
+    :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
+    OpenTelemetry.register_tracer(:test_tracer, "0.1.0")
+
+    # create the parent span
+    parent = Tracer.start_span("parent")
+    # make a new context with it as the active span
+    ctx = Tracer.set_current_span(Ctx.new(), parent)
+    # attach this context (put it in the process dictionary)
+    prev_ctx = Ctx.attach(ctx)
+
+    # start the child and set it to current in an unattached context
+    child = Tracer.start_span("child")
+    ctx = Tracer.set_current_span(ctx, SpanCtx)
+
+    task =
+      Task.async(fn ->
+        # attach the context with the child span active to this process
+        Ctx.attach(ctx)
+        Span.end_span(child)
+        :hello
+      end)
+
+    ret = Task.await(task)
+    assert :hello = ret
+
+    span_ctx(span_id: parent_span_id) = Span.end_span(parent)
+
+    assert_receive {:span,
+                    span(
+                      name: "child",
+                      parent_span_id: ^parent_span_id
+                    )}
+
+    assert span_ctx() = Span.end_span(parent)
+    Ctx.detach(prev_ctx)
+    assert :undefined = Tracer.current_span_ctx()
+
+    assert_receive {:span,
+                    span(
+                      name: "parent",
+                      parent_span_id: :undefined
+                    )}
+  end
+
+  test "create Span with Link to outer Span in Task" do
+    :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
+    OpenTelemetry.register_tracer(:test_tracer, "0.1.0")
+
+    parent_ctx = Ctx.new()
+
+    # create the parent span
+    parent = Tracer.start_span("parent")
+    # make a new context with it as the active span
+    ctx = Tracer.set_current_span(parent_ctx, parent)
+    # attach this context (put it in the process dictionary)
+    prev_ctx = Ctx.attach(ctx)
+
+    task =
+      Task.async(fn ->
+        # new process has a new context so this span will have no parent
+        parent_link = OpenTelemetry.link(parent)
+        assert parent_link != :undefined
+
+        Tracer.with_span "child", %{links: [parent_link]} do
+          :hello
+        end
+      end)
+
+    ret = Task.await(task)
+    assert :hello = ret
+
+    assert_receive {:span,
+                    span(
+                      name: "child",
+                      parent_span_id: :undefined,
+                      links: [_]
+                    )}
+
+    assert span_ctx() = Span.end_span(parent)
+    Ctx.detach(prev_ctx)
+    assert :undefined = Tracer.current_span_ctx()
+
+    assert_receive {:span,
+                    span(
+                      name: "parent",
+                      parent_span_id: :undefined
+                    )}
+  end
+
   test "use explicit Context for parent of started Span" do
     :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
 
