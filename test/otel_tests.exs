@@ -80,14 +80,14 @@ defmodule OtelTests do
     # make a new context with it as the active span
     ctx = Tracer.set_current_span(Ctx.new(), parent)
     # attach this context (put it in the process dictionary)
-    Ctx.attach(ctx)
+    prev_ctx = Ctx.attach(ctx)
 
     # start the child and set it to current in an unattached context
     child = Tracer.start_span("child")
     ctx = Tracer.set_current_span(ctx, SpanCtx)
 
-    task = Task.async(
-      fn ->
+    task =
+      Task.async(fn ->
         # attach the context with the child span active to this process
         Ctx.attach(ctx)
         Span.end_span(child)
@@ -106,6 +106,8 @@ defmodule OtelTests do
                     )}
 
     assert span_ctx() = Span.end_span(parent)
+    Ctx.detach(prev_ctx)
+    assert :undefined = Tracer.current_span_ctx()
 
     assert_receive {:span,
                     span(
@@ -125,13 +127,14 @@ defmodule OtelTests do
     # make a new context with it as the active span
     ctx = Tracer.set_current_span(parent_ctx, parent)
     # attach this context (put it in the process dictionary)
-    Ctx.attach(ctx)
+    prev_ctx = Ctx.attach(ctx)
 
-    task = Task.async(
-      fn ->
+    task =
+      Task.async(fn ->
         # new process has a new context so this span will have no parent
         parent_link = OpenTelemetry.link(parent)
         assert parent_link != :undefined
+
         Tracer.with_span "child", %{links: [parent_link]} do
           :hello
         end
@@ -148,6 +151,8 @@ defmodule OtelTests do
                     )}
 
     assert span_ctx() = Span.end_span(parent)
+    Ctx.detach(prev_ctx)
+    assert :undefined = Tracer.current_span_ctx()
 
     assert_receive {:span,
                     span(
