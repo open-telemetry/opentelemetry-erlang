@@ -104,6 +104,14 @@ defmodule OtelTests do
                       name: "child",
                       parent_span_id: ^parent_span_id
                     )}
+
+    assert span_ctx() = Span.end_span(parent)
+
+    assert_receive {:span,
+                    span(
+                      name: "parent",
+                      parent_span_id: :undefined
+                    )}
   end
 
   test "create Span with Link to outer Span in Task" do
@@ -137,6 +145,14 @@ defmodule OtelTests do
                       name: "child",
                       parent_span_id: :undefined,
                       links: [_]
+                    )}
+
+    assert span_ctx() = Span.end_span(parent)
+
+    assert_receive {:span,
+                    span(
+                      name: "parent",
+                      parent_span_id: :undefined
                     )}
   end
 
