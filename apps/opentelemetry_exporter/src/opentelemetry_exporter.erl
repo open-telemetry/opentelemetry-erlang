@@ -219,7 +219,7 @@ to_links([#link{trace_id=TraceId,
                 tracestate=TraceState} | Rest], Acc) ->
     to_links(Rest, [#{trace_id => <<TraceId:128>>,
                       span_id => <<SpanId:64>>,
-                      trace_state => TraceState,
+                      trace_state => to_tracestate_string(TraceState),
                       attributes => to_attributes(Attributes),
                       dropped_attributes_count => 0} | Acc]).
 
