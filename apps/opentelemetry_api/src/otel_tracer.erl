@@ -68,7 +68,7 @@ start_span(Ctx, Tracer={Module, _}, Name, Opts) ->
 with_span(Tracer={Module, _}, SpanName, Opts, Fun) when is_atom(Module) ->
     Module:with_span(otel_ctx:get_current(), Tracer, SpanName, Opts, Fun).
 
--spec with_span(otel_ctx:t(), opentelemetry:tracer(), otel_span:start_opts(), opentelemetry:span_name(), traced_fun(T)) -> T.
+-spec with_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts(), traced_fun(T)) -> T.
 with_span(Ctx, Tracer={Module, _}, SpanName, Opts, Fun) when is_atom(Module) ->
     Module:with_span(Ctx, Tracer, SpanName, Opts, Fun).
 
