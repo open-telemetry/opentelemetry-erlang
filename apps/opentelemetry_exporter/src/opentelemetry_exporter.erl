@@ -24,11 +24,19 @@ init(Opts) ->
         grpc ->
             Endpoints = maps:get(endpoints, Opts, ?DEFAULT_ENDPOINTS),
             ChannelOpts = maps:get(channel_opts, Opts, #{}),
-            {ok, ChannelPid} = grpcbox_channel:start_link(?MODULE, Endpoints, ChannelOpts),
-
-            {ok, #state{channel_pid=ChannelPid,
-                        endpoints=Endpoints,
-                        protocol=grpc}};
+            case grpcbox_channel:start_link(?MODULE, Endpoints, ChannelOpts) of
+                {ok, ChannelPid} ->
+                    {ok, #state{channel_pid=ChannelPid,
+                                endpoints=Endpoints,
+                                protocol=grpc}};
+                ErrorOrIgnore ->
+                    %% even if it is `ignore' we should just use `http_protobuf' because
+                    %% `ignore' should never happen and means something is wrong
+                    ?LOG_WARNING("unable to start grpc channel for exporting and falling back "
+                                 "to http_protobuf protocol. reason=~p", [ErrorOrIgnore]),
+                    {ok, #state{endpoints=Endpoints,
+                                protocol=http_protobuf}}
+            end;
         http_protobuf ->
             {ok, #state{endpoints=Endpoints,
                         protocol=http_protobuf}};
