@@ -9,9 +9,9 @@ to answer common questions that may come up when you explore.
 
 [OTP] Applications and the [OpenTelemetry Spec] itself use [semver v2].
 
-In this document references to [OTP] concepts is done by capitalizing the word
+In this document, references to OTP concepts are distinguished by capitalizing the word
 (for example Application and Release) while the generic term (like release) is
-lowercase).
+lowercase.
 
 [OTP]: http://erlang.org/doc/system_architecture_intro/sys_arch_intro.html
 [OpenTelemetry Spec]: https://github.com/open-telemetry/opentelemetry-specification
@@ -21,8 +21,8 @@ lowercase).
 
 The module prefix for all modules in any of these core Applications is
 `otel`. This means modules can move between Applications without their name
-changing and because of Erlang's flat namespace there is no code to change for a
-user when a stable API graduates from experimental to stable, if the user was
+changing. Because of Erlang's flat namespace, there is no code for a user to change
+when an API graduates from experimental to stable, if the user was
 using the latest version of the experimental API.
 
 This also allows flexibility for modules that might be in the SDK but are found
@@ -37,19 +37,20 @@ The experimental package is where any API that is not stable when 1.0 is
 released [MUST] live. At this time (prior to 1.0) that means Metrics and Logging.
 
 This package will always be 0.x because it is never stable and modules will be
-removed when they are moved to the stable API package.
-
+removed when they are moved to the stable API package. Breaking changes,
+as well as non-trivial additions, to the experimental API will only result in a
+minor version bump.
 [MUST]: https://tools.ietf.org/html/rfc2119#section-1
 
 ### API (`opentelemetry_api`)
 
-The API package is the stable API package that we must provide semver defined
-backwards compatibility once a major (1.0) release is made. When an API becomes
-stable its modules are moved from `opentelemetry_api_experimental` to
+The API package must provide semver-defined backwards-compatibility
+once a major version (e.g. 1.0.0) is released. When a particular part of the API
+becomes stable, its modules are moved from `opentelemetry_api_experimental` to
 `opentelemetry_api` and a new minor release of both is published.
 
-At the time of 1.0 the following APIs will live in the `opentelemetry_api`
-package:
+At the release of version 1.0, the following signal APIs will be included
+in `opentelemetry_api`:
 
 * Tracing
 * Baggage
@@ -58,14 +59,12 @@ package:
 ### Experimental SDK (`opentelemetry_sdk_experimental`)
 
 The experimental SDK contains the implementations for the APIs in the
-experimental API of the same version.
-
+experimental API of the same minor version. For example, there may be
+multiple patch-level releases (`v0.3.2`, `v0.3.3`) of the experimental
+SDK for each minor version of the experimental API (`v0.3.0`).
 Any setup for signals contained in the experimental SDK must be done on startup
-of the experimental SDK -- for example, setting the default Meter would be done
+of the experimental SDK. For example, setting the default Meter would be done
 in `start/2` of `opentelemetry_sdk_experimental`.
-
-This Application is versioned in lockstep with the experimental API and will
-never go above 0.x.
 
 ### SDK (`opentelemetry`)
 
@@ -75,7 +74,7 @@ implementation, the default implementation.
 
 A goal is that the latest SDK can always be used with any version of the API, so
 that a user can always pull the latest implementation into their final Release
-to run with any API that was used in instrumented Applications within the
+to run with any API versions that were used in instrumented Applications within the
 Release.
 
 ### OTLP Exporter (`opentelemetry_exporter`)
@@ -86,7 +85,7 @@ Exporter implementations are tied to the SDK's public API.
 
 ### Experimental API
 
-As noted in the previous section `opentelemetry_api_experimental` is versioned
+As noted in the previous section, `opentelemetry_api_experimental` is versioned
 separately from the rest and will always remain 0.x.
 
 ### API
@@ -95,7 +94,7 @@ Additions to the API are released with minor version bumps.
 
 ### Experimental SDK
 
-As noted in the previous section `opentelemetry_sdk_experimental` is versioned
+As noted in the previous section, `opentelemetry_sdk_experimental` is versioned
 separately from the rest, but in lockstep with `opentelemetry_api_experimental`,
 and will always remain 0.x.
 
@@ -117,7 +116,7 @@ Deprecated functions must be marked with `-deprecated` in the module so that
 
 A major version bump is required to remove a signal or module.
 
-For the unlikely example from deprecation this step would mean removal of the
+In the unlikely example mentioned in the Deprecation section, this step would mean removal of the
 original module (`otel_trace`) and a major version bump release.
 
 ## Examples
@@ -128,10 +127,14 @@ Purely for illustration purposes, not intended to represent actual releases:
    - `opentelemetry_api` 1.0.0
      - Contains APIs for tracing, baggage, propagators
    - `opentelemetry_api_experimental` 0.2.0
+     - Contains APIs for metrics
    - `opentelemetry_sdk` 1.0.0
    - `opentelemetry_sdk_experimental` 0.2.0
 - v1.15.0 release (with metrics)
    - `opentelemetry_api` 1.15.0
      - Contains APIs for tracing, baggage, propagators, metrics
+   - `opentelemetry_api_experimental` 0.42.0
+     - No longer contains APIs for metrics
    - `opentelemetry_sdk` 1.15.0
+   - `opentelemetry_sdk_experimental` 0.42.0
    
