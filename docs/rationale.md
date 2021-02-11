@@ -7,7 +7,7 @@ to answer common questions that may come up when you explore.
 
 # Versioning and Releasing
 
-OTP Applications and the [OpenTelemetry Spec] itself use [semver v2].
+[OTP] Applications and the [OpenTelemetry Spec] itself use [semver v2].
 
 In this document references to [OTP] concepts is done by capitalizing the word
 (for example Application and Release) while the generic term (like release) is
