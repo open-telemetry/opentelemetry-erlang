@@ -8,8 +8,12 @@ defmodule OtelTests do
   require Record
   @fields Record.extract(:span, from_lib: "opentelemetry/include/otel_span.hrl")
   Record.defrecordp(:span, @fields)
+
   @fields Record.extract(:span_ctx, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
   Record.defrecordp(:span_ctx, @fields)
+
+  @event_fields Record.extract(:event, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
+  Record.defrecordp(:event, @event_fields)
 
   test "use Tracer to set current active Span's attributes" do
     :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
@@ -199,5 +203,41 @@ defmodule OtelTests do
                       name: "span-3",
                       parent_span_id: :undefined
                     )}
+  end
+
+  test "Span.record_exception/4 should return false if passed an invalid exception" do
+    Tracer.with_span "span-3" do
+      refute OpenTelemetry.Span.record_exception(Tracer.current_span_ctx(), :not_an_exception)
+    end
+  end
+
+  test "Span.record_exception/4 should add an exception event to the span" do
+    :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
+    s = Tracer.start_span("span-4")
+
+    try do
+      raise RuntimeError, "my error message"
+    rescue
+      ex ->
+        assert Span.record_exception(s, ex, __STACKTRACE__)
+        assert Span.end_span(s)
+
+        stacktrace = Exception.format_stacktrace(__STACKTRACE__)
+
+        assert_receive {:span,
+                        span(
+                          name: "span-4",
+                          events: [
+                            event(
+                              name: "exception",
+                              attributes: [
+                                {"exception.type", "Elixir.RuntimeError"},
+                                {"exception.message", "my error message"},
+                                {"exception.stacktrace", ^stacktrace}
+                              ]
+                            )
+                          ]
+                        )}
+    end
   end
 end
