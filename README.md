@@ -40,9 +40,9 @@ Applications can be used.
 
 ``` erlang
 {opentelemetry_api, {git_subdir,
-"http://github.com/open-telemetry/opentelemetry-erlang", {branch, "master"}, "apps/opentelemetry_api"}}
+"http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry_api"}}
 {opentelemetry, {git_subdir,
-"http://github.com/open-telemetry/opentelemetry-erlang", {branch, "master"}, "apps/opentelemetry"}}
+"http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry"}}
 ```
 
 ``` elixir
@@ -124,9 +124,9 @@ $ python3 test.py http://127.0.0.1:5000/test
 ## Contributing
 
 Approvers:
-- [Fred Hebert](https://github.com/ferd), Postmates Inc.
+- [Fred Hebert](https://github.com/ferd), Honeycomb
 
 Maintainers:
-- [Łukasz Jan Niemier](https://github.com/hauleth),
+- [Łukasz Jan Niemier](https://github.com/hauleth), Remote Technology, Inc.
 - [Ilya Khaprov](https://github.com/deadtrickster), KOBIL Systems
-- [Tristan Sloughter](https://github.com/tsloughter), Postmates Inc.
+- [Tristan Sloughter](https://github.com/tsloughter)

@@ -28,11 +28,11 @@ end_per_testcase(_, _Config) ->
 
 get_description(_Config) ->
     Probability = 0.5,
-    Sampler = otel_sampler:setup(trace_id_ratio_based, Probability),
+    Sampler = otel_sampler:setup({trace_id_ratio_based, Probability}),
 
     ?assertEqual(<<"TraceIdRatioBased{0.500000}">>, otel_sampler:get_description(Sampler)),
 
-    ParentBasedSampler = otel_sampler:setup(parent_based, #{root => {trace_id_ratio_based, Probability}}),
+    ParentBasedSampler = otel_sampler:setup({parent_based, #{root => {trace_id_ratio_based, Probability}}}),
     ?assertEqual(<<"ParentBased{root:TraceIdRatioBased{0.500000},remoteParentSampled:AlwaysOnSampler,remoteParentNotSampled:AlwaysOffSampler,localParentSampled:AlwaysOnSampler,localParentNotSampled:AlwaysOffSampler}">>,
                  otel_sampler:get_description(ParentBasedSampler)),
 
@@ -47,7 +47,7 @@ trace_id_ratio_based(_Config) ->
     Ctx = otel_ctx:new(),
 
     %% sampler that runs on all spans
-    {Sampler, _, Opts} = otel_sampler:setup(trace_id_ratio_based, Probability),
+    {Sampler, _, Opts} = otel_sampler:setup({trace_id_ratio_based, Probability}),
 
     %% checks the trace id is under the upper bound
     ?assertMatch({?RECORD_AND_SAMPLE, [], []},
@@ -87,8 +87,8 @@ parent_based(_Config) ->
 
     Ctx = otel_ctx:new(),
 
-    {Sampler, _, Opts} = otel_sampler:setup(parent_based,
-                                            #{root => {trace_id_ratio_based, Probability}}),
+    {Sampler, _, Opts} = otel_sampler:setup({parent_based,
+                                             #{root => {trace_id_ratio_based, Probability}}}),
 
     %% with no parent it will run the probability sampler
     ?assertMatch({?RECORD_AND_SAMPLE, [], []},
@@ -109,7 +109,7 @@ parent_based(_Config) ->
                          DoNotSample, [], SpanName, undefined, [], Opts)),
 
     %% with no root sampler in setup opts the default sampler always_on is used
-    {DefaultParentOrElse, _, Opts1} = otel_sampler:setup(parent_based, #{}),
+    {DefaultParentOrElse, _, Opts1} = otel_sampler:setup({parent_based, #{}}),
 
     ?assertMatch({?RECORD_AND_SAMPLE, [], []},
                  DefaultParentOrElse(otel_tracer:set_current_span(Ctx,  undefined),
@@ -130,7 +130,7 @@ parent_based(_Config) ->
 
 custom_sampler_module(_Config) ->
     SpanName = <<"span-name">>,
-    {Sampler, _, Opts} = otel_sampler:setup(static_sampler, #{SpanName => ?DROP}),
+    {Sampler, _, Opts} = otel_sampler:setup({static_sampler, #{SpanName => ?DROP}}),
     ?assertMatch({?DROP, [], []},
                  Sampler(otel_ctx:new(), opentelemetry:generate_trace_id(), [],
                          SpanName, undefined, [], Opts)),
