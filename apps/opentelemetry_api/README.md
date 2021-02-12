@@ -25,7 +25,7 @@ Naming the `Tracers` provides additional metadata on spans and allows the user o
 ``` elixir
 def deps do
   [
-    {:opentelemetry_api, "~> 0.3.0"}
+    {:opentelemetry_api, "~> 0.6.0"}
   ]
 end
 ```
