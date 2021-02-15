@@ -82,11 +82,11 @@ non_recording_span(TraceId, SpanId, Traceflags) ->
               is_recording=false,
               trace_flags=Traceflags}.
 
--spec set_current_span(opentelemetry:span_ctx()) -> ok.
+-spec set_current_span(opentelemetry:span_ctx() | undefined) -> ok.
 set_current_span(SpanCtx) ->
     otel_ctx:set_value(?CURRENT_SPAN_CTX, SpanCtx).
 
--spec set_current_span(otel_ctx:t(), opentelemetry:span_ctx()) -> otel_ctx:t() | undefined.
+-spec set_current_span(otel_ctx:t(), opentelemetry:span_ctx() | undefined) -> otel_ctx:t() | undefined.
 set_current_span(Ctx, SpanCtx) ->
     otel_ctx:set_value(Ctx, ?CURRENT_SPAN_CTX, SpanCtx).
 
