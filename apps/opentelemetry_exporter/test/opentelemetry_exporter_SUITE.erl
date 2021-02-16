@@ -12,7 +12,7 @@ all() ->
     [{group, functional}, {group, http_protobuf}, {group, grpc}].
 
 groups() ->
-    [{functional, [], [span_round_trip, ets_instrumentation_info]},
+    [{functional, [], [configuration, span_round_trip, ets_instrumentation_info]},
      {grpc, [], [verify_export]},
      {http_protobuf, [], [verify_export]}].
 
@@ -27,6 +27,7 @@ init_per_group(Group, Config) when Group =:= grpc ;
     application:ensure_all_started(opentelemetry_exporter),
     [{protocol, Group}| Config];
 init_per_group(_, _) ->
+    application:load(opentelemetry_exporter),
     ok.
 
 end_per_group(Group, _Config) when Group =:= grpc ;
@@ -34,7 +35,47 @@ end_per_group(Group, _Config) when Group =:= grpc ;
     application:stop(opentelemetry_exporter),
     ok;
 end_per_group(_, _) ->
+    application:unload(opentelemetry_exporter),
     ok.
+
+configuration(_Config) ->
+    try
+        ?assertMatch(#{endpoints := [{http, "localhost", 9090, []}]},
+                     opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}]})),
+
+        application:set_env(opentelemetry_exporter, otlp_endpoint, "http://localhost:5353"),
+        ?assertMatch(#{endpoints := "http://localhost:5353"},
+                     opentelemetry_exporter:merge_with_environment(#{})),
+
+        application:set_env(opentelemetry_exporter, otlp_endpoint, "http://localhost:5353"),
+        ?assertMatch(#{endpoints := "http://localhost:5353"},
+                     opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}]})),
+
+        os:putenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4343"),
+        os:putenv("OTEL_EXPORTER_OTLP_HEADERS", "key1=value1"),
+        ?assertEqual(#{endpoints =>
+                           #{host => "localhost",path => [],port => 4343,
+                             scheme => "http"},
+                       headers => [{"key1", "value1"}]},
+                     opentelemetry_exporter:merge_with_environment(#{endpoints => []})),
+
+        %% TRACES_ENDPOINT takes precedence
+        os:putenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://localhost:5353"),
+        os:putenv("OTEL_EXPORTER_OTLP_TRACES_HEADERS", "key2=value2"),
+        ?assertEqual(#{endpoints =>
+                           #{host => "localhost",path => [],port => 5353,
+                             scheme => "http"},
+                       headers => [{"key2", "value2"}]},
+                     opentelemetry_exporter:merge_with_environment(#{endpoints => []})),
+
+
+        ok
+    after
+        os:unsetenv("OTEL_EXPORTER_OTLP_ENDPOINT"),
+        os:unsetenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"),
+        os:unsetenv("OTEL_EXPORTER_OTLP_HEADERS"),
+        os:unsetenv("OTEL_EXPORTER_OTLP_TRACES_HEADERS")
+    end.
 
 ets_instrumentation_info(_Config) ->
     Tid = ets:new(span_tab, [duplicate_bag, {keypos, #span.instrumentation_library}]),

@@ -1,12 +1,49 @@
+%%%------------------------------------------------------------------------
+%% Copyright 2021, OpenTelemetry Authors
+%% Licensed under the Apache License, Version 2.0 (the "License");
+%% you may not use this file except in compliance with the License.
+%% You may obtain a copy of the License at
+%%
+%% http://www.apache.org/licenses/LICENSE-2.0
+%%
+%% Unless required by applicable law or agreed to in writing, software
+%% distributed under the License is distributed on an "AS IS" BASIS,
+%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+%% See the License for the specific language governing permissions and
+%% limitations under the License.
+%%
+%% @doc This is the module providing the OpenTelemetry protocol for
+%% exporting traces. It can be configured through its application
+%% environment, the OS environment or directly through a map of options
+%% passed when setting up the exporter in the batch processor.
+%%
+%% `opentelemetry_exporter' application enevironment options are:
+%%
+%% * `otlp_endpoint': The URL to send traces and metrics to.
+%% * `otlp_traces_endpoint': URL to send only traces to. This takes precedence.
+%% * `otlp_headers': Additional headers to add to export requests.
+%% * `otlp_traces_headers': Additional headers to add to only trace export requests.
+%%
+%% There also corresponding OS environment variables can also set those
+%% configuration values:
+%%
+%% * `OTEL_EXPORTER_OTLP_ENDPOINT'
+%% * `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT'
+%% * `OTEL_EXPORTER_OTLP_HEADERS'
+%% * `OTEL_EXPORTER_OTLP_TRACES_HEADERS'
+%%
+%% @end
+%%%-------------------------------------------------------------------------
 -module(opentelemetry_exporter).
 
 -export([init/1,
          export/3,
          shutdown/1]).
 
-%% for roundtrip testing
+%% for testing
 -export([to_proto_by_instrumentation_library/1,
-         to_proto/1]).
+         to_proto/1,
+         merge_with_environment/1]).
 
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
@@ -16,18 +53,23 @@
 
 -record(state, {protocol :: grpc | http_protobuf | http_json,
                 channel_pid :: pid() | undefined,
+                headers :: list(),
+                grpc_metadata :: map() | undefined,
                 endpoints :: list()}).
 
-init(Opts) ->
-    Endpoints = maps:get(endpoints, Opts, ?DEFAULT_ENDPOINTS),
-    case maps:get(protocol, Opts, http_protobuf) of
+init(Opts0) ->
+    Opts1 = merge_with_environment(Opts0),
+    Endpoints = endpoints(maps:get(endpoints, Opts1, ?DEFAULT_ENDPOINTS)),
+    Headers = headers(maps:get(headers, Opts1, [])),
+    case maps:get(protocol, Opts1, http_protobuf) of
         grpc ->
-            Endpoints = maps:get(endpoints, Opts, ?DEFAULT_ENDPOINTS),
-            ChannelOpts = maps:get(channel_opts, Opts, #{}),
+            ChannelOpts = maps:get(channel_opts, Opts1, #{}),
             case grpcbox_channel:start_link(?MODULE, Endpoints, ChannelOpts) of
                 {ok, ChannelPid} ->
                     {ok, #state{channel_pid=ChannelPid,
                                 endpoints=Endpoints,
+                                headers=Headers,
+                                grpc_metadata=headers_to_grpc_metadata(Headers),
                                 protocol=grpc}};
                 ErrorOrIgnore ->
                     %% even if it is `ignore' we should just use `http_protobuf' because
@@ -35,19 +77,23 @@ init(Opts) ->
                     ?LOG_WARNING("unable to start grpc channel for exporting and falling back "
                                  "to http_protobuf protocol. reason=~p", [ErrorOrIgnore]),
                     {ok, #state{endpoints=Endpoints,
+                                headers=Headers,
                                 protocol=http_protobuf}}
             end;
         http_protobuf ->
             {ok, #state{endpoints=Endpoints,
+                        headers=Headers,
                         protocol=http_protobuf}};
         http_json ->
             {ok, #state{endpoints=Endpoints,
+                        headers=Headers,
                         protocol=http_json}}
     end.
 
 export(_Tab, _Resource, #state{protocol=http_json}) ->
     {error, unimplemented};
 export(Tab, Resource, #state{protocol=http_protobuf,
+                             headers=Headers,
                              endpoints=[{Scheme, Host, Port, _} | _]}) ->
     Proto = opentelemetry_exporter_trace_service_pb:encode_msg(tab_to_proto(Tab, Resource),
                                                                export_trace_service_request),
@@ -55,7 +101,7 @@ export(Tab, Resource, #state{protocol=http_protobuf,
                                      host => Host,
                                      port => Port,
                                      path => <<"/v1/trace">>}),
-    case httpc:request(post, {Address, [], "application/x-protobuf", Proto}, [], []) of
+    case httpc:request(post, {Address, Headers, "application/x-protobuf", Proto}, [], []) of
         {ok, {{_, Code, _}, _, _}} when Code >= 200 andalso Code =< 202 ->
             ok;
         {ok, {{_, Code, _}, _, Message}} ->
@@ -67,9 +113,11 @@ export(Tab, Resource, #state{protocol=http_protobuf,
             error
     end;
 export(Tab, Resource, #state{protocol=grpc,
+                             grpc_metadata=Metadata,
                              channel_pid=_ChannelPid}) ->
     ExportRequest = tab_to_proto(Tab, Resource),
-    opentelemetry_trace_service:export(ctx:new(), ExportRequest, #{channel => ?MODULE}),
+    Ctx = grpcbox_metadata:append_to_outgoing_ctx(ctx:new(), Metadata),
+    opentelemetry_trace_service:export(Ctx, ExportRequest, #{channel => ?MODULE}),
     ok.
 
 shutdown(#state{channel_pid=undefined}) ->
@@ -79,6 +127,75 @@ shutdown(#state{channel_pid=Pid}) ->
     ok.
 
 %%
+
+headers_to_grpc_metadata(Headers) ->
+    lists:foldl(fun({X, Y}, Acc) ->
+                        maps:put(unicode:characters_to_binary(X), unicode:characters_to_binary(Y), Acc)
+                end, #{}, Headers).
+
+%% make all headers into list strings
+headers(List) when is_list(List) ->
+    [{unicode:characters_to_list(X), unicode:characters_to_list(Y)} || {X, Y} <- List];
+headers(_) ->
+    [].
+
+endpoints(List) when is_list(List) ->
+    case io_lib:printable_list(List) of
+        true ->
+            [endpoint(uri_string:parse(List))];
+        false ->
+            lists:filtermap(fun endpoint/1, List)
+    end.
+
+endpoint({_, _, _, _}=E) ->
+    {true, E};
+endpoint(#{host := Host, port := Port, scheme := Scheme}) ->
+    {true, {Scheme, Host, Port, []}};
+endpoint(String) ->
+    case io_lib:printable_list(String) of
+        true ->
+            endpoint(uri_string:parse(String));
+        false ->
+            false
+    end.
+
+merge_with_environment(Opts) ->
+    AppEnv = application:get_all_env(opentelemetry_exporter),
+    AppOpts = otel_configuration:merge_list_with_environment(config_mapping(), AppEnv),
+
+    %% update the endpoints and headers options
+    Opts1 = update_opts(otlp_endpoint, endpoints, ?DEFAULT_ENDPOINTS, AppOpts, Opts),
+    Opts2 = update_opts(otlp_traces_endpoint, endpoints, ?DEFAULT_ENDPOINTS, AppOpts, Opts1),
+    Opts3 = update_opts(otlp_headers, headers, [], AppOpts, Opts2),
+    update_opts(otlp_traces_headers, headers, [], AppOpts, Opts3).
+
+%% use the value from the environment if it exists, otherwise use the value
+%% passed in Opts or the default
+update_opts(AppKey, OptKey, Default, AppOpts, Opts) ->
+    case proplists:get_value(AppKey, AppOpts) of
+        undefined ->
+            maps:update_with(OptKey, fun(X) -> X end, Default, Opts);
+        EnvValue ->
+            maps:put(OptKey, EnvValue, Opts)
+    end.
+
+config_mapping() ->
+    [
+     %% endpoint the Otel protocol exporter should connect to
+     {"OTEL_EXPORTER_OTLP_ENDPOINT", otlp_endpoint, undefined, url},
+     {"OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", otlp_traces_endpoint, undefined, url},
+     %% {"OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", otlp_metrics_endpoint, "https://localhost:4317", url},
+
+     %% headers to include in requests the exporter makes over the Otel protocol
+     {"OTEL_EXPORTER_OTLP_HEADERS", otlp_headers, undefined, key_value_list},
+     {"OTEL_EXPORTER_OTLP_TRACES_HEADERS", otlp_traces_headers, undefined, key_value_list}
+     %% {"OTEL_EXPORTER_OTLP_METRICS_HEADERS", otlp_metrics_headers, "", key_value_list}
+
+     %% the following are not yet defined in the spec
+     %% {"OTEL_EXPORTER_OTLP_PROTOCOL", exporter_otlp_protocol, "", string},
+     %% {"OTEL_EXPORTER_OTLP_TRACES_PROTOCOL", exporter_otlp_traces_protocol, "", string},
+     %% {"OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", exporter_otlp_metrics_protocol, "", string}
+    ].
 
 tab_to_proto(Tab, Resource) ->
     InstrumentationLibrarySpans = to_proto_by_instrumentation_library(Tab),

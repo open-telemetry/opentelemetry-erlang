@@ -19,7 +19,8 @@
 %%%-------------------------------------------------------------------------
 -module(otel_configuration).
 
--export([merge_with_os/1]).
+-export([merge_with_os/1,
+         merge_list_with_environment/2]).
 
 -include_lib("kernel/include/logger.hrl").
 
@@ -112,10 +113,14 @@ config_mappings(otel_batch_processor) ->
 %% config_mappings(_) ->
 %%     [].
 
+transform(_, undefined) ->
+    undefined;
 transform(integer, Value) when is_list(Value) ->
     list_to_integer(Value);
 transform(existing_atom, Value) when is_list(Value) ->
     list_to_existing_atom(Value);
+transform(url, Value) ->
+    uri_string:parse(Value);
 %% convert sampler string to usable configuration term
 transform(sampler, {"parentbased_always_on", _}) ->
     {parent_based, #{root => {always_on, #{}}}};
@@ -156,7 +161,17 @@ transform(propagator, Propagator) ->
     ?LOG_WARNING("Ignoring uknown propagator ~ts in OS environment variable $OTEL_PROPAGATORS",
                  [Propagator]),
     undefined;
-
+transform(key_value_list, Value) when is_list(Value) ->
+    Pairs = string:split(Value, ",", all),
+    lists:filtermap(fun(Pair) ->
+                            case string:split(Pair, "=", all) of
+                                [K, V] ->
+                                    V1 = re:replace(string:trim(V), "^\"|\"$", "", [global, {return, list}]),
+                                    {true, {string:trim(K), V1}};
+                                _ ->
+                                    false
+                            end
+                    end, Pairs);
 
 transform(string, Value) ->
     Value.
