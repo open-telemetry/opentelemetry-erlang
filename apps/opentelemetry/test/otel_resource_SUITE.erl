@@ -137,8 +137,8 @@ unknown_service_name(_Config) ->
 
 release_service_name(_Config) ->
     try
-        os:putenv("REL_NAME", "rel-cttest"),
-        os:putenv("REL_VSN", "0.1.0"),
+        os:putenv("RELEASE_NAME", "rel-cttest"),
+        os:putenv("RELEASE_VSN", "0.1.0"),
         application:unload(opentelemetry),
         application:load(opentelemetry),
         application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
@@ -153,13 +153,13 @@ release_service_name(_Config) ->
 
         ok
     after
-        os:unsetenv("REL_VSN"),
-        os:unsetenv("REL_NAME")
+        os:unsetenv("RELEASE_VSN"),
+        os:unsetenv("RELEASE_NAME")
     end.
 
 release_service_name_no_version(_Config) ->
     try
-        os:putenv("REL_NAME", "rel-cttest"),
+        os:putenv("RELEASE_NAME", "rel-cttest"),
         application:unload(opentelemetry),
         application:load(opentelemetry),
         application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
@@ -174,6 +174,5 @@ release_service_name_no_version(_Config) ->
 
         ok
     after
-        os:unsetenv("REL_VSN"),
-        os:unsetenv("REL_NAME")
+        os:unsetenv("RELEASE_NAME")
     end.
