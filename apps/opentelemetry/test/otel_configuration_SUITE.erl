@@ -16,7 +16,7 @@
 all() ->
     [empty_os_environment, sampler, sampler_parent_based, sampler_parent_based_zero,
      sampler_trace_id, sampler_trace_id_default, sampler_parent_based_one,
-     log_level, propagators].
+     log_level, propagators, otlp_exporter, jaeger_exporter, zipkin_exporter, none_exporter].
 
 init_per_testcase(empty_os_environment, Config) ->
     Vars = [],
@@ -34,41 +34,65 @@ init_per_testcase(propagators, Config) ->
 
     [{os_vars, Vars} | Config];
 init_per_testcase(sampler, Config) ->
-    Vars = [{"OTEL_TRACE_SAMPLER", "parentbased_always_off"}],
+    Vars = [{"OTEL_TRACES_SAMPLER", "parentbased_always_off"}],
 
     setup_env(Vars),
 
     [{os_vars, Vars} | Config];
 init_per_testcase(sampler_trace_id, Config) ->
-    Vars = [{"OTEL_TRACE_SAMPLER", "traceidratio"},
-            {"OTEL_TRACE_SAMPLER_ARG", "0.5"}],
+    Vars = [{"OTEL_TRACES_SAMPLER", "traceidratio"},
+            {"OTEL_TRACES_SAMPLER_ARG", "0.5"}],
 
     setup_env(Vars),
 
     [{os_vars, Vars} | Config];
 init_per_testcase(sampler_trace_id_default, Config) ->
-    Vars = [{"OTEL_TRACE_SAMPLER", "traceidratio"}],
+    Vars = [{"OTEL_TRACES_SAMPLER", "traceidratio"}],
 
     setup_env(Vars),
 
     [{os_vars, Vars} | Config];
 init_per_testcase(sampler_parent_based, Config) ->
-    Vars = [{"OTEL_TRACE_SAMPLER", "parentbased_traceidratio"},
-            {"OTEL_TRACE_SAMPLER_ARG", "0.5"}],
+    Vars = [{"OTEL_TRACES_SAMPLER", "parentbased_traceidratio"},
+            {"OTEL_TRACES_SAMPLER_ARG", "0.5"}],
 
     setup_env(Vars),
 
     [{os_vars, Vars} | Config];
 init_per_testcase(sampler_parent_based_one, Config) ->
-    Vars = [{"OTEL_TRACE_SAMPLER", "parentbased_traceidratio"},
-            {"OTEL_TRACE_SAMPLER_ARG", "1"}],
+    Vars = [{"OTEL_TRACES_SAMPLER", "parentbased_traceidratio"},
+            {"OTEL_TRACES_SAMPLER_ARG", "1"}],
 
     setup_env(Vars),
 
     [{os_vars, Vars} | Config];
 init_per_testcase(sampler_parent_based_zero, Config) ->
-    Vars = [{"OTEL_TRACE_SAMPLER", "parentbased_traceidratio"},
-            {"OTEL_TRACE_SAMPLER_ARG", "0"}],
+    Vars = [{"OTEL_TRACES_SAMPLER", "parentbased_traceidratio"},
+            {"OTEL_TRACES_SAMPLER_ARG", "0"}],
+
+    setup_env(Vars),
+
+    [{os_vars, Vars} | Config];
+init_per_testcase(otlp_exporter, Config) ->
+    Vars = [{"OTEL_TRACES_EXPORTER", "otlp"}],
+
+    setup_env(Vars),
+
+    [{os_vars, Vars} | Config];
+init_per_testcase(zipkin_exporter, Config) ->
+    Vars = [{"OTEL_TRACES_EXPORTER", "zipkin"}],
+
+    setup_env(Vars),
+
+    [{os_vars, Vars} | Config];
+init_per_testcase(jaeger_exporter, Config) ->
+    Vars = [{"OTEL_TRACES_EXPORTER", "jaeger"}],
+
+    setup_env(Vars),
+
+    [{os_vars, Vars} | Config];
+init_per_testcase(none_exporter, Config) ->
+    Vars = [{"OTEL_TRACES_EXPORTER", "none"}],
 
     setup_env(Vars),
 
@@ -142,6 +166,27 @@ propagators(_Config) ->
                      {propagators, [fun otel_baggage:get_text_map_propagators/0]}],
                     otel_configuration:merge_with_os([{log_level, error}])),
 
+    ok.
+
+otlp_exporter(_Config) ->
+    ?assertMatch({traces_exporter, {opentelemetry_exporter, #{}}},
+                 lists:keyfind(traces_exporter, 1, otel_configuration:merge_with_os([]))),
+
+    ok.
+
+jaeger_exporter(_Config) ->
+    ?assertMatch({traces_exporter, undefined},
+                 lists:keyfind(traces_exporter, 1, otel_configuration:merge_with_os([]))),
+    ok.
+
+zipkin_exporter(_Config) ->
+    ?assertMatch({traces_exporter, undefined},
+                 lists:keyfind(traces_exporter, 1, otel_configuration:merge_with_os([]))),
+    ok.
+
+none_exporter(_Config) ->
+    ?assertMatch({traces_exporter, undefined},
+                 lists:keyfind(traces_exporter, 1, otel_configuration:merge_with_os([]))),
     ok.
 
 %%

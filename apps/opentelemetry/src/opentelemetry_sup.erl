@@ -58,8 +58,14 @@ init([Opts]) ->
 
     Processors = proplists:get_value(processors, Opts, []),
     BatchProcessorOpts = proplists:get_value(otel_batch_processor, Processors, #{}),
+    BatchProcessorOpts1 = case proplists:get_value(traces_exporter, Opts) of
+                              undefined ->
+                                  BatchProcessorOpts;
+                              Exporter ->
+                                  BatchProcessorOpts#{exporter => Exporter}
+                          end,
     BatchProcessor = #{id => otel_batch_processor,
-                       start => {otel_batch_processor, start_link, [BatchProcessorOpts]},
+                       start => {otel_batch_processor, start_link, [BatchProcessorOpts1]},
                        restart => permanent,
                        shutdown => 5000,
                        type => worker,

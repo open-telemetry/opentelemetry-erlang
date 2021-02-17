@@ -47,11 +47,11 @@ processors(AppEnvOpts) ->
 sampler(AppEnvOpts) ->
     Sampler = proplists:get_value(sampler, AppEnvOpts, {parent_based, #{root => {always_on, #{}}}}),
 
-    Sampler1 = case os:getenv("OTEL_TRACE_SAMPLER") of
+    Sampler1 = case os:getenv("OTEL_TRACES_SAMPLER") of
                    false ->
                        Sampler;
                    OSEnvSampler->
-                       transform(sampler, {OSEnvSampler, os:getenv("OTEL_TRACE_SAMPLER_ARG")})
+                       transform(sampler, {OSEnvSampler, os:getenv("OTEL_TRACES_SAMPLER_ARG")})
                end,
 
     lists:keystore(sampler, 1, AppEnvOpts, {sampler, Sampler1}).
@@ -96,7 +96,9 @@ merge_with_environment(ConfigMappings, Opts) ->
 
 config_mappings(general_sdk) ->
     [{"OTEL_LOG_LEVEL", log_level, "info", existing_atom},
-     {"OTEL_PROPAGATORS", propagators, "tracecontext,baggage", propagators}];
+     {"OTEL_PROPAGATORS", propagators, "tracecontext,baggage", propagators},
+     {"OTEL_TRACES_EXPORTER", traces_exporter, "otlp", exporter},
+     {"OTEL_METRICS_EXPORTER", metrics_exporter, "otlp", exporter}];
 config_mappings(otel_batch_processor) ->
     [{"OTEL_BSP_SCHEDULE_DELAY_MILLIS", scheduled_delay_ms, 5000, integer},
      {"OTEL_BSP_EXPORT_TIMEOUT_MILLIS", exporting_timeout_ms, 30000, integer},
@@ -115,6 +117,21 @@ config_mappings(otel_batch_processor) ->
 
 transform(_, undefined) ->
     undefined;
+transform(exporter, "otlp") ->
+    {opentelemetry_exporter, #{}};
+transform(exporter, "jaeger") ->
+    ?LOG_WARNING("configuring jaeger exporter through OTEL_TRACES_EXPORTER is not yet supported ", []),
+    undefined;
+transform(exporter, "zipkin") ->
+    ?LOG_WARNING("configuring zipkin exporter through OTEL_TRACES_EXPORTER is not yet supported ", []),
+    undefined;
+transform(exporter, "none") ->
+    undefined;
+transform(exporter, "prometheus") ->
+    prometheus;
+transform(exporter, UnknownExporter) ->
+    ?LOG_WARNING("unknown exporter ~p. falling back to default otlp", [UnknownExporter]),
+    {opentelemetry_exporter, #{}};
 transform(integer, Value) when is_list(Value) ->
     list_to_integer(Value);
 transform(existing_atom, Value) when is_list(Value) ->
