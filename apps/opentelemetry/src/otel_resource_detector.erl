@@ -202,8 +202,9 @@ emulator() ->
     erlang:system_info(machine).
 
 prog_name() ->
-    %% PROGNAME is an OS variable set by `erl' and the `relx' start script
-    os_or_default("PROGNAME", "erl").
+    %% RELEASE_PROG is set by mix and rebar3 release scripts
+    %% PROGNAME is an OS variable set by `erl' and rebar3 release scripts
+    os_or_default("RELEASE_PROG", os_or_default("PROGNAME", "erl")).
 
 os_or_default(EnvVar, Default) ->
     case os:getenv(EnvVar) of
@@ -221,5 +222,14 @@ find_release() ->
         %% can happen if `release_handler' isn't availabe
         %% or its process isn't started
         _:_ ->
-            {os:getenv("REL_NAME"), os:getenv("REL_VSN")}
+            {release_name(), os:getenv("RELEASE_VSN")}
+    end.
+
+release_name() ->
+    case os:getenv("RELEASE_NAME") of
+        false ->
+            %% older relx generated releases only set and export this variable
+            os:getenv("REL_NAME");
+        RelName ->
+            RelName
     end.
