@@ -39,6 +39,7 @@ jobs:
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir }}
+      OTEL_TRACES_EXPORTER: "none"
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-elixir@v1
