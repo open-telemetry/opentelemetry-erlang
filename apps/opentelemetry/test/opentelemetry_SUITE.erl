@@ -221,7 +221,7 @@ propagation(Config) ->
     EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
     EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
 
-    ?assertListsMatch([{<<"baggage">>, "key-2=value-2,key-1=value-1"},
+    ?assertListsEqual([{<<"baggage">>, "key-2=value-2,key-1=value-1"},
                        {<<"existing-header">>, <<"I exist">>} |
                        trace_context(Propagator, EncodedTraceId, EncodedSpanId)], Headers),
 

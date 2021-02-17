@@ -40,6 +40,7 @@
 -type detector() :: module() | {module(), term()}.
 
 -include_lib("kernel/include/logger.hrl").
+-include("otel_resource.hrl").
 
 -record(data, {resource         :: otel_resource:t(),
                detectors        :: [detector()],
@@ -75,8 +76,13 @@ init([Opts]) ->
      [{next_event, internal, spawn_detectors}]}.
 
 callback_mode() ->
-    handle_event_function.
+    [handle_event_function, state_enter].
 
+handle_event(enter, _, ready, Data=#data{resource=Resource}) ->
+    NewResource = required_attributes(Resource),
+    {keep_state, Data#data{resource=NewResource}};
+handle_event(enter, _, _, _) ->
+    keep_state_and_data;
 handle_event(internal, spawn_detectors, collecting, Data=#data{detectors=Detectors}) ->
     %% merging must be done in a specific order so Refs are kept in a list
     ToCollectRefs = spawn_detectors(Detectors),
@@ -147,3 +153,83 @@ spawn_detector(Detector={Module, Config}, Ref) ->
                       end);
 spawn_detector(Module, Ref) ->
     spawn_detector({Module, []}, Ref).
+
+required_attributes(Resource) ->
+    ProgName = prog_name(),
+    ProcessResource = otel_resource:create([{?PROCESS_EXECUTABLE_NAME, ProgName} | process_attributes()]),
+    Resource1 = otel_resource:merge(Resource, ProcessResource),
+
+    Attributes = otel_resource:attributes(Resource1),
+    case lists:keyfind(?SERVICE_NAME, 1, Attributes) of
+        false ->
+            %% if service.name isn't set we try finding the release name
+            %% if no release name we use the default
+            DefaultServiceResource =
+                case find_release() of
+                    {RelName, RelVsn} when RelName =/= false ->
+                        otel_resource:create([{?SERVICE_NAME, RelName} |
+                                              case RelVsn of
+                                                  false -> [];
+                                                  _ -> [{?SERVICE_VERSION, RelVsn}]
+                                              end]);
+                    _ ->
+                        otel_resource:create([{?SERVICE_NAME, "unknown_service:" ++ ProgName}])
+                end,
+
+
+            otel_resource:merge(Resource1,  DefaultServiceResource);
+        _ ->
+            Resource1
+    end.
+
+process_attributes() ->
+    OtpVsn = otp_vsn(),
+    ErtsVsn = erts_vsn(),
+    [{?PROCESS_RUNTIME_NAME, emulator()},
+     {?PROCESS_RUNTIME_VERSION, ErtsVsn},
+     {?PROCESS_RUNTIME_DESCRIPTION, runtime_description(OtpVsn, ErtsVsn)}].
+
+runtime_description(OtpVsn, ErtsVsn) ->
+    io_lib:format("Erlang/OTP ~s erts-~s", [OtpVsn, ErtsVsn]).
+
+erts_vsn() ->
+    erlang:system_info(version).
+
+otp_vsn() ->
+    erlang:system_info(otp_release).
+
+emulator() ->
+    erlang:system_info(machine).
+
+prog_name() ->
+    %% RELEASE_PROG is set by mix and rebar3 release scripts
+    %% PROGNAME is an OS variable set by `erl' and rebar3 release scripts
+    os_or_default("RELEASE_PROG", os_or_default("PROGNAME", "erl")).
+
+os_or_default(EnvVar, Default) ->
+    case os:getenv(EnvVar) of
+        false ->
+            Default;
+        Value ->
+            Value
+    end.
+
+find_release() ->
+    try release_handler:which_releases(permanent) of
+        [{RelName, RelVsn, _Apps, permanent} | _] ->
+            {RelName, RelVsn}
+    catch
+        %% can happen if `release_handler' isn't availabe
+        %% or its process isn't started
+        _:_ ->
+            {release_name(), os:getenv("RELEASE_VSN")}
+    end.
+
+release_name() ->
+    case os:getenv("RELEASE_NAME") of
+        false ->
+            %% older relx generated releases only set and export this variable
+            os:getenv("REL_NAME");
+        RelName ->
+            RelName
+    end.

@@ -12,6 +12,18 @@
 %% The version string of the service API or implementation.
 -define(SERVICE_VERSION, "service.version").
 
+%% Process attributes
+
+%% The name of the process executable.
+-define(PROCESS_EXECUTABLE_NAME, "process.executable.name").
+
+%% The name of the Erlang runtime being used. Usually will be BEAM.
+-define(PROCESS_RUNTIME_NAME, "process.runtime.name").
+%% The ERTS (Erlang Runtime System) version. For BEAM this is found with application:get_key(erts, vsn).
+-define(PROCESS_RUNTIME_VERSION, "process.runtime.version").
+%% The OTP version erlang:system_info(otp_release) and ERTS version combined.
+-define(PROCESS_RUNTIME_DESCRIPTION, "process.runtime.description").
+
 %% Library attributes
 
 %% The name of the telemetry library.

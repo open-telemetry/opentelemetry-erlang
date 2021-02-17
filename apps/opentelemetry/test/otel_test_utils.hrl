@@ -25,7 +25,10 @@
                                         end
                                 end)(0)).
 
--define(assertListsMatch(List1, List2), ?assertEqual(lists:sort(List1), lists:sort(List2))).
+-define(assertListsEqual(List1, List2), ?assertEqual(lists:sort(List1), lists:sort(List2))).
+
+-define(assertIsSubset(List1, List2), ?assertMatch([], sets:to_list(sets:subtract(sets:from_list(List1),
+                                                                                  sets:from_list(List2))))).
 
 %% a macro for asserting the important parts of a span ctx are equal
 %% parts we keep in the record like is_recording is not propagated and
