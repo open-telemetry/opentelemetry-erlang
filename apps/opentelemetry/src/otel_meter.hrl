@@ -26,7 +26,7 @@
 -type aggregator() :: module().
 
 -record(active_instrument, {key :: {otel_meter:name(), otel_meter:labels()},
-                            instrument :: otel_meter:instrument(),
+                            instrument :: instrument(),
                             aggregator :: aggregator(),
                             checkpoint :: number() | undefined,
                             current :: number() | {number(), integer()} | term()}).

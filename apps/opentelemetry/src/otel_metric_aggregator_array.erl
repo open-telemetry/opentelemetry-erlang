@@ -31,7 +31,7 @@
 -include("otel_meter.hrl").
 -include_lib("stdlib/include/ms_transform.hrl").
 
--spec update(ets:tab(), otel_meter:key(), otel_meter:number_kind(), number()) -> boolean().
+-spec update(ets:tab(), otel_meter:name() | {otel_meter:name(), otel_meter:labels()}, otel_meter:number_kind(), number()) -> boolean().
 update(Tab, Key, _, Number) ->
     select_replace(Tab, Key, Number).
 

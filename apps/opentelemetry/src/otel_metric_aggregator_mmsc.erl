@@ -33,16 +33,16 @@
 -define(SUM, 3).
 -define(COUNT, 4).
 
--spec update(ets:tab(), otel_meter:key(), otel_meter:input_type(), number()) -> boolean().
+-spec update(ets:tab(), otel_meter:name() | {otel_meter:name(), otel_meter:labels()}, otel_meter:number_kind(), number()) -> boolean().
 update(Tab, Key, _, Number) ->
     update_mmsc(Tab, Key, Number).
 
--spec checkpoint(ets:tab(), otel_meter:key()) -> boolean().
+-spec checkpoint(ets:tab(), {otel_meter:name(), otel_meter:labels()}) -> boolean().
 checkpoint(Tab, NameLabelSet) ->
     MS = ets:fun2ms(fun(A=#active_instrument{key=Key,
                                              aggregator=Aggregator,
                                              current=Current}) when Key =:= NameLabelSet ,
-                                                                Aggregator =:= ?MODULE ->
+                                                                    Aggregator =:= ?MODULE ->
                             A#active_instrument{checkpoint=Current,
                                                 current={infinity, 0, 0, 0}}
                     end),
@@ -57,7 +57,7 @@ checkpoint(Tab, NameLabelSet) ->
 merge({Min1, Max1, Sum1, Count1}, {Min2, Max2, Sum2, Count2}) ->
     {erlang:min(Min1, Min2), erlang:max(Max1, Max2), Sum1+Sum2, Count1+Count2}.
 
--spec initial_value(otel_meter:input_type()) -> {infinity, number(), number(), 0}.
+-spec initial_value(otel_meter:number_kind()) -> {infinity, number(), number(), 0}.
 initial_value(integer) ->
     {infinity, 0, 0, 0};
 initial_value(float) ->

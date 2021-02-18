@@ -26,7 +26,7 @@
 -include("otel_meter.hrl").
 -include_lib("stdlib/include/ms_transform.hrl").
 
--spec update(ets:tab(), otel_meter:key(), observer | otel_meter:input_type(), number()) -> boolean().
+-spec update(ets:tab(), otel_meter:name() | {otel_meter:name(), otel_meter:labels()}, observer | otel_meter:number_kind(), number()) -> boolean().
 update(Tab, Key, _Type, Number) ->
     Now = erlang:monotonic_time(),
     NewCurrent = {Number, Now},
@@ -62,7 +62,7 @@ merge({Number1, Timestamp1}, undefined) ->
 merge(undefined, undefined) ->
     undefined.
 
--spec initial_value(otel_meter:input_type()) -> undefined.
+-spec initial_value(otel_meter:number_kind()) -> undefined.
 initial_value(_) ->
     undefined.
 
