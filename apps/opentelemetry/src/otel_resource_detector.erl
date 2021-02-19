@@ -39,6 +39,8 @@
 
 -type detector() :: module() | {module(), term()}.
 
+-dialyzer({nowarn_function, find_release/0}).
+
 -include_lib("kernel/include/logger.hrl").
 -include("otel_resource.hrl").
 

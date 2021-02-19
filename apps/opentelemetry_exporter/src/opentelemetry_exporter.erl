@@ -272,7 +272,7 @@ to_proto(#span{trace_id=TraceId,
 to_unixnano(Timestamp) ->
     opentelemetry:timestamp_to_nano(Timestamp).
 
--spec to_attributes(opentelemetry:attributes()) -> [opentelemetry_exporter_trace_service_pb:attribute_key_value()].
+-spec to_attributes(opentelemetry:attributes()) -> [opentelemetry_exporter_trace_service_pb:key_value()].
 to_attributes(Attributes) ->
     to_attributes(Attributes, []).
 
@@ -375,7 +375,7 @@ to_otlp_kind(?SPAN_KIND_CONSUMER) ->
 to_otlp_kind(_) ->
     'SPAN_KIND_UNSPECIFIED'.
 
--spec to_otlp_status(atom()) -> opentelemetry_exporter_trace_service_pb:'span.StatusCode'().
+-spec to_otlp_status(atom()) -> opentelemetry_exporter_trace_service_pb:'status.StatusCode'().
 to_otlp_status(?OTEL_STATUS_UNSET) ->
     'STATUS_CODE_UNSET';
 to_otlp_status(?OTEL_STATUS_OK) ->

@@ -40,7 +40,7 @@
                          opentelemetry:trace_id(),
                          opentelemetry:links(),
                          opentelemetry:span_name(),
-                         opentelemetry:kind(),
+                         opentelemetry:span_kind(),
                          opentelemetry:attributes(),
                          term()) -> sampling_result()), description(), term()}.
 -opaque t() :: sampler().

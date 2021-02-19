@@ -20,11 +20,11 @@
 
 -include("otel_meter.hrl").
 
--callback update(ets:tab(), otel_meter:key(), otel_meter:input_type(), number()) -> boolean().
+-callback update(ets:tab(), otel_meter:name() | {otel_meter:name(), otel_meter:labels()}, otel_meter:number_kind(), number()) -> boolean().
 
--callback checkpoint(ets:tab(), otel_meter:key()) -> boolean().
+-callback checkpoint(ets:tab(), otel_meter:name() | {otel_meter:name(), otel_meter:labels()}) -> boolean().
 
 -callback merge(term(), term()) -> term().
 
 %% TODO: rename to `new'
--callback initial_value(otel_meter:input_type()) -> term().
+-callback initial_value(otel_meter:number_kind()) -> term().
