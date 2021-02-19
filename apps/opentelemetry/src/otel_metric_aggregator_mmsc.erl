@@ -41,7 +41,7 @@ update(Tab, Key, _, Number) ->
 checkpoint(Tab, NameLabelSet) ->
     MS = ets:fun2ms(fun(A=#active_instrument{key=Key,
                                              aggregator=Aggregator,
-                                             current=Current}) when Key =:= NameLabelSet ,
+                                             current=Current}) when Key =:= NameLabelSet,
                                                                     Aggregator =:= ?MODULE ->
                             A#active_instrument{checkpoint=Current,
                                                 current={infinity, 0, 0, 0}}
