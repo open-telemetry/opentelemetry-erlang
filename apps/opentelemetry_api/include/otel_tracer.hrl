@@ -10,6 +10,9 @@
 -define(start_span(SpanName, StartOpts),
         otel_tracer:start_span(?current_tracer, SpanName, StartOpts)).
 
+-define(with_span(SpanName, Fun),
+        otel_tracer:with_span(?current_tracer, SpanName, #{}, Fun)).
+
 -define(with_span(SpanName, StartOpts, Fun),
         otel_tracer:with_span(?current_tracer, SpanName, StartOpts, Fun)).
 
