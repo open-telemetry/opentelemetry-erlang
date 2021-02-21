@@ -43,13 +43,15 @@
 %% for testing
 -export([to_proto_by_instrumentation_library/1,
          to_proto/1,
+         endpoints/1,
          merge_with_environment/1]).
 
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
 
--define(DEFAULT_ENDPOINTS, [{http, "localhost", 9090, []}]).
+-define(DEFAULT_ENDPOINTS, [{https, "localhost", 4317, []}]).
+-define(DEFAULT_PORT, 4317).
 
 -record(state, {protocol :: grpc | http_protobuf | http_json,
                 channel_pid :: pid() | undefined,
@@ -140,24 +142,43 @@ headers(_) ->
     [].
 
 endpoints(List) when is_list(List) ->
-    case io_lib:printable_list(List) of
-        true ->
-            [endpoint(uri_string:parse(List))];
+    Endpoints = case io_lib:printable_list(List) of
+                    true ->
+                        [List];
+                    false ->
+                        List
+                end,
+
+    lists:filtermap(fun endpoint/1, Endpoints);
+endpoints(Endpoint) ->
+    lists:filtermap(fun endpoint/1, [Endpoint]).
+
+endpoint(Endpoint) ->
+    case parse_endpoint(Endpoint) of
         false ->
-            lists:filtermap(fun endpoint/1, List)
+            ?LOG_WARNING("Failed to parse and ignoring exporter endpoint ~p", [Endpoint]),
+            false;
+        Parsed ->
+            Parsed
     end.
 
-endpoint({_, _, _, _}=E) ->
+parse_endpoint({_, _, _, _}=E) ->
     {true, E};
-endpoint(#{host := Host, port := Port, scheme := Scheme}) ->
-    {true, {Scheme, Host, Port, []}};
-endpoint(String) ->
-    case io_lib:printable_list(String) of
-        true ->
-            endpoint(uri_string:parse(String));
-        false ->
-            false
-    end.
+parse_endpoint(#{host := Host, port := Port, scheme := Scheme}) ->
+    {true, {scheme(Scheme), Host, Port, []}};
+parse_endpoint(#{host := Host, scheme := Scheme}) ->
+    {true, {scheme(Scheme), Host, ?DEFAULT_PORT, []}};
+parse_endpoint(String) when is_list(String) orelse is_binary(String) ->
+    parse_endpoint(uri_string:parse(unicode:characters_to_list(String)));
+parse_endpoint(_) ->
+    false.
+
+scheme(Scheme) when Scheme =:= "https" orelse Scheme =:= <<"https">> ->
+    https;
+scheme(Scheme) when Scheme =:= "http" orelse Scheme =:= <<"http">> ->
+    http;
+scheme(Scheme) ->
+    Scheme.
 
 merge_with_environment(Opts) ->
     %% exporters are initalized by calling their `init/1' function from `opentelemetry'.
