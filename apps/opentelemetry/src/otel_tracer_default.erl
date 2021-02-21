@@ -56,7 +56,7 @@ with_span(Ctx, Tracer, SpanName, Opts, Fun) ->
         %% in this function. If spans in `Fun()' were started and not finished properly
         %% they will be abandoned and it be up to the `otel_span_sweeper' to eventually remove them.
         _ = otel_span_ets:end_span(SpanCtx),
-        otel_ctx:attach(Ctx)
+        otel_ctx:detach(Ctx)
     end.
 
 -spec b3_propagators() -> {otel_propagator:text_map_extractor(), otel_propagator:text_map_injector()}.
