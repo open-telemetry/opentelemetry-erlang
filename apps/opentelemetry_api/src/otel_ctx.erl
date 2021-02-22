@@ -41,7 +41,9 @@
 -type t() :: map().
 -type key() :: term().
 -type value() :: term().
--type token() :: reference().
+
+%% at this time the "token" is actually the context map itself
+-type token() :: term().
 
 -export_type([t/0,
               key/0,
