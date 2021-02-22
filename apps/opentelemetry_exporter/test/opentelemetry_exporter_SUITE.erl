@@ -43,6 +43,23 @@ configuration(_Config) ->
         ?assertMatch(#{endpoints := [{http, "localhost", 9090, []}]},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}]})),
 
+        ?assertMatch([{http, "localhost", 443, []}],
+                     opentelemetry_exporter:endpoints(["http://localhost:443"])),
+
+        ?assertMatch([{http, "localhost", 443, []}],
+             opentelemetry_exporter:endpoints([<<"http://localhost:443">>])),
+
+        ?assertMatch([{http, "localhost", 443, []}],
+             opentelemetry_exporter:endpoints(<<"http://localhost:443">>)),
+
+        ?assertMatch([{http, "localhost", 443, []}],
+             opentelemetry_exporter:endpoints(<<"http://localhost:443/ignored/path">>)),
+
+        ?assertMatch([{http, "localhost", 4317, []}],
+             opentelemetry_exporter:endpoints("http://localhost")),
+
+        ?assertMatch([], opentelemetry_exporter:endpoints("://badendpoint")),
+
         application:set_env(opentelemetry_exporter, otlp_endpoint, "http://localhost:5353"),
         ?assertMatch(#{endpoints := "http://localhost:5353"},
                      opentelemetry_exporter:merge_with_environment(#{})),
