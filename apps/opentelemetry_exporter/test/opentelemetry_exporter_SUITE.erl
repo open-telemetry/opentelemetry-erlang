@@ -40,48 +40,60 @@ end_per_group(_, _) ->
 
 configuration(_Config) ->
     try
-        ?assertMatch(#{endpoints := [{http, "localhost", 9090, []}]},
+        ?assertMatch(#{endpoints :=
+                           [#{scheme := "http", host := "localhost",
+                              port := 9090, path := "/v1/traces"}]},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}]})),
 
-        ?assertMatch([{http, "localhost", 443, []}],
+        ?assertMatch([#{scheme := "http", host := "localhost", port := 443, path := []}],
                      opentelemetry_exporter:endpoints(["http://localhost:443"])),
 
-        ?assertMatch([{http, "localhost", 443, []}],
-             opentelemetry_exporter:endpoints([<<"http://localhost:443">>])),
+        ?assertMatch([#{scheme := "http", host := "localhost", port := 443, path := []}],
+                     opentelemetry_exporter:endpoints([<<"http://localhost:443">>])),
 
-        ?assertMatch([{http, "localhost", 443, []}],
-             opentelemetry_exporter:endpoints(<<"http://localhost:443">>)),
+        ?assertMatch([#{scheme := "https", host := "localhost", port := 443, path := []}],
+                     opentelemetry_exporter:endpoints(<<"https://localhost:443">>)),
 
-        ?assertMatch([{http, "localhost", 443, []}],
-             opentelemetry_exporter:endpoints(<<"http://localhost:443/ignored/path">>)),
+        ?assertMatch([#{scheme := "https", host := "localhost", port := 443, path := "/used/path"}],
+                     opentelemetry_exporter:endpoints(<<"https://localhost:443/used/path">>)),
 
-        ?assertMatch([{http, "localhost", 4317, []}],
-             opentelemetry_exporter:endpoints("http://localhost")),
+        ?assertMatch([#{scheme := "http", host := "localhost", port := 4317, path := []}],
+                     opentelemetry_exporter:endpoints("http://localhost")),
 
         ?assertMatch([], opentelemetry_exporter:endpoints("://badendpoint")),
 
         application:set_env(opentelemetry_exporter, otlp_endpoint, "http://localhost:5353"),
-        ?assertMatch(#{endpoints := "http://localhost:5353"},
+        ?assertMatch(#{endpoints := [#{host := "localhost", path := "/v1/traces", port := 5353,
+                                       scheme := "http"}]},
                      opentelemetry_exporter:merge_with_environment(#{})),
 
         application:set_env(opentelemetry_exporter, otlp_endpoint, "http://localhost:5353"),
-        ?assertMatch(#{endpoints := "http://localhost:5353"},
+        ?assertMatch(#{endpoints := [#{host := "localhost", path := "/v1/traces", port := 5353,
+                                       scheme := "http"}]},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}]})),
 
         os:putenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4343"),
         os:putenv("OTEL_EXPORTER_OTLP_HEADERS", "key1=value1"),
         ?assertEqual(#{endpoints =>
-                           #{host => "localhost",path => [],port => 4343,
-                             scheme => "http"},
+                           [#{host => "localhost", path => "/v1/traces", port => 4343,
+                              scheme => "http"}],
+                       headers => [{"key1", "value1"}]},
+                     opentelemetry_exporter:merge_with_environment(#{endpoints => []})),
+
+        os:putenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4343/internal"),
+        os:putenv("OTEL_EXPORTER_OTLP_HEADERS", "key1=value1"),
+        ?assertEqual(#{endpoints =>
+                           [#{host => "localhost", path => "/internal/v1/traces", port => 4343,
+                              scheme => "http"}],
                        headers => [{"key1", "value1"}]},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => []})),
 
         %% TRACES_ENDPOINT takes precedence
-        os:putenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://localhost:5353"),
+        os:putenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://localhost:5353/traces/path"),
         os:putenv("OTEL_EXPORTER_OTLP_TRACES_HEADERS", "key2=value2"),
         ?assertEqual(#{endpoints =>
-                           #{host => "localhost",path => [],port => 5353,
-                             scheme => "http"},
+                           [#{host => "localhost", path => "/traces/path", port => 5353,
+                              scheme => "http"}],
                        headers => [{"key2", "value2"}]},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => []})),
 

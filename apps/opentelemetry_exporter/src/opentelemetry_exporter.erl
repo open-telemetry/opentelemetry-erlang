@@ -19,8 +19,11 @@
 %%
 %% `opentelemetry_exporter' application enevironment options are:
 %%
-%% * `otlp_endpoint': The URL to send traces and metrics to.
-%% * `otlp_traces_endpoint': URL to send only traces to. This takes precedence.
+%% * `otlp_endpoint': The URL to send traces and metrics to, for traces the
+%%   path `v1/traces' is appended to the path in the URL.
+%% * `otlp_traces_endpoint': URL to send only traces to. This takes precedence
+%%   for exporting traces and the path of the URL is kept as is, no suffix is
+%%   appended.
 %% * `otlp_headers': Additional headers to add to export requests.
 %% * `otlp_traces_headers': Additional headers to add to only trace export requests.
 %%
@@ -50,14 +53,18 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
 
--define(DEFAULT_ENDPOINTS, [{https, "localhost", 4317, []}]).
+-define(DEFAULT_ENDPOINTS, [#{host => "localhost",
+                              path => [],
+                              port => 4317,
+                              scheme => "https"}]).
 -define(DEFAULT_PORT, 4317).
+-define(DEFAULT_TRACES_PATH, "v1/traces").
 
 -record(state, {protocol :: grpc | http_protobuf | http_json,
                 channel_pid :: pid() | undefined,
-                headers :: list(),
+                headers :: [{unicode:chardata(), unicode:chardata()}],
                 grpc_metadata :: map() | undefined,
-                endpoints :: list()}).
+                endpoints :: [uri_string:uri_map()]}).
 
 init(Opts0) ->
     Opts1 = merge_with_environment(Opts0),
@@ -66,7 +73,7 @@ init(Opts0) ->
     case maps:get(protocol, Opts1, http_protobuf) of
         grpc ->
             ChannelOpts = maps:get(channel_opts, Opts1, #{}),
-            case grpcbox_channel:start_link(?MODULE, Endpoints, ChannelOpts) of
+            case grpcbox_channel:start_link(?MODULE, grpcbox_endpoints(Endpoints), ChannelOpts) of
                 {ok, ChannelPid} ->
                     {ok, #state{channel_pid=ChannelPid,
                                 endpoints=Endpoints,
@@ -96,13 +103,16 @@ export(_Tab, _Resource, #state{protocol=http_json}) ->
     {error, unimplemented};
 export(Tab, Resource, #state{protocol=http_protobuf,
                              headers=Headers,
-                             endpoints=[{Scheme, Host, Port, _} | _]}) ->
+                             endpoints=[#{scheme := Scheme,
+                                          host := Host,
+                                          port := Port,
+                                          path := Path} | _]}) ->
     Proto = opentelemetry_exporter_trace_service_pb:encode_msg(tab_to_proto(Tab, Resource),
                                                                export_trace_service_request),
-    Address = uri_string:normalize(#{scheme => atom_to_list(Scheme),
+    Address = uri_string:normalize(#{scheme => Scheme,
                                      host => Host,
                                      port => Port,
-                                     path => <<"/v1/trace">>}),
+                                     path => Path}),
     case httpc:request(post, {Address, Headers, "application/x-protobuf", Proto}, [], []) of
         {ok, {{_, Code, _}, _, _}} when Code >= 200 andalso Code =< 202 ->
             ok;
@@ -129,6 +139,9 @@ shutdown(#state{channel_pid=Pid}) ->
     ok.
 
 %%
+
+grpcbox_endpoints(Endpoints) ->
+    [{scheme(Scheme), Host, Port, []} || #{scheme := Scheme, host := Host, port := Port} <- Endpoints].
 
 headers_to_grpc_metadata(Headers) ->
     lists:foldl(fun({X, Y}, Acc) ->
@@ -162,12 +175,12 @@ endpoint(Endpoint) ->
             Parsed
     end.
 
-parse_endpoint({_, _, _, _}=E) ->
-    {true, E};
-parse_endpoint(#{host := Host, port := Port, scheme := Scheme}) ->
-    {true, {scheme(Scheme), Host, Port, []}};
-parse_endpoint(#{host := Host, scheme := Scheme}) ->
-    {true, {scheme(Scheme), Host, ?DEFAULT_PORT, []}};
+parse_endpoint({Scheme, Host, Port, _}) ->
+    {true, #{scheme => atom_to_list(Scheme), host => Host, port => Port, path => []}};
+parse_endpoint(Endpoint=#{host := _Host, port := _Port, scheme := _Scheme, path := _Path}) ->
+    {true, Endpoint};
+parse_endpoint(Endpoint=#{host := _Host, scheme := _Scheme, path := _Path}) ->
+    {true, Endpoint#{port => ?DEFAULT_PORT}};
 parse_endpoint(String) when is_list(String) orelse is_binary(String) ->
     parse_endpoint(uri_string:parse(unicode:characters_to_list(String)));
 parse_endpoint(_) ->
@@ -192,21 +205,56 @@ merge_with_environment(Opts) ->
     AppEnv = application:get_all_env(opentelemetry_exporter),
     AppOpts = otel_configuration:merge_list_with_environment(config_mapping(), AppEnv),
 
-    %% update the endpoints and headers options
-    Opts1 = update_opts(otlp_endpoint, endpoints, ?DEFAULT_ENDPOINTS, AppOpts, Opts),
-    Opts2 = update_opts(otlp_traces_endpoint, endpoints, ?DEFAULT_ENDPOINTS, AppOpts, Opts1),
+    %% append the default path `/v1/traces` only to the path of otlp_endpoint
+    Opts1 = update_opts(otlp_endpoint, endpoints, ?DEFAULT_ENDPOINTS, AppOpts, Opts, fun endpoints_append_path/1),
+    Opts2 = update_opts(otlp_traces_endpoint, endpoints, ?DEFAULT_ENDPOINTS, AppOpts, Opts1, fun maybe_to_list/1),
+
     Opts3 = update_opts(otlp_headers, headers, [], AppOpts, Opts2),
     update_opts(otlp_traces_headers, headers, [], AppOpts, Opts3).
+
+maybe_to_list(E) when is_list(E) ->
+    case io_lib:printable_list(E) of
+        true ->
+            [E];
+        false ->
+            E
+    end;
+maybe_to_list(E) ->
+    [E].
+
+endpoints_append_path(E) when is_list(E) ->
+    case io_lib:printable_list(E) of
+        true ->
+            [append_path(E)];
+        false ->
+            [append_path(Endpoint) || Endpoint <- E]
+    end;
+endpoints_append_path(E) ->
+    [append_path(E)].
+
+append_path({Scheme, Host, Port, _}) ->
+    #{scheme => atom_to_list(Scheme), host => Host, port => Port, path => "/v1/traces"};
+append_path(Endpoint=#{path := Path}) ->
+    Endpoint#{path => filename:join(Path, ?DEFAULT_TRACES_PATH)};
+append_path(EndpointString) when is_list(EndpointString) orelse is_binary(EndpointString) ->
+    Endpoint=#{path := Path} = uri_string:parse(EndpointString),
+    Endpoint#{path => filename:join(Path, ?DEFAULT_TRACES_PATH)}.
 
 %% use the value from the environment if it exists, otherwise use the value
 %% passed in Opts or the default
 update_opts(AppKey, OptKey, Default, AppOpts, Opts) ->
+    update_opts(AppKey, OptKey, Default, AppOpts, Opts, fun id/1).
+
+update_opts(AppKey, OptKey, Default, AppOpts, Opts, Transform) ->
     case proplists:get_value(AppKey, AppOpts) of
         undefined ->
-            maps:update_with(OptKey, fun(X) -> X end, Default, Opts);
+            maps:update_with(OptKey, Transform, Transform(Default), Opts);
         EnvValue ->
-            maps:put(OptKey, EnvValue, Opts)
+            maps:put(OptKey, Transform(EnvValue), Opts)
     end.
+
+id(X) ->
+    X.
 
 config_mapping() ->
     [
