@@ -6,7 +6,7 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
--include_lib("opentelemetry_api/include/otel_meter.hrl").
+-include_lib("opentelemetry_api_experimental/include/otel_meter.hrl").
 -include("otel_test_utils.hrl").
 
 all() ->
@@ -26,15 +26,15 @@ end_per_suite(_Config) ->
 %% without_api means the tests call the functions in this
 %% application directly and do not go through the api
 init_per_group(without_api, Config) ->
-    {ok, _} = application:ensure_all_started(opentelemetry),
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
     Config;
 init_per_group(with_api, Config) ->
     %% TODO: configure an exporter and test that works
-    {ok, _} = application:ensure_all_started(opentelemetry),
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
     Config.
 
 end_per_group(_, _Config) ->
-    _ = application:stop(opentelemetry),
+    _ = application:stop(opentelemetry_experimental),
     ok.
 
 bind_test(_Config) ->

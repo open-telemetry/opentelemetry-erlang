@@ -38,7 +38,6 @@ prep_stop(_State) ->
     %% This is to ensure no crashes if the sdk isn't the last
     %% thing to shutdown or if the opentelemetry application crashed.
     opentelemetry:set_default_tracer({otel_tracer_noop, []}),
-    opentelemetry:set_default_meter({otel_meter_noop, []}),
     ok.
 
 stop(_State) ->

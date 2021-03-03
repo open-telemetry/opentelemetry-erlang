@@ -1,5 +1,5 @@
 {application, opentelemetry,
- [{description, "OpenTelemetry stats collection and distributed tracing framework for Erlang"},
+ [{description, "Implementation of stable OpenTelemetry signals"},
   {vsn, "git"},
   {registered, []},
   {mod, {opentelemetry_app, []}},
