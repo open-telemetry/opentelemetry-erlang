@@ -88,7 +88,7 @@ merge_with_environment(ConfigMappings, Opts) ->
                             false ->
                                 %% set to Default if it doesn't exist
                                 maps:update_with(Key, fun(X) -> X end,
-                                                 Default, Acc);
+                                                 transform(Transform, Default), Acc);
                             Value ->
                                 maps:put(Key, transform(Transform, Value), Acc)
                         end
@@ -97,12 +97,14 @@ merge_with_environment(ConfigMappings, Opts) ->
 config_mappings(general_sdk) ->
     [{"OTEL_LOG_LEVEL", log_level, "info", existing_atom},
      {"OTEL_PROPAGATORS", propagators, "tracecontext,baggage", propagators},
-     {"OTEL_TRACES_EXPORTER", traces_exporter, "otlp", exporter},
+     {"OTEL_TRACES_EXPORTER", traces_exporter, undefined, exporter},
      {"OTEL_METRICS_EXPORTER", metrics_exporter, "otlp", exporter}];
 config_mappings(otel_batch_processor) ->
     [{"OTEL_BSP_SCHEDULE_DELAY_MILLIS", scheduled_delay_ms, 5000, integer},
      {"OTEL_BSP_EXPORT_TIMEOUT_MILLIS", exporting_timeout_ms, 30000, integer},
-     {"OTEL_BSP_MAX_QUEUE_SIZE", max_queue_size, 2048, integer}
+     {"OTEL_BSP_MAX_QUEUE_SIZE", max_queue_size, 2048, integer},
+     %% a second usage of OTEL_TRACES_EXPORTER to set the exporter used by batch processor
+     {"OTEL_TRACES_EXPORTER", exporter, undefined, exporter}
      %% the following are not supported yet
      %% {"OTEL_BSP_MAX_EXPORT_BATCH_SIZE", max_export_batch_size, 512}
     ].
@@ -132,6 +134,8 @@ transform(exporter, "prometheus") ->
 transform(exporter, UnknownExporter) ->
     ?LOG_WARNING("unknown exporter ~p. falling back to default otlp", [UnknownExporter]),
     {opentelemetry_exporter, #{}};
+transform(integer, Value) when is_integer(Value) ->
+    Value;
 transform(integer, Value) when is_list(Value) ->
     list_to_integer(Value);
 transform(existing_atom, Value) when is_list(Value) ->
