@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
-        os: [ubuntu-latest]
+        os: [ubuntu-18.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       OTEL_TRACES_EXPORTER: "none"
@@ -70,7 +70,7 @@ jobs:
     strategy:
       matrix:
         otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
-        os: [ubuntu-latest]
+        os: [ubuntu-18.04]
     steps:
     - uses: actions/checkout@v2
     - uses: erlef/setup-elixir@v1

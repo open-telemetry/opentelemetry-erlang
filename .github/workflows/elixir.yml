@@ -10,7 +10,7 @@ on:
 
 jobs:
   format:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
       - uses: erlef/setup-elixir@v1
@@ -35,7 +35,7 @@ jobs:
       matrix:
         otp_version: ['23.1', '22.3.4.2', '21.3.8.16']
         elixir: ['1.11.1']
-        os: [ubuntu-latest]
+        os: [ubuntu-18.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir }}
@@ -58,7 +58,7 @@ jobs:
       matrix:
         otp_version: ['23.1', '22.3.4.2', '21.3.8.16']
         elixir: ['1.11.1']
-        os: [ubuntu-latest]
+        os: [ubuntu-18.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir }}
@@ -98,7 +98,7 @@ jobs:
       matrix:
         otp_version: ['23.1']
         elixir: ['1.11.1']
-        os: [ubuntu-latest]
+        os: [ubuntu-18.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir }}
