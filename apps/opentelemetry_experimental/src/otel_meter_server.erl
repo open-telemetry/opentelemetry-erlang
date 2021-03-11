@@ -24,7 +24,7 @@
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_meter.hrl").
--include("otel_span.hrl").
+-include_lib("opentelemetry/include/otel_span.hrl").
 
 -record(state, {meter :: meter(),
                 deny_list :: [atom() | {atom(), string()}]}).
@@ -33,7 +33,7 @@ init(Opts) ->
     DenyList = proplists:get_value(deny_list, Opts, []),
 
     Meter = #meter{module=otel_meter_default},
-    opentelemetry:set_default_meter({otel_meter_default, Meter}),
+    opentelemetry_experimental:set_default_meter({otel_meter_default, Meter}),
 
     {ok, #state{meter=Meter,
                 deny_list=DenyList}}.
@@ -43,11 +43,11 @@ register_meter(Name, Vsn, #state{meter=Meter,
     %% TODO: support semver constraints in denylist
     case proplists:is_defined(Name, DenyList) of
         true ->
-            opentelemetry:set_meter(Name, {otel_meter_noop, []});
+            opentelemetry_experimental:set_meter(Name, {otel_meter_noop, []});
         false ->
             InstrumentationLibrary = otel_utils:instrumentation_library(Name, Vsn),
-            opentelemetry:set_meter(Name, {Meter#meter.module,
-                                           Meter#meter{instrumentation_library=InstrumentationLibrary}})
+            opentelemetry_experimental:set_meter(Name, {Meter#meter.module,
+                                                        Meter#meter{instrumentation_library=InstrumentationLibrary}})
     end.
 
 %%

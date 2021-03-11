@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-elixir@v1
+      - uses: erlef/setup-elixir@v1
         with:
           otp-version: '23.1'
           elixir-version: '1.11.1'
@@ -22,7 +22,7 @@ jobs:
         with:
           path: |
             apps/opentelemetry_api/deps
-          key: v2-${{ hashFiles('apps/opentelemetry_api/mix.lock') }}
+          key: v3-${{ hashFiles('apps/opentelemetry_api/mix.lock') }}
       - run: mix format --check-formatted
       - run: mix deps.get
         working-directory: apps/opentelemetry_api/
@@ -42,7 +42,7 @@ jobs:
       OTEL_TRACES_EXPORTER: "none"
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-elixir@v1
+      - uses: erlef/setup-elixir@v1
         with:
           otp-version: ${{ matrix.otp_version }}
           elixir-version: ${{ matrix.elixir }}
@@ -67,7 +67,7 @@ jobs:
         working-directory: apps/opentelemetry_api/
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-elixir@v1
+      - uses: erlef/setup-elixir@v1
         with:
           otp-version: ${{ matrix.otp_version }}
           elixir-version: ${{ matrix.elixir }}
@@ -77,7 +77,7 @@ jobs:
           path: |
             apps/opentelemetry_api/deps
             apps/opentelemetry_api/_build
-          key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-v2-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock')) }}
+          key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-v3-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock')) }}
           restore-keys: |
             ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-
       - run: mix deps.get
@@ -107,7 +107,7 @@ jobs:
         working-directory: apps/opentelemetry_api/
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-elixir@v1
+      - uses: erlef/setup-elixir@v1
         with:
           otp-version: ${{ matrix.otp_version }}
           elixir-version: ${{ matrix.elixir }}
@@ -117,7 +117,7 @@ jobs:
           path: |
             apps/opentelemetry_api/deps
             apps/opentelemetry_api/_build
-          key: ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-${{ matrix.elixir }}-v2-${{ hashFiles('apps/opentelemetry_api/mix.lock') }}
+          key: ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-${{ matrix.elixir }}-v3-${{ hashFiles('apps/opentelemetry_api/mix.lock') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-
       - run: mix deps.get

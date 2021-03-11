@@ -1,0 +1,17 @@
+{application, opentelemetry_experimental,
+ [{description, "Implementation of unstable OpenTelemetry signals"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, {opentelemetry_experimental_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    opentelemetry_api_experimental,
+    opentelemetry
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {licenses, ["Apache 2.0"]},
+  {links, [{"GitHub", "https://github.com/open-telemetry/opentelemetry-erlang"}]}
+ ]}.

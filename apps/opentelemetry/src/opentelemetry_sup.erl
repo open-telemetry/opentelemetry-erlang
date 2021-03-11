@@ -48,14 +48,6 @@ init([Opts]) ->
                      type => worker,
                      modules => [otel_tracer_provider, otel_tracer_server]},
 
-    %%
-    MetricSup = #{id => otel_metric_sup,
-                  start => {otel_metric_sup, start_link, [Opts]},
-                  restart => permanent,
-                  shutdown => 5000,
-                  type => supervisor,
-                  modules => [otel_metric_sup]},
-
     Processors = proplists:get_value(processors, Opts, []),
     BatchProcessorOpts = proplists:get_value(otel_batch_processor, Processors, #{}),
     BatchProcessorOpts1 = case proplists:get_value(traces_exporter, Opts) of
@@ -81,6 +73,6 @@ init([Opts]) ->
     %% `TracerServer' *must* start before the `BatchProcessor'
     %% `BatchProcessor' relies on getting the `Resource' from
     %% the `TracerServer' process
-    ChildSpecs = [Detectors, MetricSup, TracerServer, BatchProcessor, SpanSup],
+    ChildSpecs = [Detectors, TracerServer, BatchProcessor, SpanSup],
 
     {ok, {SupFlags, ChildSpecs}}.

@@ -42,9 +42,9 @@ do(Req) ->
 
     lists:foreach(fun(#{<<"arguments">> := Arguments,
                         <<"url">> := Url}) ->
-                          ot_propagation:http_extract(Headers),
+                          otel_propagator:http_extract(Headers),
                           ?start_span(<<"interop-test">>),
-                          InjectedHeaders = ot_propagation:http_inject([]),
+                          InjectedHeaders = otel_propagator:http_inject([]),
                           httpc:request(post, {binary_to_list(Url),
                                                headers_to_list(InjectedHeaders),
                                                "application/json",

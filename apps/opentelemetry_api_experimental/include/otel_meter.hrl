@@ -1,7 +1,7 @@
 %% macros for meters
 %% register a meter for an application with opentelemetry:register_application_meter(AppName)
 
--define(otel_current_meter, opentelemetry:get_meter(?MODULE)).
+-define(otel_current_meter, opentelemetry_experimental:get_meter(?MODULE)).
 
 -define(otel_new_counter(Meter, Name, Opts),
         otel_counter:new(?otel_current_meter, Name, Opts)).

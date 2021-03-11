@@ -23,17 +23,18 @@ jobs:
     - uses: actions/checkout@v2
     - name: Run Collector
       run: docker-compose up -d
-    - uses: gleam-lang/setup-erlang@v1.0.0
+    - uses: erlef/setup-elixir@v1
       with:
         otp-version: ${{ matrix.otp_version }}
+        elixir-version: '1.11.1'
     - uses: actions/cache@v2
       name: Cache
       with:
         path: |
           _build
-        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles(format('rebar.lock')) }}-1
+        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles(format('rebar.lock')) }}-2
         restore-keys: |
-          ${{ runner.os }}-build-${{ matrix.otp_version }}-1-
+          ${{ runner.os }}-build-${{ matrix.otp_version }}-2-
     - name: Compile
       run: rebar3 compile
     - name: EUnit tests
@@ -72,17 +73,18 @@ jobs:
         os: [ubuntu-latest]
     steps:
     - uses: actions/checkout@v2
-    - uses: gleam-lang/setup-erlang@v1.0.0
+    - uses: erlef/setup-elixir@v1
       with:
         otp-version: ${{ matrix.otp_version }}
+        elixir-version: '1.11.1'
     - uses: actions/cache@v2
       name: Cache
       with:
         path: |
           _build
-        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}-1
+        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}-2
         restore-keys: |
-          ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-1-
+          ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-2-
     - name: Compile
       run: rebar3 compile
     - name: Dialyzer

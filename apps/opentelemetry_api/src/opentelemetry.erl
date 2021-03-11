@@ -30,16 +30,10 @@
 
 -export([set_default_tracer/1,
          set_tracer/2,
-         set_meter/2,
-         set_default_meter/1,
          register_tracer/2,
          register_application_tracer/1,
-         register_meter/2,
-         register_application_meter/1,
          get_tracer/0,
          get_tracer/1,
-         get_meter/0,
-         get_meter/1,
          set_text_map_extractors/1,
          get_text_map_extractors/0,
          set_text_map_injectors/1,
@@ -55,6 +49,8 @@
          event/3,
          events/1,
          status/2,
+         verify_and_set_term/3,
+         verify_and_set_term/4,
          generate_trace_id/0,
          generate_span_id/0]).
 
@@ -62,7 +58,6 @@
 -include_lib("kernel/include/logger.hrl").
 
 -export_type([tracer/0,
-              meter/0,
               trace_id/0,
               span_id/0,
               trace_flags/0,
@@ -86,7 +81,6 @@
               text_map/0]).
 
 -type tracer()             :: {module(), term()}.
--type meter()              :: {module(), term()}.
 
 -type trace_id()           :: non_neg_integer().
 -type span_id()            :: non_neg_integer().
@@ -137,14 +131,6 @@ set_default_tracer(Tracer) ->
 set_tracer(Name, Tracer) ->
     verify_and_set_term(Tracer, Name, otel_tracer).
 
--spec set_default_meter(meter()) -> boolean().
-set_default_meter(Meter) ->
-    verify_and_set_term(Meter, default_meter, otel_meter).
-
--spec set_meter(atom(), meter()) -> boolean().
-set_meter(Name, Meter) ->
-    verify_and_set_term(Meter, Name, otel_meter).
-
 -spec register_tracer(atom(), string()) -> boolean().
 register_tracer(Name, Vsn) ->
     otel_tracer_provider:register_tracer(Name, Vsn).
@@ -153,14 +139,6 @@ register_tracer(Name, Vsn) ->
 register_application_tracer(Name) ->
     otel_tracer_provider:register_application_tracer(Name).
 
--spec register_meter(atom(), string()) -> boolean().
-register_meter(Name, Vsn) ->
-    otel_meter_provider:register_meter(Name, Vsn).
-
--spec register_application_meter(atom()) -> boolean().
-register_application_meter(Name) ->
-    otel_meter_provider:register_application_meter(Name).
-
 -spec get_tracer() -> tracer().
 get_tracer() ->
     persistent_term:get({?MODULE, default_tracer}, {otel_tracer_noop, []}).
@@ -168,14 +146,6 @@ get_tracer() ->
 -spec get_tracer(atom()) -> tracer().
 get_tracer(Name) ->
     persistent_term:get({?MODULE, Name}, get_tracer()).
-
--spec get_meter() -> meter().
-get_meter() ->
-    persistent_term:get({?MODULE, default_meter}, {otel_meter_noop, []}).
-
--spec get_meter(atom()) -> meter().
-get_meter(Name) ->
-    persistent_term:get({?MODULE, Name}, get_meter()).
 
 set_text_map_extractors(List) when is_list(List) ->
     persistent_term:put({?MODULE, text_map_extractors}, List);
@@ -360,9 +330,12 @@ uniform(X) ->
 
 -spec verify_and_set_term(module() | {module(), term()}, term(), atom()) -> boolean().
 verify_and_set_term(Module, TermKey, Behaviour) ->
+    verify_and_set_term(?MODULE, Module, TermKey, Behaviour).
+
+verify_and_set_term(AppKey, Module, TermKey, Behaviour) ->
     case verify_module_exists(Module) of
         true ->
-            persistent_term:put({?MODULE, TermKey}, Module),
+            persistent_term:put({AppKey, TermKey}, Module),
             true;
         false ->
             ?LOG_WARNING("Module ~p does not exist. "

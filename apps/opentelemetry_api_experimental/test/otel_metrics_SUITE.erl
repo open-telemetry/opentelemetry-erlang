@@ -4,8 +4,7 @@
 
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
-
--include("opentelemetry.hrl").
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_meter.hrl").
 
 all() ->
@@ -19,7 +18,7 @@ end_per_suite(_Config) ->
     ok.
 
 noop_metrics(_Config) ->
-    Meter = opentelemetry:get_meter(),
+    Meter = opentelemetry_experimental:get_meter(),
     ?assertMatch({otel_meter_noop, _}, Meter),
 
     ?assert(otel_counter:new(Meter, <<"noop-measure-1">>, #{description => <<"some description">>})),
