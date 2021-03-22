@@ -129,8 +129,19 @@ export(Tab, Resource, #state{protocol=grpc,
                              channel_pid=_ChannelPid}) ->
     ExportRequest = tab_to_proto(Tab, Resource),
     Ctx = grpcbox_metadata:append_to_outgoing_ctx(ctx:new(), Metadata),
-    opentelemetry_trace_service:export(Ctx, ExportRequest, #{channel => ?MODULE}),
-    ok.
+    case opentelemetry_trace_service:export(Ctx, ExportRequest, #{channel => ?MODULE}) of
+        {ok, _Response, _ResponseMetadata} ->
+            ok;
+        {error, {Status, Message}, _} ->
+            ?LOG_INFO("OTLP grpc export failed with GRPC status ~s : ~s", [Status, Message]),
+            error;
+        {http_error, {Status, _}, _} ->
+            ?LOG_INFO("OTLP grpc export failed with HTTP status code ~s", [Status]),
+            error;
+        {error, Reason} ->
+            ?LOG_INFO("OTLP grpc export failed with error: ~p", [Reason]),
+            error
+    end.
 
 shutdown(#state{channel_pid=undefined}) ->
     ok;
