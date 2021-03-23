@@ -12,7 +12,7 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc Reporter that prints spans to stdout.
+%% @doc Exporter that prints spans to stdout.
 %% @end
 %%%-----------------------------------------------------------------------
 -module(otel_exporter_stdout).
