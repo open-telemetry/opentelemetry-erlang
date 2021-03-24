@@ -12,7 +12,7 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc A test reporter for sending trace spans to an Erlang PID as message.
+%% @doc A test exporter for sending trace spans to an Erlang PID as message.
 %% @end
 %%%-----------------------------------------------------------------------
 -module(otel_exporter_pid).
