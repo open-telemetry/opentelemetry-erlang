@@ -107,15 +107,14 @@ config_mappings(otel_batch_processor) ->
      {"OTEL_TRACES_EXPORTER", exporter, "otlp", exporter}
      %% the following are not supported yet
      %% {"OTEL_BSP_MAX_EXPORT_BATCH_SIZE", max_export_batch_size, 512}
-    ].
-
+    ];
 %% span limit not supported
 %% config_mappings(span_limits) ->
 %%     [{"OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", attribute_count_limit, 1000, integer},
 %%      {"OTEL_SPAN_EVENT_COUNT_LIMIT", event_count_limit, 1000, integer},
 %%      {"OTEL_SPAN_LINK_COUNT_LIMIT", link_count_limit 1000, integer}];
-%% config_mappings(_) ->
-%%     [].
+config_mappings(_) ->
+     [].
 
 transform(_, undefined) ->
     undefined;
