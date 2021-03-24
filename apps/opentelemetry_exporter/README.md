@@ -1,6 +1,6 @@
 # opentelemetry_exporter
 
-![Common Test](https://github.com/opentelemetry-beam/opentelemetry_exporter/workflows/Common%20Test/badge.svg) [![Gitter](https://badges.gitter.im/open-telemetry/opentelemetry-erlang.svg)](https://gitter.im/open-telemetry/opentelemetry-erlang?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+![Common Test](https://github.com/opentelemetry-beam/opentelemetry_exporter/workflows/Common%20Test/badge.svg) 
 
 The OpenTelemetry Protocol exporter for use with the [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector).
 

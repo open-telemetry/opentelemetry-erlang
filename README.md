@@ -9,6 +9,14 @@ OpenTelemetry stats collection and distributed tracing framework for Erlang.
 
 Requires OTP 21.3 or above.
 
+## Contacting Us
+
+We hold regular meetings. See details at [community page](https://github.com/open-telemetry/community#special-interest-groups).
+
+We use [GitHub Discussions](https://github.com/open-telemetry/opentelemetry-erlang/discussions) for support or general questions. Feel free to drop us a line.
+
+We are also present in the #otel-erlang-elixir channel in the [CNCF slack](https://slack.cncf.io/). Please join us for more informal discussions.
+
 ## Design
 
 The [OpenTelemetry specification](https://github.com/open-telemetry/opentelemetry-specification) defines a language library as having 2 components, the API and the SDK. The API must not only define the interfaces of any implementation in that language but also be able to function as a noop implementation of the tracer. The SDK is the default implementation of the API that must be optional.
