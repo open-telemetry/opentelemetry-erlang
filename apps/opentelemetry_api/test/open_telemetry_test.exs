@@ -42,7 +42,7 @@ defmodule OpenTelemetryTest do
     assert [{"attr-1", "value-1"}] == a
   end
 
-  test "macro start_span" do
+  test "macro with_span" do
     Tracer.with_span "span-1" do
       Tracer.with_span "span-2" do
         Tracer.set_attribute("attr-1", "value-1")
@@ -52,6 +52,30 @@ defmodule OpenTelemetryTest do
 
         Tracer.add_events([event1, event2])
       end
+    end
+  end
+
+  test "macro with_span start_opts (map)" do
+    Tracer.with_span "span-1", %{
+      attributes: %{"thread.id" => inspect(self())},
+      is_recording: true,
+      kind: :internal,
+      links: [],
+      start_time: :opentelemetry.timestamp()
+      # sampler
+    } do
+      :ok
+    end
+  end
+
+  test "macro with_span start_opts (keyword list)" do
+    Tracer.with_span "span-1",
+      attributes: %{"thread.id" => inspect(self())},
+      is_recording: true,
+      kind: :internal,
+      links: [],
+      start_time: :opentelemetry.timestamp() do
+      :ok
     end
   end
 
