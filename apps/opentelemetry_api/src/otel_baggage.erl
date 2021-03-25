@@ -21,8 +21,11 @@
 
 -export([set/1,
          set/2,
+         set/3,
          get_all/0,
+         get_all/1,
          clear/0,
+         clear/1,
          get_text_map_propagators/0]).
 
 %% keys and values are UTF-8 binaries
@@ -43,25 +46,44 @@
 -define(BAGGAGE_KEY, '$__otel_baggage_ctx_key').
 -define(BAGGAGE_HEADER, <<"baggage">>).
 
--spec set(#{key() => value()} | [{key(), value()}]) -> ok.
+-spec set(#{key() => value()} | [{key(), value()}]) -> otel_ctx:t().
 set(KeyValues) when is_list(KeyValues) ->
     set(maps:from_list(KeyValues));
 set(KeyValues) when is_map(KeyValues) ->
     Baggage = otel_ctx:get_value(?BAGGAGE_KEY, #{}),
     otel_ctx:set_value(?BAGGAGE_KEY, maps:merge(Baggage, KeyValues)).
 
--spec set(key(), value()) -> ok.
-set(Key, Value) ->
+%% Ctx will never be a list or binary so we can tell if a context is passed by checking that
+-spec set(otel_ctx:t() | key(), #{key() => value()} | [{key(), value()}] | value()) -> otel_ctx:t().
+set(Key, Value) when is_list(Key) ; is_binary(Key) ->
     Baggage = otel_ctx:get_value(?BAGGAGE_KEY, #{}),
-    otel_ctx:set_value(?BAGGAGE_KEY, Baggage#{Key => Value}).
+    otel_ctx:set_value(?BAGGAGE_KEY, Baggage#{Key => Value});
+set(Ctx, KeyValues) when is_list(KeyValues) ->
+    set(Ctx, maps:from_list(KeyValues));
+set(Ctx, KeyValues) when is_map(KeyValues) ->
+    Baggage = otel_ctx:get_value(Ctx, ?BAGGAGE_KEY, #{}),
+    otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, maps:merge(Baggage, KeyValues)).
+
+-spec set(otel_ctx:t(), key(), value()) -> otel_ctx:t().
+set(Ctx, Key, Value) ->
+    Baggage = otel_ctx:get_value(Ctx, ?BAGGAGE_KEY, #{}),
+    otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, Baggage#{Key => Value}).
 
 -spec get_all() -> t().
 get_all() ->
     otel_ctx:get_value(?BAGGAGE_KEY, #{}).
 
+-spec get_all(otel_ctx:t()) -> t().
+get_all(Ctx) ->
+    otel_ctx:get_value(Ctx, ?BAGGAGE_KEY, #{}).
+
 -spec clear() -> ok.
 clear() ->
     otel_ctx:set_value(?BAGGAGE_KEY, #{}).
+
+-spec clear(otel_ctx:t()) -> otel_ctx:t().
+clear(Ctx) ->
+    otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, #{}).
 
 -spec get_text_map_propagators() -> {otel_propagator:text_map_extractor(), otel_propagator:text_map_injector()}.
 get_text_map_propagators() ->
