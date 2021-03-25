@@ -6,8 +6,11 @@ defmodule OpenTelemetry.Baggage do
   """
 
   defdelegate set(keyvalues), to: :otel_baggage
-  defdelegate set(key, values), to: :otel_baggage
+  defdelegate set(ctx_or_key, keyvalues), to: :otel_baggage
+  defdelegate set(ctx, key, values), to: :otel_baggage
   defdelegate get_all(), to: :otel_baggage
+  defdelegate get_all(ctx), to: :otel_baggage
   defdelegate clear(), to: :otel_baggage
+  defdelegate clear(ctx), to: :otel_baggage
   defdelegate get_text_map_propagators(), to: :otel_baggage
 end
