@@ -43,10 +43,16 @@
            ((X) >= 10) andalso ((X) =< 15) -> (X) + $A - 10
         end).
 
+-define(HEX2DEC(X),
+        if ((X) >= $0) andalso ((X) =< $9) -> (X) - $0;
+           ((X) >= $A) andalso ((X) =< $F) -> (X) - $A + 10;
+           ((X) >= $a) andalso ((X) =< $f) -> (X) - $a + 10
+        end).
+
 -define(BAGGAGE_KEY, '$__otel_baggage_ctx_key').
 -define(BAGGAGE_HEADER, <<"baggage">>).
 
--spec set(#{key() => value()} | [{key(), value()}]) -> otel_ctx:t().
+-spec set(#{key() => value()} | [{key(), value()}]) -> ok.
 set(KeyValues) when is_list(KeyValues) ->
     set(maps:from_list(KeyValues));
 set(KeyValues) when is_map(KeyValues) ->
@@ -134,18 +140,23 @@ encode_value(Value) ->
     form_urlencode(Value, [{encoding, utf8}]).
 
 decode_key(Key) ->
-    uri_string:percent_decode(string:trim(unicode:characters_to_binary(Key))).
+    percent_decode(string:trim(unicode:characters_to_binary(Key))).
 
 decode_value(Value) ->
-    uri_string:percent_decode(string:trim(unicode:characters_to_binary(Value))).
+    percent_decode(string:trim(unicode:characters_to_binary(Value))).
 
-%% HTML 5.2 - 4.10.21.6 URL-encoded form data - WHATWG URL (10 Jan 2018) - UTF-8
-%% HTML 5.0 - 4.10.22.6 URL-encoded form data - encoding (non UTF-8)
-form_urlencode(Cs, [{encoding, latin1}]) when is_list(Cs) ->
-    B = convert_to_binary(Cs, utf8, utf8),
-    html5_byte_encode(base10_encode(B));
-form_urlencode(Cs, [{encoding, latin1}]) when is_binary(Cs) ->
-    html5_byte_encode(base10_encode(Cs));
+%% TODO: call `uri_string:percent_decode' and remove this when OTP-23 is
+%% the oldest version we maintain support for
+-spec percent_decode(URI) -> Result when
+      URI :: uri_string:uri_string(),
+      Result :: uri_string:uri_string() |
+                {error, {invalid, {atom(), {term(), term()}}}}.
+percent_decode(URI) when is_list(URI) orelse
+                         is_binary(URI) ->
+    raw_decode(URI).
+
+%% TODO: call `uri_string:percent_encode' when it is added to OTP and
+%% available in the oldest version we support
 form_urlencode(Cs, [{encoding, Encoding}])
   when is_list(Cs), Encoding =:= utf8; Encoding =:= unicode ->
     B = convert_to_binary(Cs, utf8, Encoding),
@@ -157,24 +168,6 @@ form_urlencode(Cs, [{encoding, Encoding}]) when is_list(Cs); is_binary(Cs) ->
     throw({error,invalid_encoding, Encoding});
 form_urlencode(Cs, _) ->
     throw({error,invalid_input, Cs}).
-
-
-%% For each character in the entry's name and value that cannot be expressed using
-%% the selected character encoding, replace the character by a string consisting of
-%% a U+0026 AMPERSAND character (&), a "#" (U+0023) character, one or more ASCII
-%% digits representing the Unicode code point of the character in base ten, and
-%% finally a ";" (U+003B) character.
-base10_encode(Cs) ->
-    base10_encode(Cs, <<>>).
-%%
-base10_encode(<<>>, Acc) ->
-    Acc;
-base10_encode(<<H/utf8,T/binary>>, Acc) when H > 255 ->
-    Base10 = convert_to_binary(integer_to_list(H,10), utf8, utf8),
-    base10_encode(T, <<Acc/binary,"&#",Base10/binary,$;>>);
-base10_encode(<<H/utf8,T/binary>>, Acc) ->
-    base10_encode(T, <<Acc/binary,H>>).
-
 
 html5_byte_encode(B) ->
     html5_byte_encode(B, <<>>).
@@ -217,3 +210,44 @@ convert_to_binary(Binary, InEncoding, OutEncoding) ->
         Result ->
             Result
     end.
+
+-spec raw_decode(list()|binary()) -> list() | binary() | uri_string:error().
+raw_decode(Cs) ->
+    raw_decode(Cs, <<>>).
+%%
+raw_decode(L, Acc) when is_list(L) ->
+    try
+        B0 = unicode:characters_to_binary(L),
+        B1 = raw_decode(B0, Acc),
+        unicode:characters_to_list(B1)
+    catch
+        throw:{error, Atom, RestData} ->
+            {error, Atom, RestData}
+    end;
+raw_decode(<<$%,C0,C1,Cs/binary>>, Acc) ->
+    case is_hex_digit(C0) andalso is_hex_digit(C1) of
+        true ->
+            B = ?HEX2DEC(C0)*16+?HEX2DEC(C1),
+            raw_decode(Cs, <<Acc/binary, B>>);
+        false ->
+            throw({error,invalid_percent_encoding,<<$%,C0,C1>>})
+    end;
+raw_decode(<<C,Cs/binary>>, Acc) ->
+    raw_decode(Cs, <<Acc/binary, C>>);
+raw_decode(<<>>, Acc) ->
+    check_utf8(Acc).
+
+%% Returns Cs if it is utf8 encoded.
+check_utf8(Cs) ->
+    case unicode:characters_to_list(Cs) of
+        {incomplete,_,_} ->
+            throw({error,invalid_utf8,Cs});
+        {error,_,_} ->
+            throw({error,invalid_utf8,Cs});
+        _ -> Cs
+    end.
+
+-spec is_hex_digit(char()) -> boolean().
+is_hex_digit(C)
+  when $0 =< C, C =< $9;$a =< C, C =< $f;$A =< C, C =< $F -> true;
+is_hex_digit(_) -> false.
