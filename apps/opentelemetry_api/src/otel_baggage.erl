@@ -22,6 +22,7 @@
 -export([set/1,
          set/2,
          set/3,
+         set/4,
          get_all/0,
          get_all/1,
          clear/0,
@@ -31,8 +32,9 @@
 %% keys and values are UTF-8 binaries
 -type key() :: unicode:unicode_binary().
 -type value() :: unicode:unicode_binary().
+-type metadata() :: [unicode:unicode_binary() | {unicode:unicode_binary(), unicode:unicode_binary()}].
 
--type t() :: #{key() => value()}.
+-type t() :: #{key() => {value(), metadata()}}.
 
 -export_type([t/0,
               key/0,
@@ -57,23 +59,31 @@ set(KeyValues) when is_list(KeyValues) ->
     set(maps:from_list(KeyValues));
 set(KeyValues) when is_map(KeyValues) ->
     Baggage = otel_ctx:get_value(?BAGGAGE_KEY, #{}),
-    otel_ctx:set_value(?BAGGAGE_KEY, maps:merge(Baggage, KeyValues)).
+    otel_ctx:set_value(?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(KeyValues)));
+set(_) ->
+    ok.
 
 %% Ctx will never be a list or binary so we can tell if a context is passed by checking that
 -spec set(otel_ctx:t() | key(), #{key() => value()} | [{key(), value()}] | value()) -> otel_ctx:t().
 set(Key, Value) when is_list(Key) ; is_binary(Key) ->
-    Baggage = otel_ctx:get_value(?BAGGAGE_KEY, #{}),
-    otel_ctx:set_value(?BAGGAGE_KEY, Baggage#{Key => Value});
+    set(Key, Value, []);
 set(Ctx, KeyValues) when is_list(KeyValues) ->
     set(Ctx, maps:from_list(KeyValues));
 set(Ctx, KeyValues) when is_map(KeyValues) ->
     Baggage = otel_ctx:get_value(Ctx, ?BAGGAGE_KEY, #{}),
-    otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, maps:merge(Baggage, KeyValues)).
+    otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(KeyValues))).
 
--spec set(otel_ctx:t(), key(), value()) -> otel_ctx:t().
+-spec set(otel_ctx:t(), key(), value()) -> ok | otel_ctx:t().
+set(Key, Value, Metadata) when is_list(Key) ; is_binary(Key) ->
+    Baggage = otel_ctx:get_value(?BAGGAGE_KEY, #{}),
+    otel_ctx:set_value(?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(#{Key => {Value, Metadata}})));
 set(Ctx, Key, Value) ->
+    set(Ctx, Key, Value, []).
+
+-spec set(otel_ctx:t(), key(), value(), metadata()) -> otel_ctx:t().
+set(Ctx, Key, Value, Metadata) ->
     Baggage = otel_ctx:get_value(Ctx, ?BAGGAGE_KEY, #{}),
-    otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, Baggage#{Key => Value}).
+    otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(#{Key => {Value, Metadata}}))).
 
 -spec get_all() -> t().
 get_all() ->
@@ -122,6 +132,34 @@ get_text_map_propagators() ->
     Extract = otel_ctx:text_map_extractor(?BAGGAGE_KEY, FromText),
     {Extract, Inject}.
 
+%%
+
+verify_baggage(KeyValues) ->
+    maps:fold(fun(K, V, Acc) ->
+                     %% TODO: filter out bad keys here
+                     case update_metadata(V) of
+                         {true, ValueMetadata} ->
+                             Acc#{K => ValueMetadata};
+                         _ ->
+                             Acc
+                     end
+             end, #{}, KeyValues).
+
+update_metadata({Value, Metadata}) when (is_binary(Value) orelse is_list(Value)) andalso is_list(Metadata) ->
+    {true, {Value, lists:filtermap(fun verify_metadata/1, Metadata)}};
+update_metadata(Value) when is_binary(Value) ; is_list(Value) ->
+    {true, {Value, []}};
+update_metadata(_) ->
+    false.
+
+
+verify_metadata({MK, MV}) when is_binary(MK) , is_binary(MV) ->
+    true;
+verify_metadata(M) when is_binary(M) ->
+    true;
+verify_metadata(_) ->
+    false.
+
 %% find a header in a list, ignoring case
 lookup(_, []) ->
     undefined;
@@ -136,14 +174,41 @@ lookup(Header, [{H, Value} | Rest]) ->
 encode_key(Key) ->
     form_urlencode(Key, [{encoding, utf8}]).
 
-encode_value(Value) ->
-    form_urlencode(Value, [{encoding, utf8}]).
+encode_value({Value, Metadata}) ->
+    EncodedMetadata = encode_metadata(Metadata),
+    EncodedValue = form_urlencode(Value, [{encoding, utf8}]),
+    unicode:characters_to_binary(lists:join(<<";">>, [EncodedValue | EncodedMetadata])).
+
+encode_metadata(Metadata) when is_list(Metadata) ->
+    lists:filtermap(fun({MK, MV}) when is_binary(MK) , is_binary(MV)  ->
+                            {true, [MK, <<"=">>, MV]};
+                       (M) when is_binary(M) ->
+                            {true, M};
+                       (_) ->
+                            false
+                    end, Metadata);
+encode_metadata(_) ->
+    [].
 
 decode_key(Key) ->
     percent_decode(string:trim(unicode:characters_to_binary(Key))).
 
-decode_value(Value) ->
-    percent_decode(string:trim(unicode:characters_to_binary(Value))).
+decode_value(ValueAndMetadata) ->
+    [Value | MetadataList] = string:lexemes(ValueAndMetadata, [$;]),
+    {string_decode(Value), lists:filtermap(fun metadata_decode/1, MetadataList)}.
+
+metadata_decode(Metadata) ->
+    case string:split(Metadata, "=") of
+        [MetadataKey] ->
+            {true, string_decode(MetadataKey)};
+        [MetadataKey, MetadataValue] ->
+            {true, {string_decode(MetadataKey), string_decode(MetadataValue)}};
+        _ ->
+            false
+    end.
+
+string_decode(S) ->
+    percent_decode(string:trim(unicode:characters_to_binary(S))).
 
 %% TODO: call `uri_string:percent_decode' and remove this when OTP-23 is
 %% the oldest version we maintain support for

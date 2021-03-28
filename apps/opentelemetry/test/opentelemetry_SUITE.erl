@@ -214,21 +214,27 @@ propagation(Config) ->
     ?assertMatch(#span_ctx{trace_flags=1}, ?current_span_ctx),
     ?assertMatch(#span_ctx{is_recording=true}, ?current_span_ctx),
 
-    otel_baggage:set(<<"key-1">>, <<"value=1">>),
-    otel_baggage:set(<<"key-2">>, <<"value-2">>),
+
+    otel_baggage:set(<<"key-1">>, <<"value=1">>, []),
+    %% TODO: should the whole baggage entry be dropped if metadata is bad?
+    %% drop bad metadata (the `1').
+    otel_baggage:set(<<"key-2">>, <<"value-2">>, [<<"metadata">>, 1]),
+    %% drop baggage with bad value
+    otel_baggage:set(<<"key-3">>, value3),
+
     Headers = otel_propagator:text_map_inject([{<<"existing-header">>, <<"I exist">>}]),
 
     EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
     EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
 
-    ?assertListsEqual([{<<"baggage">>, <<"key-2=value-2,key-1=value%3D1">>},
+    ?assertListsEqual([{<<"baggage">>, <<"key-2=value-2;metadata,key-1=value%3D1">>},
                        {<<"existing-header">>, <<"I exist">>} |
                        trace_context(Propagator, EncodedTraceId, EncodedSpanId)], Headers),
 
     ?end_span(SpanCtx),
 
-    ?assertEqual(#{<<"key-1">> => <<"value=1">>,
-                   <<"key-2">> => <<"value-2">>}, otel_baggage:get_all()),
+    ?assertEqual(#{<<"key-1">> => {<<"value=1">>, []},
+                   <<"key-2">> => {<<"value-2">>, [<<"metadata">>]}}, otel_baggage:get_all()),
 
     %% ?end_span doesn't remove the span from the context
     ?assertEqual(SpanCtx, ?current_span_ctx),
@@ -243,8 +249,8 @@ propagation(Config) ->
     BinaryHeaders = [{string:uppercase(Key), iolist_to_binary(Value)} || {Key, Value} <- Headers],
     otel_propagator:text_map_extract(BinaryHeaders),
 
-    ?assertEqual(#{<<"key-1">> => <<"value=1">>,
-                   <<"key-2">> => <<"value-2">>}, otel_baggage:get_all()),
+    ?assertEqual(#{<<"key-1">> => {<<"value=1">>, []},
+                   <<"key-2">> => {<<"value-2">>, [<<"metadata">>]}}, otel_baggage:get_all()),
 
     %% extracted remote spans are set to the active span
     %% but with `is_recording' false
