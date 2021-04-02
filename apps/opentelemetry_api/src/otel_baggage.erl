@@ -134,22 +134,58 @@ get_text_map_propagators() ->
 
 %%
 
+%% checks the keys, values and metadata are valid and drops them if they are not
+%% all strings are converted to binaries
 verify_baggage(KeyValues) ->
     maps:fold(fun(K, V, Acc) ->
-                     %% TODO: filter out bad keys here
-                     case update_metadata(V) of
-                         {true, ValueMetadata} ->
-                             Acc#{K => ValueMetadata};
-                         _ ->
-                             Acc
-                     end
-             end, #{}, KeyValues).
+                      %% TODO: filter out keys with invalid characters here
+                      case to_binary(K) of
+                          error ->
+                              Acc;
+                          BinKey ->
+                              case update_metadata(V) of
+                                  {true, ValueMetadata} ->
+                                      Acc#{BinKey => ValueMetadata};
+                                  _ ->
+                                      Acc
+                              end
+                      end
+              end, #{}, KeyValues).
 
-update_metadata({Value, Metadata}) when (is_binary(Value) orelse is_list(Value)) andalso is_list(Metadata) ->
+to_binary(String) when is_list(String)->
+    %% wrap in a `try' in case the list is not a printable list
+    %% this can go away if we start checking the key with a regex
+    %% to ensure it only contains certain characters
+    try unicode:characters_to_binary(String) catch _:_ -> error end;
+to_binary(String) when is_atom(String) ->
+    atom_to_binary(String, utf8);
+to_binary(String) when is_binary(String) ->
+    String;
+to_binary(_) ->
+    error.
+
+update_metadata({Value, Metadata}) when is_list(Value) ->
+    case to_binary(Value) of
+        error ->
+            false;
+        BinValue ->
+            update_metadata(BinValue, Metadata)
+    end;
+update_metadata(Value) when is_list(Value) ->
+    case to_binary(Value) of
+        error ->
+            false;
+        BinValue ->
+            update_metadata(BinValue, [])
+    end;
+update_metadata({Value, Metadata}) ->
+    update_metadata(Value, Metadata);
+update_metadata(Value) ->
+    update_metadata(Value, []).
+
+update_metadata(Value, Metadata) when (is_binary(Value) orelse is_list(Value)) andalso is_list(Metadata) ->
     {true, {Value, lists:filtermap(fun verify_metadata/1, Metadata)}};
-update_metadata(Value) when is_binary(Value) ; is_list(Value) ->
-    {true, {Value, []}};
-update_metadata(_) ->
+update_metadata(_, _) ->
     false.
 
 

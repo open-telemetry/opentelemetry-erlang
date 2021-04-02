@@ -215,7 +215,7 @@ propagation(Config) ->
     ?assertMatch(#span_ctx{is_recording=true}, ?current_span_ctx),
 
 
-    otel_baggage:set(<<"key-1">>, <<"value=1">>, []),
+    otel_baggage:set("key-1", <<"value=1">>, []),
     %% TODO: should the whole baggage entry be dropped if metadata is bad?
     %% drop bad metadata (the `1').
     otel_baggage:set(<<"key-2">>, <<"value-2">>, [<<"metadata">>, 1, {<<"md-k-1">>, <<"md-v-1">>}]),
@@ -234,7 +234,8 @@ propagation(Config) ->
     ?end_span(SpanCtx),
 
     ?assertEqual(#{<<"key-1">> => {<<"value=1">>, []},
-                   <<"key-2">> => {<<"value-2">>, [<<"metadata">>, {<<"md-k-1">>, <<"md-v-1">>}]}}, otel_baggage:get_all()),
+                   <<"key-2">> => {<<"value-2">>, [<<"metadata">>, {<<"md-k-1">>, <<"md-v-1">>}]}},
+                 otel_baggage:get_all()),
 
     %% ?end_span doesn't remove the span from the context
     ?assertEqual(SpanCtx, ?current_span_ctx),
@@ -250,7 +251,8 @@ propagation(Config) ->
     otel_propagator:text_map_extract(BinaryHeaders),
 
     ?assertEqual(#{<<"key-1">> => {<<"value=1">>, []},
-                   <<"key-2">> => {<<"value-2">>, [<<"metadata">>, {<<"md-k-1">>, <<"md-v-1">>}]}}, otel_baggage:get_all()),
+                   <<"key-2">> => {<<"value-2">>, [<<"metadata">>, {<<"md-k-1">>, <<"md-v-1">>}]}},
+                 otel_baggage:get_all()),
 
     %% extracted remote spans are set to the active span
     %% but with `is_recording' false
