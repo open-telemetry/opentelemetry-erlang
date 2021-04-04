@@ -27,7 +27,9 @@
          get_value/2,
          get_value/3,
          remove/1,
+         remove/2,
          clear/0,
+         clear/1,
 
          attach/1,
          detach/1,
@@ -58,7 +60,8 @@ new() ->
 
 -spec set_value(term(), term()) -> ok.
 set_value(Key, Value) ->
-    erlang:put(?CURRENT_CTX, set_value(erlang:get(?CURRENT_CTX), Key, Value)).
+    erlang:put(?CURRENT_CTX, set_value(erlang:get(?CURRENT_CTX), Key, Value)),
+    ok.
 
 -spec set_value(t(), term(), term()) -> map().
 set_value(Ctx, Key, Value) when is_map(Ctx) ->
@@ -84,7 +87,12 @@ get_value(_, _, Default) ->
 
 -spec clear() -> ok.
 clear() ->
-    erlang:erase(?CURRENT_CTX).
+    erlang:erase(?CURRENT_CTX),
+    ok.
+
+-spec clear(t()) -> t().
+clear(_) ->
+    new().
 
 -spec remove(term()) -> ok.
 remove(Key) ->
@@ -95,6 +103,12 @@ remove(Key) ->
         _ ->
             ok
     end.
+
+-spec remove(t(), term()) -> t().
+remove(Ctx, Key) when is_map(Ctx) ->
+    maps:remove(Key, Ctx);
+remove(_, _) ->
+    new().
 
 -spec get_current() -> map().
 get_current() ->
