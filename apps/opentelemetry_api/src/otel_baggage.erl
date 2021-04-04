@@ -64,7 +64,7 @@ set(_) ->
     ok.
 
 %% Ctx will never be a list or binary so we can tell if a context is passed by checking that
--spec set(otel_ctx:t() | key(), #{key() => value()} | [{key(), value()}] | value()) -> otel_ctx:t().
+-spec set(otel_ctx:t() | key() | unicode:charlist(), #{key() => value()} | [{key(), value()}] | value()) -> otel_ctx:t().
 set(Key, Value) when is_list(Key) ; is_binary(Key) ->
     set(Key, Value, []);
 set(Ctx, KeyValues) when is_list(KeyValues) ->
