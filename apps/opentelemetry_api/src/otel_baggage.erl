@@ -73,7 +73,7 @@ set(Ctx, KeyValues) when is_map(KeyValues) ->
     Baggage = otel_ctx:get_value(Ctx, ?BAGGAGE_KEY, #{}),
     otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(KeyValues))).
 
--spec set(otel_ctx:t(), key(), value()) -> ok | otel_ctx:t().
+-spec set(otel_ctx:t() | key(), key() | value(), value() | list()) -> ok | otel_ctx:t().
 set(Key, Value, Metadata) when is_list(Key) ; is_binary(Key) ->
     Baggage = otel_ctx:get_value(?BAGGAGE_KEY, #{}),
     otel_ctx:set_value(?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(#{Key => {Value, Metadata}})));
