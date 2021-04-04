@@ -91,10 +91,10 @@ defmodule OpenTelemetryTest do
 
   test "baggage api from elixir" do
     Baggage.set(%{"a" => "b"})
-    assert %{"a" => "b"} = Baggage.get_all()
+    assert %{"a" => {"b", []}} = Baggage.get_all()
 
     Baggage.set(%{"a" => "c"})
-    assert %{"a" => "c"} = Baggage.get_all()
+    assert %{"a" => {"c", []}} = Baggage.get_all()
 
     Baggage.clear()
     assert 0 = :erlang.map_size(Baggage.get_all())
@@ -114,7 +114,7 @@ defmodule OpenTelemetryTest do
     ctx = Ctx.get_current()
 
     Baggage.set(%{"a" => "b"})
-    assert %{"a" => "b"} = Baggage.get_all()
+    assert %{"a" => {"b", []}} = Baggage.get_all()
 
     # attach the empty context
     # gets a token for the context
@@ -123,6 +123,6 @@ defmodule OpenTelemetryTest do
 
     # return to the context in the pdict before the attach
     Ctx.detach(token)
-    assert %{"a" => "b"} = Baggage.get_all()
+    assert %{"a" => {"b", []}} = Baggage.get_all()
   end
 end
