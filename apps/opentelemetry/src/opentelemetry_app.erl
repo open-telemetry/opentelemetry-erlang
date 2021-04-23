@@ -30,7 +30,14 @@ start(_StartType, _StartArgs) ->
     %% set the global propagators for HTTP based on the application env
     setup_text_map_propagators(Opts),
 
-    opentelemetry_sup:start_link(Opts).
+    SupResult = opentelemetry_sup:start_link(Opts),
+
+    %% must be done after the supervisor starts so that otel_tracer_server is running
+    %% TODO: make this work with release upgrades. Currently if an application's version
+    %% changes the version in the tracer will not be updated.
+    register_loaded_application_tracers(Opts),
+
+    SupResult.
 
 %% called before the supervision tree is shutdown.
 prep_stop(_State) ->
@@ -56,3 +63,14 @@ setup_text_map_propagators(Opts) ->
 
     opentelemetry:set_text_map_extractors(Extractors),
     opentelemetry:set_text_map_injectors(Injectors).
+
+register_loaded_application_tracers(Opts) ->
+    RegisterLoadedApplications = proplists:get_value(register_loaded_applications, Opts, true),
+    register_loaded_applications_(RegisterLoadedApplications).
+
+register_loaded_applications_(true) ->
+    LoadedApplications = application:loaded_applications(),
+    [opentelemetry:register_application_tracer(Name) || {Name, _, _} <- LoadedApplications],
+    ok;
+register_loaded_applications_(_) ->
+    ok.

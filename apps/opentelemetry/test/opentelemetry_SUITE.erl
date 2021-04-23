@@ -7,6 +7,7 @@
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").
+-include("otel_tracer.hrl").
 -include("otel_span.hrl").
 -include("otel_test_utils.hrl").
 -include("otel_sampler.hrl").
@@ -17,7 +18,8 @@ all() ->
      {group, b3}].
 
 all_testcases() ->
-    [with_span, macros, child_spans, update_span_data, tracer_instrumentation_library,
+    [disable_auto_registration, registered_tracers, with_span, macros, child_spans,
+     update_span_data, tracer_instrumentation_library,
      tracer_previous_ctx, stop_temporary_app, reset_after, attach_ctx, default_sampler,
      record_but_not_sample, record_exception_works, record_exception_with_message_works].
 
@@ -53,6 +55,10 @@ init_per_group(Propagator, Config) when Propagator =:= w3c ;
 end_per_group(_, _Config) ->
     _ = application:stop(opentelemetry).
 
+init_per_testcase(disable_auto_registration, Config) ->
+    application:set_env(opentelemetry, register_loaded_applications, false),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
 init_per_testcase(_, Config) ->
     application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
@@ -62,8 +68,28 @@ init_per_testcase(_, Config) ->
     otel_batch_processor:set_exporter(otel_exporter_tab, Tid),
     [{tid, Tid} | Config].
 
+end_per_testcase(disable_auto_registration, _Config) ->
+    _ = application:stop(opentelemetry),
+    _ = application:unload(opentelemetry),
+    ok;
 end_per_testcase(_, _Config) ->
     _ = application:stop(opentelemetry),
+    ok.
+
+disable_auto_registration(_Config) ->
+    {_, #tracer{instrumentation_library=Library}} = opentelemetry:get_tracer(kernel),
+    ?assertEqual(undefined, Library),
+    ok.
+
+registered_tracers(_Config) ->
+    {_, #tracer{instrumentation_library=Library}} = opentelemetry:get_tracer(kernel),
+    ?assertEqual(<<"kernel">>, Library#instrumentation_library.name),
+
+    %% register a new tracer with the same name but different version
+    opentelemetry:register_tracer(kernel, <<"fake-version">>),
+    {_, #tracer{instrumentation_library=NewLibrary}} = opentelemetry:get_tracer(kernel),
+    ?assertEqual(<<"kernel">>, NewLibrary#instrumentation_library.name),
+    ?assertEqual(<<"fake-version">>, NewLibrary#instrumentation_library.version),
     ok.
 
 macros(Config) ->
