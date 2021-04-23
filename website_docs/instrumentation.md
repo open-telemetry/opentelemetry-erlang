@@ -354,8 +354,10 @@ text_map_propagators:
 
 {{< /tabs >}}
 
-If you instead need to use the [B3 protocol](), originally from the [Zipkin
-project](), then replace `otel_tracer_default:w3c_propagators/0` and
+If you instead need to use the [B3
+specification](https://github.com/openzipkin/b3-propagation), originally from
+the [Zipkin project](https://zipkin.io/), then replace
+`otel_tracer_default:w3c_propagators/0` and
 `&:otel_tracer_default.w3c_propagators/0` with `fun
 otel_tracer_default:b3_propagators/0` and
 `&:otel_tracer_default.b3_propagators/0` for Erlang or Elixir respectively.
