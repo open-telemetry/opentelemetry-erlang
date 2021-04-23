@@ -73,7 +73,7 @@ OpenTelemetry.Tracer.end_span(span_ctx)
 
 {{< /tabs >}}
 
-In most cases you will not need to manually register or lookup a
+In most cases you will not need to manually register or look up a
 `Tracer`. Simply use the macros provided, which are covered in the following
 section, and the `Tracer` for the Application the macro is used in will be used
 automatically.
