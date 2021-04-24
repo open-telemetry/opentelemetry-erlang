@@ -173,7 +173,7 @@ proc_lib:spawn_link(fun() ->
 
 {{< tab >}}
 span_ctx = OpenTelemetry.Tracer.start_span(<<"child">>)
-Ctx = OpenTelemetry.Ctx.get_current()
+ctx = OpenTelemetry.Ctx.get_current()
 
 task = Task.async(fn ->
                       OpenTelemetry.Ctx.attach(ctx),
