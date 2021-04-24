@@ -201,17 +201,18 @@ a `link` that can be passed to `with_span` or `start_span`:
 {{< tabs Erlang Elixir >}}
 
 {{< tab >}}
-SpanCtx = ?current_span_ctx,
+Parent = ?current_span_ctx,
 proc_lib:spawn_link(fun() ->
                         %% a new process has a new context so the span created
                         %% by the following `with_span` will have no parent
-                        Link = opentelemetry:link(SpanCtx),
+                        Link = opentelemetry:link(Parent),
                         ?with_span(<<"other-process">>, #{links => [Link]},
                                    fun() -> ok end)
                     end),
 {{< /tab >}}
 
 {{< tab >}}
+parent = OpenTelemetry.current_span_ctx()
 task = Task.async(fn ->
                     # a new process has a new context so the span created
                     # by the following `with_span` will have no parent
