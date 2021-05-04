@@ -62,7 +62,7 @@ defmodule OpenTelemetry.Tracer do
   end
 
   @doc """
-  Takes a `t:OpenTelemetry.ctx/0` and the `t:OpenTelemetry.span_ctx/0` and the Tracer sets
+  Takes a `t:OpenTelemetry.Ctx.t/0` and the `t:OpenTelemetry.span_ctx/0` and the Tracer sets
   it to the current span in the pass Context.
   """
   def set_current_span(ctx, span_ctx) do
