@@ -298,10 +298,12 @@ events(List) ->
 -spec status(Code, Message) -> status() | undefined when
       Code :: status_code(),
       Message :: unicode:unicode_binary().
-status(Code, Message) when is_atom(Code),
-                           is_binary(Message) ->
-    #status{code=Code,
-            message=Message};
+status(?OTEL_STATUS_ERROR, Message) when is_binary(Message) ->
+    #status{code=?OTEL_STATUS_ERROR};
+status(ok, _Message) ->
+    #status{code=?OTEL_STATUS_OK};
+status(unset, _Message) ->
+    #status{code=?OTEL_STATUS_UNSET};
 status(_, _) ->
     undefined.
 
