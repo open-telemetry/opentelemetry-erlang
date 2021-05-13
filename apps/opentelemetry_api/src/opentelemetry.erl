@@ -299,10 +299,10 @@ events(List) ->
       Code :: status_code(),
       Message :: unicode:unicode_binary().
 status(?OTEL_STATUS_ERROR, Message) when is_binary(Message) ->
-    #status{code=?OTEL_STATUS_ERROR};
-status(ok, _Message) ->
+    #status{code=?OTEL_STATUS_ERROR, message=Message};
+status(?OTEL_STATUS_OK, _Message) ->
     #status{code=?OTEL_STATUS_OK};
-status(unset, _Message) ->
+status(?OTEL_STATUS_UNSET, _Message) ->
     #status{code=?OTEL_STATUS_UNSET};
 status(_, _) ->
     undefined.
