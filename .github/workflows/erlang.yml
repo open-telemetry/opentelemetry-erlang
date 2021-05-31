@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
+        otp_version: ['24.0.1', '23.3.4.1', '22.3.4.19', '21.3.8.23']
         os: [ubuntu-18.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
@@ -69,7 +69,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['23.0.2', '22.3.4.2', '21.3.8.16']
+        otp_version: ['24.0.1', '23.3.4.1', '22.3.4.19', '21.3.8.23']
         os: [ubuntu-18.04]
     steps:
     - uses: actions/checkout@v2
