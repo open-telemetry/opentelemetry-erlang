@@ -14,8 +14,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['24.0.1', '23.3.4.1', '22.3.4.19', '21.3.8.23']
+        otp_version: ['24.0.2', '23.3.4.1', '22.3.4.19']
+        rebar3_version: ['3.16.1']
         os: [ubuntu-18.04]
+        include:
+          - otp_version: '21.3.8.23'
+            rebar3_version: '3.15.2'
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       OTEL_TRACES_EXPORTER: "none"
@@ -23,9 +27,10 @@ jobs:
     - uses: actions/checkout@v2
     - name: Run Collector
       run: docker-compose up -d
-    - uses: erlef/setup-elixir@v1
+    - uses: erlef/setup-beam@v1
       with:
         otp-version: ${{ matrix.otp_version }}
+        rebar3-version: ${{ matrix.rebar3_version }}
         elixir-version: '1.11.1'
     - uses: actions/cache@v2
       name: Cache
@@ -69,14 +74,19 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['24.0.1', '23.3.4.1', '22.3.4.19', '21.3.8.23']
+        otp_version: ['24.0.2', '23.3.4.1', '22.3.4.19']
+        rebar3_version: ['3.16.1']
         os: [ubuntu-18.04]
+        include:
+          - otp_version: '21.3.8.23'
+            rebar3_version: '3.15.2'
     steps:
     - uses: actions/checkout@v2
-    - uses: erlef/setup-elixir@v1
+    - uses: erlef/setup-beam@v1
       with:
         otp-version: ${{ matrix.otp_version }}
-        elixir-version: '1.11.1'
+        rebar3-version: ${{ matrix.rebar3_version }}
+        elixir-version: '1.12.1'
     - uses: actions/cache@v2
       name: Cache
       with:
