@@ -33,16 +33,16 @@ jobs:
     name: Test on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['24.0.2', '23.3.4.1', '22.3.4.19']
+        otp_version: ['24.0.2', '23.3.4.2', '22.3.4.20']
         elixir: ['1.12.1', '1.11.4']
         rebar3_version: ['3.16.1']
         os: [ubuntu-18.04]
         include:
-          - otp_version: '21.3.8.23'
+          - otp_version: '21.3.8.24'
             elixir_version: '1.11.4'
             rebar3_version: '3.15.2'
         exclude:
-          - otp_version: '21.3.8.23'
+          - otp_version: '21.3.8.24'
             elixir: '1.12.1'
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
@@ -65,16 +65,16 @@ jobs:
     name: Test on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['24.0.2', '23.3.4.1', '22.3.4.19']
+        otp_version: ['24.0.2', '23.3.4.2', '22.3.4.20']
         elixir: ['1.12.1', '1.11.4']
         rebar3_version: ['3.16.1']
         os: [ubuntu-18.04]
         include:
-          - otp_version: '21.3.8.23'
+          - otp_version: '21.3.8.24'
             elixir_version: '1.11.4'
             rebar3_version: '3.15.2'
         exclude:
-          - otp_version: '21.3.8.23'
+          - otp_version: '21.3.8.24'
             elixir: '1.12.1'
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
