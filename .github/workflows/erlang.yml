@@ -20,6 +20,7 @@ jobs:
         include:
           - otp_version: '21.3.8.24'
             rebar3_version: '3.15.2'
+            os: ubuntu-18.04
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       OTEL_TRACES_EXPORTER: "none"
@@ -80,6 +81,7 @@ jobs:
         include:
           - otp_version: '21.3.8.24'
             rebar3_version: '3.15.2'
+            os: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
     - uses: erlef/setup-beam@v1
