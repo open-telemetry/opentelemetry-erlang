@@ -88,7 +88,6 @@ jobs:
       with:
         otp-version: ${{ matrix.otp_version }}
         rebar3-version: ${{ matrix.rebar3_version }}
-        elixir-version: '1.12.1'
     - uses: actions/cache@v2
       name: Cache
       with:

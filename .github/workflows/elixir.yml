@@ -34,7 +34,7 @@ jobs:
     strategy:
       matrix:
         otp_version: ['24.0.2', '23.3.4.2', '22.3.4.20']
-        elixir: ['1.12.1', '1.11.4']
+        elixir_version: ['1.12.1', '1.11.4']
         rebar3_version: ['3.16.1']
         os: [ubuntu-18.04]
         include:
@@ -44,17 +44,17 @@ jobs:
             os: ubuntu-18.04
         exclude:
           - otp_version: '21.3.8.24'
-            elixir: '1.12.1'
+            elixir_version: '1.12.1'
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
-      ELIXIR_VERSION: ${{ matrix.elixir }}
+      ELIXIR_VERSION: ${{ matrix.elixir_version }}
       OTEL_TRACES_EXPORTER: "none"
     steps:
       - uses: actions/checkout@v2
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp_version }}
-          elixir-version: ${{ matrix.elixir }}
+          elixir-version: ${{ matrix.elixir_version }}
           rebar3-version: ${{ matrix.rebar3_version }}
       - name: Compile
         run: rebar3 as test compile
@@ -67,7 +67,7 @@ jobs:
     strategy:
       matrix:
         otp_version: ['24.0.2', '23.3.4.2', '22.3.4.20']
-        elixir: ['1.12.1', '1.11.4']
+        elixir_version: ['1.12.1', '1.11.4']
         rebar3_version: ['3.16.1']
         os: [ubuntu-18.04]
         include:
@@ -77,10 +77,10 @@ jobs:
             os: ubuntu-18.04
         exclude:
           - otp_version: '21.3.8.24'
-            elixir: '1.12.1'
+            elixir_version: '1.12.1'
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
-      ELIXIR_VERSION: ${{ matrix.elixir }}
+      ELIXIR_VERSION: ${{ matrix.elixir_version }}
     defaults:
       run:
         working-directory: apps/opentelemetry_api/
@@ -89,7 +89,7 @@ jobs:
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp_version }}
-          elixir-version: ${{ matrix.elixir }}
+          elixir-version: ${{ matrix.elixir_version }}
           rebar3-version: ${{ matrix.rebar3_version }}
       - uses: actions/cache@v2
         name: Cache
@@ -97,9 +97,9 @@ jobs:
           path: |
             apps/opentelemetry_api/deps
             apps/opentelemetry_api/_build
-          key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-v3-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock')) }}
+          key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir_version }}-v3-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock')) }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-
+            ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir_version }}-
       - run: mix deps.get
         name: Deps
       - run: mix test --cover
@@ -117,11 +117,11 @@ jobs:
     strategy:
       matrix:
         otp_version: ['24.0.2']
-        elixir: ['1.12.1']
+        elixir_version: ['1.12.1']
         os: [ubuntu-18.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
-      ELIXIR_VERSION: ${{ matrix.elixir }}
+      ELIXIR_VERSION: ${{ matrix.elixir_version }}
     defaults:
       run:
         working-directory: apps/opentelemetry_api/
@@ -130,16 +130,16 @@ jobs:
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp_version }}
-          elixir-version: ${{ matrix.elixir }}
+          elixir-version: ${{ matrix.elixir_version }}
       - uses: actions/cache@v2
         name: Cache
         with:
           path: |
             apps/opentelemetry_api/deps
             apps/opentelemetry_api/_build
-          key: ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-${{ matrix.elixir }}-v3-${{ hashFiles('apps/opentelemetry_api/mix.lock') }}
+          key: ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-${{ matrix.elixir_version }}-v3-${{ hashFiles('apps/opentelemetry_api/mix.lock') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir }}-
+            ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir_version }}-
       - run: mix deps.get
         name: Deps
       - run: mix dialyzer
