@@ -108,7 +108,35 @@ combining(_Config) ->
 
     Merged = otel_resource:merge(Resource1, Resource2),
 
-    Expected = {otel_resource, [{<<"service.name">>, <<"other-name">>},
+    Expected = {otel_resource, undefined, [{<<"service.name">>, <<"other-name">>},
+                                {<<"service.version">>, <<"1.1.1">>}]},
+    ?assertEqual(Expected, Merged),
+    ok.
+
+combining_with_schema(_Config) ->
+    Resource1 = otel_resource:create(otel_resource_app_env:parse([{service, [{name, <<"other-name">>},
+                                                                        {version, "1.1.1"}]}]),
+                                     "https://opentelemetry.io/schemas/v1.4.0"),
+    Resource2 = otel_resource:create(otel_resource_env_var:parse("service.name=cttest,service.version=1.1.1"),
+                                     "https://opentelemetry.io/schemas/v1.4.0"),
+
+    Merged = otel_resource:merge(Resource1, Resource2),
+    Expected = {otel_resource, "https://opentelemetry.io/schemas/v1.4.0",
+                                [{<<"service.name">>, <<"other-name">>},
+                                {<<"service.version">>, <<"1.1.1">>}]},
+    ?assertEqual(Expected, Merged),
+    ok.
+
+combining_with_different_schema(_Config) ->
+    Resource1 = otel_resource:create(otel_resource_app_env:parse([{service, [{name, <<"other-name">>},
+                                                                        {version, "1.1.1"}]}]),
+                                        "https://opentelemetry.io/schemas/v1.4.0"),
+    Resource2 = otel_resource:create(otel_resource_env_var:parse("service.name=cttest,service.version=1.1.1"),
+                                        "https://opentelemetry.io/schemas/undefined"),
+
+    Merged = otel_resource:merge(Resource1, Resource2),
+    Expected = {otel_resource, undefined,
+                                [{<<"service.name">>, <<"other-name">>},
                                 {<<"service.version">>, <<"1.1.1">>}]},
     ?assertEqual(Expected, Merged),
     ok.
