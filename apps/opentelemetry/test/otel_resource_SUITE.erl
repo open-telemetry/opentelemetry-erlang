@@ -49,7 +49,7 @@ crash_detector(_Config) ->
                                                                  otel_resource_app_env]},
                                            {resource_detectors_timeout, 100}]),
 
-        {_, ResourceList} = otel_resource_detector:get_resource(),
+        {_, undefined, ResourceList} = otel_resource_detector:get_resource(),
 
         ?assertIsSubset([{<<"service.name">>, <<"cttest">>},
                          {<<"service.version">>, <<"2.1.1">>},
@@ -72,13 +72,13 @@ timeout_detector(_Config) ->
                                                                  otel_resource_app_env]},
                                            {resource_detectors_timeout, 100}]),
 
-        {_, ResourceList} = otel_resource_detector:get_resource(),
+        {_, undefined, ResourceList} = otel_resource_detector:get_resource(),
 
         ?assertIsSubset([{<<"service.name">>, <<"cttest">>},
                          {<<"service.version">>, <<"3.1.1">>},
                          {<<"e">>, <<"f">>}], ResourceList),
 
-        {_, []} = otel_resource_detector:get_resource(0),
+        {_, undefined, []} = otel_resource_detector:get_resource(0),
 
         ok
     after
@@ -157,6 +157,8 @@ unknown_service_name(_Config) ->
                          {<<"process.runtime.name">>, <<"BEAM">>},
                          {<<"process.executable.name">>,<<"erl">>},
                          {<<"e">>, <<"f">>}], otel_resource:attributes(Resource)),
+
+        ?assertEqual(undefined, otel_resource:schema_url(Resource)),
 
         ok
     after
