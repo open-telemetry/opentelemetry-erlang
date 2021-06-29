@@ -132,7 +132,7 @@ set_tracer(Name, Tracer) ->
     verify_and_set_term(Tracer, Name, otel_tracer).
 
 -spec register_tracer(atom(), string()) -> boolean().
-register_tracer(Name, Vsn) ->
+register_tracer(Name, Vsn) when is_atom(Name) and is_binary(Vsn) ->
     otel_tracer_provider:register_tracer(Name, Vsn).
 
 -spec register_application_tracer(atom()) -> boolean().
