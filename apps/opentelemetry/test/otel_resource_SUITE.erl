@@ -6,6 +6,7 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include("otel_resource.hrl").
 -include("otel_span.hrl").
 -include("otel_test_utils.hrl").
 -include("otel_tracer.hrl").
@@ -49,7 +50,7 @@ crash_detector(_Config) ->
                                                                  otel_resource_app_env]},
                                            {resource_detectors_timeout, 100}]),
 
-        {_, undefined, ResourceList} = otel_resource_detector:get_resource(),
+        {_, ?SCHEMA_URL, ResourceList} = otel_resource_detector:get_resource(),
 
         ?assertIsSubset([{<<"service.name">>, <<"cttest">>},
                          {<<"service.version">>, <<"2.1.1">>},
@@ -72,7 +73,7 @@ timeout_detector(_Config) ->
                                                                  otel_resource_app_env]},
                                            {resource_detectors_timeout, 100}]),
 
-        {_, undefined, ResourceList} = otel_resource_detector:get_resource(),
+        {_, ?SCHEMA_URL, ResourceList} = otel_resource_detector:get_resource(),
 
         ?assertIsSubset([{<<"service.name">>, <<"cttest">>},
                          {<<"service.version">>, <<"3.1.1">>},
@@ -158,7 +159,7 @@ unknown_service_name(_Config) ->
                          {<<"process.executable.name">>,<<"erl">>},
                          {<<"e">>, <<"f">>}], otel_resource:attributes(Resource)),
 
-        ?assertEqual(undefined, otel_resource:schema_url(Resource)),
+        ?assertEqual(?SCHEMA_URL, otel_resource:schema_url(Resource)),
 
         ok
     after

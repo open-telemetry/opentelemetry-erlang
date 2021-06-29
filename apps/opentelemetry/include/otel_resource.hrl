@@ -1,6 +1,8 @@
 %% if any `service' attribute is defined then
 %% `service.name' and `service.instance.id' are required
 
+%% The schema url for telemetry resources
+-define(SCHEMA_URL, "https://opentelemetry.io/schemas/1.4.0").
 %% The name of the telemetry library.
 -define(SERVICE_NAME, "service.name").
 %% The string ID of the service instance. MUST be unique for each instance of the same

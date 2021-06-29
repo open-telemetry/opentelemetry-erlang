@@ -24,13 +24,14 @@
 -module(otel_resource_app_env).
 
 -behaviour(otel_resource_detector).
+-include_lib("otel_resource.hrl").
 
 -export([get_resource/1,
          parse/1]).
 
 get_resource(_Config) ->
     Attributes = parse(application:get_env(opentelemetry, resource, #{})),
-    otel_resource:create(Attributes).
+    otel_resource:create(Attributes, ?SCHEMA_URL).
 
 %%
 
