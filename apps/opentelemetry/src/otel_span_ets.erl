@@ -37,7 +37,6 @@
          update_name/2]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
--include("otel_tracer.hrl").
 -include("otel_span.hrl").
 -include("otel_span_ets.hrl").
 
