@@ -135,7 +135,7 @@ set_tracer(Name, Tracer) ->
 register_tracer(Name, Vsn) when is_atom(Name) and is_binary(Vsn) ->
     otel_tracer_provider:register_tracer(Name, Vsn).
 register_tracer(Name, Vsn) when is_atom(Name) and is_list(Vsn) ->
-    otel_tracer_provider:register_tracer(Name, list_to_binary(Vsn))
+    otel_tracer_provider:register_tracer(Name, list_to_binary(Vsn)).
 
 -spec register_application_tracer(atom()) -> boolean().
 register_application_tracer(Name) ->
