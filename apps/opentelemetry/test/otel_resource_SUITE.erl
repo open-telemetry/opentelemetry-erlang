@@ -6,6 +6,7 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include("otel_resource.hrl").
 -include("otel_span.hrl").
 -include("otel_test_utils.hrl").
 -include("otel_tracer.hrl").
@@ -49,7 +50,7 @@ crash_detector(_Config) ->
                                                                  otel_resource_app_env]},
                                            {resource_detectors_timeout, 100}]),
 
-        {_, ResourceList} = otel_resource_detector:get_resource(),
+        {_, ?SCHEMA_URL, ResourceList} = otel_resource_detector:get_resource(),
 
         ?assertIsSubset([{<<"service.name">>, <<"cttest">>},
                          {<<"service.version">>, <<"2.1.1">>},
@@ -72,13 +73,13 @@ timeout_detector(_Config) ->
                                                                  otel_resource_app_env]},
                                            {resource_detectors_timeout, 100}]),
 
-        {_, ResourceList} = otel_resource_detector:get_resource(),
+        {_, ?SCHEMA_URL, ResourceList} = otel_resource_detector:get_resource(),
 
         ?assertIsSubset([{<<"service.name">>, <<"cttest">>},
                          {<<"service.version">>, <<"3.1.1">>},
                          {<<"e">>, <<"f">>}], ResourceList),
 
-        {_, []} = otel_resource_detector:get_resource(0),
+        {_, undefined, []} = otel_resource_detector:get_resource(0),
 
         ok
     after
@@ -108,7 +109,35 @@ combining(_Config) ->
 
     Merged = otel_resource:merge(Resource1, Resource2),
 
-    Expected = {otel_resource, [{<<"service.name">>, <<"other-name">>},
+    Expected = {otel_resource, undefined, [{<<"service.name">>, <<"other-name">>},
+                                {<<"service.version">>, <<"1.1.1">>}]},
+    ?assertEqual(Expected, Merged),
+    ok.
+
+combining_with_schema(_Config) ->
+    Resource1 = otel_resource:create(otel_resource_app_env:parse([{service, [{name, <<"other-name">>},
+                                                                        {version, "1.1.1"}]}]),
+                                     "https://opentelemetry.io/schemas/v1.4.0"),
+    Resource2 = otel_resource:create(otel_resource_env_var:parse("service.name=cttest,service.version=1.1.1"),
+                                     "https://opentelemetry.io/schemas/v1.4.0"),
+
+    Merged = otel_resource:merge(Resource1, Resource2),
+    Expected = {otel_resource, "https://opentelemetry.io/schemas/v1.4.0",
+                                [{<<"service.name">>, <<"other-name">>},
+                                {<<"service.version">>, <<"1.1.1">>}]},
+    ?assertEqual(Expected, Merged),
+    ok.
+
+combining_with_different_schema(_Config) ->
+    Resource1 = otel_resource:create(otel_resource_app_env:parse([{service, [{name, <<"other-name">>},
+                                                                        {version, "1.1.1"}]}]),
+                                        "https://opentelemetry.io/schemas/v1.4.0"),
+    Resource2 = otel_resource:create(otel_resource_env_var:parse("service.name=cttest,service.version=1.1.1"),
+                                        "https://opentelemetry.io/schemas/undefined"),
+
+    Merged = otel_resource:merge(Resource1, Resource2),
+    Expected = {otel_resource, undefined,
+                                [{<<"service.name">>, <<"other-name">>},
                                 {<<"service.version">>, <<"1.1.1">>}]},
     ?assertEqual(Expected, Merged),
     ok.
@@ -129,6 +158,8 @@ unknown_service_name(_Config) ->
                          {<<"process.runtime.name">>, <<"BEAM">>},
                          {<<"process.executable.name">>,<<"erl">>},
                          {<<"e">>, <<"f">>}], otel_resource:attributes(Resource)),
+
+        ?assertEqual(?SCHEMA_URL, otel_resource:schema_url(Resource)),
 
         ok
     after

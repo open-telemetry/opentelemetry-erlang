@@ -19,12 +19,15 @@
 -module(otel_resource).
 
 -export([create/1,
+         create/2,
          merge/2,
-         attributes/1]).
+         attributes/1,
+         schema_url/1]).
 
 -type key() :: io_lib:latin1_string().
 -type value() :: io_lib:latin1_string() | integer() | float() | boolean().
--type resource() :: {otel_resource, [{key(), value()}]}.
+-type schema() :: uri_string:uri_string() | undefined.
+-type resource() :: {otel_resource, schema(), [{key(), value()}]}.
 -opaque t() :: resource().
 
 -export_type([t/0]).
@@ -34,9 +37,16 @@
 %% verifies each key and value and drops any that don't pass verification
 -spec create(#{key() => value()} | [{key(), value()}]) -> t().
 create(Map) when is_map(Map) ->
-    create(maps:to_list(Map));
+    create(Map, undefined);
 create(List) when is_list(List) ->
-    {otel_resource, lists:filtermap(fun({K, V}) ->
+    create(List, undefined).
+
+%% verifies each key and value and drops any that don't pass verification
+-spec create(#{key() => value()} | [{key(), value()}], schema() ) -> t().
+create(Map, SchemaUrl) when is_map(Map) ->
+    create(maps:to_list(Map), SchemaUrl);
+create(List, SchemaUrl) when is_list(List) ->
+    {otel_resource, SchemaUrl, lists:filtermap(fun({K, V}) ->
                                     %% TODO: log an info or debug message when dropping?
                                     case check_key(K) andalso check_value(V) of
                                         {true, Value} ->
@@ -47,15 +57,31 @@ create(List) when is_list(List) ->
                                end, lists:ukeysort(1, List))}.
 
 -spec attributes(t()) -> [{key(), value()}].
-attributes({otel_resource, Resource}) ->
+attributes({otel_resource, _, Resource}) ->
     Resource.
 
-%% In case of collision the current, first argument, resource takes precedence.
--spec merge(t(), t()) -> t().
-merge({otel_resource, CurrentResource}, {otel_resource, OtherResource}) ->
-    {otel_resource, lists:ukeymerge(1, CurrentResource, OtherResource)}.
+-spec schema_url(t()) -> schema().
+schema_url({otel_resource, SchemaUrl, _}) ->
+    SchemaUrl.
 
-%%
+%% In case of collision the current, first argument, resource takes precedence.
+%% In case of schema conflict, it will be set to undefined
+-spec merge(t(), t()) -> t().
+merge({otel_resource, CurrentSchema, CurrentAttributes}, {otel_resource, OtherSchema, OtherAttributes}) ->
+    %% check schema url
+    Schema = check_schema(CurrentSchema, OtherSchema),
+    {otel_resource, Schema, lists:ukeymerge(1, CurrentAttributes, OtherAttributes)}.
+
+%% check two schemas. Current behavior is undefined if schemas do not match
+-spec check_schema(schema(), schema()) -> schema().
+check_schema(A, A) ->
+    A;
+check_schema(undefined, A) ->
+    A;
+check_schema(A, undefined) ->
+    A;
+check_schema(_, _) ->
+    undefined.
 
 %% all resource strings, key or value, must be latin1 with length less than 255
 check_string(S) ->
