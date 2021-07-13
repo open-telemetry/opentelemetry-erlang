@@ -32,7 +32,7 @@
 -type cb_state() :: term().
 
 -callback init(term()) -> {ok, cb_state()}.
--callback register_tracer(atom(), string(), cb_state()) -> boolean().
+-callback register_tracer(atom(), binary(), cb_state()) -> boolean().
 -callback resource(cb_state()) -> term() | undefined.
 
 -record(state, {callback :: module(),
@@ -50,7 +50,7 @@ resource() ->
             undefined
     end.
 
--spec register_tracer(atom(), string()) -> boolean().
+-spec register_tracer(atom(), binary()) -> boolean().
 register_tracer(Name, Vsn) ->
     try
         gen_server:call(?MODULE, {register_tracer, Name, Vsn})

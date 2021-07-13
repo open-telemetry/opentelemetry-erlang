@@ -204,7 +204,7 @@ verify_export(Config) ->
     Protocol = ?config(protocol, Config),
     Port = case Protocol of
                grpc ->
-                   55680;
+                   4317;
                http_protobuf ->
                    55681
            end,
