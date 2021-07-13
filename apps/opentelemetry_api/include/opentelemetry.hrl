@@ -30,6 +30,10 @@
 -define(SPAN_KIND_PRODUCER, producer).
 -define(SPAN_KIND_CONSUMER, consumer).
 
+-define(OTEL_STATUS_UNSET, unset).
+-define(OTEL_STATUS_OK, ok).
+-define(OTEL_STATUS_ERROR, error).
+
 -record(span_ctx, {
           %% 128 bit int trace id
           trace_id          :: opentelemetry:trace_id(),
@@ -70,11 +74,7 @@
          }).
 
 -record(status, {
-          code    :: atom() | integer(),
+          code = ?OTEL_STATUS_UNSET :: opentelemetry:status_code(),
           %% developer-facing error message
-          message :: unicode:unicode_binary()
+          message = <<"">>          :: unicode:unicode_binary()
          }).
-
--define(OTEL_STATUS_UNSET, unset).
--define(OTEL_STATUS_OK, ok).
--define(OTEL_STATUS_ERROR, error).

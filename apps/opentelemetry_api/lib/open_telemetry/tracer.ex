@@ -173,7 +173,7 @@ defmodule OpenTelemetry.Tracer do
   @doc """
   Sets the Status of the currently active Span.
 
-  If used, this will override the default Span Status, which is `ok`.
+  If used, this will override the default Span Status, which is `:unset`.
   """
   @spec set_status(OpenTelemetry.status()) :: boolean()
   def set_status(status) do

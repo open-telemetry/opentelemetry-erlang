@@ -126,7 +126,7 @@ defmodule OpenTelemetry.Span do
   @doc """
   Sets the Status of the currently active Span.
 
-  If used, this will override the default Span Status, which is `ok`.
+  If used, this will override the default Span Status, which is `:unset`.
   """
   @spec set_status(OpenTelemetry.span_ctx(), OpenTelemetry.status()) :: boolean()
   defdelegate set_status(span_ctx, status), to: :otel_span
