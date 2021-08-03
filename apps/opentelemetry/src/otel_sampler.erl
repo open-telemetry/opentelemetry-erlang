@@ -19,7 +19,8 @@
 %%%-------------------------------------------------------------------------
 -module(otel_sampler).
 
--export([setup/1,
+-export([new/3,
+         setup/1,
          get_description/1,
          always_on/7,
          always_off/7,
@@ -31,26 +32,35 @@
 -include("otel_sampler.hrl").
 -include("otel_span.hrl").
 
--callback setup(module(), map()) -> t().
+-callback setup(sampler_opts()) -> t().
 
 -type sampling_decision() :: ?DROP | ?RECORD_ONLY | ?RECORD_AND_SAMPLE.
 -type sampling_result() :: {sampling_decision(), opentelemetry:attributes(), opentelemetry:tracestate()}.
 -type description() :: unicode:unicode_binary().
--type sampler() :: {fun((otel_ctx:t(),
-                         opentelemetry:trace_id(),
-                         opentelemetry:links(),
-                         opentelemetry:span_name(),
-                         opentelemetry:span_kind(),
-                         opentelemetry:attributes(),
-                         term()) -> sampling_result()), description(), term()}.
+-type decider() :: fun((otel_ctx:t(),
+                        opentelemetry:trace_id(),
+                        opentelemetry:links(),
+                        opentelemetry:span_name(),
+                        opentelemetry:span_kind(),
+                        opentelemetry:attributes(),
+                        term()) -> sampling_result()).
+-type sampler() :: {decider(), description(), sampler_opts()}.
+-type sampler_opts() :: term().
 -opaque t() :: sampler().
--export_type([sampling_result/0,
+-export_type([decider/0,
+              description/0,
+              sampling_result/0,
               sampling_decision/0,
+              sampler_opts/0,
               t/0]).
 
 -define(MAX_VALUE, 9223372036854775807). %% 2^63 - 1
 
--spec setup(atom() | {atom() | module(), term()}) -> t().
+-spec new(decider(), description(), sampler_opts()) -> t().
+new(DecisionFunction, Description, SamplerOpts) ->
+    {DecisionFunction, Description, SamplerOpts}.
+
+-spec setup(atom() | {atom() | module(), sampler_opts()}) -> t().
 setup({Sampler, Opts}) ->
     setup(Sampler, Opts);
 setup(Sampler) when is_atom(Sampler) ->
