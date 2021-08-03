@@ -37,17 +37,17 @@
 -type sampling_decision() :: ?DROP | ?RECORD_ONLY | ?RECORD_AND_SAMPLE.
 -type sampling_result() :: {sampling_decision(), opentelemetry:attributes(), opentelemetry:tracestate()}.
 -type description() :: unicode:unicode_binary().
--type decider() :: fun((otel_ctx:t(),
-                        opentelemetry:trace_id(),
-                        opentelemetry:links(),
-                        opentelemetry:span_name(),
-                        opentelemetry:span_kind(),
-                        opentelemetry:attributes(),
-                        term()) -> sampling_result()).
--type sampler() :: {decider(), description(), sampler_opts()}.
+-type sampler_fun() :: fun((otel_ctx:t(),
+                            opentelemetry:trace_id(),
+                            opentelemetry:links(),
+                            opentelemetry:span_name(),
+                            opentelemetry:span_kind(),
+                            opentelemetry:attributes(),
+                            term()) -> sampling_result()).
+-type sampler() :: {sampler_fun(), description(), sampler_opts()}.
 -type sampler_opts() :: term().
 -opaque t() :: sampler().
--export_type([decider/0,
+-export_type([sampler_fun/0,
               description/0,
               sampling_result/0,
               sampling_decision/0,
@@ -56,7 +56,7 @@
 
 -define(MAX_VALUE, 9223372036854775807). %% 2^63 - 1
 
--spec new(decider(), description(), sampler_opts()) -> t().
+-spec new(sampler_fun(), description(), sampler_opts()) -> t().
 new(DecisionFunction, Description, SamplerOpts) ->
     {DecisionFunction, Description, SamplerOpts}.
 
