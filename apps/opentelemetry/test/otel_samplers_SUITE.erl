@@ -200,3 +200,19 @@ pass_attributes(_Config) ->
         )
     ),
     ok.
+
+should_sample(_Config) ->
+    Sampler = otel_sampler:new({always_on, #{}}),
+    ?assertMatch(
+        {?RECORD_AND_SAMPLE, [], []},
+        otel_samplers:should_sample(
+            Sampler,
+            otel_ctx:new(),
+            opentelemetry:generate_trace_id(),
+            [],
+            <<"span-name">>,
+            undefined,
+            []
+        )
+    ),
+    ok.
