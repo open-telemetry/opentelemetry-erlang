@@ -36,7 +36,7 @@ setup(_) -> [].
 description(_) -> <<"AlwaysOffSampler">>.
 
 should_sample(Ctx, _TraceId, _Links, _SpanName, _SpanKind, _Attributes, Attributes) ->
-    {?RECORD_AND_SAMPLE, Attributes, tracestate(Ctx)}.
+    {?DROP, Attributes, tracestate(Ctx)}.
 
 tracestate(Ctx) ->
     tracestate_(otel_tracer:current_span_ctx(Ctx)).
