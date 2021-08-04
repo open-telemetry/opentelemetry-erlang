@@ -142,3 +142,61 @@ custom_sampler_module(_Config) ->
                  Sampler:should_sample(otel_ctx:new(), opentelemetry:generate_trace_id(), [],
                          SpanName, undefined, [], Opts)),
     ok.
+
+pass_attributes(_Config) ->
+    SpanName = <<"span-name">>,
+    Probability = 0.5,
+
+    % always_on
+    {AlwaysOnSampler, _, AlwaysOnSamplerOpts} = otel_sampler:new(
+        {always_on, #{attributes => [{<<"foo">>, <<"bar">>}]}}
+    ),
+    ?assertMatch(
+        {_, [{<<"foo">>, <<"bar">>}], []},
+        AlwaysOnSampler:should_sample(
+            otel_ctx:new(),
+            opentelemetry:generate_trace_id(),
+            [],
+            SpanName,
+            undefined,
+            [],
+            AlwaysOnSamplerOpts
+        )
+    ),
+
+    % always_off
+    {AlwaysOffSampler, _, AlwaysOffSamplerOpts} = otel_sampler:new(
+        {always_off, #{attributes => [{<<"foo">>, <<"bar">>}]}}
+    ),
+    ?assertMatch(
+        {_, [{<<"foo">>, <<"bar">>}], []},
+        AlwaysOffSampler:should_sample(
+            otel_ctx:new(),
+            opentelemetry:generate_trace_id(),
+            [],
+            SpanName,
+            undefined,
+            [],
+            AlwaysOffSamplerOpts
+        )
+    ),
+
+    % trace_id_ratio_based
+    {TraceIdRatioBased, _, TraceIdRatioBasedOpts} = otel_sampler:new(
+        {trace_id_ratio_based, #{
+            probability => Probability, attributes => [{<<"foo">>, <<"bar">>}]
+        }}
+    ),
+    ?assertMatch(
+        {_, [{<<"foo">>, <<"bar">>}], []},
+        TraceIdRatioBased:should_sample(
+            otel_ctx:new(),
+            opentelemetry:generate_trace_id(),
+            [],
+            SpanName,
+            undefined,
+            [],
+            TraceIdRatioBasedOpts
+        )
+    ),
+    ok.
