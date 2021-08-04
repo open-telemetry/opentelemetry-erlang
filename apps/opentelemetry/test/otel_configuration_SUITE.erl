@@ -123,31 +123,31 @@ sampler(_Config) ->
     ok.
 
 sampler_parent_based(_Config) ->
-    ?assertMatch({sampler, {parent_based, #{root := {trace_id_ratio_based, 0.5}}}},
+    ?assertMatch({sampler, {parent_based, #{root := {trace_id_ratio_based, #{probability := 0.5}}}}},
                  lists:keyfind(sampler, 1, otel_configuration:merge_with_os([]))),
 
     ok.
 
 sampler_trace_id(_Config) ->
-    ?assertMatch({sampler, {trace_id_ratio_based, 0.5}},
+    ?assertMatch({sampler, {trace_id_ratio_based, #{probability := 0.5}}},
                  lists:keyfind(sampler, 1, otel_configuration:merge_with_os([]))),
 
     ok.
 
 sampler_trace_id_default(_Config) ->
-    ?assertMatch({sampler, {trace_id_ratio_based, 1.0}},
+    ?assertMatch({sampler, {trace_id_ratio_based, #{probability := 1.0}}},
                  lists:keyfind(sampler, 1, otel_configuration:merge_with_os([]))),
 
     ok.
 
 sampler_parent_based_one(_Config) ->
-    ?assertMatch({sampler, {parent_based, #{root := {trace_id_ratio_based, 1.0}}}},
+    ?assertMatch({sampler, {parent_based, #{root := {trace_id_ratio_based, #{probability := 1.0}}}}},
                  lists:keyfind(sampler, 1, otel_configuration:merge_with_os([]))),
 
     ok.
 
 sampler_parent_based_zero(_Config) ->
-    ?assertMatch({sampler, {parent_based, #{root := {trace_id_ratio_based, 0.0}}}},
+    ?assertMatch({sampler, {parent_based, #{root := {trace_id_ratio_based, #{probability := 0.0}}}}},
                  lists:keyfind(sampler, 1, otel_configuration:merge_with_os([]))),
 
     ok.

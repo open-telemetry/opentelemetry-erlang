@@ -40,7 +40,7 @@
          %% tracers created by this provider
          shared_tracer :: tracer(),
          processors :: [module()],
-         sampler :: otel_sampler:t(),
+         sampler :: otel_sampler:instance(),
          resource :: otel_resource:t(),
 
          %% list of tracer names to return noop tracers for
@@ -54,8 +54,10 @@
 init(Opts) ->
     Resource = otel_resource_detector:get_resource(),
 
-    SamplerAndOpts = proplists:get_value(sampler, Opts, {parent_based, #{root => always_on}}),
-    SamplerFun = otel_sampler:setup(SamplerAndOpts),
+    SamplerSpec = proplists:get_value(
+        sampler, Opts, {parent_based, #{root => {always_on, #{}}}}
+    ),
+    Sampler = otel_sampler:new(SamplerSpec),
     Processors = proplists:get_value(processors, Opts, []),
     DenyList = proplists:get_value(deny_list, Opts, []),
 
@@ -67,7 +69,7 @@ init(Opts) ->
                                           version=list_to_binary(LibraryVsn)},
 
     Tracer = #tracer{module=otel_tracer_default,
-                     sampler=SamplerFun,
+                     sampler=Sampler,
                      on_start_processors=on_start(Processors),
                      on_end_processors=on_end(Processors),
                      resource=Resource,
@@ -76,7 +78,7 @@ init(Opts) ->
 
     {ok, #state{shared_tracer=Tracer,
                 resource=Resource,
-                sampler=SamplerFun,
+                sampler=Sampler,
                 telemetry_library=TelemetryLibrary,
                 deny_list=DenyList,
                 processors=Processors}}.
