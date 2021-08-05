@@ -9,7 +9,7 @@
 -include("otel_sampler.hrl").
 
 all() ->
-    [trace_id_ratio_based, parent_based, get_description, custom_sampler_module].
+    [trace_id_ratio_based, parent_based, get_description, custom_sampler_module, pass_attributes].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
