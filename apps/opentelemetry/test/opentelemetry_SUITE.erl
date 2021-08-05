@@ -19,9 +19,9 @@ all() ->
 
 all_testcases() ->
     [disable_auto_registration, registered_tracers, with_span, macros, child_spans,
-     update_span_data, tracer_instrumentation_library,
-     tracer_previous_ctx, stop_temporary_app, reset_after, attach_ctx, default_sampler,
-     record_but_not_sample, record_exception_works, record_exception_with_message_works].
+     update_span_data, tracer_instrumentation_library, tracer_previous_ctx, stop_temporary_app,
+     reset_after, attach_ctx, default_sampler, root_span_sampling, record_but_not_sample,
+     record_exception_works, record_exception_with_message_works].
 
 groups() ->
     [{w3c, [], [propagation]},
@@ -454,6 +454,20 @@ default_sampler(_Config) ->
     %% local not sampled but is recorded should default to sampled
     SpanCtx6 = otel_tracer:start_span(Tracer, <<"span-6">>, #{}),
     ?assertMatch(false, SpanCtx6#span_ctx.is_recording),
+
+    ok.
+
+root_span_sampling(_Config) ->
+    Tracer = opentelemetry:get_tracer(),
+
+    Sampler = otel_sampler:setup({trace_id_ratio_based, 1.0}),
+
+    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{sampler => Sampler}),
+    ?assertMatch(true, SpanCtx1#span_ctx.is_recording),
+
+    otel_tracer:set_current_span(SpanCtx1),
+    SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-2">>, #{sampler => Sampler}),
+    ?assertMatch(true, SpanCtx2#span_ctx.is_recording),
 
     ok.
 
