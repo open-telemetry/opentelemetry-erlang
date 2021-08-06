@@ -20,8 +20,9 @@ all() ->
 all_testcases() ->
     [disable_auto_registration, registered_tracers, with_span, macros, child_spans,
      update_span_data, tracer_instrumentation_library, tracer_previous_ctx, stop_temporary_app,
-     reset_after, attach_ctx, default_sampler, root_span_sampling_always_on, root_span_sampling_always_on,
-     record_but_not_sample, record_exception_works, record_exception_with_message_works].
+     reset_after, attach_ctx, default_sampler, root_span_sampling_always_on,
+     root_span_sampling_always_off,record_but_not_sample, record_exception_works,
+     record_exception_with_message_works].
 
 groups() ->
     [{w3c, [], [propagation]},
