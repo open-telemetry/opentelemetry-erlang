@@ -23,7 +23,6 @@
 
 -export_type([
     description/0,
-    instance/0,
     sampler_config/0,
     sampler_opts/0,
     sampling_decision/0,
@@ -47,24 +46,23 @@
 
 -include("otel_sampler.hrl").
 
--opaque instance() :: {t(), description(), sampler_opts()}.
 -type description() :: unicode:unicode_binary().
 -type sampler_config() :: term().
 -type sampler_opts() :: term().
--type sampler_spec() :: {t(), sampler_opts()}.
+-type sampler_spec() :: {module(), sampler_opts()}.
 -type sampling_decision() :: ?DROP | ?RECORD_ONLY | ?RECORD_AND_SAMPLE.
 -type sampling_result() :: {
     sampling_decision(), opentelemetry:attributes(), opentelemetry:tracestate()
 }.
--type t() :: module().
+-opaque t() :: {module(), description(), sampler_opts()}.
 
--spec new(sampler_spec()) -> instance().
+-spec new(sampler_spec()) -> t().
 new({Sampler, Opts}) ->
     Config = Sampler:setup(Opts),
     {Sampler, Sampler:description(Config), Config}.
 
 -spec should_sample(
-    instance(),
+    t(),
     otel_ctx:t(),
     opentelemetry:trace_id(),
     opentelemetry:links(),
@@ -75,5 +73,5 @@ new({Sampler, Opts}) ->
 should_sample({Sampler, _, Config}, Ctx, TraceId, Links, SpanName, Kind, Attributes) ->
     Sampler:should_sample(Ctx, TraceId, Links, SpanName, Kind, Attributes, Config).
 
--spec description(instance()) -> description().
+-spec description(t()) -> description().
 description({_, Description, _}) -> Description.

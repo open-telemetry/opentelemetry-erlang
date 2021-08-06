@@ -40,7 +40,7 @@
          %% tracers created by this provider
          shared_tracer :: tracer(),
          processors :: [module()],
-         sampler :: otel_sampler:instance(),
+         sampler :: otel_sampler:t(),
          resource :: otel_resource:t(),
 
          %% list of tracer names to return noop tracers for
