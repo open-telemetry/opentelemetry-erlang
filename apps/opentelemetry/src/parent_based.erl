@@ -84,12 +84,12 @@ parent_based_sampler(#span_ctx{trace_flags = TraceFlags, is_remote = true}) when
 parent_based_sampler(#span_ctx{is_remote = true}) ->
     remote_parent_not_sampled;
 %% local parent sampled
-parent_based_sampler(#span_ctx{trace_flags = TraceFlags, is_remote = false}) when
+parent_based_sampler(#span_ctx{trace_flags = TraceFlags}) when
     ?IS_SAMPLED(TraceFlags)
 ->
     local_parent_sampled;
 %% local parent not sampled
-parent_based_sampler(#span_ctx{is_remote = false}) ->
+parent_based_sampler(#span_ctx{}) ->
     local_parent_not_sampled;
 %% root
 parent_based_sampler(_SpanCtx) ->
