@@ -467,7 +467,6 @@ root_span_sampling_always_off(_Config) ->
     ?assertMatch(0, SpanCtx1#span_ctx.trace_flags),
 
     otel_tracer:set_current_span(SpanCtx1),
-    % if i pass sampler sampler => Sampler then the test succeeds
     SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-2">>, #{}),
     ?assertMatch(false, SpanCtx2#span_ctx.is_recording),
     ?assertMatch(0, SpanCtx2#span_ctx.trace_flags),
