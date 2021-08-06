@@ -20,8 +20,8 @@ all() ->
 all_testcases() ->
     [disable_auto_registration, registered_tracers, with_span, macros, child_spans,
      update_span_data, tracer_instrumentation_library, tracer_previous_ctx, stop_temporary_app,
-     reset_after, attach_ctx, default_sampler, root_span_sampling, record_but_not_sample,
-     record_exception_works, record_exception_with_message_works].
+     reset_after, attach_ctx, default_sampler, root_span_sampling_always_on, root_span_sampling_always_on,
+     record_but_not_sample, record_exception_works, record_exception_with_message_works].
 
 groups() ->
     [{w3c, [], [propagation]},
@@ -457,17 +457,36 @@ default_sampler(_Config) ->
 
     ok.
 
-root_span_sampling(_Config) ->
+root_span_sampling_always_off(_Config) ->
     Tracer = opentelemetry:get_tracer(),
 
-    Sampler = otel_sampler:setup({trace_id_ratio_based, 1.0}),
+    Sampler = otel_sampler:setup(always_off),
+
+    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{sampler => Sampler}),
+    ?assertMatch(false, SpanCtx1#span_ctx.is_recording),
+    ?assertMatch(0, SpanCtx1#span_ctx.trace_flags),
+
+    otel_tracer:set_current_span(SpanCtx1),
+    % if i pass sampler sampler => Sampler then the test succeeds
+    SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-2">>, #{}),
+    ?assertMatch(false, SpanCtx2#span_ctx.is_recording),
+    ?assertMatch(0, SpanCtx2#span_ctx.trace_flags),
+
+    ok.
+
+root_span_sampling_always_on(_Config) ->
+    Tracer = opentelemetry:get_tracer(),
+
+    Sampler = otel_sampler:setup(always_on),
 
     SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{sampler => Sampler}),
     ?assertMatch(true, SpanCtx1#span_ctx.is_recording),
+    ?assertMatch(1, SpanCtx1#span_ctx.trace_flags),
 
     otel_tracer:set_current_span(SpanCtx1),
-    SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-2">>, #{sampler => Sampler}),
+    SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-2">>, #{}),
     ?assertMatch(true, SpanCtx2#span_ctx.is_recording),
+    ?assertMatch(1, SpanCtx1#span_ctx.trace_flags),
 
     ok.
 
