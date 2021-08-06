@@ -32,7 +32,8 @@
     remote_parent_sampled => otel_sampler:sampler_spec(),
     remote_parent_not_sampled => otel_sampler:sampler_spec(),
     local_parent_sampled => otel_sampler:sampler_spec(),
-    local_parent_not_sampled => otel_sampler:sampler_spec()
+    local_parent_not_sampled => otel_sampler:sampler_spec(),
+    root => otel_sampler:sampler_spec()
 }.
 
 setup(Opts = #{root := RootSpec}) ->

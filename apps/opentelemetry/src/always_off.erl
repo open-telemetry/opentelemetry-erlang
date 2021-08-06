@@ -23,20 +23,15 @@
 
 -export([description/1, setup/1, should_sample/7]).
 
--export_type([opts/0]).
-
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_sampler.hrl").
 
--type opts() :: #{attributes => opentelemetry:attributes()}.
-
-setup(#{attributes := Attributes}) -> Attributes;
-setup(_) -> [].
+setup(_Opts) -> [].
 
 description(_) -> <<"AlwaysOffSampler">>.
 
-should_sample(Ctx, _TraceId, _Links, _SpanName, _SpanKind, _Attributes, DecisionAttributes) ->
-    {?DROP, DecisionAttributes, tracestate(Ctx)}.
+should_sample(Ctx, _TraceId, _Links, _SpanName, _SpanKind, _Attributes, _Opts) ->
+    {?DROP, [], tracestate(Ctx)}.
 
 tracestate(Ctx) ->
     tracestate_(otel_tracer:current_span_ctx(Ctx)).

@@ -151,14 +151,14 @@ transform(sampler, {"always_on", _}) ->
 transform(sampler, {"always_off", _}) ->
     {always_off, #{}};
 transform(sampler, {"traceidratio", false}) ->
-    {trace_id_ratio_based, #{probability => 1.0}};
+    {trace_id_ratio_based, 1.0};
 transform(sampler, {"traceidratio", Probability}) ->
-    {trace_id_ratio_based, #{probability => probability_string_to_float(Probability)}};
+    {trace_id_ratio_based, probability_string_to_float(Probability)};
 transform(sampler, {"parentbased_traceidratio", false}) ->
-    {parent_based, #{root => {trace_id_ratio_based, #{probability => 1.0}}}};
+    {parent_based, #{root => {trace_id_ratio_based, 1.0}}};
 transform(sampler, {"parentbased_traceidratio", Probability}) ->
     {parent_based,
-     #{root => {trace_id_ratio_based, #{probability => probability_string_to_float(Probability)}}}};
+     #{root => {trace_id_ratio_based, probability_string_to_float(Probability)}}};
 transform(sampler, Value) ->
     Value;
 

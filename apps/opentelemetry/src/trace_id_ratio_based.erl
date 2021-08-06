@@ -23,17 +23,19 @@
 
 -export([description/1, setup/1, should_sample/7]).
 
--export_type([opts/0]).
+-export_type([config/0, probability/0]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_sampler.hrl").
 
--type opts() :: #{attributes => opentelemetry:attributes(), probability := float()}.
+-type probability() :: float().
+-opaque config() :: #{probability := probability(), id_upper_bound := integer()}.
 
 %% 2^63 - 1
 -define(MAX_VALUE, 9223372036854775807).
 
-setup(Opts = #{probability := Probability}) ->
+-spec setup(probability()) -> config().
+setup(Probability) ->
     IdUpperBound =
         case Probability of
             P when P =:= 0.0 ->
@@ -43,17 +45,15 @@ setup(Opts = #{probability := Probability}) ->
             P when P >= 0.0 andalso P =< 1.0 ->
                 P * ?MAX_VALUE
         end,
-    Attributes = maps:get(attributes, Opts, []),
-    #{attributes => Attributes, probability => Probability, id_upper_bound => IdUpperBound}.
+    #{probability => Probability, id_upper_bound => IdUpperBound}.
 
 description(#{probability := Probability}) ->
     unicode:characters_to_binary(io_lib:format("TraceIdRatioBased{~.6f}", [Probability])).
 
 should_sample(Ctx, TraceId, _Links, _SpanName, _SpanKind, _Attributes, #{
-    attributes := DecisionAttributes, id_upper_bound := IdUpperBound
+    id_upper_bound := IdUpperBound
 }) ->
-    Decision = decide(TraceId, IdUpperBound),
-    {Decision, DecisionAttributes, tracestate(Ctx)}.
+    {decide(TraceId, IdUpperBound), [], tracestate(Ctx)}.
 
 decide(undefined, _IdUpperBound) ->
     ?DROP;
