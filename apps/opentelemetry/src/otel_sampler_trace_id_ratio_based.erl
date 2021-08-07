@@ -13,8 +13,9 @@
 %% limitations under the License.
 %%
 %% @doc
-%% A sampler is a function run on each started span that returns whether to
-%% record and propagate, only record or not record the span.
+%% This sampler samples a configured percentage of spans, where the sampling
+%% decision is deterministic with respect to the span trace id, i.e., it always
+%% makes the same decision for the same trace id.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_sampler_trace_id_ratio_based).

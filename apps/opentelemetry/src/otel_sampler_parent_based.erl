@@ -13,8 +13,14 @@
 %% limitations under the License.
 %%
 %% @doc
-%% A sampler is a function run on each started span that returns whether to
-%% record and propagate, only record or not record the span.
+%% This sampler makes the decision based on the parent, with the following possibilities:
+%% 1) a remote parent that is sampled (by default otel_sampler_always_on);
+%% 2) a remote parent that is not sampled (by default otel_sampler_always_off);
+%% 3) a local parent that is sampled (by default otel_sampler_always_on);
+%% 4) a local parent that isnot sampled (by default otel_sampler_always_on);
+%% 5) no parent (by default otel_sampler_always_on).
+%%
+%% For each of these cases a different sampler can be configured.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_sampler_parent_based).

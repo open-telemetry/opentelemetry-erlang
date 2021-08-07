@@ -13,8 +13,7 @@
 %% limitations under the License.
 %%
 %% @doc
-%% A sampler is a function run on each started span that returns whether to
-%% record and propagate, only record or not record the span.
+%% This sampler always decides to record and sample each span.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_sampler_always_on).
