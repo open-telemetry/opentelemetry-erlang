@@ -45,7 +45,7 @@ processors(AppEnvOpts) ->
 %% sampler configuration is unique since it has the _ARG that is a sort of
 %% sub-configuration of the sampler config, and isn't a list.
 sampler(AppEnvOpts) ->
-    Sampler = proplists:get_value(sampler, AppEnvOpts, {parent_based, #{root => {always_on, #{}}}}),
+    Sampler = proplists:get_value(sampler, AppEnvOpts, {otel_sampler_parent_based, #{root => {otel_sampler_always_on, #{}}}}),
 
     Sampler1 = case os:getenv("OTEL_TRACES_SAMPLER") of
                    false ->
@@ -143,22 +143,22 @@ transform(url, Value) ->
     uri_string:parse(Value);
 %% convert sampler string to usable configuration term
 transform(sampler, {"parentbased_always_on", _}) ->
-    {parent_based, #{root => {always_on, #{}}}};
+    {otel_sampler_parent_based, #{root => {otel_sampler_always_on, #{}}}};
 transform(sampler, {"parentbased_always_off", _}) ->
-    {parent_based, #{root => {always_off, #{}}}};
-transform(sampler, {"always_on", _}) ->
-    {always_on, #{}};
-transform(sampler, {"always_off", _}) ->
-    {always_off, #{}};
+    {otel_sampler_parent_based, #{root => {otel_sampler_always_off, #{}}}};
+transform(sampler, {"otel_sampler_always_on", _}) ->
+    {otel_sampler_always_on, #{}};
+transform(sampler, {"otel_sampler_always_off", _}) ->
+    {otel_sampler_always_off, #{}};
 transform(sampler, {"traceidratio", false}) ->
-    {trace_id_ratio_based, 1.0};
+    {otel_sampler_trace_id_ratio_based, 1.0};
 transform(sampler, {"traceidratio", Probability}) ->
-    {trace_id_ratio_based, probability_string_to_float(Probability)};
+    {otel_sampler_trace_id_ratio_based, probability_string_to_float(Probability)};
 transform(sampler, {"parentbased_traceidratio", false}) ->
-    {parent_based, #{root => {trace_id_ratio_based, 1.0}}};
+    {otel_sampler_parent_based, #{root => {otel_sampler_trace_id_ratio_based, 1.0}}};
 transform(sampler, {"parentbased_traceidratio", Probability}) ->
-    {parent_based,
-     #{root => {trace_id_ratio_based, probability_string_to_float(Probability)}}};
+    {otel_sampler_parent_based,
+     #{root => {otel_sampler_trace_id_ratio_based, probability_string_to_float(Probability)}}};
 transform(sampler, Value) ->
     Value;
 

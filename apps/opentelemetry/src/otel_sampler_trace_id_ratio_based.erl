@@ -17,7 +17,7 @@
 %% record and propagate, only record or not record the span.
 %% @end
 %%%-------------------------------------------------------------------------
--module(trace_id_ratio_based).
+-module(otel_sampler_trace_id_ratio_based).
 
 -behavior(otel_sampler).
 

@@ -17,7 +17,7 @@
 %% record and propagate, only record or not record the span.
 %% @end
 %%%-------------------------------------------------------------------------
--module(always_on).
+-module(otel_sampler_always_on).
 
 -behavior(otel_sampler).
 

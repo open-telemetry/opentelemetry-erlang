@@ -8,7 +8,7 @@
     stdlib,
     opentelemetry_api
    ]},
-  {env, [{sampler, {parent_based, #{root => {always_on, #{}}}}}, % default sampler
+  {env, [{sampler, {otel_sampler_parent_based, #{root => {otel_sampler_always_on, #{}}}}}, % default sampler
 
          {text_map_propagators, [fun otel_baggage:get_text_map_propagators/0,
                                  fun otel_tracer_default:w3c_propagators/0]},
