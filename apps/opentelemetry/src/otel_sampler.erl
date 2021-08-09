@@ -49,7 +49,18 @@
 -type description() :: unicode:unicode_binary().
 -type sampler_config() :: term().
 -type sampler_opts() :: term().
--type sampler_spec() :: {module(), sampler_opts()}.
+-type builtin_sampler() ::
+    always_on
+    | always_off
+    | {trace_id_ratio_based, float()}
+    | {parent_based, #{
+        remote_parent_sampled => sampler_spec(),
+        remote_parent_not_sampled => sampler_spec(),
+        local_parent_sampled => sampler_spec(),
+        local_parent_not_sampled => sampler_spec(),
+        root => sampler_spec()
+    }}.
+-type sampler_spec() :: builtin_sampler() | {module(), sampler_opts()}.
 -type sampling_decision() :: ?DROP | ?RECORD_ONLY | ?RECORD_AND_SAMPLE.
 -type sampling_result() :: {
     sampling_decision(), opentelemetry:attributes(), opentelemetry:tracestate()
@@ -57,6 +68,14 @@
 -opaque t() :: {module(), description(), sampler_opts()}.
 
 -spec new(sampler_spec()) -> t().
+new(always_on) ->
+    new({otel_sampler_always_on, #{}});
+new(always_off) ->
+    new({otel_sampler_always_off, #{}});
+new({trace_id_ratio_based, Opts}) ->
+    new({otel_sampler_trace_id_ratio_based, Opts});
+new({parent_based, Opts}) ->
+    new({otel_sampler_parent_based, Opts});
 new({Sampler, Opts}) ->
     Config = Sampler:setup(Opts),
     {Sampler, Sampler:description(Config), Config}.

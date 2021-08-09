@@ -55,7 +55,7 @@ init(Opts) ->
     Resource = otel_resource_detector:get_resource(),
 
     SamplerSpec = proplists:get_value(
-        sampler, Opts, {otel_sampler_parent_based, #{root => {otel_sampler_always_on, #{}}}}
+        sampler, Opts, {parent_based, #{root => always_on}}
     ),
     Sampler = otel_sampler:new(SamplerSpec),
     Processors = proplists:get_value(processors, Opts, []),

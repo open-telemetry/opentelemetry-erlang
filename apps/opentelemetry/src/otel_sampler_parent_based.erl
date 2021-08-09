@@ -14,11 +14,11 @@
 %%
 %% @doc
 %% This sampler makes the decision based on the parent, with the following possibilities:
-%% 1) a remote parent that is sampled (by default otel_sampler_always_on);
-%% 2) a remote parent that is not sampled (by default otel_sampler_always_off);
-%% 3) a local parent that is sampled (by default otel_sampler_always_on);
-%% 4) a local parent that isnot sampled (by default otel_sampler_always_on);
-%% 5) no parent (by default otel_sampler_always_on).
+%% 1) a remote parent that is sampled (by default always_on);
+%% 2) a remote parent that is not sampled (by default always_off);
+%% 3) a local parent that is sampled (by default always_on);
+%% 4) a local parent that isnot sampled (by default always_on);
+%% 5) no parent (by default always_on).
 %%
 %% For each of these cases a different sampler can be configured.
 %% @end
@@ -43,10 +43,10 @@
 }.
 
 setup(Opts = #{root := RootSpec}) ->
-    RemoteParentSampledSampler = sampler_for_spec(remote_parent_sampled, Opts, otel_sampler_always_on),
-    RemoteParentNotSampledSampler = sampler_for_spec(remote_parent_not_sampled, Opts, otel_sampler_always_off),
-    LocalParentSampledSampler = sampler_for_spec(local_parent_sampled, Opts, otel_sampler_always_on),
-    LocalParentNotSampledSampler = sampler_for_spec(local_parent_not_sampled, Opts, otel_sampler_always_off),
+    RemoteParentSampledSampler = sampler_for_spec(remote_parent_sampled, Opts, always_on),
+    RemoteParentNotSampledSampler = sampler_for_spec(remote_parent_not_sampled, Opts, always_off),
+    LocalParentSampledSampler = sampler_for_spec(local_parent_sampled, Opts, always_on),
+    LocalParentNotSampledSampler = sampler_for_spec(local_parent_not_sampled, Opts, always_off),
     RootSampler = otel_sampler:new(RootSpec),
     #{
         root => RootSampler,
@@ -56,11 +56,11 @@ setup(Opts = #{root := RootSpec}) ->
         local_parent_not_sampled => LocalParentNotSampledSampler
     };
 setup(Opts) ->
-    ?LOG_INFO("No sampler spec found for otel_sampler_parent_based 'root' option. The sampler 'otel_sampler_always_on' will be used for root spans"),
-    setup(Opts#{root => {otel_sampler_always_on, #{}}}).
+    ?LOG_INFO("No sampler spec found for parent_based 'root' option. The 'always_on' sampler will be used for root spans."),
+    setup(Opts#{root => always_on}).
 
 sampler_for_spec(Key, Opts, DefaultModule) ->
-    Spec = maps:get(Key, Opts, {DefaultModule, #{}}),
+    Spec = maps:get(Key, Opts, DefaultModule),
     otel_sampler:new(Spec).
 
 description(#{

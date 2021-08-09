@@ -109,7 +109,7 @@ empty_os_environment(_Config) ->
     ?assertIsSubset([{log_level,info},
                      {propagators,[fun otel_tracer_default:w3c_propagators/0,
                                      fun otel_baggage:get_text_map_propagators/0]},
-                     {sampler,{otel_sampler_parent_based,#{root => {otel_sampler_always_on,#{}}}}}],
+                     {sampler,{parent_based,#{root => always_on}}}],
                     otel_configuration:merge_with_os([])),
 
     ?assertIsSubset([{log_level, error}], otel_configuration:merge_with_os([{log_level, error}])),
@@ -117,37 +117,37 @@ empty_os_environment(_Config) ->
     ok.
 
 sampler(_Config) ->
-    ?assertMatch({sampler, {otel_sampler_parent_based, #{root := {otel_sampler_always_off, #{}}}}},
+    ?assertMatch({sampler, {parent_based, #{root := always_off}}},
                  lists:keyfind(sampler, 1, otel_configuration:merge_with_os([]))),
 
     ok.
 
 sampler_parent_based(_Config) ->
-    ?assertMatch({sampler, {otel_sampler_parent_based, #{root := {otel_sampler_trace_id_ratio_based, 0.5}}}},
+    ?assertMatch({sampler, {parent_based, #{root := {trace_id_ratio_based, 0.5}}}},
                  lists:keyfind(sampler, 1, otel_configuration:merge_with_os([]))),
 
     ok.
 
 sampler_trace_id(_Config) ->
-    ?assertMatch({sampler, {otel_sampler_trace_id_ratio_based, 0.5}},
+    ?assertMatch({sampler, {trace_id_ratio_based, 0.5}},
                  lists:keyfind(sampler, 1, otel_configuration:merge_with_os([]))),
 
     ok.
 
 sampler_trace_id_default(_Config) ->
-    ?assertMatch({sampler, {otel_sampler_trace_id_ratio_based, 1.0}},
+    ?assertMatch({sampler, {trace_id_ratio_based, 1.0}},
                  lists:keyfind(sampler, 1, otel_configuration:merge_with_os([]))),
 
     ok.
 
 sampler_parent_based_one(_Config) ->
-    ?assertMatch({sampler, {otel_sampler_parent_based, #{root := {otel_sampler_trace_id_ratio_based, 1.0}}}},
+    ?assertMatch({sampler, {parent_based, #{root := {trace_id_ratio_based, 1.0}}}},
                  lists:keyfind(sampler, 1, otel_configuration:merge_with_os([]))),
 
     ok.
 
 sampler_parent_based_zero(_Config) ->
-    ?assertMatch({sampler, {otel_sampler_parent_based, #{root := {otel_sampler_trace_id_ratio_based, 0.0}}}},
+    ?assertMatch({sampler, {parent_based, #{root := {trace_id_ratio_based, 0.0}}}},
                  lists:keyfind(sampler, 1, otel_configuration:merge_with_os([]))),
 
     ok.

@@ -28,13 +28,13 @@ end_per_testcase(_, _Config) ->
 
 get_description(_Config) ->
     Probability = 0.5,
-    Sampler = otel_sampler:new({otel_sampler_trace_id_ratio_based, Probability}),
+    Sampler = otel_sampler:new({trace_id_ratio_based, Probability}),
 
     ?assertEqual(<<"TraceIdRatioBased{0.500000}">>, otel_sampler:description(Sampler)),
 
     ParentBasedSampler = otel_sampler:new(
-        {otel_sampler_parent_based, #{
-            root => {otel_sampler_trace_id_ratio_based, Probability}
+        {parent_based, #{
+            root => {trace_id_ratio_based, Probability}
         }}
     ),
     ?assertEqual(
@@ -53,7 +53,7 @@ trace_id_ratio_based(_Config) ->
     Ctx = otel_ctx:new(),
 
     %% sampler that runs on all spans
-    {Sampler, _, Opts} = otel_sampler:new({otel_sampler_trace_id_ratio_based, Probability}),
+    {Sampler, _, Opts} = otel_sampler:new({trace_id_ratio_based, Probability}),
 
     %% checks the trace id is under the upper bound
     ?assertMatch(
@@ -145,7 +145,7 @@ parent_based(_Config) ->
     Ctx = otel_ctx:new(),
 
     {Sampler, _, Opts} = otel_sampler:new(
-        {otel_sampler_parent_based, #{root => {otel_sampler_trace_id_ratio_based, Probability}}}
+        {parent_based, #{root => {trace_id_ratio_based, Probability}}}
     ),
 
     %% with no parent it will run the probability sampler
@@ -207,7 +207,7 @@ parent_based(_Config) ->
     ),
 
     %% with no root sampler in setup opts the default sampler always_on is used
-    {DefaultParentOrElse, _, Opts1} = otel_sampler:new({otel_sampler_parent_based, #{}}),
+    {DefaultParentOrElse, _, Opts1} = otel_sampler:new({parent_based, #{}}),
 
     ?assertMatch(
         {?RECORD_AND_SAMPLE, [], []},
@@ -282,7 +282,7 @@ custom_sampler_module(_Config) ->
     ok.
 
 should_sample(_Config) ->
-    Sampler = otel_sampler:new({otel_sampler_always_on, #{}}),
+    Sampler = otel_sampler:new(always_on),
     ?assertMatch(
         {?RECORD_AND_SAMPLE, [], []},
         otel_samplers:should_sample(
