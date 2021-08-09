@@ -187,8 +187,10 @@ endpoint(Endpoint) ->
             Parsed
     end.
 
-parse_endpoint({Scheme, Host, Port, SSLOptions}) ->
+parse_endpoint({Scheme, Host, Port, SSLOptions}) when is_list(SSLOptions) ->
     {true, #{scheme => atom_to_list(Scheme), host => Host, port => Port, path => [], ssl_options => SSLOptions}};
+parse_endpoint({Scheme, Host, Port, _}) ->
+    {true, #{scheme => atom_to_list(Scheme), host => Host, port => Port, path => []}};
 parse_endpoint(Endpoint=#{host := _Host, port := _Port, scheme := _Scheme, path := _Path}) ->
     {true, Endpoint};
 parse_endpoint(Endpoint=#{host := _Host, scheme := _Scheme, path := _Path}) ->
