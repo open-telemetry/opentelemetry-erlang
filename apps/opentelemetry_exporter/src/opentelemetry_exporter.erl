@@ -152,8 +152,8 @@ shutdown(#state{channel_pid=Pid}) ->
 %%
 
 grpcbox_endpoints(Endpoints) ->
-    [{scheme(Scheme), Host, Port, SSLOptions} || 
-        #{scheme := Scheme, host := Host, port := Port, ssl_options := SSLOptions} <- Endpoints].
+    [{scheme(Scheme), Host, Port, maps:get(ssl_options, Endpoint, [])} || 
+        #{scheme := Scheme, host := Host, port := Port} = Endpoint <- Endpoints].
 
 headers_to_grpc_metadata(Headers) ->
     lists:foldl(fun({X, Y}, Acc) ->
