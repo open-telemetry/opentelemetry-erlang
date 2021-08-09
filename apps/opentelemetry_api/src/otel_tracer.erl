@@ -22,6 +22,7 @@
          with_span/4,
          with_span/5,
          non_recording_span/3,
+         from_remote_span/3,
          set_current_span/1,
          set_current_span/2,
          current_span_ctx/0,
@@ -80,6 +81,17 @@ non_recording_span(TraceId, SpanId, Traceflags) ->
     #span_ctx{trace_id=TraceId,
               span_id=SpanId,
               is_recording=false,
+              trace_flags=Traceflags}.
+
+%% @doc Returns a `span_ctx' record with `is_recording' set to `false' and `is_remote' set to `true'.
+%% This is mainly for use in propagators when they extract a Span to be used as a parent.
+-spec from_remote_span(opentelemetry:trace_id(), opentelemetry:span_id(), opentelemetry:trace_flags())
+                      -> opentelemetry:span_ctx().
+from_remote_span(TraceId, SpanId, Traceflags) ->
+    #span_ctx{trace_id=TraceId,
+              span_id=SpanId,
+              is_recording=false,
+              is_remote=true,
               trace_flags=Traceflags}.
 
 -spec set_current_span(opentelemetry:span_ctx() | undefined) -> ok.

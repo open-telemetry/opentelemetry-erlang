@@ -49,7 +49,8 @@
           %% TraceID and a non-zero SpanID.
           is_valid          :: boolean() | undefined,
           %% true if the span context came from a remote process
-          is_remote         :: boolean() | undefined,
+          %% defaults to false and the propagator must set to true when extracting
+          is_remote = false :: boolean(),
           %% this field is not propagated and is only here as an implementation optimization
           %% If true updates like adding events are done on the span. The same as if the
           %% trace flags lowest bit is 1 but simply not propagated.
