@@ -135,9 +135,9 @@ to_span_ctx(Version, TraceId, SpanId, Opts) ->
     try
         %% verify version is hexadecimal
         _ = binary_to_integer(Version, 16),
-        otel_tracer:non_recording_span(binary_to_integer(TraceId, 16),
-                                       binary_to_integer(SpanId, 16),
-                                       case Opts of <<"01">> -> 1; <<"00">> -> 0; _ -> error(badarg) end)
+        otel_tracer:from_remote_span(binary_to_integer(TraceId, 16),
+                                     binary_to_integer(SpanId, 16),
+                                     case Opts of <<"01">> -> 1; <<"00">> -> 0; _ -> error(badarg) end)
     catch
         %% to integer from base 16 string failed
         error:badarg ->
