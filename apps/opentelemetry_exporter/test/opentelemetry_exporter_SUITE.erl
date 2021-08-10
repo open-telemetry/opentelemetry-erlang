@@ -42,8 +42,13 @@ configuration(_Config) ->
     try
         ?assertMatch(#{endpoints :=
                            [#{scheme := "http", host := "localhost",
-                              port := 9090, path := "/v1/traces"}]},
+                              port := 9090, path := "/v1/traces", ssl_options := []}]},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}]})),
+
+        ?assertMatch(#{endpoints :=
+                           [#{scheme := "http", host := "localhost",
+                              port := 9090, path := "/v1/traces", ssl_options := [{verify, verify_none}]}]},
+                     opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, [{verify, verify_none}]}]})),
 
         ?assertMatch([#{scheme := "http", host := "localhost", port := 443, path := []}],
                      opentelemetry_exporter:endpoints(["http://localhost:443"])),

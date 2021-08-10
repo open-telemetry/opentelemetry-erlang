@@ -152,7 +152,8 @@ shutdown(#state{channel_pid=Pid}) ->
 %%
 
 grpcbox_endpoints(Endpoints) ->
-    [{scheme(Scheme), Host, Port, []} || #{scheme := Scheme, host := Host, port := Port} <- Endpoints].
+    [{scheme(Scheme), Host, Port, maps:get(ssl_options, Endpoint, [])} || 
+        #{scheme := Scheme, host := Host, port := Port} = Endpoint <- Endpoints].
 
 headers_to_grpc_metadata(Headers) ->
     lists:foldl(fun({X, Y}, Acc) ->
@@ -186,6 +187,8 @@ endpoint(Endpoint) ->
             Parsed
     end.
 
+parse_endpoint({Scheme, Host, Port, SSLOptions}) when is_list(SSLOptions) ->
+    {true, #{scheme => atom_to_list(Scheme), host => Host, port => Port, path => [], ssl_options => SSLOptions}};
 parse_endpoint({Scheme, Host, Port, _}) ->
     {true, #{scheme => atom_to_list(Scheme), host => Host, port => Port, path => []}};
 parse_endpoint(Endpoint=#{host := _Host, port := _Port, scheme := _Scheme, path := _Path}) ->
@@ -243,8 +246,8 @@ endpoints_append_path(E) when is_list(E) ->
 endpoints_append_path(E) ->
     [append_path(E)].
 
-append_path({Scheme, Host, Port, _}) ->
-    #{scheme => atom_to_list(Scheme), host => Host, port => Port, path => "/v1/traces"};
+append_path({Scheme, Host, Port, SSLOptions}) ->
+    #{scheme => atom_to_list(Scheme), host => Host, port => Port, path => "/v1/traces", ssl_options => SSLOptions};
 append_path(Endpoint=#{path := Path}) ->
     Endpoint#{path => filename:join(Path, ?DEFAULT_TRACES_PATH)};
 append_path(EndpointString) when is_list(EndpointString) orelse is_binary(EndpointString) ->
