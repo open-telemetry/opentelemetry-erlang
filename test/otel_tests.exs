@@ -31,6 +31,30 @@ defmodule OtelTests do
                     )}
   end
 
+  test "child span should not be sampled if root span is not sampled" do
+    :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
+    OpenTelemetry.register_tracer(:test_tracer, "0.1.0")
+
+    sampler = :otel_sampler.setup(:always_off)
+
+    Tracer.with_span "span-1", %{sampler: sampler} do
+      Tracer.with_span "span-2" do
+        Tracer.set_attribute("foo", "bar")
+      end
+    end
+
+    refute_receive {:span, span(name: "span-1")}
+
+    # The flag combination SampledFlag == true and IsRecording == false could
+    # cause gaps in the distributed trace, and because of this OpenTelemetry API
+    # MUST NOT allow this combination.
+    #
+    # source: # https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#sampling
+    refute_receive {:span, span(name: "span-2", trace_flags: 1, is_recording: false)}
+
+    refute_receive {:span, span(name: "span-2")}
+  end
+
   test "use Tracer to start a Span as currently active with an explicit parent" do
     :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
     OpenTelemetry.register_tracer(:test_tracer, "0.1.0")
