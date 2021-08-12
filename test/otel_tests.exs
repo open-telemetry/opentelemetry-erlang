@@ -35,7 +35,7 @@ defmodule OtelTests do
     :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
     OpenTelemetry.register_tracer(:test_tracer, "0.1.0")
 
-    sampler = :otel_sampler.setup(:always_off)
+    sampler = :otel_sampler.new(:always_off)
 
     Tracer.with_span "span-1", %{sampler: sampler} do
       Tracer.with_span "span-2" do
