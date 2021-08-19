@@ -495,7 +495,7 @@ record_but_not_sample(Config) ->
                "as a valid recorded span but is not sent to the exporter."),
     Tid = ?config(tid, Config),
 
-    Sampler = otel_sampler:setup({static_sampler, #{<<"span-record-and-sample">> => ?RECORD_AND_SAMPLE,
+    Sampler = otel_sampler:new({static_sampler, #{<<"span-record-and-sample">> => ?RECORD_AND_SAMPLE,
                                                     <<"span-record">> => ?RECORD_ONLY}}),
 
     Tracer = opentelemetry:get_tracer(),

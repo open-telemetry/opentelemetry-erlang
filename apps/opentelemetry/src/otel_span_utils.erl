@@ -93,9 +93,10 @@ end_span(Span) ->
 
 %%
 
-sample(Ctx, {Sampler, _Description, Opts}, TraceId, Links, SpanName, Kind, Attributes) ->
-    {Decision, NewAttributes, TraceState} = Sampler(Ctx, TraceId, Links, SpanName,
-                                                    Kind, Attributes, Opts),
+sample(Ctx, Sampler, TraceId, Links, SpanName, Kind, Attributes) ->
+    {Decision, NewAttributes, TraceState} = otel_sampler:should_sample(
+        Sampler, Ctx, TraceId, Links, SpanName, Kind, Attributes
+    ),
     case Decision of
         ?DROP ->
             {0, false, NewAttributes, TraceState};
