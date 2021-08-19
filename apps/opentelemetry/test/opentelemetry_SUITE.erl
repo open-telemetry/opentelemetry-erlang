@@ -11,6 +11,7 @@
 -include("otel_span.hrl").
 -include("otel_test_utils.hrl").
 -include("otel_sampler.hrl").
+-include("otel_span_ets.hrl").
 
 all() ->
     [all_testcases(),
@@ -19,9 +20,9 @@ all() ->
 
 all_testcases() ->
     [disable_auto_registration, registered_tracers, with_span, macros, child_spans,
-     update_span_data, tracer_instrumentation_library,
-     tracer_previous_ctx, stop_temporary_app, reset_after, attach_ctx, default_sampler,
-     record_but_not_sample, record_exception_works, record_exception_with_message_works].
+     update_span_data, tracer_instrumentation_library, tracer_previous_ctx, stop_temporary_app,
+     reset_after, attach_ctx, default_sampler, non_recording_ets_table, record_but_not_sample,
+     record_exception_works, record_exception_with_message_works].
 
 groups() ->
     [{w3c, [], [propagation]},
@@ -454,7 +455,20 @@ default_sampler(_Config) ->
     %% local not sampled but is recorded should default to sampled
     SpanCtx6 = otel_tracer:start_span(Tracer, <<"span-6">>, #{}),
     ?assertMatch(false, SpanCtx6#span_ctx.is_recording),
+    ok.
 
+non_recording_ets_table(_Config) ->
+    Tracer = opentelemetry:get_tracer(),
+
+    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{}),
+    ?assertMatch(true, SpanCtx1#span_ctx.is_recording),
+
+    AlwaysOff = otel_sampler:new(always_off),
+    SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-2">>, #{sampler => AlwaysOff}),
+    ?assertMatch(false, SpanCtx2#span_ctx.is_recording),
+
+    %% verify that ETS table only contains the recording span <<"span-1">>
+    ?assertMatch([#span{name = <<"span-1">>}], ets:tab2list(?SPAN_TAB)),
     ok.
 
 record_but_not_sample(Config) ->
