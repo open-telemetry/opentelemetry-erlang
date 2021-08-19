@@ -54,7 +54,8 @@ description(#{probability := Probability}) ->
 should_sample(Ctx, TraceId, _Links, _SpanName, _SpanKind, _Attributes, #{
     id_upper_bound := IdUpperBound
 }) ->
-    {decide(TraceId, IdUpperBound), [], tracestate(Ctx)}.
+    SpanCtx = otel_tracer:current_span_ctx(Ctx),
+    {decide(TraceId, IdUpperBound), [], otel_span:tracestate(SpanCtx)}.
 
 decide(undefined, _IdUpperBound) ->
     ?DROP;
@@ -66,13 +67,3 @@ decide(TraceId, IdUpperBound) ->
         true -> ?RECORD_AND_SAMPLE;
         false -> ?DROP
     end.
-
-tracestate(Ctx) ->
-    tracestate_(otel_tracer:current_span_ctx(Ctx)).
-
-tracestate_(#span_ctx{tracestate = undefined}) ->
-    [];
-tracestate_(#span_ctx{tracestate = TraceState}) ->
-    TraceState;
-tracestate_(undefined) ->
-    [].

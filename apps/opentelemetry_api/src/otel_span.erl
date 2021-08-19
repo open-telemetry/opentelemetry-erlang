@@ -69,9 +69,13 @@ trace_id(#span_ctx{trace_id=TraceId }) ->
 span_id(#span_ctx{span_id=SpanId }) ->
     SpanId.
 
--spec tracestate(opentelemetry:span_ctx()) -> opentelemetry:tracestate().
+-spec tracestate(opentelemetry:span_ctx() | undefined) -> opentelemetry:tracestate().
+tracestate(#span_ctx{tracestate=undefined}) ->
+    [];
 tracestate(#span_ctx{tracestate=Tracestate}) ->
-    Tracestate.
+    Tracestate;
+tracestate(_) ->
+    [].
 
 -spec set_attribute(SpanCtx, Key, Value) -> boolean() when
       Key :: opentelemetry:attribute_key(),

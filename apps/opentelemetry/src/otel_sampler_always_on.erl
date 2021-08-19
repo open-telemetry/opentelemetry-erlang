@@ -30,14 +30,5 @@ setup(_Opts) -> [].
 description(_) -> <<"AlwaysOnSampler">>.
 
 should_sample(Ctx, _TraceId, _Links, _SpanName, _SpanKind, _Attributes, _Opts) ->
-    {?RECORD_AND_SAMPLE, [], tracestate(Ctx)}.
-
-tracestate(Ctx) ->
-    tracestate_(otel_tracer:current_span_ctx(Ctx)).
-
-tracestate_(#span_ctx{tracestate = undefined}) ->
-    [];
-tracestate_(#span_ctx{tracestate = TraceState}) ->
-    TraceState;
-tracestate_(undefined) ->
-    [].
+    SpanCtx = otel_tracer:current_span_ctx(Ctx),
+    {?RECORD_AND_SAMPLE, [], otel_span:tracestate(SpanCtx)}.
