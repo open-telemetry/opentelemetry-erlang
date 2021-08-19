@@ -463,7 +463,7 @@ non_recording_ets_table(_Config) ->
     SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{}),
     ?assertMatch(true, SpanCtx1#span_ctx.is_recording),
 
-    AlwaysOff = otel_sampler:setup(always_off),
+    AlwaysOff = otel_sampler:new(always_off),
     SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-2">>, #{sampler => AlwaysOff}),
     ?assertMatch(false, SpanCtx2#span_ctx.is_recording),
 
