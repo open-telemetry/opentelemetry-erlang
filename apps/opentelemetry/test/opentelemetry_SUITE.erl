@@ -461,7 +461,7 @@ default_sampler(_Config) ->
 root_span_sampling_always_off(_Config) ->
     Tracer = opentelemetry:get_tracer(),
 
-    Sampler = otel_sampler:setup(always_off),
+    Sampler = otel_sampler:new(always_off),
 
     SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{sampler => Sampler}),
     ?assertMatch(false, SpanCtx1#span_ctx.is_recording),
@@ -477,7 +477,7 @@ root_span_sampling_always_off(_Config) ->
 root_span_sampling_always_on(_Config) ->
     Tracer = opentelemetry:get_tracer(),
 
-    Sampler = otel_sampler:setup(always_on),
+    Sampler = otel_sampler:new(always_on),
 
     SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{sampler => Sampler}),
     ?assertMatch(true, SpanCtx1#span_ctx.is_recording),
