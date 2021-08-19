@@ -17,50 +17,30 @@
 %%%-------------------------------------------------------------------------
 -module(otel_propagator).
 
--export([text_map_inject/1,
-         text_map_extract/1]).
+-export([builtin_to_module/1]).
 
--callback inject(term()) -> carrier().
--callback extract(carrier(), term()) -> term().
+%% sets a value into a carrier
+-callback inject(otel_ctx:t(), carrier()) -> carrier().
+%% extracts values from a carrier and sets them in the context
+-callback extract(otel_ctx:t(), carrier()) -> otel_ctx:t().
 
--type text_map() :: [{binary(), binary()}].
+%% a carrier can be any type
+-type carrier() :: term().
 
-%% TODO add binary carrier when it is included in the otel spec
--type carrier() :: text_map().
+-export_type([carrier/0]).
 
-%% T is a carrier()
--type extractor(T) :: {fun((T, term(), fun((carrier(), term()) -> term())) -> ok), term()}.
--type injector(T) :: {fun((T, term(), fun((term()) -> carrier())) -> T), term()}.
-
--type text_map_injector() :: injector(text_map()).
--type text_map_extractor() :: extractor(text_map()).
-
--export_type([carrier/0,
-              extractor/1,
-              injector/1,
-              text_map_injector/0,
-              text_map_extractor/0,
-              text_map/0]).
-
-text_map_inject(TextMap) ->
-    Injectors = opentelemetry:get_text_map_injectors(),
-    run_injectors(TextMap, Injectors).
-
-text_map_extract(TextMap) ->
-    Extractors = opentelemetry:get_text_map_extractors(),
-    run_extractors(TextMap, Extractors).
-
-run_extractors(TextMap, Extractors) ->
-    lists:foldl(fun({Extract, {Key, FromText}}, ok) ->
-                        Extract(TextMap, Key, FromText),
-                        ok;
-                   (_, ok) ->
-                        ok
-                end, ok, Extractors).
-
-run_injectors(TextMap, Injectors) ->
-    lists:foldl(fun({Inject, {Key, ToText}}, TextMapAcc) ->
-                        Inject(TextMapAcc, Key, ToText);
-                   (_, TextMapAcc) ->
-                        TextMapAcc
-                end, TextMap, Injectors).
+%% convert the short name of a propagator to its module name if it is a builtin
+%% if the name doens't match a builtin it is assumed to be a module
+builtin_to_module(tracecontext) ->
+    otel_propagator_trace_context;
+builtin_to_module(trace_context) ->
+    otel_propagator_trace_context;
+builtin_to_module(b3) ->
+    otel_propagator_b3;
+%% TODO: add multib3 and jaeger as builtin propagators
+%% builtin_to_module(multib3) ->
+%%     otel_propagator_multib3;
+%% builtin_to_module(jaeger) ->
+%%     otel_propagator_jaeger;
+builtin_to_module(Module) ->
+    Module.

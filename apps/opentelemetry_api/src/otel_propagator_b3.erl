@@ -15,12 +15,13 @@
 %% @doc
 %% @end
 %%%-----------------------------------------------------------------------
--module(otel_propagator_http_b3).
+-module(otel_propagator_b3).
 
--behaviour(otel_propagator).
+-behaviour(otel_propagator_text_map).
 
--export([inject/1,
-         extract/2]).
+-export([fields/0,
+         inject/3,
+         extract/4]).
 
 -include("opentelemetry.hrl").
 
@@ -30,45 +31,45 @@
 
 -define(B3_IS_SAMPLED(S), S =:= "1" orelse S =:= <<"1">> orelse S =:= "true" orelse S =:= <<"true">>).
 
--spec inject(opentelemetry:span_ctx() | undefined) -> otel_propagator:text_map().
-inject(#span_ctx{trace_id=TraceId,
-                 span_id=SpanId}) when TraceId =:= 0
-                                       ; SpanId =:= 0 ->
-    [];
-inject(#span_ctx{trace_id=TraceId,
-                 span_id=SpanId,
-                 trace_flags=TraceOptions}) ->
-    Options = case TraceOptions band 1 of 1 -> <<"1">>; _ -> <<"0">> end,
-    EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
-    EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
-    [{?B3_TRACE_ID, iolist_to_binary(EncodedTraceId)},
-     {?B3_SPAN_ID, iolist_to_binary(EncodedSpanId)},
-     {?B3_SAMPLED, Options}];
-inject(undefined) ->
-    [].
+fields() ->
+    [?B3_TRACE_ID, ?B3_SPAN_ID, ?B3_SAMPLED].
 
--spec extract(otel_propagator:text_map(), term()) -> opentelemetry:span_ctx() | undefined.
-extract(Headers, _) when is_list(Headers) ->
+inject(Ctx, Carrier, CarrierSet) ->
+    case otel_tracer:current_span_ctx(Ctx) of
+        #span_ctx{trace_id=TraceId,
+                  span_id=SpanId,
+                  trace_flags=TraceOptions} when TraceId =/= 0 andalso SpanId =/= 0 ->
+            Options = case TraceOptions band 1 of 1 -> <<"1">>; _ -> <<"0">> end,
+            EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
+            EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
+            CarrierSet(?B3_TRACE_ID, iolist_to_binary(EncodedTraceId),
+                       CarrierSet(?B3_SPAN_ID, iolist_to_binary(EncodedSpanId),
+                                  CarrierSet(?B3_SAMPLED, Options, Carrier)));
+        _ ->
+            Carrier
+    end.
+
+extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet) ->
     try
-        TraceId = trace_id(Headers),
-        SpanId = span_id(Headers),
-        Sampled = lookup(?B3_SAMPLED, Headers),
-        otel_tracer:from_remote_span(string_to_integer(TraceId, 16),
-                                     string_to_integer(SpanId, 16),
-                                     case Sampled of True when ?B3_IS_SAMPLED(True) -> 1; _ -> 0 end)
+        TraceId = trace_id(Carrier, CarrierGet),
+        SpanId = span_id(Carrier, CarrierGet),
+        Sampled = CarrierGet(?B3_SAMPLED, Carrier),
+        SpanCtx =
+            otel_tracer:from_remote_span(string_to_integer(TraceId, 16),
+                                         string_to_integer(SpanId, 16),
+                                         case Sampled of True when ?B3_IS_SAMPLED(True) -> 1; _ -> 0 end),
+        otel_tracer:set_current_span(Ctx, SpanCtx)
     catch
         throw:invalid ->
-            undefined;
+            Ctx;
 
         %% thrown if _to_integer fails
         error:badarg ->
-            undefined
-    end;
-extract(_, _) ->
-    undefined.
+            Ctx
+    end.
 
-trace_id(Headers) ->
-    case lookup(?B3_TRACE_ID, Headers) of
+trace_id(Carrier, CarrierGet) ->
+    case CarrierGet(?B3_TRACE_ID, Carrier) of
         TraceId when is_list(TraceId) orelse is_binary(TraceId) ->
             case string:length(TraceId) =:= 32 orelse string:length(TraceId) =:= 16 of
                 true ->
@@ -80,8 +81,8 @@ trace_id(Headers) ->
             throw(invalid)
     end.
 
-span_id(Headers) ->
-    case lookup(?B3_SPAN_ID, Headers) of
+span_id(Carrier, CarrierGet) ->
+    case CarrierGet(?B3_SPAN_ID, Carrier) of
         SpanId when is_list(SpanId) orelse is_binary(SpanId) ->
             case string:length(SpanId) =:= 16 of
                 true ->
@@ -91,17 +92,6 @@ span_id(Headers) ->
             end;
         _ ->
             throw(invalid)
-    end.
-
-%% find a header in a list, ignoring case
-lookup(_, []) ->
-    undefined;
-lookup(Header, [{H, Value} | Rest]) ->
-    case string:equal(Header, H, true, none) of
-        true ->
-            Value;
-        false ->
-            lookup(Header, Rest)
     end.
 
 string_to_integer(S, Base) when is_binary(S) ->

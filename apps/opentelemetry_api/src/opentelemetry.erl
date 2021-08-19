@@ -34,6 +34,7 @@
          register_application_tracer/1,
          get_tracer/0,
          get_tracer/1,
+         set_text_map_propagators/1,
          set_text_map_extractors/1,
          get_text_map_extractors/0,
          set_text_map_injectors/1,
@@ -154,13 +155,23 @@ get_tracer() ->
 get_tracer(Name) ->
     persistent_term:get({?MODULE, Name}, get_tracer()).
 
+%% setting the propagators is the same as setting the same list for
+%% injectors and extractors
+set_text_map_propagators(List) when is_list(List) ->
+    set_text_map_injectors(List),
+    set_text_map_extractors(List);
+set_text_map_propagators(_) ->
+    ok.
+
 set_text_map_extractors(List) when is_list(List) ->
-    persistent_term:put({?MODULE, text_map_extractors}, List);
+    ParsedList = otel_propagator:builtin_to_module(List),
+    persistent_term:put({?MODULE, text_map_extractors}, ParsedList);
 set_text_map_extractors(_) ->
     ok.
 
 set_text_map_injectors(List) when is_list(List) ->
-    persistent_term:put({?MODULE, text_map_injectors}, List);
+    ParsedList = otel_propagator:builtin_to_module(List),
+    persistent_term:put({?MODULE, text_map_injectors}, ParsedList);
 set_text_map_injectors(_) ->
     ok.
 

@@ -42,15 +42,14 @@ init_per_group(Propagator, Config) when Propagator =:= w3c ;
     application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
 
-    {BaggageTextMapExtractor, BaggageTextMapInjector} = otel_baggage:get_text_map_propagators(),
-    {TraceTextMapExtractor, TraceTextMapInjector} = case Propagator of
-                                                        w3c -> otel_tracer_default:w3c_propagators();
-                                                        b3 -> otel_tracer_default:b3_propagators()
-                                                    end,
-    opentelemetry:set_text_map_extractors([BaggageTextMapExtractor,
-                                           TraceTextMapExtractor]),
-    opentelemetry:set_text_map_injectors([BaggageTextMapInjector,
-                                          TraceTextMapInjector]),
+    case Propagator of
+        w3c ->
+            opentelemetry:set_text_map_propagators([otel_propagator_baggage,
+                                                    otel_propagator_trace_context]);
+        b3 ->
+            opentelemetry:set_text_map_propagators([otel_propagator_baggage,
+                                                    otel_propagator_b3])
+    end,
 
     [{propagator, Propagator} | Config].
 
@@ -250,7 +249,7 @@ propagation(Config) ->
     %% drop baggage with bad value
     otel_baggage:set(<<"key-3">>, value3),
 
-    Headers = otel_propagator:text_map_inject([{<<"existing-header">>, <<"I exist">>}]),
+    Headers = otel_propagator_text_map:inject([{<<"existing-header">>, <<"I exist">>}]),
 
     EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
     EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
@@ -276,7 +275,7 @@ propagation(Config) ->
 
     %% make header keys uppercase to validate the extractor is case insensitive
     BinaryHeaders = [{string:uppercase(Key), iolist_to_binary(Value)} || {Key, Value} <- Headers],
-    otel_propagator:text_map_extract(BinaryHeaders),
+    otel_propagator_text_map:extract(BinaryHeaders),
 
     ?assertEqual(#{<<"key-1">> => {<<"value=1">>, []},
                    <<"key-2">> => {<<"value-2">>, [<<"metadata">>, {<<"md-k-1">>, <<"md-v-1">>}]}},
