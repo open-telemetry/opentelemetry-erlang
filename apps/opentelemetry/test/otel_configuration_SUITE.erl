@@ -109,7 +109,7 @@ empty_os_environment(_Config) ->
     ?assertIsSubset([{log_level,info},
                      {propagators,[fun otel_tracer_default:w3c_propagators/0,
                                      fun otel_baggage:get_text_map_propagators/0]},
-                     {sampler,{parent_based,#{root => {always_on,#{}}}}}],
+                     {sampler,{parent_based,#{root => always_on}}}],
                     otel_configuration:merge_with_os([])),
 
     ?assertIsSubset([{log_level, error}], otel_configuration:merge_with_os([{log_level, error}])),
@@ -117,7 +117,7 @@ empty_os_environment(_Config) ->
     ok.
 
 sampler(_Config) ->
-    ?assertMatch({sampler, {parent_based, #{root := {always_off, #{}}}}},
+    ?assertMatch({sampler, {parent_based, #{root := always_off}}},
                  lists:keyfind(sampler, 1, otel_configuration:merge_with_os([]))),
 
     ok.
