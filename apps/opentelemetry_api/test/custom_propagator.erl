@@ -17,7 +17,7 @@
 %%%-----------------------------------------------------------------------
 -module(custom_propagator).
 
--behaviour(otel_propagator).
+-behaviour(otel_propagator_text_map).
 
 %% functions for interacting with the custom context key/value
 -export([add_to_context/1,
@@ -26,11 +26,15 @@
 %% functions for setting up the injector and extractor for custom context key
 %% as well as the propagator behaviour implementation inject/extract
 -export([propagators/0,
-         inject/1,
-         extract/2]).
+         fields/0,
+         inject/3,
+         extract/4]).
 
 -define(SOMETHING_CTX_KEY, ?MODULE).
 -define(SOMETHING_TEXT_ID, <<"something-header-id">>).
+
+fields() ->
+    [?SOMETHING_TEXT_ID].
 
 add_to_context(Something) ->
     otel_ctx:set_value(?SOMETHING_CTX_KEY, Something).
@@ -46,20 +50,19 @@ propagators() ->
 
     {Extract, Inject}.
 
-inject(undefined) ->
-    [];
-inject(Something) ->
-    [{?SOMETHING_TEXT_ID, Something}].
-
-extract(TextMap, _) when is_list(TextMap) ->
-    case lists:search(fun({Key, _Value}) ->
-                              string:equal(Key, ?SOMETHING_TEXT_ID, true, none)
-                      end, TextMap) of
-        {value, {_, Value}} ->
-            Value;
-        false ->
-            undefined
+inject(Ctx, Carrier, CarrierSet) ->
+    case otel_ctx:get_value(Ctx, ?SOMETHING_CTX_KEY, undefined) of
+        undefined ->
+            Carrier;
+        Value ->
+            C = CarrierSet(?SOMETHING_TEXT_ID, Value, Carrier),
+            ct:pal("C ~p", [C]),
+            C
     end.
 
-%%
+extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet) ->
+    Value = CarrierGet(?SOMETHING_TEXT_ID, Carrier),
+    otel_ctx:set_value(Ctx, ?SOMETHING_CTX_KEY, Value).
 
+
+%%

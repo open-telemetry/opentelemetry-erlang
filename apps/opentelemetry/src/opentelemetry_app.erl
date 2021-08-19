@@ -54,15 +54,7 @@ stop(_State) ->
 
 setup_text_map_propagators(Opts) ->
     Propagators = proplists:get_value(text_map_propagators, Opts, []),
-
-    {Extractors, Injectors} =
-        lists:foldl(fun(F, {ExtractorsAcc, InjectorsAcc}) ->
-                            {Extractor, Injector} = F(),
-                            {[Extractor | ExtractorsAcc], [Injector | InjectorsAcc]}
-                    end, {[], []}, Propagators),
-
-    opentelemetry:set_text_map_extractors(Extractors),
-    opentelemetry:set_text_map_injectors(Injectors).
+    opentelemetry:set_text_map_propagators(Propagators).
 
 register_loaded_application_tracers(Opts) ->
     RegisterLoadedApplications = proplists:get_value(register_loaded_applications, Opts, true),

@@ -173,9 +173,16 @@ transform(propagators, PropagatorsString) when is_list(PropagatorsString) ->
                   end, Propagators);
 
 transform(propagator, "tracecontext") ->
-    fun otel_tracer_default:w3c_propagators/0;
+    trace_context;
 transform(propagator, "baggage") ->
-    fun otel_baggage:get_text_map_propagators/0;
+    baggage;
+transform(propagator, "b3") ->
+    b3;
+%% TODO: support b3multi and jager propagator formats
+%% transform(propagator, "b3multi") ->
+%%     b3multi;
+%% transform(propagator, "jaeger") ->
+%%     jaeger;
 transform(propagator, Propagator) ->
     ?LOG_WARNING("Ignoring uknown propagator ~ts in OS environment variable $OTEL_PROPAGATORS",
                  [Propagator]),

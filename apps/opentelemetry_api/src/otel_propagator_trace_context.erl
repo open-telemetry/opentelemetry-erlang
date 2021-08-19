@@ -15,14 +15,13 @@
 %% @doc
 %% @end
 %%%-----------------------------------------------------------------------
--module(otel_propagator_http_w3c).
+-module(otel_propagator_trace_context).
 
--behaviour(otel_propagator).
+-behaviour(otel_propagator_text_map).
 
--export([inject/1,
-         encode/1,
-         extract/2,
-         decode/1]).
+-export([fields/0,
+         inject/3,
+         extract/4]).
 
 -include("opentelemetry.hrl").
 
@@ -39,73 +38,56 @@
 
 -define(MAX_TRACESTATE_PAIRS, 32).
 
--spec inject(opentelemetry:span_ctx() | undefined) -> otel_propagator:text_map().
-inject(#span_ctx{trace_id=TraceId,
-                 span_id=SpanId})
-  when TraceId =:= 0 orelse SpanId =:= 0 ->
-    [];
-inject(SpanCtx=#span_ctx{}) ->
-    EncodedValue = encode(SpanCtx),
-    [{?HEADER_KEY, EncodedValue} | encode_tracestate(SpanCtx)];
-inject(undefined) ->
-    [].
+fields() ->
+    [?HEADER_KEY, ?STATE_HEADER_KEY].
 
--spec encode(opentelemetry:span_ctx()) -> binary().
-encode(#span_ctx{trace_id=TraceId,
-                 span_id=SpanId,
-                 trace_flags=TraceOptions}) ->
+inject(Ctx, Carrier, CarrierSet) ->
+    case otel_tracer:current_span_ctx(Ctx) of
+        SpanCtx=#span_ctx{trace_id=TraceId,
+                          span_id=SpanId} when TraceId =/= 0 andalso SpanId =/= 0 ->
+            {TraceParent, TraceState} = encode_span_ctx(SpanCtx),
+            Carrier1 = CarrierSet(?HEADER_KEY, TraceParent, Carrier),
+            case TraceState of
+                <<>> ->
+                    Carrier1;
+                _ ->
+                    CarrierSet(?STATE_HEADER_KEY, TraceState, Carrier1)
+            end;
+        _ ->
+            Carrier
+    end.
+
+extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet) ->
+    SpanCtxString = CarrierGet(?HEADER_KEY, Carrier),
+    case decode(string:trim(SpanCtxString)) of
+        undefined ->
+            Ctx;
+        SpanCtx ->
+            TraceStateString = CarrierGet(?STATE_HEADER_KEY, Carrier),
+            Tracestate = tracestate_decode(TraceStateString),
+            otel_tracer:set_current_span(Ctx, SpanCtx#span_ctx{tracestate=Tracestate})
+    end.
+
+%%
+
+-spec encode_span_ctx(opentelemetry:span_ctx()) -> {unicode:latin1_binary(), unicode:latin1_binary()}.
+encode_span_ctx(#span_ctx{trace_id=TraceId,
+                          span_id=SpanId,
+                          trace_flags=TraceOptions,
+                          tracestate=TraceState}) ->
+    {encode_traceparent(TraceId, SpanId, TraceOptions), encode_tracestate(TraceState)}.
+
+encode_traceparent(TraceId, SpanId, TraceOptions) ->
     Options = case TraceOptions band 1 of 1 -> <<"01">>; _ -> <<"00">> end,
     EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
     EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
     iolist_to_binary([?VERSION, "-", EncodedTraceId, "-", EncodedSpanId, "-", Options]).
 
-encode_tracestate(#span_ctx{tracestate=undefined}) ->
+encode_tracestate(undefined) ->
     [];
-encode_tracestate(#span_ctx{tracestate=Entries}) ->
+encode_tracestate(Entries) ->
     StateHeaderValue = lists:join($,, [[Key, $=, Value] || {Key, Value} <- Entries]),
-    [{?STATE_HEADER_KEY, unicode:characters_to_binary(StateHeaderValue)}].
-
--spec extract(otel_propagator:text_map(), term()) -> opentelemetry:span_ctx()| undefined.
-extract(Headers, _) when is_list(Headers) ->
-    case header_take(?HEADER_KEY, Headers) of
-        [{_, Value} | RestHeaders] ->
-            case header_member(?HEADER_KEY, RestHeaders) of
-                true ->
-                    %% duplicate traceparent header found
-                    undefined;
-                false ->
-                    case decode(string:trim(Value)) of
-                        undefined ->
-                            undefined;
-                        SpanCtx ->
-                            Tracestate = tracestate_from_headers(Headers),
-                            SpanCtx#span_ctx{tracestate=Tracestate}
-                    end
-            end;
-        _ ->
-            undefined
-    end;
-extract(_, _) ->
-    undefined.
-
-tracestate_from_headers(Headers) ->
-    %% could be multiple tracestate headers. Combine them all with comma separators
-    case combine_headers(?STATE_HEADER_KEY, Headers) of
-        [] ->
-            undefined;
-        FieldValue ->
-            tracestate_decode(FieldValue)
-    end.
-
-combine_headers(Key, Headers) ->
-    lists:foldl(fun({K, V}, Acc) ->
-                        case string:equal(Key, string:casefold(K)) of
-                            true ->
-                                [Acc,  $, | V];
-                            false ->
-                                Acc
-                        end
-                end, [], Headers).
+    unicode:characters_to_binary(StateHeaderValue).
 
 split(Pair) ->
     case string:split(Pair, "=", all) of
@@ -144,6 +126,8 @@ to_span_ctx(Version, TraceId, SpanId, Opts) ->
             undefined
     end.
 
+tracestate_decode(undefined) ->
+    [];
 tracestate_decode(Value) ->
     parse_pairs(string:lexemes(Value, [$,])).
 
@@ -169,14 +153,3 @@ parse_pairs([Pair | Rest], Acc) ->
         undefined ->
             undefined
     end.
-%%
-
-header_take(Key, Headers) ->
-    lists:dropwhile(fun({K, _}) ->
-                            not string:equal(Key, string:casefold(K))
-                    end, Headers).
-
-header_member(_, []) ->
-    false;
-header_member(Key, [{K, _} | T]) ->
-    string:equal(Key, string:casefold(K)) orelse header_member(Key, T).
