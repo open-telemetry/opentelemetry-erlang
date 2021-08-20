@@ -21,8 +21,9 @@ all() ->
 all_testcases() ->
     [disable_auto_registration, registered_tracers, with_span, macros, child_spans,
      update_span_data, tracer_instrumentation_library, tracer_previous_ctx, stop_temporary_app,
-     reset_after, attach_ctx, default_sampler, non_recording_ets_table, record_but_not_sample,
-     record_exception_works, record_exception_with_message_works].
+     reset_after, attach_ctx, default_sampler, non_recording_ets_table, 
+     root_span_sampling_always_on, root_span_sampling_always_off, 
+     record_but_not_sample, record_exception_works, record_exception_with_message_works].
 
 groups() ->
     [{w3c, [], [propagation]},
@@ -469,6 +470,38 @@ non_recording_ets_table(_Config) ->
 
     %% verify that ETS table only contains the recording span <<"span-1">>
     ?assertMatch([#span{name = <<"span-1">>}], ets:tab2list(?SPAN_TAB)),
+    ok.
+
+root_span_sampling_always_off(_Config) ->
+    Tracer = opentelemetry:get_tracer(),
+
+    Sampler = otel_sampler:new(always_off),
+
+    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{sampler => Sampler}),
+    ?assertMatch(false, SpanCtx1#span_ctx.is_recording),
+    ?assertMatch(0, SpanCtx1#span_ctx.trace_flags),
+
+    otel_tracer:set_current_span(SpanCtx1),
+    SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-2">>, #{}),
+    ?assertMatch(false, SpanCtx2#span_ctx.is_recording),
+    ?assertMatch(0, SpanCtx2#span_ctx.trace_flags),
+
+    ok.
+
+root_span_sampling_always_on(_Config) ->
+    Tracer = opentelemetry:get_tracer(),
+
+    Sampler = otel_sampler:new(always_on),
+
+    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{sampler => Sampler}),
+    ?assertMatch(true, SpanCtx1#span_ctx.is_recording),
+    ?assertMatch(1, SpanCtx1#span_ctx.trace_flags),
+
+    otel_tracer:set_current_span(SpanCtx1),
+    SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-2">>, #{}),
+    ?assertMatch(true, SpanCtx2#span_ctx.is_recording),
+    ?assertMatch(1, SpanCtx1#span_ctx.trace_flags),
+
     ok.
 
 record_but_not_sample(Config) ->
