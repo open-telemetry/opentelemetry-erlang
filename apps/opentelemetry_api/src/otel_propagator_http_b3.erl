@@ -53,9 +53,9 @@ extract(Headers, _) when is_list(Headers) ->
         TraceId = trace_id(Headers),
         SpanId = span_id(Headers),
         Sampled = lookup(?B3_SAMPLED, Headers),
-        otel_tracer:non_recording_span(string_to_integer(TraceId, 16),
-                                       string_to_integer(SpanId, 16),
-                                       case Sampled of True when ?B3_IS_SAMPLED(True) -> 1; _ -> 0 end)
+        otel_tracer:from_remote_span(string_to_integer(TraceId, 16),
+                                     string_to_integer(SpanId, 16),
+                                     case Sampled of True when ?B3_IS_SAMPLED(True) -> 1; _ -> 0 end)
     catch
         throw:invalid ->
             undefined;

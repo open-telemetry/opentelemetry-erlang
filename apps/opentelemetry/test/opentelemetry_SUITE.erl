@@ -11,6 +11,7 @@
 -include("otel_span.hrl").
 -include("otel_test_utils.hrl").
 -include("otel_sampler.hrl").
+-include("otel_span_ets.hrl").
 
 all() ->
     [all_testcases(),
@@ -19,8 +20,9 @@ all() ->
 
 all_testcases() ->
     [disable_auto_registration, registered_tracers, with_span, macros, child_spans,
-     update_span_data, tracer_instrumentation_library,
-     tracer_previous_ctx, stop_temporary_app, reset_after, attach_ctx, default_sampler,
+     update_span_data, tracer_instrumentation_library, tracer_previous_ctx, stop_temporary_app,
+     reset_after, attach_ctx, default_sampler, non_recording_ets_table, 
+     root_span_sampling_always_on, root_span_sampling_always_off, 
      record_but_not_sample, record_exception_works, record_exception_with_message_works].
 
 groups() ->
@@ -454,6 +456,51 @@ default_sampler(_Config) ->
     %% local not sampled but is recorded should default to sampled
     SpanCtx6 = otel_tracer:start_span(Tracer, <<"span-6">>, #{}),
     ?assertMatch(false, SpanCtx6#span_ctx.is_recording),
+    ok.
+
+non_recording_ets_table(_Config) ->
+    Tracer = opentelemetry:get_tracer(),
+
+    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{}),
+    ?assertMatch(true, SpanCtx1#span_ctx.is_recording),
+
+    AlwaysOff = otel_sampler:new(always_off),
+    SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-2">>, #{sampler => AlwaysOff}),
+    ?assertMatch(false, SpanCtx2#span_ctx.is_recording),
+
+    %% verify that ETS table only contains the recording span <<"span-1">>
+    ?assertMatch([#span{name = <<"span-1">>}], ets:tab2list(?SPAN_TAB)),
+    ok.
+
+root_span_sampling_always_off(_Config) ->
+    Tracer = opentelemetry:get_tracer(),
+
+    Sampler = otel_sampler:new(always_off),
+
+    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{sampler => Sampler}),
+    ?assertMatch(false, SpanCtx1#span_ctx.is_recording),
+    ?assertMatch(0, SpanCtx1#span_ctx.trace_flags),
+
+    otel_tracer:set_current_span(SpanCtx1),
+    SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-2">>, #{}),
+    ?assertMatch(false, SpanCtx2#span_ctx.is_recording),
+    ?assertMatch(0, SpanCtx2#span_ctx.trace_flags),
+
+    ok.
+
+root_span_sampling_always_on(_Config) ->
+    Tracer = opentelemetry:get_tracer(),
+
+    Sampler = otel_sampler:new(always_on),
+
+    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{sampler => Sampler}),
+    ?assertMatch(true, SpanCtx1#span_ctx.is_recording),
+    ?assertMatch(1, SpanCtx1#span_ctx.trace_flags),
+
+    otel_tracer:set_current_span(SpanCtx1),
+    SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-2">>, #{}),
+    ?assertMatch(true, SpanCtx2#span_ctx.is_recording),
+    ?assertMatch(1, SpanCtx1#span_ctx.trace_flags),
 
     ok.
 
@@ -462,7 +509,7 @@ record_but_not_sample(Config) ->
                "as a valid recorded span but is not sent to the exporter."),
     Tid = ?config(tid, Config),
 
-    Sampler = otel_sampler:setup({static_sampler, #{<<"span-record-and-sample">> => ?RECORD_AND_SAMPLE,
+    Sampler = otel_sampler:new({static_sampler, #{<<"span-record-and-sample">> => ?RECORD_AND_SAMPLE,
                                                     <<"span-record">> => ?RECORD_ONLY}}),
 
     Tracer = opentelemetry:get_tracer(),

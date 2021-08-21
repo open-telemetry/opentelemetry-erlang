@@ -96,13 +96,16 @@ nonrecording_no_sdk_propagation(_Config) ->
     %% is_recording will always be false in extracted `span_ctx'
     otel_propagator:text_map_extract(BinaryHeaders),
 
-    ?assertEqual(NonRecordingSpanCtx, otel_tracer:current_span_ctx()),
+    %% after being extracted `is_remote' will be set to `true'
+    RemoteSpanCtx = NonRecordingSpanCtx#span_ctx{is_remote=true},
+
+    ?assertEqual(RemoteSpanCtx, otel_tracer:current_span_ctx()),
     ?with_span(<<"span-1">>, #{}, fun(_) ->
                                           %% parent is non-recording so it should be returned
                                           %% as the "new" span
-                                          ?assertEqual(NonRecordingSpanCtx, otel_tracer:current_span_ctx())
+                                          ?assertEqual(RemoteSpanCtx, otel_tracer:current_span_ctx())
                                   end),
-    ?assertEqual(NonRecordingSpanCtx, otel_tracer:current_span_ctx()),
+    ?assertEqual(RemoteSpanCtx, otel_tracer:current_span_ctx()),
 
     BinaryHeaders = otel_propagator:text_map_inject([]),
     ?assertMatch(?EXPECTED_HEADERS, BinaryHeaders),

@@ -36,13 +36,13 @@ start_span(Ctx, Name, Opts) ->
     new_span(Ctx, Name, Sampler, StartTime, Kind, Attributes, Links).
 
 new_span(Ctx, Name, Sampler, StartTime, Kind, Attributes, Links) ->
-    ParentTraceId = trace_id(Ctx),
-    {TraceFlags, IsRecording, SamplerAttributes, TraceState} =
-        sample(Ctx, Sampler, ParentTraceId, Links, Name, Kind, Attributes),
-
     {NewSpanCtx, ParentSpanId} = new_span_ctx(Ctx),
+
     TraceId = NewSpanCtx#span_ctx.trace_id,
     SpanId = NewSpanCtx#span_ctx.span_id,
+
+    {TraceFlags, IsRecording, SamplerAttributes, TraceState} =
+        sample(Ctx, Sampler, TraceId, Links, Name, Kind, Attributes),
 
     Span = #span{trace_id=TraceId,
                  span_id=SpanId,
@@ -59,14 +59,6 @@ new_span(Ctx, Name, Sampler, StartTime, Kind, Attributes, Links) ->
     {NewSpanCtx#span_ctx{trace_flags=TraceFlags,
                          is_valid=true,
                          is_recording=IsRecording}, Span}.
-
-trace_id(Ctx) ->
-    case otel_tracer:current_span_ctx(Ctx) of
-        #span_ctx{trace_id=TraceId} ->
-            TraceId;
-        _ ->
-            undefined
-    end.
 
 -spec new_span_ctx(otel_ctx:t()) -> {opentelemetry:span_ctx(), opentelemetry:span_id()}.
 new_span_ctx(Ctx) ->
@@ -101,9 +93,10 @@ end_span(Span) ->
 
 %%
 
-sample(Ctx, {Sampler, _Description, Opts}, TraceId, Links, SpanName, Kind, Attributes) ->
-    {Decision, NewAttributes, TraceState} = Sampler(Ctx, TraceId, Links, SpanName,
-                                                    Kind, Attributes, Opts),
+sample(Ctx, Sampler, TraceId, Links, SpanName, Kind, Attributes) ->
+    {Decision, NewAttributes, TraceState} = otel_sampler:should_sample(
+        Sampler, Ctx, TraceId, Links, SpanName, Kind, Attributes
+    ),
     case Decision of
         ?DROP ->
             {0, false, NewAttributes, TraceState};
