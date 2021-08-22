@@ -8,7 +8,7 @@ set -e
 #     $ mix escript.install github elixir-lang/ex_doc
 
 rebar3 compile
-rebar3 as docs edoc
+rebar3 edoc
 version=1.0.0-rc.2
 
 ex_doc "opentelemetry" $version "_build/default/lib/opentelemetry/ebin" \
