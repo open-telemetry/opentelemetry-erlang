@@ -12,14 +12,28 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc A Propagator injects or extracts data from a Context so information
+%% like baggage and trace context can be transported along with cross service
+%% requests, like an HTTP request.
+%%
+%% Propagators are defined based on the type of encoding they inject and
+%% extract. At this time there is only a TextMapPropagator,
+%% {@link otel_propagator_text_map}, which works on ASCII keys and values.
+%%
+%% This behaviour is only for defining the callbacks used by each propagator
+%% per type and is only used by developers adding a new type of propagator
+%% (like for binary protocols), not implementations of propagators themselves
+%% (like B3 or W3C TraceContext).
+%%
+%% Users configure and call propagators based on their type. See the docs
+%% for {@link otel_propagator_text_map} for more details.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_propagator).
 
 -export([builtin_to_module/1]).
 
-%% sets a value into a carrier
+%% Sets a value into a carrier
 -callback inject(otel_ctx:t(), carrier()) -> carrier().
 %% extracts values from a carrier and sets them in the context
 -callback extract(otel_ctx:t(), carrier()) -> otel_ctx:t().
@@ -31,6 +45,7 @@
 
 %% convert the short name of a propagator to its module name if it is a builtin
 %% if the name doens't match a builtin it is assumed to be a module
+%% @hidden
 builtin_to_module(tracecontext) ->
     otel_propagator_trace_context;
 builtin_to_module(trace_context) ->

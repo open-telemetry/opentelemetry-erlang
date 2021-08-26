@@ -12,7 +12,19 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc An implementation of {@link otel_propagator_text_map} that injects and
+%% extracts trace context using the
+%% <a href="https://www.w3.org/TR/trace-context/">W3C TraceContext format</a>.
+%%
+%% This propagator along with {@link otel_propagator_baggage} are used
+%% by default. The global TextMap Propagators can be configured in the
+%% application environment:
+%%
+%% ```
+%% {text_map_propagators, [trace_context, baggage]},
+%% '''
+%%
+%% Or by calling {@link opentelemetry:set_text_map_propagators/1}.
 %% @end
 %%%-----------------------------------------------------------------------
 -module(otel_propagator_trace_context).
