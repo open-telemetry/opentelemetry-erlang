@@ -12,7 +12,41 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc An implementation of {@link otel_propagator_text_map} that injects and
+%% extracts trace context using the B3 specification from Zipkin.
+%%
+%% Since `trace_context' and `baggage' are the two default propagators the
+%% global TextMap Propagators must be configured if B3 is to be used for
+%% propagation:
+%%
+%% ```
+%% {text_map_propagators, [b3, baggage]},
+%% '''
+%%
+%% ```
+%% opentelemetry:set_text_map_propagators([b3]).
+%% '''
+%%
+%% It is also possible to set a separate list of injectors or extractors.
+%% For example, if the service should extract B3 encoded context but you
+%% only want to inject context encoded with the W3C TraceContext format
+%% (maybe you have some services only supporting B3 that are making requests
+%% to your server but you have no reason to continue propagating in both
+%% formats when communicating to other services further down the stack).
+%% In that case you would instead set configuration like:
+%%
+%%
+%% ```
+%% {text_map_extractors, [b3, trace_context, baggage]},
+%% {text_map_injectors, [trace_context, baggage]},
+%% '''
+%%
+%% Or using calls to {@link opentelemetry} at runtime:
+%%
+%% ```
+%% opentelemetry:set_text_map_extractors([b3, trace_context, baggage]),
+%% opentelemetry:set_text_map_injectors([trace_context, baggage]).
+%% '''
 %% @end
 %%%-----------------------------------------------------------------------
 -module(otel_propagator_b3).

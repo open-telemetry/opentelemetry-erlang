@@ -12,7 +12,45 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc A TextMap Propagator is a Propagator that performs injection and
+%% extraction with ASCII keys and values.
+%%
+%% An example of
+%% configuring the TextMap Propagator to inject and extract Baggage and
+%% TraceContext:
+%%
+%% ```
+%% {text_map_propagators, [trace_context, baggage]},
+%% '''
+%%
+%% The propagators are then used at the points that cross service
+%% communication is performed. By default `inject' and `extract' work on a
+%% generic list of 2-tuple's with binary string keys and values. A user
+%% defined function for setting a key/value in the carrier and for getting
+%% the value of a key from a carrier can be passed as an argument. For
+%% example, injecting and extracting to and from Hackney headers could be
+%% done with <a href="https://github.com/benoitc/hackney">Hackney</a> specific functions:
+%%
+%% ```
+%% set_header(Headers, Key, Value) ->
+%%   hackney_headers:store(Key, Value, Headers).
+%%
+%% some_fun_calling_hackney() ->
+%%   Headers = otel_propagator_text_map:inject(hackney_headers:new(), fun set_header/2),
+%%   ...
+%% '''
+%%
+%% An example of extraction in an <a href="https://github.com/elli-lib/elli">Elli</a> request handler:
+%%
+%% ```
+%% get_header(Req, Key) ->
+%%   elli_request:get_header(Key, Req, Default).
+%%
+%% handle(Req, _Args) ->
+%%   otel_propagator_text_map:extract(Req, fun get_header/2),
+%%   ...
+%%   {ok, [], <<"hello world">>}.
+%% '''
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_propagator_text_map).
@@ -32,9 +70,13 @@
 
 -include_lib("kernel/include/logger.hrl").
 
+%% Sets a value into a carrier
 -callback inject(otel_ctx:t(), otel_propagator:carrier(), carrier_set()) -> otel_propagator:carrier().
+
+%% Extracts values from a carrier and sets them in the context
 -callback extract(otel_ctx:t(), otel_propagator:carrier(), carrier_keys(), carrier_get()) -> term().
-%% returns all the keys the propagator sets with `inject'
+
+%% Returns all the keys the propagator sets with `inject'
 -callback fields() -> [field_key()].
 
 -type field_key() :: unicode:latin1_binary().
@@ -44,7 +86,7 @@
 %% for example: with the jaeger propagation format this would be
 %% all keys found with prefix "uberctx-"
 -type carrier_keys() :: fun((otel_propagator:carrier()) -> [unicode:latin1_binary()]).
--type carrier_get() :: fun((otel_propagator:carrier(), unicode:latin1_binary()) -> unicode:latin1_binary()).
+-type carrier_get() :: fun((otel_propagator:carrier(), unicode:latin1_binary()) -> unicode:latin1_binary() | undefined).
 -type carrier_set() :: fun((otel_propagator:carrier(), unicode:latin1_binary(), unicode:latin1_binary()) -> otel_propagator:carrier()).
 
 -type default_text_map_carrier() :: [{unicode:latin1_binary(), unicode:latin1_binary()}].
