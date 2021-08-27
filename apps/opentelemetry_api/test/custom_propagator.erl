@@ -55,9 +55,7 @@ inject(Ctx, Carrier, CarrierSet) ->
         undefined ->
             Carrier;
         Value ->
-            C = CarrierSet(?SOMETHING_TEXT_ID, Value, Carrier),
-            ct:pal("C ~p", [C]),
-            C
+            CarrierSet(?SOMETHING_TEXT_ID, Value, Carrier)
     end.
 
 extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet) ->

@@ -70,8 +70,6 @@ span_id(#span_ctx{span_id=SpanId }) ->
     SpanId.
 
 -spec tracestate(opentelemetry:span_ctx() | undefined) -> opentelemetry:tracestate().
-tracestate(#span_ctx{tracestate=undefined}) ->
-    [];
 tracestate(#span_ctx{tracestate=Tracestate}) ->
     Tracestate;
 tracestate(_) ->

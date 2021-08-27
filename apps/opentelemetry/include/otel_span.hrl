@@ -33,7 +33,7 @@
           %% 64 bit int span id
           span_id                 :: opentelemetry:span_id() | undefined,
 
-          tracestate              :: opentelemetry:tracestate() | undefined,
+          tracestate = []         :: opentelemetry:tracestate(),
 
           %% 64 bit int parent span
           parent_span_id          :: opentelemetry:span_id() | undefined,
