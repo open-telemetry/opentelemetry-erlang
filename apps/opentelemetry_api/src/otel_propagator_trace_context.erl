@@ -95,8 +95,6 @@ encode_traceparent(TraceId, SpanId, TraceOptions) ->
     EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
     iolist_to_binary([?VERSION, "-", EncodedTraceId, "-", EncodedSpanId, "-", Options]).
 
-encode_tracestate(undefined) ->
-    [];
 encode_tracestate(Entries) ->
     StateHeaderValue = lists:join($,, [[Key, $=, Value] || {Key, Value} <- Entries]),
     unicode:characters_to_binary(StateHeaderValue).
@@ -121,7 +119,7 @@ decode(<<Version:2/binary, "-", TraceId:32/binary, "-", SpanId:16/binary, "-", O
 %% future versions could have more after Opts, so allow for a trailing -
 decode(<<Version:2/binary, "-", TraceId:32/binary, "-", SpanId:16/binary, "-", Opts:2/binary, "-", _/binary>>)
   when Version > ?VERSION andalso Version =/= <<"ff">> ->
-        to_span_ctx(Version, TraceId, SpanId, Opts);
+    to_span_ctx(Version, TraceId, SpanId, Opts);
 decode(_) ->
     undefined.
 
@@ -146,7 +144,7 @@ tracestate_decode(Value) ->
 parse_pairs(Pairs) when length(Pairs) =< ?MAX_TRACESTATE_PAIRS ->
     parse_pairs(Pairs, []);
 parse_pairs(_) ->
-    undefined.
+    [].
 
 parse_pairs([], Acc) ->
     Acc;

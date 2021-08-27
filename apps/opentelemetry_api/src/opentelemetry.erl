@@ -261,7 +261,7 @@ link(_, _) ->
 link(TraceId, SpanId, Attributes, TraceState) when is_integer(TraceId),
                                                    is_integer(SpanId),
                                                    is_list(Attributes),
-                                                   (is_list(TraceState) orelse TraceState =:= undefined)->
+                                                   is_list(TraceState) ->
     #link{trace_id=TraceId,
           span_id=SpanId,
           attributes=Attributes,
