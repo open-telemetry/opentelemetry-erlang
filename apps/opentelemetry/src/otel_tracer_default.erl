@@ -20,9 +20,7 @@
 -behaviour(otel_tracer).
 
 -export([start_span/4,
-         with_span/5%% ,
-         %% b3_propagators/0,
-         %% w3c_propagators/0
+         with_span/5
         ]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
