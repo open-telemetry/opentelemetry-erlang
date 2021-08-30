@@ -64,5 +64,3 @@ extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet) ->
     Value = CarrierGet(?SOMETHING_TEXT_ID, Carrier),
     otel_ctx:set_value(Ctx, ?SOMETHING_CTX_KEY, Value).
 
-
-%%
