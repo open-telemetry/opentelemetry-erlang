@@ -164,13 +164,13 @@ set_text_map_propagators(_) ->
     ok.
 
 set_text_map_extractors(List) when is_list(List) ->
-    ParsedList = otel_propagator:builtin_to_module(List),
+    ParsedList = otel_propagator:builtins_to_modules(List),
     persistent_term:put({?MODULE, text_map_extractors}, ParsedList);
 set_text_map_extractors(_) ->
     ok.
 
 set_text_map_injectors(List) when is_list(List) ->
-    ParsedList = otel_propagator:builtin_to_module(List),
+    ParsedList = otel_propagator:builtins_to_modules(List),
     persistent_term:put({?MODULE, text_map_injectors}, ParsedList);
 set_text_map_injectors(_) ->
     ok.
