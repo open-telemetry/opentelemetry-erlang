@@ -31,21 +31,42 @@
 %%%-------------------------------------------------------------------------
 -module(otel_propagator).
 
--export([builtin_to_module/1]).
+-export([builtins_to_modules/1,
+         builtin_to_module/1]).
 
 %% Sets a value into a carrier
--callback inject(otel_ctx:t(), carrier()) -> carrier().
+-callback inject(carrier()) -> carrier().
+-callback inject(carrier(), propagator_options()) -> carrier().
+-callback inject_from(otel_ctx:t(), carrier()) -> carrier().
+-callback inject_from(otel_ctx:t(), carrier(), propagator_options()) -> carrier().
 %% extracts values from a carrier and sets them in the context
--callback extract(otel_ctx:t(), carrier()) -> otel_ctx:t().
+-callback extract(carrier()) -> otel_ctx:t().
+-callback extract(carrier(), propagator_options()) -> otel_ctx:t().
+-callback extract_to(otel_ctx:t(), carrier()) -> otel_ctx:t().
+-callback extract_to(otel_ctx:t(), carrier(), propagator_options()) -> otel_ctx:t().
+
+-type propagator_options() :: #{propagators => [t()]}.
+
+-type t() :: builtin() | module().
+
+-type builtin() :: trace_context | tracecontext | b3. %% multib3 | jaeger
 
 %% a carrier can be any type
 -type carrier() :: term().
 
--export_type([carrier/0]).
+-export_type([t/0,
+              builtin/0,
+              carrier/0]).
 
 %% convert the short name of a propagator to its module name if it is a builtin
 %% if the name doens't match a builtin it is assumed to be a module
 %% @hidden
+-spec builtins_to_modules([t()]) -> [module()].
+builtins_to_modules(Propagators) ->
+    [builtin_to_module(P) || P <- Propagators].
+
+%% @hidden
+-spec builtin_to_module(builtin() | module()) -> module().
 builtin_to_module(tracecontext) ->
     otel_propagator_trace_context;
 builtin_to_module(trace_context) ->
