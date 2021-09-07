@@ -46,7 +46,7 @@ rewrite(_Config) ->
     ?assertMatch([{<<"traceparent">>,
                    <<"00-10000000000000000000000000000000-1000000000000000-00">>}],
                  otel_propagator_trace_context:inject(Ctx, [],
-                                                      fun otel_propagator_text_map:default_carrier_set/3)),
+                                                      fun otel_propagator_text_map:default_carrier_set/3, [])),
 
     ?assertMatch([{<<"traceparent">>,
                    <<"00-10000000000000000000000000000000-1000000000000000-00">>}],

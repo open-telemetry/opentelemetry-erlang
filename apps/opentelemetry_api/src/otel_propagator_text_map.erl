@@ -57,14 +57,19 @@
 
 -behaviour(otel_propagator).
 
--export([inject/1,
+-export([fields/1,
+         inject/1,
          inject/2,
+         inject/3,
          inject_from/2,
          inject_from/3,
+         inject_from/4,
          extract/1,
          extract/2,
+         extract/4,
          extract_to/2,
-         extract_to/3]).
+         extract_to/3,
+         extract_to/5]).
 
 -export([default_carrier_get/2,
          default_carrier_set/3,
@@ -73,13 +78,16 @@
 -include_lib("kernel/include/logger.hrl").
 
 %% Sets a value into a carrier
--callback inject(otel_ctx:t(), otel_propagator:carrier(), carrier_set()) -> otel_propagator:carrier().
+-callback inject(otel_ctx:t(), otel_propagator:carrier(), carrier_set(), propagator_options()) -> otel_propagator:carrier().
 
 %% Extracts values from a carrier and sets them in the context
--callback extract(otel_ctx:t(), otel_propagator:carrier(), carrier_keys(), carrier_get()) -> term().
+-callback extract(otel_ctx:t(), otel_propagator:carrier(), carrier_keys(), carrier_get(), propagator_options()) -> term().
 
 %% Returns all the keys the propagator sets with `inject'
--callback fields() -> [field_key()].
+-callback fields(propagator_options()) -> [field_key()].
+
+%% a textmap propagator can have any term associated with it
+-type propagator_options() :: term().
 
 -type field_key() :: unicode:latin1_binary().
 -type field_value() :: unicode:latin1_binary().
@@ -93,89 +101,76 @@
 
 -type default_text_map_carrier() :: [{unicode:latin1_binary(), unicode:latin1_binary()}].
 
--type inject_options() :: #{carrier_set_fun => carrier_set(),
-                            propagators => [otel_propagator:t()]}.
+%% 2-tuple form is a textmap propagator with options
+%% an empty list is passed for options if the propagator is a module with no options
+-type t() :: module() | {module(), propagator_options()}.
 
--type extract_options() :: #{carrier_get_fun => carrier_get(),
-                             carrier_keys_fun => carrier_keys(),
-                             propagators => [otel_propagator:t()]}.
--export_type([]).
+-export_type([t/0]).
+
+-spec fields(otel_propagator:t()) -> [field_key()].
+fields(Propagator) when is_atom(Propagator) ->
+    Propagator:fields([]);
+fields({Module, Options}) ->
+    Module:fields(Options).
 
 -spec inject(otel_propagator:carrier()) -> otel_propagator:carrier().
 inject(Carrier) ->
-    inject(Carrier, #{}).
+    Propagator = opentelemetry:get_text_map_injector(),
+    inject(Propagator, Carrier, fun default_carrier_set/3).
 
--spec inject(otel_propagator:carrier(), inject_options()) -> otel_propagator:carrier().
-inject(Carrier, InjectOptions) ->
+-spec inject(otel_propagator:t(), otel_propagator:carrier()) -> otel_propagator:carrier().
+inject(Propagator, Carrier) ->
+    inject(Propagator, Carrier, fun default_carrier_set/3).
+
+-spec inject(otel_propagator:t(), otel_propagator:carrier(), fun()) -> otel_propagator:carrier().
+inject(Propagator, Carrier, CarrierSetFun) ->
     Context = otel_ctx:get_current(),
-    inject_from(Context, Carrier, InjectOptions).
+    inject_from(Context, Propagator, Carrier, CarrierSetFun).
 
 -spec inject_from(otel_ctx:t(), otel_propagator:carrier()) -> otel_propagator:carrier().
 inject_from(Context, Carrier) ->
-    inject_from(Context, Carrier, #{}).
+    Propagator = opentelemetry:get_text_map_injector(),
+    inject_from(Context, Propagator, Carrier, fun default_carrier_set/3).
 
--spec inject_from(otel_ctx:t(), otel_propagator:carrier(), inject_options()) -> otel_propagator:carrier().
-inject_from(Context, Carrier, InjectOptions) when is_map(InjectOptions)->
-    Injectors = maps:get(propagators, InjectOptions, opentelemetry:get_text_map_injectors()),
-    CarrierSetFun = maps:get(carrier_set_fun, InjectOptions, fun ?MODULE:default_carrier_set/3),
-    run_injectors(Context, Injectors, Carrier, CarrierSetFun);
-inject_from(_Context, Carrier, InjectOptions) ->
-    ?LOG_INFO("inject failed. InjectOptions must be a map but instead got: ~p", [InjectOptions]),
-    Carrier.
+-spec inject_from(otel_ctx:t(), otel_propagator:t(), otel_propagator:carrier()) -> otel_propagator:carrier().
+inject_from(Context, Propagator, Carrier) ->
+    inject_from(Context, Propagator, Carrier, fun default_carrier_set/3).
+
+-spec inject_from(otel_ctx:t(), otel_propagator:t(), otel_propagator:carrier(), fun()) -> otel_propagator:carrier().
+inject_from(Context, Module, Carrier, CarrierSetFun) when is_atom(Module) ->
+     Module:inject(Context, Carrier, CarrierSetFun, []);
+inject_from(Context, {Module, Options}, Carrier, CarrierSetFun) ->
+     Module:inject(Context, Carrier, CarrierSetFun, Options).
 
 -spec extract(otel_propagator:carrier()) -> otel_ctx:t().
 extract(Carrier) ->
-    extract(Carrier, #{}).
+    Propagator = opentelemetry:get_text_map_extractor(),
+    extract(Propagator, Carrier, fun default_carrier_keys/1, fun default_carrier_get/2).
 
--spec extract(otel_propagator:carrier(), extract_options()) -> otel_ctx:t().
-extract(Carrier, ExtractOptions) ->
+-spec extract(otel_propagator:t(), otel_propagator:carrier()) -> otel_ctx:t().
+extract(Propagator, Carrier) ->
+    extract(Propagator, Carrier, fun default_carrier_keys/1, fun default_carrier_get/2).
+
+-spec extract(otel_propagator:t(), otel_propagator:carrier(), fun(), fun()) -> otel_ctx:t().
+extract(Propagator, Carrier, CarrierKeysFun, CarrierGetFun) ->
     Context = otel_ctx:get_current(),
-    Context1 = extract_to(Context, Carrier, ExtractOptions),
+    Context1 = extract_to(Context, Propagator, Carrier, CarrierKeysFun, CarrierGetFun),
     otel_ctx:attach(Context1).
 
 -spec extract_to(otel_ctx:t(), otel_propagator:carrier()) -> otel_ctx:t().
 extract_to(Context, Carrier) ->
-    extract_to(Context, Carrier, #{}).
+    Propagator = opentelemetry:get_text_map_extractor(),
+    extract_to(Context, Propagator, Carrier, fun default_carrier_keys/1, fun default_carrier_get/2).
 
--spec extract_to(otel_ctx:t(), otel_propagator:carrier(), extract_options()) -> otel_ctx:t().
-extract_to(Context, Carrier, ExtractOptions) when is_map(ExtractOptions) ->
-    Extractors = maps:get(propagators, ExtractOptions, opentelemetry:get_text_map_extractors()),
-    CarrierKeysFun = maps:get(carrier_keys_fun, ExtractOptions, fun ?MODULE:default_carrier_keys/1),
-    CarrierGetFun = maps:get(carrier_get_fun, ExtractOptions, fun ?MODULE:default_carrier_get/2),
-    run_extractors(Context, Extractors, Carrier, CarrierKeysFun, CarrierGetFun);
-extract_to(Context, _Carrier, ExtractOptions) ->
-    ?LOG_INFO("extract failed. ExtractOptions must be a map but instead got: ~p", [ExtractOptions]),
-    Context.
+-spec extract_to(otel_ctx:t(), otel_propagator:t(), otel_propagator:carrier()) -> otel_ctx:t().
+extract_to(Context, Propagator, Carrier) ->
+    extract_to(Context, Propagator, Carrier, fun default_carrier_keys/1, fun default_carrier_get/2).
 
-run_extractors(Context, Extractors, Carrier, CarrierKeysFun, CarrierGetFun) when is_list(Extractors) ->
-    lists:foldl(fun(Extract, ContextAcc) ->
-                        try Extract:extract(ContextAcc, Carrier, CarrierKeysFun, CarrierGetFun)
-                        catch
-                            C:E:S ->
-                                ?LOG_INFO("text map propagator failed to extract from carrier",
-                                          #{extractor => Extract, carrier => Carrier,
-                                            class => C, exception => E, stacktrace => S}),
-                                ContextAcc
-                        end
-                end, Context, otel_propagator:builtins_to_modules(Extractors));
-run_extractors(Context, Extractors, _, _, _) ->
-    ?LOG_INFO("extract failed. Extractors must be a list but instead got: ~p", [Extractors]),
-    Context.
-
-run_injectors(Context, Injectors, Carrier, Setter) when is_list(Injectors) ->
-    lists:foldl(fun(Inject, CarrierAcc) ->
-                        try Inject:inject(Context, CarrierAcc, Setter)
-                        catch
-                            C:E:S ->
-                                ?LOG_INFO("text map propagator failed to inject to carrier",
-                                          #{injector => Inject, carrier => CarrierAcc,
-                                            class => C, exception => E, stacktrace => S}),
-                                CarrierAcc
-                        end
-                end, Carrier, otel_propagator:builtins_to_modules(Injectors));
-run_injectors(_, Injectors, Carrier, _) ->
-    ?LOG_INFO("inject failed. Injectors must be a list but instead got: ~p", [Injectors]),
-    Carrier.
+-spec extract_to(otel_ctx:t(), otel_propagator:t(), otel_propagator:carrier(), fun(), fun()) -> otel_ctx:t().
+extract_to(Context, Module, Carrier, CarrierKeysFun, CarrierGetFun) when is_atom(Module) ->
+    Module:extract(Context, Carrier, CarrierKeysFun, CarrierGetFun, []);
+extract_to(Context, {Module, Options}, Carrier, CarrierKeysFun, CarrierGetFun) ->
+    Module:extract(Context, Carrier, CarrierKeysFun, CarrierGetFun, Options).
 
 %% case-insensitive finding of a key string in a list of ASCII strings
 %% if there are multiple entries in the list for the same key the values

@@ -53,9 +53,9 @@
 
 -behaviour(otel_propagator_text_map).
 
--export([fields/0,
-         inject/3,
-         extract/4]).
+-export([fields/1,
+         inject/4,
+         extract/5]).
 
 -include("opentelemetry.hrl").
 
@@ -65,10 +65,10 @@
 
 -define(B3_IS_SAMPLED(S), S =:= "1" orelse S =:= <<"1">> orelse S =:= "true" orelse S =:= <<"true">>).
 
-fields() ->
+fields(_) ->
     [?B3_TRACE_ID, ?B3_SPAN_ID, ?B3_SAMPLED].
 
-inject(Ctx, Carrier, CarrierSet) ->
+inject(Ctx, Carrier, CarrierSet, _Options) ->
     case otel_tracer:current_span_ctx(Ctx) of
         #span_ctx{trace_id=TraceId,
                   span_id=SpanId,
@@ -83,7 +83,7 @@ inject(Ctx, Carrier, CarrierSet) ->
             Carrier
     end.
 
-extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet) ->
+extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet, _Options) ->
     try
         TraceId = trace_id(Carrier, CarrierGet),
         SpanId = span_id(Carrier, CarrierGet),

@@ -31,9 +31,9 @@
 
 -behaviour(otel_propagator_text_map).
 
--export([fields/0,
-         inject/3,
-         extract/4]).
+-export([fields/1,
+         inject/4,
+         extract/5]).
 
 -include("opentelemetry.hrl").
 
@@ -50,10 +50,10 @@
 
 -define(BAGGAGE_HEADER, <<"baggage">>).
 
-fields() ->
+fields(_) ->
     [?BAGGAGE_HEADER].
 
-inject(Ctx, Carrier, CarrierSet) ->
+inject(Ctx, Carrier, CarrierSet, _Options) ->
     Baggage = otel_baggage:get_all(Ctx),
     case maps:fold(fun(Key, Value, Acc) ->
                            [$,, [encode_key(Key), "=", encode_value(Value)] | Acc]
@@ -64,7 +64,7 @@ inject(Ctx, Carrier, CarrierSet) ->
             Carrier
     end.
 
-extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet) ->
+extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet, _Options) ->
     case CarrierGet(?BAGGAGE_HEADER, Carrier) of
         undefined ->
             Ctx;

@@ -31,9 +31,9 @@
 
 -behaviour(otel_propagator_text_map).
 
--export([fields/0,
-         inject/3,
-         extract/4]).
+-export([fields/1,
+         inject/4,
+         extract/5]).
 
 -include("opentelemetry.hrl").
 
@@ -50,10 +50,10 @@
 
 -define(MAX_TRACESTATE_PAIRS, 32).
 
-fields() ->
+fields(_) ->
     [?HEADER_KEY, ?STATE_HEADER_KEY].
 
-inject(Ctx, Carrier, CarrierSet) ->
+inject(Ctx, Carrier, CarrierSet, _Options) ->
     case otel_tracer:current_span_ctx(Ctx) of
         SpanCtx=#span_ctx{trace_id=TraceId,
                           span_id=SpanId} when TraceId =/= 0 andalso SpanId =/= 0 ->
@@ -69,7 +69,7 @@ inject(Ctx, Carrier, CarrierSet) ->
             Carrier
     end.
 
-extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet) ->
+extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet, _Options) ->
     SpanCtxString = CarrierGet(?HEADER_KEY, Carrier),
     case decode(string:trim(SpanCtxString)) of
         undefined ->

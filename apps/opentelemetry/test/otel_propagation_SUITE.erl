@@ -127,8 +127,7 @@ override_propagators(_Config) ->
     %% drop baggage with bad value
     otel_baggage:set(<<"key-3">>, value3),
 
-    Headers = otel_propagator_text_map:inject([{<<"existing-header">>, <<"I exist">>}],
-                                              #{propagators => [otel_propagator_baggage]}),
+    Headers = otel_propagator_text_map:inject({otel_propagator_baggage, []}, [{<<"existing-header">>, <<"I exist">>}]),
 
     %% the manually set propagators does not include trace_context or b3
     %% so header must only have the existing-header and the baggage
@@ -152,7 +151,7 @@ override_propagators(_Config) ->
 
     %% make header keys uppercase to validate the extractor is case insensitive
     BinaryHeaders = [{string:uppercase(Key), iolist_to_binary(Value)} || {Key, Value} <- Headers],
-    otel_propagator_text_map:extract(BinaryHeaders, #{propagators => [otel_propagator_baggage]}),
+    otel_propagator_text_map:extract({otel_propagator_baggage, []}, BinaryHeaders),
 
     ?assertEqual(#{<<"key-1">> => {<<"value=1">>, []},
                    <<"key-2">> => {<<"value-2">>, [<<"metadata">>, {<<"md-k-1">>, <<"md-v-1">>}]}},

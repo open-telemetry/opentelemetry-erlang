@@ -36,9 +36,11 @@
          get_tracer/1,
          set_text_map_propagators/1,
          set_text_map_extractors/1,
-         get_text_map_extractors/0,
+         set_text_map_extractor/1,
+         get_text_map_extractor/0,
          set_text_map_injectors/1,
-         get_text_map_injectors/0,
+         set_text_map_injector/1,
+         get_text_map_injector/0,
          timestamp/0,
          timestamp_to_nano/1,
          convert_timestamp/2,
@@ -158,28 +160,36 @@ get_tracer(Name) ->
 %% setting the propagators is the same as setting the same list for
 %% injectors and extractors
 set_text_map_propagators(List) when is_list(List) ->
-    set_text_map_injectors(List),
-    set_text_map_extractors(List);
+    CompositeInjector = otel_propagator_text_map_composite:create(List),
+    CompositeExtractor = otel_propagator_text_map_composite:create(List),
+    set_text_map_injector(CompositeInjector),
+    set_text_map_extractor(CompositeExtractor);
 set_text_map_propagators(_) ->
     ok.
 
 set_text_map_extractors(List) when is_list(List) ->
-    ParsedList = otel_propagator:builtins_to_modules(List),
-    persistent_term:put({?MODULE, text_map_extractors}, ParsedList);
+    CompositeExtractor = otel_propagator_text_map_composite:create(List),
+    set_text_map_extractor(CompositeExtractor);
 set_text_map_extractors(_) ->
     ok.
 
+set_text_map_extractor(Propagator) ->
+    persistent_term:put({?MODULE, text_map_extractor}, Propagator).
+
 set_text_map_injectors(List) when is_list(List) ->
-    ParsedList = otel_propagator:builtins_to_modules(List),
-    persistent_term:put({?MODULE, text_map_injectors}, ParsedList);
+    CompositeInjector = otel_propagator_text_map_composite:create(List),
+    set_text_map_extractor(CompositeInjector);
 set_text_map_injectors(_) ->
     ok.
 
-get_text_map_extractors() ->
-    persistent_term:get({?MODULE, text_map_extractors}, []).
+set_text_map_injector(Propagator) ->
+    persistent_term:put({?MODULE, text_map_injector}, Propagator).
 
-get_text_map_injectors() ->
-    persistent_term:get({?MODULE, text_map_injectors}, []).
+get_text_map_extractor() ->
+    persistent_term:get({?MODULE, text_map_extractor}, otel_propagator_text_map_noop).
+
+get_text_map_injector() ->
+    persistent_term:get({?MODULE, text_map_injector}, otel_propagator_text_map_noop).
 
 %% @doc A monotonically increasing time provided by the Erlang runtime system in the native time unit.
 %% This value is the most accurate and precise timestamp available from the Erlang runtime and

@@ -13,5 +13,4 @@ defmodule OpenTelemetry.Baggage do
   defdelegate get_all(ctx), to: :otel_baggage
   defdelegate clear(), to: :otel_baggage
   defdelegate clear(ctx), to: :otel_baggage
-  defdelegate get_text_map_propagators(), to: :otel_baggage
 end

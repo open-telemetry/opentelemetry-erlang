@@ -35,19 +35,13 @@
          builtin_to_module/1]).
 
 %% Sets a value into a carrier
--callback inject(carrier()) -> carrier().
--callback inject(carrier(), propagator_options()) -> carrier().
--callback inject_from(otel_ctx:t(), carrier()) -> carrier().
--callback inject_from(otel_ctx:t(), carrier(), propagator_options()) -> carrier().
+-callback inject(t(), carrier()) -> carrier().
+-callback inject_from(otel_ctx:t(), t(), carrier()) -> carrier().
 %% extracts values from a carrier and sets them in the context
--callback extract(carrier()) -> otel_ctx:t().
--callback extract(carrier(), propagator_options()) -> otel_ctx:t().
--callback extract_to(otel_ctx:t(), carrier()) -> otel_ctx:t().
--callback extract_to(otel_ctx:t(), carrier(), propagator_options()) -> otel_ctx:t().
+-callback extract(t(), carrier()) -> otel_ctx:t().
+-callback extract_to(otel_ctx:t(), t(), carrier()) -> otel_ctx:t().
 
--type propagator_options() :: #{propagators => [t()]}.
-
--type t() :: builtin() | module().
+-type t() :: builtin() | module() | {module(), term()}.
 
 -type builtin() :: trace_context | tracecontext | b3. %% multib3 | jaeger
 
@@ -78,5 +72,7 @@ builtin_to_module(b3) ->
 %%     otel_propagator_multib3;
 %% builtin_to_module(jaeger) ->
 %%     otel_propagator_jaeger;
-builtin_to_module(Module) ->
-    Module.
+builtin_to_module(Module) when is_atom(Module) ->
+    Module;
+builtin_to_module(Propagator) ->
+    Propagator.
