@@ -39,11 +39,13 @@ init_per_group(Propagator, Config) when Propagator =:= w3c ;
 
     case Propagator of
         w3c ->
-            opentelemetry:set_text_map_propagators([otel_propagator_baggage,
-                                                    otel_propagator_trace_context]);
+            CompositePropagator = otel_propagator_text_map_composite:create([otel_propagator_baggage,
+                                                                             otel_propagator_trace_context]),
+            opentelemetry:set_text_map_propagator(CompositePropagator);
         b3 ->
-            opentelemetry:set_text_map_propagators([otel_propagator_baggage,
-                                                    otel_propagator_b3])
+            CompositePropagator = otel_propagator_text_map_composite:create([otel_propagator_baggage,
+                                                                             otel_propagator_b3]),
+            opentelemetry:set_text_map_propagator(CompositePropagator)
     end,
 
     [{propagator, Propagator} | Config].

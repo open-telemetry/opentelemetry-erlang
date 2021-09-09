@@ -24,7 +24,8 @@
 %% '''
 %%
 %% ```
-%% opentelemetry:set_text_map_propagators([b3]).
+%% CompositePropagator = otel_propagator_text_map_composite:create([b3, baggage]),
+%% opentelemetry:set_text_map_propagator(CompositePropagator).
 %% '''
 %%
 %% It is also possible to set a separate list of injectors or extractors.
@@ -44,8 +45,10 @@
 %% Or using calls to {@link opentelemetry} at runtime:
 %%
 %% ```
-%% opentelemetry:set_text_map_extractors([b3, trace_context, baggage]),
-%% opentelemetry:set_text_map_injectors([trace_context, baggage]).
+%% B3CompositePropagator = otel_propagator_text_map_composite:create([b3, trace_context, baggage]),
+%% CompositePropagator = otel_propagator_text_map_composite:create([trace_context, baggage]),
+%% opentelemetry:set_text_map_extractor(B3CompositePropagator),
+%% opentelemetry:set_text_map_injector(CompositePropagator).
 %% '''
 %% @end
 %%%-----------------------------------------------------------------------

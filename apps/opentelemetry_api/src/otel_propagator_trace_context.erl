@@ -24,7 +24,7 @@
 %% {text_map_propagators, [trace_context, baggage]},
 %% '''
 %%
-%% Or by calling {@link opentelemetry:set_text_map_propagators/1}.
+%% Or by calling {@link opentelemetry:set_text_map_propagator/1}.
 %% @end
 %%%-----------------------------------------------------------------------
 -module(otel_propagator_trace_context).

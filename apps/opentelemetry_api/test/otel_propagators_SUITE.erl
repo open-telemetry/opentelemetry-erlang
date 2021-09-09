@@ -27,7 +27,9 @@ groups() ->
 
 init_per_suite(Config) ->
     application:load(opentelemetry_api),
-    opentelemetry:set_text_map_propagators([custom_propagator, otel_propagator_trace_context]),
+    CompositePropagator = otel_propagator_text_map_composite:create([custom_propagator,
+                                                                     otel_propagator_trace_context]),
+    opentelemetry:set_text_map_propagator(CompositePropagator),
     Config.
 
 end_per_suite(_Config) ->

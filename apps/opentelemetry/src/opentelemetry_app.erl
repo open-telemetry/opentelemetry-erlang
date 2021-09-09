@@ -53,8 +53,9 @@ stop(_State) ->
 %% internal functions
 
 setup_text_map_propagators(Opts) ->
-    Propagators = proplists:get_value(text_map_propagators, Opts, []),
-    opentelemetry:set_text_map_propagators(Propagators).
+    List = proplists:get_value(text_map_propagators, Opts, []),
+    CompositePropagator = otel_propagator_text_map_composite:create(List),
+    opentelemetry:set_text_map_propagator(CompositePropagator).
 
 register_loaded_application_tracers(Opts) ->
     RegisterLoadedApplications = proplists:get_value(register_loaded_applications, Opts, true),
