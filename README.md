@@ -135,6 +135,6 @@ Approvers:
 - [Fred Hebert](https://github.com/ferd), Honeycomb
 
 Maintainers:
-- [Łukasz Jan Niemier](https://github.com/hauleth), Remote Technology, Inc.
-- [Ilya Khaprov](https://github.com/deadtrickster), KOBIL Systems
+- [Łukasz Jan Niemier](https://github.com/hauleth)
+- [Iliia Khaprov](https://github.com/deadtrickster), VMWare
 - [Tristan Sloughter](https://github.com/tsloughter)
