@@ -137,4 +137,4 @@ Approvers:
 Maintainers:
 - [Łukasz Jan Niemier](https://github.com/hauleth)
 - [Iliia Khaprov](https://github.com/deadtrickster), VMWare
-- [Tristan Sloughter](https://github.com/tsloughter)
+- [Tristan Sloughter](https://github.com/tsloughter) Splunk
