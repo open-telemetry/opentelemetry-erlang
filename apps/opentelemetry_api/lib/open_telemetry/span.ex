@@ -40,6 +40,18 @@ defmodule OpenTelemetry.Span do
   defdelegate trace_id(span), to: :otel_span
 
   @doc """
+  Get the lowercase hex encoded span ID.
+  """
+  @spec hex_span_id(OpenTelemetry.span_ctx()) :: binary()
+  defdelegate hex_span_id(span), to: :otel_span
+
+  @doc """
+  Get the lowercase hex encoded trace ID.
+  """
+  @spec hex_trace_id(OpenTelemetry.span_ctx()) :: binary()
+  defdelegate hex_trace_id(span), to: :otel_span
+
+  @doc """
   Get the Tracestate of a Span.
   """
   @spec tracestate(OpenTelemetry.span_ctx()) :: OpenTelemetry.tracestate()

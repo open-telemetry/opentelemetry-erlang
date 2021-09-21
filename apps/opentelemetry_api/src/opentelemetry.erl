@@ -60,6 +60,8 @@
 -export_type([tracer/0,
               trace_id/0,
               span_id/0,
+              hex_trace_id/0,
+              hex_span_id/0,
               trace_flags/0,
               timestamp/0,
               span_name/0,
@@ -84,6 +86,9 @@
 
 -type trace_id()           :: non_neg_integer().
 -type span_id()            :: non_neg_integer().
+
+-type hex_trace_id()       :: binary().
+-type hex_span_id()        :: binary().
 
 -type trace_flags()        :: non_neg_integer().
 
