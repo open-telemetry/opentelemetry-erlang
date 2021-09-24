@@ -16,11 +16,11 @@
 all() ->
     [override_propagators,
      {group, w3c},
-     {group, b3}].
+     {group, b3multi}].
 
 groups() ->
     [{w3c, [], [propagation]},
-     {b3, [], [propagation]}].
+     {b3multi, [], [propagation]}].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
@@ -33,7 +33,7 @@ end_per_suite(_Config) ->
     ok.
 
 init_per_group(Propagator, Config) when Propagator =:= w3c ;
-                                        Propagator =:= b3 ->
+                                        Propagator =:= b3multi ->
     %% start in group as well since we must stop it after each group run
     {ok, _} = application:ensure_all_started(opentelemetry),
 
@@ -42,9 +42,9 @@ init_per_group(Propagator, Config) when Propagator =:= w3c ;
             CompositePropagator = otel_propagator_text_map_composite:create([otel_propagator_baggage,
                                                                              otel_propagator_trace_context]),
             opentelemetry:set_text_map_propagator(CompositePropagator);
-        b3 ->
+        b3multi ->
             CompositePropagator = otel_propagator_text_map_composite:create([otel_propagator_baggage,
-                                                                             otel_propagator_b3]),
+                                                                             otel_propagator_b3multi]),
             opentelemetry:set_text_map_propagator(CompositePropagator)
     end,
 
@@ -131,7 +131,7 @@ override_propagators(_Config) ->
 
     Headers = otel_propagator_text_map:inject({otel_propagator_baggage, []}, [{<<"existing-header">>, <<"I exist">>}]),
 
-    %% the manually set propagators does not include trace_context or b3
+    %% the manually set propagators does not include trace_context or b3multi
     %% so header must only have the existing-header and the baggage
     ?assertListsEqual([{<<"baggage">>, <<"key-2=value-2;metadata;md-k-1=md-v-1,key-1=value%3D1">>},
                        {<<"existing-header">>, <<"I exist">>}], Headers),
@@ -187,7 +187,7 @@ assert_not_exported(Tid, #span_ctx{trace_id=TraceId,
 trace_context(w3c, EncodedTraceId, EncodedSpanId) ->
     [{<<"traceparent">>,
      iolist_to_binary([<<"00">>, "-", EncodedTraceId,"-", EncodedSpanId, "-", <<"01">>])}];
-trace_context(b3, EncodedTraceId, EncodedSpanId) ->
+trace_context(b3multi, EncodedTraceId, EncodedSpanId) ->
     [{<<"X-B3-Sampled">>, <<"1">>},
      {<<"X-B3-SpanId">>, iolist_to_binary(EncodedSpanId)},
      {<<"X-B3-TraceId">>, iolist_to_binary(EncodedTraceId)}].

@@ -20,11 +20,11 @@
 %% propagation:
 %%
 %% ```
-%% {text_map_propagators, [b3, baggage]},
+%% {text_map_propagators, [b3multi, baggage]},
 %% '''
 %%
 %% ```
-%% CompositePropagator = otel_propagator_text_map_composite:create([b3, baggage]),
+%% CompositePropagator = otel_propagator_text_map_composite:create([b3multi, baggage]),
 %% opentelemetry:set_text_map_propagator(CompositePropagator).
 %% '''
 %%
@@ -38,21 +38,21 @@
 %%
 %%
 %% ```
-%% {text_map_extractors, [b3, trace_context, baggage]},
+%% {text_map_extractors, [b3multi, trace_context, baggage]},
 %% {text_map_injectors, [trace_context, baggage]},
 %% '''
 %%
 %% Or using calls to {@link opentelemetry} at runtime:
 %%
 %% ```
-%% B3CompositePropagator = otel_propagator_text_map_composite:create([b3, trace_context, baggage]),
+%% B3CompositePropagator = otel_propagator_text_map_composite:create([b3multi, trace_context, baggage]),
 %% CompositePropagator = otel_propagator_text_map_composite:create([trace_context, baggage]),
 %% opentelemetry:set_text_map_extractor(B3CompositePropagator),
 %% opentelemetry:set_text_map_injector(CompositePropagator).
 %% '''
 %% @end
 %%%-----------------------------------------------------------------------
--module(otel_propagator_b3).
+-module(otel_propagator_b3multi).
 
 -behaviour(otel_propagator_text_map).
 

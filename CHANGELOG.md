@@ -17,11 +17,13 @@
 - Injectors and extractors can be configured separately instead of using the
   same list of propagators for both by configuring `text_map_injectors` and
   `text_map_extractors`.
-  - For example you may want your service to support receiving `b3` headers
-    but have no need for it including `b3` headers when it is propagating to
+  - For example you may want your service to support receiving `b3multi` headers
+    but have no need for it including `b3multi` headers when it is propagating to
     other services:
             
     ```
     {text_map_injectors, [trace_context, baggage]},
-    {text_map_extractors, [b3, trace_context, baggage]}
+    {text_map_extractors, [b3multi, trace_context, baggage]}
     ```
+- `b3` propagator renamed `b3multi` to properly convey it is the version of the
+  B3 spec that creates multiple headers

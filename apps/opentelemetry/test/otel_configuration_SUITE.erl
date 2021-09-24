@@ -176,7 +176,7 @@ propagators(_Config) ->
 
 propagators_b3multi(_Config) ->
     ?assertIsSubset([{log_level, error},
-                     {propagators, [fun otel_tracer_default:b3_propagators/0]}],
+                     {propagators, [b3multi]}],
                     otel_configuration:merge_with_os([{log_level, error}])),
 
     ok.
