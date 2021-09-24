@@ -11,7 +11,7 @@
 -include("otel_tracer.hrl").
 
 all() ->
-    [noop_tracer, update_span_data, noop_with_span, can_create_link_from_span].
+    [noop_tracer, update_span_data, noop_with_span, can_create_link_from_span, hex_trace_ids].
 
 init_per_suite(Config) ->
     application:load(opentelemetry_api),
@@ -144,4 +144,10 @@ noop_with_span(_Config) ->
 
     Result = some_result,
     ?assertEqual(Result, otel_tracer:with_span(Tracer, <<"span1">>, #{}, fun(_) -> Result end)),
+    ok.
+
+hex_trace_ids(_Config) ->
+    SpanCtx=#span_ctx{trace_id=41394, span_id=50132},
+    ?assertEqual(<<"0000000000000000000000000000a1b2">>, otel_span:hex_trace_id(SpanCtx)),
+    ?assertEqual(<<"000000000000c3d4">>, otel_span:hex_span_id(SpanCtx)),
     ok.

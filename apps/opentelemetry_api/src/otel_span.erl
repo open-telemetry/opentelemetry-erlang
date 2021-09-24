@@ -20,6 +20,8 @@
 
 -export([trace_id/1,
          span_id/1,
+         hex_trace_id/1,
+         hex_span_id/1,
          tracestate/1,
          is_recording/1,
          is_valid/1,
@@ -69,9 +71,15 @@ trace_id(#span_ctx{trace_id=TraceId }) ->
 span_id(#span_ctx{span_id=SpanId }) ->
     SpanId.
 
+-spec hex_trace_id(opentelemetry:span_ctx()) -> opentelemetry:hex_trace_id().
+hex_trace_id(#span_ctx{trace_id=TraceId}) ->
+    iolist_to_binary(io_lib:format("~32.16.0b", [TraceId])).
+
+-spec hex_span_id(opentelemetry:span_ctx()) -> opentelemetry:hex_span_id().
+hex_span_id(#span_ctx{span_id=SpanId}) ->
+    iolist_to_binary(io_lib:format("~16.16.0b", [SpanId])).
+
 -spec tracestate(opentelemetry:span_ctx() | undefined) -> opentelemetry:tracestate().
-tracestate(#span_ctx{tracestate=undefined}) ->
-    [];
 tracestate(#span_ctx{tracestate=Tracestate}) ->
     Tracestate;
 tracestate(_) ->

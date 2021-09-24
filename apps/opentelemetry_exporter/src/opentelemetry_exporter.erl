@@ -451,8 +451,6 @@ to_links([#link{trace_id=TraceId,
                       attributes => to_attributes(Attributes),
                       dropped_attributes_count => 0} | Acc]).
 
-to_tracestate_string(undefined) ->
-    "";
 to_tracestate_string(List) ->
     lists:join($,, [[Key, $=, Value] || {Key, Value} <- List]).
 

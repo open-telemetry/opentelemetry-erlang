@@ -14,20 +14,12 @@
 -include("otel_span_ets.hrl").
 
 all() ->
-    [all_testcases(),
-     {group, w3c},
-     {group, b3}].
-
-all_testcases() ->
     [disable_auto_registration, registered_tracers, with_span, macros, child_spans,
      update_span_data, tracer_instrumentation_library, tracer_previous_ctx, stop_temporary_app,
      reset_after, attach_ctx, default_sampler, non_recording_ets_table, 
      root_span_sampling_always_on, root_span_sampling_always_off, 
-     record_but_not_sample, record_exception_works, record_exception_with_message_works].
-
-groups() ->
-    [{w3c, [], [propagation]},
-     {b3, [], [propagation]}].
+     record_but_not_sample, record_exception_works, record_exception_with_message_works,
+     propagator_configuration, propagator_configuration_with_os_env].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
@@ -37,28 +29,18 @@ end_per_suite(_Config) ->
     application:unload(opentelemetry),
     ok.
 
-init_per_group(Propagator, Config) when Propagator =:= w3c ;
-                                        Propagator =:= b3 ->
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
-    {ok, _} = application:ensure_all_started(opentelemetry),
-
-    {BaggageTextMapExtractor, BaggageTextMapInjector} = otel_baggage:get_text_map_propagators(),
-    {TraceTextMapExtractor, TraceTextMapInjector} = case Propagator of
-                                                        w3c -> otel_tracer_default:w3c_propagators();
-                                                        b3 -> otel_tracer_default:b3_propagators()
-                                                    end,
-    opentelemetry:set_text_map_extractors([BaggageTextMapExtractor,
-                                           TraceTextMapExtractor]),
-    opentelemetry:set_text_map_injectors([BaggageTextMapInjector,
-                                          TraceTextMapInjector]),
-
-    [{propagator, Propagator} | Config].
-
-end_per_group(_, _Config) ->
-    _ = application:stop(opentelemetry).
-
 init_per_testcase(disable_auto_registration, Config) ->
     application:set_env(opentelemetry, register_loaded_applications, false),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
+init_per_testcase(propagator_configuration, Config) ->
+    os:unsetenv("OTEL_PROPAGATORS"),
+    application:set_env(opentelemetry, text_map_propagators, [b3multi, baggage]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
+init_per_testcase(propagator_configuration_with_os_env, Config) ->
+    os:putenv("OTEL_PROPAGATORS", "tracecontext"),
+    application:set_env(opentelemetry, text_map_propagators, [b3multi, baggage]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(_, Config) ->
@@ -73,6 +55,10 @@ init_per_testcase(_, Config) ->
 end_per_testcase(disable_auto_registration, _Config) ->
     _ = application:stop(opentelemetry),
     _ = application:unload(opentelemetry),
+    ok;
+end_per_testcase(propagator_configuration_with_os_env, _Config) ->
+    os:unsetenv("OTEL_PROPAGATORS"),
+    _ = application:stop(opentelemetry),
     ok;
 end_per_testcase(_, _Config) ->
     _ = application:stop(opentelemetry),
@@ -92,6 +78,44 @@ registered_tracers(_Config) ->
     {_, #tracer{instrumentation_library=NewLibrary}} = opentelemetry:get_tracer(kernel),
     ?assertEqual(<<"kernel">>, NewLibrary#instrumentation_library.name),
     ?assertEqual(<<"fake-version">>, NewLibrary#instrumentation_library.version),
+    ok.
+
+propagator_configuration(_Config) ->
+    ?assertEqual({otel_propagator_text_map_composite,
+                  [otel_propagator_b3multi, otel_propagator_baggage]}, opentelemetry:get_text_map_extractor()),
+    ?assertEqual({otel_propagator_text_map_composite,
+                  [otel_propagator_b3multi, otel_propagator_baggage]}, opentelemetry:get_text_map_injector()),
+
+    opentelemetry:set_text_map_extractor({otel_propagator_baggage, []}),
+
+    ?assertEqual({otel_propagator_baggage, []}, opentelemetry:get_text_map_extractor()),
+    ?assertEqual({otel_propagator_text_map_composite,
+                  [otel_propagator_b3multi, otel_propagator_baggage]}, opentelemetry:get_text_map_injector()),
+
+    opentelemetry:set_text_map_injector({otel_propagator_b3multi, []}),
+
+    ?assertEqual({otel_propagator_baggage, []}, opentelemetry:get_text_map_extractor()),
+    ?assertEqual({otel_propagator_b3multi, []}, opentelemetry:get_text_map_injector()),
+
+    ok.
+
+propagator_configuration_with_os_env(_Config) ->
+    ?assertEqual({otel_propagator_text_map_composite,
+                  [otel_propagator_trace_context]}, opentelemetry:get_text_map_extractor()),
+    ?assertEqual({otel_propagator_text_map_composite,
+                  [otel_propagator_trace_context]}, opentelemetry:get_text_map_injector()),
+
+    opentelemetry:set_text_map_extractor({otel_propagator_baggage, []}),
+
+    ?assertEqual({otel_propagator_baggage, []}, opentelemetry:get_text_map_extractor()),
+    ?assertEqual({otel_propagator_text_map_composite,
+                  [otel_propagator_trace_context]}, opentelemetry:get_text_map_injector()),
+
+    opentelemetry:set_text_map_injector({otel_propagator_b3multi, []}),
+
+    ?assertEqual({otel_propagator_baggage, []}, opentelemetry:get_text_map_extractor()),
+    ?assertEqual({otel_propagator_b3multi, []}, opentelemetry:get_text_map_injector()),
+
     ok.
 
 macros(Config) ->
@@ -232,67 +256,6 @@ update_span_data(Config) ->
                                               status=Status,
                                               events=Events,
                                               _='_'})).
-
-propagation(Config) ->
-    Propagator = ?config(propagator, Config),
-    SpanCtx=#span_ctx{trace_id=TraceId,
-                      span_id=SpanId} = ?start_span(<<"span-1">>),
-    ?set_current_span(SpanCtx),
-
-    ?assertMatch(#span_ctx{trace_flags=1}, ?current_span_ctx),
-    ?assertMatch(#span_ctx{is_recording=true}, ?current_span_ctx),
-
-
-    otel_baggage:set("key-1", <<"value=1">>, []),
-    %% TODO: should the whole baggage entry be dropped if metadata is bad?
-    %% drop bad metadata (the `1').
-    otel_baggage:set(<<"key-2">>, <<"value-2">>, [<<"metadata">>, 1, {<<"md-k-1">>, <<"md-v-1">>}]),
-    %% drop baggage with bad value
-    otel_baggage:set(<<"key-3">>, value3),
-
-    Headers = otel_propagator:text_map_inject([{<<"existing-header">>, <<"I exist">>}]),
-
-    EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
-    EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
-
-    ?assertListsEqual([{<<"baggage">>, <<"key-2=value-2;metadata;md-k-1=md-v-1,key-1=value%3D1">>},
-                       {<<"existing-header">>, <<"I exist">>} |
-                       trace_context(Propagator, EncodedTraceId, EncodedSpanId)], Headers),
-
-    ?end_span(SpanCtx),
-
-    ?assertEqual(#{<<"key-1">> => {<<"value=1">>, []},
-                   <<"key-2">> => {<<"value-2">>, [<<"metadata">>, {<<"md-k-1">>, <<"md-v-1">>}]}},
-                 otel_baggage:get_all()),
-
-    %% ?end_span doesn't remove the span from the context
-    ?assertEqual(SpanCtx, ?current_span_ctx),
-    ?set_current_span(undefined),
-    ?assertEqual(undefined, ?current_span_ctx),
-
-    %% clear our baggage from the context to test extraction
-    otel_baggage:clear(),
-    ?assertEqual(#{}, otel_baggage:get_all()),
-
-    %% make header keys uppercase to validate the extractor is case insensitive
-    BinaryHeaders = [{string:uppercase(Key), iolist_to_binary(Value)} || {Key, Value} <- Headers],
-    otel_propagator:text_map_extract(BinaryHeaders),
-
-    ?assertEqual(#{<<"key-1">> => {<<"value=1">>, []},
-                   <<"key-2">> => {<<"value-2">>, [<<"metadata">>, {<<"md-k-1">>, <<"md-v-1">>}]}},
-                 otel_baggage:get_all()),
-
-    %% extracted remote spans are set to the active span
-    %% but with `is_recording' false
-    ?assertMatch(#span_ctx{is_recording=false}, ?current_span_ctx),
-
-    #span_ctx{trace_id=TraceId2,
-              span_id=_SpanId2} = ?start_span(<<"span-2">>),
-
-    %% new span should be a child of the extracted span
-    ?assertEqual(TraceId, TraceId2),
-
-    ok.
 
 tracer_instrumentation_library(Config) ->
     Tid = ?config(tid, Config),
@@ -598,10 +561,3 @@ assert_not_exported(Tid, #span_ctx{trace_id=TraceId,
                                           span_id=SpanId,
                                           _='_'})).
 
-trace_context(w3c, EncodedTraceId, EncodedSpanId) ->
-    [{<<"traceparent">>,
-     iolist_to_binary([<<"00">>, "-", EncodedTraceId,"-", EncodedSpanId, "-", <<"01">>])}];
-trace_context(b3, EncodedTraceId, EncodedSpanId) ->
-    [{<<"X-B3-Sampled">>, <<"1">>},
-     {<<"X-B3-SpanId">>, iolist_to_binary(EncodedSpanId)},
-     {<<"X-B3-TraceId">>, iolist_to_binary(EncodedTraceId)}].

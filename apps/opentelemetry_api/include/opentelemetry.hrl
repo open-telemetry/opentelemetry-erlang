@@ -44,7 +44,7 @@
           %% Tracestate represents tracing-system specific context in a list of key-value pairs.
           %% Tracestate allows different vendors propagate additional information and
           %% inter-operate with their legacy Id formats.
-          tracestate        :: opentelemetry:tracestate() | undefined,
+          tracestate = []   :: opentelemetry:tracestate(),
           %% IsValid is a boolean flag which returns true if the SpanContext has a non-zero
           %% TraceID and a non-zero SpanID.
           is_valid          :: boolean() | undefined,

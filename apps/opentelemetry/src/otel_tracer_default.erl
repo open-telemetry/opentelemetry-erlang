@@ -20,9 +20,8 @@
 -behaviour(otel_tracer).
 
 -export([start_span/4,
-         with_span/5,
-         b3_propagators/0,
-         w3c_propagators/0]).
+         with_span/5
+        ]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_tracer.hrl").
@@ -59,10 +58,3 @@ with_span(Ctx, Tracer, SpanName, Opts, Fun) ->
         otel_ctx:detach(Ctx)
     end.
 
--spec b3_propagators() -> {otel_propagator:text_map_extractor(), otel_propagator:text_map_injector()}.
-b3_propagators() ->
-    otel_tracer:text_map_propagators(otel_propagator_http_b3).
-
--spec w3c_propagators() -> {otel_propagator:text_map_extractor(), otel_propagator:text_map_injector()}.
-w3c_propagators() ->
-    otel_tracer:text_map_propagators(otel_propagator_http_w3c).

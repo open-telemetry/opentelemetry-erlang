@@ -89,6 +89,15 @@ defmodule OpenTelemetryTest do
     end
   end
 
+  test "hex trace identifiers" do
+    Tracer.with_span "span-1" do
+      span = Tracer.current_span_ctx()
+
+      assert Span.hex_trace_id(span) == "00000000000000000000000000000000"
+      assert Span.hex_span_id(span) == "0000000000000000"
+    end
+  end
+
   test "baggage api from elixir" do
     Baggage.set(%{"a" => "b"})
     assert %{"a" => {"b", []}} = Baggage.get_all()
