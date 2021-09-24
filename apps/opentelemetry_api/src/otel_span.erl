@@ -80,8 +80,6 @@ hex_span_id(#span_ctx{span_id=SpanId}) ->
     iolist_to_binary(io_lib:format("~16.16.0b", [SpanId])).
 
 -spec tracestate(opentelemetry:span_ctx() | undefined) -> opentelemetry:tracestate().
-tracestate(#span_ctx{tracestate=undefined}) ->
-    [];
 tracestate(#span_ctx{tracestate=Tracestate}) ->
     Tracestate;
 tracestate(_) ->

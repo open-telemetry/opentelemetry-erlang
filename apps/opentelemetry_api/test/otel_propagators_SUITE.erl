@@ -16,7 +16,7 @@
                             <<"00-10000000000000000000000000000000-1000000000000000-00">>}]).
 
 all() ->
-    [{group, absence_of_an_installed_sdk}, custom_propagator].
+    [rewrite, {group, absence_of_an_installed_sdk}, custom_propagator].
 
 groups() ->
     %% Tests of Behavior of the API in the absence of an installed SDK
@@ -27,14 +27,46 @@ groups() ->
 
 init_per_suite(Config) ->
     application:load(opentelemetry_api),
-    {Extractor, Injector} = custom_propagator:propagators(),
-    {W3CExtractor, W3CInjector} = otel_tracer_default:w3c_propagators(),
-    opentelemetry:set_text_map_extractors([Extractor, W3CExtractor]),
-    opentelemetry:set_text_map_injectors([Injector, W3CInjector]),
-
+    CompositePropagator = otel_propagator_text_map_composite:create([custom_propagator,
+                                                                     otel_propagator_trace_context]),
+    opentelemetry:set_text_map_propagator(CompositePropagator),
     Config.
 
 end_per_suite(_Config) ->
+    ok.
+
+rewrite(_Config) ->
+    otel_ctx:clear(),
+
+    RecordingSpanCtx = #span_ctx{trace_id=21267647932558653966460912964485513216,
+                                 span_id=1152921504606846976,
+                                 is_valid=true,
+                                 is_recording=true},
+    otel_tracer:set_current_span(RecordingSpanCtx),
+
+    Ctx = otel_ctx:get_current(),
+    ?assertMatch([{<<"traceparent">>,
+                   <<"00-10000000000000000000000000000000-1000000000000000-00">>}],
+                 otel_propagator_trace_context:inject(Ctx, [],
+                                                      fun otel_propagator_text_map:default_carrier_set/3, [])),
+
+    ?assertMatch([{<<"traceparent">>,
+                   <<"00-10000000000000000000000000000000-1000000000000000-00">>}],
+                 otel_propagator_text_map:inject([])),
+
+    ?assertMatch(<<"c=d,a=b">>,
+                 otel_propagator_text_map:default_carrier_get(<<"tracestate">>,
+                                                              [{<<"tracestate">>,<<"c=d">>},
+                                                               {<<"traceparent">>,
+                                                                <<"00-10000000000000000000000000000000-1000000000000000-00">>},
+                                                               {<<"tracestate">>,<<"a=b">>}])),
+
+
+    otel_propagator_text_map:extract([{<<"traceparent">>,
+                                       <<"00-10000000000000000000000000000000-1000000000000000-00">>}]),
+    ?assertEqual(RecordingSpanCtx#span_ctx{is_recording=false,
+                                           is_remote=true}, otel_tracer:current_span_ctx()),
+
     ok.
 
 invalid_span_no_sdk_propagation(_Config) ->
@@ -56,7 +88,7 @@ invalid_span_no_sdk_propagation(_Config) ->
                                   end),
     ?assertEqual(InvalidSpanCtx, otel_tracer:current_span_ctx()),
 
-    BinaryHeaders = otel_propagator:text_map_inject([]),
+    BinaryHeaders = otel_propagator_text_map:inject([]),
     %% invalid span contexts are skipped when injecting
     ?assertMatch([], BinaryHeaders),
 
@@ -77,7 +109,7 @@ recording_no_sdk_propagation(_Config) ->
                                           ?assertNotEqual(RecordingSpanCtx, otel_tracer:current_span_ctx())
                                   end),
     ?assertEqual(RecordingSpanCtx, otel_tracer:current_span_ctx()),
-    BinaryHeaders = otel_propagator:text_map_inject([]),
+    BinaryHeaders = otel_propagator_text_map:inject([]),
     ?assertMatch(?EXPECTED_HEADERS, BinaryHeaders),
 
     ok.
@@ -90,11 +122,12 @@ nonrecording_no_sdk_propagation(_Config) ->
 
     NonRecordingSpanCtx = #span_ctx{trace_id=21267647932558653966460912964485513216,
                                     span_id=1152921504606846976,
+                                    is_valid=true,
                                     is_recording=false},
     ?set_current_span(NonRecordingSpanCtx),
-    BinaryHeaders = otel_propagator:text_map_inject([]),
+    BinaryHeaders = otel_propagator_text_map:inject([]),
     %% is_recording will always be false in extracted `span_ctx'
-    otel_propagator:text_map_extract(BinaryHeaders),
+    otel_propagator_text_map:extract(BinaryHeaders),
 
     %% after being extracted `is_remote' will be set to `true'
     RemoteSpanCtx = NonRecordingSpanCtx#span_ctx{is_remote=true},
@@ -107,7 +140,7 @@ nonrecording_no_sdk_propagation(_Config) ->
                                   end),
     ?assertEqual(RemoteSpanCtx, otel_tracer:current_span_ctx()),
 
-    BinaryHeaders = otel_propagator:text_map_inject([]),
+    BinaryHeaders = otel_propagator_text_map:inject([]),
     ?assertMatch(?EXPECTED_HEADERS, BinaryHeaders),
 
     ok.
@@ -116,7 +149,7 @@ custom_propagator(_Config) ->
     Something = <<"hello">>,
     custom_propagator:add_to_context(Something),
 
-    Headers = otel_propagator:text_map_inject([{<<"existing-header">>, <<"I exist">>}]),
+    Headers = otel_propagator_text_map:inject([{<<"existing-header">>, <<"I exist">>}]),
 
     ?assertListsMatch([{<<"something-header-id">>, Something},
                        {<<"existing-header">>, <<"I exist">>}], Headers),
@@ -126,7 +159,7 @@ custom_propagator(_Config) ->
 
     %% make header keys uppercase to validate the extractor is case insensitive
     BinaryHeaders = [{string:uppercase(Key), iolist_to_binary(Value)} || {Key, Value} <- Headers],
-    otel_propagator:text_map_extract(BinaryHeaders),
+    otel_propagator_text_map:extract(BinaryHeaders),
 
     ?assertEqual(Something, custom_propagator:context_content()),
 

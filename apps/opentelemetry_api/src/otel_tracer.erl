@@ -27,7 +27,6 @@
          set_current_span/2,
          current_span_ctx/0,
          current_span_ctx/1,
-         text_map_propagators/1,
          end_span/0,
          set_attribute/2,
          set_attributes/1,
@@ -90,6 +89,7 @@ non_recording_span(TraceId, SpanId, Traceflags) ->
 from_remote_span(TraceId, SpanId, Traceflags) ->
     #span_ctx{trace_id=TraceId,
               span_id=SpanId,
+              is_valid=true,
               is_recording=false,
               is_remote=true,
               trace_flags=Traceflags}.
@@ -109,14 +109,6 @@ current_span_ctx() ->
 -spec current_span_ctx(otel_ctx:t()) -> opentelemetry:span_ctx() | undefined.
 current_span_ctx(Ctx) ->
     otel_ctx:get_value(Ctx, ?CURRENT_SPAN_CTX, undefined).
-
--spec text_map_propagators(module()) -> {otel_propagator:text_map_extractor(), otel_propagator:text_map_injector()}.
-text_map_propagators(Module) ->
-    ToText = fun Module:inject/1,
-    FromText = fun Module:extract/2,
-    Injector = otel_ctx:text_map_injector(?CURRENT_SPAN_CTX, ToText),
-    Extractor = otel_ctx:text_map_extractor(?CURRENT_SPAN_CTX, FromText),
-    {Extractor, Injector}.
 
 %% Span operations
 

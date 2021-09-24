@@ -96,7 +96,7 @@ merge_with_environment(ConfigMappings, Opts) ->
 
 config_mappings(general_sdk) ->
     [{"OTEL_LOG_LEVEL", log_level, "info", existing_atom},
-     {"OTEL_PROPAGATORS", propagators, "tracecontext,baggage", propagators},
+     {"OTEL_PROPAGATORS", text_map_propagators, "tracecontext,baggage", propagators},
      {"OTEL_TRACES_EXPORTER", traces_exporter, "otlp", exporter},
      {"OTEL_METRICS_EXPORTER", metrics_exporter, undefined, exporter}];
 config_mappings(otel_batch_processor) ->
@@ -173,11 +173,16 @@ transform(propagators, PropagatorsString) when is_list(PropagatorsString) ->
                   end, Propagators);
 
 transform(propagator, "tracecontext") ->
-    fun otel_tracer_default:w3c_propagators/0;
-transform(propagator, "b3multi") ->
-    fun otel_tracer_default:b3_propagators/0;
+    trace_context;
 transform(propagator, "baggage") ->
-    fun otel_baggage:get_text_map_propagators/0;
+    baggage;
+transform(propagator, "b3multi") ->
+    b3multi;
+%% TODO: support b3multi and jager propagator formats
+%% transform(propagator, "b3") ->
+%%     b3;
+%% transform(propagator, "jaeger") ->
+%%     jaeger;
 transform(propagator, Propagator) ->
     ?LOG_WARNING("Ignoring uknown propagator ~ts in OS environment variable $OTEL_PROPAGATORS",
                  [Propagator]),

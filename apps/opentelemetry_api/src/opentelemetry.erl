@@ -34,10 +34,11 @@
          register_application_tracer/1,
          get_tracer/0,
          get_tracer/1,
-         set_text_map_extractors/1,
-         get_text_map_extractors/0,
-         set_text_map_injectors/1,
-         get_text_map_injectors/0,
+         set_text_map_propagator/1,
+         set_text_map_extractor/1,
+         get_text_map_extractor/0,
+         set_text_map_injector/1,
+         get_text_map_injector/0,
          timestamp/0,
          timestamp_to_nano/1,
          convert_timestamp/2,
@@ -154,21 +155,22 @@ get_tracer() ->
 get_tracer(Name) ->
     persistent_term:get({?MODULE, Name}, get_tracer()).
 
-set_text_map_extractors(List) when is_list(List) ->
-    persistent_term:put({?MODULE, text_map_extractors}, List);
-set_text_map_extractors(_) ->
-    ok.
+%% setting the propagator is the same as setting the same injector and extractor
+set_text_map_propagator(Propagator) ->
+    set_text_map_injector(Propagator),
+    set_text_map_extractor(Propagator).
 
-set_text_map_injectors(List) when is_list(List) ->
-    persistent_term:put({?MODULE, text_map_injectors}, List);
-set_text_map_injectors(_) ->
-    ok.
+set_text_map_extractor(Propagator) ->
+    persistent_term:put({?MODULE, text_map_extractor}, Propagator).
 
-get_text_map_extractors() ->
-    persistent_term:get({?MODULE, text_map_extractors}, []).
+set_text_map_injector(Propagator) ->
+    persistent_term:put({?MODULE, text_map_injector}, Propagator).
 
-get_text_map_injectors() ->
-    persistent_term:get({?MODULE, text_map_injectors}, []).
+get_text_map_extractor() ->
+    persistent_term:get({?MODULE, text_map_extractor}, otel_propagator_text_map_noop).
+
+get_text_map_injector() ->
+    persistent_term:get({?MODULE, text_map_injector}, otel_propagator_text_map_noop).
 
 %% @doc A monotonically increasing time provided by the Erlang runtime system in the native time unit.
 %% This value is the most accurate and precise timestamp available from the Erlang runtime and
@@ -250,7 +252,7 @@ link(_, _) ->
 link(TraceId, SpanId, Attributes, TraceState) when is_integer(TraceId),
                                                    is_integer(SpanId),
                                                    is_list(Attributes),
-                                                   (is_list(TraceState) orelse TraceState =:= undefined)->
+                                                   is_list(TraceState) ->
     #link{trace_id=TraceId,
           span_id=SpanId,
           attributes=Attributes,
