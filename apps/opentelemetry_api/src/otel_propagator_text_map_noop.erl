@@ -28,12 +28,19 @@
 fields(_Propagators) ->
     [].
 
--spec inject(otel_ctx:t(), otel_propagator:carrier(), fun(),
-             [otel_propagator_text_map:t()]) -> otel_propagator:carrier().
-inject(_Context, Carrier, _CarrierSetFun, _Injectors) ->
+-spec inject(Context, Carrier, CarrierSetFun, Options) -> Carrier
+              when Context :: otel_ctx:t(),
+                   Carrier :: otel_propagator:carrier(),
+                   CarrierSetFun :: otel_propagator_text_map:carrier_set(),
+                   Options :: otel_propagator_text_map:propagator_options().
+inject(_Context, Carrier, _CarrierSetFun, _Options) ->
     Carrier.
 
--spec extract(otel_ctx:t(), otel_propagator:carrier(), fun(), fun(),
-              [otel_propagator_text_map:t()]) -> otel_ctx:t().
-extract(Context, _Carrier, _CarrierKeysFun, _CarrierGetFun, _Extractors) ->
+-spec extract(Context, Carrier, CarrierKeysFun, CarrierGetFun, Options) -> Context
+              when Context :: otel_ctx:t(),
+                   Carrier :: otel_propagator:carrier(),
+                   CarrierKeysFun :: otel_propagator_text_map:carrier_keys(),
+                   CarrierGetFun :: otel_propagator_text_map:carrier_get(),
+                   Options :: otel_propagator_text_map:propagator_options().
+extract(Context, _Carrier, _CarrierKeysFun, _CarrierGetFun, _Options) ->
     Context.

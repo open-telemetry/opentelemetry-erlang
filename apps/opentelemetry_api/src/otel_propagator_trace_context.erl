@@ -53,6 +53,11 @@
 fields(_) ->
     [?HEADER_KEY, ?STATE_HEADER_KEY].
 
+-spec inject(Context, Carrier, CarrierSetFun, Options) -> Carrier
+              when Context :: otel_ctx:t(),
+                   Carrier :: otel_propagator:carrier(),
+                   CarrierSetFun :: otel_propagator_text_map:carrier_set(),
+                   Options :: otel_propagator_text_map:propagator_options().
 inject(Ctx, Carrier, CarrierSet, _Options) ->
     case otel_tracer:current_span_ctx(Ctx) of
         SpanCtx=#span_ctx{trace_id=TraceId,
@@ -69,6 +74,12 @@ inject(Ctx, Carrier, CarrierSet, _Options) ->
             Carrier
     end.
 
+-spec extract(Context, Carrier, CarrierKeysFun, CarrierGetFun, Options) -> Context
+              when Context :: otel_ctx:t(),
+                   Carrier :: otel_propagator:carrier(),
+                   CarrierKeysFun :: otel_propagator_text_map:carrier_keys(),
+                   CarrierGetFun :: otel_propagator_text_map:carrier_get(),
+                   Options :: otel_propagator_text_map:propagator_options().
 extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet, _Options) ->
     SpanCtxString = CarrierGet(?HEADER_KEY, Carrier),
     case decode(string:trim(SpanCtxString)) of

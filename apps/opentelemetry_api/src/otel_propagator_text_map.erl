@@ -105,7 +105,11 @@
 %% an empty list is passed for options if the propagator is a module with no options
 -type t() :: module() | {module(), propagator_options()}.
 
--export_type([t/0]).
+-export_type([t/0,
+              carrier_set/0,
+              carrier_get/0,
+              carrier_keys/0,
+              propagator_options/0]).
 
 -spec fields(otel_propagator:t()) -> [field_key()].
 fields(Propagator) when is_atom(Propagator) ->

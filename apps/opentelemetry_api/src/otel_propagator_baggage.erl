@@ -53,6 +53,11 @@
 fields(_) ->
     [?BAGGAGE_HEADER].
 
+-spec inject(Context, Carrier, CarrierSetFun, Options) -> Carrier
+              when Context :: otel_ctx:t(),
+                   Carrier :: otel_propagator:carrier(),
+                   CarrierSetFun :: otel_propagator_text_map:carrier_set(),
+                   Options :: otel_propagator_text_map:propagator_options().
 inject(Ctx, Carrier, CarrierSet, _Options) ->
     Baggage = otel_baggage:get_all(Ctx),
     case maps:fold(fun(Key, Value, Acc) ->
@@ -64,6 +69,12 @@ inject(Ctx, Carrier, CarrierSet, _Options) ->
             Carrier
     end.
 
+-spec extract(Context, Carrier, CarrierKeysFun, CarrierGetFun, Options) -> Context
+              when Context :: otel_ctx:t(),
+                   Carrier :: otel_propagator:carrier(),
+                   CarrierKeysFun :: otel_propagator_text_map:carrier_keys(),
+                   CarrierGetFun :: otel_propagator_text_map:carrier_get(),
+                   Options :: otel_propagator_text_map:propagator_options().
 extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet, _Options) ->
     case CarrierGet(?BAGGAGE_HEADER, Carrier) of
         undefined ->

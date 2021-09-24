@@ -71,6 +71,11 @@
 fields(_) ->
     [?B3_TRACE_ID, ?B3_SPAN_ID, ?B3_SAMPLED].
 
+-spec inject(Context, Carrier, CarrierSetFun, Options) -> Carrier
+              when Context :: otel_ctx:t(),
+                   Carrier :: otel_propagator:carrier(),
+                   CarrierSetFun :: otel_propagator_text_map:carrier_set(),
+                   Options :: otel_propagator_text_map:propagator_options().
 inject(Ctx, Carrier, CarrierSet, _Options) ->
     case otel_tracer:current_span_ctx(Ctx) of
         #span_ctx{trace_id=TraceId,
@@ -86,6 +91,12 @@ inject(Ctx, Carrier, CarrierSet, _Options) ->
             Carrier
     end.
 
+-spec extract(Context, Carrier, CarrierKeysFun, CarrierGetFun, Options) -> Context
+              when Context :: otel_ctx:t(),
+                   Carrier :: otel_propagator:carrier(),
+                   CarrierKeysFun :: otel_propagator_text_map:carrier_keys(),
+                   CarrierGetFun :: otel_propagator_text_map:carrier_get(),
+                   Options :: otel_propagator_text_map:propagator_options().
 extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet, _Options) ->
     try
         TraceId = trace_id(Carrier, CarrierGet),
