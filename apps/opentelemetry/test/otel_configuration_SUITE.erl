@@ -114,7 +114,7 @@ end_per_testcase(_, Config) ->
 
 empty_os_environment(_Config) ->
     ?assertIsSubset([{log_level,info},
-                     {propagators,[trace_context, baggage]},
+                     {text_map_propagators,[trace_context, baggage]},
                      {sampler,{parent_based,#{root => always_on}}}],
                     otel_configuration:merge_with_os([])),
 
@@ -169,14 +169,14 @@ log_level(_Config) ->
 propagators(_Config) ->
     %% TODO: can make this a better error message when it fails with a custom assert macro
     ?assertIsSubset([{log_level, error},
-                     {propagators, [baggage]}],
+                     {text_map_propagators, [baggage]}],
                     otel_configuration:merge_with_os([{log_level, error}])),
 
     ok.
 
 propagators_b3multi(_Config) ->
     ?assertIsSubset([{log_level, error},
-                     {propagators, [b3multi]}],
+                     {text_map_propagators, [b3multi]}],
                     otel_configuration:merge_with_os([{log_level, error}])),
 
     ok.

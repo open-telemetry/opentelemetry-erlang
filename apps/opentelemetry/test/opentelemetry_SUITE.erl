@@ -18,7 +18,8 @@ all() ->
      update_span_data, tracer_instrumentation_library, tracer_previous_ctx, stop_temporary_app,
      reset_after, attach_ctx, default_sampler, non_recording_ets_table, 
      root_span_sampling_always_on, root_span_sampling_always_off, 
-     record_but_not_sample, record_exception_works, record_exception_with_message_works].
+     record_but_not_sample, record_exception_works, record_exception_with_message_works,
+     propagator_configuration, propagator_configuration_with_os_env].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
@@ -30,6 +31,16 @@ end_per_suite(_Config) ->
 
 init_per_testcase(disable_auto_registration, Config) ->
     application:set_env(opentelemetry, register_loaded_applications, false),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
+init_per_testcase(propagator_configuration, Config) ->
+    os:unsetenv("OTEL_PROPAGATORS"),
+    application:set_env(opentelemetry, text_map_propagators, [b3multi, baggage]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
+init_per_testcase(propagator_configuration_with_os_env, Config) ->
+    os:putenv("OTEL_PROPAGATORS", "tracecontext"),
+    application:set_env(opentelemetry, text_map_propagators, [b3multi, baggage]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(_, Config) ->
@@ -44,6 +55,10 @@ init_per_testcase(_, Config) ->
 end_per_testcase(disable_auto_registration, _Config) ->
     _ = application:stop(opentelemetry),
     _ = application:unload(opentelemetry),
+    ok;
+end_per_testcase(propagator_configuration_with_os_env, _Config) ->
+    os:unsetenv("OTEL_PROPAGATORS"),
+    _ = application:stop(opentelemetry),
     ok;
 end_per_testcase(_, _Config) ->
     _ = application:stop(opentelemetry),
@@ -63,6 +78,44 @@ registered_tracers(_Config) ->
     {_, #tracer{instrumentation_library=NewLibrary}} = opentelemetry:get_tracer(kernel),
     ?assertEqual(<<"kernel">>, NewLibrary#instrumentation_library.name),
     ?assertEqual(<<"fake-version">>, NewLibrary#instrumentation_library.version),
+    ok.
+
+propagator_configuration(_Config) ->
+    ?assertEqual({otel_propagator_text_map_composite,
+                  [otel_propagator_b3multi, otel_propagator_baggage]}, opentelemetry:get_text_map_extractor()),
+    ?assertEqual({otel_propagator_text_map_composite,
+                  [otel_propagator_b3multi, otel_propagator_baggage]}, opentelemetry:get_text_map_injector()),
+
+    opentelemetry:set_text_map_extractor({otel_propagator_baggage, []}),
+
+    ?assertEqual({otel_propagator_baggage, []}, opentelemetry:get_text_map_extractor()),
+    ?assertEqual({otel_propagator_text_map_composite,
+                  [otel_propagator_b3multi, otel_propagator_baggage]}, opentelemetry:get_text_map_injector()),
+
+    opentelemetry:set_text_map_injector({otel_propagator_b3multi, []}),
+
+    ?assertEqual({otel_propagator_baggage, []}, opentelemetry:get_text_map_extractor()),
+    ?assertEqual({otel_propagator_b3multi, []}, opentelemetry:get_text_map_injector()),
+
+    ok.
+
+propagator_configuration_with_os_env(_Config) ->
+    ?assertEqual({otel_propagator_text_map_composite,
+                  [otel_propagator_trace_context]}, opentelemetry:get_text_map_extractor()),
+    ?assertEqual({otel_propagator_text_map_composite,
+                  [otel_propagator_trace_context]}, opentelemetry:get_text_map_injector()),
+
+    opentelemetry:set_text_map_extractor({otel_propagator_baggage, []}),
+
+    ?assertEqual({otel_propagator_baggage, []}, opentelemetry:get_text_map_extractor()),
+    ?assertEqual({otel_propagator_text_map_composite,
+                  [otel_propagator_trace_context]}, opentelemetry:get_text_map_injector()),
+
+    opentelemetry:set_text_map_injector({otel_propagator_b3multi, []}),
+
+    ?assertEqual({otel_propagator_baggage, []}, opentelemetry:get_text_map_extractor()),
+    ?assertEqual({otel_propagator_b3multi, []}, opentelemetry:get_text_map_injector()),
+
     ok.
 
 macros(Config) ->

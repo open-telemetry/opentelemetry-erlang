@@ -43,7 +43,9 @@
 
 -type t() :: builtin() | module() | {module(), term()}.
 
--type builtin() :: trace_context | tracecontext | b3multi. %% b3 | jaeger
+%% trace_context and tracecontext are the same. tracecontext is the term
+%% in Otel specs and trace_context is the more idiomatic Erlang spelling
+-type builtin() :: trace_context | tracecontext | b3multi | baggage. %% b3 | jaeger
 
 %% a carrier can be any type
 -type carrier() :: term().
@@ -67,6 +69,8 @@ builtin_to_module(trace_context) ->
     otel_propagator_trace_context;
 builtin_to_module(b3multi) ->
     otel_propagator_b3multi;
+builtin_to_module(baggage) ->
+    otel_propagator_baggage;
 %% TODO: add multib3 and jaeger as builtin propagators
 %% builtin_to_module(multib3) ->
 %%     otel_propagator_multib3;

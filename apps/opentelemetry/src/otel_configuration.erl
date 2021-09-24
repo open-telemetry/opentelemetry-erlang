@@ -96,7 +96,7 @@ merge_with_environment(ConfigMappings, Opts) ->
 
 config_mappings(general_sdk) ->
     [{"OTEL_LOG_LEVEL", log_level, "info", existing_atom},
-     {"OTEL_PROPAGATORS", propagators, "tracecontext,baggage", propagators},
+     {"OTEL_PROPAGATORS", text_map_propagators, "tracecontext,baggage", propagators},
      {"OTEL_TRACES_EXPORTER", traces_exporter, "otlp", exporter},
      {"OTEL_METRICS_EXPORTER", metrics_exporter, undefined, exporter}];
 config_mappings(otel_batch_processor) ->
