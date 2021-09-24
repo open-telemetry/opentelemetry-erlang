@@ -174,6 +174,8 @@ transform(propagators, PropagatorsString) when is_list(PropagatorsString) ->
 
 transform(propagator, "tracecontext") ->
     fun otel_tracer_default:w3c_propagators/0;
+transform(propagator, "b3multi") ->
+    fun otel_tracer_default:b3_propagators/0;
 transform(propagator, "baggage") ->
     fun otel_baggage:get_text_map_propagators/0;
 transform(propagator, Propagator) ->
