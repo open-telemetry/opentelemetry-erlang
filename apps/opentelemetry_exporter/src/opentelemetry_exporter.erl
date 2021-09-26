@@ -19,21 +19,30 @@
 %%
 %% `opentelemetry_exporter' application enevironment options are:
 %%
-%% * `otlp_endpoint': The URL to send traces and metrics to, for traces the
-%%   path `v1/traces' is appended to the path in the URL.
-%% * `otlp_traces_endpoint': URL to send only traces to. This takes precedence
-%%   for exporting traces and the path of the URL is kept as is, no suffix is
-%%   appended.
-%% * `otlp_headers': Additional headers to add to export requests.
-%% * `otlp_traces_headers': Additional headers to add to only trace export requests.
+%% <ul>
+%%   <li>
+%%     `otlp_endpoint': The URL to send traces and metrics to, for traces the
+%%     path `v1/traces' is appended to the path in the URL.
+%%   </li>
+%%   <li>`otlp_traces_endpoint': URL to send only traces to. This takes precedence
+%%     for exporting traces and the path of the URL is kept as is, no suffix is
+%%     appended.
+%%   </li>
+%%   <li>`otlp_headers': Additional headers to add to export requests.</li>
+%%   <li>
+%%     `otlp_traces_headers': Additional headers to add to only trace export %% requests.
+%%   </li>
+%% </ul>
 %%
 %% There also corresponding OS environment variables can also set those
 %% configuration values:
 %%
-%% * `OTEL_EXPORTER_OTLP_ENDPOINT'
-%% * `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT'
-%% * `OTEL_EXPORTER_OTLP_HEADERS'
-%% * `OTEL_EXPORTER_OTLP_TRACES_HEADERS'
+%% <ul>
+%%   <li>`OTEL_EXPORTER_OTLP_ENDPOINT'</li>
+%%   <li>`OTEL_EXPORTER_OTLP_TRACES_ENDPOINT'</li>
+%%   <li>`OTEL_EXPORTER_OTLP_HEADERS'</li>
+%%   <li>`OTEL_EXPORTER_OTLP_TRACES_HEADERS'</li>
+%% </ul>
 %%
 %% @end
 %%%-------------------------------------------------------------------------
@@ -66,6 +75,7 @@
                 grpc_metadata :: map() | undefined,
                 endpoints :: [uri_string:uri_map()]}).
 
+%% @doc Initialize the exporter based on the provided configuration.
 init(Opts0) ->
     Opts1 = merge_with_environment(Opts0),
     Endpoints = endpoints(maps:get(endpoints, Opts1, ?DEFAULT_ENDPOINTS)),
@@ -99,6 +109,7 @@ init(Opts0) ->
                         protocol=http_json}}
     end.
 
+%% @doc Export OTLP protocol telemery data to the configured endpoints.
 export(_Tab, _Resource, #state{protocol=http_json}) ->
     {error, unimplemented};
 export(Tab, Resource, #state{protocol=http_protobuf,
@@ -143,6 +154,7 @@ export(Tab, Resource, #state{protocol=grpc,
             error
     end.
 
+%% @doc Shutdown the exporter.
 shutdown(#state{channel_pid=undefined}) ->
     ok;
 shutdown(#state{channel_pid=Pid}) ->
