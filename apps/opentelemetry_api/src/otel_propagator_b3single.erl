@@ -13,12 +13,12 @@
 %% limitations under the License.
 %%
 %% @doc An implementation of {@link otel_propagator_text_map} that injects and
-%% extracts trace context using the B3 multi header format specification from
+%% extracts trace context using the B3 single header format specification from
 %% Zipkin.
 %%
 %% @see otel_propagator_b3
 %%%-----------------------------------------------------------------------
--module(otel_propagator_b3multi).
+-module(otel_propagator_b3single).
 
 -behaviour(otel_propagator_text_map).
 
@@ -28,12 +28,10 @@
 
 -include("opentelemetry.hrl").
 
--define(B3_TRACE_ID, <<"X-B3-TraceId">>).
--define(B3_SPAN_ID, <<"X-B3-SpanId">>).
--define(B3_SAMPLED, <<"X-B3-Sampled">>).
+-define(B3_CONTEXT_KEY, <<"b3">>).
 
 fields(_) ->
-    [?B3_TRACE_ID, ?B3_SPAN_ID, ?B3_SAMPLED].
+    [?B3_CONTEXT_KEY].
 
 -spec inject(Context, Carrier, CarrierSetFun, Options) -> Carrier
               when Context :: otel_ctx:t(),
@@ -48,17 +46,12 @@ inject(Ctx, Carrier, CarrierSet, _Options) ->
             Options = case TraceOptions band 1 of 1 -> <<"1">>; _ -> <<"0">> end,
             EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
             EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
-            CarrierSet(?B3_TRACE_ID, iolist_to_binary(EncodedTraceId),
-                       CarrierSet(?B3_SPAN_ID, iolist_to_binary(EncodedSpanId),
-                                  CarrierSet(?B3_SAMPLED, Options, Carrier)));
+            B3Context = iolist_to_binary([EncodedTraceId, "-", EncodedSpanId, "-", Options]),
+            CarrierSet(?B3_CONTEXT_KEY, B3Context, Carrier);
         _ ->
             Carrier
     end.
 
-% Extract trace context from the supplied carrier. The b3 single header takes
-% precedence over the multi-header format.
-%
-% If extraction fails, the original context will be returned.
 -spec extract(Context, Carrier, CarrierKeysFun, CarrierGetFun, Options) -> Context
               when Context :: otel_ctx:t(),
                    Carrier :: otel_propagator:carrier(),
@@ -67,10 +60,7 @@ inject(Ctx, Carrier, CarrierSet, _Options) ->
                    Options :: otel_propagator_text_map:propagator_options().
 extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet, _Options) ->
     try
-        TraceId = parse_trace_id(CarrierGet(?B3_TRACE_ID, Carrier)),
-        SpanId = parse_span_id(CarrierGet(?B3_SPAN_ID, Carrier)),
-        Sampled = parse_is_sampled(CarrierGet(?B3_SAMPLED, Carrier)),
-
+        [TraceId, SpanId, Sampled] = parse_b3_context(Carrier, CarrierGet),
         SpanCtx = otel_tracer:from_remote_span(TraceId, SpanId, Sampled),
         otel_tracer:set_current_span(Ctx, SpanCtx)
     catch
@@ -81,6 +71,32 @@ extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet, _Options) ->
         error:badarg ->
             undefined
     end.
+
+% B3 maps propagation fields into a hyphen delimited string:
+%   {TraceId}-{SpanId}-{SamplingState}-{ParentSpanId}, where the last two fields are optional.
+%
+% When only propagating a sampling decision, the header is still named b3, but
+% only contains the sampling state:
+%   {SamplingState}
+parse_b3_context(Carrier, CarrierGet) ->
+    case CarrierGet(?B3_CONTEXT_KEY, Carrier) of
+        B3Context when is_binary(B3Context) ->
+            decode_b3_context(string:split(B3Context, "-", all));
+        _ ->
+            throw(invalid)
+    end.
+
+decode_b3_context([TraceId, SpanId]) ->
+    % Sampled flag is optional. If it's missing then the sampling decision is
+    % deferred. We don't currently support it and just set the flag to 0
+    % instead (similarly how some other OTEL implementations are doing).
+    [parse_trace_id(TraceId), parse_span_id(SpanId), 0];
+decode_b3_context([TraceId, SpanId, Sampled]) ->
+    [parse_trace_id(TraceId), parse_span_id(SpanId), parse_is_sampled(Sampled)];
+decode_b3_context([TraceId, SpanId, Sampled, _ParentSpanId]) ->
+    [parse_trace_id(TraceId), parse_span_id(SpanId), parse_is_sampled(Sampled)];
+decode_b3_context(_) ->
+    throw(invalid).
 
 % Trace ID is a 32 or 16 lower-hex character binary.
 parse_trace_id(TraceId) when is_binary(TraceId) ->
@@ -116,11 +132,6 @@ parse_is_sampled(Sampled) when is_binary(Sampled) ->
         S when S =:= <<"0">> orelse S =:= <<"false">> -> 0;
         _ -> throw(invalid)
     end;
-parse_is_sampled(undefined) ->
-    % Sampled flag is optional. If it's missing then the sampling decision is
-    % deferred. We don't currently support it and just set the flag to 0
-    % instead (similarly how some other OTEL implementations are doing).
-    0;
 parse_is_sampled(_) ->
     throw(invalid).
 

@@ -16,8 +16,8 @@
 all() ->
     [empty_os_environment, sampler, sampler_parent_based, sampler_parent_based_zero,
      sampler_trace_id, sampler_trace_id_default, sampler_parent_based_one,
-     log_level, propagators, propagators_b3multi, otlp_exporter, jaeger_exporter,
-     zipkin_exporter, none_exporter].
+     log_level, propagators, propagators_b3, propagators_b3multi, otlp_exporter,
+     jaeger_exporter, zipkin_exporter, none_exporter].
 
 init_per_testcase(empty_os_environment, Config) ->
     Vars = [],
@@ -30,6 +30,12 @@ init_per_testcase(log_level, Config) ->
     [{os_vars, Vars} | Config];
 init_per_testcase(propagators, Config) ->
     Vars = [{"OTEL_PROPAGATORS", "baggage,afakeone"}],
+
+    setup_env(Vars),
+
+    [{os_vars, Vars} | Config];
+init_per_testcase(propagators_b3, Config) ->
+    Vars = [{"OTEL_PROPAGATORS", "b3"}],
 
     setup_env(Vars),
 
@@ -170,6 +176,13 @@ propagators(_Config) ->
     %% TODO: can make this a better error message when it fails with a custom assert macro
     ?assertIsSubset([{log_level, error},
                      {text_map_propagators, [baggage]}],
+                    otel_configuration:merge_with_os([{log_level, error}])),
+
+    ok.
+
+propagators_b3(_Config) ->
+    ?assertIsSubset([{log_level, error},
+                     {text_map_propagators, [b3]}],
                     otel_configuration:merge_with_os([{log_level, error}])),
 
     ok.
