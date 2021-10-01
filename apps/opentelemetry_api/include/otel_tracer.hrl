@@ -27,6 +27,9 @@
 -define(end_span(SpanCtx),
         otel_span:end_span(SpanCtx)).
 
+-define(end_span(SpanCtx, Timestmap),
+        otel_span:end_span(SpanCtx, Timestamp)).
+
 -define(is_recording(),
         otel_span:is_recording(?current_span_ctx)).
 

@@ -19,7 +19,8 @@
 -module(otel_span_utils).
 
 -export([start_span/3,
-         end_span/1]).
+         end_span/1,
+         end_span/2]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_sampler.hrl").
@@ -91,6 +92,12 @@ end_span(Span=#span{end_time=undefined,
 end_span(Span) ->
     Span.
 
+-spec end_span(opentelemetry:span(), integer() | undefined) -> opentelemetry:span().
+end_span(Span, Timestamp) when is_integer(Timestamp) ->
+    Span1 = Span#span{end_time=Timestamp},
+    end_span(Span1);
+end_span(Span, _) ->
+    end_span(Span).
 %%
 
 sample(Ctx, Sampler, TraceId, Links, SpanName, Kind, Attributes) ->
