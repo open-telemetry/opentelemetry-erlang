@@ -19,10 +19,10 @@
 -define(set_current_span(SpanCtx),
         otel_tracer:set_current_span(SpanCtx)).
 
-%% use tracer call to ensure the current span is overwritten with
-%% an ended (`is_recording' set to `false') is put in the context
+%% updates the current context with the updated span context that
+%% has `is_recording' set to `false'
 -define(end_span(),
-        otel_tracer:end_span()).
+        otel_tracer:set_current_span(otel_span:end_span(?current_span_ctx))).
 
 -define(end_span(SpanCtx),
         otel_span:end_span(SpanCtx)).

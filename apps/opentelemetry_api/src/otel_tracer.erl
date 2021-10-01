@@ -26,14 +26,7 @@
          set_current_span/1,
          set_current_span/2,
          current_span_ctx/0,
-         current_span_ctx/1,
-         end_span/0,
-         set_attribute/2,
-         set_attributes/1,
-         add_event/2,
-         add_events/1,
-         set_status/1,
-         update_name/1]).
+         current_span_ctx/1]).
 
 -include("opentelemetry.hrl").
 
@@ -94,9 +87,10 @@ from_remote_span(TraceId, SpanId, Traceflags) ->
               is_remote=true,
               trace_flags=Traceflags}.
 
--spec set_current_span(opentelemetry:span_ctx() | undefined) -> ok.
+-spec set_current_span(opentelemetry:span_ctx() | undefined) -> opentelemetry:span_ctx() | undefined.
 set_current_span(SpanCtx) ->
-    otel_ctx:set_value(?CURRENT_SPAN_CTX, SpanCtx).
+    _ = otel_ctx:set_value(?CURRENT_SPAN_CTX, SpanCtx),
+    SpanCtx.
 
 -spec set_current_span(otel_ctx:t(), opentelemetry:span_ctx() | undefined) -> otel_ctx:t() | undefined.
 set_current_span(Ctx, SpanCtx) ->
@@ -109,50 +103,3 @@ current_span_ctx() ->
 -spec current_span_ctx(otel_ctx:t()) -> opentelemetry:span_ctx() | undefined.
 current_span_ctx(Ctx) ->
     otel_ctx:get_value(Ctx, ?CURRENT_SPAN_CTX, undefined).
-
-%% Span operations
-
--spec end_span() -> opentelemetry:span_ctx().
-end_span() ->
-    EndedSpanCtx = otel_span:end_span(current_span_ctx()),
-    %% this is done to set `is_recording' to `false' after ending
-    _ = set_current_span(EndedSpanCtx),
-    EndedSpanCtx.
-
--spec set_attribute(Key, Value) -> boolean() when
-      Key :: opentelemetry:attribute_key(),
-      Value :: opentelemetry:attribute_value().
-set_attribute(Key, Value) ->
-    otel_span:set_attribute(current_span_ctx(), Key, Value).
-
--spec set_attributes(Attributes) -> boolean() when
-      Attributes :: opentelemetry:attributes().
-set_attributes(Attributes) when is_list(Attributes) ->
-    otel_span:set_attributes(current_span_ctx(), Attributes);
-set_attributes(_) ->
-    false.
-
--spec add_event(Name, Attributes) -> boolean() when
-      Name :: opentelemetry:event_name(),
-      Attributes :: opentelemetry:attributes().
-add_event(Name, Attributes) when is_list(Attributes) ->
-    otel_span:add_event(current_span_ctx(), Name, Attributes);
-add_event(_, _) ->
-    false.
-
--spec add_events(Events) -> boolean() when
-      Events :: opentelemetry:events().
-add_events(Events) when is_list(Events)  ->
-    otel_span:add_events(current_span_ctx(), Events);
-add_events(_) ->
-    false.
-
--spec set_status(Status) -> boolean() when
-      Status :: opentelemetry:status().
-set_status(Status) ->
-    otel_span:set_status(current_span_ctx(), Status).
-
--spec update_name(Name) -> boolean() when
-      Name :: opentelemetry:span_name().
-update_name(SpanName) ->
-    otel_span:update_name(current_span_ctx(), SpanName).

@@ -127,7 +127,9 @@ defmodule OpenTelemetry.Tracer do
   The Span in the current Context has its `is_recording` set to `false`.
   """
   def end_span() do
-    :otel_tracer.end_span()
+    non_recording_span = :otel_span.end_span(:otel_tracer.current_span_ctx())
+    _ = :otel_tracer.set_current_span(non_recording_span)
+    non_recording_span
   end
 
   @doc """
