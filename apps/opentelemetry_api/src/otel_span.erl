@@ -175,8 +175,8 @@ end_span(SpanCtx=#span_ctx{span_sdk={Module, _}}, Timestamp) when ?is_recording(
     EndTime = case Timestamp of
         X when is_integer(X) -> X;
         _ -> opentelemetry:timestamp()
-    end.
-    _ = Module:end_span(SpanCtx, EndTime)
+    end,
+    _ = Module:end_span(SpanCtx, EndTime),
     SpanCtx#span_ctx{is_recording=false};
 end_span(SpanCtx, _) ->
     SpanCtx.
