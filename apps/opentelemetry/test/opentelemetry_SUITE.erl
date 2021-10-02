@@ -16,8 +16,8 @@
 all() ->
     [disable_auto_registration, registered_tracers, with_span, macros, child_spans,
      update_span_data, tracer_instrumentation_library, tracer_previous_ctx, stop_temporary_app,
-     reset_after, attach_ctx, default_sampler, non_recording_ets_table, 
-     root_span_sampling_always_on, root_span_sampling_always_off, 
+     reset_after, attach_ctx, default_sampler, non_recording_ets_table,
+     root_span_sampling_always_on, root_span_sampling_always_off,
      record_but_not_sample, record_exception_works, record_exception_with_message_works,
      propagator_configuration, propagator_configuration_with_os_env].
 
@@ -142,7 +142,7 @@ macros(Config) ->
     ?set_current_span(SpanCtx2),
 
     ?assertMatch(SpanCtx2, ?current_span_ctx),
-    ?end_span(SpanCtx2),
+    otel_span:end_span(SpanCtx2),
 
     ?set_current_span(SpanCtx1),
     ?assertMatch(SpanCtx1, ?current_span_ctx),
@@ -151,7 +151,7 @@ macros(Config) ->
     AttrValue1 = <<"attr-value-1">>,
     ?set_attribute(Attr1, AttrValue1),
 
-    ?end_span(SpanCtx1),
+    otel_span:end_span(SpanCtx1),
 
     [Span1] = assert_exported(Tid, SpanCtx1),
 
@@ -197,7 +197,7 @@ child_spans(Config) ->
 
     %% end the 3rd span
     ?assertMatch(SpanCtx3, ?current_span_ctx),
-    ?end_span(SpanCtx3),
+    otel_span:end_span(SpanCtx3),
 
     assert_exported(Tid, SpanCtx3),
 
@@ -214,18 +214,18 @@ child_spans(Config) ->
     ?assertMatch(SpanCtx4, ?current_span_ctx),
 
     %% end 4th span and 2nd should be current
-    ?end_span(SpanCtx4),
+    otel_span:end_span(SpanCtx4),
 
     ?set_current_span(SpanCtx2),
     ?assertMatch(SpanCtx2, ?current_span_ctx),
 
     %% end 2th span and 1st should be current
-    ?end_span(SpanCtx2),
+    otel_span:end_span(SpanCtx2),
     ?set_current_span(SpanCtx1),
     ?assertMatch(SpanCtx1, ?current_span_ctx),
 
     %% end first and no span should be current ctx
-    ?end_span(SpanCtx1),
+    otel_span:end_span(SpanCtx1),
     ?set_current_span(undefined),
     ?assertMatch(undefined, ?current_span_ctx),
 
@@ -257,7 +257,7 @@ update_span_data(Config) ->
     otel_span:add_events(SpanCtx1, Events),
 
     ?assertMatch(SpanCtx1, ?current_span_ctx),
-    ?end_span(SpanCtx1),
+    otel_span:end_span(SpanCtx1),
 
     ?UNTIL_NOT_EQUAL([], ets:match(Tid, #span{trace_id=TraceId,
                                               span_id=SpanId,
@@ -519,7 +519,7 @@ record_exception_works(Config) ->
     catch
         Class:Term:Stacktrace ->
             otel_span:record_exception(SpanCtx, Class, Term, Stacktrace, [{"some-attribute", "value"}]),
-            ?end_span(SpanCtx),
+            otel_span:end_span(SpanCtx),
             [Span] = assert_exported(Tid, SpanCtx),
             [Event] = Span#span.events,
             ?assertEqual(<<"exception">>, Event#event.name),
@@ -539,7 +539,7 @@ record_exception_with_message_works(Config) ->
     catch
         Class:Term:Stacktrace ->
             otel_span:record_exception(SpanCtx, Class, Term, "My message", Stacktrace, [{"some-attribute", "value"}]),
-            ?end_span(SpanCtx),
+            otel_span:end_span(SpanCtx),
             [Span] = assert_exported(Tid, SpanCtx),
             [Event] = Span#span.events,
             ?assertEqual(<<"exception">>, Event#event.name),

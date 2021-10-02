@@ -26,8 +26,8 @@
          handle_cast/2]).
 
 -export([start_span/5,
-         end_span/1,
          end_span/2,
+         end_span/3,
          get_ctx/1,
          set_attribute/3,
          set_attributes/2,

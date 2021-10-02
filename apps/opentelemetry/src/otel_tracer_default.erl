@@ -54,7 +54,7 @@ with_span(Ctx, Tracer, SpanName, Opts, Fun) ->
         %% passing SpanCtx directly ensures that this `end_span' ends the span started
         %% in this function. If spans in `Fun()' were started and not finished properly
         %% they will be abandoned and it be up to the `otel_span_sweeper' to eventually remove them.
-        _ = otel_span_ets:end_span(SpanCtx),
+        _ = otel_span_ets:end_span(SpanCtx, opentelemetry:timestamp()),
         otel_ctx:detach(Ctx)
     end.
 
