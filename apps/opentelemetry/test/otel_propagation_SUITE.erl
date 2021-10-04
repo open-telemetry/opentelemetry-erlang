@@ -16,11 +16,13 @@
 all() ->
     [override_propagators,
      {group, w3c},
-     {group, b3multi}].
+     {group, b3multi},
+     {group, b3}].
 
 groups() ->
     [{w3c, [], [propagation]},
-     {b3multi, [], [propagation]}].
+     {b3multi, [], [propagation]},
+     {b3, [], [propagation]}].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
@@ -33,18 +35,20 @@ end_per_suite(_Config) ->
     ok.
 
 init_per_group(Propagator, Config) when Propagator =:= w3c ;
-                                        Propagator =:= b3multi ->
+                                        Propagator =:= b3multi ;
+                                        Propagator =:= b3 ->
     %% start in group as well since we must stop it after each group run
     {ok, _} = application:ensure_all_started(opentelemetry),
 
     case Propagator of
         w3c ->
-            CompositePropagator = otel_propagator_text_map_composite:create([otel_propagator_baggage,
-                                                                             otel_propagator_trace_context]),
+            CompositePropagator = otel_propagator_text_map_composite:create([baggage, trace_context]),
             opentelemetry:set_text_map_propagator(CompositePropagator);
         b3multi ->
-            CompositePropagator = otel_propagator_text_map_composite:create([otel_propagator_baggage,
-                                                                             otel_propagator_b3multi]),
+            CompositePropagator = otel_propagator_text_map_composite:create([baggage, b3multi]),
+            opentelemetry:set_text_map_propagator(CompositePropagator);
+        b3 ->
+            CompositePropagator = otel_propagator_text_map_composite:create([baggage, b3]),
             opentelemetry:set_text_map_propagator(CompositePropagator)
     end,
 
@@ -190,4 +194,7 @@ trace_context(w3c, EncodedTraceId, EncodedSpanId) ->
 trace_context(b3multi, EncodedTraceId, EncodedSpanId) ->
     [{<<"X-B3-Sampled">>, <<"1">>},
      {<<"X-B3-SpanId">>, iolist_to_binary(EncodedSpanId)},
-     {<<"X-B3-TraceId">>, iolist_to_binary(EncodedTraceId)}].
+     {<<"X-B3-TraceId">>, iolist_to_binary(EncodedTraceId)}];
+trace_context(b3, EncodedTraceId, EncodedSpanId) ->
+    [{<<"b3">>,
+      iolist_to_binary([EncodedTraceId, "-", EncodedSpanId, "-", <<"1">>])}].

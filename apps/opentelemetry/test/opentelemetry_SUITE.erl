@@ -82,20 +82,25 @@ registered_tracers(_Config) ->
 
 propagator_configuration(_Config) ->
     ?assertEqual({otel_propagator_text_map_composite,
-                  [otel_propagator_b3multi, otel_propagator_baggage]}, opentelemetry:get_text_map_extractor()),
+                  [{otel_propagator_b3, b3multi}, otel_propagator_baggage]}, opentelemetry:get_text_map_extractor()),
     ?assertEqual({otel_propagator_text_map_composite,
-                  [otel_propagator_b3multi, otel_propagator_baggage]}, opentelemetry:get_text_map_injector()),
+                  [{otel_propagator_b3, b3multi}, otel_propagator_baggage]}, opentelemetry:get_text_map_injector()),
 
     opentelemetry:set_text_map_extractor({otel_propagator_baggage, []}),
 
     ?assertEqual({otel_propagator_baggage, []}, opentelemetry:get_text_map_extractor()),
     ?assertEqual({otel_propagator_text_map_composite,
-                  [otel_propagator_b3multi, otel_propagator_baggage]}, opentelemetry:get_text_map_injector()),
+                  [{otel_propagator_b3, b3multi}, otel_propagator_baggage]}, opentelemetry:get_text_map_injector()),
 
-    opentelemetry:set_text_map_injector({otel_propagator_b3multi, []}),
+    opentelemetry:set_text_map_injector({{otel_propagator_b3, b3multi}, []}),
 
     ?assertEqual({otel_propagator_baggage, []}, opentelemetry:get_text_map_extractor()),
-    ?assertEqual({otel_propagator_b3multi, []}, opentelemetry:get_text_map_injector()),
+    ?assertEqual({{otel_propagator_b3, b3multi}, []}, opentelemetry:get_text_map_injector()),
+
+    opentelemetry:set_text_map_injector({{otel_propagator_b3, b3single}, []}),
+
+    ?assertEqual({otel_propagator_baggage, []}, opentelemetry:get_text_map_extractor()),
+    ?assertEqual({{otel_propagator_b3, b3single}, []}, opentelemetry:get_text_map_injector()),
 
     ok.
 
@@ -111,10 +116,15 @@ propagator_configuration_with_os_env(_Config) ->
     ?assertEqual({otel_propagator_text_map_composite,
                   [otel_propagator_trace_context]}, opentelemetry:get_text_map_injector()),
 
-    opentelemetry:set_text_map_injector({otel_propagator_b3multi, []}),
+    opentelemetry:set_text_map_injector({{otel_propagator_b3, b3multi}, []}),
 
     ?assertEqual({otel_propagator_baggage, []}, opentelemetry:get_text_map_extractor()),
-    ?assertEqual({otel_propagator_b3multi, []}, opentelemetry:get_text_map_injector()),
+    ?assertEqual({{otel_propagator_b3, b3multi}, []}, opentelemetry:get_text_map_injector()),
+
+    opentelemetry:set_text_map_injector({{otel_propagator_b3, b3single}, []}),
+
+    ?assertEqual({otel_propagator_baggage, []}, opentelemetry:get_text_map_extractor()),
+    ?assertEqual({{otel_propagator_b3, b3single}, []}, opentelemetry:get_text_map_injector()),
 
     ok.
 

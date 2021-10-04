@@ -11,8 +11,9 @@
   inject and extract take an optional "set" and "get" function for working with
   a carrier.
 - Configuration of propagators is now a list of atoms representing either the
-  name of a builtin propagator (at this time those are, `trace_context`, `b3` and
-  `baggage`) or the name of a module implementing the propagator's behaviour.
+  name of a builtin propagator (at this time those are, `trace_context`, `b3`,
+  `b3multi` and `baggage`) or the name of a module implementing the
+  propagator's behaviour.
   - Default configuration: `{text_map_propagators, [trace_context, baggage]}`
 - Injectors and extractors can be configured separately instead of using the
   same list of propagators for both by configuring `text_map_injectors` and
@@ -20,7 +21,7 @@
   - For example you may want your service to support receiving `b3multi` headers
     but have no need for it including `b3multi` headers when it is propagating to
     other services:
-            
+
     ```
     {text_map_injectors, [trace_context, baggage]},
     {text_map_extractors, [b3multi, trace_context, baggage]}

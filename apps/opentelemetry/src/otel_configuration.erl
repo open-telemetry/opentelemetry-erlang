@@ -178,9 +178,9 @@ transform(propagator, "baggage") ->
     baggage;
 transform(propagator, "b3multi") ->
     b3multi;
-%% TODO: support b3multi and jager propagator formats
-%% transform(propagator, "b3") ->
-%%     b3;
+transform(propagator, "b3") ->
+    b3;
+%% TODO: support jager propagator format
 %% transform(propagator, "jaeger") ->
 %%     jaeger;
 transform(propagator, Propagator) ->
