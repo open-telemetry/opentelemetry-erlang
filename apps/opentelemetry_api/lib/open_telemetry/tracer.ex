@@ -128,7 +128,8 @@ defmodule OpenTelemetry.Tracer do
   """
   def end_span(timestamp \\ :undefined) do
     non_recording_span = :otel_span.end_span(:otel_tracer.current_span_ctx(), timestamp)
-    :otel_tracer.set_current_span(non_recording_span)
+    _ = :otel_tracer.set_current_span(non_recording_span)
+    non_recording_span
   end
 
   @doc """
