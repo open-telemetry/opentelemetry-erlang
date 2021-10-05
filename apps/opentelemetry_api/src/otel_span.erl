@@ -163,18 +163,18 @@ update_name(_, _) ->
 -spec end_span(SpanCtx) -> SpanCtx when
       SpanCtx :: opentelemetry:span_ctx().
 end_span(SpanCtx) when ?is_recording(SpanCtx) ->
-    end_span(SpanCtx, opentelemetry:timestamp()),
+    end_span(SpanCtx, undefined),
     SpanCtx#span_ctx{is_recording=false};
 end_span(SpanCtx) ->
     SpanCtx.
 
 -spec end_span(SpanCtx, Timestamp) -> SpanCtx when
     SpanCtx :: opentelemetry:span_ctx(),
-    Timestamp :: integer() | undefined.
+    Timestamp :: integer().
 end_span(SpanCtx=#span_ctx{span_sdk={Module, _}}, Timestamp) when ?is_recording(SpanCtx)
                                                                   , is_integer(Timestamp) ->
-    _ = Module:end_span(SpanCtx, EndTime),
-    SpanCtx#span_ctx{is_recording=false};;
+    _ = Module:end_span(SpanCtx, Timestamp),
+    SpanCtx#span_ctx{is_recording=false};
 end_span(SpanCtx=#span_ctx{span_sdk={Module, _}}, _Timestamp) when ?is_recording(SpanCtx) ->
     _ = Module:end_span(SpanCtx),
     SpanCtx#span_ctx{is_recording=false};

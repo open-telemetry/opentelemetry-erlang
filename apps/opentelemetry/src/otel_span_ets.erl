@@ -26,8 +26,8 @@
          handle_cast/2]).
 
 -export([start_span/5,
+         end_span/1,
          end_span/2,
-         end_span/3,
          get_ctx/1,
          set_attribute/3,
          set_attributes/2,
@@ -59,6 +59,9 @@ start_span(Ctx, Name, Opts, Processors, InstrumentationLibrary) ->
             %% span isn't recorded so don't run processors or insert into ets table
             SpanCtx
     end.
+
+end_span(SpanCtx=#span_ctx{span_sdk={_, OnEndProcessors}}) ->
+    end_span(SpanCtx, undefined, OnEndProcessors).
 
 end_span(SpanCtx=#span_ctx{span_sdk={_, OnEndProcessors}}, Timestamp) ->
     end_span(SpanCtx, Timestamp, OnEndProcessors).

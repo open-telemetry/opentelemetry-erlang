@@ -87,17 +87,15 @@ root_span_ctx() ->
 -spec end_span(opentelemetry:span()) -> opentelemetry:span().
 end_span(Span=#span{end_time=undefined,
                     trace_flags=TraceFlags}) when ?IS_SAMPLED(TraceFlags) ->
-    EndTime = opentelemetry:timestamp(),
-    Span#span{end_time=EndTime};
+    end_span(Span, undefined);
 end_span(Span) ->
     Span.
 
 -spec end_span(opentelemetry:span(), integer() | undefined) -> opentelemetry:span().
 end_span(Span, Timestamp) when is_integer(Timestamp) ->
-    Span1 = Span#span{end_time=Timestamp},
-    end_span(Span1);
+    Span#span{end_time=Timestamp};
 end_span(Span, _) ->
-    end_span(Span).
+    Span#span{end_time=opentelemetry:timestamp()}.
 %%
 
 sample(Ctx, Sampler, TraceId, Links, SpanName, Kind, Attributes) ->
