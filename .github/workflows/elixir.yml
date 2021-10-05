@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: erlef/setup-beam@v1
         with:
-          otp-version: '24.0.1'
+          otp-version: '24.1.2'
           elixir-version: '1.12.1'
       - uses: actions/cache@v2
         name: Cache
@@ -33,7 +33,7 @@ jobs:
     name: Test on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['24.0.2', '23.3.4.2', '22.3.4.20']
+        otp_version: ['24.1.2', '23.3.4.2', '22.3.4.20']
         elixir_version: ['1.12.1', '1.11.4']
         rebar3_version: ['3.16.1']
         os: [ubuntu-18.04]
@@ -66,7 +66,7 @@ jobs:
     name: Test on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['24.0.2', '23.3.4.2', '22.3.4.20']
+        otp_version: ['24.1.2', '23.3.4.2', '22.3.4.20']
         elixir_version: ['1.12.1', '1.11.4']
         rebar3_version: ['3.16.1']
         os: [ubuntu-18.04]
@@ -116,7 +116,7 @@ jobs:
     name: Dialyze on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['24.0.2']
+        otp_version: ['24.1.2']
         elixir_version: ['1.12.1']
         os: [ubuntu-18.04]
     env:

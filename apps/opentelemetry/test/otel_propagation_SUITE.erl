@@ -83,7 +83,7 @@ propagation(Config) ->
                        {<<"existing-header">>, <<"I exist">>} |
                        trace_context(Propagator, EncodedTraceId, EncodedSpanId)], Headers),
 
-    ?end_span(SpanCtx),
+    otel_span:end_span(SpanCtx),
 
     ?assertEqual(#{<<"key-1">> => {<<"value=1">>, []},
                    <<"key-2">> => {<<"value-2">>, [<<"metadata">>, {<<"md-k-1">>, <<"md-v-1">>}]}},
@@ -140,7 +140,7 @@ override_propagators(_Config) ->
     ?assertListsEqual([{<<"baggage">>, <<"key-2=value-2;metadata;md-k-1=md-v-1,key-1=value%3D1">>},
                        {<<"existing-header">>, <<"I exist">>}], Headers),
 
-    ?end_span(SpanCtx),
+    otel_span:end_span(SpanCtx),
 
     ?assertEqual(#{<<"key-1">> => {<<"value=1">>, []},
                    <<"key-2">> => {<<"value-2">>, [<<"metadata">>, {<<"md-k-1">>, <<"md-v-1">>}]}},

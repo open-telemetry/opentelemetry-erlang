@@ -30,7 +30,7 @@ can_create_link_from_span(_Config) ->
     Tracestate = otel_span:tracestate(SpanCtx),
 
     %% end span, so there's no current span set
-    ?end_span(),
+    ?end_span(opentelemetry:timestamp()),
 
     Attributes = [{<<"attr-1">>, <<"value-1">>}],
 
@@ -75,7 +75,7 @@ noop_tracer(_Config) ->
     %% set to current and then end the 3rd span
     ?set_current_span(SpanCtx3),
     ?assertMatch(SpanCtx3, ?current_span_ctx),
-    ?end_span(SpanCtx3),
+    otel_span:end_span(SpanCtx3),
 
     ?set_current_span(SpanCtx2),
     ?assertMatch(SpanCtx2, ?current_span_ctx),
@@ -87,19 +87,19 @@ noop_tracer(_Config) ->
     ?assertMatch(SpanCtx4, ?current_span_ctx),
 
     %% end 4th span
-    ?end_span(SpanCtx4),
+    otel_span:end_span(SpanCtx4),
 
     ?set_current_span(SpanCtx2),
     ?assertMatch(SpanCtx2, ?current_span_ctx),
 
     %% end 2th span
-    ?end_span(),
+    ?end_span(opentelemetry:timestamp()),
 
     ?set_current_span(SpanCtx1),
     ?assertMatch(SpanCtx1, ?current_span_ctx),
 
     %% end first and no span should be current ctx
-    ?end_span(),
+    ?end_span(opentelemetry:timestamp()),
 
     %% 1st span is ended but still current
     ?assertMatch(SpanCtx1, ?current_span_ctx).
@@ -132,7 +132,7 @@ update_span_data(_Config) ->
     otel_span:add_events(SpanCtx1, Events),
 
     ?assertMatch(SpanCtx1, ?current_span_ctx),
-    ?end_span(),
+    ?end_span(opentelemetry:timestamp()),
 
     ?assertMatch(#span_ctx{is_recording=false}, ?current_span_ctx),
 

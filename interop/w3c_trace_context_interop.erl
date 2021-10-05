@@ -49,7 +49,7 @@ do(Req) ->
                                                headers_to_list(InjectedHeaders),
                                                "application/json",
                                                jsone:encode(Arguments)}, [], [{body_format, binary}]),
-                          ?end_span()
+                          ?end_span(opentelemetry:timestmap())
                   end, List),
 
     {proceed, [{response, {200, "ok"}}]}.

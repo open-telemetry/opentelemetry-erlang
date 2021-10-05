@@ -100,12 +100,12 @@ drop(_Config) ->
     ?assertEqual(ChildSpanName1, ChildSpanData#span.name),
     ?assertEqual(SpanCtx#span_ctx.span_id, ChildSpanData#span.parent_span_id),
 
-    ?end_span(ChildSpanCtx),
+    otel_span:end_span(ChildSpanCtx),
 
     %% wait until the sweeper sweeps away the parent span
     ?UNTIL(ets:tab2list(?SPAN_TAB) =:= []),
 
-    ?end_span(SpanCtx),
+    otel_span:end_span(SpanCtx),
 
     receive
         {span, S=#span{name=Name}} when Name =:= ChildSpanName1 ->
@@ -137,7 +137,7 @@ end_span(_Config) ->
     ChildSpanCtx = ?start_span(ChildSpanName1),
     otel_tracer:set_current_span(ChildSpanCtx),
 
-    ?end_span(SpanCtx),
+    otel_span:end_span(SpanCtx),
 
     %% wait until the sweeper sweeps away the parent span
     ?UNTIL(ets:tab2list(?SPAN_TAB) =:= []),
@@ -166,7 +166,7 @@ failed_attribute_and_end_span(_Config) ->
     ?assertEqual(ChildSpanName1, ChildSpanData#span.name),
     ?assertEqual(SpanCtx#span_ctx.span_id, ChildSpanData#span.parent_span_id),
 
-    ?end_span(ChildSpanData),
+    otel_span:end_span(ChildSpanData),
 
     %% wait until the sweeper sweeps away the parent span
     ?UNTIL(ets:tab2list(?SPAN_TAB) =:= []),

@@ -61,22 +61,25 @@ start_span(Ctx, Name, Opts, Processors, InstrumentationLibrary) ->
     end.
 
 end_span(SpanCtx=#span_ctx{span_sdk={_, OnEndProcessors}}) ->
-    end_span(SpanCtx, OnEndProcessors).
+    end_span(SpanCtx, undefined, OnEndProcessors).
+
+end_span(SpanCtx=#span_ctx{span_sdk={_, OnEndProcessors}}, Timestamp) ->
+    end_span(SpanCtx, Timestamp, OnEndProcessors).
 
 %% @doc End a span based on its context and send to exporter.
--spec end_span(opentelemetry:span_ctx(), fun()) -> boolean() | {error, term()}.
+-spec end_span(opentelemetry:span_ctx(), integer() | undefined, fun()) -> boolean() | {error, term()}.
 end_span(#span_ctx{span_id=SpanId,
                    is_recording=true,
-                   tracestate=Tracestate}, Processors) ->
+                   tracestate=Tracestate}, Timestamp, Processors) ->
     case ets:take(?SPAN_TAB, SpanId) of
         [Span] ->
             Span1 = otel_span_utils:end_span(Span#span{tracestate=Tracestate,
-                                                       is_recording=false}),
+                                                       is_recording=false}, Timestamp),
             Processors(Span1);
         _ ->
             false
     end;
-end_span(_, _) ->
+end_span(_, _, _) ->
     true.
 
 -spec get_ctx(opentelemetry:span()) -> opentelemetry:span_ctx().
