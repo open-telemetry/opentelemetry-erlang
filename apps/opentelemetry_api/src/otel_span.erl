@@ -170,7 +170,7 @@ end_span(SpanCtx) ->
 
 -spec end_span(SpanCtx, Timestamp) -> SpanCtx when
     SpanCtx :: opentelemetry:span_ctx(),
-    Timestamp :: integer().
+    Timestamp :: integer() | undefined.
 end_span(SpanCtx=#span_ctx{span_sdk={Module, _}}, Timestamp) when ?is_recording(SpanCtx)
                                                                   , is_integer(Timestamp) ->
     _ = Module:end_span(SpanCtx, Timestamp),
