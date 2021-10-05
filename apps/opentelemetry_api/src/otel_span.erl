@@ -162,8 +162,8 @@ update_name(_, _) ->
 
 -spec end_span(SpanCtx) -> SpanCtx when
       SpanCtx :: opentelemetry:span_ctx().
-end_span(SpanCtx) when ?is_recording(SpanCtx) ->
-    end_span(SpanCtx, undefined),
+end_span(SpanCtx=#span_ctx{span_sdk={Module, _}}) when ?is_recording(SpanCtx) ->
+    _ = Module:end_span(SpanCtx, undefined),
     SpanCtx#span_ctx{is_recording=false};
 end_span(SpanCtx) ->
     SpanCtx.

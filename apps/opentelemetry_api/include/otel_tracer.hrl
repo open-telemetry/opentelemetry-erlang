@@ -21,11 +21,11 @@
 
 %% updates the current context with the updated span context that
 %% has `is_recording' set to `false'
+-define(end_span(),
+        ?end_span(undefined)).
+
 -define(end_span(Timestamp),
         otel_tracer:set_current_span(otel_span:end_span(?current_span_ctx, Timestamp))).
-
--define(end_span(SpanCtx, Timestmap),
-        otel_span:end_span(SpanCtx, Timestamp)).
 
 -define(is_recording(),
         otel_span:is_recording(?current_span_ctx)).
