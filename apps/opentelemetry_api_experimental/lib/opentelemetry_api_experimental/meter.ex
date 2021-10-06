@@ -5,8 +5,6 @@ defmodule OpenTelemetry.Meter do
       require OpenTelemetry.Counter
       require OpenTelemetry.Meter
 
-      OpenTelemetry.register_application_meter(Your.Application)
-
       OpenTelemetry.Meter.new_instruments([OpenTelemetry.ValueRecorder.instrument("some.latency"),
                                            OpenTelemetry.Counter.instrument("some.counter")])
 

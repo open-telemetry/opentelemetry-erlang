@@ -34,6 +34,11 @@
 -define(OTEL_STATUS_OK, ok).
 -define(OTEL_STATUS_ERROR, error).
 
+%% Holds information about the instrumentation library specified when
+%% getting a Tracer from the TracerProvider.
+-record(instrumentation_library, {name    :: unicode:unicode_binary() | undefined,
+                                  version :: unicode:unicode_binary() | undefined}).
+
 -record(span_ctx, {
           %% 128 bit int trace id
           trace_id          :: opentelemetry:trace_id(),
