@@ -36,7 +36,8 @@
          on_start/3,
          on_end/2,
          set_exporter/1,
-         set_exporter/2]).
+         set_exporter/2,
+         report_cb/1]).
 
 -export([init/1,
          callback_mode/0,
@@ -239,25 +240,58 @@ init_exporter({ExporterModule, Config}) when is_atom(ExporterModule) ->
         ignore ->
             undefined
     catch
-        error:badarg when ExporterModule =:= opentelemetry_exporter ->
-            case maps:get(protocol, Config, undefined) of
-                grpc ->
-                    ?LOG_WARNING("OTLP tracer, ~p, failed to initialize when using GRPC protocol. Verify you have the `grpcbox` dependency included.", [ExporterModule]),
+        Kind:Reason:StackTrace ->
+            %% logging in debug level since config argument in stacktrace could have secrets
+            ?LOG_DEBUG(#{source => exporter,
+                         during => init,
+                         kind => Kind,
+                         reason => Reason,
+                         exporter => ExporterModule,
+                         stacktrace => StackTrace}, #{report_cb => fun ?MODULE:report_cb/1}),
+
+            %% print a more useful message about the failure if we can discern
+            %% one from the failure reason and exporter used
+            case {Kind, Reason} of
+                {error, badarg} when ExporterModule =:= opentelemetry_exporter ->
+                    case maps:get(protocol, Config, undefined) of
+                        grpc ->
+                            %% grpc protocol uses grpcbox which is not included by default
+                            %% this will check if it is available so we can warn the user if
+                            %% the dependency needs to be added
+                            try grpcbox:module_info() of
+                                _ ->
+                                    undefined
+                            catch
+                                _:_ ->
+                                    ?LOG_WARNING("OTLP tracer, ~p, failed to initialize when using GRPC protocol and `grpcbox` module is not available in the code path. Verify that you have the `grpcbox` dependency included and rerun.", [ExporterModule]),
+                                    undefined
+                            end;
+                        _ ->
+                            %% same as the debug log above
+                            %% without the stacktrace and at a higher level
+                            ?LOG_WARNING(#{source => exporter,
+                                           during => init,
+                                           kind => Kind,
+                                           reason => Reason,
+                                           exporter => ExporterModule}, #{report_cb => fun ?MODULE:report_cb/1}),
+                            undefined
+                    end;
+                {error, undef} when ExporterModule =:= opentelemetry_exporter ->
+                    ?LOG_WARNING("Trace exporter module ~p not found. Verify you have included the `opentelemetry_exporter` dependency.", [ExporterModule]),
+                    undefined;
+                {error, undef} ->
+                    ?LOG_WARNING("Trace exporter module ~p not found. Verify you have included the dependency that contains the exporter module.", [ExporterModule]),
                     undefined;
                 _ ->
-                    %% leaving out config from the log since it might have secrets
-                    ?LOG_WARNING("Trace exporter module ~p threw exception when initializing: error:badarg", [ExporterModule])
-            end;
-        error:undef when ExporterModule =:= opentelemetry_exporter ->
-            ?LOG_WARNING("Trace exporter module ~p not found. Verify you have included the `opentelemetry_exporter` dependency.", [ExporterModule]),
-            undefined;
-        error:undef ->
-            ?LOG_WARNING("Trace exporter module ~p not found. Verify you have included the dependency that contains the exporter module.", [ExporterModule]),
-            undefined;
-        C:T ->
-            %% leaving out config from the log since it might have secrets
-            ?LOG_WARNING("Trace exporter module ~p threw exception when initializing: ~p:~p", [ExporterModule, C, T]),
-            undefined
+                    %% same as the debug log above
+                    %% without the stacktrace and at a higher level
+                    ?LOG_WARNING(#{source => exporter,
+                                   during => init,
+                                   kind => Kind,
+                                   reason => Reason,
+                                   exporter => ExporterModule}, #{report_cb => fun ?MODULE:report_cb/1}),
+                    undefined
+            end
     end;
 init_exporter(ExporterModule) when is_atom(ExporterModule) ->
     init_exporter({ExporterModule, []}).
@@ -303,14 +337,56 @@ completed(FromPid) ->
 
 export(undefined, _, _) ->
     true;
-export({Exporter, Config}, Resource, SpansTid) ->
+export({ExporterModule, Config}, Resource, SpansTid) ->
     %% don't let a exporter exception crash us
     %% and return true if exporter failed
     try
-        Exporter:export(SpansTid, Resource, Config) =:= failed_not_retryable
+        ExporterModule:export(SpansTid, Resource, Config) =:= failed_not_retryable
     catch
-        Class:Exception:StackTrace ->
-            ?LOG_INFO("exporter threw exception: exporter=~p ~p:~p stacktrace=~p",
-                      [Exporter, Class, Exception, StackTrace]),
+        Kind:Reason:StackTrace ->
+            ?LOG_INFO(#{source => exporter,
+                        during => export,
+                        kind => Kind,
+                        reason => Reason,
+                        exporter => ExporterModule,
+                        stacktrace => StackTrace}, #{report_cb => fun ?MODULE:report_cb/1}),
             true
     end.
+
+%% logger format functions
+report_cb(#{source := exporter,
+            during := init,
+            kind := Kind,
+            reason := Reason,
+            exporter := ExporterModule,
+            stacktrace := StackTrace}) ->
+    {"OTLP tracer ~p failed to initialize: ~ts",
+     [ExporterModule, format_exception(Kind, Reason, StackTrace)]};
+report_cb(#{source := exporter,
+            during := init,
+            kind := Kind,
+            reason := Reason,
+            exporter := ExporterModule}) ->
+    {"OTLP tracer ~p failed to initialize with exception ~p:~p", [ExporterModule, Kind, Reason]};
+report_cb(#{source := exporter,
+            during := export,
+            kind := Kind,
+            reason := Reason,
+            exporter := ExporterModule}) ->
+    {"OTLP tracer ~p failed to initialize with exception ~p:~p", [ExporterModule, Kind, Reason]};
+report_cb(#{source := exporter,
+            during := export,
+            kind := Kind,
+            reason := Reason,
+            exporter := ExporterModule,
+            stacktrace := StackTrace}) ->
+    {"exporter threw exception: exporter=~p ~ts",
+     [ExporterModule, format_exception(Kind, Reason, StackTrace)]}.
+
+-if(?OTP_RELEASE >= 24).
+format_exception(Kind, Reason, StackTrace) ->
+    erl_error:format_exception(Kind, Reason, StackTrace).
+-else.
+format_exception(Kind, Reason, StackTrace) ->
+    io_lib:format("~p:~p ~p", [Kind, Reason, StackTrace]).
+-endif.
