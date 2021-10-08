@@ -20,8 +20,8 @@
 -behaviour(otel_tracer_provider).
 
 -export([init/1,
-         register_tracer/4,
          register_tracer/3,
+         get_tracer/2,
          resource/1,
          code_change/1]).
 
@@ -86,18 +86,11 @@ init(Opts) ->
 resource(#state{resource=Resource}) ->
     Resource.
 
-register_tracer(Name, Vsn, Modules, #state{shared_tracer=Tracer,
-                                           deny_list=DenyList}) ->
-    %% TODO: support semver constraints in denylist
-    case proplists:is_defined(Name, DenyList) of
-        true ->
-            opentelemetry:set_tracer(Name, {otel_tracer_noop, []});
-        false ->
-            InstrumentationLibrary = otel_utils:instrumentation_library(Name, Vsn),
-            TracerTuple = {Tracer#tracer.module,
-                           Tracer#tracer{instrumentation_library=InstrumentationLibrary}},
-            [opentelemetry:set_tracer(M, TracerTuple) || M <- Modules]
-    end.
+get_tracer(InstrumentationLibrary, #state{shared_tracer=Tracer,
+                                          deny_list=_DenyList}) ->
+
+    {Tracer#tracer.module,
+     Tracer#tracer{instrumentation_library=InstrumentationLibrary}}.
 
 register_tracer(Name, Vsn, #state{shared_tracer=Tracer,
                                   deny_list=DenyList}) ->
@@ -106,7 +99,7 @@ register_tracer(Name, Vsn, #state{shared_tracer=Tracer,
         true ->
             opentelemetry:set_tracer(Name, {otel_tracer_noop, []});
         false ->
-            InstrumentationLibrary = otel_utils:instrumentation_library(Name, Vsn),
+            InstrumentationLibrary = opentelemetry:instrumentation_library(Name, Vsn),
             TracerTuple = {Tracer#tracer.module,
                            Tracer#tracer{instrumentation_library=InstrumentationLibrary}},
             opentelemetry:set_tracer(Name, TracerTuple)

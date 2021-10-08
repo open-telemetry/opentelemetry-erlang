@@ -29,16 +29,18 @@
 -module(opentelemetry).
 
 -export([set_default_tracer/1,
-         set_tracer/2,
          register_tracer/2,
-         register_application_tracer/1,
+         register_application_tracers/1,
          get_tracer/0,
          get_tracer/1,
+         set_tracer/2,
+         get_application_tracer/1,
          set_text_map_propagator/1,
          set_text_map_extractor/1,
          get_text_map_extractor/0,
          set_text_map_injector/1,
          get_text_map_injector/0,
+         instrumentation_library/2,
          timestamp/0,
          timestamp_to_nano/1,
          convert_timestamp/2,
@@ -51,7 +53,6 @@
          events/1,
          status/2,
          verify_and_set_term/3,
-         verify_and_set_term/4,
          generate_trace_id/0,
          generate_span_id/0]).
 
@@ -59,6 +60,7 @@
 -include_lib("kernel/include/logger.hrl").
 
 -export_type([tracer/0,
+              instrumentation_library/0,
               trace_id/0,
               span_id/0,
               hex_trace_id/0,
@@ -84,6 +86,8 @@
               text_map/0]).
 
 -type tracer()             :: {module(), term()}.
+
+-type instrumentation_library() :: #instrumentation_library{}.
 
 -type trace_id()           :: non_neg_integer().
 -type span_id()            :: non_neg_integer().
@@ -129,13 +133,19 @@
 
 -type text_map()       :: [{unicode:unicode_binary(), unicode:unicode_binary()}].
 
+-define(TRACER_KEY(Name), {?MODULE, tracer, Name}).
+-define(DEFAULT_TRACER_KEY, ?TRACER_KEY('$__default_tracer')).
+-define(APPLICATION_TRACER_KEY, {?MODULE, otel_application_tracer_key}).
+-define(TEXT_MAP_EXTRACTOR_KEY, {?MODULE, text_map_extractor}).
+-define(TEXT_MAP_INJECTOR_KEY, {?MODULE, text_map_injector}).
+
 -spec set_default_tracer(tracer()) -> boolean().
 set_default_tracer(Tracer) ->
-    verify_and_set_term(Tracer, default_tracer, otel_tracer).
+    verify_and_set_term(Tracer, ?DEFAULT_TRACER_KEY, otel_tracer).
 
 -spec set_tracer(atom(), tracer()) -> boolean().
 set_tracer(Name, Tracer) ->
-    verify_and_set_term(Tracer, Name, otel_tracer).
+    verify_and_set_term(Tracer, ?TRACER_KEY(Name), otel_tracer).
 
 -spec register_tracer(atom(), string() | binary()) -> boolean().
 register_tracer(Name, Vsn) when is_atom(Name) and is_binary(Vsn) ->
@@ -143,17 +153,40 @@ register_tracer(Name, Vsn) when is_atom(Name) and is_binary(Vsn) ->
 register_tracer(Name, Vsn) when is_atom(Name) and is_list(Vsn) ->
     otel_tracer_provider:register_tracer(Name, list_to_binary(Vsn)).
 
--spec register_application_tracer(atom()) -> boolean().
-register_application_tracer(Name) ->
-    otel_tracer_provider:register_application_tracer(Name).
+-spec register_application_tracers([atom()]) -> ok.
+register_application_tracers(Applications) ->
+    TracerMap = lists:foldl(fun(Application, Acc) ->
+                                    maps:merge(Acc, application_tracer(Application))
+                            end, #{}, Applications),
+    persistent_term:put(?APPLICATION_TRACER_KEY, TracerMap).
+
+%% creates a map of modules to tracers for a particular application
+application_tracer({Name, _Description, Version}) ->
+    try
+        {ok, Modules} = application:get_key(Name, modules),
+        InstrumentationLibrary = instrumentation_library(Name, Version),
+        TracerTuple = otel_tracer_provider:get_tracer(InstrumentationLibrary),
+        lists:foldl(fun(M, Acc) ->
+                            Acc#{M => TracerTuple}
+                  end, #{}, Modules)
+    catch exit:{noproc, _} ->
+            %% ignore because noproc here means no provider
+            %% likely since the SDK has been included and started
+            #{}
+    end.
 
 -spec get_tracer() -> tracer().
 get_tracer() ->
-    persistent_term:get({?MODULE, default_tracer}, {otel_tracer_noop, []}).
+    persistent_term:get(?DEFAULT_TRACER_KEY, {otel_tracer_noop, []}).
 
 -spec get_tracer(atom()) -> tracer().
 get_tracer(Name) ->
-    persistent_term:get({?MODULE, Name}, get_tracer()).
+    persistent_term:get(?TRACER_KEY(Name), get_tracer()).
+
+-spec get_application_tracer(atom()) -> tracer().
+get_application_tracer(ModuleName) ->
+    Map = persistent_term:get(?APPLICATION_TRACER_KEY, #{}),
+    maps:get(ModuleName, Map, get_tracer()).
 
 %% setting the propagator is the same as setting the same injector and extractor
 set_text_map_propagator(Propagator) ->
@@ -161,16 +194,16 @@ set_text_map_propagator(Propagator) ->
     set_text_map_extractor(Propagator).
 
 set_text_map_extractor(Propagator) ->
-    persistent_term:put({?MODULE, text_map_extractor}, Propagator).
+    persistent_term:put(?TEXT_MAP_EXTRACTOR_KEY, Propagator).
 
 set_text_map_injector(Propagator) ->
-    persistent_term:put({?MODULE, text_map_injector}, Propagator).
+    persistent_term:put(?TEXT_MAP_INJECTOR_KEY, Propagator).
 
 get_text_map_extractor() ->
-    persistent_term:get({?MODULE, text_map_extractor}, otel_propagator_text_map_noop).
+    persistent_term:get(?TEXT_MAP_EXTRACTOR_KEY, otel_propagator_text_map_noop).
 
 get_text_map_injector() ->
-    persistent_term:get({?MODULE, text_map_injector}, otel_propagator_text_map_noop).
+    persistent_term:get(?TEXT_MAP_INJECTOR_KEY, otel_propagator_text_map_noop).
 
 %% @doc A monotonically increasing time provided by the Erlang runtime system in the native time unit.
 %% This value is the most accurate and precise timestamp available from the Erlang runtime and
@@ -341,12 +374,9 @@ uniform(X) ->
 
 -spec verify_and_set_term(module() | {module(), term()}, term(), atom()) -> boolean().
 verify_and_set_term(Module, TermKey, Behaviour) ->
-    verify_and_set_term(?MODULE, Module, TermKey, Behaviour).
-
-verify_and_set_term(AppKey, Module, TermKey, Behaviour) ->
     case verify_module_exists(Module) of
         true ->
-            persistent_term:put({AppKey, TermKey}, Module),
+            persistent_term:put(TermKey, Module),
             true;
         false ->
             ?LOG_WARNING("Module ~p does not exist. "
@@ -376,3 +406,27 @@ link_or_false(TraceId, SpanId, Attributes, TraceState) ->
         _ ->
             false
     end.
+
+instrumentation_library(Name, Vsn) ->
+    #instrumentation_library{name=name_to_binary(Name),
+                             version=vsn_to_binary(Vsn)}.
+
+%% Vsn can't be an atom or anything but a list or binary
+%% so return `undefined' if it isn't a list or binary.
+vsn_to_binary(Vsn) when is_list(Vsn) ->
+    list_to_binary(Vsn);
+vsn_to_binary(Vsn) when is_binary(Vsn) ->
+    Vsn;
+vsn_to_binary(_) ->
+    undefined.
+
+%% name can be atom, list or binary. But atom `undefined'
+%% must stay as `undefined' atom.
+name_to_binary(undefined)->
+    undefined;
+name_to_binary(T) when is_atom(T) ->
+    atom_to_binary(T, utf8);
+name_to_binary(T) when is_list(T) ->
+    list_to_binary(T);
+name_to_binary(T) when is_binary(T) ->
+    T.

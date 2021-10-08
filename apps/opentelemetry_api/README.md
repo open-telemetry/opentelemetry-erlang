@@ -30,64 +30,12 @@ def deps do
 end
 ```
 
-### Registering and Using Tracers Directly
-
-If it is a runnable application then this registration should happen in `start/2`, example below is adding `Tracer` registration to the Postgres library [pgo](https://github.com/erleans/pgo):
-
-``` erlang
-start(_StartType, _StartArgs) ->
-    _ = opentelemetry:register_application_tracer(pgo),
-...
-```
-
-Or for an Elixir Application named `MyApp`:
-
-``` elixir
-defmodule MyApp do
-  use Application
-
-  def start(_type, _args) do
-    _ = OpenTelemetry.register_application_tracer(:my_app)
-    ...
-  end
-end
-```
-
-Then when the spans are started and finished in the application's code the `Tracer` is fetched with `get_tracer/1` and passed to `with_span/3` or `start_span/3`:
-
-``` erlang
-Tracer = opentelemetry:get_tracer(pgo),
-otel_tracer:with_span(Tracer, <<"pgo:query/3">>, fun() -> ... end).
-```
-
-A `Tracer` variable can be passed through your Application's calls so `get_tracer` only has to be called once, it is safe to store it in the state of a `gen_server` and to pass across process boundaries.
-
-If the application does not have a `start/2` there may be another function that is always called before the library would create any spans. For example, the [Elli](https://github.com/elli-lib/elli) middleware for OpenTelemetry instrumentation registers the `Tracer` during Elli startup:
-
-``` erlang
-handle_event(elli_startup, _Args, _Config) ->
-    _ = opentelemetry:register_application_tracer(opentelemetry_elli),
-    ok;
-```
-
-When there is no startup of any kind to hook into in the library itself it should export a function `register_application_tracer/0` to be used by any application that depends on it to do the registration:
-
-``` erlang
--module(mylib).
-
--export([register_tracer/0]).
-
-register_tracer() ->
-    _ = opentelemetry:register_application_tracer(mylib),
-    ok.
-```
-
-Not registering does not cause any issues or crashes, OpenTelemetry simply will fallback to the default `Tracer` if `get_tracer/1` is called with a name that is not registered.
-
-
 ### Helper Macros for Application Tracers
 
-When `register_application_tracer/1` is used to register a Tracer there are both Erlang and Elixir macros that make use of the current module's name to lookup the Tracer for you and can be used for Trace and Span operations:
+There are both Erlang and Elixir macros that make use of the current module's
+name to lookup a Named Tracer -- a Named Tracer is created for each Application
+loaded in the system at start time -- for you and can be used for Trace and Span
+operations:
 
 ``` erlang
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").

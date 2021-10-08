@@ -1,7 +1,7 @@
 %% macros for tracing
 %% register a tracer for an application with opentelemetry:register_application_tracer(AppName)
 
--define(current_tracer, opentelemetry:get_tracer(?MODULE)).
+-define(current_tracer, opentelemetry:get_application_tracer(?MODULE)).
 -define(current_span_ctx, otel_tracer:current_span_ctx()).
 
 -define(start_span(SpanName),

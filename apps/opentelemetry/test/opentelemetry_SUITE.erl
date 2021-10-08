@@ -65,12 +65,12 @@ end_per_testcase(_, _Config) ->
     ok.
 
 disable_auto_registration(_Config) ->
-    {_, #tracer{instrumentation_library=Library}} = opentelemetry:get_tracer(kernel),
+    {_, #tracer{instrumentation_library=Library}} = opentelemetry:get_application_tracer(kernel),
     ?assertEqual(undefined, Library),
     ok.
 
 registered_tracers(_Config) ->
-    {_, #tracer{instrumentation_library=Library}} = opentelemetry:get_tracer(kernel),
+    {_, #tracer{instrumentation_library=Library}} = opentelemetry:get_application_tracer(kernel),
     ?assertEqual(<<"kernel">>, Library#instrumentation_library.name),
 
     %% register a new tracer with the same name but different version
@@ -78,6 +78,12 @@ registered_tracers(_Config) ->
     {_, #tracer{instrumentation_library=NewLibrary}} = opentelemetry:get_tracer(kernel),
     ?assertEqual(<<"kernel">>, NewLibrary#instrumentation_library.name),
     ?assertEqual(<<"fake-version">>, NewLibrary#instrumentation_library.version),
+
+    %% tracer registered on startup for a particular application is the same
+    {_, #tracer{instrumentation_library=Library1}} = opentelemetry:get_application_tracer(kernel),
+    ?assertEqual(<<"kernel">>, Library1#instrumentation_library.name),
+    ?assertNotEqual(<<"fake-version">>, Library1#instrumentation_library.version),
+
     ok.
 
 propagator_configuration(_Config) ->

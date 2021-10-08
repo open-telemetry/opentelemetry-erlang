@@ -30,13 +30,15 @@
 
 -type meter() :: {module(), term()}.
 
+-define(METER_KEY(Name), {?MODULE, meter, Name}).
+
 -spec set_default_meter(meter()) -> boolean().
 set_default_meter(Meter) ->
-    opentelemetry:verify_and_set_term(?MODULE, Meter, default_meter, otel_meter).
+    opentelemetry:verify_and_set_term(Meter, ?METER_KEY(default_meter), otel_meter).
 
 -spec set_meter(atom(), meter()) -> boolean().
 set_meter(Name, Meter) ->
-    opentelemetry:verify_and_set_term(?MODULE, Meter, Name, otel_meter).
+    opentelemetry:verify_and_set_term(Meter, ?METER_KEY(Name), otel_meter).
 
 -spec register_meter(atom(), string()) -> boolean().
 register_meter(Name, Vsn) ->
@@ -48,8 +50,8 @@ register_application_meter(Name) ->
 
 -spec get_meter() -> meter().
 get_meter() ->
-    persistent_term:get({?MODULE, default_meter}, {otel_meter_noop, []}).
+    persistent_term:get(?METER_KEY(default_meter), {otel_meter_noop, []}).
 
 -spec get_meter(atom()) -> meter().
 get_meter(Name) ->
-    persistent_term:get({?MODULE, Name}, get_meter()).
+    persistent_term:get(?METER_KEY(Name), get_meter()).

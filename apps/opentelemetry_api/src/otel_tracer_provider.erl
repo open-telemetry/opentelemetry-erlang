@@ -21,7 +21,7 @@
 
 -export([start_link/2,
          resource/0,
-         register_application_tracer/1,
+         get_tracer/1,
          register_tracer/2]).
 
 -export([init/1,
@@ -33,6 +33,7 @@
 
 -callback init(term()) -> {ok, cb_state()}.
 -callback register_tracer(atom(), binary(), cb_state()) -> boolean().
+-callback get_tracer(opentelemetry:instrumentation_library(), cb_state()) -> opentelemetry:tracer() | undefined.
 -callback resource(cb_state()) -> term() | undefined.
 
 -record(state, {callback :: module(),
@@ -59,15 +60,13 @@ register_tracer(Name, Vsn) ->
             false
     end.
 
--spec register_application_tracer(atom()) -> boolean().
-register_application_tracer(Name) ->
+-spec get_tracer(opentelemetry:instrumentation_library()) -> opentelemetry:tracer() | undefined.
+get_tracer(InstrumentationLibrary) ->
     try
-        {ok, Vsn} = application:get_key(Name, vsn),
-        {ok, Modules} = application:get_key(Name, modules),
-        gen_server:call(?MODULE, {register_tracer, Name, Vsn, Modules})
+        gen_server:call(?MODULE, {get_tracer, InstrumentationLibrary})
     catch exit:{noproc, _} ->
-            %% ignore register_tracer because no SDK has been included and started
-            false
+            %% ignore because likely no SDK has been included and started
+            {otel_tracer_noop, []}
     end.
 
 init([ProviderModule, Opts]) ->
@@ -79,10 +78,10 @@ init([ProviderModule, Opts]) ->
             Other
     end.
 
-handle_call({register_tracer, Name, Vsn, Modules}, _From, State=#state{callback=Cb,
-                                                                       cb_state=CbState}) ->
-    _ = Cb:register_tracer(Name, Vsn, Modules, CbState),
-    {reply, true, State};
+handle_call({get_tracer, InstrumentationLibrary}, _From, State=#state{callback=Cb,
+                                                                      cb_state=CbState}) ->
+    Tracer = Cb:get_tracer(InstrumentationLibrary, CbState),
+    {reply, Tracer, State};
 handle_call({register_tracer, Name, Vsn}, _From, State=#state{callback=Cb,
                                                               cb_state=CbState}) ->
     _ = Cb:register_tracer(Name, Vsn, CbState),
