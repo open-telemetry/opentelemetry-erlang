@@ -17,6 +17,7 @@
 %% Zipkin.
 %%
 %% @see otel_propagator_b3
+%% @end
 %%%-----------------------------------------------------------------------
 -module(otel_propagator_b3single).
 
