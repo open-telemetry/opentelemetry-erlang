@@ -1,8 +1,17 @@
 # Changelog
 
-## 1.0.0-rc.3
+All notable changes to this project will be documented in this file.
 
-### API
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## 2021-10-12
+
+### API - 1.0.0-rc.3
+
+#### Tracers
+
+##### Removed
 
 - Removed `opentelemetry:register_application_tracer`. Each application has a
   Tracer registered for it automatically on boot. This can be disabled by
@@ -29,6 +38,12 @@
 
 #### Context
 
+##### Added
+
+- B3 single header format support added
+
+##### Changed
+
 - Propagators must now be implementations of a propagator type's behaviour. At
   this time only the `otel_propagator_text_map` behaviour exists. Callbacks for
   inject and extract take an optional "set" and "get" function for working with
@@ -49,11 +64,15 @@
     {text_map_injectors, [trace_context, baggage]},
     {text_map_extractors, [b3multi, trace_context, baggage]}
     ```
+    
+##### Fixed
+
 - `b3` propagator renamed `b3multi` to properly convey it is the version of the
   B3 spec that creates multiple headers
-- B3 single header format support added
 
-### SDK
+### SDK - 1.0.0-rc.3
+
+#### Fixed
 
 - Memory leak fix: Non-recording Spans are no longer inserted into the ETS table tracking active span.
 - Ratio based root span sampling fixed, before it didn't take into account the
