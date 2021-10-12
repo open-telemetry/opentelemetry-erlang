@@ -66,9 +66,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `b3` propagator renamed `b3multi` to properly convey it is the version of the
   B3 spec that creates multiple headers
 
-### SDK - 1.0.0-rc.3
+## [SDK - 1.0.0-rc.3] - 2021-10-12
 
-#### Fixed
+### Fixed
 
 - Memory leak fix: Non-recording Spans are no longer inserted into the ETS table tracking active span.
 - Ratio based root span sampling fixed, before it didn't take into account the
