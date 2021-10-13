@@ -28,9 +28,9 @@
 %%     for exporting traces and the path of the URL is kept as is, no suffix is
 %%     appended.
 %%   </li>
-%%   <li>`otlp_headers': Additional headers to add to export requests.</li>
+%%   <li>`otlp_headers': List of additional headers (`[{unicode:chardata(), unicode:chardata()}]') to add to export requests.</li>
 %%   <li>
-%%     `otlp_traces_headers': Additional headers to add to only trace export %% requests.
+%%     `otlp_traces_headers': Additional headers (`[{unicode:chardata(), unicode:chardata()}]') to add to only trace export requests.
 %%   </li>
 %% </ul>
 %%
@@ -53,10 +53,12 @@
          shutdown/1]).
 
 %% for testing
+-ifdef(TEST).
 -export([to_proto_by_instrumentation_library/1,
          to_proto/1,
          endpoints/1,
          merge_with_environment/1]).
+-endif.
 
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
@@ -69,15 +71,34 @@
 -define(DEFAULT_PORT, 4317).
 -define(DEFAULT_TRACES_PATH, "v1/traces").
 
--record(state, {protocol :: grpc | http_protobuf | http_json,
+-type headers() :: [{unicode:chardata(), unicode:chardata()}].
+-type scheme() :: http | https.
+-type host() :: unicode:chardata().
+-type endpoint() :: uri_string:uri_string() | uri_string:uri_map() | #{scheme := scheme(),
+                                                                       host := host(),
+                                                                       port => integer(),
+                                                                       ssl_options => []}.
+-type protocol() :: grpc | http_protobuf | http_json.
+
+-type opts() :: #{endpoints => [endpoint()],
+                  headers => headers(),
+                  protocol => protocol()}.
+
+-export_type([opts/0,
+              headers/0,
+              endpoint/0,
+              protocol/0]).
+
+-record(state, {protocol :: protocol(),
                 channel_pid :: pid() | undefined,
-                headers :: [{unicode:chardata(), unicode:chardata()}],
+                headers :: headers(),
                 grpc_metadata :: map() | undefined,
                 endpoints :: [uri_string:uri_map()]}).
 
 %% @doc Initialize the exporter based on the provided configuration.
-init(Opts0) ->
-    Opts1 = merge_with_environment(Opts0),
+-spec init(opts()) -> {ok, #state{}}.
+init(Opts) ->
+    Opts1 = merge_with_environment(Opts),
     Endpoints = endpoints(maps:get(endpoints, Opts1, ?DEFAULT_ENDPOINTS)),
     Headers = headers(maps:get(headers, Opts1, [])),
     case maps:get(protocol, Opts1, http_protobuf) of

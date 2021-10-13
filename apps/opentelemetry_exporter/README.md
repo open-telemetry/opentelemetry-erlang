@@ -6,7 +6,9 @@ The OpenTelemetry Protocol exporter for use with the [OpenTelemetry Collector](h
 
 Currently only supports the Tracer protocol using either GRPC or Protobuffers over HTTP1.1. Metrics are to come soon.
 
-## Using
+## Configuration
+
+### Options to Batch Processor
 
 Easiest way to setup is to add configuration for the batch processor in OpenTelemetry application environment.
 
@@ -16,7 +18,9 @@ For an Erlang release in `sys.config`:
 {opentelemetry,
   [{processors, 
     [{otel_batch_processor,
-        #{exporter => {opentelemetry_exporter, #{endpoints => [{http, "localhost", 9090, []}]}}}}]}]}
+        #{exporter => {opentelemetry_exporter, #{endpoints =>
+        ["http://localhost:9090"],
+            headers => [{"x-honeycomb-dataset", "experiments"}]}}}}]}]}
 ```
 
 The default protocol is `http_protobuf`, to override this and use grpc add `protocol` to the config map:
@@ -26,7 +30,8 @@ The default protocol is `http_protobuf`, to override this and use grpc add `prot
   [{processors, 
     [{otel_batch_processor,
         #{exporter => {opentelemetry_exporter, #{protocol => grpc,
-                                                 endpoints => [{http, "localhost", 9090, []}]}}}}]}]}
+                                                 endpoints => ["http://localhost:9090"],
+                                                 headers => [{"x-honeycomb-dataset", "experiments"}]}}}}]}]}
 ```
 
 An Elixir release uses `releases.exs`:
@@ -34,8 +39,45 @@ An Elixir release uses `releases.exs`:
 ``` elixir
 config :opentelemetry, :processors,
   otel_batch_processor: %{
-    exporter: {:opentelemetry_exporter, %{endpoints: [{:http, 'localhost', 9090, []}]}}
+    exporter: {:opentelemetry_exporter, %{endpoints: ["http://localhost:9090"],
+                                          headers: [{"x-honeycomb-dataset", "experiments"}]}}
   }
+```
+
+### Application Environment
+
+- `otlp_endpoint`: The URL to send traces and metrics to, for traces the path `v1/traces` is appended to the path in the URL.
+- `otlp_traces_endpoint`: URL to send only traces to. This takes precedence for exporting traces and the path of the URL is kept as is, no suffix is appended.
+- `otlp_headers`: List of additional headers (`[{unicode:chardata(), unicode:chardata()}]`) to add to export requests.
+- `otlp_traces_headers`: Additional headers (`[{unicode:chardata(), unicode:chardata()}]`) to add to only trace export requests.
+    
+    
+``` erlang
+{opentelemetry_exporter,
+  [{otlp_endpoint, "https://api.honeycomb.io:443"},
+   {otlp_headers, [{"x-honeycomb-dataset", "experiments"}]}]}
+```
+
+An Elixir release uses `releases.exs`:
+
+``` elixir
+config :opentelemetry_exporter,
+  otlp_endpoint: "https://api.honeycomb.io:443",
+  otlp_headers: [{"x-honeycomb-dataset", "experiments"}]
+```
+    
+### OS Environment
+
+- `OTEL_EXPORTER_OTLP_ENDPOINT`: The URL to send traces and metrics to, for traces the path `v1/traces` is appended to the path in the URL.
+- `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`: URL to send only traces to. This takes precedence for exporting traces and the path of the URL is kept as is, no suffix is appended.
+- `OTEL_EXPORTER_OTLP_HEADERS`: List of additional headers to add to export requests.
+- `OTEL_EXPORTER_OTLP_TRACES_HEADERS`: Additional headers to add to only trace export requests.
+
+Example usage of setting the environment variables:
+```
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=https://api.honeycomb.io:443
+OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+OTEL_EXPORTER_OTLP_TRACES_HEADERS=x-honeycomb-team=<HONEYCOMB API TOKEN>,x-honeycomb-dataset=experiments
 ```
 
 ## Contributing
