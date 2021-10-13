@@ -67,6 +67,12 @@ rewrite(_Config) ->
     ?assertEqual(RecordingSpanCtx#span_ctx{is_recording=false,
                                            is_remote=true}, otel_tracer:current_span_ctx()),
 
+    % should not fail on empty Carrier
+    ?assertMatch(Ctx,
+                 otel_propagator_trace_context:extract(Ctx, [],
+                                                       fun otel_propagator_text_map:default_carrier_keys/1,
+                                                       fun otel_propagator_text_map:default_carrier_get/2, [])),
+
     ok.
 
 invalid_span_no_sdk_propagation(_Config) ->
