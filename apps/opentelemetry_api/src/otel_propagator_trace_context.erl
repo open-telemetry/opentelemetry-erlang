@@ -81,14 +81,19 @@ inject(Ctx, Carrier, CarrierSet, _Options) ->
                    CarrierGetFun :: otel_propagator_text_map:carrier_get(),
                    Options :: otel_propagator_text_map:propagator_options().
 extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet, _Options) ->
-    SpanCtxString = CarrierGet(?HEADER_KEY, Carrier),
-    case decode(string:trim(SpanCtxString)) of
+    MaybeSpanCtxString = CarrierGet(?HEADER_KEY, Carrier),
+    case MaybeSpanCtxString of
         undefined ->
             Ctx;
-        SpanCtx ->
-            TraceStateString = CarrierGet(?STATE_HEADER_KEY, Carrier),
-            Tracestate = tracestate_decode(TraceStateString),
-            otel_tracer:set_current_span(Ctx, SpanCtx#span_ctx{tracestate=Tracestate})
+        SpanCtxString ->
+            case decode(string:trim(SpanCtxString)) of
+                undefined ->
+                    Ctx;
+                SpanCtx ->
+                    TraceStateString = CarrierGet(?STATE_HEADER_KEY, Carrier),
+                    Tracestate = tracestate_decode(TraceStateString),
+                    otel_tracer:set_current_span(Ctx, SpanCtx#span_ctx{tracestate=Tracestate})
+            end
     end.
 
 %%
