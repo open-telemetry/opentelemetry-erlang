@@ -72,7 +72,7 @@
 -define(DEFAULT_TRACES_PATH, "v1/traces").
 
 -type headers() :: [{unicode:chardata(), unicode:chardata()}].
--type scheme() :: http | https.
+-type scheme() :: http | https | "http" | "https" | <<"http">> | <<"https">>.
 -type host() :: unicode:chardata().
 -type endpoint() :: uri_string:uri_string() | uri_string:uri_map() | #{scheme := scheme(),
                                                                        host := host(),
