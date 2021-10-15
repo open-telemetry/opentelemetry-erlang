@@ -42,14 +42,18 @@ do(Req) ->
 
     lists:foreach(fun(#{<<"arguments">> := Arguments,
                         <<"url">> := Url}) ->
-                          otel_propagator:http_extract(Headers),
-                          ?start_span(<<"interop-test">>),
-                          InjectedHeaders = otel_propagator:http_inject([]),
-                          httpc:request(post, {binary_to_list(Url),
-                                               headers_to_list(InjectedHeaders),
-                                               "application/json",
-                                               jsone:encode(Arguments)}, [], [{body_format, binary}]),
-                          ?end_span(opentelemetry:timestmap())
+                          %% not really needed, but just to be safe
+                          otel_ctx:clear(),
+
+                          otel_propagator_text_map:extract(Headers),
+                          ?with_span(<<"interop-test">>, #{},
+                                     fun(_) ->
+                                             InjectedHeaders = otel_propagator_text_map:inject([]),
+                                             httpc:request(post, {binary_to_list(Url),
+                                                                  headers_to_list(InjectedHeaders),
+                                                                  "application/json",
+                                                                  jsone:encode(Arguments)}, [], [{body_format, binary}])
+                                     end)
                   end, List),
 
     {proceed, [{response, {200, "ok"}}]}.
