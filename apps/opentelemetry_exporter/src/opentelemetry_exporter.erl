@@ -38,10 +38,10 @@
 %% configuration values:
 %%
 %% <ul>
-%%   <li>`OTEL_EXPORTER_OTLP_ENDPOINT'</li>
-%%   <li>`OTEL_EXPORTER_OTLP_TRACES_ENDPOINT'</li>
-%%   <li>`OTEL_EXPORTER_OTLP_HEADERS'</li>
-%%   <li>`OTEL_EXPORTER_OTLP_TRACES_HEADERS'</li>
+%%   <li>`OTEL_EXPORTER_OTLP_ENDPOINT': The URL to send traces and metrics to, for traces the path `v1/traces' is appended to the path in the URL.</li>
+%%   <li>`OTEL_EXPORTER_OTLP_TRACES_ENDPOINT': URL to send only traces to. This takes precedence for exporting traces and the path of the URL is kept as is, no suffix is appended.</li>
+%%   <li>`OTEL_EXPORTER_OTLP_HEADERS': List of additional headers to add to export requests.</li>
+%%   <li>`OTEL_EXPORTER_OTLP_TRACES_HEADERS': Additional headers to add to only trace export requests.</li>
 %% </ul>
 %%
 %% @end
