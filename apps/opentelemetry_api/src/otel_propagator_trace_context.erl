@@ -111,9 +111,11 @@ encode_traceparent(TraceId, SpanId, TraceOptions) ->
     EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
     iolist_to_binary([?VERSION, "-", EncodedTraceId, "-", EncodedSpanId, "-", Options]).
 
-encode_tracestate(Entries) ->
+encode_tracestate(Entries=[_|_]) ->
     StateHeaderValue = lists:join($,, [[Key, $=, Value] || {Key, Value} <- Entries]),
-    unicode:characters_to_binary(StateHeaderValue).
+    unicode:characters_to_binary(StateHeaderValue);
+encode_tracestate(_) ->
+    <<>>.
 
 split(Pair) ->
     case string:split(Pair, "=", all) of
@@ -172,10 +174,10 @@ parse_pairs([Pair | Rest], Acc) ->
                 andalso re:run(V, ?VALUE_MP) =/= nomatch
             of
                 false ->
-                    undefined;
+                    [];
                 true ->
                     parse_pairs(Rest, Acc ++ [{K, V}])
             end;
         undefined ->
-            undefined
+            []
     end.
