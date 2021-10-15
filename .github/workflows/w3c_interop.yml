@@ -1,0 +1,48 @@
+name: W3C Interop
+
+on:
+  pull_request:
+    branches:
+      - 'main'
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  interop_tests:
+    name: Run W3C Trace Context Interop Tests
+    runs-on: ubuntu-18.04
+    env:
+      OTP_VERSION:
+    steps:
+    - uses: actions/checkout@v2
+    - uses: erlef/setup-beam@v1
+      with:
+        otp-version: '24.1.2'
+    - uses: actions/cache@v2
+      name: Cache
+      with:
+        path: |
+          _build
+        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles(format('rebar.lock')) }}-1
+        restore-keys: |
+          ${{ runner.os }}-build-${{ matrix.otp_version }}-1-
+
+    - name: Compile
+      run: rebar3 as interop compile
+
+    - uses: actions/checkout@v2
+      repository: 'https://github.com/w3c/trace-context'
+      path: 'trace-context'
+    - name: Setup python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.6
+        architecture: x64
+    - run: pip install aiohttp
+    - run: |
+        erl -noinput -pa ./_build/interop/extras/interop/ $(rebar3 as interop path) -s w3c_trace_context_interop &
+
+        cd trace-context/test
+        python3 test.py http://127.0.0.1:5000/test
+      shell: bash

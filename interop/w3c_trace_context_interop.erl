@@ -17,14 +17,17 @@
 %%%-----------------------------------------------------------------------
 -module(w3c_trace_context_interop).
 
--export([run/0,
+-export([start/0,
          do/1]).
 
 -include_lib("inets/include/httpd.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").
 
-run() ->
+start() ->
+    application:ensure_all_started(inets),
+    application:ensure_all_started(opentelemetry),
+
     {ok, _Pid} = inets:start(httpd, [{port, 5000},
                                      {server_root, "/tmp"},
                                      {document_root, "/tmp"},
