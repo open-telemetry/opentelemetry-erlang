@@ -18,8 +18,6 @@ defmodule OpenTelemetry.Tracer do
 
   @type start_opts() :: %{
           optional(:attributes) => OpenTelemetry.attributes(),
-          # TODO sampler should is an opaque type defined in the implementation
-          optional(:sampler) => term(),
           optional(:links) => OpenTelemetry.links(),
           optional(:is_recording) => boolean(),
           optional(:start_time) => :opentelemetry.timestamp(),

@@ -18,7 +18,7 @@
 %%%-------------------------------------------------------------------------
 -module(otel_span_utils).
 
--export([start_span/3,
+-export([start_span/4,
          end_span/1,
          end_span/2]).
 
@@ -26,13 +26,12 @@
 -include("otel_sampler.hrl").
 -include("otel_span.hrl").
 
--spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_span:start_opts())
+-spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_sampler:t(), otel_span:start_opts())
                 -> {opentelemetry:span_ctx(), opentelemetry:span() | undefined}.
-start_span(Ctx, Name, Opts) ->
+start_span(Ctx, Name, Sampler, Opts) ->
     Attributes = maps:get(attributes, Opts, []),
     Links = maps:get(links, Opts, []),
     Kind = maps:get(kind, Opts, ?SPAN_KIND_INTERNAL),
-    Sampler = maps:get(sampler, Opts),
     StartTime = maps:get(start_time, Opts, opentelemetry:timestamp()),
     new_span(Ctx, Name, Sampler, StartTime, Kind, Attributes, Links).
 

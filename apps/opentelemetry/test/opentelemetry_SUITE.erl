@@ -438,13 +438,14 @@ default_sampler(_Config) ->
     ok.
 
 non_recording_ets_table(_Config) ->
-    Tracer = opentelemetry:get_tracer(),
+    Tracer={TracerModule, TracerConfig} = opentelemetry:get_tracer(),
 
     SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{}),
     ?assertMatch(true, SpanCtx1#span_ctx.is_recording),
 
     AlwaysOff = otel_sampler:new(always_off),
-    SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-2">>, #{sampler => AlwaysOff}),
+    Tracer1 = {TracerModule, TracerConfig#tracer{sampler=AlwaysOff}},
+    SpanCtx2 = otel_tracer:start_span(Tracer1, <<"span-2">>, #{}),
     ?assertMatch(false, SpanCtx2#span_ctx.is_recording),
 
     %% verify that ETS table only contains the recording span <<"span-1">>
@@ -452,11 +453,12 @@ non_recording_ets_table(_Config) ->
     ok.
 
 root_span_sampling_always_off(_Config) ->
-    Tracer = opentelemetry:get_tracer(),
+    Tracer={TracerModule, TracerConfig} = opentelemetry:get_tracer(),
 
     Sampler = otel_sampler:new(always_off),
+    Tracer1 = {TracerModule, TracerConfig#tracer{sampler=Sampler}},
 
-    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{sampler => Sampler}),
+    SpanCtx1 = otel_tracer:start_span(Tracer1, <<"span-1">>, #{}),
     ?assertMatch(false, SpanCtx1#span_ctx.is_recording),
     ?assertMatch(0, SpanCtx1#span_ctx.trace_flags),
 
@@ -468,11 +470,12 @@ root_span_sampling_always_off(_Config) ->
     ok.
 
 root_span_sampling_always_on(_Config) ->
-    Tracer = opentelemetry:get_tracer(),
+    Tracer={TracerModule, TracerConfig} = opentelemetry:get_tracer(),
 
     Sampler = otel_sampler:new(always_on),
+    Tracer1 = {TracerModule, TracerConfig#tracer{sampler=Sampler}},
 
-    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{sampler => Sampler}),
+    SpanCtx1 = otel_tracer:start_span(Tracer1, <<"span-1">>, #{}),
     ?assertMatch(true, SpanCtx1#span_ctx.is_recording),
     ?assertMatch(1, SpanCtx1#span_ctx.trace_flags),
 
@@ -491,16 +494,17 @@ record_but_not_sample(Config) ->
     Sampler = otel_sampler:new({static_sampler, #{<<"span-record-and-sample">> => ?RECORD_AND_SAMPLE,
                                                     <<"span-record">> => ?RECORD_ONLY}}),
 
-    Tracer = opentelemetry:get_tracer(),
+    {Module, Tracer0}  = opentelemetry:get_tracer(),
+    Tracer = {Module, Tracer0#tracer{sampler=Sampler}},
 
-    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-record-and-sample">>, #{sampler => Sampler}),
+    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-record-and-sample">>, #{}),
     ?assertEqual(true, SpanCtx1#span_ctx.is_recording),
     ?assertEqual(1, SpanCtx1#span_ctx.trace_flags),
 
     ?set_current_span(SpanCtx1),
     ?assertMatch(SpanCtx1, ?current_span_ctx),
 
-    SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-record">>, #{sampler => Sampler}),
+    SpanCtx2 = otel_tracer:start_span(Tracer, <<"span-record">>, #{}),
     ?assertEqual(true, SpanCtx2#span_ctx.is_recording),
     ?assertEqual(0, SpanCtx2#span_ctx.trace_flags),
 
