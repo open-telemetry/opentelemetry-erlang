@@ -28,3 +28,5 @@
                                                               dropped |
                                                               {error, invalid_span} |
                                                               {error, no_export_buffer}.
+-callback force_flush(processor_config()) -> ok |
+                                             {error, term()}.

@@ -26,7 +26,7 @@
 %% Do whatever needs to be done to export each span here, the caller will block
 %% until it returns.
 -callback export(ets:tab(), otel_resource:t(), term()) -> ok |
-                                                        success |
-                                                        failed_not_retryable |
-                                                        failed_retryable.
+                                                          success |
+                                                          failed_not_retryable |
+                                                          failed_retryable.
 -callback shutdown(term()) -> ok.

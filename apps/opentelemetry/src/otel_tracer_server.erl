@@ -110,7 +110,17 @@ handle_call({register_tracer, Name, Vsn}, _From, State=#state{shared_tracer=Trac
                            Tracer#tracer{instrumentation_library=InstrumentationLibrary}},
             _ = opentelemetry:set_tracer(Name, TracerTuple),
             {reply, ok, State}
-    end.
+    end;
+handle_call(force_flush, _From, State=#state{processors=Processors}) ->
+    Reply = lists:foldl(fun(Processor, Result) ->
+                                case force_flush_(Processor) of
+                                    ok ->
+                                        Result;
+                                    {error, Reason} ->
+                                        update_force_flush_error(Reason, Result)
+                                end
+                        end, ok, Processors),
+    {reply, Reply, State}.
 
 handle_cast(_, State) ->
     {noreply, State}.
@@ -127,6 +137,13 @@ code_change(State=#state{shared_tracer=Tracer=#tracer{telemetry_library=Telemetr
 
 %%
 
+-spec update_force_flush_error(term(), ok | {error, list()}) -> {error, list()}.
+update_force_flush_error(Reason, ok) ->
+    {error, [Reason]};
+update_force_flush_error(Reason, {error, List}) ->
+    {error, [Reason | List]}.
+
+
 on_start(Processors) ->
     fun(Ctx, Span) ->
             lists:foldl(fun({P, Config}, Acc) ->
@@ -139,4 +156,12 @@ on_end(Processors) ->
             lists:foldl(fun({P, Config}, Bool) ->
                                 Bool andalso P:on_end(Span, Config)
                         end, true, Processors)
+    end.
+
+force_flush_({Processor, Config}) ->
+    try
+        Processor:force_flush(Config)
+    catch
+        C:T ->
+            {error, {Processor, {C, T}}}
     end.
