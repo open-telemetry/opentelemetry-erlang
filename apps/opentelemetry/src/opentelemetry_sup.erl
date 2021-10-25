@@ -42,7 +42,7 @@ init([Opts]) ->
 
     %% configuration server
     TracerServer = #{id => otel_tracer_server,
-                     start => {otel_tracer_provider, start_link, [otel_tracer_server, Opts]},
+                     start => {otel_tracer_server, start_link, [Opts]},
                      restart => permanent,
                      shutdown => 5000,
                      type => worker,

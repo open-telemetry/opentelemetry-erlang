@@ -12,49 +12,30 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc This module defines the API for a TracerProvider. A TracerProvider
+%% stores Tracer configuration and is how Tracers are accessed. An
+%% implementation must be a `gen_server' that handles the API's calls. The
+%% SDK should register a TracerProvider with the name `otel_tracer_provider'
+%% which is used as the default global Provider.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_tracer_provider).
 
--behaviour(gen_server).
-
--export([start_link/2,
-         resource/0,
+-export([register_tracer/2,
+         register_tracer/3,
          get_tracer/1,
-         register_tracer/2]).
-
--export([init/1,
-         handle_call/3,
-         handle_cast/2,
-         code_change/3]).
-
--type cb_state() :: term().
-
--callback init(term()) -> {ok, cb_state()}.
--callback register_tracer(atom(), binary(), cb_state()) -> boolean().
--callback get_tracer(opentelemetry:instrumentation_library(), cb_state()) -> opentelemetry:tracer() | undefined.
--callback resource(cb_state()) -> term() | undefined.
-
--record(state, {callback :: module(),
-                cb_state :: term()}).
-
-start_link(ProviderModule, Opts) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [ProviderModule, Opts], []).
-
--spec resource() -> term() | undefined.
-resource() ->
-    try
-        gen_server:call(?MODULE, resource)
-    catch exit:{noproc, _} ->
-            %% ignore because no SDK has been included and started
-            undefined
-    end.
+         get_tracer/2,
+         resource/0,
+         resource/1]).
 
 -spec register_tracer(atom(), binary()) -> boolean().
 register_tracer(Name, Vsn) ->
+    register_tracer(?MODULE, Name, Vsn).
+
+-spec register_tracer(atom() | pid(), atom(), binary()) -> boolean().
+register_tracer(ServerRef, Name, Vsn) ->
     try
-        gen_server:call(?MODULE, {register_tracer, Name, Vsn})
+        gen_server:call(ServerRef, {register_tracer, Name, Vsn})
     catch exit:{noproc, _} ->
             %% ignore register_tracer because no SDK has been included and started
             false
@@ -62,44 +43,26 @@ register_tracer(Name, Vsn) ->
 
 -spec get_tracer(opentelemetry:instrumentation_library()) -> opentelemetry:tracer() | undefined.
 get_tracer(InstrumentationLibrary) ->
+    get_tracer(?MODULE, InstrumentationLibrary).
+
+-spec get_tracer(atom() | pid(), opentelemetry:instrumentation_library()) -> opentelemetry:tracer() | undefined.
+get_tracer(ServerRef, InstrumentationLibrary) ->
     try
-        gen_server:call(?MODULE, {get_tracer, InstrumentationLibrary})
+        gen_server:call(ServerRef, {get_tracer, InstrumentationLibrary})
     catch exit:{noproc, _} ->
             %% ignore because likely no SDK has been included and started
             {otel_tracer_noop, []}
     end.
 
-init([ProviderModule, Opts]) ->
-    case ProviderModule:init(Opts) of
-        {ok, CbState} ->
-            {ok, #state{callback=ProviderModule,
-                        cb_state=CbState}};
-        Other ->
-            Other
+-spec resource() -> term() | undefined.
+resource() ->
+    resource(?MODULE).
+
+-spec resource(atom() | pid()) -> term() | undefined.
+resource(ServerRef) ->
+    try
+        gen_server:call(ServerRef, resource)
+    catch exit:{noproc, _} ->
+            %% ignore because no SDK has been included and started
+            undefined
     end.
-
-handle_call({get_tracer, InstrumentationLibrary}, _From, State=#state{callback=Cb,
-                                                                      cb_state=CbState}) ->
-    Tracer = Cb:get_tracer(InstrumentationLibrary, CbState),
-    {reply, Tracer, State};
-handle_call({register_tracer, Name, Vsn}, _From, State=#state{callback=Cb,
-                                                              cb_state=CbState}) ->
-    _ = Cb:register_tracer(Name, Vsn, CbState),
-    {reply, true, State};
-handle_call(resource, _From, State=#state{callback=Cb,
-                                          cb_state=CbState}) ->
-    Resource = Cb:resource(CbState),
-    {reply, Resource, State};
-handle_call(_Msg, _From, State) ->
-    {noreply, State}.
-
-handle_cast(_Msg, State) ->
-    {noreply, State}.
-
-%% TODO: Use `Extra' as options to update the state like the sampler?
-code_change(_OldVsn, State=#state{callback=Cb,
-                                  cb_state=CbState}, _Extra) ->
-    NewCbState = Cb:code_change(CbState),
-    {ok, State#state{cb_state=NewCbState}}.
-
-%%
