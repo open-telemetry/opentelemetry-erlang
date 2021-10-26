@@ -35,6 +35,7 @@
 -export([start_link/1,
          on_start/3,
          on_end/2,
+         force_flush/1,
          set_exporter/1,
          set_exporter/2,
          report_cb/1]).
@@ -95,6 +96,10 @@ on_end(Span=#span{}, _) ->
     do_insert(Span);
 on_end(_Span, _) ->
     {error, invalid_span}.
+
+-spec force_flush(otel_span_processor:processor_config()) -> ok.
+force_flush(_) ->
+    gen_statem:cast(?MODULE, force_flush).
 
 init([Args]) ->
     process_flag(trap_exit, true),
@@ -160,6 +165,14 @@ exporting(info, {completed, FromPid}, Data=#data{runner_pid=FromPid}) ->
     complete_exporting(Data);
 exporting(EventType, Event, Data) ->
     handle_event_(exporting, EventType, Event, Data).
+
+%% transition to exporting on a force_flush unless we are already exporting
+%% if exporting then postpone the event so the force flush happens after
+%% this current exporting is complete
+handle_event_(exporting, _, force_flush, _Data) ->
+    {keep_state_and_data, [postpone]};
+handle_event_(_State, _, force_flush, Data) ->
+    {next_state, exporting, Data};
 
 handle_event_(_State, {timeout, check_table_size}, check_table_size, #data{max_queue_size=infinity}) ->
     keep_state_and_data;

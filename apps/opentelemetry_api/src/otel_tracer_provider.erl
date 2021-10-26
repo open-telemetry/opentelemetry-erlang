@@ -26,7 +26,9 @@
          get_tracer/1,
          get_tracer/2,
          resource/0,
-         resource/1]).
+         resource/1,
+         force_flush/0,
+         force_flush/1]).
 
 -spec register_tracer(atom(), binary()) -> boolean().
 register_tracer(Name, Vsn) ->
@@ -65,4 +67,17 @@ resource(ServerRef) ->
     catch exit:{noproc, _} ->
             %% ignore because no SDK has been included and started
             undefined
+    end.
+
+-spec force_flush() -> ok | {error, term()} | timeout.
+force_flush() ->
+    force_flush(?MODULE).
+
+-spec force_flush(atom() | pid()) -> ok | {error, term()} | timeout.
+force_flush(ServerRef) ->
+    try
+        gen_server:call(?MODULE, force_flush)
+    catch exit:{noproc, _} ->
+            %% ignore because likely no SDK has been included and started
+            ok
     end.

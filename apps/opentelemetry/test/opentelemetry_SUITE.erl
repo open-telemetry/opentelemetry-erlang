@@ -19,7 +19,7 @@ all() ->
      reset_after, attach_ctx, default_sampler, non_recording_ets_table,
      root_span_sampling_always_on, root_span_sampling_always_off,
      record_but_not_sample, record_exception_works, record_exception_with_message_works,
-     propagator_configuration, propagator_configuration_with_os_env].
+     propagator_configuration, propagator_configuration_with_os_env, force_flush].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
@@ -43,6 +43,14 @@ init_per_testcase(propagator_configuration_with_os_env, Config) ->
     application:set_env(opentelemetry, text_map_propagators, [b3multi, baggage]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
+init_per_testcase(force_flush, Config) ->
+    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1000000}}]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    %% adds an exporter for a new table
+    %% spans will be exported to a separate table for each of the test cases
+    Tid = ets:new(exported_spans, [public, bag]),
+    otel_batch_processor:set_exporter(otel_exporter_tab, Tid),
+    [{tid, Tid} | Config];
 init_per_testcase(_, Config) ->
     application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
@@ -133,6 +141,40 @@ propagator_configuration_with_os_env(_Config) ->
     ?assertEqual({{otel_propagator_b3, b3single}, []}, opentelemetry:get_text_map_injector()),
 
     ok.
+
+force_flush(Config) ->
+    Tid = ?config(tid, Config),
+    SpanCtx1 = ?start_span(<<"span-1">>),
+
+    %% start_span does not modify the context
+    ?assertMatch(undefined, ?current_span_ctx),
+    ?set_current_span(SpanCtx1),
+
+    %% since SpanCtx1 was set to the current span it will be the parent
+    SpanCtx2 = ?start_span(<<"span-2">>),
+    ?set_current_span(SpanCtx2),
+
+    ?assertMatch(SpanCtx2, ?current_span_ctx),
+    otel_span:end_span(SpanCtx2),
+
+    ?set_current_span(SpanCtx1),
+    ?assertMatch(SpanCtx1, ?current_span_ctx),
+
+    Attr1 = <<"attr-1">>,
+    AttrValue1 = <<"attr-value-1">>,
+    ?set_attribute(Attr1, AttrValue1),
+
+    otel_span:end_span(SpanCtx1),
+
+    otel_tracer_provider:force_flush(),
+
+    %% wouldn't be exported at this point unless force flush worked
+    [Span1] = assert_exported(Tid, SpanCtx1),
+
+    ?assertEqual([{Attr1, AttrValue1}], Span1#span.attributes),
+
+    ok.
+
 
 macros(Config) ->
     Tid = ?config(tid, Config),
