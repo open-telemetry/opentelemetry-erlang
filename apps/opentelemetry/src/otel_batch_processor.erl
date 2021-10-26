@@ -372,12 +372,6 @@ report_cb(#{source := exporter,
             during := export,
             kind := Kind,
             reason := Reason,
-            exporter := ExporterModule}) ->
-    {"OTLP tracer ~p failed to initialize with exception ~p:~p", [ExporterModule, Kind, Reason]};
-report_cb(#{source := exporter,
-            during := export,
-            kind := Kind,
-            reason := Reason,
             exporter := ExporterModule,
             stacktrace := StackTrace}) ->
     {"exporter threw exception: exporter=~p ~ts",
