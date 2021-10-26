@@ -12,17 +12,22 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc This module is the SDK's implementation of the TracerProvider. The
+%% calls to the server are done from the API module `otel_tracer_provider'.
+%% This `gen_server' is started as part of the SDK's supervision tree and
+%% registers itself as the default TracerProvider by using the name
+%% `otel_tracer_provider' as its name.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_tracer_server).
 
--behaviour(otel_tracer_provider).
+-behaviour(gen_server).
+
+-export([start_link/1]).
 
 -export([init/1,
-         register_tracer/3,
-         get_tracer/2,
-         resource/1,
+         handle_call/3,
+         handle_cast/2,
          code_change/1]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
@@ -50,6 +55,9 @@
          %% the name, language (erlang) and version
          telemetry_library :: telemetry_library()
         }).
+
+start_link(Opts) ->
+    gen_server:start_link({local, otel_tracer_provider}, ?MODULE, Opts, []).
 
 init(Opts) ->
     Resource = otel_resource_detector:get_resource(),
@@ -83,27 +91,29 @@ init(Opts) ->
                 deny_list=DenyList,
                 processors=Processors}}.
 
-resource(#state{resource=Resource}) ->
-    Resource.
-
-get_tracer(InstrumentationLibrary, #state{shared_tracer=Tracer,
-                                          deny_list=_DenyList}) ->
-
-    {Tracer#tracer.module,
-     Tracer#tracer{instrumentation_library=InstrumentationLibrary}}.
-
-register_tracer(Name, Vsn, #state{shared_tracer=Tracer,
-                                  deny_list=DenyList}) ->
+handle_call(resource, _From, State=#state{resource=Resource}) ->
+    {reply, Resource, State};
+handle_call({get_tracer, InstrumentationLibrary}, _From, State=#state{shared_tracer=Tracer,
+                                                                      deny_list=_DenyList}) ->
+    {reply, {Tracer#tracer.module,
+             Tracer#tracer{instrumentation_library=InstrumentationLibrary}}, State};
+handle_call({register_tracer, Name, Vsn}, _From, State=#state{shared_tracer=Tracer,
+                                                              deny_list=DenyList}) ->
     %% TODO: support semver constraints in denylist
     case proplists:is_defined(Name, DenyList) of
         true ->
-            opentelemetry:set_tracer(Name, {otel_tracer_noop, []});
+            _ = opentelemetry:set_tracer(Name, {otel_tracer_noop, []}),
+            {reply, ok, State};
         false ->
             InstrumentationLibrary = opentelemetry:instrumentation_library(Name, Vsn),
             TracerTuple = {Tracer#tracer.module,
                            Tracer#tracer{instrumentation_library=InstrumentationLibrary}},
-            opentelemetry:set_tracer(Name, TracerTuple)
+            _ = opentelemetry:set_tracer(Name, TracerTuple),
+            {reply, ok, State}
     end.
+
+handle_cast(_, State) ->
+    {noreply, State}.
 
 %% the application vsn has likely changed during a code change
 %% so update the shared tracer data here
