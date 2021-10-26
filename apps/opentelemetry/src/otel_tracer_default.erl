@@ -30,17 +30,12 @@
 %% @doc Starts an inactive Span and returns its SpanCtx.
 -spec start_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(),
                  otel_span:start_opts()) -> opentelemetry:span_ctx().
-start_span(Ctx, Tracer={_, #tracer{on_start_processors=Processors,
-                                   on_end_processors=OnEndProcessors,
-                                   instrumentation_library=InstrumentationLibrary}}, Name, Opts) ->
-    Opts1 = maybe_set_sampler(Tracer, Opts),
-    SpanCtx = otel_span_ets:start_span(Ctx, Name, Opts1, Processors, InstrumentationLibrary),
+start_span(Ctx, {_, #tracer{on_start_processors=Processors,
+                            on_end_processors=OnEndProcessors,
+                            sampler=Sampler,
+                            instrumentation_library=InstrumentationLibrary}}, Name, Opts) ->
+    SpanCtx = otel_span_ets:start_span(Ctx, Name, Sampler, Opts, Processors, InstrumentationLibrary),
     SpanCtx#span_ctx{span_sdk={otel_span_ets, OnEndProcessors}}.
-
-maybe_set_sampler(_Tracer, Opts) when is_map_key(sampler, Opts) ->
-    Opts;
-maybe_set_sampler({_, #tracer{sampler=Sampler}}, Opts) ->
-    Opts#{sampler => Sampler}.
 
 -spec with_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(),
                 otel_span:start_opts(), otel_tracer:traced_fun(T)) -> T.

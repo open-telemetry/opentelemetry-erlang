@@ -62,7 +62,6 @@ defmodule OpenTelemetryTest do
       kind: :internal,
       links: [],
       start_time: :opentelemetry.timestamp()
-      # sampler
     } do
       :ok
     end
