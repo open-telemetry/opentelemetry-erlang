@@ -76,7 +76,7 @@ force_flush() ->
 -spec force_flush(atom() | pid()) -> ok | {error, term()} | timeout.
 force_flush(ServerRef) ->
     try
-        gen_server:call(?MODULE, force_flush)
+        gen_server:call(ServerRef, force_flush)
     catch exit:{noproc, _} ->
             %% ignore because likely no SDK has been included and started
             ok
