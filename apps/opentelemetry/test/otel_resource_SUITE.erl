@@ -13,7 +13,7 @@
 %% TODO: negative testing. What a valid value is is still in flux so nothing bothering
 %% to write tests to limit what can be a value only have them become valid values.
 all() ->
-    [startup, os_env_resource, app_env_resource, combining, crash_detector,
+    [startup, startup_env_service_name, os_env_resource, app_env_resource, combining, crash_detector,
      timeout_detector, release_service_name, unknown_service_name, release_service_name_no_version].
 
 startup(_Config) ->
@@ -32,6 +32,29 @@ startup(_Config) ->
                          {<<"service.version">>, <<"1.1.1">>}], otel_resource:attributes(Tracer#tracer.resource)),
         ok
     after
+        os:unsetenv("OTEL_RESOURCE_ATTRIBUTES"),
+        application:stop(opentelemetry),
+        application:unload(opentelemetry)
+    end.
+
+startup_env_service_name(_Config) ->
+    try
+        os:putenv("OTEL_SERVICE_NAME", "env-service-name"),
+        os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=1.1.1"),
+
+        {ok, _} = application:ensure_all_started(opentelemetry),
+        {_, Tracer} = opentelemetry:get_tracer(),
+        Resource = otel_tracer_provider:resource(),
+        _ = application:stop(opentelemetry),
+
+        ?assertIsSubset([{<<"service.name">>, <<"env-service-name">>},
+                         {<<"service.version">>, <<"1.1.1">>}], otel_resource:attributes(Resource)),
+
+        ?assertIsSubset([{<<"service.name">>, <<"env-service-name">>},
+                         {<<"service.version">>, <<"1.1.1">>}], otel_resource:attributes(Tracer#tracer.resource)),
+        ok
+    after
+        os:unsetenv("OTEL_SERVICE_NAME"),
         os:unsetenv("OTEL_RESOURCE_ATTRIBUTES"),
         application:stop(opentelemetry),
         application:unload(opentelemetry)
