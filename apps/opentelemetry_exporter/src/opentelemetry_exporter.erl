@@ -221,13 +221,23 @@ endpoint(Endpoint) ->
     end.
 
 parse_endpoint({Scheme, Host, Port, SSLOptions}) when is_list(SSLOptions) ->
-    {true, #{scheme => atom_to_list(Scheme), host => Host, port => Port, path => [], ssl_options => SSLOptions}};
+    {true, #{scheme => atom_to_list(Scheme),
+             host => unicode:characters_to_list(Host),
+             port => Port,
+             path => [],
+             ssl_options => SSLOptions}};
 parse_endpoint({Scheme, Host, Port, _}) ->
-    {true, #{scheme => atom_to_list(Scheme), host => Host, port => Port, path => []}};
-parse_endpoint(Endpoint=#{host := _Host, port := _Port, scheme := _Scheme, path := _Path}) ->
-    {true, Endpoint};
-parse_endpoint(Endpoint=#{host := _Host, scheme := _Scheme, path := _Path}) ->
-    {true, Endpoint#{port => ?DEFAULT_PORT}};
+    {true, #{scheme => atom_to_list(Scheme),
+             host => unicode:characters_to_list(Host),
+             port => Port,
+             path => []}};
+parse_endpoint(Endpoint=#{host := Host, port := _Port, scheme := _Scheme, path := Path}) ->
+    {true, Endpoint#{host => unicode:characters_to_list(Host),
+                     path => unicode:characters_to_list(Path)}};
+parse_endpoint(Endpoint=#{host := Host, scheme := _Scheme, path := Path}) ->
+    {true, Endpoint#{host => unicode:characters_to_list(Host),
+                     port => ?DEFAULT_PORT,
+                     path => unicode:characters_to_list(Path)}};
 parse_endpoint(String) when is_list(String) orelse is_binary(String) ->
     parse_endpoint(uri_string:parse(unicode:characters_to_list(String)));
 parse_endpoint(_) ->

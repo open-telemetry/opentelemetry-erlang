@@ -31,7 +31,11 @@ defmodule OpenTelemetry.Tracer do
   """
   defmacro start_span(name, opts \\ quote(do: %{})) do
     quote bind_quoted: [name: name, start_opts: opts] do
-      :otel_tracer.start_span(:opentelemetry.get_application_tracer(__MODULE__), name, Map.new(start_opts))
+      :otel_tracer.start_span(
+        :opentelemetry.get_application_tracer(__MODULE__),
+        name,
+        Map.new(start_opts)
+      )
     end
   end
 

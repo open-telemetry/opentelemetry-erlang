@@ -160,29 +160,7 @@ required_attributes(Resource) ->
     ProgName = prog_name(),
     ProcessResource = otel_resource:create([{?PROCESS_EXECUTABLE_NAME, ProgName} | process_attributes()]),
     Resource1 = otel_resource:merge(Resource, ProcessResource),
-
-    Attributes = otel_resource:attributes(Resource1),
-    case lists:keyfind(?SERVICE_NAME, 1, Attributes) of
-        false ->
-            %% if service.name isn't set we try finding the release name
-            %% if no release name we use the default
-            DefaultServiceResource =
-                case find_release() of
-                    {RelName, RelVsn} when RelName =/= false ->
-                        otel_resource:create([{?SERVICE_NAME, RelName} |
-                                              case RelVsn of
-                                                  false -> [];
-                                                  _ -> [{?SERVICE_VERSION, RelVsn}]
-                                              end]);
-                    _ ->
-                        otel_resource:create([{?SERVICE_NAME, "unknown_service:" ++ ProgName}])
-                end,
-
-
-            otel_resource:merge(Resource1,  DefaultServiceResource);
-        _ ->
-            Resource1
-    end.
+    add_service_name(Resource1, ProgName).
 
 process_attributes() ->
     OtpVsn = otp_vsn(),
@@ -234,4 +212,37 @@ release_name() ->
             os:getenv("REL_NAME");
         RelName ->
             RelName
+    end.
+
+%% if OTEL_SERVICE_NAME isn't set then check for service.name in attributes
+%% if that isn't found then try finding the release name
+%% if no release name we use the default service name
+add_service_name(Resource, ProgName) ->
+    case os:getenv("OTEL_SERVICE_NAME") of
+        false ->
+            Attributes = otel_resource:attributes(Resource),
+            case lists:keyfind(?SERVICE_NAME, 1, Attributes) of
+                false ->
+                    ServiceResource = service_release_name(ProgName),
+                    otel_resource:merge(Resource,  ServiceResource);
+                _ ->
+                    Resource
+            end;
+        ServiceName ->
+            %% service.name resource first to override any other service.name
+            %% attribute that could be set in the resource
+            otel_resource:merge(otel_resource:create([{?SERVICE_NAME, ServiceName}]),
+                                Resource)
+    end.
+
+service_release_name(ProgName) ->
+    case find_release() of
+        {RelName, RelVsn} when RelName =/= false ->
+            otel_resource:create([{?SERVICE_NAME, RelName} |
+                                  case RelVsn of
+                                      false -> [];
+                                      _ -> [{?SERVICE_VERSION, RelVsn}]
+                                  end]);
+        _ ->
+            otel_resource:create([{?SERVICE_NAME, "unknown_service:" ++ ProgName}])
     end.
