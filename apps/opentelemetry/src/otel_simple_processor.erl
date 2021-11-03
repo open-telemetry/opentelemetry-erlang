@@ -1,5 +1,5 @@
 %%%------------------------------------------------------------------------
-%% Copyright 2019, OpenTelemetry Authors
+%% Copyright 2021, OpenTelemetry Authors
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
 %% You may obtain a copy of the License at
@@ -12,20 +12,15 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc The Batch Span Processor implements the `otel_span_processor'
-%% behaviour. It stores finished Spans in a ETS table buffer and exports
-%% them on an interval or when the table reaches a maximum size.
+%% @doc This Span Processor synchronously exports each ended Span.
 %%
-%% Timeouts:
-%%   exporting_timeout_ms: How long to let the exports run before killing.
-%%   check_table_size_ms: Timeout to check the size of the export table.
-%%   scheduled_delay_ms: How often to trigger running the exporters.
+%% Use this processor if ending a Span should block until it has been
+%% exported. This is useful for cases like a serverless environment where
+%% the application will possibly be suspended after handling a request.
 %%
-%% The size limit of the current table where finished spans are stored can
-%% be configured with the `max_queue_size' option.
 %% @end
 %%%-----------------------------------------------------------------------
--module(otel_batch_processor).
+-module(otel_simple_processor).
 
 -behaviour(gen_statem).
 -behaviour(otel_span_processor).
@@ -49,25 +44,13 @@
 -include("otel_span.hrl").
 
 -record(data, {exporter             :: {module(), term()} | undefined,
+               current_from         :: gen_statem:from() | undefined,
                resource             :: otel_resource:t(),
                handed_off_table     :: atom() | undefined,
                runner_pid           :: pid() | undefined,
-               max_queue_size       :: integer() | infinity,
-               exporting_timeout_ms :: integer(),
-               check_table_size_ms  :: integer() | infinity,
-               scheduled_delay_ms   :: integer()}).
+               exporting_timeout_ms :: integer()}).
 
--define(CURRENT_TABLES_KEY, {?MODULE, current_table}).
--define(TABLE_1, otel_export_table1).
--define(TABLE_2, otel_export_table2).
--define(CURRENT_TABLE, persistent_term:get(?CURRENT_TABLES_KEY)).
-
--define(DEFAULT_MAX_QUEUE_SIZE, 2048).
--define(DEFAULT_SCHEDULED_DELAY_MS, timer:seconds(5)).
 -define(DEFAULT_EXPORTER_TIMEOUT_MS, timer:minutes(5)).
--define(DEFAULT_CHECK_TABLE_SIZE_MS, timer:seconds(1)).
-
--define(ENABLED_KEY, {?MODULE, enabled_key}).
 
 start_link(Opts) ->
     gen_statem:start_link({local, ?MODULE}, ?MODULE, [Opts], []).
@@ -91,7 +74,7 @@ on_start(_Ctx, Span, _) ->
 on_end(#span{trace_flags=TraceFlags}, _) when not(?IS_SAMPLED(TraceFlags)) ->
     dropped;
 on_end(Span=#span{}, _) ->
-    do_insert(Span);
+    gen_statem:call(?MODULE, {export, Span});
 on_end(_Span, _) ->
     {error, invalid_span}.
 
@@ -102,57 +85,39 @@ force_flush(_) ->
 init([Args]) ->
     process_flag(trap_exit, true),
 
-    SizeLimit = maps:get(max_queue_size, Args, ?DEFAULT_MAX_QUEUE_SIZE),
     ExportingTimeout = maps:get(exporting_timeout_ms, Args, ?DEFAULT_EXPORTER_TIMEOUT_MS),
-    ScheduledDelay = maps:get(scheduled_delay_ms, Args, ?DEFAULT_SCHEDULED_DELAY_MS),
-    CheckTableSize = maps:get(check_table_size_ms, Args, ?DEFAULT_CHECK_TABLE_SIZE_MS),
 
     Exporter = otel_exporter:init(maps:get(exporter, Args, undefined)),
     Resource = otel_tracer_provider:resource(),
 
-    _Tid1 = new_export_table(?TABLE_1),
-    _Tid2 = new_export_table(?TABLE_2),
-    persistent_term:put(?CURRENT_TABLES_KEY, ?TABLE_1),
-
-    enable(),
-
     {ok, idle, #data{exporter=Exporter,
                      resource = Resource,
                      handed_off_table=undefined,
-                     max_queue_size=case SizeLimit of
-                                        infinity -> infinity;
-                                        _ -> SizeLimit div erlang:system_info(wordsize)
-                                    end,
-                     exporting_timeout_ms=ExportingTimeout,
-                     check_table_size_ms=CheckTableSize,
-                     scheduled_delay_ms=ScheduledDelay}}.
+                     exporting_timeout_ms=ExportingTimeout}}.
 
 callback_mode() ->
-    [state_functions, state_enter].
+    state_functions.
 
-idle(enter, _OldState, #data{scheduled_delay_ms=SendInterval}) ->
-    {keep_state_and_data, [{{timeout, export_spans}, SendInterval, export_spans}]};
-idle(_, export_spans, Data) ->
-    {next_state, exporting, Data};
+idle({call, From}, {export, Span}, Data) ->
+    {next_state, exporting, Data, [{next_event, internal, {export, From, Span}}]};
 idle(EventType, Event, Data) ->
     handle_event_(idle, EventType, Event, Data).
 
-exporting({timeout, export_spans}, export_spans, _) ->
+exporting({call, _From}, {export, _}, _) ->
     {keep_state_and_data, [postpone]};
-exporting(enter, _OldState, Data=#data{exporting_timeout_ms=ExportingTimeout,
-                                       scheduled_delay_ms=SendInterval}) ->
-    {OldTableName, RunnerPid} = export_spans(Data),
+exporting(internal, {export, From, Span}, Data=#data{exporting_timeout_ms=ExportingTimeout}) ->
+    {OldTableName, RunnerPid} = export_span(Span, Data),
     {keep_state, Data#data{runner_pid=RunnerPid,
+                           current_from=From,
                            handed_off_table=OldTableName},
-     [{state_timeout, ExportingTimeout, exporting_timeout},
-      {{timeout, export_spans}, SendInterval, export_spans}]};
-exporting(state_timeout, exporting_timeout, Data=#data{handed_off_table=ExportingTable}) ->
+     [{state_timeout, ExportingTimeout, exporting_timeout}]};
+exporting(state_timeout, exporting_timeout, Data=#data{current_from=From,
+                                                       handed_off_table=_ExportingTable}) ->
     %% kill current exporting process because it is taking too long
     %% which deletes the exporting table, so create a new one and
     %% repeat the state to force another span exporting immediately
     Data1 = kill_runner(Data),
-    new_export_table(ExportingTable),
-    {repeat_state, Data1};
+    {repeat_state, Data1, [{reply, From, {error, timeout}}]};
 %% important to verify runner_pid and FromPid are the same in case it was sent
 %% after kill_runner was called but before it had done the unlink
 exporting(info, {'EXIT', FromPid, _}, Data=#data{runner_pid=FromPid}) ->
@@ -164,25 +129,6 @@ exporting(info, {completed, FromPid}, Data=#data{runner_pid=FromPid}) ->
 exporting(EventType, Event, Data) ->
     handle_event_(exporting, EventType, Event, Data).
 
-%% transition to exporting on a force_flush unless we are already exporting
-%% if exporting then postpone the event so the force flush happens after
-%% this current exporting is complete
-handle_event_(exporting, _, force_flush, _Data) ->
-    {keep_state_and_data, [postpone]};
-handle_event_(_State, _, force_flush, Data) ->
-    {next_state, exporting, Data};
-
-handle_event_(_State, {timeout, check_table_size}, check_table_size, #data{max_queue_size=infinity}) ->
-    keep_state_and_data;
-handle_event_(_State, {timeout, check_table_size}, check_table_size, #data{max_queue_size=MaxQueueSize}) ->
-    case ets:info(?CURRENT_TABLE, size) of
-        M when M >= MaxQueueSize ->
-            disable(),
-            keep_state_and_data;
-        _ ->
-            enable(),
-            keep_state_and_data
-    end;
 handle_event_(_, {call, From}, {set_exporter, Exporter}, Data=#data{exporter=OldExporter}) ->
     otel_exporter:shutdown(OldExporter),
     {keep_state, Data#data{exporter=otel_exporter:init(Exporter)}, [{reply, From, ok}]};
@@ -190,40 +136,17 @@ handle_event_(_, _, _, _) ->
     keep_state_and_data.
 
 terminate(_, _, _Data) ->
-    %% TODO: flush buffers to exporter
     ok.
 
 %%
 
-enable()->
-    persistent_term:put(?ENABLED_KEY, true).
-
-disable() ->
-    persistent_term:put(?ENABLED_KEY, false).
-
-is_enabled() ->
-    persistent_term:get(?ENABLED_KEY, true).
-
-do_insert(Span) ->
-    try
-        case is_enabled() of
-            true ->
-                ets:insert(?CURRENT_TABLE, Span);
-            _ ->
-                dropped
-        end
-    catch
-        error:badarg ->
-            {error, no_batch_span_processor};
-        _:_ ->
-            {error, other}
-    end.
-
-complete_exporting(Data=#data{handed_off_table=ExportingTable})
+complete_exporting(Data=#data{current_from=From,
+                              handed_off_table=ExportingTable})
   when ExportingTable =/= undefined ->
-    new_export_table(ExportingTable),
-    {next_state, idle, Data#data{runner_pid=undefined,
-                                 handed_off_table=undefined}}.
+    {next_state, idle, Data#data{current_from=undefined,
+                                 runner_pid=undefined,
+                                 handed_off_table=undefined},
+     [{reply, From, ok}]}.
 
 kill_runner(Data=#data{runner_pid=RunnerPid}) ->
     erlang:unlink(RunnerPid),
@@ -233,7 +156,6 @@ kill_runner(Data=#data{runner_pid=RunnerPid}) ->
 
 new_export_table(Name) ->
      ets:new(Name, [public,
-                    named_table,
                     {write_concurrency, true},
                     duplicate_bag,
                     %% OpenTelemetry exporter protos group by the
@@ -242,34 +164,22 @@ new_export_table(Name) ->
                     %% for each instrumentation_library and export together.
                     {keypos, #span.instrumentation_library}]).
 
-export_spans(#data{exporter=Exporter,
-                   resource=Resource}) ->
-    CurrentTable = ?CURRENT_TABLE,
-    NewCurrentTable = case CurrentTable of
-                          ?TABLE_1 ->
-                              ?TABLE_2;
-                          ?TABLE_2 ->
-                              ?TABLE_1
-                      end,
-
-    %% an atom is a single word so this does not trigger a global GC
-    persistent_term:put(?CURRENT_TABLES_KEY, NewCurrentTable),
-    %% set the table to accept inserts
-    enable(),
-
+export_span(Span, #data{exporter=Exporter,
+                        resource=Resource}) ->
+    Table = new_export_table(otel_simple_processor_table),
+    _ = ets:insert(Table, Span),
     Self = self(),
     RunnerPid = erlang:spawn_link(fun() -> send_spans(Self, Resource, Exporter) end),
-    ets:give_away(CurrentTable, RunnerPid, export),
-    {CurrentTable, RunnerPid}.
+    ets:give_away(Table, RunnerPid, export),
+    {Table, RunnerPid}.
 
 %% Additional benefit of using a separate process is calls to `register` won't
 %% timeout if the actual exporting takes longer than the call timeout
 send_spans(FromPid, Resource, Exporter) ->
     receive
         {'ETS-TRANSFER', Table, FromPid, export} ->
-            TableName = ets:rename(Table, current_send_table),
-            export(Exporter, Resource, TableName),
-            ets:delete(TableName),
+            export(Exporter, Resource, Table),
+            ets:delete(Table),
             completed(FromPid)
     end.
 
@@ -282,7 +192,7 @@ export({ExporterModule, Config}, Resource, SpansTid) ->
     %% don't let a exporter exception crash us
     %% and return true if exporter failed
     try
-        otel_exporter:export(ExporterModule, SpansTid, Resource, Config) =:= failed_not_retryable
+        ExporterModule:export(SpansTid, Resource, Config) =:= failed_not_retryable
     catch
         Kind:Reason:StackTrace ->
             ?LOG_INFO(#{source => exporter,
@@ -302,4 +212,12 @@ report_cb(#{source := exporter,
             exporter := ExporterModule,
             stacktrace := StackTrace}) ->
     {"exporter threw exception: exporter=~p ~ts",
-     [ExporterModule, otel_utils:format_exception(Kind, Reason, StackTrace)]}.
+     [ExporterModule, format_exception(Kind, Reason, StackTrace)]}.
+
+-if(?OTP_RELEASE >= 24).
+format_exception(Kind, Reason, StackTrace) ->
+    erl_error:format_exception(Kind, Reason, StackTrace).
+-else.
+format_exception(Kind, Reason, StackTrace) ->
+    io_lib:format("~p:~p ~p", [Kind, Reason, StackTrace]).
+-endif.
