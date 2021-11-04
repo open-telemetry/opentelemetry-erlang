@@ -90,6 +90,7 @@
                           ssl_options => []}.
 
 -type protocol() :: grpc | http_protobuf | http_json.
+-type compression() :: gzip.
 
 -type opts() :: #{endpoints => [endpoint()],
                   headers => headers(),
@@ -103,6 +104,7 @@
 -record(state, {protocol :: protocol(),
                 channel_pid :: pid() | undefined,
                 headers :: headers(),
+                compression :: compression() | undefined,
                 grpc_metadata :: map() | undefined,
                 endpoints :: [endpoint_map()]}).
 
@@ -113,6 +115,7 @@ init(Opts) ->
     SSLOptions = maps:get(ssl_options, Opts1, undefined),
     Endpoints = endpoints(maps:get(endpoints, Opts1, ?DEFAULT_ENDPOINTS), SSLOptions),
     Headers = headers(maps:get(headers, Opts1, [])),
+    Compression = maps:get(compression, Opts1, undefined),
     case maps:get(protocol, Opts1, http_protobuf) of
         grpc ->
             ChannelOpts = maps:get(channel_opts, Opts1, #{}),
@@ -121,6 +124,7 @@ init(Opts) ->
                     {ok, #state{channel_pid=ChannelPid,
                                 endpoints=Endpoints,
                                 headers=Headers,
+                                compression=Compression,
                                 grpc_metadata=headers_to_grpc_metadata(Headers),
                                 protocol=grpc}};
                 ErrorOrIgnore ->
@@ -130,15 +134,18 @@ init(Opts) ->
                                  "to http_protobuf protocol. reason=~p", [ErrorOrIgnore]),
                     {ok, #state{endpoints=Endpoints,
                                 headers=Headers,
+                                compression=Compression,
                                 protocol=http_protobuf}}
             end;
         http_protobuf ->
             {ok, #state{endpoints=Endpoints,
                         headers=Headers,
+                        compression=Compression,
                         protocol=http_protobuf}};
         http_json ->
             {ok, #state{endpoints=Endpoints,
                         headers=Headers,
+                        compression=Compression,
                         protocol=http_json}}
     end.
 
@@ -199,7 +206,7 @@ shutdown(#state{channel_pid=Pid}) ->
 %%
 
 grpcbox_endpoints(Endpoints) ->
-    [{scheme(Scheme), Host, Port, maps:get(ssl_options, Endpoint, [])} || 
+    [{scheme(Scheme), Host, Port, maps:get(ssl_options, Endpoint, [])} ||
         #{scheme := Scheme, host := Host, port := Port} = Endpoint <- Endpoints].
 
 headers_to_grpc_metadata(Headers) ->
