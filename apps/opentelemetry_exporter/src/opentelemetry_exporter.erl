@@ -154,6 +154,7 @@ export(_Tab, _Resource, #state{protocol=http_json}) ->
     {error, unimplemented};
 export(Tab, Resource, #state{protocol=http_protobuf,
                              headers=Headers,
+                             compression=Compression,
                              endpoints=[#{scheme := Scheme,
                                           host := Host,
                                           path := Path,
@@ -161,11 +162,16 @@ export(Tab, Resource, #state{protocol=http_protobuf,
                                           ssl_options := SSLOptions} | _]}) ->
     Proto = opentelemetry_exporter_trace_service_pb:encode_msg(tab_to_proto(Tab, Resource),
                                                                export_trace_service_request),
+    {NewHeaders, NewProto} = case Compression of
+      gzip -> {[{"content-encoding", "gzip"} | Headers], zlib:gzip(Proto)};
+        _ -> {Headers, Proto}
+    end,
     Address = uri_string:normalize(#{scheme => Scheme,
                                      host => Host,
                                      port => Port,
                                      path => Path}),
-    case httpc:request(post, {Address, Headers, "application/x-protobuf", Proto},
+
+    case httpc:request(post, {Address, NewHeaders, "application/x-protobuf", NewProto},
                        [{ssl, SSLOptions}], []) of
         {ok, {{_, Code, _}, _, _}} when Code >= 200 andalso Code =< 202 ->
             ok;
