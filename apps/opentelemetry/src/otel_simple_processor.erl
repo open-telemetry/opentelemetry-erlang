@@ -117,7 +117,7 @@ exporting(state_timeout, exporting_timeout, Data=#data{current_from=From,
     %% which deletes the exporting table, so create a new one and
     %% repeat the state to force another span exporting immediately
     Data1 = kill_runner(Data),
-    {repeat_state, Data1, [{reply, From, {error, timeout}}]};
+    {next_state, idle, Data1, [{reply, From, {error, timeout}}]};
 %% important to verify runner_pid and FromPid are the same in case it was sent
 %% after kill_runner was called but before it had done the unlink
 exporting(info, {'EXIT', FromPid, _}, Data=#data{runner_pid=FromPid}) ->
