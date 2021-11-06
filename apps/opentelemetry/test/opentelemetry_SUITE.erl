@@ -13,13 +13,29 @@
 -include("otel_sampler.hrl").
 -include("otel_span_ets.hrl").
 
+
 all() ->
-    [disable_auto_registration, registered_tracers, with_span, macros, child_spans,
+    [%% no need to include tests that don't export any spans with the simple/batch groups
+     disable_auto_registration,
+     registered_tracers,
+     %% force flush is a test of flushing the batch processor's table
+     force_flush,
+
+     %% all other tests are run with both the simple and batch processor
+     {group, otel_simple_processor},
+     {group, otel_batch_processor}].
+
+all_cases() ->
+    [with_span, macros, child_spans,
      update_span_data, tracer_instrumentation_library, tracer_previous_ctx, stop_temporary_app,
      reset_after, attach_ctx, default_sampler, non_recording_ets_table,
      root_span_sampling_always_on, root_span_sampling_always_off,
      record_but_not_sample, record_exception_works, record_exception_with_message_works,
      propagator_configuration, propagator_configuration_with_os_env, force_flush].
+
+groups() ->
+    [{otel_simple_processor, [], all_cases()},
+     {otel_batch_processor, [], all_cases()}].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
@@ -29,8 +45,18 @@ end_per_suite(_Config) ->
     application:unload(opentelemetry),
     ok.
 
+init_per_group(Processor, Config) ->
+    [{processor, Processor} | Config].
+
+end_per_group(_, _Config) ->
+    ok.
+
 init_per_testcase(disable_auto_registration, Config) ->
     application:set_env(opentelemetry, register_loaded_applications, false),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
+init_per_testcase(registered_tracers, Config) ->
+    application:set_env(opentelemetry, register_loaded_applications, true),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(propagator_configuration, Config) ->
@@ -52,12 +78,13 @@ init_per_testcase(force_flush, Config) ->
     otel_batch_processor:set_exporter(otel_exporter_tab, Tid),
     [{tid, Tid} | Config];
 init_per_testcase(_, Config) ->
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
+    Processor = ?config(processor, Config),
+    application:set_env(opentelemetry, processors, [{Processor, #{scheduled_delay_ms => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     %% adds an exporter for a new table
     %% spans will be exported to a separate table for each of the test cases
     Tid = ets:new(exported_spans, [public, bag]),
-    otel_batch_processor:set_exporter(otel_exporter_tab, Tid),
+    Processor:set_exporter(otel_exporter_tab, Tid),
     [{tid, Tid} | Config].
 
 end_per_testcase(disable_auto_registration, _Config) ->
