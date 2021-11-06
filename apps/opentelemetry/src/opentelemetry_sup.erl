@@ -57,6 +57,14 @@ init([Opts]) ->
                        type => worker,
                        modules => [otel_batch_processor]},
 
+    SimpleProcessorOpts = proplists:get_value(otel_simple_processor, Processors, #{}),
+    SimpleProcessor = #{id => otel_simple_processor,
+                       start => {otel_simple_processor, start_link, [SimpleProcessorOpts]},
+                       restart => permanent,
+                       shutdown => 5000,
+                       type => worker,
+                       modules => [otel_simple_processor]},
+
     SpanSup = #{id => otel_span_sup,
                 start => {otel_span_sup, start_link, [Opts]},
                 type => supervisor,
@@ -67,6 +75,6 @@ init([Opts]) ->
     %% `TracerServer' *must* start before the `BatchProcessor'
     %% `BatchProcessor' relies on getting the `Resource' from
     %% the `TracerServer' process
-    ChildSpecs = [Detectors, TracerServer, BatchProcessor, SpanSup],
+    ChildSpecs = [Detectors, TracerServer, BatchProcessor, SimpleProcessor, SpanSup],
 
     {ok, {SupFlags, ChildSpecs}}.
