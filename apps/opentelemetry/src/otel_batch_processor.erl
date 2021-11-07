@@ -141,11 +141,19 @@ exporting({timeout, export_spans}, export_spans, _) ->
     {keep_state_and_data, [postpone]};
 exporting(enter, _OldState, Data=#data{exporting_timeout_ms=ExportingTimeout,
                                        scheduled_delay_ms=SendInterval}) ->
-    {OldTableName, RunnerPid} = export_spans(Data),
-    {keep_state, Data#data{runner_pid=RunnerPid,
-                           handed_off_table=OldTableName},
-     [{state_timeout, ExportingTimeout, exporting_timeout},
-      {{timeout, export_spans}, SendInterval, export_spans}]};
+    case export_spans(Data) of
+        ok ->
+            %% in an `enter' handler we can't return a `next_state' or `next_event'
+            %% so we rely on a timeout to trigger the transition to `idle'
+            {keep_state, Data#data{runner_pid=undefined}, [{state_timeout, 0, empty_table}]};
+        {OldTableName, RunnerPid} ->
+            {keep_state, Data#data{runner_pid=RunnerPid,
+                                   handed_off_table=OldTableName},
+             [{state_timeout, ExportingTimeout, exporting_timeout},
+              {{timeout, export_spans}, SendInterval, export_spans}]}
+    end;
+exporting(state_timeout, empty_table, Data) ->
+    {next_state, idle, Data};
 exporting(state_timeout, exporting_timeout, Data=#data{handed_off_table=ExportingTable}) ->
     %% kill current exporting process because it is taking too long
     %% which deletes the exporting table, so create a new one and
@@ -223,6 +231,9 @@ complete_exporting(Data=#data{handed_off_table=ExportingTable})
   when ExportingTable =/= undefined ->
     new_export_table(ExportingTable),
     {next_state, idle, Data#data{runner_pid=undefined,
+                                 handed_off_table=undefined}};
+complete_exporting(Data) ->
+    {next_state, idle, Data#data{runner_pid=undefined,
                                  handed_off_table=undefined}}.
 
 kill_runner(Data=#data{runner_pid=RunnerPid}) ->
@@ -245,22 +256,28 @@ new_export_table(Name) ->
 export_spans(#data{exporter=Exporter,
                    resource=Resource}) ->
     CurrentTable = ?CURRENT_TABLE,
-    NewCurrentTable = case CurrentTable of
-                          ?TABLE_1 ->
-                              ?TABLE_2;
-                          ?TABLE_2 ->
-                              ?TABLE_1
-                      end,
+    case ets:info(CurrentTable, size) of
+        0 ->
+            %% nothing to do if the table is empty
+            ok;
+        _ ->
+            NewCurrentTable = case CurrentTable of
+                                  ?TABLE_1 ->
+                                      ?TABLE_2;
+                                  ?TABLE_2 ->
+                                      ?TABLE_1
+                              end,
 
-    %% an atom is a single word so this does not trigger a global GC
-    persistent_term:put(?CURRENT_TABLES_KEY, NewCurrentTable),
-    %% set the table to accept inserts
-    enable(),
+            %% an atom is a single word so this does not trigger a global GC
+            persistent_term:put(?CURRENT_TABLES_KEY, NewCurrentTable),
+            %% set the table to accept inserts
+            enable(),
 
-    Self = self(),
-    RunnerPid = erlang:spawn_link(fun() -> send_spans(Self, Resource, Exporter) end),
-    ets:give_away(CurrentTable, RunnerPid, export),
-    {CurrentTable, RunnerPid}.
+            Self = self(),
+            RunnerPid = erlang:spawn_link(fun() -> send_spans(Self, Resource, Exporter) end),
+            ets:give_away(CurrentTable, RunnerPid, export),
+            {CurrentTable, RunnerPid}
+    end.
 
 %% Additional benefit of using a separate process is calls to `register` won't
 %% timeout if the actual exporting takes longer than the call timeout
