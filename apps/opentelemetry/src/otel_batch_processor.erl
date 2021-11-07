@@ -139,6 +139,9 @@ idle(_, export_spans, Data) ->
 idle(EventType, Event, Data) ->
     handle_event_(idle, EventType, Event, Data).
 
+%% receiving an `export_spans' timeout while exporting means the `ExportingTimeout'
+%% is shorter than the `SendInterval'. Postponing the event will ensure we export
+%% after
 exporting({timeout, export_spans}, export_spans, _) ->
     {keep_state_and_data, [postpone]};
 exporting(enter, _OldState, Data=#data{exporting_timeout_ms=ExportingTimeout,
@@ -154,7 +157,7 @@ exporting(state_timeout, exporting_timeout, Data=#data{handed_off_table=Exportin
     %% repeat the state to force another span exporting immediately
     Data1 = kill_runner(Data),
     new_export_table(ExportingTable),
-    {repeat_state, Data1};
+    {next_state, idle, Data1};
 %% important to verify runner_pid and FromPid are the same in case it was sent
 %% after kill_runner was called but before it had done the unlink
 exporting(info, {'EXIT', FromPid, _}, Data=#data{runner_pid=FromPid}) ->
