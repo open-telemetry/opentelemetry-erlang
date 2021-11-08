@@ -17,6 +17,11 @@
 %%%-----------------------------------------------------------------------
 -module(otel_exporter).
 
+-export([init/1,
+         export/4,
+         shutdown/1,
+         report_cb/1]).
+
 %% Do any initialization of the exporter here and return configuration
 %% that will be passed along with a list of spans to the `export' function.
 -callback init(term()) -> {ok, term()} | ignore.
@@ -30,3 +35,93 @@
                                                           failed_not_retryable |
                                                           failed_retryable.
 -callback shutdown(term()) -> ok.
+
+-include_lib("kernel/include/logger.hrl").
+
+init(undefined) ->
+    undefined;
+init({ExporterModule, Config}) when is_atom(ExporterModule) ->
+    try ExporterModule:init(Config) of
+        {ok, ExporterConfig} ->
+            {ExporterModule, ExporterConfig};
+        ignore ->
+            undefined
+    catch
+        Kind:Reason:StackTrace ->
+            %% logging in debug level since config argument in stacktrace could have secrets
+            ?LOG_DEBUG(#{source => exporter,
+                         during => init,
+                         kind => Kind,
+                         reason => Reason,
+                         exporter => ExporterModule,
+                         stacktrace => StackTrace}, #{report_cb => fun ?MODULE:report_cb/1}),
+
+            %% print a more useful message about the failure if we can discern
+            %% one from the failure reason and exporter used
+            case {Kind, Reason} of
+                {error, badarg} when ExporterModule =:= opentelemetry_exporter ->
+                    case maps:get(protocol, Config, undefined) of
+                        grpc ->
+                            %% grpc protocol uses grpcbox which is not included by default
+                            %% this will check if it is available so we can warn the user if
+                            %% the dependency needs to be added
+                            try grpcbox:module_info() of
+                                _ ->
+                                    undefined
+                            catch
+                                _:_ ->
+                                    ?LOG_WARNING("OTLP tracer, ~p, failed to initialize when using GRPC protocol and `grpcbox` module is not available in the code path. Verify that you have the `grpcbox` dependency included and rerun.", [ExporterModule]),
+                                    undefined
+                            end;
+                        _ ->
+                            %% same as the debug log above
+                            %% without the stacktrace and at a higher level
+                            ?LOG_WARNING(#{source => exporter,
+                                           during => init,
+                                           kind => Kind,
+                                           reason => Reason,
+                                           exporter => ExporterModule}, #{report_cb => fun ?MODULE:report_cb/1}),
+                            undefined
+                    end;
+                {error, undef} when ExporterModule =:= opentelemetry_exporter ->
+                    ?LOG_WARNING("Trace exporter module ~p not found. Verify you have included the `opentelemetry_exporter` dependency.", [ExporterModule]),
+                    undefined;
+                {error, undef} ->
+                    ?LOG_WARNING("Trace exporter module ~p not found. Verify you have included the dependency that contains the exporter module.", [ExporterModule]),
+                    undefined;
+                _ ->
+                    %% same as the debug log above
+                    %% without the stacktrace and at a higher level
+                    ?LOG_WARNING(#{source => exporter,
+                                   during => init,
+                                   kind => Kind,
+                                   reason => Reason,
+                                   exporter => ExporterModule}, #{report_cb => fun ?MODULE:report_cb/1}),
+                    undefined
+            end
+    end;
+init(ExporterModule) when is_atom(ExporterModule) ->
+    init({ExporterModule, []}).
+
+export(ExporterModule, SpansTid, Resource, Config) ->
+    ExporterModule:export(SpansTid, Resource, Config).
+
+shutdown(undefined) ->
+    ok;
+shutdown({ExporterModule, Config}) ->
+    ExporterModule:shutdown(Config).
+
+report_cb(#{source := exporter,
+            during := init,
+            kind := Kind,
+            reason := Reason,
+            exporter := ExporterModule,
+            stacktrace := StackTrace}) ->
+    {"OTLP tracer ~p failed to initialize: ~ts",
+     [ExporterModule, otel_utils:format_exception(Kind, Reason, StackTrace)]};
+report_cb(#{source := exporter,
+            during := init,
+            kind := Kind,
+            reason := Reason,
+            exporter := ExporterModule}) ->
+    {"OTLP tracer ~p failed to initialize with exception ~p:~p", [ExporterModule, Kind, Reason]}.

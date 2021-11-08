@@ -12,7 +12,7 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc Behaviour each Span Processor must implement.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_span_processor).
