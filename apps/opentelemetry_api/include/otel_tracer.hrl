@@ -42,9 +42,6 @@
 -define(add_events(Events),
         otel_span:add_events(?current_span_ctx, Events)).
 
--define(add_links(Links),
-        otel_span:add_links(?current_span_ctx, Links)).
-
 -define(set_status(Status),
         otel_span:set_status(?current_span_ctx, Status)).
 
