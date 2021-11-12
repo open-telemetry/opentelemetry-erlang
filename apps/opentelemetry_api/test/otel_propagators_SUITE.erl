@@ -22,7 +22,6 @@ groups() ->
     %% Tests of Behavior of the API in the absence of an installed SDK
     %% https://github.com/open-telemetry/opentelemetry-specification/blob/82865fae64e7b30ee59906d7c4d25a48fe446563/specification/trace/api.md#behavior-of-the-api-in-the-absence-of-an-installed-sdk
     [{absence_of_an_installed_sdk, [shuffle, parallel], [invalid_span_no_sdk_propagation,
-                                                         recording_no_sdk_propagation,
                                                          nonrecording_no_sdk_propagation]}].
 
 init_per_suite(Config) ->
@@ -97,26 +96,6 @@ invalid_span_no_sdk_propagation(_Config) ->
     BinaryHeaders = otel_propagator_text_map:inject([]),
     %% invalid span contexts are skipped when injecting
     ?assertMatch([], BinaryHeaders),
-
-    ok.
-
-recording_no_sdk_propagation(_Config) ->
-    ct:comment("Test that a start_span called with an valid recording span parent "
-               "and no SDK results in a new span_id for the child"),
-    otel_ctx:clear(),
-
-    RecordingSpanCtx = #span_ctx{trace_id=21267647932558653966460912964485513216,
-                                 span_id=1152921504606846976,
-                                 is_recording=true},
-    otel_tracer:set_current_span(RecordingSpanCtx),
-    ?assertEqual(RecordingSpanCtx, otel_tracer:current_span_ctx()),
-    ?with_span(<<"span-1">>, #{}, fun(_) ->
-                                          %% parent is recording so a new span_id should be used
-                                          ?assertNotEqual(RecordingSpanCtx, otel_tracer:current_span_ctx())
-                                  end),
-    ?assertEqual(RecordingSpanCtx, otel_tracer:current_span_ctx()),
-    BinaryHeaders = otel_propagator_text_map:inject([]),
-    ?assertMatch(?EXPECTED_HEADERS, BinaryHeaders),
 
     ok.
 

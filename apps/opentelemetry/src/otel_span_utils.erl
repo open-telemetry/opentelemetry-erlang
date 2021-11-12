@@ -18,7 +18,7 @@
 %%%-------------------------------------------------------------------------
 -module(otel_span_utils).
 
--export([start_span/4,
+-export([start_span/5,
          end_span/1,
          end_span/2]).
 
@@ -26,17 +26,17 @@
 -include("otel_sampler.hrl").
 -include("otel_span.hrl").
 
--spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_sampler:t(), otel_span:start_opts())
-                -> {opentelemetry:span_ctx(), opentelemetry:span() | undefined}.
-start_span(Ctx, Name, Sampler, Opts) ->
+-spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_sampler:t(), otel_id_generator:t(),
+                 otel_span:start_opts()) -> {opentelemetry:span_ctx(), opentelemetry:span() | undefined}.
+start_span(Ctx, Name, Sampler, IdGenerator, Opts) ->
     Attributes = maps:get(attributes, Opts, []),
     Links = maps:get(links, Opts, []),
     Kind = maps:get(kind, Opts, ?SPAN_KIND_INTERNAL),
     StartTime = maps:get(start_time, Opts, opentelemetry:timestamp()),
-    new_span(Ctx, Name, Sampler, StartTime, Kind, Attributes, Links).
+    new_span(Ctx, Name, Sampler, IdGenerator, StartTime, Kind, Attributes, Links).
 
-new_span(Ctx, Name, Sampler, StartTime, Kind, Attributes, Links) ->
-    {NewSpanCtx, ParentSpanId} = new_span_ctx(Ctx),
+new_span(Ctx, Name, Sampler, IdGeneratorModule, StartTime, Kind, Attributes, Links) ->
+    {NewSpanCtx, ParentSpanId} = new_span_ctx(Ctx, IdGeneratorModule),
 
     TraceId = NewSpanCtx#span_ctx.trace_id,
     SpanId = NewSpanCtx#span_ctx.span_id,
@@ -60,21 +60,21 @@ new_span(Ctx, Name, Sampler, StartTime, Kind, Attributes, Links) ->
                          is_valid=true,
                          is_recording=IsRecording}, Span}.
 
--spec new_span_ctx(otel_ctx:t()) -> {opentelemetry:span_ctx(), opentelemetry:span_id()}.
-new_span_ctx(Ctx) ->
+-spec new_span_ctx(otel_ctx:t(), otel_id_generator:t()) -> {opentelemetry:span_ctx(), opentelemetry:span_id()}.
+new_span_ctx(Ctx, IdGeneratorModule) ->
     case otel_tracer:current_span_ctx(Ctx) of
         undefined ->
-            {root_span_ctx(), undefined};
+            {root_span_ctx(IdGeneratorModule), undefined};
         #span_ctx{is_valid=false} ->
-            {root_span_ctx(), undefined};
+            {root_span_ctx(IdGeneratorModule), undefined};
         ParentSpanCtx=#span_ctx{span_id=ParentSpanId} ->
             %% keep the rest of the parent span ctx, simply need to update the span_id
-            {ParentSpanCtx#span_ctx{span_id=opentelemetry:generate_span_id()}, ParentSpanId}
+            {ParentSpanCtx#span_ctx{span_id=IdGeneratorModule:generate_span_id()}, ParentSpanId}
     end.
 
-root_span_ctx() ->
-    #span_ctx{trace_id=opentelemetry:generate_trace_id(),
-              span_id=opentelemetry:generate_span_id(),
+root_span_ctx(IdGeneratorModule) ->
+    #span_ctx{trace_id=IdGeneratorModule:generate_trace_id(),
+              span_id=IdGeneratorModule:generate_span_id(),
               is_valid=true,
               trace_flags=0}.
 

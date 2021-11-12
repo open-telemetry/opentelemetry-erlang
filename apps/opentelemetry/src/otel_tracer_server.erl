@@ -62,6 +62,8 @@ start_link(Opts) ->
 init(Opts) ->
     Resource = otel_resource_detector:get_resource(),
 
+    IdGeneratorModule = proplists:get_value(id_generator, Opts, otel_id_generator),
+
     SamplerSpec = proplists:get_value(
         sampler, Opts, {parent_based, #{root => always_on}}
     ),
@@ -80,6 +82,7 @@ init(Opts) ->
                      sampler=Sampler,
                      on_start_processors=on_start(Processors),
                      on_end_processors=on_end(Processors),
+                     id_generator=IdGeneratorModule,
                      resource=Resource,
                      telemetry_library=TelemetryLibrary},
     opentelemetry:set_default_tracer({otel_tracer_default, Tracer}),

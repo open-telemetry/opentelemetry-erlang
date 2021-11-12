@@ -30,6 +30,7 @@
          update_name/3]).
 
 -include("opentelemetry.hrl").
+-include("otel_tracer.hrl").
 
 -define(NOOP_SPAN_CTX, #span_ctx{trace_id=0,
                                  span_id=0,
@@ -40,20 +41,13 @@
                                  span_sdk=undefined}).
 -define(NOOP_TRACER_CTX, []).
 
--spec start_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts())
-                -> opentelemetry:span_ctx().
+-spec start_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(),
+                 otel_span:start_opts()) -> opentelemetry:span_ctx().
 start_span(Ctx, _, _SpanName, _) ->
     %% Spec: Behavior of the API in the absence of an installed SDK
     case otel_tracer:current_span_ctx(Ctx) of
-        Parent=#span_ctx{trace_id=TraceId,
-                         is_recording=false} when TraceId =/= 0 ->
-            %% if the parent is a non-recording Span it MAY return the parent Span
-            Parent;
         Parent=#span_ctx{trace_id=TraceId} when TraceId =/= 0 ->
-            %% API MUST create a non-recording Span with the SpanContext in the parent Context
-            SpanCtx = Parent#span_ctx{span_id=opentelemetry:generate_span_id(),
-                                      is_recording=false},
-            SpanCtx;
+            Parent;
         _ ->
             %% If the parent Context contains no valid Span,
             %% an empty non-recording Span MUST be returned
