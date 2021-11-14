@@ -119,7 +119,13 @@ init(Opts) ->
     case maps:get(protocol, Opts1, http_protobuf) of
         grpc ->
             ChannelOpts = maps:get(channel_opts, Opts1, #{}),
-            case grpcbox_channel:start_link(?MODULE, grpcbox_endpoints(Endpoints), ChannelOpts) of
+            UpdatedChannelOpts = case Compression of
+                                   undefined -> ChannelOpts;
+                                   Encoding -> maps:put(encoding, Encoding, ChannelOpts)
+                                 end,
+            case grpcbox_channel:start_link(?MODULE,
+                                            grpcbox_endpoints(Endpoints),
+                                            UpdatedChannelOpts) of
                 {ok, ChannelPid} ->
                     {ok, #state{channel_pid=ChannelPid,
                                 endpoints=Endpoints,
