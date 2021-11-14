@@ -9,12 +9,14 @@
 -include_lib("opentelemetry/include/otel_span.hrl").
 
 all() ->
-    [{group, functional}, {group, http_protobuf}, {group, grpc}].
+    [{group, functional}, {group, http_protobuf}, {group,
+                                                   http_protobuf_gzip}, {group, grpc}].
 
 groups() ->
     [{functional, [], [configuration, span_round_trip, ets_instrumentation_info]},
      {grpc, [], [verify_export]},
-     {http_protobuf, [], [verify_export]}].
+     {http_protobuf, [], [verify_export]},
+     {http_protobuf_gzip, [], [verify_export]}].
 
 init_per_suite(Config) ->
     Config.
@@ -26,6 +28,9 @@ init_per_group(Group, Config) when Group =:= grpc ;
                                    Group =:= http_protobuf ->
     application:ensure_all_started(opentelemetry_exporter),
     [{protocol, Group}| Config];
+init_per_group(http_protobuf_gzip, Config) ->
+    application:ensure_all_started(opentelemetry_exporter),
+    [{protocol, http_protobuf}, {compression, gzip} | Config];
 init_per_group(_, _) ->
     application:load(opentelemetry_exporter),
     ok.
@@ -212,6 +217,7 @@ span_round_trip(_Config) ->
 verify_export(Config) ->
     os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=my-test-service,service.version=98da75ea6d38724743bf42b45565049238d86b3f"),
     Protocol = ?config(protocol, Config),
+    Compression = ?config(compression, Config),
     Port = case Protocol of
                grpc ->
                    4317;
@@ -219,6 +225,7 @@ verify_export(Config) ->
                    55681
            end,
     {ok, State} = opentelemetry_exporter:init(#{protocol => Protocol,
+                                                compression => Compression,
                                                 endpoints => [{http, "localhost", Port, []}]}),
     Tid = ets:new(span_tab, [duplicate_bag, {keypos, #span.instrumentation_library}]),
 
