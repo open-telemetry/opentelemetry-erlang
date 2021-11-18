@@ -25,7 +25,7 @@
          handle_call/3,
          handle_cast/2]).
 
--export([start_span/6,
+-export([start_span/7,
          end_span/1,
          end_span/2,
          get_ctx/1,
@@ -46,10 +46,11 @@ start_link(Opts) ->
     gen_server:start_link(?MODULE, Opts, []).
 
 %% @doc Start a span and insert into the active span ets table.
--spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_sampler:t(), otel_span:start_opts(),
-                 fun(), otel_tracer_server:instrumentation_library()) -> opentelemetry:span_ctx().
-start_span(Ctx, Name, Sampler, Opts, Processors, InstrumentationLibrary) ->
-    case otel_span_utils:start_span(Ctx, Name, Sampler, Opts) of
+-spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_sampler:t(), otel_id_generator:t(),
+                 otel_span:start_opts(), fun(), otel_tracer_server:instrumentation_library())
+                -> opentelemetry:span_ctx().
+start_span(Ctx, Name, Sampler, IdGeneratorModule, Opts, Processors, InstrumentationLibrary) ->
+    case otel_span_utils:start_span(Ctx, Name, Sampler, IdGeneratorModule, Opts) of
         {SpanCtx=#span_ctx{is_recording=true}, Span=#span{}} ->
             Span1 = Span#span{instrumentation_library=InstrumentationLibrary},
             Span2 = Processors(Ctx, Span1),
