@@ -52,9 +52,7 @@
          event/3,
          events/1,
          status/2,
-         verify_and_set_term/3,
-         generate_trace_id/0,
-         generate_span_id/0]).
+         verify_and_set_term/3]).
 
 -include("opentelemetry.hrl").
 -include_lib("kernel/include/logger.hrl").
@@ -348,27 +346,6 @@ status(?OTEL_STATUS_UNSET, _Message) ->
     #status{code=?OTEL_STATUS_UNSET};
 status(_, _) ->
     undefined.
-
-%%--------------------------------------------------------------------
-%% @doc
-%% Generates a 128 bit random integer to use as a trace id.
-%% @end
-%%--------------------------------------------------------------------
--spec generate_trace_id() -> trace_id().
-generate_trace_id() ->
-    uniform(2 bsl 127 - 1). %% 2 shifted left by 127 == 2 ^ 128
-
-%%--------------------------------------------------------------------
-%% @doc
-%% Generates a 64 bit random integer to use as a span id.
-%% @end
-%%--------------------------------------------------------------------
--spec generate_span_id() -> span_id().
-generate_span_id() ->
-    uniform(2 bsl 63 - 1). %% 2 shifted left by 63 == 2 ^ 64
-
-uniform(X) ->
-    rand:uniform(X).
 
 %% internal functions
 

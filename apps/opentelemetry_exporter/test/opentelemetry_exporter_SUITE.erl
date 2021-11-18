@@ -114,8 +114,8 @@ configuration(_Config) ->
 ets_instrumentation_info(_Config) ->
     Tid = ets:new(span_tab, [duplicate_bag, {keypos, #span.instrumentation_library}]),
 
-    TraceId = opentelemetry:generate_trace_id(),
-    SpanId = opentelemetry:generate_span_id(),
+    TraceId = otel_id_generator:generate_trace_id(),
+    SpanId = otel_id_generator:generate_span_id(),
 
     ParentSpan =
         #span{name = <<"span-1">>,
@@ -137,7 +137,7 @@ ets_instrumentation_info(_Config) ->
 
     ChildSpan = #span{name = <<"span-2">>,
                       trace_id = TraceId,
-                      span_id = opentelemetry:generate_span_id(),
+                      span_id = otel_id_generator:generate_span_id(),
                       parent_span_id = SpanId,
                       kind = ?SPAN_KIND_SERVER,
                       start_time = opentelemetry:timestamp(),
@@ -165,8 +165,8 @@ ets_instrumentation_info(_Config) ->
     ok.
 
 span_round_trip(_Config) ->
-    TraceId = opentelemetry:generate_trace_id(),
-    SpanId = opentelemetry:generate_span_id(),
+    TraceId = otel_id_generator:generate_trace_id(),
+    SpanId = otel_id_generator:generate_span_id(),
 
     Span =
         #span{name = <<"span-1">>,
@@ -219,8 +219,8 @@ verify_export(Config) ->
 
     ?assertMatch(ok, opentelemetry_exporter:export(Tid, otel_resource:create([]), State)),
 
-    TraceId = opentelemetry:generate_trace_id(),
-    SpanId = opentelemetry:generate_span_id(),
+    TraceId = otel_id_generator:generate_trace_id(),
+    SpanId = otel_id_generator:generate_span_id(),
 
     ParentSpan =
         #span{name = <<"span-1">>,
@@ -242,7 +242,7 @@ verify_export(Config) ->
 
     ChildSpan = #span{name = <<"span-2">>,
                       trace_id = TraceId,
-                      span_id = opentelemetry:generate_span_id(),
+                      span_id = otel_id_generator:generate_span_id(),
                       parent_span_id = SpanId,
                       kind = ?SPAN_KIND_SERVER,
                       start_time = opentelemetry:timestamp(),

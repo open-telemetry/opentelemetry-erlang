@@ -271,7 +271,7 @@ custom_sampler_module(_Config) ->
         {?DROP, [], []},
         Sampler:should_sample(
             otel_ctx:new(),
-            opentelemetry:generate_trace_id(),
+            otel_id_generator:generate_trace_id(),
             [],
             SpanName,
             undefined,
@@ -288,7 +288,7 @@ should_sample(_Config) ->
         otel_samplers:should_sample(
             Sampler,
             otel_ctx:new(),
-            opentelemetry:generate_trace_id(),
+            otel_id_generator:generate_trace_id(),
             [],
             <<"span-name">>,
             undefined,
