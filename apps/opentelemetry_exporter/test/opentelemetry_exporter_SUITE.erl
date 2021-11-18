@@ -43,29 +43,34 @@ configuration(_Config) ->
         ?assertMatch(#{endpoints :=
                            [#{scheme := "http", host := "localhost",
                               port := 9090, path := "/v1/traces", ssl_options := []}]},
-                     opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}]})),
+                     opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}], ssl_options => [{cacertfile, "/etc/ssl/cert.pem"}]})),
+
+        ?assertMatch(#{endpoints :=
+                           [#{scheme := "http", host := "localhost",
+                              port := 9090, path := "/v1/traces", ssl_options := [{cacertfile, "/etc/ssl/cert.pem"}]}]},
+                     opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, [{cacertfile, "/etc/ssl/cert.pem"}]}]})),
 
         ?assertMatch(#{endpoints :=
                            [#{scheme := "http", host := "localhost",
                               port := 9090, path := "/v1/traces", ssl_options := [{verify, verify_none}]}]},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, [{verify, verify_none}]}]})),
 
-        ?assertMatch([#{scheme := "http", host := "localhost", port := 443, path := []}],
-                     opentelemetry_exporter:endpoints(["http://localhost:443"])),
+        ?assertMatch([#{scheme := "http", host := "localhost", port := 443, path := [], ssl_options := [{cacertfile, "/etc/ssl/cert.pem"}]}],
+                     opentelemetry_exporter:endpoints(["http://localhost:443"], [{cacertfile, "/etc/ssl/cert.pem"}])),
 
-        ?assertMatch([#{scheme := "http", host := "localhost", port := 443, path := []}],
-                     opentelemetry_exporter:endpoints([<<"http://localhost:443">>])),
+        ?assertMatch([#{scheme := "http", host := "localhost", port := 443, path := [], ssl_options := []}],
+                     opentelemetry_exporter:endpoints([<<"http://localhost:443">>], [])),
 
         ?assertMatch([#{scheme := "https", host := "localhost", port := 443, path := []}],
-                     opentelemetry_exporter:endpoints(<<"https://localhost:443">>)),
+                     opentelemetry_exporter:endpoints(<<"https://localhost:443">>, [])),
 
         ?assertMatch([#{scheme := "https", host := "localhost", port := 443, path := "/used/path"}],
-                     opentelemetry_exporter:endpoints(<<"https://localhost:443/used/path">>)),
+                     opentelemetry_exporter:endpoints(<<"https://localhost:443/used/path">>, [])),
 
         ?assertMatch([#{scheme := "http", host := "localhost", port := 4317, path := []}],
-                     opentelemetry_exporter:endpoints("http://localhost")),
+                     opentelemetry_exporter:endpoints("http://localhost", [])),
 
-        ?assertMatch([], opentelemetry_exporter:endpoints("://badendpoint")),
+        ?assertMatch([], opentelemetry_exporter:endpoints("://badendpoint", [])),
 
         application:set_env(opentelemetry_exporter, otlp_endpoint, "http://localhost:5353"),
         ?assertMatch(#{endpoints := [#{host := "localhost", path := "/v1/traces", port := 5353,

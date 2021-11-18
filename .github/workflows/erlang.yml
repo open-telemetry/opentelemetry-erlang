@@ -18,8 +18,8 @@ jobs:
         rebar3_version: ['3.16.1']
         os: [ubuntu-18.04]
         include:
-          - otp_version: '21.3.8.24'
-            rebar3_version: '3.15.2'
+          - otp_version: '22.3.4.20'
+            rebar3_version: '3.17.0'
             os: ubuntu-18.04
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
@@ -83,11 +83,11 @@ jobs:
     strategy:
       matrix:
         otp_version: ['24.1.2', '23.3.4.2', '22.3.4.20']
-        rebar3_version: ['3.16.1']
+        rebar3_version: ['3.17.0']
         os: [ubuntu-18.04]
         include:
-          - otp_version: '21.3.8.24'
-            rebar3_version: '3.15.2'
+          - otp_version: '22.3.4.20'
+            rebar3_version: '3.17.0'
             os: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
