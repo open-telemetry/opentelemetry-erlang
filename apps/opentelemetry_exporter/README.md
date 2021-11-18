@@ -82,7 +82,7 @@ OTEL_EXPORTER_OTLP_TRACES_HEADERS=x-honeycomb-team=<HONEYCOMB API TOKEN>,x-honey
 
 ## Contributing
 
-This project uses a submodule during developement, it is not needed if the application is being used as a dependency, so be sure to clone with the option `recurse-submodules`:
+This project uses a submodule during development, it is not needed if the application is being used as a dependency, so be sure to clone with the option `recurse-submodules`:
 
 ``` shell
 $ git clone --recurse-submodules https://github.com/opentelemetry-beam/opentelemetry_exporter

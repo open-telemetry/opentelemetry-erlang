@@ -55,7 +55,7 @@
               carrier/0]).
 
 %% convert the short name of a propagator to its module name if it is a builtin
-%% if the name doens't match a builtin it is assumed to be a module
+%% if the name doesn't match a builtin it is assumed to be a module
 %% @hidden
 -spec builtins_to_modules([t()]) -> [module()].
 builtins_to_modules(Propagators) ->

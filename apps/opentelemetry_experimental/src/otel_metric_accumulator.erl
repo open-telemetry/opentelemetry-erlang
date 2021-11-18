@@ -107,7 +107,7 @@ collect()->
 init(_Opts) ->
     %% This ETS table is required for other parts to not crash so we create
     %% it in init and not in a handle_continue or whatever else.
-    %% No heir is worried about since active metrics are created dynamicly
+    %% No heir is worried about since active metrics are created dynamically
     _ = ets:new(?ACTIVE_TAB, [named_table,
                               public,
                               {keypos, #active_instrument.key},
