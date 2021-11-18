@@ -56,7 +56,7 @@
 -ifdef(TEST).
 -export([to_proto_by_instrumentation_library/1,
          to_proto/1,
-         endpoints/1,
+         endpoints/2,
          merge_with_environment/1]).
 -endif.
 
@@ -74,10 +74,13 @@
 -type headers() :: [{unicode:chardata(), unicode:chardata()}].
 -type scheme() :: http | https | string() | binary().
 -type host() :: unicode:chardata().
--type endpoint() :: uri_string:uri_string() | uri_string:uri_map() | #{scheme := scheme(),
-                                                                       host := host(),
-                                                                       port => integer(),
-                                                                       ssl_options => []}.
+-type endpoint() :: uri_string:uri_string() | uri_string:uri_map() | endpoint_map().
+-type endpoint_map() :: #{scheme := scheme(),
+                          host := host(),
+                          path => unicode:chardata(),
+                          port => integer(),
+                          ssl_options => []}.
+
 -type protocol() :: grpc | http_protobuf | http_json.
 
 -type opts() :: #{endpoints => [endpoint()],
@@ -93,13 +96,14 @@
                 channel_pid :: pid() | undefined,
                 headers :: headers(),
                 grpc_metadata :: map() | undefined,
-                endpoints :: [uri_string:uri_map()]}).
+                endpoints :: [endpoint_map()]}).
 
 %% @doc Initialize the exporter based on the provided configuration.
 -spec init(opts()) -> {ok, #state{}}.
 init(Opts) ->
     Opts1 = merge_with_environment(Opts),
-    Endpoints = endpoints(maps:get(endpoints, Opts1, ?DEFAULT_ENDPOINTS)),
+    SSLOptions = maps:get(ssl_options, Opts1, undefined),
+    Endpoints = endpoints(maps:get(endpoints, Opts1, ?DEFAULT_ENDPOINTS), SSLOptions),
     Headers = headers(maps:get(headers, Opts1, [])),
     case maps:get(protocol, Opts1, http_protobuf) of
         grpc ->
@@ -137,15 +141,17 @@ export(Tab, Resource, #state{protocol=http_protobuf,
                              headers=Headers,
                              endpoints=[#{scheme := Scheme,
                                           host := Host,
+                                          path := Path,
                                           port := Port,
-                                          path := Path} | _]}) ->
+                                          ssl_options := SSLOptions} | _]}) ->
     Proto = opentelemetry_exporter_trace_service_pb:encode_msg(tab_to_proto(Tab, Resource),
                                                                export_trace_service_request),
     Address = uri_string:normalize(#{scheme => Scheme,
                                      host => Host,
                                      port => Port,
                                      path => Path}),
-    case httpc:request(post, {Address, Headers, "application/x-protobuf", Proto}, [], []) of
+    case httpc:request(post, {Address, Headers, "application/x-protobuf", Proto},
+                       [{ssl, SSLOptions}], []) of
         {ok, {{_, Code, _}, _, _}} when Code >= 200 andalso Code =< 202 ->
             ok;
         {ok, {{_, Code, _}, _, Message}} ->
@@ -199,7 +205,8 @@ headers(List) when is_list(List) ->
 headers(_) ->
     [].
 
-endpoints(List) when is_list(List) ->
+-spec endpoints([endpoint()], list()) -> [endpoint_map()].
+endpoints(List, DefaultSSLOpts) when is_list(List) ->
     Endpoints = case io_lib:printable_list(List) of
                     true ->
                         [List];
@@ -207,12 +214,12 @@ endpoints(List) when is_list(List) ->
                         List
                 end,
 
-    lists:filtermap(fun endpoint/1, Endpoints);
-endpoints(Endpoint) ->
-    lists:filtermap(fun endpoint/1, [Endpoint]).
+    lists:filtermap(fun(E) -> endpoint(E, DefaultSSLOpts) end, Endpoints);
+endpoints(Endpoint, DefaultSSLOpts) ->
+    lists:filtermap(fun(E) -> endpoint(E, DefaultSSLOpts) end, [Endpoint]).
 
-endpoint(Endpoint) ->
-    case parse_endpoint(Endpoint) of
+endpoint(Endpoint, DefaultSSLOpts) ->
+    case parse_endpoint(Endpoint, DefaultSSLOpts) of
         false ->
             ?LOG_WARNING("Failed to parse and ignoring exporter endpoint ~p", [Endpoint]),
             false;
@@ -220,28 +227,42 @@ endpoint(Endpoint) ->
             Parsed
     end.
 
-parse_endpoint({Scheme, Host, Port, SSLOptions}) when is_list(SSLOptions) ->
+parse_endpoint({Scheme, Host, Port, SSLOptions}, _DefaultSSLOpts) when is_list(SSLOptions) ->
     {true, #{scheme => atom_to_list(Scheme),
              host => unicode:characters_to_list(Host),
              port => Port,
              path => [],
              ssl_options => SSLOptions}};
-parse_endpoint({Scheme, Host, Port, _}) ->
+parse_endpoint({Scheme, Host, Port, _}, DefaultSSLOpts) ->
+    HostString = unicode:characters_to_list(Host),
     {true, #{scheme => atom_to_list(Scheme),
-             host => unicode:characters_to_list(Host),
+             host => HostString,
              port => Port,
-             path => []}};
-parse_endpoint(Endpoint=#{host := Host, port := _Port, scheme := _Scheme, path := Path}) ->
-    {true, Endpoint#{host => unicode:characters_to_list(Host),
-                     path => unicode:characters_to_list(Path)}};
-parse_endpoint(Endpoint=#{host := Host, scheme := _Scheme, path := Path}) ->
-    {true, Endpoint#{host => unicode:characters_to_list(Host),
-                     port => ?DEFAULT_PORT,
-                     path => unicode:characters_to_list(Path)}};
-parse_endpoint(String) when is_list(String) orelse is_binary(String) ->
-    parse_endpoint(uri_string:parse(unicode:characters_to_list(String)));
-parse_endpoint(_) ->
+             path => [],
+             ssl_options => update_ssl_opts(HostString, DefaultSSLOpts)}};
+parse_endpoint(Endpoint=#{host := Host, port := _Port, scheme := _Scheme, path := Path}, DefaultSSLOpts) ->
+    HostString = unicode:characters_to_list(Host),
+    {true, maps:merge(#{host => HostString,
+                        path => unicode:characters_to_list(Path),
+                        port => ?DEFAULT_PORT,
+                        ssl_options => update_ssl_opts(HostString, DefaultSSLOpts)}, Endpoint)};
+parse_endpoint(Endpoint=#{host := Host, scheme := _Scheme, path := Path}, DefaultSSLOpts) ->
+    HostString = unicode:characters_to_list(Host),
+    {true, maps:merge(#{host => unicode:characters_to_list(Host),
+                        port => ?DEFAULT_PORT,
+                        path => unicode:characters_to_list(Path),
+                        ssl_options => update_ssl_opts(HostString, DefaultSSLOpts)}, Endpoint)};
+parse_endpoint(String, DefaultSSLOpts) when is_list(String) orelse is_binary(String) ->
+    parse_endpoint(uri_string:parse(unicode:characters_to_list(String)), DefaultSSLOpts);
+parse_endpoint(_, _) ->
     false.
+
+%% if no ssl opts are defined by the user then use defaults from `tls_certificate_check'
+update_ssl_opts(Host, undefined) ->
+    tls_certificate_check:options(Host);
+update_ssl_opts(_, SSLOptions) ->
+    SSLOptions.
+
 
 scheme(Scheme) when Scheme =:= "https" orelse Scheme =:= <<"https">> ->
     https;

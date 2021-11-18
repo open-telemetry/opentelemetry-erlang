@@ -66,6 +66,19 @@ config :opentelemetry_exporter,
   otlp_headers: [{"x-honeycomb-dataset", "experiments"}]
 ```
     
+    
+The default SSL options for HTTPS requests are set using
+[tls_certificate_check](https://hex.pm/packages/tls_certificate_check). This
+package also provides the [CA certificates from Mozilla](https://curl.se/docs/caextract.html).
+
+The user can override these options either as part of the endpoint or for all
+endpoints used by the exporter with the Application environment variable
+`ssl_options`
+
+See [secure coding with
+inets](https://erlef.github.io/security-wg/secure_coding_and_deployment_hardening/inets)
+for more information on securing HTTP requests in Erlang.
+
 ### OS Environment
 
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: The URL to send traces and metrics to, for traces the path `v1/traces` is appended to the path in the URL.
