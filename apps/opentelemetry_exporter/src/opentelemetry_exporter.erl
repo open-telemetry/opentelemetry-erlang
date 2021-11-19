@@ -60,6 +60,14 @@
          merge_with_environment/1]).
 -endif.
 
+%% dialyzer will warn about having catch all clauses on these
+%% functions because previous clauses cover all cases. But
+%% we want to not crash if something incorrect is passed
+%% through so we ignore those warnings.
+-dialyzer({nowarn_function, to_events/2}).
+-dialyzer({nowarn_function, to_links/2}).
+-dialyzer({nowarn_function, to_tracestate_string/1}).
+
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
@@ -426,45 +434,66 @@ to_attributes(Attributes) ->
 %% Note: nested maps may be an issue.
 to_attributes([], Acc) ->
     Acc;
-to_attributes([{Key, Value} | Rest], Acc) when is_binary(Value) ->
+to_attributes([{Key, Value} | Rest], Acc) when is_atom(Key) ; is_binary(Key) ->
     to_attributes(Rest, [#{key => to_binary(Key),
-                           value => #{value => {string_value, Value}}} | Acc]);
-to_attributes([{Key, Value} | Rest], Acc) when is_atom(Value) ->
-    to_attributes(Rest, [#{key => to_binary(Key),
-                           value => #{value => {string_value, to_binary(Value)}}} | Acc]);
-to_attributes([{Key, Value} | Rest], Acc) when is_integer(Value) ->
-    to_attributes(Rest, [#{key => to_binary(Key),
-                           value => #{value => {int_value, Value}}} | Acc]);
-to_attributes([{Key, Value} | Rest], Acc) when is_float(Value) ->
-    to_attributes(Rest, [#{key => to_binary(Key),
-                           value => #{value => {double_value, Value}}} | Acc]);
-to_attributes([{Key, Value} | Rest], Acc) when is_boolean(Value) ->
-    to_attributes(Rest, [#{key => to_binary(Key),
-                           value => #{value => {bool_value, Value}}} | Acc]);
-to_attributes([{Key, Value} | Rest], Acc) when is_map(Value) ->
-    to_attributes(Rest, [#{key => to_binary(Key),
-                           values => #{value => {kvlist_value, maps:to_list(Value)}}} | Acc]);
-to_attributes([{Key, Value} | Rest], Acc) when is_tuple(Value) ->
-    to_attributes(Rest, [#{key => to_binary(Key),
-                           values => #{value => {array_value, tuple_to_list(Value)}}} | Acc]);
-to_attributes([{Key, Value} | Rest], Acc) when is_list(Value) ->
-    case is_proplist(Value) of
-        true ->
-            to_attributes(Rest, [#{key => to_binary(Key),
-                                        values => #{value => {kvlist_value, Value}}} | Acc]);
-        false ->
-            to_attributes(Rest, [#{key => Key,
-                                   values => #{value => {array_value, Value}}} | Acc])
-    end;
+                           value => to_any_value(Value)} | Acc]);
 to_attributes([_ | Rest], Acc) ->
+    %% TODO: count the number dropped
     to_attributes(Rest, Acc).
 
-is_proplist([]) -> true;
-is_proplist([{K,_}|L]) when is_atom(K) or is_binary(K) -> is_proplist(L);
-is_proplist(_) -> false.
+to_any_value(Value) when is_binary(Value) ->
+    %% TODO: there is a bytes_value type we don't currently support bc we assume string
+    #{value => {string_value, Value}};
+to_any_value(Value) when is_atom(Value) ->
+    #{value => {string_value, to_binary(Value)}};
+to_any_value(Value) when is_integer(Value) ->
+    #{value => {int_value, Value}};
+to_any_value(Value) when is_float(Value) ->
+    #{value => {double_value, Value}};
+to_any_value(Value) when is_boolean(Value) ->
+    #{value => {bool_value, Value}};
+to_any_value(Value) when is_map(Value) ->
+    #{value => {kvlist_value, to_key_value_list(maps:to_list(Value))}};
+to_any_value(Value) when is_tuple(Value) ->
+    #{value => {array_value, to_array_value(tuple_to_list(Value))}};
+to_any_value(Value) when is_list(Value) ->
+    case is_proplist(Value) of
+        true ->
+            #{value => {kvlist_value, to_key_value_list(Value)}};
+        false ->
+            #{value => {array_value, to_array_value(Value)}}
+    end.
 
-to_binary(Term) when is_atom(Term) -> erlang:atom_to_binary(Term, unicode);
-to_binary(Term) -> Term.
+to_key_value_list(List) ->
+    #{values => to_key_value_list(List, [])}.
+
+to_key_value_list([], Acc) ->
+    Acc;
+to_key_value_list([{Key, Value} | Rest], Acc) when is_atom(Key) ; is_binary(Key) ->
+    to_key_value_list(Rest, [to_key_value(Key, Value) | Acc]);
+to_key_value_list([_ | Rest], Acc) ->
+    to_key_value_list(Rest, Acc).
+
+to_key_value(Key, Value) ->
+    #{key => to_binary(Key),
+      value => to_any_value(Value)}.
+
+to_array_value(List) when is_list(List) ->
+    #{values => [to_any_value(V) || V <- List]};
+to_array_value(_) ->
+    #{values => []}.
+
+is_proplist([]) ->
+    true;
+is_proplist([{K, _} | L]) when is_atom(K) ; is_binary(K) ->
+    is_proplist(L);
+is_proplist(_) ->
+    false.
+
+to_binary(Term) when is_atom(Term) ->
+    erlang:atom_to_binary(Term, unicode);
+to_binary(Term) ->
+    unicode:characters_to_binary(Term).
 
 -spec to_status(opentelemetry:status()) -> opentelemetry_exporter_trace_service_pb:status().
 to_status(#status{code=Code,
@@ -485,7 +514,10 @@ to_events([#event{system_time_nano=Timestamp,
                   attributes=Attributes} | Rest], Acc) ->
     to_events(Rest, [#{time_unix_nano => to_unixnano(Timestamp),
                        name => to_binary(Name),
-                       attributes => to_attributes(Attributes)} | Acc]).
+                       attributes => to_attributes(Attributes)} | Acc]);
+to_events([_ | Rest], Acc) ->
+    %% TODO: count the number dropped
+    to_events(Rest, Acc).
 
 -spec to_links(opentelemetry:links()) -> [opentelemetry_exporter_trace_service_pb:link()].
 to_links(Links) ->
@@ -501,10 +533,15 @@ to_links([#link{trace_id=TraceId,
                       span_id => <<SpanId:64>>,
                       trace_state => to_tracestate_string(TraceState),
                       attributes => to_attributes(Attributes),
-                      dropped_attributes_count => 0} | Acc]).
+                      dropped_attributes_count => 0} | Acc]);
+to_links([_ | Rest], Acc) ->
+    %% TODO: count the number dropped
+    to_links(Rest, Acc).
 
-to_tracestate_string(List) ->
-    lists:join($,, [[Key, $=, Value] || {Key, Value} <- List]).
+to_tracestate_string(List) when is_list(List) ->
+    lists:join($,, [[Key, $=, Value] || {Key, Value} <- List]);
+to_tracestate_string(_) ->
+    [].
 
 -spec to_otlp_kind(atom()) -> opentelemetry_exporter_trace_service_pb:'span.SpanKind'().
 to_otlp_kind(?SPAN_KIND_INTERNAL) ->
