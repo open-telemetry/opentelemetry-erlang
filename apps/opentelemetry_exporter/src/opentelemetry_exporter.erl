@@ -280,7 +280,7 @@ scheme(Scheme) ->
     Scheme.
 
 merge_with_environment(Opts) ->
-    %% exporters are initalized by calling their `init/1' function from `opentelemetry'.
+    %% exporters are initialized by calling their `init/1' function from `opentelemetry'.
     %% since this application depends on `opentelemetry' it will not be started during
     %% boot before its `init/1' is called. In a release this is fine since all apps
     %% are loaded first, before any are started, but in case this is run not by a

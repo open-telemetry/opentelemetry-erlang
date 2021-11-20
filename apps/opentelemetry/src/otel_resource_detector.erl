@@ -199,7 +199,7 @@ find_release() ->
         [{RelName, RelVsn, _Apps, permanent} | _] ->
             {RelName, RelVsn}
     catch
-        %% can happen if `release_handler' isn't availabe
+        %% can happen if `release_handler' isn't available
         %% or its process isn't started
         _:_ ->
             {release_name(), os:getenv("RELEASE_VSN")}
