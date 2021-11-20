@@ -184,7 +184,7 @@ transform(propagator, "b3") ->
 %% transform(propagator, "jaeger") ->
 %%     jaeger;
 transform(propagator, Propagator) ->
-    ?LOG_WARNING("Ignoring uknown propagator ~ts in OS environment variable $OTEL_PROPAGATORS",
+    ?LOG_WARNING("Ignoring unknown propagator ~ts in OS environment variable $OTEL_PROPAGATORS",
                  [Propagator]),
     undefined;
 transform(key_value_list, Value) when is_list(Value) ->
