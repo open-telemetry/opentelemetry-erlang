@@ -64,7 +64,7 @@ register_loaded_application_tracers(Opts) ->
 register_loaded_applications_(true) ->
     %% TODO: filter out OTP apps that will not have any instrumentation
     LoadedApplications = application:loaded_applications(),
-    opentelemetry:register_application_tracers(LoadedApplications),
+    opentelemetry:register_applications(LoadedApplications),
     ok;
 register_loaded_applications_(_) ->
     ok.
