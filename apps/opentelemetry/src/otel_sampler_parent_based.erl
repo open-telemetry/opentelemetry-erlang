@@ -17,7 +17,7 @@
 %% 1) a remote parent that is sampled (by default always_on);
 %% 2) a remote parent that is not sampled (by default always_off);
 %% 3) a local parent that is sampled (by default always_on);
-%% 4) a local parent that isnot sampled (by default always_on);
+%% 4) a local parent that is not sampled (by default always_off);
 %% 5) no parent (by default always_on).
 %%
 %% For each of these cases a different sampler can be configured.
