@@ -20,7 +20,8 @@
 -module(otel_configuration).
 
 -export([merge_with_os/1,
-         merge_list_with_environment/2]).
+         merge_list_with_environment/2,
+         report_cb/1]).
 
 -include_lib("kernel/include/logger.hrl").
 
@@ -51,14 +52,28 @@ processors(AppEnvOpts) ->
 sampler(AppEnvOpts) ->
     Sampler = proplists:get_value(sampler, AppEnvOpts, {parent_based, #{root => always_on}}),
 
-    Sampler1 = case os:getenv("OTEL_TRACES_SAMPLER") of
-                   false ->
-                       Sampler;
-                   OSEnvSampler->
-                       transform(sampler, {OSEnvSampler, os:getenv("OTEL_TRACES_SAMPLER_ARG")})
-               end,
-
-    lists:keystore(sampler, 1, AppEnvOpts, {sampler, Sampler1}).
+    case os:getenv("OTEL_TRACES_SAMPLER") of
+        false ->
+            lists:keystore(sampler, 1, AppEnvOpts, {sampler, Sampler});
+        OSEnvSampler->
+            SamplerTuple = {OSEnvSampler, os:getenv("OTEL_TRACES_SAMPLER_ARG")},
+            try transform(sampler, SamplerTuple) of
+                TransformedSampler ->
+                    lists:keystore(sampler, 1, AppEnvOpts, {sampler, TransformedSampler})
+            catch
+                Kind:Reason:StackTrace ->
+                    ?LOG_INFO(#{source => transform,
+                                kind => Kind,
+                                reason => Reason,
+                                os_var => "OTEL_TRACES_SAMPLER",
+                                key => sampler,
+                                transform => sampler,
+                                value => SamplerTuple,
+                                stacktrace => StackTrace},
+                              #{report_cb => fun ?MODULE:report_cb/1}),
+                    AppEnvOpts
+            end
+    end.
 
 -spec merge_list_with_environment([{OSVar, Key, Default, Transform}], list()) -> list()
               when OSVar :: string(),
@@ -72,12 +87,43 @@ merge_list_with_environment(ConfigMappings, Opts) ->
                                 case lists:keyfind(Key, 1, Opts) of
                                     false ->
                                         %% set to Default if it doesn't exist
-                                        [{Key, transform(Transform, Default)} | Acc];
+                                        try transform(Transform, Default) of
+                                            Value ->
+                                                [{Key, Value} | Acc]
+                                        catch
+                                            Kind:Reason:StackTrace ->
+                                                ?LOG_INFO(#{source => transform,
+                                                            kind => Kind,
+                                                            reason => Reason,
+                                                            os_var => OSVar,
+                                                            key => Key,
+                                                            transform => Transform,
+                                                            value => Default,
+                                                            stacktrace => StackTrace},
+                                                          #{report_cb => fun ?MODULE:report_cb/1}),
+                                                Acc
+                                        end;
                                     _ ->
+                                        %% already set, do nothing
                                         Acc
                                 end;
-                            Value ->
-                                lists:keystore(Key, 1, Acc, {Key, transform(Transform, Value)})
+                            OSVal ->
+                                try transform(Transform, OSVal) of
+                                    Value ->
+                                        lists:keystore(Key, 1, Acc, {Key, Value})
+                                catch
+                                    Kind:Reason:StackTrace ->
+                                        ?LOG_INFO(#{source => transform,
+                                                    kind => Kind,
+                                                    reason => Reason,
+                                                    os_var => OSVar,
+                                                    key => Key,
+                                                    transform => Transform,
+                                                    value => Default,
+                                                    stacktrace => StackTrace},
+                                                  #{report_cb => fun ?MODULE:report_cb/1}),
+                                        Acc
+                                end
                         end
                 end, Opts, ConfigMappings).
 
@@ -88,15 +134,41 @@ merge_list_with_environment(ConfigMappings, Opts) ->
                    Transform :: atom().
 merge_with_environment(ConfigMappings, Opts) ->
     lists:foldl(fun({OSVar, Key, Default, Transform}, Acc) ->
-                        case os:getenv(OSVar) of
-                            false ->
-                                %% set to Default if it doesn't exist
-                                maps:update_with(Key, fun(X) -> X end,
-                                                 transform(Transform, Default), Acc);
-                            Value ->
-                                maps:put(Key, transform(Transform, Value), Acc)
+                        Value = case os:getenv(OSVar) of
+                                    false ->
+                                        %% set to Default if it doesn't exist
+                                        Default;
+                                    OSVal ->
+                                        OSVal
+                                end,
+                        try transform(Transform, Value) of
+                            Transformed ->
+                                maps:update_with(Key, fun(X) -> X end, Transformed, Acc)
+                        catch
+                            Kind:Reason:StackTrace ->
+                                ?LOG_INFO(#{source => transform,
+                                            kind => Kind,
+                                            reason => Reason,
+                                            os_var => OSVar,
+                                            key => Key,
+                                            transform => Transform,
+                                            value => Value,
+                                            stacktrace => StackTrace},
+                                          #{report_cb => fun ?MODULE:report_cb/1}),
+                                Acc
                         end
                 end, Opts, ConfigMappings).
+
+report_cb(#{source := transform,
+            kind := Kind,
+            reason := Reason,
+            os_var := OSVar,
+            key := Key,
+            transform := Transform,
+            value := Value,
+            stacktrace := StackTrace}) ->
+    {"Transforming configuration value failed: os_var=~ts key=~ts transform=~ts value=~ts exception=~ts",
+     [OSVar, Key, Transform, Value, otel_utils:format_exception(Kind, Reason, StackTrace)]}.
 
 config_mappings(general_sdk) ->
     [{"OTEL_LOG_LEVEL", log_level, "info", existing_atom},

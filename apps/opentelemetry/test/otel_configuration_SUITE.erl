@@ -19,7 +19,7 @@ all() ->
     [empty_os_environment, sampler, sampler_parent_based, sampler_parent_based_zero,
      sampler_trace_id, sampler_trace_id_default, sampler_parent_based_one,
      log_level, propagators, propagators_b3, propagators_b3multi, otlp_exporter,
-     jaeger_exporter, zipkin_exporter, none_exporter, span_limits].
+     jaeger_exporter, zipkin_exporter, none_exporter, span_limits, bad_span_limits].
 
 init_per_testcase(empty_os_environment, Config) ->
     Vars = [],
@@ -135,8 +135,26 @@ init_per_testcase(span_limits, Config) ->
                                   attribute_per_event_limit=400,
                                   attribute_per_link_limit=500},
 
-    [{expected_opts, ExpectedOpts}, {expected_record, ExpectedRecord}, {os_vars, Vars} | Config].
+    [{expected_opts, ExpectedOpts}, {expected_record, ExpectedRecord}, {os_vars, Vars} | Config];
+init_per_testcase(bad_span_limits, Config) ->
+    Vars = [{"OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", "aaa"},
+            {"OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT", "bbb"},
+            {"OTEL_SPAN_EVENT_COUNT_LIMIT", "1d4"},
+            {"OTEL_SPAN_LINK_COUNT_LIMIT", "eee"},
+            {"OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT", "$L%"},
+            {"OTEL_LINK_ATTRIBUTE_COUNT_LIMIT", "gibberish"}],
 
+    setup_env(Vars),
+
+    ExpectedOpts = [],
+    ExpectedRecord = #span_limits{attribute_count_limit=128,
+                                  attribute_value_length_limit=infinity,
+                                  event_count_limit=128,
+                                  link_count_limit=128,
+                                  attribute_per_event_limit=128,
+                                  attribute_per_link_limit=128},
+
+    [{expected_opts, ExpectedOpts}, {expected_record, ExpectedRecord}, {os_vars, Vars} | Config].
 
 end_per_testcase(_, Config) ->
     Vars = ?config(os_vars, Config),
@@ -243,6 +261,9 @@ none_exporter(_Config) ->
     ok.
 
 span_limits(Config) ->
+    compare_span_limits(Config).
+
+bad_span_limits(Config) ->
     compare_span_limits(Config).
 
 compare_span_limits(Config) ->
