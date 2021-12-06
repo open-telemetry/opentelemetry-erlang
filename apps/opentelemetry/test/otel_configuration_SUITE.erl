@@ -5,6 +5,8 @@
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 
+-include("otel_span.hrl").
+
 -define(assertIsSubset(X, Y),
         lists:foreach(fun({K, V}) ->
                               V1 = proplists:get_value(K, Y, undefined),
@@ -17,7 +19,7 @@ all() ->
     [empty_os_environment, sampler, sampler_parent_based, sampler_parent_based_zero,
      sampler_trace_id, sampler_trace_id_default, sampler_parent_based_one,
      log_level, propagators, propagators_b3, propagators_b3multi, otlp_exporter,
-     jaeger_exporter, zipkin_exporter, none_exporter].
+     jaeger_exporter, zipkin_exporter, none_exporter, span_limits].
 
 init_per_testcase(empty_os_environment, Config) ->
     Vars = [],
@@ -109,7 +111,32 @@ init_per_testcase(none_exporter, Config) ->
 
     setup_env(Vars),
 
-    [{os_vars, Vars} | Config].
+    [{os_vars, Vars} | Config];
+init_per_testcase(span_limits, Config) ->
+    Vars = [{"OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", "111"},
+            {"OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT", "009"},
+            {"OTEL_SPAN_EVENT_COUNT_LIMIT", "200"},
+            {"OTEL_SPAN_LINK_COUNT_LIMIT", "1101"},
+            {"OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT", "400"},
+            {"OTEL_LINK_ATTRIBUTE_COUNT_LIMIT", "500"}],
+
+    setup_env(Vars),
+
+    ExpectedOpts = [{attribute_count_limit, 111},
+                    {attribute_value_length_limit, 9},
+                    {event_count_limit, 200},
+                    {link_count_limit, 1101},
+                    {attribute_per_event_limit, 400},
+                    {attribute_per_link_limit, 500}],
+    ExpectedRecord = #span_limits{attribute_count_limit=111,
+                                  attribute_value_length_limit=9,
+                                  event_count_limit=200,
+                                  link_count_limit=1101,
+                                  attribute_per_event_limit=400,
+                                  attribute_per_link_limit=500},
+
+    [{expected_opts, ExpectedOpts}, {expected_record, ExpectedRecord}, {os_vars, Vars} | Config].
+
 
 end_per_testcase(_, Config) ->
     Vars = ?config(os_vars, Config),
@@ -213,6 +240,25 @@ zipkin_exporter(_Config) ->
 none_exporter(_Config) ->
     ?assertMatch({traces_exporter, undefined},
                  lists:keyfind(traces_exporter, 1, otel_configuration:merge_with_os([]))),
+    ok.
+
+span_limits(Config) ->
+    compare_span_limits(Config).
+
+compare_span_limits(Config) ->
+    ExpectedRecord = ?config(expected_record, Config),
+    ExpectedOpts = ?config(expected_opts, Config),
+    Opts = otel_configuration:merge_with_os([]),
+
+    ?assertIsSubset(ExpectedOpts, Opts),
+
+    otel_span_limits:set(Opts),
+
+    SpanLimits = otel_span_limits:get(),
+
+    %% verifies the defaults because the base record has the defaults set as well
+    ?assertEqual(ExpectedRecord, SpanLimits),
+
     ok.
 
 %%

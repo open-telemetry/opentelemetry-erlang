@@ -26,9 +26,13 @@
 
 -spec merge_with_os(list()) -> list().
 merge_with_os(Opts) ->
-    general(
-      sampler(
-        processors(Opts))).
+    span_limits(
+      general(
+        sampler(
+          processors(Opts)))).
+
+span_limits(Opts) ->
+    merge_list_with_environment(config_mappings(span_limits), Opts).
 
 general(Opts) ->
     merge_list_with_environment(config_mappings(general_sdk), Opts).
@@ -108,11 +112,16 @@ config_mappings(otel_batch_processor) ->
      %% the following are not supported yet
      %% {"OTEL_BSP_MAX_EXPORT_BATCH_SIZE", max_export_batch_size, 512}
     ];
-%% span limit not supported
-%% config_mappings(span_limits) ->
-%%     [{"OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", attribute_count_limit, 1000, integer},
-%%      {"OTEL_SPAN_EVENT_COUNT_LIMIT", event_count_limit, 1000, integer},
-%%      {"OTEL_SPAN_LINK_COUNT_LIMIT", link_count_limit 1000, integer}];
+config_mappings(span_limits) ->
+    [{"OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", attribute_count_limit, 128, integer},
+     {"OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT", attribute_value_length_limit, infinity, integer_infinity},
+     {"OTEL_SPAN_EVENT_COUNT_LIMIT", event_count_limit, 128, integer},
+     {"OTEL_SPAN_LINK_COUNT_LIMIT", link_count_limit, 128, integer},
+     {"OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT", attribute_per_event_limit, 128, integer},
+     {"OTEL_LINK_ATTRIBUTE_COUNT_LIMIT", attribute_per_link_limit, 128, integer}%% ,
+     %% {"OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT", attribute_value_length_limit, 128, integer},
+     %% {"OTEL_ATTRIBUTE_COUNT_LIMIT", attribute_per_link_limit, 128, integer}
+    ];
 config_mappings(_) ->
      [].
 
@@ -133,6 +142,10 @@ transform(exporter, "prometheus") ->
 transform(exporter, UnknownExporter) ->
     ?LOG_WARNING("unknown exporter ~p. falling back to default otlp", [UnknownExporter]),
     {opentelemetry_exporter, #{}};
+transform(integer_infinity, infinity) ->
+    infinity;
+transform(integer_infinity, Value) ->
+    transform(integer, Value);
 transform(integer, Value) when is_integer(Value) ->
     Value;
 transform(integer, Value) when is_list(Value) ->
