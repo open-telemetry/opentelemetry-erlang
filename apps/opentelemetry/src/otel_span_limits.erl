@@ -35,21 +35,21 @@ get() ->
 %%             link_count_limit => integer(),
 %%             attribute_per_event_limit => integer(),
 %%             attribute_per_link_limit => integer()}) -> ok.
--spec set(list()) -> ok.
+-spec set(otel_configuration:t()) -> ok.
 set(Opts) ->
-    SpanLimits = lists:foldl(fun({attribute_count_limit, AttributeCountLimit}, Acc) ->
-                                     Acc#span_limits{attribute_count_limit=AttributeCountLimit};
-                                ({attribute_value_length_limit, AttributeValueLengthLimit}, Acc) ->
-                                     Acc#span_limits{attribute_value_length_limit=AttributeValueLengthLimit};
-                                ({event_count_limit, EventCountLimit}, Acc) ->
-                                     Acc#span_limits{event_count_limit=EventCountLimit};
-                                ({link_count_limit, LinkCountLimit}, Acc) ->
-                                     Acc#span_limits{link_count_limit=LinkCountLimit};
-                                ({attribute_per_event_limit, AttributePerEventLimit}, Acc) ->
-                                     Acc#span_limits{attribute_per_event_limit=AttributePerEventLimit};
-                                ({attribute_per_link_limit, AttributePerLinkLimit}, Acc) ->
-                                     Acc#span_limits{attribute_per_link_limit=AttributePerLinkLimit};
-                                (_, Acc) ->
+    SpanLimits = maps:fold(fun(attribute_count_limit, AttributeCountLimit, Acc) ->
+                                   Acc#span_limits{attribute_count_limit=AttributeCountLimit};
+                              (attribute_value_length_limit, AttributeValueLengthLimit, Acc) ->
+                                   Acc#span_limits{attribute_value_length_limit=AttributeValueLengthLimit};
+                              (event_count_limit, EventCountLimit, Acc) ->
+                                   Acc#span_limits{event_count_limit=EventCountLimit};
+                              (link_count_limit, LinkCountLimit, Acc) ->
+                                   Acc#span_limits{link_count_limit=LinkCountLimit};
+                              (attribute_per_event_limit, AttributePerEventLimit, Acc) ->
+                                   Acc#span_limits{attribute_per_event_limit=AttributePerEventLimit};
+                              (attribute_per_link_limit, AttributePerLinkLimit, Acc) ->
+                                   Acc#span_limits{attribute_per_link_limit=AttributePerLinkLimit};
+                              (_, _, Acc) ->
                                    Acc
                            end, #span_limits{}, Opts),
     persistent_term:put(?SPAN_LIMITS_KEY, SpanLimits).

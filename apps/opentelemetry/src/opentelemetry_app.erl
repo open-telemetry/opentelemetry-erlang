@@ -24,21 +24,21 @@
          stop/1]).
 
 start(_StartType, _StartArgs) ->
-    Opts = otel_configuration:merge_with_os(
+    Config = otel_configuration:merge_with_os(
              application:get_all_env(opentelemetry)),
 
     %% set global span limits record based on configuration
-    otel_span_limits:set(Opts),
+    otel_span_limits:set(Config),
 
     %% set the global propagators for HTTP based on the application env
-    setup_text_map_propagators(Opts),
+    setup_text_map_propagators(Config),
 
-    SupResult = opentelemetry_sup:start_link(Opts),
+    SupResult = opentelemetry_sup:start_link(Config),
 
     %% must be done after the supervisor starts so that otel_tracer_server is running
     %% TODO: make this work with release upgrades. Currently if an application's version
     %% changes the version in the tracer will not be updated.
-    register_loaded_application_tracers(Opts),
+    register_loaded_application_tracers(Config),
 
     SupResult.
 
@@ -55,19 +55,14 @@ stop(_State) ->
 
 %% internal functions
 
-setup_text_map_propagators(Opts) ->
-    List = proplists:get_value(text_map_propagators, Opts, []),
+setup_text_map_propagators(#{text_map_propagators := List}) ->
     CompositePropagator = otel_propagator_text_map_composite:create(List),
     opentelemetry:set_text_map_propagator(CompositePropagator).
 
-register_loaded_application_tracers(Opts) ->
-    RegisterLoadedApplications = proplists:get_value(register_loaded_applications, Opts, true),
-    register_loaded_applications_(RegisterLoadedApplications).
-
-register_loaded_applications_(true) ->
+register_loaded_application_tracers(#{register_loaded_applications := true}) ->
     %% TODO: filter out OTP apps that will not have any instrumentation
     LoadedApplications = application:loaded_applications(),
     opentelemetry:register_application_tracers(LoadedApplications),
     ok;
-register_loaded_applications_(_) ->
+register_loaded_application_tracers(_) ->
     ok.

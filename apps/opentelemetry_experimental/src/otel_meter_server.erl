@@ -29,8 +29,8 @@
 -record(state, {meter :: meter(),
                 deny_list :: [atom() | {atom(), string()}]}).
 
-init(Opts) ->
-    DenyList = proplists:get_value(deny_list, Opts, []),
+init(_Opts) ->
+    DenyList = application:get_env(opentelemetry_experimental, deny_list, []),
 
     Meter = #meter{module=otel_meter_default},
     opentelemetry_experimental:set_default_meter({otel_meter_default, Meter}),
