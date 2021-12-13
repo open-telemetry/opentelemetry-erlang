@@ -135,7 +135,7 @@ sampler(AppEnv, ConfigMap) ->
             end
     end.
 
--spec merge_list_with_environment([{OSVar, Key, Transform}], list(), t()) -> t()
+-spec merge_list_with_environment([{OSVar, Key, Transform}], list(), map()) -> map()
               when OSVar :: string(),
                    Key :: atom(),
                    Transform :: atom().
