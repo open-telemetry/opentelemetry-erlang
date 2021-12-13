@@ -307,8 +307,13 @@ merge_with_environment(Opts) ->
     %% available to read configuration from.
     application:load(opentelemetry_exporter),
 
+    Config = #{otlp_endpoint => undefined,
+               otlp_traces_endpoint => undefined,
+               otlp_headers => undefined,
+               otlp_traces_headers => undefined},
+
     AppEnv = application:get_all_env(opentelemetry_exporter),
-    AppOpts = otel_configuration:merge_list_with_environment(config_mapping(), AppEnv),
+    AppOpts = otel_configuration:merge_list_with_environment(config_mapping(), AppEnv, Config),
 
     %% append the default path `/v1/traces` only to the path of otlp_endpoint
     Opts1 = update_opts(otlp_endpoint, endpoints, ?DEFAULT_ENDPOINTS, AppOpts, Opts, fun endpoints_append_path/1),
@@ -351,9 +356,10 @@ update_opts(AppKey, OptKey, Default, AppOpts, Opts) ->
     update_opts(AppKey, OptKey, Default, AppOpts, Opts, fun id/1).
 
 update_opts(AppKey, OptKey, Default, AppOpts, Opts, Transform) ->
-    case proplists:get_value(AppKey, AppOpts) of
+    case maps:get(AppKey, AppOpts) of
         undefined ->
-            maps:update_with(OptKey, Transform, Transform(Default), Opts);
+            %% use default unless already set, in which case just transform
+            maps:update_with(OptKey, Transform, Default, Opts);
         EnvValue ->
             maps:put(OptKey, Transform(EnvValue), Opts)
     end.
@@ -364,13 +370,13 @@ id(X) ->
 config_mapping() ->
     [
      %% endpoint the Otel protocol exporter should connect to
-     {"OTEL_EXPORTER_OTLP_ENDPOINT", otlp_endpoint, undefined, url},
-     {"OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", otlp_traces_endpoint, undefined, url},
+     {"OTEL_EXPORTER_OTLP_ENDPOINT", otlp_endpoint, url},
+     {"OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", otlp_traces_endpoint, url},
      %% {"OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", otlp_metrics_endpoint, "https://localhost:4317", url},
 
      %% headers to include in requests the exporter makes over the Otel protocol
-     {"OTEL_EXPORTER_OTLP_HEADERS", otlp_headers, undefined, key_value_list},
-     {"OTEL_EXPORTER_OTLP_TRACES_HEADERS", otlp_traces_headers, undefined, key_value_list}
+     {"OTEL_EXPORTER_OTLP_HEADERS", otlp_headers, key_value_list},
+     {"OTEL_EXPORTER_OTLP_TRACES_HEADERS", otlp_traces_headers, key_value_list}
      %% {"OTEL_EXPORTER_OTLP_METRICS_HEADERS", otlp_metrics_headers, "", key_value_list}
 
      %% the following are not yet defined in the spec

@@ -48,7 +48,7 @@ init([Opts]) ->
                      type => worker,
                      modules => [otel_tracer_provider, otel_tracer_server]},
 
-    Processors = proplists:get_value(processors, Opts, []),
+    Processors = maps:get(processors, Opts),
     BatchProcessorOpts = proplists:get_value(otel_batch_processor, Processors, #{}),
     BatchProcessor = #{id => otel_batch_processor,
                        start => {otel_batch_processor, start_link, [BatchProcessorOpts]},

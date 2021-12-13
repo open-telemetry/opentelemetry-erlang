@@ -120,15 +120,18 @@ registered_tracers(_Config) ->
 
 propagator_configuration(_Config) ->
     ?assertEqual({otel_propagator_text_map_composite,
-                  [{otel_propagator_b3, b3multi}, otel_propagator_baggage]}, opentelemetry:get_text_map_extractor()),
+                  [{otel_propagator_b3, b3multi}, otel_propagator_baggage]},
+                 opentelemetry:get_text_map_extractor()),
     ?assertEqual({otel_propagator_text_map_composite,
-                  [{otel_propagator_b3, b3multi}, otel_propagator_baggage]}, opentelemetry:get_text_map_injector()),
+                  [{otel_propagator_b3, b3multi}, otel_propagator_baggage]},
+                 opentelemetry:get_text_map_injector()),
 
     opentelemetry:set_text_map_extractor({otel_propagator_baggage, []}),
 
     ?assertEqual({otel_propagator_baggage, []}, opentelemetry:get_text_map_extractor()),
     ?assertEqual({otel_propagator_text_map_composite,
-                  [{otel_propagator_b3, b3multi}, otel_propagator_baggage]}, opentelemetry:get_text_map_injector()),
+                  [{otel_propagator_b3, b3multi}, otel_propagator_baggage]},
+                 opentelemetry:get_text_map_injector()),
 
     opentelemetry:set_text_map_injector({{otel_propagator_b3, b3multi}, []}),
 

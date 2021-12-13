@@ -32,12 +32,12 @@ start_link(Opts) ->
 start_child(ChildSpec) ->
     supervisor:start_child(?SERVER, ChildSpec).
 
-init([Opts]) ->
+init([_Opts]) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 1,
                  period => 5},
 
-    SweeperOpts = proplists:get_value(sweeper, Opts, #{}),
+    SweeperOpts = application:get_env(opentelemetry, sweeper, #{}),
     Sweeper = #{id => otel_span_sweeper,
                 start => {otel_span_sweeper, start_link, [SweeperOpts]},
                 restart => permanent,
