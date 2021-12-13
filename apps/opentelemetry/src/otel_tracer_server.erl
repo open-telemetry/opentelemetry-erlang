@@ -56,18 +56,17 @@
          telemetry_library :: telemetry_library()
         }).
 
-start_link(Opts) ->
-    gen_server:start_link({local, otel_tracer_provider}, ?MODULE, Opts, []).
+-spec start_link(otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
+start_link(Config) ->
+    gen_server:start_link({local, otel_tracer_provider}, ?MODULE, Config, []).
 
-init(Opts) ->
+init(#{id_generator := IdGeneratorModule,
+       sampler := SamplerSpec,
+       processors := Processors,
+       deny_list := DenyList}) ->
     Resource = otel_resource_detector:get_resource(),
 
-    IdGeneratorModule = application:get_env(opentelemetry, id_generator, otel_id_generator),
-
-    SamplerSpec = maps:get(sampler, Opts),
     Sampler = otel_sampler:new(SamplerSpec),
-    Processors = maps:get(processors, Opts),
-    DenyList = application:get_env(opentelemetry, deny_list, []),
 
     {ok, LibraryVsn} = application:get_key(opentelemetry, vsn),
     LibraryName = <<"opentelemetry">>,

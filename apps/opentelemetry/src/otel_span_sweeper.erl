@@ -45,14 +45,13 @@
 storage_size() ->
     {ets:info(?SPAN_TAB, size), ets:info(?SPAN_TAB, memory) * erlang:system_info({wordsize, external})}.
 
-start_link(Opts) ->
-    gen_statem:start_link({local, ?MODULE}, ?MODULE, [Opts], []).
+start_link(Config) ->
+    gen_statem:start_link({local, ?MODULE}, ?MODULE, [Config], []).
 
-init([SweeperConfig]) ->
-    Interval = maps:get(interval, SweeperConfig, timer:minutes(10)),
-    Strategy = maps:get(strategy, SweeperConfig, drop),
-    TTL = maps:get(span_ttl, SweeperConfig, timer:minutes(30)),
-    StorageSize = maps:get(storage_size, SweeperConfig, infinity),
+init([#{interval := Interval,
+        strategy := Strategy,
+        span_ttl := TTL,
+        storage_size := StorageSize}]) ->
     {ok, ready, #data{interval=Interval,
                       strategy=Strategy,
                       ttl=maybe_convert_time_unit(TTL),
