@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Looking up a Tracer for a module is now done by first looking up the
+  OTP Application name and then the Tracer using that name. This means all
+  Tracers share the same "namespace" again which saves space by not duplicating
+  the Tracer record for every module.
+
 ### Removed
 
 - The `sampler` option to `start_span` and `with_span` was removed.

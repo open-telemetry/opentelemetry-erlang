@@ -62,7 +62,7 @@ setup_text_map_propagators(#{text_map_propagators := List}) ->
 register_loaded_application_tracers(#{register_loaded_applications := true}) ->
     %% TODO: filter out OTP apps that will not have any instrumentation
     LoadedApplications = application:loaded_applications(),
-    opentelemetry:register_application_tracers(LoadedApplications),
+    opentelemetry:register_applications(LoadedApplications),
     ok;
 register_loaded_application_tracers(_) ->
     ok.
