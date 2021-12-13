@@ -66,11 +66,11 @@ get_resource(Timeout) ->
             otel_resource:create([])
     end.
 
-init([Opts]) ->
+init([_Opts]) ->
     process_flag(trap_exit, true),
 
-    Detectors = proplists:get_value(resource_detectors, Opts, []),
-    DetectorTimeout = proplists:get_value(resource_detectors_timeout, Opts, 5000),
+    Detectors = application:get_env(opentelemetry, resource_detectors, []),
+    DetectorTimeout = application:get_env(opentelemetry, resource_detectors_timeout, 5000),
 
     {ok, collecting, #data{resource=otel_resource:create([]),
                            detectors=Detectors,

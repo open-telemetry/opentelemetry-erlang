@@ -62,14 +62,12 @@ start_link(Opts) ->
 init(Opts) ->
     Resource = otel_resource_detector:get_resource(),
 
-    IdGeneratorModule = proplists:get_value(id_generator, Opts, otel_id_generator),
+    IdGeneratorModule = application:get_env(opentelemetry, id_generator, otel_id_generator),
 
-    SamplerSpec = proplists:get_value(
-        sampler, Opts, {parent_based, #{root => always_on}}
-    ),
+    SamplerSpec = maps:get(sampler, Opts),
     Sampler = otel_sampler:new(SamplerSpec),
-    Processors = proplists:get_value(processors, Opts, []),
-    DenyList = proplists:get_value(deny_list, Opts, []),
+    Processors = maps:get(processors, Opts),
+    DenyList = application:get_env(opentelemetry, deny_list, []),
 
     {ok, LibraryVsn} = application:get_key(opentelemetry, vsn),
     LibraryName = <<"opentelemetry">>,
