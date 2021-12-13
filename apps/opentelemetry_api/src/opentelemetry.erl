@@ -30,10 +30,11 @@
 
 -export([set_default_tracer/1,
          register_tracer/2,
-         register_application_tracers/1,
+         register_applications/1,
          get_tracer/0,
          get_tracer/1,
          set_tracer/2,
+         get_application/1,
          get_application_tracer/1,
          set_text_map_propagator/1,
          set_text_map_extractor/1,
@@ -133,7 +134,7 @@
 
 -define(TRACER_KEY(Name), {?MODULE, tracer, Name}).
 -define(DEFAULT_TRACER_KEY, ?TRACER_KEY('$__default_tracer')).
--define(APPLICATION_TRACER_KEY, {?MODULE, otel_application_tracer_key}).
+-define(MODULE_TO_APPLICATION_KEY, {?MODULE, otel_module_to_application_key}).
 -define(TEXT_MAP_EXTRACTOR_KEY, {?MODULE, text_map_extractor}).
 -define(TEXT_MAP_INJECTOR_KEY, {?MODULE, text_map_injector}).
 
@@ -151,27 +152,23 @@ register_tracer(Name, Vsn) when is_atom(Name) and is_binary(Vsn) ->
 register_tracer(Name, Vsn) when is_atom(Name) and is_list(Vsn) ->
     otel_tracer_provider:register_tracer(Name, list_to_binary(Vsn)).
 
--spec register_application_tracers([atom()]) -> ok.
-register_application_tracers(Applications) ->
+-spec register_applications([atom()]) -> ok.
+register_applications(Applications) ->
     TracerMap = lists:foldl(fun(Application, Acc) ->
-                                    maps:merge(Acc, application_tracer(Application))
+                                    register_application_tracer(Application),
+                                    maps:merge(Acc, module_to_application(Application))
                             end, #{}, Applications),
-    persistent_term:put(?APPLICATION_TRACER_KEY, TracerMap).
+    persistent_term:put(?MODULE_TO_APPLICATION_KEY, TracerMap).
 
-%% creates a map of modules to tracers for a particular application
-application_tracer({Name, _Description, Version}) ->
-    try
-        {ok, Modules} = application:get_key(Name, modules),
-        InstrumentationLibrary = instrumentation_library(Name, Version),
-        TracerTuple = otel_tracer_provider:get_tracer(InstrumentationLibrary),
-        lists:foldl(fun(M, Acc) ->
-                            Acc#{M => TracerTuple}
-                  end, #{}, Modules)
-    catch exit:{noproc, _} ->
-            %% ignore because noproc here means no provider
-            %% likely since the SDK has been included and started
-            #{}
-    end.
+register_application_tracer({Name, _Description, Version}) ->
+    register_tracer(Name, Version).
+
+%% creates a map of modules to application name
+module_to_application({Name, _Description, _Version}) ->
+    {ok, Modules} = application:get_key(Name, modules),
+    lists:foldl(fun(M, Acc) ->
+                        Acc#{M => Name}
+                end, #{}, Modules).
 
 -spec get_tracer() -> tracer().
 get_tracer() ->
@@ -181,10 +178,17 @@ get_tracer() ->
 get_tracer(Name) ->
     persistent_term:get(?TRACER_KEY(Name), get_tracer()).
 
--spec get_application_tracer(atom()) -> tracer().
+-spec get_application_tracer(module()) -> tracer().
 get_application_tracer(ModuleName) ->
-    Map = persistent_term:get(?APPLICATION_TRACER_KEY, #{}),
-    maps:get(ModuleName, Map, get_tracer()).
+    get_tracer(get_application(ModuleName)).
+
+%% looks up the name of the OTP Application a module is in. This name is used to
+%% look up a Tracer to use so if none is found for the ModuleName the key used for
+%% the default tracer
+-spec get_application(module()) -> atom().
+get_application(ModuleName) ->
+    Map = persistent_term:get(?MODULE_TO_APPLICATION_KEY, #{}),
+    maps:get(ModuleName, Map, '$__default_tracer').
 
 %% setting the propagator is the same as setting the same injector and extractor
 set_text_map_propagator(Propagator) ->
