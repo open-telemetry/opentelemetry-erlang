@@ -99,7 +99,7 @@ get_ctx(#span{trace_id=TraceId,
 set_attribute(#span_ctx{span_id=SpanId}, Key, Value) ->
     try ets:lookup_element(?SPAN_TAB, SpanId, #span.attributes) of
         Attributes ->
-            ets:update_element(?SPAN_TAB, SpanId, {#span.attributes, [{Key, Value} | Attributes]})
+            ets:update_element(?SPAN_TAB, SpanId, {#span.attributes, otel_attributes:set(Key, Value, Attributes)})
     catch error:badarg ->
             false
     end;
@@ -115,7 +115,8 @@ set_attribute(_, _, _) ->
 set_attributes(#span_ctx{span_id=SpanId}, NewAttributes) ->
     try ets:lookup_element(?SPAN_TAB, SpanId, #span.attributes) of
         Attributes ->
-            ets:update_element(?SPAN_TAB, SpanId, {#span.attributes, Attributes++NewAttributes})
+            ets:update_element(?SPAN_TAB, SpanId, {#span.attributes,
+                                                   otel_attributes:set(NewAttributes, Attributes)})
     catch error:badarg ->
             false
     end.

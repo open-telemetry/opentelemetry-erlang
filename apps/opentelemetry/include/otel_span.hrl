@@ -45,8 +45,7 @@
           end_time                :: opentelemetry:timestamp() | undefined,
 
           %% A set of attributes on the span.
-          %% Kept as a list so ets:select_replace/2 can be used to add new elements
-          attributes = []         :: opentelemetry:attributes() | undefined,
+          attributes              :: otel_attributes:t() | undefined,
 
           %% List of time-stamped events in the Span.
           events = []             :: opentelemetry:events(),

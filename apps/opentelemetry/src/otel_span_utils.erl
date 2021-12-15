@@ -29,7 +29,9 @@
 -spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_sampler:t(), otel_id_generator:t(),
                  otel_span:start_opts()) -> {opentelemetry:span_ctx(), opentelemetry:span() | undefined}.
 start_span(Ctx, Name, Sampler, IdGenerator, Opts) ->
-    Attributes = maps:get(attributes, Opts, []),
+    SpanAttributeCountLimit = otel_span_limits:attribute_count_limit(),
+    SpanAttributeValueLengthLimit= otel_span_limits:attribute_value_length_limit(),
+    Attributes = otel_attributes:new(maps:get(attributes, Opts, #{}), SpanAttributeCountLimit, SpanAttributeValueLengthLimit),
     Links = maps:get(links, Opts, []),
     Kind = maps:get(kind, Opts, ?SPAN_KIND_INTERNAL),
     StartTime = maps:get(start_time, Opts, opentelemetry:timestamp()),
@@ -42,7 +44,7 @@ new_span(Ctx, Name, Sampler, IdGeneratorModule, StartTime, Kind, Attributes, Lin
     SpanId = NewSpanCtx#span_ctx.span_id,
 
     {TraceFlags, IsRecording, SamplerAttributes, TraceState} =
-        sample(Ctx, Sampler, TraceId, Links, Name, Kind, Attributes),
+        sample(Ctx, Sampler, TraceId, Links, Name, Kind, otel_attributes:map(Attributes)),
 
     Span = #span{trace_id=TraceId,
                  span_id=SpanId,
@@ -51,7 +53,7 @@ new_span(Ctx, Name, Sampler, IdGeneratorModule, StartTime, Kind, Attributes, Lin
                  parent_span_id=ParentSpanId,
                  kind=Kind,
                  name=Name,
-                 attributes=Attributes++SamplerAttributes,
+                 attributes=otel_attributes:set(SamplerAttributes, Attributes),
                  links=Links,
                  trace_flags=TraceFlags,
                  is_recording=IsRecording},

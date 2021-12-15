@@ -97,7 +97,8 @@ set_attribute(_, _, _) ->
 -spec set_attributes(SpanCtx, Attributes) -> boolean() when
       Attributes :: opentelemetry:attributes(),
       SpanCtx :: opentelemetry:span_ctx().
-set_attributes(SpanCtx=#span_ctx{span_sdk={Module, _}}, Attributes) when ?is_recording(SpanCtx) , is_list(Attributes) ->
+set_attributes(SpanCtx=#span_ctx{span_sdk={Module, _}}, Attributes) when ?is_recording(SpanCtx),
+                                                                         (is_list(Attributes) orelse is_map(Attributes)) ->
     Module:set_attributes(SpanCtx, Attributes);
 set_attributes(_, _) ->
     false.

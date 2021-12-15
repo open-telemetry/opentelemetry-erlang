@@ -96,16 +96,19 @@
 
 -type trace_flags()        :: non_neg_integer().
 
--type timestamp() :: integer().
+-type timestamp()          :: integer().
 
 -type span_ctx()           :: #span_ctx{}.
 -type span()               :: term().
 -type span_name()          :: unicode:unicode_binary() | atom().
 
 -type attribute_key()      :: unicode:unicode_binary() | atom().
--type attribute_value()    :: any().
--type attribute()          :: {attribute_key(), attribute_value()}.
--type attributes()         :: [attribute()].
+-type attribute_value()    :: unicode:unicode_binary() |
+                              float() |
+                              integer() |
+                              [unicode:unicode_binary() | float() | integer()].
+-type attributes()         :: #{attribute_key() => attribute_value()} |
+                              [{attribute_key(), attribute_value()}].
 
 -type span_kind()          :: ?SPAN_KIND_INTERNAL    |
                               ?SPAN_KIND_SERVER      |
@@ -245,14 +248,12 @@ convert_timestamp(Timestamp, Unit) ->
 links(List) when is_list(List) ->
     lists:filtermap(fun({TraceId, SpanId, Attributes, TraceState}) when is_integer(TraceId) ,
                                                                         is_integer(SpanId) ,
-                                                                        is_list(Attributes) ,
                                                                         is_list(TraceState) ->
                             link_or_false(TraceId, SpanId, Attributes, TraceState);
                        ({#span_ctx{trace_id=TraceId,
                                    span_id=SpanId,
                                    tracestate=TraceState}, Attributes}) when is_integer(TraceId) ,
                                                                              is_integer(SpanId) ,
-                                                                             is_list(Attributes) ,
                                                                              is_list(TraceState) ->
                             link_or_false(TraceId, SpanId, Attributes, TraceState);
                        (#span_ctx{trace_id=TraceId,
@@ -286,7 +287,7 @@ link(_, _) ->
       TraceState :: tracestate().
 link(TraceId, SpanId, Attributes, TraceState) when is_integer(TraceId),
                                                    is_integer(SpanId),
-                                                   is_list(Attributes),
+                                                   (is_list(Attributes) orelse is_map(Attributes)),
                                                    is_list(TraceState) ->
     #link{trace_id=TraceId,
           span_id=SpanId,
@@ -299,7 +300,7 @@ link(_, _, _, _) ->
       Name :: unicode:unicode_binary(),
       Attributes :: attributes().
 event(Name, Attributes) when is_binary(Name),
-                             is_list(Attributes) ->
+                             (is_list(Attributes) orelse is_map(Attributes)) ->
     event(erlang:system_time(nanosecond), Name, Attributes);
 event(_, _) ->
     undefined.
@@ -310,7 +311,7 @@ event(_, _) ->
       Attributes :: attributes().
 event(Timestamp, Name, Attributes) when is_integer(Timestamp),
                                         is_binary(Name),
-                                        is_list(Attributes) ->
+                                        (is_list(Attributes) orelse is_map(Attributes)) ->
     #event{system_time_nano=Timestamp,
            name=Name,
            attributes=Attributes};
@@ -320,7 +321,7 @@ event(_, _, _) ->
 events(List) ->
     Timestamp = timestamp(),
     lists:filtermap(fun({Time, Name, Attributes}) when is_binary(Name),
-                                                       is_list(Attributes)  ->
+                                                       (is_list(Attributes) orelse is_map(Attributes)) ->
                             case event(Time, Name, Attributes) of
                                 undefined ->
                                     false;
@@ -328,7 +329,7 @@ events(List) ->
                                     {true, Event}
                             end;
                        ({Name, Attributes}) when is_binary(Name),
-                                                 is_list(Attributes) ->
+                                                 (is_list(Attributes) orelse is_map(Attributes)) ->
                             case event(Timestamp, Name, Attributes) of
                                 undefined ->
                                     false;

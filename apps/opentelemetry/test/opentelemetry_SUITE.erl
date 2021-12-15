@@ -31,7 +31,8 @@ all_cases() ->
      reset_after, attach_ctx, default_sampler, non_recording_ets_table,
      root_span_sampling_always_on, root_span_sampling_always_off,
      record_but_not_sample, record_exception_works, record_exception_with_message_works,
-     propagator_configuration, propagator_configuration_with_os_env, force_flush].
+     propagator_configuration, propagator_configuration_with_os_env, force_flush,
+     dropped_attributes, too_many_attributes].
 
 groups() ->
     [{otel_simple_processor, [], all_cases()},
@@ -71,6 +72,24 @@ init_per_testcase(propagator_configuration_with_os_env, Config) ->
     Config;
 init_per_testcase(force_flush, Config) ->
     application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1000000}}]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    %% adds an exporter for a new table
+    %% spans will be exported to a separate table for each of the test cases
+    Tid = ets:new(exported_spans, [public, bag]),
+    otel_batch_processor:set_exporter(otel_exporter_tab, Tid),
+    [{tid, Tid} | Config];
+init_per_testcase(dropped_attributes, Config) ->
+    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
+    application:set_env(opentelemetry, attribute_value_length_limit, 2),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    %% adds an exporter for a new table
+    %% spans will be exported to a separate table for each of the test cases
+    Tid = ets:new(exported_spans, [public, bag]),
+    otel_batch_processor:set_exporter(otel_exporter_tab, Tid),
+    [{tid, Tid} | Config];
+init_per_testcase(too_many_attributes, Config) ->
+    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
+    application:set_env(opentelemetry, attribute_count_limit, 2),
     {ok, _} = application:ensure_all_started(opentelemetry),
     %% adds an exporter for a new table
     %% spans will be exported to a separate table for each of the test cases
@@ -198,7 +217,7 @@ force_flush(Config) ->
     %% wouldn't be exported at this point unless force flush worked
     [Span1] = assert_exported(Tid, SpanCtx1),
 
-    ?assertEqual([{Attr1, AttrValue1}], Span1#span.attributes),
+    ?assertEqual(#{Attr1 => AttrValue1}, otel_attributes:map(Span1#span.attributes)),
 
     ok.
 
@@ -230,7 +249,7 @@ macros(Config) ->
 
     [Span1] = assert_exported(Tid, SpanCtx1),
 
-    ?assertEqual([{Attr1, AttrValue1}], Span1#span.attributes),
+    ?assertEqual(#{Attr1 => AttrValue1}, otel_attributes:map(Span1#span.attributes)),
 
     ok.
 
@@ -336,7 +355,9 @@ update_span_data(Config) ->
 
     ?UNTIL_NOT_EQUAL([], ets:match(Tid, #span{trace_id=TraceId,
                                               span_id=SpanId,
-                                              attributes=[{<<"key-1">>, <<"value-1">>}],
+                                              %% TODO: compare this another way since
+                                              %% attributes are now a record hidden behind a module
+                                              %% attributes=[{<<"key-1">>, <<"value-1">>}],
                                               links=Links,
                                               status=Status,
                                               events=Events,
@@ -629,6 +650,64 @@ record_exception_with_message_works(Config) ->
                          Event#event.attributes),
             ok
     end.
+
+dropped_attributes(Config) ->
+    Tid = ?config(tid, Config),
+    SpanCtx = ?start_span(<<"span-1">>),
+
+    ?set_current_span(SpanCtx),
+
+    ?set_attribute(<<"attr-1">>, <<"attr-value-1">>),
+    ?set_attribute(<<"attr-2">>, {not_allowed, in, attributes}),
+
+    otel_span:end_span(SpanCtx),
+    [Span] = assert_exported(Tid, SpanCtx),
+
+    ?assertEqual(#{<<"attr-1">> => <<"at">>}, otel_attributes:map(Span#span.attributes)),
+    ?assertEqual(1, otel_attributes:dropped(Span#span.attributes)),
+
+    ok.
+
+too_many_attributes(Config) ->
+    Tid = ?config(tid, Config),
+    SpanCtx = ?start_span(<<"span-1">>),
+
+    ?set_current_span(SpanCtx),
+
+    ?set_attribute(<<"attr-1">>, <<"attr-value-1">>),
+
+    %% dropped because of tuple as value
+    ?set_attribute(<<"attr-2">>, {not_allowed, in, attributes}),
+
+    ?set_attribute(<<"attr-3">>, <<"attr-value-3">>),
+
+    %% dropped because count limit was set to 2
+    ?set_attribute(<<"attr-4">>, <<"attr-value-4">>),
+
+    otel_span:end_span(SpanCtx),
+    [Span] = assert_exported(Tid, SpanCtx),
+
+    ?assertEqual(#{<<"attr-1">> => <<"attr-value-1">>,
+                   <<"attr-3">> => <<"attr-value-3">>}, otel_attributes:map(Span#span.attributes)),
+    ?assertEqual(2, otel_attributes:dropped(Span#span.attributes)),
+
+    %% test again using the `set_attributes' macro
+    SpanCtx2 = ?start_span(<<"span-2">>),
+
+    ?set_current_span(SpanCtx2),
+
+    ?set_attributes(#{<<"attr-1">> => <<"attr-value-1">>,
+                      <<"attr-2">> => {not_allowed, in, attributes},
+                      <<"attr-3">> => <<"attr-value-3">>,
+                      <<"attr-4">> => <<"attr-value-4">>}),
+
+    otel_span:end_span(SpanCtx2),
+    [Span2] = assert_exported(Tid, SpanCtx2),
+
+    %% order isn't guaranteed so just verify the number dropped is right
+    ?assertEqual(2, otel_attributes:dropped(Span2#span.attributes)),
+
+    ok.
 
 %%
 
