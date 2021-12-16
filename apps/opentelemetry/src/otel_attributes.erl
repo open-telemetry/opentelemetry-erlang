@@ -34,10 +34,10 @@
 
 -export_type([t/0]).
 
-new(Map, CountLimit, ValueLengthLimit) when is_map(Map) ->
-    new(maps:to_list(Map), CountLimit, ValueLengthLimit);
 new(List, CountLimit, ValueLengthLimit) when is_list(List) ->
-    update_attributes(List, #attributes{count_limit=CountLimit,
+    new(maps:from_list(List), CountLimit, ValueLengthLimit);
+new(Map, CountLimit, ValueLengthLimit) when is_map(Map) ->
+    update_attributes(Map, #attributes{count_limit=CountLimit,
                                         value_length_limit=ValueLengthLimit,
                                         dropped=0,
                                         map=#{}});
@@ -47,11 +47,10 @@ new(_, CountLimit, ValueLengthLimit) ->
                 dropped=0,
                 map=#{}}.
 
-set(NewMap, Attributes) when is_map(NewMap) ->
-    %% convert to a list so dropping for size is easier in `update_attributes'
-    set(maps:to_list(NewMap), Attributes);
 set(NewList, Attributes) when is_list(NewList) ->
-    update_attributes(NewList, Attributes);
+    set(maps:from_list(NewList), Attributes);
+set(NewMap, Attributes) when is_map(NewMap) ->
+    update_attributes(NewMap, Attributes);
 set(_, Attributes) ->
     Attributes.
 
@@ -66,39 +65,16 @@ map(#attributes{map=Map}) ->
 
 %%
 
-%% TODO: this is partly wrong. We must check each element in the List and not just drop
-%% them all. If the key already exists in the Attributes then its value must be replaced
-%% instead of dropping the new attribute.
-update_attributes(List, Attributes=#attributes{count_limit=CountLimit,
-                                               map=Map}) when map_size(Map) < CountLimit ->
-    Limit = CountLimit - map_size(Map),
-    update_attributes_(List, Limit, Attributes);
-update_attributes(List, Attributes=#attributes{dropped=Dropped}) ->
-    Attributes#attributes{dropped=Dropped + length(List)}.
+update_attributes(List, Attributes) ->
+    maps:fold(fun update_attribute/3, Attributes, List).
 
-update_attributes_([], _, Attributes) ->
-    Attributes;
-update_attributes_(List, 0, Attributes=#attributes{dropped=Dropped}) ->
-    %% we've hit the limit on the number of attributes so drop the rest
-    Attributes#attributes{dropped=Dropped + length(List)};
-update_attributes_([{Key, Value} | Rest], Limit, Attributes=#attributes{value_length_limit=ValueLengthLimit,
-                                                                        dropped=Dropped,
-                                                                        map=Map}) ->
-    case is_allowed(Value, ValueLengthLimit) of
-        {true, V} ->
-            update_attributes_(Rest, Limit - 1, Attributes#attributes{map=Map#{Key => V}});
-
-        %% Value isn't a primitive or a list/array so drop it
-        false ->
-            %% don't subtract from the limit since the attribute was dropped
-            update_attributes_(Rest, Limit, Attributes#attributes{dropped=Dropped + 1})
-    end.
-
+%% add key/value if the size is still under the limit or the key is already in the map
 update_attribute(Key, Value, Attributes=#attributes{count_limit=CountLimit,
                                                     value_length_limit=ValueLengthLimit,
                                                     dropped=Dropped,
-                                                    map=Map}) when map_size(Map) < CountLimit ,
-                                                                   (is_binary(Key) orelse is_atom(Key)) ->
+                                                    map=Map})
+  when (map_size(Map) < CountLimit orelse is_map_key(Key, Map)),
+       (is_binary(Key) orelse is_atom(Key)) ->
     case is_allowed(Value, ValueLengthLimit) of
         {true, V} ->
             Attributes#attributes{map=Map#{Key => V}};

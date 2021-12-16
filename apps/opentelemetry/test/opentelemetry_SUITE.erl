@@ -619,14 +619,14 @@ record_exception_works(Config) ->
         ok
     catch
         Class:Term:Stacktrace ->
-            otel_span:record_exception(SpanCtx, Class, Term, Stacktrace, [{"some-attribute", "value"}]),
+            otel_span:record_exception(SpanCtx, Class, Term, Stacktrace, [{<<"some-attribute">>, <<"value">>}]),
             otel_span:end_span(SpanCtx),
             [Span] = assert_exported(Tid, SpanCtx),
             [Event] = otel_events:list(Span#span.events),
             ?assertEqual(<<"exception">>, Event#event.name),
             ?assertEqual(#{<<"exception.type">> => <<"throw:my_error">>,
                            <<"exception.stacktrace">> => list_to_binary(io_lib:format("~p", [Stacktrace], [{chars_limit, 50}])),
-                           "some-attribute" => "value"},
+                           <<"some-attribute">> => <<"value">>},
                          otel_attributes:map(Event#event.attributes)),
             ok
     end.
@@ -639,15 +639,15 @@ record_exception_with_message_works(Config) ->
             ok
     catch
         Class:Term:Stacktrace ->
-            otel_span:record_exception(SpanCtx, Class, Term, "My message", Stacktrace, [{"some-attribute", "value"}]),
+            otel_span:record_exception(SpanCtx, Class, Term, <<"My message">>, Stacktrace, [{<<"some-attribute">>, <<"value">>}]),
             otel_span:end_span(SpanCtx),
             [Span] = assert_exported(Tid, SpanCtx),
             [Event] = otel_events:list(Span#span.events),
             ?assertEqual(<<"exception">>, Event#event.name),
             ?assertEqual(#{<<"exception.type">> => <<"throw:my_error">>,
                            <<"exception.stacktrace">> => list_to_binary(io_lib:format("~p", [Stacktrace], [{chars_limit, 50}])),
-                           <<"exception.message">> => "My message",
-                           "some-attribute" =>"value"},
+                           <<"exception.message">> => <<"My message">>,
+                           <<"some-attribute">> => <<"value">>},
                          otel_attributes:map(Event#event.attributes)
                         ),
             ok
@@ -685,11 +685,13 @@ too_many_attributes(Config) ->
 
     %% dropped because count limit was set to 2
     ?set_attribute(<<"attr-4">>, <<"attr-value-4">>),
+    %% won't be dropped because attr-1 already exists so it overrides the value
+    ?set_attribute(<<"attr-1">>, <<"attr-value-5">>),
 
     otel_span:end_span(SpanCtx),
     [Span] = assert_exported(Tid, SpanCtx),
 
-    ?assertEqual(#{<<"attr-1">> => <<"attr-value-1">>,
+    ?assertEqual(#{<<"attr-1">> => <<"attr-value-5">>,
                    <<"attr-3">> => <<"attr-value-3">>}, otel_attributes:map(Span#span.attributes)),
     ?assertEqual(2, otel_attributes:dropped(Span#span.attributes)),
 
@@ -702,6 +704,9 @@ too_many_attributes(Config) ->
                       <<"attr-2">> => {not_allowed, in, attributes},
                       <<"attr-3">> => <<"attr-value-3">>,
                       <<"attr-4">> => <<"attr-value-4">>}),
+
+    %% won't be dropped because attr-1 already exists so it overrides the value
+    ?set_attributes(#{<<"attr-1">> => <<"attr-value-5">>}),
 
     otel_span:end_span(SpanCtx2),
     [Span2] = assert_exported(Tid, SpanCtx2),

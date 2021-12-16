@@ -53,7 +53,7 @@ dropped(#links{dropped=Dropped}) ->
 create_links(List, LinkCountLimit, AttributePerLinkLimit, AttributeValueLengthLimit) ->
     create_links(List, LinkCountLimit, AttributePerLinkLimit, AttributeValueLengthLimit, 0, []).
 
-create_links([], _, _, AttributeValueLengthLimit, Dropped, Links) ->
+create_links([], _, _, _AttributeValueLengthLimit, Dropped, Links) ->
     {Links, Dropped};
 create_links(List, 0, _, _, Dropped, Links) ->
     {Links, Dropped + length(List)};
