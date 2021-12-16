@@ -67,10 +67,10 @@ crash_detector(_Config) ->
         application:set_env(opentelemetry, resource, #{<<"c">> => <<"d">>}),
         os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=2.1.1"),
 
-        otel_resource_detector:start_link([{resource_detectors, [otel_resource_env_var,
-                                                                 {otel_resource_detector_test, error},
-                                                                 otel_resource_app_env]},
-                                           {resource_detectors_timeout, 100}]),
+        otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
+                                                                   {otel_resource_detector_test, error},
+                                                                   otel_resource_app_env],
+                                            resource_detector_timeout => 100}),
 
         {_, ResourceList} = otel_resource_detector:get_resource(),
 
@@ -90,10 +90,10 @@ timeout_detector(_Config) ->
         application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
         os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=3.1.1"),
 
-        otel_resource_detector:start_link([{resource_detectors, [otel_resource_env_var,
-                                                                 {otel_resource_detector_test, sleep},
-                                                                 otel_resource_app_env]},
-                                           {resource_detectors_timeout, 100}]),
+        otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
+                                                                   {otel_resource_detector_test, sleep},
+                                                                   otel_resource_app_env],
+                                            resource_detector_timeout => 100}),
 
         {_, ResourceList} = otel_resource_detector:get_resource(),
 
@@ -144,8 +144,9 @@ unknown_service_name(_Config) ->
         application:load(opentelemetry),
         application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
 
-        otel_resource_detector:start_link([{resource_detectors, [otel_resource_env_var,
-                                                                 otel_resource_app_env]}]),
+        otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
+                                                                   otel_resource_app_env],
+                                            resource_detector_timeout => 100}),
 
         Resource = otel_resource_detector:get_resource(),
         ?assertIsSubset([{<<"service.name">>, <<"unknown_service:erl">>},
@@ -166,8 +167,9 @@ release_service_name(_Config) ->
         application:load(opentelemetry),
         application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
 
-        otel_resource_detector:start_link([{resource_detectors, [otel_resource_env_var,
-                                                                 otel_resource_app_env]}]),
+        otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
+                                                                   otel_resource_app_env],
+                                            resource_detector_timeout => 100}),
 
         Resource = otel_resource_detector:get_resource(),
         ?assertIsSubset([{<<"service.name">>, <<"rel-cttest">>},
@@ -187,8 +189,9 @@ release_service_name_no_version(_Config) ->
         application:load(opentelemetry),
         application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
 
-        otel_resource_detector:start_link([{resource_detectors, [otel_resource_env_var,
-                                                                 otel_resource_app_env]}]),
+        otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
+                                                                   otel_resource_app_env],
+                                            resource_detector_timeout => 100}),
 
         Resource = otel_resource_detector:get_resource(),
         ?assertIsSubset([{<<"service.name">>, <<"rel-cttest">>},
