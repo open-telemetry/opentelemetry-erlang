@@ -48,8 +48,11 @@
                detectors        :: [detector()],
                detector_timeout :: integer()}).
 
-start_link(Opts) ->
-    gen_statem:start_link({local, ?MODULE}, ?MODULE, [Opts], []).
+-spec start_link(Config) -> {ok, pid()} | ignore | {error, term()} when
+              Config :: #{resource_detectors := [module()],
+                          resource_detector_timeout := integer()}.
+start_link(Config) ->
+    gen_statem:start_link({local, ?MODULE}, ?MODULE, [Config], []).
 
 get_resource() ->
     get_resource(6000).
@@ -66,11 +69,9 @@ get_resource(Timeout) ->
             otel_resource:create([])
     end.
 
-init([_Opts]) ->
+init([#{resource_detectors := Detectors,
+        resource_detector_timeout := DetectorTimeout}]) ->
     process_flag(trap_exit, true),
-
-    Detectors = application:get_env(opentelemetry, resource_detectors, []),
-    DetectorTimeout = application:get_env(opentelemetry, resource_detectors_timeout, 5000),
 
     {ok, collecting, #data{resource=otel_resource:create([]),
                            detectors=Detectors,

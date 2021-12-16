@@ -26,20 +26,20 @@
 
 -define(SERVER, ?MODULE).
 
-start_link(Opts) ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, [Opts]).
+start_link(Config) ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, [Config]).
 
 start_child(ChildSpec) ->
     supervisor:start_child(?SERVER, ChildSpec).
 
-init([_Opts]) ->
+init([Config]) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 1,
                  period => 5},
 
-    SweeperOpts = application:get_env(opentelemetry, sweeper, #{}),
+    SweeperConfig = maps:get(sweeper, Config),
     Sweeper = #{id => otel_span_sweeper,
-                start => {otel_span_sweeper, start_link, [SweeperOpts]},
+                start => {otel_span_sweeper, start_link, [SweeperConfig]},
                 restart => permanent,
                 shutdown => 5000,
                 type => worker,
