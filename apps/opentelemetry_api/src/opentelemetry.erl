@@ -72,11 +72,14 @@
               span_kind/0,
               link/0,
               links/0,
+              links_list/0,
               attribute_key/0,
               attribute_value/0,
               attributes/0,
+              attributes_map/0,
               event/0,
               events/0,
+              events_list/0,
               event_name/0,
               tracestate/0,
               status/0,
@@ -107,7 +110,8 @@
                               float() |
                               integer() |
                               [unicode:unicode_binary() | float() | integer()].
--type attributes()         :: #{attribute_key() => attribute_value()} |
+-type attributes()         :: term().
+-type attributes_map()     :: #{attribute_key() => attribute_value()} |
                               [{attribute_key(), attribute_value()}].
 
 -type span_kind()          :: ?SPAN_KIND_INTERNAL    |
@@ -116,10 +120,12 @@
                               ?SPAN_KIND_PRODUCER    |
                               ?SPAN_KIND_CONSUMER.
 -type event()              :: #event{}.
--type events()             :: [#event{}].
+-type events()             :: term().
+-type events_list()        :: [#event{}].
 -type event_name()         :: unicode:unicode_binary() | atom().
 -type link()               :: #link{}.
--type links()              :: [#link{}].
+-type links()              :: term().
+-type links_list()         :: [#link{}].
 -type status()             :: #status{}.
 -type status_code()        :: ?OTEL_STATUS_UNSET | ?OTEL_STATUS_OK | ?OTEL_STATUS_ERROR.
 
@@ -240,10 +246,10 @@ convert_timestamp(Timestamp, Unit) ->
     Offset = erlang:time_offset(),
     erlang:convert_time_unit(Timestamp + Offset, native, Unit).
 
--spec links([{TraceId, SpanId, Attributes, TraceState} | span_ctx() | {span_ctx(), Attributes}]) -> links() when
+-spec links([{TraceId, SpanId, Attributes, TraceState} | span_ctx() | {span_ctx(), Attributes}]) -> links_list() when
       TraceId :: trace_id(),
       SpanId :: span_id(),
-      Attributes :: attributes(),
+      Attributes :: attributes_map(),
       TraceState :: tracestate().
 links(List) when is_list(List) ->
     lists:filtermap(fun({TraceId, SpanId, Attributes, TraceState}) when is_integer(TraceId) ,
@@ -272,7 +278,7 @@ links(_) ->
 link(SpanCtx) ->
     link(SpanCtx, []).
 
--spec link(span_ctx() | undefined, attributes()) -> link().
+-spec link(span_ctx() | undefined, attributes_map()) -> link().
 link(#span_ctx{trace_id=TraceId,
                span_id=SpanId,
                tracestate=TraceState}, Attributes) ->
@@ -283,7 +289,7 @@ link(_, _) ->
 -spec link(TraceId, SpanId, Attributes, TraceState) -> link() | undefined when
       TraceId :: trace_id(),
       SpanId :: span_id(),
-      Attributes :: attributes(),
+      Attributes :: attributes_map(),
       TraceState :: tracestate().
 link(TraceId, SpanId, Attributes, TraceState) when is_integer(TraceId),
                                                    is_integer(SpanId),
@@ -298,7 +304,7 @@ link(_, _, _, _) ->
 
 -spec event(Name, Attributes) -> event() | undefined when
       Name :: unicode:unicode_binary(),
-      Attributes :: attributes().
+      Attributes :: attributes_map().
 event(Name, Attributes) when is_binary(Name),
                              (is_list(Attributes) orelse is_map(Attributes)) ->
     event(erlang:system_time(nanosecond), Name, Attributes);
@@ -308,7 +314,7 @@ event(_, _) ->
 -spec event(Timestamp, Name, Attributes) -> event() | undefined when
       Timestamp :: non_neg_integer(),
       Name :: unicode:unicode_binary(),
-      Attributes :: attributes().
+      Attributes :: attributes_map().
 event(Timestamp, Name, Attributes) when is_integer(Timestamp),
                                         is_binary(Name),
                                         (is_list(Attributes) orelse is_map(Attributes)) ->

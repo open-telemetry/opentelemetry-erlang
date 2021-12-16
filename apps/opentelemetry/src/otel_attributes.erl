@@ -66,6 +66,9 @@ map(#attributes{map=Map}) ->
 
 %%
 
+%% TODO: this is partly wrong. We must check each element in the List and not just drop
+%% them all. If the key already exists in the Attributes then its value must be replaced
+%% instead of dropping the new attribute.
 update_attributes(List, Attributes=#attributes{count_limit=CountLimit,
                                                map=Map}) when map_size(Map) < CountLimit ->
     Limit = CountLimit - map_size(Map),

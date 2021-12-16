@@ -130,7 +130,7 @@ add_event(SpanCtx, Name, Attributes) ->
 add_events(#span_ctx{span_id=SpanId}, NewEvents) ->
     try ets:lookup_element(?SPAN_TAB, SpanId, #span.events) of
         Events ->
-            ets:update_element(?SPAN_TAB, SpanId, {#span.events, Events++NewEvents})
+            ets:update_element(?SPAN_TAB, SpanId, {#span.events, otel_events:add(NewEvents, Events)})
     catch error:badarg ->
             false
     end.

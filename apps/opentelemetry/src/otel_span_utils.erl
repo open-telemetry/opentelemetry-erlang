@@ -31,13 +31,26 @@
 start_span(Ctx, Name, Sampler, IdGenerator, Opts) ->
     SpanAttributeCountLimit = otel_span_limits:attribute_count_limit(),
     SpanAttributeValueLengthLimit= otel_span_limits:attribute_value_length_limit(),
-    Attributes = otel_attributes:new(maps:get(attributes, Opts, #{}), SpanAttributeCountLimit, SpanAttributeValueLengthLimit),
-    Links = maps:get(links, Opts, []),
+    EventCountLimit = otel_span_limits:event_count_limit(),
+    LinkCountLimit = otel_span_limits:link_count_limit(),
+    AttributePerEventLimit = otel_span_limits:attribute_per_event_limit(),
+    AttributePerLinkLimit = otel_span_limits:attribute_per_link_limit(),
+
+
+    Attributes = otel_attributes:new(maps:get(attributes, Opts, #{}),
+                                     SpanAttributeCountLimit,
+                                     SpanAttributeValueLengthLimit),
+    Links = otel_links:new(maps:get(links, Opts, []),
+                           LinkCountLimit,
+                           AttributePerLinkLimit,
+                           SpanAttributeValueLengthLimit),
+    Events = otel_events:new(EventCountLimit, AttributePerEventLimit, SpanAttributeValueLengthLimit),
+
     Kind = maps:get(kind, Opts, ?SPAN_KIND_INTERNAL),
     StartTime = maps:get(start_time, Opts, opentelemetry:timestamp()),
-    new_span(Ctx, Name, Sampler, IdGenerator, StartTime, Kind, Attributes, Links).
+    new_span(Ctx, Name, Sampler, IdGenerator, StartTime, Kind, Attributes, Events, Links).
 
-new_span(Ctx, Name, Sampler, IdGeneratorModule, StartTime, Kind, Attributes, Links) ->
+new_span(Ctx, Name, Sampler, IdGeneratorModule, StartTime, Kind, Attributes, Events, Links) ->
     {NewSpanCtx, ParentSpanId} = new_span_ctx(Ctx, IdGeneratorModule),
 
     TraceId = NewSpanCtx#span_ctx.trace_id,
@@ -54,6 +67,7 @@ new_span(Ctx, Name, Sampler, IdGeneratorModule, StartTime, Kind, Attributes, Lin
                  kind=Kind,
                  name=Name,
                  attributes=otel_attributes:set(SamplerAttributes, Attributes),
+                 events=Events,
                  links=Links,
                  trace_flags=TraceFlags,
                  is_recording=IsRecording},

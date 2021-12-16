@@ -222,18 +222,17 @@ add_service_name(Resource, ProgName) ->
     case os:getenv("OTEL_SERVICE_NAME") of
         false ->
             Attributes = otel_resource:attributes(Resource),
-            case lists:keyfind(?SERVICE_NAME, 1, Attributes) of
+            case maps:is_key(?SERVICE_NAME, otel_attributes:map(Attributes)) of
                 false ->
                     ServiceResource = service_release_name(ProgName),
-                    otel_resource:merge(Resource,  ServiceResource);
-                _ ->
+                    otel_resource:merge(Resource, ServiceResource);
+                true ->
                     Resource
             end;
         ServiceName ->
             %% service.name resource first to override any other service.name
             %% attribute that could be set in the resource
-            otel_resource:merge(otel_resource:create([{?SERVICE_NAME, ServiceName}]),
-                                Resource)
+            otel_resource:merge(Resource, otel_resource:create([{?SERVICE_NAME, ServiceName}]))
     end.
 
 service_release_name(ProgName) ->

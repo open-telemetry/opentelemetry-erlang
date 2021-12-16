@@ -76,7 +76,7 @@
 -record(event, {
           system_time_nano :: non_neg_integer(),
           name             :: unicode:unicode_binary() | atom(),
-          attributes = []  :: opentelemetry:attributes()
+          attributes       :: opentelemetry:attributes()
          }).
 
 -record(status, {
