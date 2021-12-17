@@ -369,8 +369,8 @@ config_mapping() ->
 tab_to_proto(Tab, Resource) ->
     InstrumentationLibrarySpans = to_proto_by_instrumentation_library(Tab),
     Attributes = otel_resource:attributes(Resource),
-    ResourceSpans = [#{resource => #{attributes => to_attributes(Attributes),
-                                     dropped_attributes_count => 0},
+    ResourceSpans = [#{resource => #{attributes => to_attributes(otel_attributes:map(Attributes)),
+                                     dropped_attributes_count => otel_attributes:dropped(Attributes)},
                        instrumentation_library_spans => InstrumentationLibrarySpans}],
     #{resource_spans => ResourceSpans}.
 
@@ -421,31 +421,24 @@ to_proto(#span{trace_id=TraceId,
       kind                     => to_otlp_kind(Kind),
       start_time_unix_nano     => to_unixnano(StartTime),
       end_time_unix_nano       => to_unixnano(EndTime),
-      attributes               => to_attributes(Attributes),
-      dropped_attributes_count => 0,
-      events                   => to_events(TimedEvents),
-      dropped_events_count     => 0,
-      links                    => to_links(Links),
-      dropped_links_count      => 0,
+      attributes               => to_attributes(otel_attributes:map(Attributes)),
+      dropped_attributes_count => otel_attributes:dropped(Attributes),
+      events                   => to_events(otel_events:list(TimedEvents)),
+      dropped_events_count     => otel_events:dropped(TimedEvents),
+      links                    => to_links(otel_links:list(Links)),
+      dropped_links_count      => otel_links:dropped(Links),
       status                   => to_status(Status)}.
 
 -spec to_unixnano(integer()) -> non_neg_integer().
 to_unixnano(Timestamp) ->
     opentelemetry:timestamp_to_nano(Timestamp).
 
--spec to_attributes(opentelemetry:attributes()) -> [opentelemetry_exporter_trace_service_pb:key_value()].
+-spec to_attributes(opentelemetry:attributes_map()) -> [opentelemetry_exporter_trace_service_pb:key_value()].
 to_attributes(Attributes) ->
-    to_attributes(Attributes, []).
-
-%% Note: nested maps may be an issue.
-to_attributes([], Acc) ->
-    Acc;
-to_attributes([{Key, Value} | Rest], Acc) when is_atom(Key) ; is_binary(Key) ->
-    to_attributes(Rest, [#{key => to_binary(Key),
-                           value => to_any_value(Value)} | Acc]);
-to_attributes([_ | Rest], Acc) ->
-    %% TODO: count the number dropped
-    to_attributes(Rest, Acc).
+    maps:fold(fun(Key, Value, Acc) ->
+                      [#{key => to_binary(Key),
+                         value => to_any_value(Value)} | Acc]
+              end, [], Attributes).
 
 to_any_value(Value) when is_binary(Value) ->
     %% TODO: there is a bytes_value type we don't currently support bc we assume string
@@ -509,7 +502,7 @@ to_status(#status{code=Code,
 to_status(_) ->
     #{}.
 
--spec to_events([opentelemetry:events()]) -> [opentelemetry_exporter_trace_service_pb:event()].
+-spec to_events([#event{}]) -> [opentelemetry_exporter_trace_service_pb:event()].
 to_events(Events) ->
     to_events(Events, []).
 
@@ -520,12 +513,11 @@ to_events([#event{system_time_nano=Timestamp,
                   attributes=Attributes} | Rest], Acc) ->
     to_events(Rest, [#{time_unix_nano => to_unixnano(Timestamp),
                        name => to_binary(Name),
-                       attributes => to_attributes(Attributes)} | Acc]);
+                       attributes => to_attributes(otel_attributes:map(Attributes))} | Acc]);
 to_events([_ | Rest], Acc) ->
-    %% TODO: count the number dropped
     to_events(Rest, Acc).
 
--spec to_links(opentelemetry:links()) -> [opentelemetry_exporter_trace_service_pb:link()].
+-spec to_links([#link{}]) -> [opentelemetry_exporter_trace_service_pb:link()].
 to_links(Links) ->
     to_links(Links, []).
 
@@ -541,7 +533,6 @@ to_links([#link{trace_id=TraceId,
                       attributes => to_attributes(Attributes),
                       dropped_attributes_count => 0} | Acc]);
 to_links([_ | Rest], Acc) ->
-    %% TODO: count the number dropped
     to_links(Rest, Acc).
 
 to_tracestate_string(List) when is_list(List) ->

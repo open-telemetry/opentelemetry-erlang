@@ -13,7 +13,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   OTP Application name and then the Tracer using that name. This means all
   Tracers share the same "namespace" again which saves space by not duplicating
   the Tracer record for every module.
-
+- Configurable limits for the number of Attributes, Events and Links allowed in
+  a Span, an Event or a Link -- defaults to 128. The length of each Attribute's
+  value can also be limited but has a default of infinity.
+  
+  Environment variables added to configure the limits:
+  
+  - `OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT`: Limit on number of Attributes on a Span.
+  - `OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT`: Limit length of Attribute values.
+  - `OTEL_SPAN_EVENT_COUNT_LIMIT`: Limit number of Events on a Span.
+  - `OTEL_SPAN_LINK_COUNT_LIMIT`: Limit number of Links on a Span.
+  - `OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT`: Limit on number of Attributes on an Event.
+  - `OTEL_LINK_ATTRIBUTE_COUNT_LIMIT`: Limit on number of Attributes on a Link.
+     
 ### Removed
 
 - The `sampler` option to `start_span` and `with_span` was removed.

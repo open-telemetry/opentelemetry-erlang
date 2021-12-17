@@ -37,10 +37,10 @@
 -callback should_sample(
     otel_ctx:t(),
     opentelemetry:trace_id(),
-    opentelemetry:links(),
+    otel_links:t(),
     opentelemetry:span_name(),
     opentelemetry:span_kind(),
-    opentelemetry:attributes(),
+    opentelemetry:attributes_map(),
     sampler_config()
 ) -> sampling_result().
 
@@ -63,7 +63,7 @@
 -type sampler_spec() :: builtin_sampler() | {module(), sampler_opts()}.
 -type sampling_decision() :: ?DROP | ?RECORD_ONLY | ?RECORD_AND_SAMPLE.
 -type sampling_result() :: {
-    sampling_decision(), opentelemetry:attributes(), opentelemetry:tracestate()
+    sampling_decision(), opentelemetry:attributes_map(), opentelemetry:tracestate()
 }.
 -opaque t() :: {module(), description(), sampler_opts()}.
 
@@ -84,10 +84,10 @@ new({Sampler, Opts}) ->
     t(),
     otel_ctx:t(),
     opentelemetry:trace_id(),
-    opentelemetry:links(),
+    otel_links:t(),
     opentelemetry:span_name(),
     opentelemetry:span_kind(),
-    opentelemetry:attributes()
+    opentelemetry:attributes_map()
 ) -> sampling_result().
 should_sample({Sampler, _, Config}, Ctx, TraceId, Links, SpanName, Kind, Attributes) ->
     Sampler:should_sample(Ctx, TraceId, Links, SpanName, Kind, Attributes, Config).

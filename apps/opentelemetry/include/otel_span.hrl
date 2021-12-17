@@ -45,14 +45,13 @@
           end_time                :: opentelemetry:timestamp() | undefined,
 
           %% A set of attributes on the span.
-          %% Kept as a list so ets:select_replace/2 can be used to add new elements
-          attributes = []         :: opentelemetry:attributes() | undefined,
+          attributes              :: otel_attributes:t() | undefined,
 
           %% List of time-stamped events in the Span.
-          events = []             :: opentelemetry:events(),
+          events                  :: otel_events:t(),
 
           %% links to spans in other traces
-          links = []              :: opentelemetry:links(),
+          links                   :: otel_links:t(),
 
           %% An optional final status for this span.
           status                  :: opentelemetry:status() | undefined,
@@ -76,3 +75,16 @@
           attribute_per_event_limit = 128         :: integer(), %% Maximum allowed attribute per span event count
           attribute_per_link_limit = 128          :: integer() %% Maximum allowed attribute per span link count
        }).
+
+-record(link, {
+          trace_id   :: opentelemetry:trace_id(),
+          span_id    :: opentelemetry:span_id(),
+          attributes :: otel_attributes:t(),
+          tracestate :: opentelemetry:tracestate()
+         }).
+
+-record(event, {
+          system_time_nano :: non_neg_integer(),
+          name             :: unicode:unicode_binary() | atom(),
+          attributes       :: otel_attributes:t()
+         }).

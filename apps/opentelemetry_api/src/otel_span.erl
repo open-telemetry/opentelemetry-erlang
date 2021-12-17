@@ -40,8 +40,8 @@
 
 -define(is_recording(SpanCtx), SpanCtx =/= undefined andalso SpanCtx#span_ctx.is_recording =:= true).
 
--type start_opts() :: #{attributes => opentelemetry:attributes(),
-                        links => opentelemetry:links(),
+-type start_opts() :: #{attributes => opentelemetry:attributes_map(),
+                        links => [opentelemetry:link()],
                         is_recording => boolean(),
                         start_time => opentelemetry:timestamp(),
                         kind => opentelemetry:span_kind()}.
@@ -95,16 +95,17 @@ set_attribute(_, _, _) ->
     false.
 
 -spec set_attributes(SpanCtx, Attributes) -> boolean() when
-      Attributes :: opentelemetry:attributes(),
+      Attributes :: opentelemetry:attributes_map(),
       SpanCtx :: opentelemetry:span_ctx().
-set_attributes(SpanCtx=#span_ctx{span_sdk={Module, _}}, Attributes) when ?is_recording(SpanCtx) , is_list(Attributes) ->
+set_attributes(SpanCtx=#span_ctx{span_sdk={Module, _}}, Attributes) when ?is_recording(SpanCtx),
+                                                                         (is_list(Attributes) orelse is_map(Attributes)) ->
     Module:set_attributes(SpanCtx, Attributes);
 set_attributes(_, _) ->
     false.
 
 -spec add_event(SpanCtx, Name, Attributes) -> boolean() when
       Name :: opentelemetry:event_name(),
-      Attributes :: opentelemetry:attributes(),
+      Attributes :: opentelemetry:attributes_map(),
       SpanCtx :: opentelemetry:span_ctx().
 add_event(SpanCtx=#span_ctx{span_sdk={Module, _}}, Name, Attributes) when ?is_recording(SpanCtx) ->
     Module:add_event(SpanCtx, Name, Attributes);
@@ -112,7 +113,7 @@ add_event(_, _, _) ->
     false.
 
 -spec add_events(SpanCtx, Events) -> boolean() when
-      Events :: opentelemetry:events(),
+      Events :: [opentelemetry:event()],
       SpanCtx :: opentelemetry:span_ctx().
 add_events(SpanCtx=#span_ctx{span_sdk={Module, _}}, Events) when ?is_recording(SpanCtx) , is_list(Events)  ->
     Module:add_events(SpanCtx, Events);
@@ -124,7 +125,7 @@ add_events(_, _) ->
       Class :: atom(),
       Term :: term(),
       Stacktrace :: list(any()),
-      Attributes :: opentelemetry:attributes().
+      Attributes :: opentelemetry:attributes_map().
 record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) ->
     ExceptionAttributes = [{<<"exception.type">>, iolist_to_binary(io_lib:format("~0tP:~0tP", [Class, 10, Term, 10], [{chars_limit, 50}]))},
                            {<<"exception.stacktrace">>, iolist_to_binary(io_lib:format("~0tP", [Stacktrace, 10], [{chars_limit, 50}]))}],
@@ -136,7 +137,7 @@ record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) ->
       Term :: term(),
       Message :: unicode:unicode_binary(),
       Stacktrace :: list(any()),
-      Attributes :: opentelemetry:attributes().
+      Attributes :: opentelemetry:attributes_map().
 record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) ->
     ExceptionAttributes = [{<<"exception.type">>, iolist_to_binary(io_lib:format("~0tP:~0tP", [Class, 10, Term, 10], [{chars_limit, 50}]))},
                            {<<"exception.stacktrace">>, iolist_to_binary(io_lib:format("~0tP", [Stacktrace, 10], [{chars_limit, 50}]))},

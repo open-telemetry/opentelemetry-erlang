@@ -25,11 +25,11 @@ startup(_Config) ->
         Resource = otel_tracer_provider:resource(),
         _ = application:stop(opentelemetry),
 
-        ?assertIsSubset([{<<"service.name">>, <<"cttest">>},
-                         {<<"service.version">>, <<"1.1.1">>}], otel_resource:attributes(Resource)),
+        ?assertMatch(#{<<"service.name">> := <<"cttest">>,
+                       <<"service.version">> := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Resource))),
 
-        ?assertIsSubset([{<<"service.name">>, <<"cttest">>},
-                         {<<"service.version">>, <<"1.1.1">>}], otel_resource:attributes(Tracer#tracer.resource)),
+       ?assertMatch(#{<<"service.name">> := <<"cttest">>,
+                      <<"service.version">> := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Tracer#tracer.resource))),
         ok
     after
         os:unsetenv("OTEL_RESOURCE_ATTRIBUTES"),
@@ -47,11 +47,11 @@ startup_env_service_name(_Config) ->
         Resource = otel_tracer_provider:resource(),
         _ = application:stop(opentelemetry),
 
-        ?assertIsSubset([{<<"service.name">>, <<"env-service-name">>},
-                         {<<"service.version">>, <<"1.1.1">>}], otel_resource:attributes(Resource)),
+        ?assertMatch(#{<<"service.name">> := <<"env-service-name">>,
+                       <<"service.version">> := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Resource))),
 
-        ?assertIsSubset([{<<"service.name">>, <<"env-service-name">>},
-                         {<<"service.version">>, <<"1.1.1">>}], otel_resource:attributes(Tracer#tracer.resource)),
+        ?assertMatch(#{<<"service.name">> := <<"env-service-name">>,
+                       <<"service.version">> := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Tracer#tracer.resource))),
         ok
     after
         os:unsetenv("OTEL_SERVICE_NAME"),
@@ -72,11 +72,11 @@ crash_detector(_Config) ->
                                                                    otel_resource_app_env],
                                             resource_detector_timeout => 100}),
 
-        {_, ResourceList} = otel_resource_detector:get_resource(),
+        Resource = otel_resource_detector:get_resource(),
 
-        ?assertIsSubset([{<<"service.name">>, <<"cttest">>},
-                         {<<"service.version">>, <<"2.1.1">>},
-                         {<<"c">>, <<"d">>}], ResourceList),
+        ?assertMatch(#{<<"service.name">> := <<"cttest">>,
+                       <<"service.version">> := <<"2.1.1">>,
+                       <<"c">> := <<"d">>}, otel_attributes:map(otel_resource:attributes(Resource))),
 
         ok
     after
@@ -95,13 +95,13 @@ timeout_detector(_Config) ->
                                                                    otel_resource_app_env],
                                             resource_detector_timeout => 100}),
 
-        {_, ResourceList} = otel_resource_detector:get_resource(),
+        Resource = otel_resource_detector:get_resource(),
 
-        ?assertIsSubset([{<<"service.name">>, <<"cttest">>},
-                         {<<"service.version">>, <<"3.1.1">>},
-                         {<<"e">>, <<"f">>}], ResourceList),
+        ?assertMatch(#{<<"service.name">> := <<"cttest">>,
+                       <<"service.version">> := <<"3.1.1">>,
+                       <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
 
-        {_, []} = otel_resource_detector:get_resource(0),
+        ?assertEqual(otel_resource:create([]), otel_resource_detector:get_resource(0)),
 
         ok
     after
@@ -126,13 +126,13 @@ app_env_resource(_Config) ->
 
 combining(_Config) ->
     Resource1 = otel_resource:create(otel_resource_app_env:parse([{service, [{name, <<"other-name">>},
-                                                                         {version, "1.1.1"}]}])),
+                                                                             {version, "1.1.1"}]}])),
     Resource2 = otel_resource:create(otel_resource_env_var:parse("service.name=cttest,service.version=1.1.1")),
 
     Merged = otel_resource:merge(Resource1, Resource2),
 
-    Expected = {otel_resource, [{<<"service.name">>, <<"other-name">>},
-                                {<<"service.version">>, <<"1.1.1">>}]},
+    Expected = {otel_resource, otel_attributes:new([{<<"service.name">>, <<"other-name">>},
+                                                    {<<"service.version">>, <<"1.1.1">>}], 128, 255)},
     ?assertEqual(Expected, Merged),
     ok.
 
@@ -149,10 +149,10 @@ unknown_service_name(_Config) ->
                                             resource_detector_timeout => 100}),
 
         Resource = otel_resource_detector:get_resource(),
-        ?assertIsSubset([{<<"service.name">>, <<"unknown_service:erl">>},
-                         {<<"process.runtime.name">>, <<"BEAM">>},
-                         {<<"process.executable.name">>,<<"erl">>},
-                         {<<"e">>, <<"f">>}], otel_resource:attributes(Resource)),
+        ?assertMatch(#{<<"service.name">> := <<"unknown_service:erl">>,
+                       <<"process.runtime.name">> := <<"BEAM">>,
+                       <<"process.executable.name">> := <<"erl">>,
+                       <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
 
         ok
     after
@@ -172,9 +172,9 @@ release_service_name(_Config) ->
                                             resource_detector_timeout => 100}),
 
         Resource = otel_resource_detector:get_resource(),
-        ?assertIsSubset([{<<"service.name">>, <<"rel-cttest">>},
-                         {<<"service.version">>, <<"0.1.0">>},
-                         {<<"e">>, <<"f">>}], otel_resource:attributes(Resource)),
+        ?assertMatch(#{<<"service.name">> := <<"rel-cttest">>,
+                       <<"service.version">> := <<"0.1.0">>,
+                       <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
 
         ok
     after
@@ -194,9 +194,9 @@ release_service_name_no_version(_Config) ->
                                             resource_detector_timeout => 100}),
 
         Resource = otel_resource_detector:get_resource(),
-        ?assertIsSubset([{<<"service.name">>, <<"rel-cttest">>},
-                         {<<"e">>, <<"f">>}], otel_resource:attributes(Resource)),
-        ?assertNot(lists:keymember(<<"service.version">>, 1, otel_resource:attributes(Resource))),
+        ?assertMatch(#{<<"service.name">> := <<"rel-cttest">>,
+                       <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+        ?assertNot(maps:is_key(<<"service.version">>, otel_attributes:map(otel_resource:attributes(Resource)))),
 
         ok
     after

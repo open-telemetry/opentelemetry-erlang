@@ -10,9 +10,6 @@ defmodule OpenTelemetryTest do
   @fields Record.extract(:span_ctx, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
   Record.defrecordp(:span_ctx, @fields)
 
-  @fields Record.extract(:link, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
-  Record.defrecordp(:link, @fields)
-
   test "current_span tracks last set_span" do
     span_ctx1 = Tracer.start_span("span-1")
     assert :undefined == Tracer.current_span_ctx()
@@ -26,14 +23,14 @@ defmodule OpenTelemetryTest do
   test "link creation" do
     ctx = span_ctx(trace_id: 1, span_id: 2, tracestate: [])
 
-    link(trace_id: t, span_id: s, attributes: a, tracestate: ts) = OpenTelemetry.link(ctx)
+    %{trace_id: t, span_id: s, attributes: a, tracestate: ts} = OpenTelemetry.link(ctx)
 
     assert 1 == t
     assert 2 == s
     assert [] == ts
     assert [] == a
 
-    link(trace_id: t, span_id: s, attributes: a, tracestate: ts) =
+    %{trace_id: t, span_id: s, attributes: a, tracestate: ts} =
       OpenTelemetry.link(ctx, [{"attr-1", "value-1"}])
 
     assert 1 == t

@@ -21,13 +21,7 @@
 
 -export([start_span/4,
          with_span/5,
-         end_span/2,
-         set_attribute/4,
-         set_attributes/3,
-         add_event/4,
-         add_events/3,
-         set_status/3,
-         update_name/3]).
+         end_span/2]).
 
 -include("opentelemetry.hrl").
 -include("otel_tracer.hrl").
@@ -69,50 +63,4 @@ with_span(Ctx, Tracer, SpanName, Opts, Fun) ->
 -spec end_span(opentelemetry:tracer(), opentelemetry:span_ctx())
               -> boolean() | {error, term()}.
 end_span(_, _) ->
-    true.
-
-%% Span operations
-
--spec set_attribute(Tracer, SpanCtx, Key, Value) -> boolean() when
-      Tracer :: opentelemetry:tracer(),
-      Key :: opentelemetry:attribute_key(),
-      Value :: opentelemetry:attribute_value(),
-      SpanCtx :: opentelemetry:span_ctx().
-set_attribute(_, _SpanCtx, _Key, _Value) ->
-    true.
-
--spec set_attributes(Tracer, SpanCtx, Attributes) -> boolean() when
-      Tracer :: opentelemetry:tracer(),
-      Attributes :: opentelemetry:attributes(),
-      SpanCtx :: opentelemetry:span_ctx().
-set_attributes(_, _SpanCtx, _Attributes) ->
-    true.
-
--spec add_event(Tracer, SpanCtx, Name, Attributes) -> boolean() when
-      Tracer :: opentelemetry:tracer(),
-      Name :: opentelemetry:event_name(),
-      Attributes :: opentelemetry:attributes(),
-      SpanCtx :: opentelemetry:span_ctx().
-add_event(_, _SpanCtx, _Name, _Attributes) ->
-    true.
-
--spec add_events(Tracer, SpanCtx, Events) -> boolean() when
-      Tracer :: opentelemetry:tracer(),
-      Events :: opentelemetry:events(),
-      SpanCtx :: opentelemetry:span_ctx().
-add_events(_, _SpanCtx, _Events) ->
-    true.
-
--spec set_status(Tracer, SpanCtx, Status) -> boolean() when
-      Tracer :: opentelemetry:tracer(),
-      Status :: opentelemetry:status(),
-      SpanCtx :: opentelemetry:span_ctx().
-set_status(_, _SpanCtx, _Status) ->
-    true.
-
--spec update_name(Tracer, SpanCtx, Name) -> boolean() when
-      Tracer :: opentelemetry:tracer(),
-      Name :: opentelemetry:span_name(),
-      SpanCtx :: opentelemetry:span_ctx().
-update_name(_, _SpanCtx, _SpanName) ->
     true.

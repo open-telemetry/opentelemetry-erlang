@@ -22,9 +22,9 @@
          merge/2,
          attributes/1]).
 
--type key() :: io_lib:latin1_string().
--type value() :: io_lib:latin1_string() | integer() | float() | boolean().
--type resource() :: {otel_resource, [{key(), value()}]}.
+-type key() :: unicode:latin1_chardata().
+-type value() :: unicode:latin1_chardata() | integer() | float() | boolean().
+-type resource() :: {otel_resource, otel_attributes:t()}.
 -opaque t() :: resource().
 
 -export_type([t/0]).
@@ -36,7 +36,7 @@
 create(Map) when is_map(Map) ->
     create(maps:to_list(Map));
 create(List) when is_list(List) ->
-    {otel_resource, lists:filtermap(fun({K, V}) ->
+    List1 = lists:filtermap(fun({K, V}) ->
                                     %% TODO: log an info or debug message when dropping?
                                     case check_key(K) andalso check_value(V) of
                                         {true, Value} ->
@@ -44,16 +44,18 @@ create(List) when is_list(List) ->
                                         _ ->
                                             false
                                     end
-                               end, lists:ukeysort(1, List))}.
+                            end, lists:ukeysort(1, List)),
+    {otel_resource, otel_attributes:new(List1, 128, 255)}.
 
--spec attributes(t()) -> [{key(), value()}].
-attributes({otel_resource, Resource}) ->
-    Resource.
+-spec attributes(t()) -> otel_attributes:t().
+attributes({otel_resource, Attributes}) ->
+    Attributes.
 
-%% In case of collision the current, first argument, resource takes precedence.
+%% In case of collision the updating, first argument, resource takes precedence.
 -spec merge(t(), t()) -> t().
-merge({otel_resource, CurrentResource}, {otel_resource, OtherResource}) ->
-    {otel_resource, lists:ukeymerge(1, CurrentResource, OtherResource)}.
+merge({otel_resource, NewAttributes}, {otel_resource, CurrentAttributes}) ->
+    NewMap = otel_attributes:map(NewAttributes),
+    {otel_resource, otel_attributes:set(NewMap, CurrentAttributes)}.
 
 %%
 
@@ -62,7 +64,7 @@ check_string(S) ->
     string:length(S) =< ?MAX_LENGTH.
 
 %% a resource key must be a non-empty latin1 string
-check_key(K=[_|_]) ->
+check_key(K) when is_binary(K) ; is_list(K) ->
     check_string(K);
 check_key(_) ->
     false.
