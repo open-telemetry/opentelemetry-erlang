@@ -53,14 +53,9 @@ attributes({otel_resource, Attributes}) ->
 
 %% In case of collision the updating, first argument, resource takes precedence.
 -spec merge(t(), t()) -> t().
-merge({otel_resource, CurrentAttributes}, {otel_resource, UpdatingAttributes}) ->
-    CurrentMap = otel_attributes:map(CurrentAttributes),
-    UpdatingMap = otel_attributes:map(UpdatingAttributes),
-    %% TODO: fix, the dropped field for the new attributes will be wrong
-    %% we can't just use `otel_attributes:set' since that will drop instead
-    %% of override a key/value pair when the limit is reached even if the
-    %% new attribute matches a key in the current attributes
-    {otel_resource, otel_attributes:new(maps:merge(CurrentMap, UpdatingMap), 128, 255)}.
+merge({otel_resource, NewAttributes}, {otel_resource, CurrentAttributes}) ->
+    NewMap = otel_attributes:map(NewAttributes),
+    {otel_resource, otel_attributes:set(NewMap, CurrentAttributes)}.
 
 %%
 

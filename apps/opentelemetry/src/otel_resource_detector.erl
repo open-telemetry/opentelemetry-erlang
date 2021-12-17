@@ -96,7 +96,7 @@ handle_event(info, {'EXIT', Pid, _}, {collecting, [{_, Pid, Detector} | Rest]}, 
 
 handle_event(info, {resource, Ref, Resource}, {collecting, [{Ref, _, _} | Rest]},
              Data=#data{resource=CurrentResource}) ->
-    NewResource = otel_resource:merge(CurrentResource, Resource),
+    NewResource = otel_resource:merge(Resource, CurrentResource),
     {next_state, next_state(Rest), Data#data{resource=NewResource}, state_timeout(Data)};
 handle_event(state_timeout, resource_detector_timeout, {collecting, [{_, Pid, Detector} | Rest]}, Data) ->
     ?LOG_WARNING("detector ~p timed out while executing", [Detector]),
@@ -160,7 +160,7 @@ spawn_detector(Module, Ref) ->
 required_attributes(Resource) ->
     ProgName = prog_name(),
     ProcessResource = otel_resource:create([{?PROCESS_EXECUTABLE_NAME, ProgName} | process_attributes()]),
-    Resource1 = otel_resource:merge(Resource, ProcessResource),
+    Resource1 = otel_resource:merge(ProcessResource, Resource),
     add_service_name(Resource1, ProgName).
 
 process_attributes() ->
@@ -225,14 +225,14 @@ add_service_name(Resource, ProgName) ->
             case maps:is_key(?SERVICE_NAME, otel_attributes:map(Attributes)) of
                 false ->
                     ServiceResource = service_release_name(ProgName),
-                    otel_resource:merge(Resource, ServiceResource);
+                    otel_resource:merge(ServiceResource, Resource);
                 true ->
                     Resource
             end;
         ServiceName ->
             %% service.name resource first to override any other service.name
             %% attribute that could be set in the resource
-            otel_resource:merge(Resource, otel_resource:create([{?SERVICE_NAME, ServiceName}]))
+            otel_resource:merge(otel_resource:create([{?SERVICE_NAME, ServiceName}]), Resource)
     end.
 
 service_release_name(ProgName) ->

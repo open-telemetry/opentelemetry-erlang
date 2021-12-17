@@ -129,7 +129,7 @@ combining(_Config) ->
                                                                              {version, "1.1.1"}]}])),
     Resource2 = otel_resource:create(otel_resource_env_var:parse("service.name=cttest,service.version=1.1.1")),
 
-    Merged = otel_resource:merge(Resource2, Resource1),
+    Merged = otel_resource:merge(Resource1, Resource2),
 
     Expected = {otel_resource, otel_attributes:new([{<<"service.name">>, <<"other-name">>},
                                                     {<<"service.version">>, <<"1.1.1">>}], 128, 255)},

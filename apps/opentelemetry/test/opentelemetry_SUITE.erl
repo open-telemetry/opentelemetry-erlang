@@ -614,9 +614,8 @@ record_but_not_sample(Config) ->
 record_exception_works(Config) ->
     Tid = ?config(tid, Config),
     SpanCtx = ?start_span(<<"span-1">>),
-    try throw(my_error) of
-        _ ->
-        ok
+    try
+        throw(my_error)
     catch
         Class:Term:Stacktrace ->
             otel_span:record_exception(SpanCtx, Class, Term, Stacktrace, [{<<"some-attribute">>, <<"value">>}]),
@@ -634,9 +633,8 @@ record_exception_works(Config) ->
 record_exception_with_message_works(Config) ->
     Tid = ?config(tid, Config),
     SpanCtx = ?start_span(<<"span-1">>),
-    try throw(my_error) of
-        _ ->
-            ok
+    try
+        throw(my_error)
     catch
         Class:Term:Stacktrace ->
             otel_span:record_exception(SpanCtx, Class, Term, <<"My message">>, Stacktrace, [{<<"some-attribute">>, <<"value">>}]),
