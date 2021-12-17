@@ -55,17 +55,15 @@ dropped(#events{dropped=Dropped}) ->
 %%
 
 add_events(NewEvents, Events=#events{count_limit=CountLimit,
-                                     list=List}) when length(List) < CountLimit ->
+                                     list=List}) ->
     Limit = CountLimit - length(List),
-    add_events_(NewEvents, Limit, Events);
-add_events(List, Events=#events{dropped=Dropped}) ->
-    Events#events{dropped=Dropped + length(List)}.
+    add_events_(NewEvents, Limit, Events).
 
 add_events_([], _, Events) ->
     Events;
-add_events_(List, 0, Events=#events{dropped=Dropped}) ->
+add_events_(NewEvents, Limit, Events=#events{dropped=Dropped}) when Limit =< 0->
     %% we've hit the limit on the number of events so drop the rest
-    Events#events{dropped=Dropped + length(List)};
+    Events#events{dropped=Dropped + length(NewEvents)};
 add_events_([NewEvent | Rest], Limit, Events=#events{attribute_per_event_limit=AttributePerEventLimit,
                                                      attribute_value_length_limit=AttributeValueLengthLimit,
                                                      dropped=Dropped,
