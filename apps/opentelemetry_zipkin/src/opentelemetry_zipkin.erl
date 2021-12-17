@@ -13,7 +13,7 @@
 -define(DEFAULT_LOCAL_ENDPOINT, #{service_name => node()}).
 
 -record(state, {address :: string(),
-                endpoint :: map()}).
+                endpoint :: #zipkin_endpoint{}}).
 
 init(Opts) ->
     Address = zipkin_address(Opts),
@@ -143,8 +143,8 @@ zipkin_address(Options) ->
     maps:get(address, Options, ?DEFAULT_ZIPKIN_ADDRESS).
 
 local_endpoint_from_resource(Attributes, LocalEndpoint) ->
-    case lists:keyfind(<<"service.name">>, 1, Attributes) of
-        {<<"service.name">>, ServiceName} ->
+    case lists:keyfind("service.name", 1, Attributes) of
+        {"service.name", ServiceName} ->
             LocalEndpoint#zipkin_endpoint{service_name=ServiceName};
         _ ->
             LocalEndpoint
