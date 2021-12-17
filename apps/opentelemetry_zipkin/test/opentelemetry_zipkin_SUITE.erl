@@ -11,14 +11,9 @@ all() ->
 
 %% insert a couple spans and export to locally running zipkin
 verify_export(_Config) ->
-    Address = case os:getenv("GITHUB_ACTION") of
-                  false ->
-                      "http://localhost:9411/api/v2/spans";
-                  _ ->
-                      "http://zipkin:9411/api/v2/spans"
-              end,
+    Address = "http://localhost:9411/api/v2/spans",
     Resource = otel_resource:create([{"service.name",
-                                    "my-test-service"}]),
+                                      "my-test-service"}]),
     {ok, State} = opentelemetry_zipkin:init(#{address => Address,
                                              local_endpoint => #{service_name => my_service,
                                                                  ip4 => {1,2,3,4},
