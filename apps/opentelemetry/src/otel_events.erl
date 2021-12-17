@@ -22,14 +22,14 @@
          list/1,
          dropped/1]).
 
--include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include("otel_span.hrl").
 
 -record(events, {
                  count_limit :: integer(),
                  attribute_per_event_limit :: integer(),
                  attribute_value_length_limit :: integer() | infinity,
                  dropped :: integer(),
-                 list :: list()
+                 list :: [#event{}]
                 }).
 
 -type t() :: #events{}.
@@ -77,10 +77,15 @@ add_events_([NewEvent | Rest], Limit, Events=#events{attribute_per_event_limit=A
             add_events_(Rest, Limit - 1, Events#events{list=[Event | List]})
     end.
 
-new_event(#event{system_time_nano=Timestamp,
-                 name=Name,
-                 attributes=Attributes}, AttributePerEventLimit, AttributeValueLengthLimit) ->
+new_event(#{system_time_nano := Timestamp,
+            name := Name,
+            attributes := Attributes}, AttributePerEventLimit, AttributeValueLengthLimit) ->
     #event{system_time_nano=Timestamp,
+           name=Name,
+           attributes=otel_attributes:new(Attributes, AttributePerEventLimit, AttributeValueLengthLimit)};
+new_event(#{name := Name,
+            attributes := Attributes}, AttributePerEventLimit, AttributeValueLengthLimit) ->
+    #event{system_time_nano=erlang:system_time(nanosecond),
            name=Name,
            attributes=otel_attributes:new(Attributes, AttributePerEventLimit, AttributeValueLengthLimit)};
 new_event({Time, Name, Attributes}, AttributePerEventLimit, AttributeValueLengthLimit)

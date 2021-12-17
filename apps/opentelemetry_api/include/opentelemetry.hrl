@@ -66,19 +66,6 @@
           span_sdk          :: {module(), term()} | undefined
          }).
 
--record(link, {
-          trace_id   :: opentelemetry:trace_id(),
-          span_id    :: opentelemetry:span_id(),
-          attributes :: opentelemetry:attributes(),
-          tracestate :: opentelemetry:tracestate()
-         }).
-
--record(event, {
-          system_time_nano :: non_neg_integer(),
-          name             :: unicode:unicode_binary() | atom(),
-          attributes       :: opentelemetry:attributes()
-         }).
-
 -record(status, {
           code = ?OTEL_STATUS_UNSET :: opentelemetry:status_code(),
           %% developer-facing error message

@@ -433,7 +433,7 @@ to_proto(#span{trace_id=TraceId,
 to_unixnano(Timestamp) ->
     opentelemetry:timestamp_to_nano(Timestamp).
 
--spec to_attributes(opentelemetry:attributes()) -> [opentelemetry_exporter_trace_service_pb:key_value()].
+-spec to_attributes(opentelemetry:attributes_map()) -> [opentelemetry_exporter_trace_service_pb:key_value()].
 to_attributes(Attributes) ->
     maps:fold(fun(Key, Value, Acc) ->
                       [#{key => to_binary(Key),
@@ -502,7 +502,7 @@ to_status(#status{code=Code,
 to_status(_) ->
     #{}.
 
--spec to_events([opentelemetry:events()]) -> [opentelemetry_exporter_trace_service_pb:event()].
+-spec to_events([#event{}]) -> [opentelemetry_exporter_trace_service_pb:event()].
 to_events(Events) ->
     to_events(Events, []).
 
@@ -515,10 +515,9 @@ to_events([#event{system_time_nano=Timestamp,
                        name => to_binary(Name),
                        attributes => to_attributes(otel_attributes:map(Attributes))} | Acc]);
 to_events([_ | Rest], Acc) ->
-    %% TODO: count the number dropped
     to_events(Rest, Acc).
 
--spec to_links(opentelemetry:links()) -> [opentelemetry_exporter_trace_service_pb:link()].
+-spec to_links([#link{}]) -> [opentelemetry_exporter_trace_service_pb:link()].
 to_links(Links) ->
     to_links(Links, []).
 
@@ -534,7 +533,6 @@ to_links([#link{trace_id=TraceId,
                       attributes => to_attributes(Attributes),
                       dropped_attributes_count => 0} | Acc]);
 to_links([_ | Rest], Acc) ->
-    %% TODO: count the number dropped
     to_links(Rest, Acc).
 
 to_tracestate_string(List) when is_list(List) ->

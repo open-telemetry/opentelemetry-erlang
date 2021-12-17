@@ -15,9 +15,6 @@ defmodule OtelTests do
   @fields Record.extract(:span_ctx, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
   Record.defrecordp(:span_ctx, @fields)
 
-  @event_fields Record.extract(:event, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
-  Record.defrecordp(:event, @event_fields)
-
   test "use Tracer to set current active Span's attributes" do
     :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
     OpenTelemetry.register_tracer(:test_tracer, "0.1.0")

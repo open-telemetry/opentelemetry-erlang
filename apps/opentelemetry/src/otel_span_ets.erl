@@ -111,7 +111,7 @@ set_attribute(_, _, _) ->
 %% are not a real concern. This allows `add_events' and `set_attributes' to lookup and
 %% update only the specific element of the `span' without worrying about it having been
 %% changed by another process between the lookup and update.
--spec set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes()) -> boolean().
+-spec set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes_map()) -> boolean().
 set_attributes(#span_ctx{span_id=SpanId}, NewAttributes) ->
     try ets:lookup_element(?SPAN_TAB, SpanId, #span.attributes) of
         Attributes ->
@@ -121,12 +121,12 @@ set_attributes(#span_ctx{span_id=SpanId}, NewAttributes) ->
             false
     end.
 
--spec add_event(opentelemetry:span_ctx(), unicode:unicode_binary(), opentelemetry:attributes()) -> boolean().
+-spec add_event(opentelemetry:span_ctx(), unicode:unicode_binary(), opentelemetry:attributes_map()) -> boolean().
 add_event(SpanCtx, Name, Attributes) ->
     Events = opentelemetry:events([{Name, Attributes}]),
     add_events(SpanCtx, Events).
 
--spec add_events(opentelemetry:span_ctx(), opentelemetry:events()) -> boolean().
+-spec add_events(opentelemetry:span_ctx(), [opentelemetry:event()]) -> boolean().
 add_events(#span_ctx{span_id=SpanId}, NewEvents) ->
     try ets:lookup_element(?SPAN_TAB, SpanId, #span.events) of
         Events ->

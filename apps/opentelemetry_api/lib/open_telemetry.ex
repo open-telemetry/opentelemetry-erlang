@@ -78,7 +78,7 @@ defmodule OpenTelemetry do
        {"abc.com/myattribute", True}
        {"abc.com/score", 10.239}]
   """
-  @type attributes() :: :opentelemetry.attributes()
+  @type attributes_map() :: :opentelemetry.attributes_map()
 
   @typedoc """
   Tracestate represents tracing-system specific context in a list of key-value pairs.
@@ -98,7 +98,6 @@ defmodule OpenTelemetry do
   traces or when the handler receives a request from a different project.
   """
   @type link() :: :opentelemetry.link()
-  @type links() :: :opentelemetry.links()
 
   @typedoc """
   An Event is a time-stamped annotation of the span, consisting of user-supplied
@@ -156,7 +155,7 @@ defmodule OpenTelemetry do
   @doc """
   Creates a `t:link/0`.
   """
-  @spec link(trace_id(), span_id(), attributes(), tracestate()) :: link()
+  @spec link(trace_id(), span_id(), attributes_map(), tracestate()) :: link()
   defdelegate link(trace_id, span_id, attributes, tracestate), to: :opentelemetry
 
   @doc """
@@ -168,29 +167,29 @@ defmodule OpenTelemetry do
   @doc """
   Creates a `t:link/0` from a `t:span_ctx/0` and list of `t:attributes/0`.
   """
-  @spec link(span_ctx() | :undefined, attributes()) :: link()
+  @spec link(span_ctx() | :undefined, attributes_map()) :: link()
   defdelegate link(span_ctx, attributes), to: :opentelemetry
 
   @doc """
   Creates a list of `t:link/0` from a list of 4-tuples.
   """
   @spec links([
-          {integer(), integer(), attributes(), tracestate()}
+          {integer(), integer(), attributes_map(), tracestate()}
           | span_ctx()
-          | {span_ctx(), attributes()}
+          | {span_ctx(), attributes_map()}
         ]) :: [link()]
   defdelegate links(link_list), to: :opentelemetry
 
   @doc """
   Creates a `t:event/0`.
   """
-  @spec event(event_name(), attributes()) :: event()
+  @spec event(event_name(), attributes_map()) :: event()
   defdelegate event(name, attributes), to: :opentelemetry
 
   @doc """
   Creates a `t:event/0`.
   """
-  @spec event(integer(), event_name(), attributes()) :: event()
+  @spec event(integer(), event_name(), attributes_map()) :: event()
   defdelegate event(timestamp, name, attributes), to: :opentelemetry
 
   @doc """

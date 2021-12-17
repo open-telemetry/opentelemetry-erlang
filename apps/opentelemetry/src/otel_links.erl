@@ -22,13 +22,14 @@
          dropped/1]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include("otel_span.hrl").
 
 -record(links, {
                 count_limit :: integer(),
                 attribute_per_link_limit :: integer(),
                 attribute_value_length_limit :: integer() | infinity,
                 dropped :: integer(),
-                list :: list()
+                list :: [#link{}]
                }).
 
 -type t() :: #links{}.
@@ -76,10 +77,10 @@ new_link({TraceId, SpanId, Attributes, TraceState}, AttributePerLinkLimit, Attri
           span_id=SpanId,
           tracestate=TraceState,
           attributes=otel_attributes:new(Attributes, AttributePerLinkLimit, AttributeValueLengthLimit)};
-new_link(#link{trace_id=TraceId,
-               span_id=SpanId,
-               tracestate=TraceState,
-               attributes=Attributes}, AttributePerLinkLimit, AttributeValueLengthLimit) ->
+new_link(#{trace_id := TraceId,
+           span_id := SpanId,
+           tracestate := TraceState,
+           attributes := Attributes}, AttributePerLinkLimit, AttributeValueLengthLimit) ->
     #link{trace_id=TraceId,
           span_id=SpanId,
           tracestate=TraceState,

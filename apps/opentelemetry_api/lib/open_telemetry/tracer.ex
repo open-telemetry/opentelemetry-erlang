@@ -17,8 +17,8 @@ defmodule OpenTelemetry.Tracer do
   """
 
   @type start_opts() :: %{
-          optional(:attributes) => OpenTelemetry.attributes(),
-          optional(:links) => OpenTelemetry.links(),
+          optional(:attributes) => OpenTelemetry.attributes_map(),
+          optional(:links) => [OpenTelemetry.link()],
           optional(:is_recording) => boolean(),
           optional(:start_time) => :opentelemetry.timestamp(),
           optional(:kind) => OpenTelemetry.span_kind()
@@ -150,7 +150,7 @@ defmodule OpenTelemetry.Tracer do
   @doc """
   Add a list of attributes to the currently active Span.
   """
-  @spec set_attributes(OpenTelemetry.attributes()) :: boolean()
+  @spec set_attributes(OpenTelemetry.attributes_map()) :: boolean()
   def set_attributes(attributes) do
     :otel_span.set_attributes(:otel_tracer.current_span_ctx(), attributes)
   end
@@ -158,7 +158,7 @@ defmodule OpenTelemetry.Tracer do
   @doc """
   Add an event to the currently active Span.
   """
-  @spec add_event(OpenTelemetry.event_name(), OpenTelemetry.attributes()) :: boolean()
+  @spec add_event(OpenTelemetry.event_name(), OpenTelemetry.attributes_map()) :: boolean()
   def add_event(event, attributes) do
     :otel_span.add_event(
       :otel_tracer.current_span_ctx(),
