@@ -15,9 +15,6 @@ defmodule OtelTests do
   @fields Record.extract(:span_ctx, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
   Record.defrecordp(:span_ctx, @fields)
 
-  @event_fields Record.extract(:event, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
-  Record.defrecordp(:event, @event_fields)
-
   test "use Tracer to set current active Span's attributes" do
     :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
     OpenTelemetry.register_tracer(:test_tracer, "0.1.0")
@@ -27,10 +24,13 @@ defmodule OtelTests do
       Tracer.set_attributes([{"attr-2", "value-2"}])
     end
 
+    attributes =
+      :otel_attributes.new([{"attr-1", "value-1"}, {"attr-2", "value-2"}], 128, :infinity)
+
     assert_receive {:span,
                     span(
                       name: "span-1",
-                      attributes: [{"attr-1", "value-1"}, {"attr-2", "value-2"}]
+                      attributes: ^attributes
                     )}
   end
 
@@ -48,17 +48,22 @@ defmodule OtelTests do
 
     span_ctx(span_id: parent_span_id) = Span.end_span(s1)
 
+    attributes = :otel_attributes.new([], 128, :infinity)
+
     assert_receive {:span,
                     span(
                       name: "span-1",
-                      attributes: []
+                      attributes: ^attributes
                     )}
+
+    attributes =
+      :otel_attributes.new([{"attr-1", "value-1"}, {"attr-2", "value-2"}], 128, :infinity)
 
     assert_receive {:span,
                     span(
                       name: "span-2",
                       parent_span_id: ^parent_span_id,
-                      attributes: [{"attr-1", "value-1"}, {"attr-2", "value-2"}]
+                      attributes: ^attributes
                     )}
   end
 
@@ -71,10 +76,13 @@ defmodule OtelTests do
 
     assert span_ctx() = Span.end_span(s)
 
+    attributes =
+      :otel_attributes.new([{"attr-1", "value-1"}, {"attr-2", "value-2"}], 128, :infinity)
+
     assert_receive {:span,
                     span(
                       name: "span-2",
-                      attributes: [{"attr-1", "value-1"}, {"attr-2", "value-2"}]
+                      attributes: ^attributes
                     )}
   end
 
@@ -150,11 +158,13 @@ defmodule OtelTests do
     ret = Task.await(task)
     assert :hello = ret
 
+    links = :otel_links.new([OpenTelemetry.link(parent)], 128, 128, :infinity)
+
     assert_receive {:span,
                     span(
                       name: "child",
                       parent_span_id: :undefined,
-                      links: [_]
+                      links: ^links
                     )}
 
     assert span_ctx() = Span.end_span(parent)
@@ -188,11 +198,14 @@ defmodule OtelTests do
     assert span_ctx() = Span.end_span(s2)
     assert span_ctx() = Span.end_span(s3)
 
+    attributes =
+      :otel_attributes.new([{"attr-1", "value-1"}, {"attr-2", "value-2"}], 128, :infinity)
+
     assert_receive {:span,
                     span(
                       name: "span-1",
                       parent_span_id: :undefined,
-                      attributes: [{"attr-1", "value-1"}, {"attr-2", "value-2"}]
+                      attributes: ^attributes
                     )}
 
     assert_receive {:span,
@@ -227,19 +240,30 @@ defmodule OtelTests do
 
         stacktrace = Exception.format_stacktrace(__STACKTRACE__)
 
+        attributes =
+          :otel_attributes.new(
+            [
+              {"exception.type", "Elixir.RuntimeError"},
+              {"exception.message", "my error message"},
+              {"exception.stacktrace", stacktrace}
+            ],
+            128,
+            :infinity
+          )
+
         assert_receive {:span,
                         span(
                           name: "span-4",
-                          events: [
-                            event(
-                              name: "exception",
-                              attributes: [
-                                {"exception.type", "Elixir.RuntimeError"},
-                                {"exception.message", "my error message"},
-                                {"exception.stacktrace", ^stacktrace}
-                              ]
-                            )
-                          ]
+                          events: {
+                            :events,
+                            128,
+                            128,
+                            :infinity,
+                            0,
+                            [
+                              {:event, _, "exception", ^attributes}
+                            ]
+                          }
                         )}
     end
   end

@@ -1,7 +1,5 @@
 # opentelemetry_exporter
 
-![Common Test](https://github.com/opentelemetry-beam/opentelemetry_exporter/workflows/Common%20Test/badge.svg) 
-
 The OpenTelemetry Protocol exporter for use with the [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector).
 
 Currently only supports the Tracer protocol using either GRPC or Protobuffers over HTTP1.1. Metrics are to come soon.

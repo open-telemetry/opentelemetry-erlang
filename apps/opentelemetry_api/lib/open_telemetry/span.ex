@@ -96,7 +96,7 @@ defmodule OpenTelemetry.Span do
   @doc """
   Add a list of attributes to the currently active Span.
   """
-  @spec set_attributes(OpenTelemetry.span_ctx(), OpenTelemetry.attributes()) :: boolean()
+  @spec set_attributes(OpenTelemetry.span_ctx(), OpenTelemetry.attributes_map()) :: boolean()
   defdelegate set_attributes(span_ctx, attributes), to: :otel_span
 
   @doc """
@@ -105,7 +105,7 @@ defmodule OpenTelemetry.Span do
   @spec add_event(
           OpenTelemetry.span_ctx(),
           OpenTelemetry.event_name(),
-          OpenTelemetry.attributes()
+          OpenTelemetry.attributes_map()
         ) :: boolean()
   defdelegate add_event(span_ctx, event, attributes), to: :otel_span
 

@@ -175,7 +175,7 @@ failed_attribute_and_end_span(_Config) ->
         {span, S=#span{name=Name,
                        attributes=Attributes}} when Name =:= SpanName1 ->
             %% should have attribute finished_by_sweeper
-            ?assertMatch([{<<"finished_by_sweeper">>, true}], Attributes),
+            ?assertMatch(#{<<"finished_by_sweeper">> := true}, otel_attributes:map(Attributes)),
 
             %% Verify the end time and duration are set when the span was finished
             ?assertMatch(ST when is_integer(ST), S#span.start_time),

@@ -45,10 +45,10 @@
          timestamp/0,
          timestamp_to_nano/1,
          convert_timestamp/2,
-         links/1,
          link/1,
          link/2,
          link/4,
+         links/1,
          event/2,
          event/3,
          events/1,
@@ -71,12 +71,10 @@
               span/0,
               span_kind/0,
               link/0,
-              links/0,
               attribute_key/0,
               attribute_value/0,
-              attributes/0,
+              attributes_map/0,
               event/0,
-              events/0,
               event_name/0,
               tracestate/0,
               status/0,
@@ -96,27 +94,33 @@
 
 -type trace_flags()        :: non_neg_integer().
 
--type timestamp() :: integer().
+-type timestamp()          :: integer().
 
 -type span_ctx()           :: #span_ctx{}.
 -type span()               :: term().
 -type span_name()          :: unicode:unicode_binary() | atom().
 
 -type attribute_key()      :: unicode:unicode_binary() | atom().
--type attribute_value()    :: any().
--type attribute()          :: {attribute_key(), attribute_value()}.
--type attributes()         :: [attribute()].
+-type attribute_value()    :: unicode:unicode_binary() |
+                              float() |
+                              integer() |
+                              [unicode:unicode_binary() | float() | integer()].
+-type attributes_map()     :: #{attribute_key() => attribute_value()} |
+                              [{attribute_key(), attribute_value()}].
 
 -type span_kind()          :: ?SPAN_KIND_INTERNAL    |
                               ?SPAN_KIND_SERVER      |
                               ?SPAN_KIND_CLIENT      |
                               ?SPAN_KIND_PRODUCER    |
                               ?SPAN_KIND_CONSUMER.
--type event()              :: #event{}.
--type events()             :: [#event{}].
+-type event()              :: #{system_time_nano => non_neg_integer(),
+                                name            := unicode:unicode_binary(),
+                                attributes      := attributes_map()}.
 -type event_name()         :: unicode:unicode_binary() | atom().
--type link()               :: #link{}.
--type links()              :: [#link{}].
+-type link()               :: #{trace_id   := trace_id(),
+                                span_id    := span_id(),
+                                attributes := attributes_map(),
+                                tracestate := tracestate()}.
 -type status()             :: #status{}.
 -type status_code()        :: ?OTEL_STATUS_UNSET | ?OTEL_STATUS_OK | ?OTEL_STATUS_ERROR.
 
@@ -237,22 +241,20 @@ convert_timestamp(Timestamp, Unit) ->
     Offset = erlang:time_offset(),
     erlang:convert_time_unit(Timestamp + Offset, native, Unit).
 
--spec links([{TraceId, SpanId, Attributes, TraceState} | span_ctx() | {span_ctx(), Attributes}]) -> links() when
+-spec links([{TraceId, SpanId, Attributes, TraceState} | span_ctx() | {span_ctx(), Attributes}]) -> [link()] when
       TraceId :: trace_id(),
       SpanId :: span_id(),
-      Attributes :: attributes(),
+      Attributes :: attributes_map(),
       TraceState :: tracestate().
 links(List) when is_list(List) ->
     lists:filtermap(fun({TraceId, SpanId, Attributes, TraceState}) when is_integer(TraceId) ,
                                                                         is_integer(SpanId) ,
-                                                                        is_list(Attributes) ,
                                                                         is_list(TraceState) ->
                             link_or_false(TraceId, SpanId, Attributes, TraceState);
                        ({#span_ctx{trace_id=TraceId,
                                    span_id=SpanId,
                                    tracestate=TraceState}, Attributes}) when is_integer(TraceId) ,
                                                                              is_integer(SpanId) ,
-                                                                             is_list(Attributes) ,
                                                                              is_list(TraceState) ->
                             link_or_false(TraceId, SpanId, Attributes, TraceState);
                        (#span_ctx{trace_id=TraceId,
@@ -271,7 +273,7 @@ links(_) ->
 link(SpanCtx) ->
     link(SpanCtx, []).
 
--spec link(span_ctx() | undefined, attributes()) -> link().
+-spec link(span_ctx() | undefined, attributes_map()) -> link().
 link(#span_ctx{trace_id=TraceId,
                span_id=SpanId,
                tracestate=TraceState}, Attributes) ->
@@ -282,24 +284,24 @@ link(_, _) ->
 -spec link(TraceId, SpanId, Attributes, TraceState) -> link() | undefined when
       TraceId :: trace_id(),
       SpanId :: span_id(),
-      Attributes :: attributes(),
+      Attributes :: attributes_map(),
       TraceState :: tracestate().
 link(TraceId, SpanId, Attributes, TraceState) when is_integer(TraceId),
                                                    is_integer(SpanId),
-                                                   is_list(Attributes),
+                                                   (is_list(Attributes) orelse is_map(Attributes)),
                                                    is_list(TraceState) ->
-    #link{trace_id=TraceId,
-          span_id=SpanId,
-          attributes=Attributes,
-          tracestate=TraceState};
+    #{trace_id => TraceId,
+      span_id => SpanId,
+      attributes => Attributes,
+      tracestate => TraceState};
 link(_, _, _, _) ->
     undefined.
 
 -spec event(Name, Attributes) -> event() | undefined when
       Name :: unicode:unicode_binary(),
-      Attributes :: attributes().
+      Attributes :: attributes_map().
 event(Name, Attributes) when is_binary(Name),
-                             is_list(Attributes) ->
+                             (is_list(Attributes) orelse is_map(Attributes)) ->
     event(erlang:system_time(nanosecond), Name, Attributes);
 event(_, _) ->
     undefined.
@@ -307,20 +309,20 @@ event(_, _) ->
 -spec event(Timestamp, Name, Attributes) -> event() | undefined when
       Timestamp :: non_neg_integer(),
       Name :: unicode:unicode_binary(),
-      Attributes :: attributes().
+      Attributes :: attributes_map().
 event(Timestamp, Name, Attributes) when is_integer(Timestamp),
                                         is_binary(Name),
-                                        is_list(Attributes) ->
-    #event{system_time_nano=Timestamp,
-           name=Name,
-           attributes=Attributes};
+                                        (is_list(Attributes) orelse is_map(Attributes)) ->
+    #{system_time_nano => Timestamp,
+      name => Name,
+      attributes => Attributes};
 event(_, _, _) ->
     undefined.
 
 events(List) ->
-    Timestamp = timestamp(),
+    Now = erlang:system_time(nanosecond),
     lists:filtermap(fun({Time, Name, Attributes}) when is_binary(Name),
-                                                       is_list(Attributes)  ->
+                                                       (is_list(Attributes) orelse is_map(Attributes)) ->
                             case event(Time, Name, Attributes) of
                                 undefined ->
                                     false;
@@ -328,8 +330,8 @@ events(List) ->
                                     {true, Event}
                             end;
                        ({Name, Attributes}) when is_binary(Name),
-                                                 is_list(Attributes) ->
-                            case event(Timestamp, Name, Attributes) of
+                                                 (is_list(Attributes) orelse is_map(Attributes)) ->
+                            case event(Now, Name, Attributes) of
                                 undefined ->
                                     false;
                                 Event ->
@@ -382,7 +384,7 @@ verify_module_exists(Module) ->
 %% return {true, Link} if a link is returned or return false
 link_or_false(TraceId, SpanId, Attributes, TraceState) ->
     case link(TraceId, SpanId, Attributes, TraceState) of
-        Link=#link{} ->
+        Link=#{}->
             {true, Link};
         _ ->
             false

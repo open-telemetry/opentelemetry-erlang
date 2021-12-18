@@ -19,7 +19,13 @@
 -module(otel_span_limits).
 
 -export([get/0,
-         set/1]).
+         set/1,
+         attribute_count_limit/0,
+         attribute_value_length_limit/0,
+         event_count_limit/0,
+         link_count_limit/0,
+         attribute_per_event_limit/0,
+         attribute_per_link_limit/0]).
 
 -include("otel_span.hrl").
 
@@ -53,3 +59,34 @@ set(Opts) ->
                                    Acc
                            end, #span_limits{}, Opts),
     persistent_term:put(?SPAN_LIMITS_KEY, SpanLimits).
+
+attribute_count_limit() ->
+    get_limit(attribute_count_limit, ?MODULE:get()).
+
+attribute_value_length_limit() ->
+    get_limit(attribute_value_length_limit, ?MODULE:get()).
+
+event_count_limit() ->
+    get_limit(event_count_limit, ?MODULE:get()).
+
+link_count_limit() ->
+    get_limit(link_count_limit, ?MODULE:get()).
+
+attribute_per_event_limit() ->
+    get_limit(attribute_per_event_limit, ?MODULE:get()).
+
+attribute_per_link_limit() ->
+    get_limit(attribute_per_link_limit, ?MODULE:get()).
+
+get_limit(attribute_count_limit, #span_limits{attribute_count_limit=AttributeCountLimit}) ->
+    AttributeCountLimit;
+get_limit(attribute_value_length_limit, #span_limits{attribute_value_length_limit=AttributeValueLengthLimit}) ->
+    AttributeValueLengthLimit;
+get_limit(event_count_limit, #span_limits{event_count_limit=EventCountLimit}) ->
+    EventCountLimit;
+get_limit(link_count_limit, #span_limits{link_count_limit=LinkCountLimit}) ->
+    LinkCountLimit;
+get_limit(attribute_per_event_limit, #span_limits{attribute_per_event_limit=AttributePerEventLimit}) ->
+    AttributePerEventLimit;
+get_limit(attribute_per_link_limit, #span_limits{attribute_per_link_limit=AttributePerLinkLimit}) ->
+    AttributePerLinkLimit.

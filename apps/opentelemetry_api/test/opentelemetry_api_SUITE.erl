@@ -37,32 +37,32 @@ can_create_link_from_span(_Config) ->
     ?assertMatch(undefined, opentelemetry:link(undefined)),
     ?assertMatch(undefined, opentelemetry:link(undefined, Attributes)),
 
-    ?assertMatch(#link{trace_id=TraceId,
-                       span_id=SpanId,
-                       attributes=Attributes,
-                       tracestate=Tracestate},
+    ?assertMatch(#{trace_id := TraceId,
+                   span_id := SpanId,
+                   attributes := Attributes,
+                   tracestate := Tracestate},
                  opentelemetry:link(TraceId, SpanId, Attributes, Tracestate)),
 
-    ?assertMatch(#link{trace_id=TraceId,
-                       span_id=SpanId,
-                       attributes=[],
-                       tracestate=Tracestate},
+    ?assertMatch(#{trace_id := TraceId,
+                   span_id := SpanId,
+                   attributes := [],
+                   tracestate := Tracestate},
                  opentelemetry:link(SpanCtx)),
 
-    ?assertMatch(#link{trace_id=TraceId,
-                       span_id=SpanId,
-                       attributes=Attributes,
-                       tracestate=Tracestate},
+    ?assertMatch(#{trace_id := TraceId,
+                   span_id := SpanId,
+                   attributes := Attributes,
+                   tracestate := Tracestate},
                  opentelemetry:link(SpanCtx, Attributes)),
 
-    ?assertMatch([#link{trace_id=TraceId,
-                        span_id=SpanId,
-                        attributes=Attributes,
-                        tracestate=Tracestate},
-                  #link{trace_id=TraceId,
-                        span_id=SpanId,
-                        attributes=[],
-                        tracestate=Tracestate}],
+    ?assertMatch([#{trace_id := TraceId,
+                    span_id := SpanId,
+                    attributes := Attributes,
+                    tracestate := Tracestate},
+                  #{trace_id := TraceId,
+                    span_id := SpanId,
+                    attributes := [],
+                    tracestate := Tracestate}],
                  opentelemetry:links([undefined, {SpanCtx, Attributes}, SpanCtx])).
 
 
@@ -106,10 +106,10 @@ noop_tracer(_Config) ->
 
 %% just shouldn't crash
 update_span_data(_Config) ->
-    Links = [#link{trace_id=0,
-                   span_id=0,
-                   attributes=[],
-                   tracestate=[]}],
+    Links = [#{trace_id => 0,
+               span_id => 0,
+               attributes => [],
+               tracestate => []}],
 
     SpanCtx1 = ?start_span(<<"span-1">>, #{links => Links}),
     ?set_current_span(SpanCtx1),

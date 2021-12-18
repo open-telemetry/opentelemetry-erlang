@@ -99,7 +99,7 @@ get_ctx(#span{trace_id=TraceId,
 set_attribute(#span_ctx{span_id=SpanId}, Key, Value) ->
     try ets:lookup_element(?SPAN_TAB, SpanId, #span.attributes) of
         Attributes ->
-            ets:update_element(?SPAN_TAB, SpanId, {#span.attributes, [{Key, Value} | Attributes]})
+            ets:update_element(?SPAN_TAB, SpanId, {#span.attributes, otel_attributes:set(Key, Value, Attributes)})
     catch error:badarg ->
             false
     end;
@@ -111,25 +111,26 @@ set_attribute(_, _, _) ->
 %% are not a real concern. This allows `add_events' and `set_attributes' to lookup and
 %% update only the specific element of the `span' without worrying about it having been
 %% changed by another process between the lookup and update.
--spec set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes()) -> boolean().
+-spec set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes_map()) -> boolean().
 set_attributes(#span_ctx{span_id=SpanId}, NewAttributes) ->
     try ets:lookup_element(?SPAN_TAB, SpanId, #span.attributes) of
         Attributes ->
-            ets:update_element(?SPAN_TAB, SpanId, {#span.attributes, Attributes++NewAttributes})
+            ets:update_element(?SPAN_TAB, SpanId, {#span.attributes,
+                                                   otel_attributes:set(NewAttributes, Attributes)})
     catch error:badarg ->
             false
     end.
 
--spec add_event(opentelemetry:span_ctx(), unicode:unicode_binary(), opentelemetry:attributes()) -> boolean().
+-spec add_event(opentelemetry:span_ctx(), unicode:unicode_binary(), opentelemetry:attributes_map()) -> boolean().
 add_event(SpanCtx, Name, Attributes) ->
     Events = opentelemetry:events([{Name, Attributes}]),
     add_events(SpanCtx, Events).
 
--spec add_events(opentelemetry:span_ctx(), opentelemetry:events()) -> boolean().
+-spec add_events(opentelemetry:span_ctx(), [opentelemetry:event()]) -> boolean().
 add_events(#span_ctx{span_id=SpanId}, NewEvents) ->
     try ets:lookup_element(?SPAN_TAB, SpanId, #span.events) of
         Events ->
-            ets:update_element(?SPAN_TAB, SpanId, {#span.events, Events++NewEvents})
+            ets:update_element(?SPAN_TAB, SpanId, {#span.events, otel_events:add(NewEvents, Events)})
     catch error:badarg ->
             false
     end.

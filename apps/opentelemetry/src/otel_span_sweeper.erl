@@ -135,7 +135,7 @@ sweep_spans(failed_attribute_and_end_span, TTL) ->
                  %% must have finished without needing to be swept
                  ok;
              [Span=#span{attributes=Attributes}] ->
-                 Span1 = Span#span{attributes=Attributes ++ [{<<"finished_by_sweeper">>, true}]},
+                 Span1 = Span#span{attributes=otel_attributes:set(<<"finished_by_sweeper">>, true, Attributes)},
                  end_span(Span1)
          end
      end || SpanId <- ExpiredSpanIds],
