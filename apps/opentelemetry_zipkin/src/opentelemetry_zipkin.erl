@@ -73,7 +73,7 @@ zipkin_span(Span, LocalEndpoint) ->
        %% shared=false, %% TODO: get from attributes?
        kind=to_kind(Span#span.kind),
        parent_id=to_parent_id(Span#span.parent_span_id),
-       annotations=to_annotations(Span#span.events),
+       annotations=to_annotations(otel_events:list(Span#span.events)),
        tags=to_tags(Span#span.attributes),
        local_endpoint=LocalEndpoint
        %% remote_endpoint %% TODO: get from attributes?
@@ -91,8 +91,10 @@ to_annotations([#event{system_time_nano=Timestamp,
                                              value=annotation_value(Name, Attributes)} | Annotations]).
 
 annotation_value(Name, Attributes) ->
-    AttrString = lists:join(", ", [[Key, ": ", to_string(Value)] ||
-                                      {Key, Value} <- Attributes]),
+    Annos = maps:fold(fun(Key, Value, Acc) ->
+                              [Key, ": ", to_string(Value) | Acc]
+                      end, [], otel_attributes:map(Attributes)),
+    AttrString = lists:join(", ", Annos),
     iolist_to_binary([Name, ": {", AttrString, "}"]).
 
 to_string(Value) when is_function(Value) ->
@@ -117,9 +119,9 @@ to_binary_string(Value) ->
     Value.
 
 to_tags(Attributes) ->
-    lists:map(fun({Name, Value}) ->
-                     {to_binary_string(Name), to_binary_string(Value)}
-              end, Attributes).
+    maps:fold(fun(Name, Value, Acc) ->
+                     [{to_binary_string(Name), to_binary_string(Value)} | Acc]
+              end, [], otel_attributes:map(Attributes)).
 
 to_parent_id(undefined) ->
     undefined;
@@ -143,8 +145,8 @@ zipkin_address(Options) ->
     maps:get(address, Options, ?DEFAULT_ZIPKIN_ADDRESS).
 
 local_endpoint_from_resource(Attributes, LocalEndpoint) ->
-    case lists:keyfind("service.name", 1, Attributes) of
-        {"service.name", ServiceName} ->
+    case maps:find(<<"service.name">>, otel_attributes:map(Attributes)) of
+        {ok, ServiceName} ->
             LocalEndpoint#zipkin_endpoint{service_name=ServiceName};
         _ ->
             LocalEndpoint
