@@ -13,8 +13,9 @@
 %% TODO: negative testing. What a valid value is is still in flux so nothing bothering
 %% to write tests to limit what can be a value only have them become valid values.
 all() ->
-    [startup, startup_env_service_name, os_env_resource, app_env_resource, combining, crash_detector,
-     timeout_detector, release_service_name, unknown_service_name, release_service_name_no_version].
+    [startup, startup_env_service_name, os_env_resource, app_env_resource, combining,
+     combining_conflicting_schemas, crash_detector, timeout_detector, release_service_name,
+     unknown_service_name, release_service_name_no_version].
 
 startup(_Config) ->
     try
@@ -126,14 +127,31 @@ app_env_resource(_Config) ->
 
 combining(_Config) ->
     Resource1 = otel_resource:create(otel_resource_app_env:parse([{service, [{name, <<"other-name">>},
-                                                                             {version, "1.1.1"}]}])),
-    Resource2 = otel_resource:create(otel_resource_env_var:parse("service.name=cttest,service.version=1.1.1")),
+                                                                             {version, "1.1.1"}]}]),
+                                     <<"https://opentelemetry.io/schemas/1.8.0">>),
+    Resource2 = otel_resource:create(otel_resource_env_var:parse("service.name=cttest,service.version=1.1.1"),
+                                     <<"https://opentelemetry.io/schemas/1.8.0">>),
 
     Merged = otel_resource:merge(Resource1, Resource2),
 
-    Expected = {otel_resource, otel_attributes:new([{<<"service.name">>, <<"other-name">>},
-                                                    {<<"service.version">>, <<"1.1.1">>}], 128, 255)},
-    ?assertEqual(Expected, Merged),
+    Expected = otel_attributes:new([{<<"service.name">>, <<"other-name">>},
+                                    {<<"service.version">>, <<"1.1.1">>}], 128, 255),
+    ?assertEqual(Expected, otel_resource:attributes(Merged)),
+    ?assertEqual(<<"https://opentelemetry.io/schemas/1.8.0">>, otel_resource:schema_url(Merged)),
+    ok.
+
+combining_conflicting_schemas(_Config) ->
+    Resource1 = otel_resource:create(otel_resource_app_env:parse([{service, [{name, <<"other-name">>},
+                                                                             {version, "1.1.1"}]}]), <<"https://opentelemetry.io/schemas/1.8.0">>),
+    Resource2 = otel_resource:create(otel_resource_env_var:parse("service.name=cttest,service.version=1.1.1"),
+                                     <<"https://opentelemetry.io/schemas/1.7.0">>),
+
+    Merged = otel_resource:merge(Resource1, Resource2),
+
+    Expected = otel_attributes:new([{<<"service.name">>, <<"other-name">>},
+                                    {<<"service.version">>, <<"1.1.1">>}], 128, 255),
+    ?assertEqual(Expected, otel_resource:attributes(Merged)),
+    ?assertEqual(undefined, otel_resource:schema_url(Merged)),
     ok.
 
 unknown_service_name(_Config) ->

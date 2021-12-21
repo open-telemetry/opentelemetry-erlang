@@ -1,3 +1,6 @@
+%% The schema url for telemetry resources
+-define(SCHEMA_URL, <<"https://opentelemetry.io/schemas/1.8.0">>).
+
 %% if any `service' attribute is defined then
 %% `service.name' and `service.instance.id' are required
 

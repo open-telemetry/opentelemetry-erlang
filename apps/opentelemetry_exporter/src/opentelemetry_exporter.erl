@@ -369,10 +369,15 @@ config_mapping() ->
 tab_to_proto(Tab, Resource) ->
     InstrumentationLibrarySpans = to_proto_by_instrumentation_library(Tab),
     Attributes = otel_resource:attributes(Resource),
-    ResourceSpans = [#{resource => #{attributes => to_attributes(otel_attributes:map(Attributes)),
-                                     dropped_attributes_count => otel_attributes:dropped(Attributes)},
-                       instrumentation_library_spans => InstrumentationLibrarySpans}],
-    #{resource_spans => ResourceSpans}.
+    ResourceSpans = #{resource => #{attributes => to_attributes(otel_attributes:map(Attributes)),
+                                    dropped_attributes_count => otel_attributes:dropped(Attributes)},
+                      instrumentation_library_spans => InstrumentationLibrarySpans},
+    case otel_resource:schema_url(Resource) of
+        undefined ->
+            #{resource_spans => [ResourceSpans]};
+        SchemaUrl ->
+            #{resource_spans => [ResourceSpans#{schema_url => SchemaUrl}]}
+    end.
 
 to_proto_by_instrumentation_library(Tab) ->
     Key = ets:first(Tab),
