@@ -391,8 +391,13 @@ link_or_false(TraceId, SpanId, Attributes, TraceState) ->
     end.
 
 instrumentation_library(Name, Vsn) ->
-    #instrumentation_library{name=name_to_binary(Name),
-                             version=vsn_to_binary(Vsn)}.
+    case name_to_binary(Name) of
+        undefined ->
+            undefined;
+        BinaryName ->
+            #instrumentation_library{name=BinaryName,
+                                     version=vsn_to_binary(Vsn)}
+    end.
 
 %% Vsn can't be an atom or anything but a list or binary
 %% so return `undefined' if it isn't a list or binary.
@@ -401,7 +406,7 @@ vsn_to_binary(Vsn) when is_list(Vsn) ->
 vsn_to_binary(Vsn) when is_binary(Vsn) ->
     Vsn;
 vsn_to_binary(_) ->
-    undefined.
+    <<>>.
 
 %% name can be atom, list or binary. But atom `undefined'
 %% must stay as `undefined' atom.

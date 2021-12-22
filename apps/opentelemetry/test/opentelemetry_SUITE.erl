@@ -379,7 +379,7 @@ tracer_instrumentation_library(Config) ->
 
     [Span1] = assert_exported(Tid, SpanCtx1),
 
-    ?assertEqual({instrumentation_library,<<"tracer1">>,<<"1.0.0">>}, Span1#span.instrumentation_library).
+    ?assertMatch({instrumentation_library,<<"tracer1">>,<<"1.0.0">>,_}, Span1#span.instrumentation_library).
 
 %% check that ending a span results in the tracer setting the previous tracer context
 %% as the current active and not use the parent span ctx of the span being ended --
