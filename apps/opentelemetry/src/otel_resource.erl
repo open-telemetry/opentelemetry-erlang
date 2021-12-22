@@ -42,7 +42,7 @@ create(Attributes) ->
     create(Attributes, undefined).
 
 %% verifies each key and value and drops any that don't pass verification
--spec create(#{key() => value()} | [{key(), value()}], schema_url()) -> t().
+-spec create(#{key() => value()} | [{key(), value()}], schema_url() | undefined) -> t().
 create(Map, SchemaUrl) when is_map(Map) ->
     create(maps:to_list(Map), SchemaUrl);
 create(List, SchemaUrl) when is_list(List) ->

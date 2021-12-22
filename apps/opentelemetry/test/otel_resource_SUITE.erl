@@ -65,7 +65,8 @@ startup_env_service_name(_Config) ->
 crash_detector(_Config) ->
     try
         application:load(opentelemetry),
-        application:set_env(opentelemetry, resource, #{<<"c">> => <<"d">>}),
+        application:set_env(opentelemetry, resource, #{<<"c">> => <<"d">>,
+                                                       "sk" => "sv"}),
         os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=2.1.1"),
 
         otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
@@ -77,7 +78,8 @@ crash_detector(_Config) ->
 
         ?assertMatch(#{<<"service.name">> := <<"cttest">>,
                        <<"service.version">> := <<"2.1.1">>,
-                       <<"c">> := <<"d">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+                       <<"c">> := <<"d">>,
+                       <<"sk">> := <<"sv">>}, otel_attributes:map(otel_resource:attributes(Resource))),
 
         ok
     after
@@ -118,7 +120,7 @@ os_env_resource(_Config) ->
 
 app_env_resource(_Config) ->
     Attributes = #{a => [{b,[{c,d}]}], service => #{name => <<"hello">>}},
-    Expected = [{"a.b.c", d}, {"service.name", <<"hello">>}],
+    Expected = [{<<"a.b.c">>, d}, {<<"service.name">>, <<"hello">>}],
 
     %% sort because this is created from a map and need to make sure
     %% the order is always the same when we do the assertion

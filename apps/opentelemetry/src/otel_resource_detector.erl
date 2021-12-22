@@ -166,9 +166,9 @@ required_attributes(Resource) ->
 process_attributes() ->
     OtpVsn = otp_vsn(),
     ErtsVsn = erts_vsn(),
-    [{?PROCESS_RUNTIME_NAME, emulator()},
-     {?PROCESS_RUNTIME_VERSION, ErtsVsn},
-     {?PROCESS_RUNTIME_DESCRIPTION, runtime_description(OtpVsn, ErtsVsn)}].
+    [{?PROCESS_RUNTIME_NAME, unicode:characters_to_binary(emulator())},
+     {?PROCESS_RUNTIME_VERSION, unicode:characters_to_binary(ErtsVsn)},
+     {?PROCESS_RUNTIME_DESCRIPTION, unicode:characters_to_binary(runtime_description(OtpVsn, ErtsVsn))}].
 
 runtime_description(OtpVsn, ErtsVsn) ->
     io_lib:format("Erlang/OTP ~s erts-~s", [OtpVsn, ErtsVsn]).
@@ -185,7 +185,7 @@ emulator() ->
 prog_name() ->
     %% RELEASE_PROG is set by mix and rebar3 release scripts
     %% PROGNAME is an OS variable set by `erl' and rebar3 release scripts
-    os_or_default("RELEASE_PROG", os_or_default("PROGNAME", "erl")).
+    unicode:characters_to_binary(os_or_default("RELEASE_PROG", os_or_default("PROGNAME", <<"erl">>))).
 
 os_or_default(EnvVar, Default) ->
     case os:getenv(EnvVar) of
@@ -232,7 +232,9 @@ add_service_name(Resource, ProgName) ->
         ServiceName ->
             %% service.name resource first to override any other service.name
             %% attribute that could be set in the resource
-            otel_resource:merge(otel_resource:create([{?SERVICE_NAME, ServiceName}]), Resource)
+            ServiceNameResource = otel_resource:create([{?SERVICE_NAME,
+                                                         unicode:characters_to_binary(ServiceName)}]),
+            otel_resource:merge(ServiceNameResource, Resource)
     end.
 
 service_release_name(ProgName) ->
@@ -244,5 +246,5 @@ service_release_name(ProgName) ->
                                       _ -> [{?SERVICE_VERSION, RelVsn}]
                                   end]);
         _ ->
-            otel_resource:create([{?SERVICE_NAME, "unknown_service:" ++ ProgName}])
+            otel_resource:create([{?SERVICE_NAME, <<"unknown_service:", ProgName/binary>>}])
     end.

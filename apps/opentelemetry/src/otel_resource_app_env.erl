@@ -50,22 +50,27 @@ parse(_) ->
 parse_values(Key, Values) when is_map(Values) ->
     parse_values(Key, maps:to_list(Values));
 parse_values(Key, Values) when is_list(Values) ->
-    lists:flatmap(fun({SubKey, Value=[{_,_}|_]}) ->
-                          %% list of tuples means we have more subkeys
-                          parse_values([Key, ".", to_string(SubKey)], Value);
-                     ({SubKey, Value}) when is_map(Value) ->
-                          %% map value means we have more subkeys
-                          parse_values([Key, ".", to_string(SubKey)], Value);
-                     ({SubKey, Value})->
-                          [{unicode:characters_to_list([Key, ".", to_string(SubKey)]), Value}]
-                  end, Values);
+    case io_lib:printable_latin1_list(Values) of
+        true ->
+            [{unicode:characters_to_binary(Key), unicode:characters_to_binary(Values)}];
+        false ->
+            lists:flatmap(fun({SubKey, Value=[{_,_}|_]}) ->
+                                  %% list of tuples means we have more subkeys
+                                  parse_values([Key, ".", to_string(SubKey)], Value);
+                             ({SubKey, Value}) when is_map(Value) ->
+                                  %% map value means we have more subkeys
+                                  parse_values([Key, ".", to_string(SubKey)], Value);
+                             ({SubKey, Value})->
+                                  [{unicode:characters_to_binary([Key, ".", to_string(SubKey)]), Value}]
+                          end, Values)
+    end;
 parse_values(Key, Value) ->
-    [{unicode:characters_to_list(Key), Value}].
+    [{unicode:characters_to_binary(Key), Value}].
 
--spec to_string(atom() | binary() | list()) -> list().
+-spec to_string(atom() | binary() | list()) -> binary().
 to_string(K) when is_atom(K) ->
-    atom_to_list(K);
-to_string(K) when is_binary(K) ->
-    binary_to_list(K);
+    atom_to_binary(K);
+to_string(K) when is_list(K) ->
+    list_to_binary(K);
 to_string(K) ->
     K.
