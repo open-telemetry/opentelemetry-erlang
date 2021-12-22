@@ -116,7 +116,9 @@ defmodule OpenTelemetry do
   @type status() :: :opentelemetry.status()
 
   defdelegate get_tracer(name), to: :opentelemetry
+  defdelegate get_tracer(name, vsn, schema_url), to: :opentelemetry
   defdelegate register_tracer(name, vsn), to: :opentelemetry
+  defdelegate register_tracer(name, vsn, schema_url), to: :opentelemetry
   defdelegate set_default_tracer(t), to: :opentelemetry
 
   # Helpers to build OpenTelemetry structured types

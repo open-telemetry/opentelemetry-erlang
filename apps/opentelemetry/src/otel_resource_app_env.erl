@@ -69,7 +69,7 @@ parse_values(Key, Value) ->
 
 -spec to_string(atom() | binary() | list()) -> binary().
 to_string(K) when is_atom(K) ->
-    atom_to_binary(K);
+    atom_to_binary(K, utf8);
 to_string(K) when is_list(K) ->
     list_to_binary(K);
 to_string(K) ->

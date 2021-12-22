@@ -30,9 +30,11 @@
 
 -export([set_default_tracer/1,
          register_tracer/2,
+         register_tracer/3,
          register_applications/1,
          get_tracer/0,
          get_tracer/1,
+         get_tracer/3,
          set_tracer/2,
          get_application/1,
          get_application_tracer/1,
@@ -41,7 +43,7 @@
          get_text_map_extractor/0,
          set_text_map_injector/1,
          get_text_map_injector/0,
-         instrumentation_library/2,
+         instrumentation_library/3,
          timestamp/0,
          timestamp_to_nano/1,
          convert_timestamp/2,
@@ -151,10 +153,14 @@ set_tracer(Name, Tracer) ->
     verify_and_set_term(Tracer, ?TRACER_KEY(Name), otel_tracer).
 
 -spec register_tracer(atom(), string() | binary()) -> boolean().
-register_tracer(Name, Vsn) when is_atom(Name) and is_binary(Vsn) ->
-    otel_tracer_provider:register_tracer(Name, Vsn);
-register_tracer(Name, Vsn) when is_atom(Name) and is_list(Vsn) ->
-    otel_tracer_provider:register_tracer(Name, list_to_binary(Vsn)).
+register_tracer(Name, Vsn) when is_atom(Name) ->
+    register_tracer(Name, Vsn, undefined).
+
+-spec register_tracer(atom(), string() | binary(), uri_string:uri_string() | undefined) -> boolean().
+register_tracer(Name, Vsn, SchemaUrl) when is_atom(Name) , (is_list(Vsn) orelse is_binary(Vsn)) ->
+    otel_tracer_provider:register_tracer(Name, unicode:characters_to_binary(Vsn), SchemaUrl);
+register_tracer(_, _, _) ->
+    false.
 
 -spec register_applications([atom()]) -> ok.
 register_applications(Applications) ->
@@ -165,7 +171,8 @@ register_applications(Applications) ->
     persistent_term:put(?MODULE_TO_APPLICATION_KEY, TracerMap).
 
 register_application_tracer({Name, _Description, Version}) ->
-    register_tracer(Name, Version).
+    SchemaUrl = application:get_env(Name, otel_schema_url, undefined),
+    register_tracer(Name, Version, SchemaUrl).
 
 %% creates a map of modules to application name
 module_to_application({Name, _Description, _Version}) ->
@@ -181,6 +188,11 @@ get_tracer() ->
 -spec get_tracer(atom()) -> tracer().
 get_tracer(Name) ->
     persistent_term:get(?TRACER_KEY(Name), get_tracer()).
+
+-spec get_tracer(atom(), unicode:chardata(), uri_string:uri_string()) -> tracer().
+get_tracer(Name, Vsn, SchemaUrl) ->
+    {Module, Tracer} = persistent_term:get(?TRACER_KEY(Name), get_tracer()),
+    {Module, Module:update_instrumentation_library(Vsn, SchemaUrl, Tracer)}.
 
 -spec get_application_tracer(module()) -> tracer().
 get_application_tracer(ModuleName) ->
@@ -390,21 +402,26 @@ link_or_false(TraceId, SpanId, Attributes, TraceState) ->
             false
     end.
 
-instrumentation_library(Name, Vsn) ->
+instrumentation_library(Name, Vsn, SchemaUrl) ->
     case name_to_binary(Name) of
         undefined ->
             undefined;
         BinaryName ->
             #instrumentation_library{name=BinaryName,
-                                     version=vsn_to_binary(Vsn)}
+                                     version=vsn_to_binary(Vsn),
+                                     schema_url=schema_url_to_binary(SchemaUrl)}
     end.
 
+%% schema_url is option, so set to undefined if its not a string
+schema_url_to_binary(SchemaUrl) when is_binary(SchemaUrl) ; is_list(SchemaUrl) ->
+    unicode:characters_to_binary(SchemaUrl);
+schema_url_to_binary(_) ->
+    undefined.
+
 %% Vsn can't be an atom or anything but a list or binary
-%% so return `undefined' if it isn't a list or binary.
-vsn_to_binary(Vsn) when is_list(Vsn) ->
-    list_to_binary(Vsn);
-vsn_to_binary(Vsn) when is_binary(Vsn) ->
-    Vsn;
+%% so return empty binary string if it isn't a list or binary.
+vsn_to_binary(Vsn) when is_binary(Vsn) ; is_list(Vsn) ->
+    unicode:characters_to_binary(Vsn);
 vsn_to_binary(_) ->
     <<>>.
 

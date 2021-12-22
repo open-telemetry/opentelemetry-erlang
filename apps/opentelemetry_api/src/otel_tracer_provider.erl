@@ -32,12 +32,16 @@
 
 -spec register_tracer(atom(), binary()) -> boolean().
 register_tracer(Name, Vsn) ->
-    register_tracer(?MODULE, Name, Vsn).
+    register_tracer(?MODULE, Name, Vsn, undefined).
 
--spec register_tracer(atom() | pid(), atom(), binary()) -> boolean().
-register_tracer(ServerRef, Name, Vsn) ->
+-spec register_tracer(atom(), binary(), uri_string:uri_string() | undefined) -> boolean().
+register_tracer(Name, Vsn, SchemaUrl) ->
+    register_tracer(?MODULE, Name, Vsn, SchemaUrl).
+
+-spec register_tracer(atom() | pid(), atom(), binary(), uri_string:uri_string() | undefined) -> boolean().
+register_tracer(ServerRef, Name, Vsn, SchemaUrl) ->
     try
-        gen_server:call(ServerRef, {register_tracer, Name, Vsn})
+        gen_server:call(ServerRef, {register_tracer, Name, Vsn, SchemaUrl})
     catch exit:{noproc, _} ->
             %% ignore register_tracer because no SDK has been included and started
             false

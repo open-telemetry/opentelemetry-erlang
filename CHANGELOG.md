@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `OTEL_SPAN_LINK_COUNT_LIMIT`: Limit number of Links on a Span.
   - `OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT`: Limit on number of Attributes on an Event.
   - `OTEL_LINK_ATTRIBUTE_COUNT_LIMIT`: Limit on number of Attributes on a Link.
+- Support for a Schema URL in a Resource and in the Instrumentation Library
+  information of a Tracer. For more information about Schema URLs see the
+  specification for [Resources](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/resource/sdk.md)
+  and [getting a Tracer](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md).
      
 ### Removed
 

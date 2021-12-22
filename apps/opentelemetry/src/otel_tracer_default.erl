@@ -20,8 +20,8 @@
 -behaviour(otel_tracer).
 
 -export([start_span/4,
-         with_span/5
-        ]).
+         with_span/5,
+         update_instrumentation_library/3]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_tracer.hrl").
@@ -54,3 +54,7 @@ with_span(Ctx, Tracer, SpanName, Opts, Fun) ->
         otel_ctx:detach(Ctx)
     end.
 
+update_instrumentation_library(Vsn, SchemaUrl, Tracer=#tracer{instrumentation_library=IL}) ->
+    IL1 = IL#instrumentation_library{version=unicode:characters_to_binary(Vsn),
+                                     schema_url=SchemaUrl},
+    Tracer#tracer{instrumentation_library=IL1}.

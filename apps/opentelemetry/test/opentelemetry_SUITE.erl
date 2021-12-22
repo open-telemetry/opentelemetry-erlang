@@ -135,6 +135,13 @@ registered_tracers(_Config) ->
     {_, #tracer{instrumentation_library=NewLibrary}} = opentelemetry:get_tracer(kernel),
     ?assertEqual(<<"kernel">>, NewLibrary#instrumentation_library.name),
     ?assertEqual(<<"fake-version">>, NewLibrary#instrumentation_library.version),
+    ?assertEqual(undefined, NewLibrary#instrumentation_library.schema_url),
+
+    Tracer = opentelemetry:get_tracer(kernel, <<"fake-version">>, <<"http://schema.org/myschema">>),
+    {_, #tracer{instrumentation_library=NewLibrary1}} = Tracer,
+    ?assertEqual(<<"kernel">>, NewLibrary1#instrumentation_library.name),
+    ?assertEqual(<<"fake-version">>, NewLibrary1#instrumentation_library.version),
+    ?assertEqual(<<"http://schema.org/myschema">>, NewLibrary1#instrumentation_library.schema_url),
 
     ok.
 
@@ -369,7 +376,7 @@ tracer_instrumentation_library(Config) ->
 
     TracerName = tracer1,
     TracerVsn = <<"1.0.0">>,
-    opentelemetry:register_tracer(TracerName, TracerVsn),
+    opentelemetry:register_tracer(TracerName, TracerVsn, "http://schema.org/myschema"),
 
     Tracer = opentelemetry:get_tracer(TracerName),
 
@@ -379,7 +386,8 @@ tracer_instrumentation_library(Config) ->
 
     [Span1] = assert_exported(Tid, SpanCtx1),
 
-    ?assertMatch({instrumentation_library,<<"tracer1">>,<<"1.0.0">>,_}, Span1#span.instrumentation_library).
+    ?assertMatch({instrumentation_library,<<"tracer1">>,<<"1.0.0">>,<<"http://schema.org/myschema">>},
+                 Span1#span.instrumentation_library).
 
 %% check that ending a span results in the tracer setting the previous tracer context
 %% as the current active and not use the parent span ctx of the span being ended --

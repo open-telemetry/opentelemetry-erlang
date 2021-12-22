@@ -97,15 +97,15 @@ handle_call({get_tracer, InstrumentationLibrary}, _From, State=#state{shared_tra
                                                                       deny_list=_DenyList}) ->
     {reply, {Tracer#tracer.module,
              Tracer#tracer{instrumentation_library=InstrumentationLibrary}}, State};
-handle_call({register_tracer, Name, Vsn}, _From, State=#state{shared_tracer=Tracer,
-                                                              deny_list=DenyList}) ->
+handle_call({register_tracer, Name, Vsn, SchemaUrl}, _From, State=#state{shared_tracer=Tracer,
+                                                                         deny_list=DenyList}) ->
     %% TODO: support semver constraints in denylist
     case proplists:is_defined(Name, DenyList) of
         true ->
             _ = opentelemetry:set_tracer(Name, {otel_tracer_noop, []}),
             {reply, ok, State};
         false ->
-            InstrumentationLibrary = opentelemetry:instrumentation_library(Name, Vsn),
+            InstrumentationLibrary = opentelemetry:instrumentation_library(Name, Vsn, SchemaUrl),
             TracerTuple = {Tracer#tracer.module,
                            Tracer#tracer{instrumentation_library=InstrumentationLibrary}},
             _ = opentelemetry:set_tracer(Name, TracerTuple),
