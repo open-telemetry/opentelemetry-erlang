@@ -233,11 +233,11 @@ config_mappings(general_sdk) ->
     [{"OTEL_LOG_LEVEL", log_level, existing_atom},
      {"OTEL_REGISTER_LOADED_APPLICATIONS", register_loaded_applications, boolean},
      {"OTEL_ID_GENERATOR", id_generator, existing_atom},
-     {"OTEL_DENY_LIST", deny_list, list},
+     {"OTEL_DENY_LIST", deny_list, existing_atom_list},
      {"OTEL_PROPAGATORS", text_map_propagators, propagators},
      {"OTEL_TRACES_EXPORTER", traces_exporter, exporter},
      {"OTEL_METRICS_EXPORTER", metrics_exporter, exporter},
-     {"OTEL_RESOURCE_DETECTORS", resource_detectors, kvlist_value},
+     {"OTEL_RESOURCE_DETECTORS", resource_detectors, existing_atom_list},
      {"OTEL_RESOURCE_DETECTOR_TIMEOUT", resource_detector_timeout, integer}];
 config_mappings(otel_batch_processor) ->
     [{"OTEL_BSP_SCHEDULE_DELAY_MILLIS", scheduled_delay_ms, integer},
@@ -269,6 +269,19 @@ config_mappings(_) ->
 
 transform(_, undefined) ->
     undefined;
+transform(existing_atom_list, [A | _]=List) when is_atom(A) ->
+    List;
+transform(existing_atom_list, String) when is_list(String) ->
+    List = string:split(String, ",", all),
+    lists:filtermap(fun(A) ->
+                            try transform(existing_atom, string:trim(A)) of
+                                Value ->
+                                    {true, Value}
+                            catch
+                                _:_ ->
+                                    false
+                            end
+                    end, List);
 transform(exporter, "otlp") ->
     {opentelemetry_exporter, #{}};
 transform(exporter, "jaeger") ->

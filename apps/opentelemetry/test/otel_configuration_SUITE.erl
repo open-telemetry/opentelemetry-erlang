@@ -20,7 +20,7 @@ all() ->
      sampler_trace_id, sampler_trace_id_default, sampler_parent_based_one,
      log_level, propagators, propagators_b3, propagators_b3multi, otlp_exporter,
      jaeger_exporter, zipkin_exporter, none_exporter, span_limits, bad_span_limits,
-     bad_app_config, app_env_exporter].
+     bad_app_config, app_env_exporter, deny_list, resource_detectors].
 
 init_per_testcase(empty_os_environment, Config) ->
     Vars = [],
@@ -109,6 +109,18 @@ init_per_testcase(jaeger_exporter, Config) ->
     [{os_vars, Vars} | Config];
 init_per_testcase(none_exporter, Config) ->
     Vars = [{"OTEL_TRACES_EXPORTER", "none"}],
+
+    setup_env(Vars),
+
+    [{os_vars, Vars} | Config];
+init_per_testcase(deny_list, Config) ->
+    Vars = [{"OTEL_DENY_LIST", "opentelemetry_exporter,opentelemetry,nonexisting_atom"}],
+
+    setup_env(Vars),
+
+    [{os_vars, Vars} | Config];
+init_per_testcase(resource_detectors, Config) ->
+    Vars = [{"OTEL_RESOURCE_DETECTORS", "opentelemetry_exporter,opentelemetry,nonexisting_atom"}],
 
     setup_env(Vars),
 
@@ -268,6 +280,20 @@ app_env_exporter(_Config) ->
     ?assertMatch({someother_exporter, #{}},
                  maps:get(traces_exporter,
                           otel_configuration:merge_with_os([{traces_exporter, {someother_exporter, #{}}}]))),
+
+    ok.
+
+deny_list(_Config) ->
+    %% nonexisting_atom in the OTEL_DENY_LIST os var is dropped bc it isn't an existing atom
+    ?assertMatch(#{deny_list := [opentelemetry_exporter,opentelemetry]},
+                 otel_configuration:merge_with_os([])),
+
+    ok.
+
+resource_detectors(_Config) ->
+    %% nonexisting_atom in the OTEL_RESOURCE_DETECTORS os var is dropped bc it isn't an existing atom
+    ?assertMatch(#{resource_detectors := [opentelemetry_exporter,opentelemetry]},
+                 otel_configuration:merge_with_os([])),
 
     ok.
 
