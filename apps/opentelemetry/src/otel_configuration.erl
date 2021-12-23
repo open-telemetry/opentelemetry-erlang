@@ -28,7 +28,8 @@
 %% required configuration
 %% using a map instead of a record because there can be more values
 -type t() :: #{log_level := atom(),
-               register_loaded_applications := boolean(),
+               register_loaded_applications := boolean() | undefined,
+               create_application_tracers := boolean() | undefined,
                id_generator := module(),
                deny_list := [atom()],
                resource_detectors => [module()],
@@ -51,7 +52,8 @@
 -spec new() -> t().
 new() ->
     #{log_level => info,
-      register_loaded_applications => true,
+      register_loaded_applications => undefined,
+      create_application_tracers => undefined,
       id_generator => otel_id_generator,
       deny_list => [],
       resource_detectors => [otel_resource_env_var,
@@ -93,7 +95,26 @@ span_limits(AppEnv, ConfigMap) ->
 
 -spec general(list(), t()) -> t().
 general(AppEnv, ConfigMap) ->
-    merge_list_with_environment(config_mappings(general_sdk), AppEnv, ConfigMap).
+    Config = merge_list_with_environment(config_mappings(general_sdk), AppEnv, ConfigMap),
+
+    %% merge the old `register_loaded_applications' with the new config key
+    %% `create_application_tracers' that has replaced it
+    Config1 = maps:update_with(create_application_tracers,
+                               fun(undefined) ->
+                                       %% `create_application_tracers' isn't set so update
+                                       %% with the `register_loaded_applications' value
+                                       %% or `true' if it too isn't set
+                                       case maps:get(register_loaded_applications, Config) of
+                                           undefined ->
+                                               true;
+                                           Bool ->
+                                               Bool
+                                       end;
+                                  (Bool) ->
+                                       Bool
+                               end, Config),
+
+    Config1.
 
 -spec sweeper(list(), t()) -> t().
 sweeper(AppEnv, ConfigMap=#{sweeper := DefaultSweeperConfig}) ->
@@ -231,7 +252,11 @@ report_cb(#{source := transform,
 
 config_mappings(general_sdk) ->
     [{"OTEL_LOG_LEVEL", log_level, existing_atom},
+
+     %% `register_loaded_applications' is kept for backwards compatibility
      {"OTEL_REGISTER_LOADED_APPLICATIONS", register_loaded_applications, boolean},
+     {"OTEL_CREATE_APPLICATION_TRACERS", create_application_tracers, boolean},
+
      {"OTEL_ID_GENERATOR", id_generator, existing_atom},
      {"OTEL_DENY_LIST", deny_list, existing_atom_list},
      {"OTEL_PROPAGATORS", text_map_propagators, propagators},

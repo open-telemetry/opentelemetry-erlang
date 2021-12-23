@@ -17,7 +17,7 @@ defmodule OtelTests do
 
   test "use Tracer to set current active Span's attributes" do
     :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
-    OpenTelemetry.register_tracer(:test_tracer, "0.1.0")
+    OpenTelemetry.get_tracer(:test_tracer, "0.1.0", :undefined)
 
     Tracer.with_span "span-1" do
       Tracer.set_attribute("attr-1", "value-1")
@@ -36,7 +36,7 @@ defmodule OtelTests do
 
   test "use Tracer to start a Span as currently active with an explicit parent" do
     :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
-    OpenTelemetry.register_tracer(:test_tracer, "0.1.0")
+    OpenTelemetry.get_tracer(:test_tracer, "0.1.0", :undefined)
 
     s1 = Tracer.start_span("span-1")
     ctx = Tracer.set_current_span(Ctx.new(), s1)
@@ -88,7 +88,7 @@ defmodule OtelTests do
 
   test "create child Span in Task" do
     :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
-    OpenTelemetry.register_tracer(:test_tracer, "0.1.0")
+    OpenTelemetry.get_tracer(:test_tracer, "0.1.0", :undefined)
 
     # create the parent span
     parent = Tracer.start_span("parent")
@@ -133,7 +133,7 @@ defmodule OtelTests do
 
   test "create Span with Link to outer Span in Task" do
     :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
-    OpenTelemetry.register_tracer(:test_tracer, "0.1.0")
+    OpenTelemetry.get_tracer(:test_tracer, "0.1.0", :undefined)
 
     parent_ctx = Ctx.new()
 

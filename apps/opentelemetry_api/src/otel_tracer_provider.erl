@@ -21,43 +21,33 @@
 %%%-------------------------------------------------------------------------
 -module(otel_tracer_provider).
 
--export([register_tracer/2,
-         register_tracer/3,
-         get_tracer/1,
+-export([get_tracer/1,
          get_tracer/2,
+         get_tracer/3,
          resource/0,
          resource/1,
          force_flush/0,
          force_flush/1]).
 
--spec register_tracer(atom(), binary()) -> boolean().
-register_tracer(Name, Vsn) ->
-    register_tracer(?MODULE, Name, Vsn, undefined).
+-spec get_tracer(atom()) -> boolean().
+get_tracer(Name) ->
+    get_tracer(?MODULE, Name, undefined, undefined).
 
--spec register_tracer(atom(), binary(), uri_string:uri_string() | undefined) -> boolean().
-register_tracer(Name, Vsn, SchemaUrl) ->
-    register_tracer(?MODULE, Name, Vsn, SchemaUrl).
+-spec get_tracer(atom(), binary() | undefined) -> boolean().
+get_tracer(Name, Vsn) ->
+    get_tracer(?MODULE, Name, Vsn, undefined).
 
--spec register_tracer(atom() | pid(), atom(), binary(), uri_string:uri_string() | undefined) -> boolean().
-register_tracer(ServerRef, Name, Vsn, SchemaUrl) ->
+-spec get_tracer(atom(), binary() | undefined, uri_string:uri_string() | undefined) -> boolean().
+get_tracer(Name, Vsn, SchemaUrl) ->
+    get_tracer(?MODULE, Name, Vsn, SchemaUrl).
+
+-spec get_tracer(atom() | pid(), atom(), binary() | undefined, uri_string:uri_string() | undefined) -> boolean().
+get_tracer(ServerRef, Name, Vsn, SchemaUrl) ->
     try
-        gen_server:call(ServerRef, {register_tracer, Name, Vsn, SchemaUrl})
+        gen_server:call(ServerRef, {get_tracer, Name, Vsn, SchemaUrl})
     catch exit:{noproc, _} ->
-            %% ignore register_tracer because no SDK has been included and started
+            %% ignore get_tracer because no SDK has been included and started
             false
-    end.
-
--spec get_tracer(opentelemetry:instrumentation_library()) -> opentelemetry:tracer() | undefined.
-get_tracer(InstrumentationLibrary) ->
-    get_tracer(?MODULE, InstrumentationLibrary).
-
--spec get_tracer(atom() | pid(), opentelemetry:instrumentation_library()) -> opentelemetry:tracer() | undefined.
-get_tracer(ServerRef, InstrumentationLibrary) ->
-    try
-        gen_server:call(ServerRef, {get_tracer, InstrumentationLibrary})
-    catch exit:{noproc, _} ->
-            %% ignore because likely no SDK has been included and started
-            {otel_tracer_noop, []}
     end.
 
 -spec resource() -> term() | undefined.

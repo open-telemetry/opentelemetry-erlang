@@ -16,8 +16,9 @@
 
 all() ->
     [%% no need to include tests that don't export any spans with the simple/batch groups
-     disable_auto_registration,
-     registered_tracers,
+     disable_auto_creation,
+     old_disable_auto_creation,
+     application_tracers,
      %% force flush is a test of flushing the batch processor's table
      force_flush,
 
@@ -52,12 +53,18 @@ init_per_group(Processor, Config) ->
 end_per_group(_, _Config) ->
     ok.
 
-init_per_testcase(disable_auto_registration, Config) ->
+init_per_testcase(disable_auto_creation, Config) ->
+    application:set_env(opentelemetry, create_application_tracers, false),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
+init_per_testcase(old_disable_auto_creation, Config) ->
     application:set_env(opentelemetry, register_loaded_applications, false),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
-init_per_testcase(registered_tracers, Config) ->
-    application:set_env(opentelemetry, register_loaded_applications, true),
+init_per_testcase(application_tracers, Config) ->
+    %% if both are set then the new one, `create_application_tracers', is used
+    application:set_env(opentelemetry, register_loaded_applications, false),
+    application:set_env(opentelemetry, create_application_tracers, true),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(propagator_configuration, Config) ->
@@ -96,6 +103,14 @@ init_per_testcase(too_many_attributes, Config) ->
     Tid = ets:new(exported_spans, [public, bag]),
     otel_batch_processor:set_exporter(otel_exporter_tab, Tid),
     [{tid, Tid} | Config];
+init_per_testcase(tracer_instrumentation_library, Config) ->
+    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    %% adds an exporter for a new table
+    %% spans will be exported to a separate table for each of the test cases
+    Tid = ets:new(exported_spans, [public, bag]),
+    otel_batch_processor:set_exporter(otel_exporter_tab, Tid),
+    [{tid, Tid} | Config];
 init_per_testcase(_, Config) ->
     Processor = ?config(processor, Config),
     application:set_env(opentelemetry, processors, [{Processor, #{scheduled_delay_ms => 1}}]),
@@ -106,7 +121,11 @@ init_per_testcase(_, Config) ->
     Processor:set_exporter(otel_exporter_tab, Tid),
     [{tid, Tid} | Config].
 
-end_per_testcase(disable_auto_registration, _Config) ->
+end_per_testcase(disable_auto_creation, _Config) ->
+    _ = application:stop(opentelemetry),
+    _ = application:unload(opentelemetry),
+    ok;
+end_per_testcase(old_disable_auto_creation, _Config) ->
     _ = application:stop(opentelemetry),
     _ = application:unload(opentelemetry),
     ok;
@@ -119,20 +138,26 @@ end_per_testcase(_, _Config) ->
     _ = application:stop(opentelemetry),
     ok.
 
-disable_auto_registration(_Config) ->
+disable_auto_creation(_Config) ->
     {_, #tracer{instrumentation_library=Library}} = opentelemetry:get_tracer(
                                                       opentelemetry:get_application(kernel)),
     ?assertEqual(undefined, Library),
     ok.
 
-registered_tracers(_Config) ->
+old_disable_auto_creation(_Config) ->
+    {_, #tracer{instrumentation_library=Library}} = opentelemetry:get_tracer(
+                                                      opentelemetry:get_application(kernel)),
+    ?assertEqual(undefined, Library),
+    ok.
+
+application_tracers(_Config) ->
     {_, #tracer{instrumentation_library=Library}} = opentelemetry:get_tracer(
                                                       opentelemetry:get_application(kernel)),
     ?assertEqual(<<"kernel">>, Library#instrumentation_library.name),
 
-    %% register a new tracer that overrides the existing tracer named for the application
-    opentelemetry:register_tracer(kernel, <<"fake-version">>),
-    {_, #tracer{instrumentation_library=NewLibrary}} = opentelemetry:get_tracer(kernel),
+    %% tracers are unique by name/version/schema_url
+    NewKernelTracer = opentelemetry:get_tracer(kernel, <<"fake-version">>, undefined),
+    {_, #tracer{instrumentation_library=NewLibrary}} = NewKernelTracer,
     ?assertEqual(<<"kernel">>, NewLibrary#instrumentation_library.name),
     ?assertEqual(<<"fake-version">>, NewLibrary#instrumentation_library.version),
     ?assertEqual(undefined, NewLibrary#instrumentation_library.schema_url),
@@ -376,9 +401,11 @@ tracer_instrumentation_library(Config) ->
 
     TracerName = tracer1,
     TracerVsn = <<"1.0.0">>,
-    opentelemetry:register_tracer(TracerName, TracerVsn, "http://schema.org/myschema"),
+    Tracer = {_, #tracer{instrumentation_library=IL}} =
+        opentelemetry:get_tracer(TracerName, TracerVsn, "http://schema.org/myschema"),
 
-    Tracer = opentelemetry:get_tracer(TracerName),
+    ?assertMatch({instrumentation_library,<<"tracer1">>,<<"1.0.0">>,<<"http://schema.org/myschema">>},
+                 IL),
 
     SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{}),
 

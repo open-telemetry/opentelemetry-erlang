@@ -29,9 +29,7 @@
 -module(opentelemetry).
 
 -export([set_default_tracer/1,
-         register_tracer/2,
-         register_tracer/3,
-         register_applications/1,
+         create_application_tracers/1,
          get_tracer/0,
          get_tracer/1,
          get_tracer/3,
@@ -152,47 +150,54 @@ set_default_tracer(Tracer) ->
 set_tracer(Name, Tracer) ->
     verify_and_set_term(Tracer, ?TRACER_KEY(Name), otel_tracer).
 
--spec register_tracer(atom(), string() | binary()) -> boolean().
-register_tracer(Name, Vsn) when is_atom(Name) ->
-    register_tracer(Name, Vsn, undefined).
+-spec set_tracer(atom(), unicode:unicode_binary(), uri_string:uri_string(), tracer()) -> boolean().
+set_tracer(Name, Vsn, SchemaUrl, Tracer) ->
+    verify_and_set_term(Tracer, ?TRACER_KEY({Name, Vsn, SchemaUrl}), otel_tracer).
 
--spec register_tracer(atom(), string() | binary(), uri_string:uri_string() | undefined) -> boolean().
-register_tracer(Name, Vsn, SchemaUrl) when is_atom(Name) , (is_list(Vsn) orelse is_binary(Vsn)) ->
-    otel_tracer_provider:register_tracer(Name, unicode:characters_to_binary(Vsn), SchemaUrl);
-register_tracer(_, _, _) ->
-    false.
-
--spec register_applications([atom()]) -> ok.
-register_applications(Applications) ->
-    TracerMap = lists:foldl(fun(Application, Acc) ->
-                                    register_application_tracer(Application),
-                                    maps:merge(Acc, module_to_application(Application))
+-spec create_application_tracers([{atom(), string(), string()}]) -> ok.
+create_application_tracers(Applications) ->
+    TracerMap = lists:foldl(fun({Name, _Description, Version}, Acc) ->
+                                    Vsn = vsn_to_binary(Version),
+                                    SchemaUrl = application:get_env(Name, otel_schema_url, undefined),
+                                    _ = get_tracer(Name, Version, SchemaUrl),
+                                    maps:merge(Acc, module_to_application(Name, Vsn, SchemaUrl))
                             end, #{}, Applications),
     persistent_term:put(?MODULE_TO_APPLICATION_KEY, TracerMap).
 
-register_application_tracer({Name, _Description, Version}) ->
-    SchemaUrl = application:get_env(Name, otel_schema_url, undefined),
-    register_tracer(Name, Version, SchemaUrl).
-
-%% creates a map of modules to application name
-module_to_application({Name, _Description, _Version}) ->
+%% creates a map of modules to application name, version and schema_url tuple
+module_to_application(Name, Version, SchemaUrl) ->
     {ok, Modules} = application:get_key(Name, modules),
     lists:foldl(fun(M, Acc) ->
-                        Acc#{M => Name}
+                        Acc#{M => {Name, Version, SchemaUrl}}
                 end, #{}, Modules).
 
 -spec get_tracer() -> tracer().
 get_tracer() ->
     persistent_term:get(?DEFAULT_TRACER_KEY, {otel_tracer_noop, []}).
 
--spec get_tracer(atom()) -> tracer().
+-spec get_tracer(atom() | {atom(), unicode:chardata(), uri_string:uri_string()}) -> tracer().
+get_tracer('$__default_tracer') ->
+    get_tracer();
+get_tracer({Name, Vsn, SchemaUrl}) ->
+    get_tracer(Name, Vsn, SchemaUrl);
 get_tracer(Name) ->
-    persistent_term:get(?TRACER_KEY(Name), get_tracer()).
+    get_tracer(Name, undefined, undefined).
 
 -spec get_tracer(atom(), unicode:chardata(), uri_string:uri_string()) -> tracer().
 get_tracer(Name, Vsn, SchemaUrl) ->
-    {Module, Tracer} = persistent_term:get(?TRACER_KEY(Name), get_tracer()),
-    {Module, Module:update_instrumentation_library(Vsn, SchemaUrl, Tracer)}.
+    %% check cache and then use provider to get the tracer if it isn't cached yet
+    case persistent_term:get(?TRACER_KEY({Name, Vsn, SchemaUrl}), undefined) of
+        undefined ->
+            VsnBin = vsn_to_binary(Vsn),
+            Tracer = otel_tracer_provider:get_tracer(Name, VsnBin, SchemaUrl),
+
+            %% cache the tracer
+            _ = set_tracer(Name, Vsn, SchemaUrl, Tracer),
+
+            Tracer;
+        Tracer ->
+            Tracer
+    end.
 
 -spec get_application_tracer(module()) -> tracer().
 get_application_tracer(ModuleName) ->
@@ -201,7 +206,7 @@ get_application_tracer(ModuleName) ->
 %% looks up the name of the OTP Application a module is in. This name is used to
 %% look up a Tracer to use so if none is found for the ModuleName the key used for
 %% the default tracer
--spec get_application(module()) -> atom().
+-spec get_application(module()) -> {atom(), unicode:unicode_binary() | undefined, uri_string:uri_string() | undefined} | atom().
 get_application(ModuleName) ->
     Map = persistent_term:get(?MODULE_TO_APPLICATION_KEY, #{}),
     maps:get(ModuleName, Map, '$__default_tracer').
@@ -376,7 +381,7 @@ verify_and_set_term(Module, TermKey, Behaviour) ->
         false ->
             ?LOG_WARNING("Module ~p does not exist. "
                          "A noop ~p will be used until a module is configured.",
-                         [Module, Behaviour, Behaviour]),
+                         [Module, Behaviour]),
             false
     end.
 

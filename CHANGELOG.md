@@ -29,10 +29,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   information of a Tracer. For more information about Schema URLs see the
   specification for [Resources](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/resource/sdk.md)
   and [getting a Tracer](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md).
-     
+- `OTEL_CREATE_APPLICATION_TRACERS` is a new environment variable,
+  `create_application_tracers` is the application environment key, for disabling
+  the automatic creation of Tracers for every Application at boot. The old keys,
+  `OTEL_REGISTER_LOADED_APPLICATIONS` and `register_loaded_applications`, will
+  continue to work as well.
+
 ### Removed
 
 - The `sampler` option to `start_span` and `with_span` was removed.
+- `register_tracer` has been removed and now `get_tracer` will cache the Tracer
+  after creation if needed.
 
 ## [API 1.0.0-rc.3.2] - 2021-10-13
 

@@ -93,24 +93,22 @@ init(#{id_generator := IdGeneratorModule,
 
 handle_call(resource, _From, State=#state{resource=Resource}) ->
     {reply, Resource, State};
-handle_call({get_tracer, InstrumentationLibrary}, _From, State=#state{shared_tracer=Tracer,
-                                                                      deny_list=_DenyList}) ->
-    {reply, {Tracer#tracer.module,
-             Tracer#tracer{instrumentation_library=InstrumentationLibrary}}, State};
-handle_call({register_tracer, Name, Vsn, SchemaUrl}, _From, State=#state{shared_tracer=Tracer,
-                                                                         deny_list=DenyList}) ->
+handle_call({get_tracer, Name, Vsn, SchemaUrl}, _From, State=#state{shared_tracer=Tracer,
+                                                                    deny_list=DenyList}) ->
     %% TODO: support semver constraints in denylist
     case proplists:is_defined(Name, DenyList) of
         true ->
-            _ = opentelemetry:set_tracer(Name, {otel_tracer_noop, []}),
-            {reply, ok, State};
+            {reply, {otel_tracer_noop, []}, State};
         false ->
             InstrumentationLibrary = opentelemetry:instrumentation_library(Name, Vsn, SchemaUrl),
             TracerTuple = {Tracer#tracer.module,
                            Tracer#tracer{instrumentation_library=InstrumentationLibrary}},
-            _ = opentelemetry:set_tracer(Name, TracerTuple),
-            {reply, ok, State}
+            {reply, TracerTuple, State}
     end;
+handle_call({get_tracer, InstrumentationLibrary}, _From, State=#state{shared_tracer=Tracer,
+                                                                      deny_list=_DenyList}) ->
+    {reply, {Tracer#tracer.module,
+             Tracer#tracer{instrumentation_library=InstrumentationLibrary}}, State};
 handle_call(force_flush, _From, State=#state{processors=Processors}) ->
     Reply = lists:foldl(fun(Processor, Result) ->
                                 case force_flush_(Processor) of
