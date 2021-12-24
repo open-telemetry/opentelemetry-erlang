@@ -25,6 +25,10 @@
          tracestate/1,
          is_recording/1,
          is_valid/1,
+         is_valid_attribute/2,
+         is_valid_name/1,
+         process_attributes/1,
+         validate_start_opts/1,
          set_attribute/3,
          set_attributes/2,
          add_event/3,
@@ -39,6 +43,12 @@
 -include("opentelemetry.hrl").
 
 -define(is_recording(SpanCtx), SpanCtx =/= undefined andalso SpanCtx#span_ctx.is_recording =:= true).
+-define(is_allowed_key(Key), is_atom(Key) orelse (is_binary(Key) andalso Key =/= <<"">>)).
+-define(is_allowed_value(Value), is_atom(Value) orelse
+                                 is_boolean(Value) orelse
+                                 is_number(Value) orelse
+                                 is_binary(Value) orelse
+                                 is_list(Value)).
 
 -type start_opts() :: #{attributes => opentelemetry:attributes_map(),
                         links => [opentelemetry:link()],
@@ -47,6 +57,21 @@
                         kind => opentelemetry:span_kind()}.
 
 -export_type([start_opts/0]).
+
+-spec validate_start_opts(start_opts()) -> start_opts().
+validate_start_opts(Opts) when is_map(Opts) ->
+    Attributes = maps:get(attributes, Opts, #{}),
+    Links = maps:get(links, Opts, []),
+    Kind = maps:get(kind, Opts, ?SPAN_KIND_INTERNAL),
+    StartTime = maps:get(start_time, Opts, opentelemetry:timestamp()),
+    IsRecording = maps:get(is_recording, Opts, true),
+    #{
+      attributes => process_attributes(Attributes),
+      links => Links,
+      kind => Kind,
+      start_time => StartTime,
+      is_recording => IsRecording
+     }.
 
 -spec is_recording(SpanCtx) -> boolean() when
       SpanCtx :: opentelemetry:span_ctx().
@@ -60,6 +85,29 @@ is_valid(#span_ctx{trace_id=TraceId,
                                          SpanId =/= 0 ->
     true;
 is_valid(_) ->
+    false.
+
+-spec is_valid_attribute(opentelemetry:attribute_key(), opentelemetry:attribute_value()) -> boolean().
+is_valid_attribute(Key, Value) when ?is_allowed_key(Key) , ?is_allowed_value(Value) ->
+    true;
+is_valid_attribute(_, _) ->
+    false.
+
+-spec process_attributes(any()) -> opentelemetry:attribute_map().
+process_attributes(Attributes) when is_map(Attributes) ->
+    maps:filtermap(fun is_valid_attribute/2, Attributes);
+process_attributes([]) -> #{};
+process_attributes(Attributes) when is_list(Attributes) ->
+    process_attributes(maps:from_list(Attributes));
+process_attributes(_) ->
+    #{}.
+
+-spec is_valid_name(any()) -> boolean().
+is_valid_name(undefined) ->
+    false;
+is_valid_name(Name) when is_atom(Name) orelse (is_binary(Name) andalso Name =/= <<"">>) ->
+    true;
+is_valid_name(_) ->
     false.
 
 %% accessors
@@ -90,7 +138,12 @@ tracestate(_) ->
       Value :: opentelemetry:attribute_value(),
       SpanCtx :: opentelemetry:span_ctx().
 set_attribute(SpanCtx=#span_ctx{span_sdk={Module, _}}, Key, Value) when ?is_recording(SpanCtx) ->
-    Module:set_attribute(SpanCtx, Key, Value);
+    case is_valid_attribute(Key, Value) of
+        true ->
+            Module:set_attribute(SpanCtx, Key, Value);
+        false ->
+            false
+    end;
 set_attribute(_, _, _) ->
     false.
 
@@ -99,7 +152,7 @@ set_attribute(_, _, _) ->
       SpanCtx :: opentelemetry:span_ctx().
 set_attributes(SpanCtx=#span_ctx{span_sdk={Module, _}}, Attributes) when ?is_recording(SpanCtx),
                                                                          (is_list(Attributes) orelse is_map(Attributes)) ->
-    Module:set_attributes(SpanCtx, Attributes);
+    Module:set_attributes(SpanCtx, process_attributes(Attributes));
 set_attributes(_, _) ->
     false.
 
@@ -107,11 +160,17 @@ set_attributes(_, _) ->
       Name :: opentelemetry:event_name(),
       Attributes :: opentelemetry:attributes_map(),
       SpanCtx :: opentelemetry:span_ctx().
-add_event(SpanCtx=#span_ctx{span_sdk={Module, _}}, Name, Attributes) when ?is_recording(SpanCtx) ->
-    Module:add_event(SpanCtx, Name, Attributes);
+add_event(SpanCtx=#span_ctx{span_sdk={Module, _}}, Name, Attributes) when ?is_recording(SpanCtx) , is_list(Attributes) ->
+    case is_valid_name(Name) of
+        true ->
+            Module:add_event(SpanCtx, Name, process_attributes(Attributes));
+        false ->
+            false
+    end;
 add_event(_, _, _) ->
     false.
 
+%% todo - validate
 -spec add_events(SpanCtx, Events) -> boolean() when
       Events :: [opentelemetry:event()],
       SpanCtx :: opentelemetry:span_ctx().
@@ -156,7 +215,12 @@ set_status(_, _) ->
       Name :: opentelemetry:span_name(),
       SpanCtx :: opentelemetry:span_ctx().
 update_name(SpanCtx=#span_ctx{span_sdk={Module, _}}, SpanName) when ?is_recording(SpanCtx) ->
-    Module:update_name(SpanCtx, SpanName);
+    case is_valid_name(SpanName) of
+        true ->
+            Module:update_name(SpanCtx, SpanName);
+        false ->
+            false
+    end;
 update_name(_, _) ->
     false.
 

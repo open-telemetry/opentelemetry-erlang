@@ -11,7 +11,12 @@
 -include("otel_tracer.hrl").
 
 all() ->
-    [noop_tracer, update_span_data, noop_with_span, can_create_link_from_span, hex_trace_ids].
+    [noop_tracer,
+     validations,
+     update_span_data,
+     noop_with_span,
+     can_create_link_from_span,
+     hex_trace_ids].
 
 init_per_suite(Config) ->
     application:load(opentelemetry_api),
@@ -32,7 +37,7 @@ can_create_link_from_span(_Config) ->
     %% end span, so there's no current span set
     ?end_span(opentelemetry:timestamp()),
 
-    Attributes = [{<<"attr-1">>, <<"value-1">>}],
+    Attributes = #{<<"attr-1">> => <<"value-1">>},
 
     ?assertMatch(undefined, opentelemetry:link(undefined)),
     ?assertMatch(undefined, opentelemetry:link(undefined, Attributes)),
@@ -45,7 +50,7 @@ can_create_link_from_span(_Config) ->
 
     ?assertMatch(#{trace_id := TraceId,
                    span_id := SpanId,
-                   attributes := [],
+                   attributes := #{},
                    tracestate := Tracestate},
                  opentelemetry:link(SpanCtx)),
 
@@ -61,10 +66,47 @@ can_create_link_from_span(_Config) ->
                     tracestate := Tracestate},
                   #{trace_id := TraceId,
                     span_id := SpanId,
-                    attributes := [],
+                    attributes := #{},
                     tracestate := Tracestate}],
                  opentelemetry:links([undefined, {SpanCtx, Attributes}, SpanCtx])).
 
+validations(_Config) ->
+    Attributes = [
+                  {<<"key-1">>, <<"value-1">>},
+                  {key2, 1},
+                  {<<"key-3">>, #{<<"value-2">> => <<"maps-unallowed">>}},
+                  {<<"key-4">>, 1.0},
+                  {key5, {t, <<"value-5">>}},
+                  {key6, [1,2,3]}],
+    Links = [{0, 0, Attributes, []}],
+    Events = [{opentelemetry:timestamp(), <<"timed-event-name">>, Attributes},
+              {untimed_event, Attributes},
+              {<<"">>, Attributes},
+              {123, Attributes}],
+    ProcessedAttributes = otel_span:process_attributes(Attributes),
+    ?assertMatch(#{<<"key-1">> := <<"value-1">>,
+                   key2 := 1,
+                   <<"key-4">> := 1.0,
+                   key6 := [1,2,3]},
+                ProcessedAttributes),
+    ?assertMatch([key2,key6,<<"key-1">>,<<"key-4">>], maps:keys(ProcessedAttributes)),
+    ?assertMatch([#{name := <<"timed-event-name">>,
+                   attributes := ProcessedAttributes},
+                  #{name := untimed_event,
+                   attributes := ProcessedAttributes}],
+                 opentelemetry:events(Events)),
+    ?assertMatch([#{trace_id := 0,
+                   span_id := 0,
+                   attributes := ProcessedAttributes,
+                   tracestate := []}],
+                opentelemetry:links(Links)),
+
+    StartOpts = #{attributes => Attributes,
+                 links => opentelemetry:links(Links)},
+    ?assertMatch(#{attributes := ProcessedAttributes,
+                  links := [#{trace_id := 0, span_id := 0, attributes := ProcessedAttributes, tracestate := []}]},
+                otel_span:validate_start_opts(StartOpts)),
+    ok.
 
 noop_tracer(_Config) ->
     %% start a span and 2 children
@@ -106,10 +148,10 @@ noop_tracer(_Config) ->
 
 %% just shouldn't crash
 update_span_data(_Config) ->
-    Links = [#{trace_id => 0,
+    Links = opentelemetry:links([#{trace_id => 0,
                span_id => 0,
                attributes => [],
-               tracestate => []}],
+               tracestate => []}]),
 
     SpanCtx1 = ?start_span(<<"span-1">>, #{links => Links}),
     ?set_current_span(SpanCtx1),
@@ -139,11 +181,18 @@ update_span_data(_Config) ->
     ok.
 
 noop_with_span(_Config) ->
+    Attributes = #{<<"attr-1">> => <<"value-1">>},
+    Links = opentelemetry:links([#{trace_id => 0,
+               span_id => 0,
+               attributes => [],
+               tracestate => []}]),
+    StartOpts = #{attributes => Attributes, links => Links},
+
     Tracer = opentelemetry:get_tracer(),
     ?assertMatch({otel_tracer_noop, _}, Tracer),
 
     Result = some_result,
-    ?assertEqual(Result, otel_tracer:with_span(Tracer, <<"span1">>, #{}, fun(_) -> Result end)),
+    ?assertEqual(Result, otel_tracer:with_span(Tracer, <<"span1">>, StartOpts, fun(_) -> Result end)),
     ok.
 
 hex_trace_ids(_Config) ->
