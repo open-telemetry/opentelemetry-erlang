@@ -371,7 +371,7 @@ transform(sampler, {"parentbased_traceidratio", Probability}) ->
 transform(sampler, Value) ->
     Value;
 transform(key_value_list, Value) when is_list(Value) ->
-    case io_lib:printable_list(Value) of
+    case io_lib:printable_unicode_list(Value) of
         true ->
             Pairs = string:split(Value, ",", all),
             lists:filtermap(fun(Pair) ->

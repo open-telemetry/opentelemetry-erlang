@@ -50,7 +50,7 @@ parse(_) ->
 parse_values(Key, Values) when is_map(Values) ->
     parse_values(Key, maps:to_list(Values));
 parse_values(Key, Values) when is_list(Values) ->
-    case io_lib:printable_latin1_list(Values) of
+    case io_lib:printable_unicode_list(Values) of
         true ->
             [{unicode:characters_to_binary(Key), unicode:characters_to_binary(Values)}];
         false ->
