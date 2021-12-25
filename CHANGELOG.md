@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [API 1.0.0-rc.4] - 2021-12-25
+
 ### Added
 
 - Looking up a Tracer for a module is now done by first looking up the
