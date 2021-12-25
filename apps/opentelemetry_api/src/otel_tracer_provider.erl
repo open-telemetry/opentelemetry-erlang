@@ -21,27 +21,26 @@
 %%%-------------------------------------------------------------------------
 -module(otel_tracer_provider).
 
--export([get_tracer/1,
-         get_tracer/2,
-         get_tracer/3,
+-export([get_tracer/3,
          resource/0,
          resource/1,
          force_flush/0,
          force_flush/1]).
 
--spec get_tracer(atom()) -> boolean().
-get_tracer(Name) ->
-    get_tracer(?MODULE, Name, undefined, undefined).
-
--spec get_tracer(atom(), binary() | undefined) -> boolean().
-get_tracer(Name, Vsn) ->
-    get_tracer(?MODULE, Name, Vsn, undefined).
-
--spec get_tracer(atom(), binary() | undefined, uri_string:uri_string() | undefined) -> boolean().
+-spec get_tracer(Name, Vsn, SchemaUrl) -> Tracer when
+      Name :: atom(),
+      Vsn :: unicode:chardata() | undefined,
+      SchemaUrl :: uri_string:uri_string() | undefined,
+      Tracer:: opentelemetry:tracer().
 get_tracer(Name, Vsn, SchemaUrl) ->
     get_tracer(?MODULE, Name, Vsn, SchemaUrl).
 
--spec get_tracer(atom() | pid(), atom(), binary() | undefined, uri_string:uri_string() | undefined) -> boolean().
+-spec get_tracer(ServerRef, Name, Vsn, SchemaUrl) -> Tracer when
+      ServerRef :: atom() | pid(),
+      Name :: atom(),
+      Vsn :: unicode:chardata() | undefined,
+      SchemaUrl :: uri_string:uri_string() | undefined,
+      Tracer:: opentelemetry:tracer().
 get_tracer(ServerRef, Name, Vsn, SchemaUrl) ->
     try
         gen_server:call(ServerRef, {get_tracer, Name, Vsn, SchemaUrl})
