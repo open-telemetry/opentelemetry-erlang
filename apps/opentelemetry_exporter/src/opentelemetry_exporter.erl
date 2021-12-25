@@ -90,6 +90,7 @@
                           ssl_options => []}.
 
 -type protocol() :: grpc | http_protobuf | http_json.
+-type compression() :: gzip.
 
 -type opts() :: #{endpoints => [endpoint()],
                   headers => headers(),
@@ -103,6 +104,7 @@
 -record(state, {protocol :: protocol(),
                 channel_pid :: pid() | undefined,
                 headers :: headers(),
+                compression :: compression() | undefined,
                 grpc_metadata :: map() | undefined,
                 endpoints :: [endpoint_map()]}).
 
@@ -113,14 +115,22 @@ init(Opts) ->
     SSLOptions = maps:get(ssl_options, Opts1, undefined),
     Endpoints = endpoints(maps:get(endpoints, Opts1, ?DEFAULT_ENDPOINTS), SSLOptions),
     Headers = headers(maps:get(headers, Opts1, [])),
+    Compression = maps:get(compression, Opts1, undefined),
     case maps:get(protocol, Opts1, http_protobuf) of
         grpc ->
             ChannelOpts = maps:get(channel_opts, Opts1, #{}),
-            case grpcbox_channel:start_link(?MODULE, grpcbox_endpoints(Endpoints), ChannelOpts) of
+            UpdatedChannelOpts = case Compression of
+                                   undefined -> ChannelOpts;
+                                   Encoding -> maps:put(encoding, Encoding, ChannelOpts)
+                                 end,
+            case grpcbox_channel:start_link(?MODULE,
+                                            grpcbox_endpoints(Endpoints),
+                                            UpdatedChannelOpts) of
                 {ok, ChannelPid} ->
                     {ok, #state{channel_pid=ChannelPid,
                                 endpoints=Endpoints,
                                 headers=Headers,
+                                compression=Compression,
                                 grpc_metadata=headers_to_grpc_metadata(Headers),
                                 protocol=grpc}};
                 ErrorOrIgnore ->
@@ -130,15 +140,18 @@ init(Opts) ->
                                  "to http_protobuf protocol. reason=~p", [ErrorOrIgnore]),
                     {ok, #state{endpoints=Endpoints,
                                 headers=Headers,
+                                compression=Compression,
                                 protocol=http_protobuf}}
             end;
         http_protobuf ->
             {ok, #state{endpoints=Endpoints,
                         headers=Headers,
+                        compression=Compression,
                         protocol=http_protobuf}};
         http_json ->
             {ok, #state{endpoints=Endpoints,
                         headers=Headers,
+                        compression=Compression,
                         protocol=http_json}}
     end.
 
@@ -147,6 +160,7 @@ export(_Tab, _Resource, #state{protocol=http_json}) ->
     {error, unimplemented};
 export(Tab, Resource, #state{protocol=http_protobuf,
                              headers=Headers,
+                             compression=Compression,
                              endpoints=[#{scheme := Scheme,
                                           host := Host,
                                           path := Path,
@@ -154,11 +168,16 @@ export(Tab, Resource, #state{protocol=http_protobuf,
                                           ssl_options := SSLOptions} | _]}) ->
     Proto = opentelemetry_exporter_trace_service_pb:encode_msg(tab_to_proto(Tab, Resource),
                                                                export_trace_service_request),
+    {NewHeaders, NewProto} = case Compression of
+      gzip -> {[{"content-encoding", "gzip"} | Headers], zlib:gzip(Proto)};
+        _ -> {Headers, Proto}
+    end,
     Address = uri_string:normalize(#{scheme => Scheme,
                                      host => Host,
                                      port => Port,
                                      path => Path}),
-    case httpc:request(post, {Address, Headers, "application/x-protobuf", Proto},
+
+    case httpc:request(post, {Address, NewHeaders, "application/x-protobuf", NewProto},
                        [{ssl, SSLOptions}], []) of
         {ok, {{_, Code, _}, _, _}} when Code >= 200 andalso Code =< 202 ->
             ok;
@@ -199,7 +218,7 @@ shutdown(#state{channel_pid=Pid}) ->
 %%
 
 grpcbox_endpoints(Endpoints) ->
-    [{scheme(Scheme), Host, Port, maps:get(ssl_options, Endpoint, [])} || 
+    [{scheme(Scheme), Host, Port, maps:get(ssl_options, Endpoint, [])} ||
         #{scheme := Scheme, host := Host, port := Port} = Endpoint <- Endpoints].
 
 headers_to_grpc_metadata(Headers) ->
