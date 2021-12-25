@@ -713,19 +713,24 @@ too_many_attributes(Config) ->
     %% dropped because of tuple as value
     ?set_attribute(<<"attr-2-dropped">>, {not_allowed, in, attributes}),
 
-    ?set_attribute(<<"attr-3">>, <<"attr-value-3">>),
+    ?set_attribute(<<"attr-3">>, attr_3_value),
 
     %% dropped because count limit was set to 2
     ?set_attribute(<<"attr-4">>, <<"attr-value-4">>),
     %% won't be dropped because attr-1 already exists so it overrides the value
     ?set_attribute(<<"attr-1">>, <<"attr-value-5">>),
+    %% already exists and not a binary, so skips the binary length check.
+    ?set_attribute(<<"attr-3">>, 4),
+
+    %% dropping skips all checks now that we're already dropping attrs
+    ?set_attribute(<<"attr-6">>, <<"attr-value-6">>),
 
     otel_span:end_span(SpanCtx),
     [Span] = assert_exported(Tid, SpanCtx),
 
     ?assertEqual(#{<<"attr-1">> => <<"attr-value-5">>,
-                   <<"attr-3">> => <<"attr-value-3">>}, otel_attributes:map(Span#span.attributes)),
-    ?assertEqual(1, otel_attributes:dropped(Span#span.attributes)),
+                   <<"attr-3">> => 4}, otel_attributes:map(Span#span.attributes)),
+    ?assertEqual(2, otel_attributes:dropped(Span#span.attributes)),
 
     %% test again using the `set_attributes' macro
     SpanCtx2 = ?start_span(<<"span-2">>),
@@ -734,7 +739,7 @@ too_many_attributes(Config) ->
 
     ?set_attributes(#{<<"attr-1">> => <<"attr-value-1">>,
                       <<"attr-2">> => {not_allowed, in, attributes},
-                      <<"attr-3">> => <<"attr-value-3">>,
+                      <<"attr-3">> => attr_3_value,
                       <<"attr-4">> => <<"attr-value-4">>}),
 
     %% won't be dropped because attr-1 already exists so it overrides the value

@@ -71,6 +71,9 @@ can_create_link_from_span(_Config) ->
                  opentelemetry:links([undefined, {SpanCtx, Attributes}, SpanCtx])).
 
 validations(_Config) ->
+    InvalidAttributesArg = undefined,
+    ?assertMatch(#{}, otel_span:process_attributes(InvalidAttributesArg)),
+
     Attributes = [
                   {<<"key-1">>, <<"value-1">>},
                   {key2, 1},
@@ -84,17 +87,20 @@ validations(_Config) ->
               {<<"">>, Attributes},
               {123, Attributes}],
     ProcessedAttributes = otel_span:process_attributes(Attributes),
+
     ?assertMatch(#{<<"key-1">> := <<"value-1">>,
                    key2 := 1,
                    <<"key-4">> := 1.0,
                    key6 := [1,2,3]},
                 ProcessedAttributes),
     ?assertMatch([key2,key6,<<"key-1">>,<<"key-4">>], maps:keys(ProcessedAttributes)),
+
     ?assertMatch([#{name := <<"timed-event-name">>,
                    attributes := ProcessedAttributes},
                   #{name := untimed_event,
                    attributes := ProcessedAttributes}],
                  opentelemetry:events(Events)),
+
     ?assertMatch([#{trace_id := 0,
                    span_id := 0,
                    attributes := ProcessedAttributes,
@@ -106,6 +112,13 @@ validations(_Config) ->
     ?assertMatch(#{attributes := ProcessedAttributes,
                   links := [#{trace_id := 0, span_id := 0, attributes := ProcessedAttributes, tracestate := []}]},
                 otel_span:validate_start_opts(StartOpts)),
+
+    %% names
+    ?assert(otel_span:is_valid_name(name)),
+    ?assert(otel_span:is_valid_name(<<"name">>)),
+    ?assertNot(otel_span:is_valid_name(<<"">>)),
+    ?assertNot(otel_span:is_valid_name(undefined)),
+    ?assertNot(otel_span:is_valid_name(123)),
     ok.
 
 noop_tracer(_Config) ->
