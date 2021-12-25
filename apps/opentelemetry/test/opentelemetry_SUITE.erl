@@ -699,7 +699,6 @@ dropped_attributes(Config) ->
     [Span] = assert_exported(Tid, SpanCtx),
 
     ?assertEqual(#{<<"attr-1">> => <<"at">>}, otel_attributes:map(Span#span.attributes)),
-    ?assertEqual(1, otel_attributes:dropped(Span#span.attributes)),
 
     ok.
 
@@ -712,7 +711,7 @@ too_many_attributes(Config) ->
     ?set_attribute(<<"attr-1">>, <<"attr-value-1">>),
 
     %% dropped because of tuple as value
-    ?set_attribute(<<"attr-2">>, {not_allowed, in, attributes}),
+    ?set_attribute(<<"attr-2-dropped">>, {not_allowed, in, attributes}),
 
     ?set_attribute(<<"attr-3">>, <<"attr-value-3">>),
 
@@ -726,7 +725,7 @@ too_many_attributes(Config) ->
 
     ?assertEqual(#{<<"attr-1">> => <<"attr-value-5">>,
                    <<"attr-3">> => <<"attr-value-3">>}, otel_attributes:map(Span#span.attributes)),
-    ?assertEqual(2, otel_attributes:dropped(Span#span.attributes)),
+    ?assertEqual(1, otel_attributes:dropped(Span#span.attributes)),
 
     %% test again using the `set_attributes' macro
     SpanCtx2 = ?start_span(<<"span-2">>),
@@ -744,8 +743,9 @@ too_many_attributes(Config) ->
     otel_span:end_span(SpanCtx2),
     [Span2] = assert_exported(Tid, SpanCtx2),
 
+
     %% order isn't guaranteed so just verify the number dropped is right
-    ?assertEqual(2, otel_attributes:dropped(Span2#span.attributes)),
+    ?assertEqual(1, otel_attributes:dropped(Span2#span.attributes)),
 
     ok.
 
