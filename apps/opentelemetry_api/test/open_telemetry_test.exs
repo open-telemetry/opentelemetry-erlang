@@ -36,7 +36,7 @@ defmodule OpenTelemetryTest do
     assert 1 == t
     assert 2 == s
     assert [] == ts
-    assert [{"attr-1", "value-1"}] == a
+    assert %{"attr-1" => "value-1"} == a
   end
 
   test "macro with_span" do
