@@ -25,7 +25,6 @@
          tracestate/1,
          is_recording/1,
          is_valid/1,
-         is_valid_attribute/2,
          is_valid_name/1,
          process_attributes/1,
          validate_start_opts/1,
@@ -93,7 +92,7 @@ is_valid_attribute(Key, Value) when ?is_allowed_key(Key) , ?is_allowed_value(Val
 is_valid_attribute(_, _) ->
     false.
 
--spec process_attributes(any()) -> opentelemetry:attribute_map().
+-spec process_attributes(any()) -> opentelemetry:attributes_map().
 process_attributes(Attributes) when is_map(Attributes) ->
     maps:filtermap(fun is_valid_attribute/2, Attributes);
 process_attributes([]) -> #{};

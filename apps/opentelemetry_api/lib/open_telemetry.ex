@@ -46,8 +46,8 @@ defmodule OpenTelemetry do
   contiguous - there may be gaps or overlaps between spans in a trace.
   """
   @type span() :: :opentelemetry.span()
-
   @type span_kind() :: :opentelemetry.span_kind()
+  @type span_name() :: :opentelemetry.span_name()
 
   @typedoc """
   TraceId is a unique identifier for a trace. All spans from the same trace share
@@ -65,6 +65,7 @@ defmodule OpenTelemetry do
 
   @type attribute_key() :: :opentelemetry.attribute_key()
   @type attribute_value() :: :opentelemetry.attribute_value()
+  @type attribute() :: :opentelemetry.attribute()
 
   @typedoc """
   Attributes are a collection of key/value pairs. The value can be a string,
