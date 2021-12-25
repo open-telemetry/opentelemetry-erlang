@@ -94,7 +94,7 @@ is_valid_attribute(_, _) ->
 
 -spec process_attributes(any()) -> opentelemetry:attributes_map().
 process_attributes(Attributes) when is_map(Attributes) ->
-    maps:filtermap(fun is_valid_attribute/2, Attributes);
+    maps:filter(fun is_valid_attribute/2, Attributes);
 process_attributes([]) -> #{};
 process_attributes(Attributes) when is_list(Attributes) ->
     process_attributes(maps:from_list(Attributes));
