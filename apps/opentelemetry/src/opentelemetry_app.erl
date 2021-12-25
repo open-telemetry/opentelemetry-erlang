@@ -38,7 +38,7 @@ start(_StartType, _StartArgs) ->
     %% must be done after the supervisor starts so that otel_tracer_server is running
     %% TODO: make this work with release upgrades. Currently if an application's version
     %% changes the version in the tracer will not be updated.
-    register_loaded_application_tracers(Config),
+    create_loaded_application_tracers(Config),
 
     SupResult.
 
@@ -59,10 +59,10 @@ setup_text_map_propagators(#{text_map_propagators := List}) ->
     CompositePropagator = otel_propagator_text_map_composite:create(List),
     opentelemetry:set_text_map_propagator(CompositePropagator).
 
-register_loaded_application_tracers(#{register_loaded_applications := true}) ->
+create_loaded_application_tracers(#{create_application_tracers := true}) ->
     %% TODO: filter out OTP apps that will not have any instrumentation
     LoadedApplications = application:loaded_applications(),
-    opentelemetry:register_applications(LoadedApplications),
+    opentelemetry:create_application_tracers(LoadedApplications),
     ok;
-register_loaded_application_tracers(_) ->
+create_loaded_application_tracers(_) ->
     ok.

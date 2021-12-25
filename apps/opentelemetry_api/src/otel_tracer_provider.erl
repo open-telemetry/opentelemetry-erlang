@@ -21,39 +21,32 @@
 %%%-------------------------------------------------------------------------
 -module(otel_tracer_provider).
 
--export([register_tracer/2,
-         register_tracer/3,
-         get_tracer/1,
-         get_tracer/2,
+-export([get_tracer/3,
          resource/0,
          resource/1,
          force_flush/0,
          force_flush/1]).
 
--spec register_tracer(atom(), binary()) -> boolean().
-register_tracer(Name, Vsn) ->
-    register_tracer(?MODULE, Name, Vsn).
+-spec get_tracer(Name, Vsn, SchemaUrl) -> Tracer when
+      Name :: atom(),
+      Vsn :: unicode:chardata() | undefined,
+      SchemaUrl :: uri_string:uri_string() | undefined,
+      Tracer:: opentelemetry:tracer().
+get_tracer(Name, Vsn, SchemaUrl) ->
+    get_tracer(?MODULE, Name, Vsn, SchemaUrl).
 
--spec register_tracer(atom() | pid(), atom(), binary()) -> boolean().
-register_tracer(ServerRef, Name, Vsn) ->
+-spec get_tracer(ServerRef, Name, Vsn, SchemaUrl) -> Tracer when
+      ServerRef :: atom() | pid(),
+      Name :: atom(),
+      Vsn :: unicode:chardata() | undefined,
+      SchemaUrl :: uri_string:uri_string() | undefined,
+      Tracer:: opentelemetry:tracer().
+get_tracer(ServerRef, Name, Vsn, SchemaUrl) ->
     try
-        gen_server:call(ServerRef, {register_tracer, Name, Vsn})
+        gen_server:call(ServerRef, {get_tracer, Name, Vsn, SchemaUrl})
     catch exit:{noproc, _} ->
-            %% ignore register_tracer because no SDK has been included and started
+            %% ignore get_tracer because no SDK has been included and started
             false
-    end.
-
--spec get_tracer(opentelemetry:instrumentation_library()) -> opentelemetry:tracer() | undefined.
-get_tracer(InstrumentationLibrary) ->
-    get_tracer(?MODULE, InstrumentationLibrary).
-
--spec get_tracer(atom() | pid(), opentelemetry:instrumentation_library()) -> opentelemetry:tracer() | undefined.
-get_tracer(ServerRef, InstrumentationLibrary) ->
-    try
-        gen_server:call(ServerRef, {get_tracer, InstrumentationLibrary})
-    catch exit:{noproc, _} ->
-            %% ignore because likely no SDK has been included and started
-            {otel_tracer_noop, []}
     end.
 
 -spec resource() -> term() | undefined.

@@ -6,7 +6,7 @@ defmodule OpenTelemetry.Tracer do
   a different Span to be the current Span by passing the Span's context, end a Span or run a code
   block within the context of a newly started span that is ended when the code block completes.
 
-  The macros `start_span` and `with_span` use the Tracer registered to the Application the module
+  The macros `start_span` and `with_span` use the Tracer associated with the Application the module
   is included in. These Tracers are created at boot time for each loaded Application.
 
       require OpenTelemetry.Tracer

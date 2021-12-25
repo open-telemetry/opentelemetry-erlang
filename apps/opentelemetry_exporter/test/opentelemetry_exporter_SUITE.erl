@@ -203,11 +203,11 @@ span_round_trip(_Config) ->
                                                name = <<"event-2">>,
                                                attributes = [{<<"attr-3">>, <<"value-3">>}]}], Events),
               attributes = otel_attributes:new([
-                  {<<"attr-2">>, <<"value-2">>},
-                  {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
-                  {<<"proplist-key-1">>, [{proplistkey1, 456}, {<<"proplist-key-2">>, 9.345}]},
-                  {<<"tuple-key-1">>, {a, 123, [456, {1, 2}]}}
-                ], 128, 128),
+                                                {<<"attr-2">>, <<"value-2">>},
+                                                {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
+                                                {<<"proplist-key-1">>, [{proplistkey1, 456}, {<<"proplist-key-2">>, 9.345}]},
+                                                {<<"tuple-key-1">>, {a, 123, [456, {1, 2}]}}
+                                               ], 128, 128),
               status = #status{code=?OTEL_STATUS_OK,
                                message = <<"">>},
               instrumentation_library = #instrumentation_library{name = <<"tracer-1">>,
@@ -294,12 +294,11 @@ verify_export(Config) ->
                                                        ], 128, 128)},
     true = ets:insert(Tid, ChildSpan),
 
-    ?assertMatch([#{instrumentation_library := undefined,
-                    spans := [_, _]}], opentelemetry_exporter:to_proto_by_instrumentation_library(Tid)),
+    ?assertMatch([#{spans := [_, _]}],
+                 opentelemetry_exporter:to_proto_by_instrumentation_library(Tid)),
     Resource = otel_resource_env_var:get_resource([]),
-    ?assertEqual({otel_resource, otel_attributes:new([{<<"service.name">>,<<"my-test-service">>},
-                                                      {<<"service.version">>,<<"98da75ea6d38724743bf42b45565049238d86b3f">>}], 128, 255)},
-                 Resource),
+    ?assertEqual(otel_attributes:new([{<<"service.name">>,<<"my-test-service">>},
+                                      {<<"service.version">>,<<"98da75ea6d38724743bf42b45565049238d86b3f">>}], 128, 255), otel_resource:attributes(Resource)),
     ?assertMatch(ok, opentelemetry_exporter:export(Tid, Resource, State)),
 
     ok.

@@ -28,7 +28,8 @@
 %% required configuration
 %% using a map instead of a record because there can be more values
 -type t() :: #{log_level := atom(),
-               register_loaded_applications := boolean(),
+               register_loaded_applications := boolean() | undefined,
+               create_application_tracers := boolean() | undefined,
                id_generator := module(),
                deny_list := [atom()],
                resource_detectors => [module()],
@@ -51,7 +52,8 @@
 -spec new() -> t().
 new() ->
     #{log_level => info,
-      register_loaded_applications => true,
+      register_loaded_applications => undefined,
+      create_application_tracers => undefined,
       id_generator => otel_id_generator,
       deny_list => [],
       resource_detectors => [otel_resource_env_var,
@@ -93,7 +95,26 @@ span_limits(AppEnv, ConfigMap) ->
 
 -spec general(list(), t()) -> t().
 general(AppEnv, ConfigMap) ->
-    merge_list_with_environment(config_mappings(general_sdk), AppEnv, ConfigMap).
+    Config = merge_list_with_environment(config_mappings(general_sdk), AppEnv, ConfigMap),
+
+    %% merge the old `register_loaded_applications' with the new config key
+    %% `create_application_tracers' that has replaced it
+    Config1 = maps:update_with(create_application_tracers,
+                               fun(undefined) ->
+                                       %% `create_application_tracers' isn't set so update
+                                       %% with the `register_loaded_applications' value
+                                       %% or `true' if it too isn't set
+                                       case maps:get(register_loaded_applications, Config) of
+                                           undefined ->
+                                               true;
+                                           Bool ->
+                                               Bool
+                                       end;
+                                  (Bool) ->
+                                       Bool
+                               end, Config),
+
+    Config1.
 
 -spec sweeper(list(), t()) -> t().
 sweeper(AppEnv, ConfigMap=#{sweeper := DefaultSweeperConfig}) ->
@@ -231,13 +252,17 @@ report_cb(#{source := transform,
 
 config_mappings(general_sdk) ->
     [{"OTEL_LOG_LEVEL", log_level, existing_atom},
+
+     %% `register_loaded_applications' is kept for backwards compatibility
      {"OTEL_REGISTER_LOADED_APPLICATIONS", register_loaded_applications, boolean},
+     {"OTEL_CREATE_APPLICATION_TRACERS", create_application_tracers, boolean},
+
      {"OTEL_ID_GENERATOR", id_generator, existing_atom},
-     {"OTEL_DENY_LIST", deny_list, list},
+     {"OTEL_DENY_LIST", deny_list, existing_atom_list},
      {"OTEL_PROPAGATORS", text_map_propagators, propagators},
      {"OTEL_TRACES_EXPORTER", traces_exporter, exporter},
      {"OTEL_METRICS_EXPORTER", metrics_exporter, exporter},
-     {"OTEL_RESOURCE_DETECTORS", resource_detectors, kvlist_value},
+     {"OTEL_RESOURCE_DETECTORS", resource_detectors, existing_atom_list},
      {"OTEL_RESOURCE_DETECTOR_TIMEOUT", resource_detector_timeout, integer}];
 config_mappings(otel_batch_processor) ->
     [{"OTEL_BSP_SCHEDULE_DELAY_MILLIS", scheduled_delay_ms, integer},
@@ -269,6 +294,19 @@ config_mappings(_) ->
 
 transform(_, undefined) ->
     undefined;
+transform(existing_atom_list, [A | _]=List) when is_atom(A) ->
+    List;
+transform(existing_atom_list, String) when is_list(String) ->
+    List = string:split(String, ",", all),
+    lists:filtermap(fun(A) ->
+                            try transform(existing_atom, string:trim(A)) of
+                                Value ->
+                                    {true, Value}
+                            catch
+                                _:_ ->
+                                    false
+                            end
+                    end, List);
 transform(exporter, "otlp") ->
     {opentelemetry_exporter, #{}};
 transform(exporter, "jaeger") ->
@@ -333,7 +371,7 @@ transform(sampler, {"parentbased_traceidratio", Probability}) ->
 transform(sampler, Value) ->
     Value;
 transform(key_value_list, Value) when is_list(Value) ->
-    case io_lib:printable_list(Value) of
+    case io_lib:printable_unicode_list(Value) of
         true ->
             Pairs = string:split(Value, ",", all),
             lists:filtermap(fun(Pair) ->

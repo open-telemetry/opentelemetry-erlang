@@ -388,10 +388,15 @@ config_mapping() ->
 tab_to_proto(Tab, Resource) ->
     InstrumentationLibrarySpans = to_proto_by_instrumentation_library(Tab),
     Attributes = otel_resource:attributes(Resource),
-    ResourceSpans = [#{resource => #{attributes => to_attributes(otel_attributes:map(Attributes)),
-                                     dropped_attributes_count => otel_attributes:dropped(Attributes)},
-                       instrumentation_library_spans => InstrumentationLibrarySpans}],
-    #{resource_spans => ResourceSpans}.
+    ResourceSpans = #{resource => #{attributes => to_attributes(otel_attributes:map(Attributes)),
+                                    dropped_attributes_count => otel_attributes:dropped(Attributes)},
+                      instrumentation_library_spans => InstrumentationLibrarySpans},
+    case otel_resource:schema_url(Resource) of
+        undefined ->
+            #{resource_spans => [ResourceSpans]};
+        SchemaUrl ->
+            #{resource_spans => [ResourceSpans#{schema_url => SchemaUrl}]}
+    end.
 
 to_proto_by_instrumentation_library(Tab) ->
     Key = ets:first(Tab),
@@ -399,20 +404,28 @@ to_proto_by_instrumentation_library(Tab) ->
 
 to_proto_by_instrumentation_library(_Tab, '$end_of_table') ->
     [];
-to_proto_by_instrumentation_library(Tab, Key) ->
+to_proto_by_instrumentation_library(Tab, InstrumentationLibrary) ->
     InstrumentationLibrarySpans = lists:foldl(fun(Span, Acc) ->
                                                       [to_proto(Span) | Acc]
-                                              end, [], ets:lookup(Tab, Key)),
-    [#{instrumentation_library => to_instrumentation_library(Key),
-       spans => InstrumentationLibrarySpans}
-     | to_proto_by_instrumentation_library(Tab, ets:next(Tab, Key))].
+                                              end, [], ets:lookup(Tab, InstrumentationLibrary)),
+    InstrumentationLibrarySpansProto = to_instrumentation_library_proto(InstrumentationLibrary),
+    [InstrumentationLibrarySpansProto#{spans => InstrumentationLibrarySpans}
+    | to_proto_by_instrumentation_library(Tab, ets:next(Tab, InstrumentationLibrary))].
 
-to_instrumentation_library(#instrumentation_library{name=Name,
-                                                    version=Version}) ->
-    #{name => Name,
-      version => Version};
-to_instrumentation_library(_) ->
-    undefined.
+
+to_instrumentation_library_proto(undefined) ->
+    #{};
+to_instrumentation_library_proto(#instrumentation_library{name=Name,
+                                                          version=Version,
+                                                          schema_url=undefined}) ->
+    #{instrumentation_library => #{name => Name,
+                                   version => Version}};
+to_instrumentation_library_proto(#instrumentation_library{name=Name,
+                                                          version=Version,
+                                                          schema_url=SchemaUrl}) ->
+    #{instrumentation_library => #{name => Name,
+                                   version => Version},
+      schema_url => SchemaUrl}.
 
 %% TODO: figure out why this type spec fails
 %% -spec to_proto(#span{}) -> opentelemetry_exporter_trace_service_pb:span().
