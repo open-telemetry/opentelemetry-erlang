@@ -87,10 +87,31 @@ is_valid(_) ->
     false.
 
 -spec is_valid_attribute(opentelemetry:attribute_key(), opentelemetry:attribute_value()) -> boolean().
+is_valid_attribute(Key, []) when ?is_allowed_key(Key) ->
+    true;
+is_valid_attribute(Key, [Value1 | _Rest] = Values) when is_binary(Value1) , ?is_allowed_key(Key) ->
+    lists:all(fun is_binary/1, Values);
+is_valid_attribute(Key, [Value1 | _Rest] = Values) when is_boolean(Value1) , ?is_allowed_key(Key) ->
+    lists:all(fun is_boolean/1, Values);
+is_valid_attribute(Key, [Value1 | _Rest] = Values) when is_atom(Value1) , ?is_allowed_key(Key) ->
+    lists:all(fun is_valid_atom_value/1, Values);
+is_valid_attribute(Key, [Value1 | _Rest] = Values) when is_integer(Value1) , ?is_allowed_key(Key) ->
+    lists:all(fun is_integer/1, Values);
+is_valid_attribute(Key, [Value1 | _Rest] = Values) when is_float(Value1) , ?is_allowed_key(Key) ->
+    lists:all(fun is_float/1, Values);
+is_valid_attribute(_Key, Value) when is_list(Value) ->
+    false;
 is_valid_attribute(Key, Value) when ?is_allowed_key(Key) , ?is_allowed_value(Value) ->
     true;
 is_valid_attribute(_, _) ->
     false.
+
+is_valid_atom_value(undefined) ->
+    false;
+is_valid_atom_value(nil) ->
+    false;
+is_valid_atom_value(Value) ->
+    is_atom(Value) andalso (is_boolean(Value) == false).
 
 -spec process_attributes(any()) -> opentelemetry:attributes_map().
 process_attributes(Attributes) when is_map(Attributes) ->

@@ -33,7 +33,7 @@ all_cases() ->
      root_span_sampling_always_on, root_span_sampling_always_off,
      record_but_not_sample, record_exception_works, record_exception_with_message_works,
      propagator_configuration, propagator_configuration_with_os_env, force_flush,
-     dropped_attributes, too_many_attributes].
+     dropped_attributes, too_many_attributes, truncated_binary_attributes].
 
 groups() ->
     [{otel_simple_processor, [], all_cases()},
@@ -699,6 +699,26 @@ dropped_attributes(Config) ->
     [Span] = assert_exported(Tid, SpanCtx),
 
     ?assertEqual(#{<<"attr-1">> => <<"at">>}, otel_attributes:map(Span#span.attributes)),
+
+    ok.
+
+truncated_binary_attributes(_Config) ->
+    InfinityLengthAttributes = otel_attributes:new(#{<<"attr-1">> => <<"abcde">>,
+                                                   <<"attr-2">> => [<<"a">>, <<"abcde">>, <<"abcde">>]},
+                                                 128, infinity),
+
+    %% when length limit is inifinity
+    ?assertMatch(#{<<"attr-1">> := <<"abcde">>,
+                   <<"attr-2">> := [<<"a">>, <<"abcde">>, <<"abcde">>]},
+                 otel_attributes:map(InfinityLengthAttributes)),
+
+   LengthLimitAttributes = otel_attributes:new(#{<<"attr-1">> => <<"abcde">>,
+                                                 <<"attr-2">> => [<<"a">>, <<"abcde">>, <<"abcde">>]},
+                                               128, 2),
+    % with default
+    ?assertMatch(#{<<"attr-1">> := <<"ab">>,
+                   <<"attr-2">> := [<<"a">>, <<"ab">>, <<"ab">>]},
+                 otel_attributes:map(LengthLimitAttributes)),
 
     ok.
 

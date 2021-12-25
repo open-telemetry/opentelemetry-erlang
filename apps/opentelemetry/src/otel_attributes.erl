@@ -73,12 +73,13 @@ update_attribute(Key, Value, Attributes=#attributes{count_limit=CountLimit,
                                                     value_length_limit=ValueLengthLimit,
                                                     map=Map})
   when is_binary(Value) , (map_size(Map) < CountLimit orelse is_map_key(Key, Map)) ->
-    case string:length(Value) > ValueLengthLimit of
-        true ->
-            Attributes#attributes{map=Map#{Key => string:slice(Value, 0, ValueLengthLimit)}};
-        false ->
-            Attributes#attributes{map=Map#{Key => Value}}
-    end;
+    Attributes#attributes{map=Map#{Key => maybe_truncate_binary(Value, ValueLengthLimit)}};
+%% value is a list of binaries, so potentially truncate
+update_attribute(Key, [Value1 | _Rest] = Value, Attributes=#attributes{count_limit=CountLimit,
+                                                    value_length_limit=ValueLengthLimit,
+                                                    map=Map})
+  when is_binary(Value1) , (map_size(Map) < CountLimit orelse is_map_key(Key, Map)) ->
+    Attributes#attributes{map=Map#{Key => [maybe_truncate_binary(V, ValueLengthLimit) || V <- Value]}};
 %% already in the map and not a binary so update
 update_attribute(Key, Value, Attributes=#attributes{map=Map}) when is_map_key(Key, Map) ->
     Attributes#attributes{map=Map#{Key => Value}};
@@ -95,3 +96,13 @@ update_attribute(_Key, _Value, Attributes=#attributes{count_limit=CountLimit,
 %% new attribute
 update_attribute(Key, Value, Attributes=#attributes{map=Map}) ->
     Attributes#attributes{map=Map#{Key => Value}}.
+
+maybe_truncate_binary(Value, infinity) ->
+  Value;
+maybe_truncate_binary(Value, ValueLengthLimit) ->
+    case string:length(Value) > ValueLengthLimit of
+        true ->
+            string:slice(Value, 0, ValueLengthLimit);
+        false ->
+            Value
+    end.

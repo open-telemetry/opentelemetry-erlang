@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to some users who were relying on the incorrect behavior, such as allowing
   dictionaries or tuples which were coerced to arrays. The one exception we have
   kept is continuing to allow atoms in place of binaries for performance.
+- Attribute values of type list must be homogenous.
 - Span start opts are now validated. Previously, opts underwent no validations.
 - Event and link attributes are now validated. Previously only span attributes
   were validated.
