@@ -693,7 +693,7 @@ dropped_attributes(Config) ->
     ?set_current_span(SpanCtx),
 
     ?set_attribute(<<"attr-1">>, <<"attr-value-1">>),
-    ?set_attribute(<<"attr-2">>, {not_allowed, in, attributes}),
+    ?set_attribute(<<"attr-2">>, {non_homogeneous, <<"attribute">>}),
 
     otel_span:end_span(SpanCtx),
     [Span] = assert_exported(Tid, SpanCtx),
@@ -730,8 +730,8 @@ too_many_attributes(Config) ->
 
     ?set_attribute(<<"attr-1">>, <<"attr-value-1">>),
 
-    %% dropped because of tuple as value
-    ?set_attribute(<<"attr-2-dropped">>, {not_allowed, in, attributes}),
+    %% dropped because of non-homogenous
+    ?set_attribute(<<"attr-2-dropped">>, {non_homogenous, <<"attributes">>}),
 
     ?set_attribute(<<"attr-3">>, attr_3_value),
 
@@ -758,7 +758,7 @@ too_many_attributes(Config) ->
     ?set_current_span(SpanCtx2),
 
     ?set_attributes(#{<<"attr-1">> => <<"attr-value-1">>,
-                      <<"attr-2">> => {not_allowed, in, attributes},
+                      <<"attr-2">> => {non_homogenous, <<"attributes">>},
                       <<"attr-3">> => attr_3_value,
                       <<"attr-4">> => <<"attr-value-4">>}),
 

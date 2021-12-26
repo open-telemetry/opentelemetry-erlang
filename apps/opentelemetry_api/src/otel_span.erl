@@ -87,8 +87,8 @@ is_valid(_) ->
     false.
 
 -spec is_valid_attribute(opentelemetry:attribute_key(), opentelemetry:attribute_value()) -> boolean().
-is_valid_attribute(Key, []) when ?is_allowed_key(Key) ->
-    true;
+is_valid_attribute(Key, Value) when is_tuple(Value) , ?is_allowed_key(Key) ->
+    is_valid_attribute(Key, tuple_to_list(Value));
 is_valid_attribute(Key, [Value1 | _Rest] = Values) when is_binary(Value1) , ?is_allowed_key(Key) ->
     lists:all(fun is_binary/1, Values);
 is_valid_attribute(Key, [Value1 | _Rest] = Values) when is_boolean(Value1) , ?is_allowed_key(Key) ->
@@ -101,6 +101,8 @@ is_valid_attribute(Key, [Value1 | _Rest] = Values) when is_float(Value1) , ?is_a
     lists:all(fun is_float/1, Values);
 is_valid_attribute(_Key, Value) when is_list(Value) ->
     false;
+is_valid_attribute(Key, []) when ?is_allowed_key(Key) ->
+    true;
 is_valid_attribute(Key, Value) when ?is_allowed_key(Key) , ?is_allowed_value(Value) ->
     true;
 is_valid_attribute(_, _) ->
@@ -115,13 +117,28 @@ is_valid_atom_value(Value) ->
 
 -spec process_attributes(any()) -> opentelemetry:attributes_map().
 process_attributes(Attributes) when is_map(Attributes) ->
-    maps:filter(fun is_valid_attribute/2, Attributes);
+    maps:fold(fun process_attribute/3, #{}, Attributes);
 process_attributes([]) -> #{};
 process_attributes(Attributes) when is_list(Attributes) ->
     process_attributes(maps:from_list(Attributes));
 process_attributes(_) ->
     #{}.
 
+process_attribute(Key, Value, Map) when is_tuple(Value) ->
+    List = tuple_to_list(Value),
+    case is_valid_attribute(Key, List) of
+        true ->
+            maps:put(Key, List, Map);
+        false ->
+            Map
+    end;
+process_attribute(Key, Value, Map) ->
+    case is_valid_attribute(Key, Value) of
+        true ->
+            maps:put(Key, Value, Map);
+        false ->
+            Map
+    end.
 -spec is_valid_name(any()) -> boolean().
 is_valid_name(undefined) ->
     false;

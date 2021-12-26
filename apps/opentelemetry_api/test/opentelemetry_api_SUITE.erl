@@ -81,6 +81,7 @@ validations(_Config) ->
                   {<<"key-3">>, #{<<"value-2">> => <<"maps-unallowed">>}},
                   {<<"key-4">>, 1.0},
                   {key5, {t, <<"value-5">>}},
+                  {key6, {1,2,3}},
                   {<<"atom-list">>, [a, b]},
                   {<<"binary-list">>, [<<"a">>, <<"b">>]},
                   {<<"boolean-list">>, [true, false]},
@@ -101,6 +102,7 @@ validations(_Config) ->
 
     ?assertMatch(#{key2 := 1,
                    key3 := true,
+                   key6 := [1,2,3],
                    <<"atom-list">> := [a, b],
                    <<"binary-list">> := [<<"a">>, <<"b">>],
                    <<"boolean-list">> := [true, false],
@@ -112,6 +114,7 @@ validations(_Config) ->
 
     ?assertMatch([key2,
                   key3,
+                  key6,
                   <<"atom-list">>,
                   <<"binary-list">>,
                   <<"boolean-list">>,

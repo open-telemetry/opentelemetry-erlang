@@ -106,7 +106,8 @@
                               atom()                     |
                               number()                   |
                               boolean()                  |
-                              [unicode:unicode_binary() | atom() | float() | integer() | boolean()].
+                              [unicode:unicode_binary() | atom() | float() | integer() | boolean()] |
+                              {unicode:unicode_binary() | atom() | float() | integer() | boolean()}.
 -type attribute()          :: {attribute_key(), attribute_value()}.
 -type attributes_map()     :: #{attribute_key() => attribute_value()} |
                               [attribute()].
