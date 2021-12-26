@@ -21,7 +21,8 @@
 
 -export([start_span/4,
          with_span/5,
-         end_span/2]).
+         end_span/2,
+         noop_span_ctx/0]).
 
 -include("opentelemetry.hrl").
 -include("otel_tracer.hrl").
@@ -64,3 +65,7 @@ with_span(Ctx, Tracer, SpanName, Opts, Fun) ->
               -> boolean() | {error, term()}.
 end_span(_, _) ->
     true.
+
+-spec noop_span_ctx() -> opentelemetry:span_ctx().
+noop_span_ctx() ->
+    ?NOOP_SPAN_CTX.

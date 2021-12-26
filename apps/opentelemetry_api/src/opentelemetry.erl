@@ -73,6 +73,7 @@
               link/0,
               attribute_key/0,
               attribute_value/0,
+              attribute/0,
               attributes_map/0,
               event/0,
               event_name/0,
@@ -101,12 +102,15 @@
 -type span_name()          :: unicode:unicode_binary() | atom().
 
 -type attribute_key()      :: unicode:unicode_binary() | atom().
--type attribute_value()    :: unicode:unicode_binary() |
-                              float() |
-                              integer() |
-                              [unicode:unicode_binary() | float() | integer()].
+-type attribute_value()    :: unicode:unicode_binary()   |
+                              atom()                     |
+                              number()                   |
+                              boolean()                  |
+                              [unicode:unicode_binary() | atom() | float() | integer() | boolean()] |
+                              {unicode:unicode_binary() | atom() | float() | integer() | boolean()}.
+-type attribute()          :: {attribute_key(), attribute_value()}.
 -type attributes_map()     :: #{attribute_key() => attribute_value()} |
-                              [{attribute_key(), attribute_value()}].
+                              [attribute()].
 
 -type span_kind()          :: ?SPAN_KIND_INTERNAL    |
                               ?SPAN_KIND_SERVER      |
@@ -114,7 +118,7 @@
                               ?SPAN_KIND_PRODUCER    |
                               ?SPAN_KIND_CONSUMER.
 -type event()              :: #{system_time_nano => non_neg_integer(),
-                                name            := unicode:unicode_binary(),
+                                name            := event_name(),
                                 attributes      := attributes_map()}.
 -type event_name()         :: unicode:unicode_binary() | atom().
 -type link()               :: #{trace_id   := trace_id(),
@@ -286,13 +290,13 @@ links(List) when is_list(List) ->
     lists:filtermap(fun({TraceId, SpanId, Attributes, TraceState}) when is_integer(TraceId) ,
                                                                         is_integer(SpanId) ,
                                                                         is_list(TraceState) ->
-                            link_or_false(TraceId, SpanId, Attributes, TraceState);
+                            link_or_false(TraceId, SpanId, otel_span:process_attributes(Attributes), TraceState);
                        ({#span_ctx{trace_id=TraceId,
                                    span_id=SpanId,
                                    tracestate=TraceState}, Attributes}) when is_integer(TraceId) ,
                                                                              is_integer(SpanId) ,
                                                                              is_list(TraceState) ->
-                            link_or_false(TraceId, SpanId, Attributes, TraceState);
+                            link_or_false(TraceId, SpanId, otel_span:process_attributes(Attributes), TraceState);
                        (#span_ctx{trace_id=TraceId,
                                   span_id=SpanId,
                                   tracestate=TraceState}) when is_integer(TraceId) ,
@@ -313,7 +317,7 @@ link(SpanCtx) ->
 link(#span_ctx{trace_id=TraceId,
                span_id=SpanId,
                tracestate=TraceState}, Attributes) ->
-    ?MODULE:link(TraceId, SpanId, Attributes, TraceState);
+    ?MODULE:link(TraceId, SpanId, otel_span:process_attributes(Attributes), TraceState);
 link(_, _) ->
     undefined.
 
@@ -328,45 +332,45 @@ link(TraceId, SpanId, Attributes, TraceState) when is_integer(TraceId),
                                                    is_list(TraceState) ->
     #{trace_id => TraceId,
       span_id => SpanId,
-      attributes => Attributes,
+      attributes => otel_span:process_attributes(Attributes),
       tracestate => TraceState};
 link(_, _, _, _) ->
     undefined.
 
 -spec event(Name, Attributes) -> event() | undefined when
-      Name :: unicode:unicode_binary(),
+      Name :: event_name(),
       Attributes :: attributes_map().
-event(Name, Attributes) when is_binary(Name),
-                             (is_list(Attributes) orelse is_map(Attributes)) ->
-    event(erlang:system_time(nanosecond), Name, Attributes);
-event(_, _) ->
-    undefined.
+event(Name, Attributes) ->
+    event(erlang:system_time(nanosecond), Name, Attributes).
 
 -spec event(Timestamp, Name, Attributes) -> event() | undefined when
       Timestamp :: non_neg_integer(),
-      Name :: unicode:unicode_binary(),
+      Name :: event_name(),
       Attributes :: attributes_map().
 event(Timestamp, Name, Attributes) when is_integer(Timestamp),
-                                        is_binary(Name),
                                         (is_list(Attributes) orelse is_map(Attributes)) ->
-    #{system_time_nano => Timestamp,
-      name => Name,
-      attributes => Attributes};
+
+    case otel_span:is_valid_name(Name) of
+        true ->
+            #{system_time_nano => Timestamp,
+              name => Name,
+              attributes => otel_span:process_attributes(Attributes)};
+        false ->
+            undefined
+    end;
 event(_, _, _) ->
     undefined.
 
 events(List) ->
     Now = erlang:system_time(nanosecond),
-    lists:filtermap(fun({Time, Name, Attributes}) when is_binary(Name),
-                                                       (is_list(Attributes) orelse is_map(Attributes)) ->
+    lists:filtermap(fun({Time, Name, Attributes}) ->
                             case event(Time, Name, Attributes) of
                                 undefined ->
                                     false;
                                 Event ->
                                     {true, Event}
                             end;
-                       ({Name, Attributes}) when is_binary(Name),
-                                                 (is_list(Attributes) orelse is_map(Attributes)) ->
+                       ({Name, Attributes}) ->
                             case event(Now, Name, Attributes) of
                                 undefined ->
                                     false;
@@ -449,7 +453,7 @@ vsn_to_binary(Vsn) when is_binary(Vsn) ; is_list(Vsn) ->
 vsn_to_binary(_) ->
     <<>>.
 
-%% name can be atom, list or binary. But atom `undefined'
+%% Instrumentation name can be atom, list or binary. But atom `undefined'
 %% must stay as `undefined' atom.
 name_to_binary(undefined)->
     undefined;

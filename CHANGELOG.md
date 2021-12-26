@@ -35,6 +35,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `OTEL_REGISTER_LOADED_APPLICATIONS` and `register_loaded_applications`, will
   continue to work as well.
 
+### Fixed
+
+- Attribute values now validate against what is allowable per the specification
+  rather than allowing anything the protobuf could encode. This may be breaking
+  to some users who were relying on the incorrect behavior, such as allowing
+  dictionaries or non-homogenous lists/tuples. The one exception we have
+  kept is continuing to allow atoms in place of binaries for performance.
+- Attribute values of type list/tuple must be homogenous.
+- Span start opts are now validated. Previously, opts underwent no validations.
+- Event and link attributes are now validated. Previously only span attributes
+  were validated.
+- Events accept atoms for the name again.
+
 ### Removed
 
 - The `sampler` option to `start_span` and `with_span` was removed.
