@@ -89,6 +89,7 @@ is_valid(_) ->
 -spec is_valid_attribute(opentelemetry:attribute_key(), opentelemetry:attribute_value()) -> boolean().
 is_valid_attribute(Key, Value) when is_tuple(Value) , ?is_allowed_key(Key) ->
     is_valid_attribute(Key, tuple_to_list(Value));
+%% lists as attribute values must be primitive types and homogeneous
 is_valid_attribute(Key, [Value1 | _Rest] = Values) when is_binary(Value1) , ?is_allowed_key(Key) ->
     lists:all(fun is_binary/1, Values);
 is_valid_attribute(Key, [Value1 | _Rest] = Values) when is_boolean(Value1) , ?is_allowed_key(Key) ->
@@ -174,6 +175,14 @@ tracestate(_) ->
       Key :: opentelemetry:attribute_key(),
       Value :: opentelemetry:attribute_value(),
       SpanCtx :: opentelemetry:span_ctx().
+set_attribute(SpanCtx=#span_ctx{span_sdk={Module, _}}, Key, Value) when ?is_recording(SpanCtx) , is_tuple(Value) ->
+    List = tuple_to_list(Value),
+    case is_valid_attribute(Key, List) of
+        true ->
+            Module:set_attribute(SpanCtx, Key, List);
+        false ->
+            false
+    end;
 set_attribute(SpanCtx=#span_ctx{span_sdk={Module, _}}, Key, Value) when ?is_recording(SpanCtx) ->
     case is_valid_attribute(Key, Value) of
         true ->

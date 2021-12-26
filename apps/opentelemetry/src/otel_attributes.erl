@@ -82,7 +82,7 @@ update_attribute(Key, [Value1 | _Rest] = Value, Attributes=#attributes{count_lim
     Attributes#attributes{map=Map#{Key => [maybe_truncate_binary(V, ValueLengthLimit) || V <- Value]}};
 %% already in the map and not a binary so update
 update_attribute(Key, Value, Attributes=#attributes{map=Map}) when is_map_key(Key, Map) ->
-    Attributes#attributes{map=Map#{Key => Value}};
+    Attributes#attributes{map=Map#{Key := Value}};
 %% we've already started dropping, so just increment
 update_attribute(_Key, _Value, Attributes=#attributes{dropped=Dropped})
   when Dropped > 0 ->

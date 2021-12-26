@@ -728,7 +728,8 @@ too_many_attributes(Config) ->
 
     ?set_current_span(SpanCtx),
 
-    ?set_attribute(<<"attr-1">>, <<"attr-value-1">>),
+    %% tuple tests cover lists, as well.
+    ?set_attribute(attr1, {homogenous, tuple}),
 
     %% dropped because of non-homogenous
     ?set_attribute(<<"attr-2-dropped">>, {non_homogenous, <<"attributes">>}),
@@ -748,9 +749,9 @@ too_many_attributes(Config) ->
     otel_span:end_span(SpanCtx),
     [Span] = assert_exported(Tid, SpanCtx),
 
-    ?assertEqual(#{<<"attr-1">> => <<"attr-value-5">>,
+    ?assertEqual(#{attr1 => [homogenous, tuple],
                    <<"attr-3">> => 4}, otel_attributes:map(Span#span.attributes)),
-    ?assertEqual(2, otel_attributes:dropped(Span#span.attributes)),
+    ?assertEqual(3, otel_attributes:dropped(Span#span.attributes)),
 
     %% test again using the `set_attributes' macro
     SpanCtx2 = ?start_span(<<"span-2">>),
@@ -758,7 +759,7 @@ too_many_attributes(Config) ->
     ?set_current_span(SpanCtx2),
 
     ?set_attributes(#{<<"attr-1">> => <<"attr-value-1">>,
-                      <<"attr-2">> => {non_homogenous, <<"attributes">>},
+                      <<"attr-2">> => {homogenous, attribute},
                       <<"attr-3">> => attr_3_value,
                       <<"attr-4">> => <<"attr-value-4">>}),
 
@@ -770,7 +771,7 @@ too_many_attributes(Config) ->
 
 
     %% order isn't guaranteed so just verify the number dropped is right
-    ?assertEqual(1, otel_attributes:dropped(Span2#span.attributes)),
+    ?assertEqual(2, otel_attributes:dropped(Span2#span.attributes)),
 
     ok.
 
