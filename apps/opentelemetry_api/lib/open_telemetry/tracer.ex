@@ -16,14 +16,6 @@ defmodule OpenTelemetry.Tracer do
       end
   """
 
-  @type start_opts() :: %{
-          optional(:attributes) => OpenTelemetry.attributes_map(),
-          optional(:links) => [OpenTelemetry.link()],
-          optional(:is_recording) => boolean(),
-          optional(:start_time) => :opentelemetry.timestamp(),
-          optional(:kind) => OpenTelemetry.span_kind()
-        }
-
   @doc """
   Starts a new span and does not make it the current active span of the current process.
 

@@ -33,7 +33,7 @@ all_cases() ->
      root_span_sampling_always_on, root_span_sampling_always_off,
      record_but_not_sample, record_exception_works, record_exception_with_message_works,
      propagator_configuration, propagator_configuration_with_os_env, force_flush,
-     dropped_attributes, too_many_attributes].
+     dropped_attributes, too_many_attributes, truncated_binary_attributes].
 
 groups() ->
     [{otel_simple_processor, [], all_cases()},
@@ -693,13 +693,32 @@ dropped_attributes(Config) ->
     ?set_current_span(SpanCtx),
 
     ?set_attribute(<<"attr-1">>, <<"attr-value-1">>),
-    ?set_attribute(<<"attr-2">>, {not_allowed, in, attributes}),
+    ?set_attribute(<<"attr-2">>, {non_homogeneous, <<"attribute">>}),
 
     otel_span:end_span(SpanCtx),
     [Span] = assert_exported(Tid, SpanCtx),
 
     ?assertEqual(#{<<"attr-1">> => <<"at">>}, otel_attributes:map(Span#span.attributes)),
-    ?assertEqual(1, otel_attributes:dropped(Span#span.attributes)),
+
+    ok.
+
+truncated_binary_attributes(_Config) ->
+    InfinityLengthAttributes = otel_attributes:new(#{<<"attr-1">> => <<"abcde">>,
+                                                   <<"attr-2">> => [<<"a">>, <<"abcde">>, <<"abcde">>]},
+                                                 128, infinity),
+
+    %% when length limit is inifinity
+    ?assertMatch(#{<<"attr-1">> := <<"abcde">>,
+                   <<"attr-2">> := [<<"a">>, <<"abcde">>, <<"abcde">>]},
+                 otel_attributes:map(InfinityLengthAttributes)),
+
+   LengthLimitAttributes = otel_attributes:new(#{<<"attr-1">> => <<"abcde">>,
+                                                 <<"attr-2">> => [<<"a">>, <<"abcde">>, <<"abcde">>]},
+                                               128, 2),
+    % with default
+    ?assertMatch(#{<<"attr-1">> := <<"ab">>,
+                   <<"attr-2">> := [<<"a">>, <<"ab">>, <<"ab">>]},
+                 otel_attributes:map(LengthLimitAttributes)),
 
     ok.
 
@@ -709,24 +728,30 @@ too_many_attributes(Config) ->
 
     ?set_current_span(SpanCtx),
 
-    ?set_attribute(<<"attr-1">>, <<"attr-value-1">>),
+    %% tuple tests cover lists, as well.
+    ?set_attribute(attr1, {homogenous, tuple}),
 
-    %% dropped because of tuple as value
-    ?set_attribute(<<"attr-2">>, {not_allowed, in, attributes}),
+    %% dropped because of non-homogenous
+    ?set_attribute(<<"attr-2-dropped">>, {non_homogenous, <<"attributes">>}),
 
-    ?set_attribute(<<"attr-3">>, <<"attr-value-3">>),
+    ?set_attribute(<<"attr-3">>, attr_3_value),
 
     %% dropped because count limit was set to 2
     ?set_attribute(<<"attr-4">>, <<"attr-value-4">>),
     %% won't be dropped because attr-1 already exists so it overrides the value
     ?set_attribute(<<"attr-1">>, <<"attr-value-5">>),
+    %% already exists and not a binary, so skips the binary length check.
+    ?set_attribute(<<"attr-3">>, 4),
+
+    %% dropping skips all checks now that we're already dropping attrs
+    ?set_attribute(<<"attr-6">>, <<"attr-value-6">>),
 
     otel_span:end_span(SpanCtx),
     [Span] = assert_exported(Tid, SpanCtx),
 
-    ?assertEqual(#{<<"attr-1">> => <<"attr-value-5">>,
-                   <<"attr-3">> => <<"attr-value-3">>}, otel_attributes:map(Span#span.attributes)),
-    ?assertEqual(2, otel_attributes:dropped(Span#span.attributes)),
+    ?assertEqual(#{attr1 => [homogenous, tuple],
+                   <<"attr-3">> => 4}, otel_attributes:map(Span#span.attributes)),
+    ?assertEqual(3, otel_attributes:dropped(Span#span.attributes)),
 
     %% test again using the `set_attributes' macro
     SpanCtx2 = ?start_span(<<"span-2">>),
@@ -734,8 +759,8 @@ too_many_attributes(Config) ->
     ?set_current_span(SpanCtx2),
 
     ?set_attributes(#{<<"attr-1">> => <<"attr-value-1">>,
-                      <<"attr-2">> => {not_allowed, in, attributes},
-                      <<"attr-3">> => <<"attr-value-3">>,
+                      <<"attr-2">> => {homogenous, attribute},
+                      <<"attr-3">> => attr_3_value,
                       <<"attr-4">> => <<"attr-value-4">>}),
 
     %% won't be dropped because attr-1 already exists so it overrides the value
@@ -743,6 +768,7 @@ too_many_attributes(Config) ->
 
     otel_span:end_span(SpanCtx2),
     [Span2] = assert_exported(Tid, SpanCtx2),
+
 
     %% order isn't guaranteed so just verify the number dropped is right
     ?assertEqual(2, otel_attributes:dropped(Span2#span.attributes)),

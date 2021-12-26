@@ -200,14 +200,13 @@ span_round_trip(_Config) ->
                                                name = <<"event-1">>,
                                                attributes = [{<<"attr-1">>, <<"value-1">>}]},
                                         #event{system_time_nano=erlang:system_time(nanosecond),
-                                               name = <<"event-2">>,
+                                               name = event_2,
                                                attributes = [{<<"attr-3">>, <<"value-3">>}]}], Events),
-              attributes = otel_attributes:new([
-                                                {<<"attr-2">>, <<"value-2">>},
+              attributes = otel_attributes:new([{<<"attr-2">>, <<"value-2">>},
+                                                {attr_3, true},
                                                 {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
-                                                {<<"proplist-key-1">>, [{proplistkey1, 456}, {<<"proplist-key-2">>, 9.345}]},
-                                                {<<"tuple-key-1">>, {a, 123, [456, {1, 2}]}}
-                                               ], 128, 128),
+                                                {<<"list-key-1">>, [3.14, 9.345]}
+                                                ], 128, 128),
               status = #status{code=?OTEL_STATUS_OK,
                                message = <<"">>},
               instrumentation_library = #instrumentation_library{name = <<"tracer-1">>,

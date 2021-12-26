@@ -71,35 +71,38 @@ update_attributes(List, Attributes) ->
 %% add key/value if the size is still under the limit or the key is already in the map
 update_attribute(Key, Value, Attributes=#attributes{count_limit=CountLimit,
                                                     value_length_limit=ValueLengthLimit,
-                                                    dropped=Dropped,
                                                     map=Map})
-  when (map_size(Map) < CountLimit orelse is_map_key(Key, Map)),
-       (is_binary(Key) orelse is_atom(Key)) ->
-    case is_allowed(Value, ValueLengthLimit) of
-        {true, V} ->
-            Attributes#attributes{map=Map#{Key => V}};
+  when is_binary(Value) , (map_size(Map) < CountLimit orelse is_map_key(Key, Map)) ->
+    Attributes#attributes{map=Map#{Key => maybe_truncate_binary(Value, ValueLengthLimit)}};
+%% value is a list of binaries, so potentially truncate
+update_attribute(Key, [Value1 | _Rest] = Value, Attributes=#attributes{count_limit=CountLimit,
+                                                    value_length_limit=ValueLengthLimit,
+                                                    map=Map})
+  when is_binary(Value1) , (map_size(Map) < CountLimit orelse is_map_key(Key, Map)) ->
+    Attributes#attributes{map=Map#{Key => [maybe_truncate_binary(V, ValueLengthLimit) || V <- Value]}};
+%% already in the map and not a binary so update
+update_attribute(Key, Value, Attributes=#attributes{map=Map}) when is_map_key(Key, Map) ->
+    Attributes#attributes{map=Map#{Key := Value}};
+%% we've already started dropping, so just increment
+update_attribute(_Key, _Value, Attributes=#attributes{dropped=Dropped})
+  when Dropped > 0 ->
+    Attributes#attributes{dropped=Dropped + 1};
+%% met or exceeded the limit
+update_attribute(_Key, _Value, Attributes=#attributes{count_limit=CountLimit,
+                                                      dropped=Dropped,
+                                                      map=Map})
+  when map_size(Map) >= CountLimit ->
+    Attributes#attributes{dropped=Dropped + 1};
+%% new attribute
+update_attribute(Key, Value, Attributes=#attributes{map=Map}) ->
+    Attributes#attributes{map=Map#{Key => Value}}.
 
-        %% Value isn't a primitive or a list/array so drop it
-        false ->
-            Attributes#attributes{dropped=Dropped + 1}
-    end;
-%% Key must be a binary string or atom
-update_attribute(_Key, _Value, Attributes=#attributes{dropped=Dropped}) ->
-    Attributes#attributes{dropped=Dropped + 1}.
-
-%% if value is a primitive or a list/array then just return it
-is_allowed(Value, _) when is_atom(Value) ;
-                          is_integer(Value) ;
-                          is_float(Value) ;
-                          is_list(Value) ->
-    {true, Value};
-%% if a binary then it is a string and we may need to trim its length
-is_allowed(Value, ValueLengthLimit) when is_binary(Value) ->
+maybe_truncate_binary(Value, infinity) ->
+  Value;
+maybe_truncate_binary(Value, ValueLengthLimit) ->
     case string:length(Value) > ValueLengthLimit of
         true ->
-            {true, string:slice(Value, 0, ValueLengthLimit)};
+            string:slice(Value, 0, ValueLengthLimit);
         false ->
-            {true, Value}
-    end;
-is_allowed(_, _) ->
-    false.
+            Value
+    end.

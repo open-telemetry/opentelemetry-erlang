@@ -27,6 +27,8 @@ defmodule OpenTelemetry.Span do
   - A Status (`t:OpenTelemetry.status/0`)
   """
 
+  @type start_opts() :: :otel_span.start_opts()
+
   @doc """
   Get the SpanId of a Span.
   """
@@ -164,6 +166,6 @@ defmodule OpenTelemetry.Span do
   and may lead to re-calculation of sampling or filtering decisions made previously
   depending on the implementation.
   """
-  @spec update_name(OpenTelemetry.span_ctx(), String.t()) :: boolean()
+  @spec update_name(OpenTelemetry.span_ctx(), OpenTelemetry.span_name()) :: boolean()
   defdelegate update_name(span_ctx, name), to: :otel_span
 end
