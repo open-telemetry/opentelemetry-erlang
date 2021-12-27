@@ -63,7 +63,7 @@ defmodule OpenTelemetry.MixProject do
     [
       description: "OpenTelemetry API",
       build_tools: ["rebar3", "mix"],
-      files: ~w(lib mix.exs README.md LICENSE rebar.config VERSION include src),
+      files: ~w(lib mix.exs README.md LICENSE rebar.config include src),
       licenses: ["Apache-2.0"],
       links: %{
         "GitHub" => "https://github.com/open-telemetry/opentelemetry-erlang",
