@@ -131,10 +131,27 @@ $ python3 test.py http://127.0.0.1:5000/test
 
 ## Contributing
 
-Approvers:
-- [Fred Hebert](https://github.com/ferd), Honeycomb
+Approvers ([@open-telemetry/erlang-approvers](https://github.com/orgs/open-telemetry/teams/erlang-approvers)):
 
-Maintainers:
+- [Tristan Sloughter](https://github.com/tsloughter), [Splunk](https://www.splunk.com/en_us/observability/apm-application-performance-monitoring.html)
+- [Bryan Naegele](https://github.com/bryannaegele), [SimpleBet](https://simplebet.io/)
+- [Greg Mefford](https://github.com/GregMefford), [STORD](https://www.stord.com/)
+- [Zach Daniel](https://github.com/zachdaniel), 
+- [Fred Hebert](https://github.com/ferd), [Honeycomb](https://www.honeycomb.io/)
 - [Łukasz Jan Niemier](https://github.com/hauleth)
-- [Iliia Khaprov](https://github.com/deadtrickster), VMWare
-- [Tristan Sloughter](https://github.com/tsloughter) Splunk
+- [Iliia Khaprov](https://github.com/deadtrickster), [VMWare](https://www.vmware.com/)
+
+*Find more about the approver role in [community repository](https://github.com/open-telemetry/community/blob/master/community-membership.md#approver).*
+
+Maintainers ([@open-telemetry/erlang-maintainers](https://github.com/orgs/open-telemetry/teams/erlang-maintainers)):
+
+- [Tristan Sloughter](https://github.com/tsloughter), [Splunk](https://www.splunk.com/en_us/observability/apm-application-performance-monitoring.html)
+- [Bryan Naegele](https://github.com/bryannaegele), [SimpleBet](https://simplebet.io/)
+- [Łukasz Jan Niemier](https://github.com/hauleth)
+- [Iliia Khaprov](https://github.com/deadtrickster), [VMWare](https://www.vmware.com/)
+
+*Find more about the maintainer role in [community repository](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer).*
+
+### Thanks to all the people who have contributed
+
+[![contributors](https://contributors-img.web.app/image?repo=open-telemetry/opentelemetry-erlang)](https://github.com/open-telemetry/opentelemetry-erlang/graphs/contributors)
