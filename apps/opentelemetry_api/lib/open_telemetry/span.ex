@@ -21,7 +21,7 @@ defmodule OpenTelemetry.Span do
   - A parent Span in the form of a Span (`t:OpenTelemetry.span/0`), SpanContext (`t:OpenTelemetry.span_ctx/0`), or `undefined`
   - A start timestamp
   - An end timestamp
-  - An ordered mapping of Attributes (`t:OpenTelemetry.attributes/0`)
+  - An ordered mapping of Attributes (`t:OpenTelemetry.attributes_map/0`)
   - A list of Links to other Spans (`t:OpenTelemetry.link/0`)
   - A list of timestamped Events (`t:OpenTelemetry.event/0`)
   - A Status (`t:OpenTelemetry.status/0`)
