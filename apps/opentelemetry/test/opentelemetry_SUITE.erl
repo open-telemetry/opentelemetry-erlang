@@ -381,6 +381,8 @@ update_span_data(Config) ->
 
     otel_span:set_status(SpanCtx1, Status),
 
+    %% returning not false means it successfully called the SDK
+    ?assertNotEqual(false, otel_span:add_event(SpanCtx1, event_1, #{<<"attr-1">> => <<"attr-value-1">>})),
     otel_span:add_events(SpanCtx1, Events),
 
     ?assertMatch(SpanCtx1, ?current_span_ctx),

@@ -1,6 +1,6 @@
 {application, opentelemetry_api,
  [{description, "OpenTelemetry API"},
-  {vsn, "1.0.0-rc.4"},
+  {vsn, "1.0.0-rc.4.1"},
   {registered, []},
   {applications,
    [kernel,

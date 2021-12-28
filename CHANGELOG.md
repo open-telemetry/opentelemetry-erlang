@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [API 1.0.0-rc.4.1] - 2021-12-28
+
+##### Fixed
+
+- `add_event` function and macros fixed to accept both a map of attributes or a
+  list.
+  
 ## [API 1.0.0-rc.4] - 2021-12-25
 
 ### Added

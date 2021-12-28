@@ -206,7 +206,9 @@ set_attributes(_, _) ->
       Name :: opentelemetry:event_name(),
       Attributes :: opentelemetry:attributes_map(),
       SpanCtx :: opentelemetry:span_ctx().
-add_event(SpanCtx=#span_ctx{span_sdk={Module, _}}, Name, Attributes) when ?is_recording(SpanCtx) , is_list(Attributes) ->
+add_event(SpanCtx=#span_ctx{span_sdk={Module, _}}, Name, Attributes)
+  when ?is_recording(SpanCtx) ,
+       (is_list(Attributes) orelse is_map(Attributes)) ->
     case is_valid_name(Name) of
         true ->
             Module:add_event(SpanCtx, Name, process_attributes(Attributes));
