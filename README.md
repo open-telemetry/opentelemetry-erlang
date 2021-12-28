@@ -2,20 +2,22 @@ OpenTelemetry
 =====
 
 [![EEF Observability WG project](https://img.shields.io/badge/EEF-Observability-black)](https://github.com/erlef/eef-observability-wg)
-[![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry)](https://hex.pm/packages/opentelemetry)
 ![Build Status](https://github.com/open-telemetry/opentelemetry-erlang/workflows/Common%20Test/badge.svg)
 
-OpenTelemetry stats collection and distributed tracing framework for Erlang.
+OpenTelemetry distributed tracing framework for Erlang.
 
 Requires OTP 21.3 or above.
 
 ## Contacting Us
 
-We hold regular meetings. See details at [community page](https://github.com/open-telemetry/community#special-interest-groups).
+We hold weekly meetings. See details at [community page](https://github.com/open-telemetry/community#special-interest-groups).
 
 We use [GitHub Discussions](https://github.com/open-telemetry/opentelemetry-erlang/discussions) for support or general questions. Feel free to drop us a line.
 
-We are also present in the #otel-erlang-elixir channel in the [CNCF slack](https://slack.cncf.io/). Please join us for more informal discussions.
+We are also present in the #otel-erlang-elixir channel in the [CNCF
+slack](https://slack.cncf.io/). Please join us for more informal discussions.
+
+You can also find us in the #opentelemetry channel on [Elixir Slack](https://elixir-slackin.herokuapp.com/).
 
 ## Design
 
@@ -33,8 +35,9 @@ This repository is the Erlang's SDK implementation and should be included in the
 ### Hex Dependencies
 
 It is recommended to use the versions published on hex.pm for [OpenTelemetry
-API](https://hex.pm/packages/opentelemetry_api) and [OpenTelemetry
-SDK](https://hex.pm/packages/opentelemetry).
+API](https://hex.pm/packages/opentelemetry_api), [OpenTelemetry
+SDK](https://hex.pm/packages/opentelemetry) and the [OpenTelemetry
+Exporter](https://hex.pm/packages/opentelemetry_exporter).
 
 ### Git Dependencies
 
@@ -68,16 +71,27 @@ it is included the override is necessary.
 
 ### Including in Release
 
-In an Erlang project add `opentelemetry` as the first element of the release's applications:
+In an Erlang project add `opentelemetry_exporter` and `opentelemetry` as the
+first elements of the release's applications:
 
 ``` erlang
 {relx, [{release, {<name>, <version>}, 
-         [{opentelemetry, temporary},
+         [opentelemetry_exporter,
+         {opentelemetry, temporary},
           <your applications>]},
         ...]}.
 ```
 
-In the above example `opentelemetry` is set to `temporary` so that if the `opentelemetry` application crashes, or is shutdown, it does not terminate the other applications in the project. This is optional, the `opentelemetry` application purposely sticks to `permanent` for the processes started by the root supervisor to leave it up to the end user whether they want the crash or shutdown or `opentelemetry` to be ignored or cause the shutdown of the rest of the applications in the release.
+In the above example `opentelemetry_exporter` is first to ensure all of its
+dependencies are booted before `opentelemetry` attempts to start the
+exporter. `opentelemetry` is set to `temporary` so that if the `opentelemetry`
+application crashes, or is shutdown, it does not terminate the other
+applications in the project -- `opentelemetry_exporter` does not not need to be
+`temporary` because it does not have a startup and supervision tree. This is
+optional, the `opentelemetry` application purposely sticks to `permanent` for
+the processes started by the root supervisor to leave it up to the end user
+whether they want the crash or shutdown or `opentelemetry` to be ignored or
+cause the shutdown of the rest of the applications in the release.
 
 Doing the same for an Elixir project would be:
 
@@ -87,7 +101,7 @@ def project do
     ...
     releases: [
       <name>: [
-        applications: [opentelemetry: :temporary]
+        applications: [:opentelemetry_exporter, opentelemetry: :temporary]
       ],
 
       ...
@@ -131,10 +145,27 @@ $ python3 test.py http://127.0.0.1:5000/test
 
 ## Contributing
 
-Approvers:
-- [Fred Hebert](https://github.com/ferd), Honeycomb
+Approvers ([@open-telemetry/erlang-approvers](https://github.com/orgs/open-telemetry/teams/erlang-approvers)):
 
-Maintainers:
+- [Tristan Sloughter](https://github.com/tsloughter), [Splunk](https://www.splunk.com/en_us/observability/apm-application-performance-monitoring.html)
+- [Bryan Naegele](https://github.com/bryannaegele), [SimpleBet](https://simplebet.io/)
+- [Greg Mefford](https://github.com/GregMefford), [STORD](https://www.stord.com/)
+- [Zach Daniel](https://github.com/zachdaniel), 
+- [Fred Hebert](https://github.com/ferd), [Honeycomb](https://www.honeycomb.io/)
 - [Łukasz Jan Niemier](https://github.com/hauleth)
-- [Iliia Khaprov](https://github.com/deadtrickster), VMWare
-- [Tristan Sloughter](https://github.com/tsloughter) Splunk
+- [Iliia Khaprov](https://github.com/deadtrickster), [VMWare](https://www.vmware.com/)
+
+*Find more about the approver role in [community repository](https://github.com/open-telemetry/community/blob/master/community-membership.md#approver).*
+
+Maintainers ([@open-telemetry/erlang-maintainers](https://github.com/orgs/open-telemetry/teams/erlang-maintainers)):
+
+- [Tristan Sloughter](https://github.com/tsloughter), [Splunk](https://www.splunk.com/en_us/observability/apm-application-performance-monitoring.html)
+- [Bryan Naegele](https://github.com/bryannaegele), [SimpleBet](https://simplebet.io/)
+- [Łukasz Jan Niemier](https://github.com/hauleth)
+- [Iliia Khaprov](https://github.com/deadtrickster), [VMWare](https://www.vmware.com/)
+
+*Find more about the maintainer role in [community repository](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer).*
+
+### Thanks to all the people who have contributed
+
+[![contributors](https://contributors-img.web.app/image?repo=open-telemetry/opentelemetry-erlang)](https://github.com/open-telemetry/opentelemetry-erlang/graphs/contributors)

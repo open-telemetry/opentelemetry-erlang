@@ -1,8 +1,12 @@
 # opentelemetry_exporter
 
-The OpenTelemetry Protocol exporter for use with the [OpenTelemetry Collector](https://github.com/open-telemetry/opentelemetry-collector).
+The OpenTelemetry Protocol exporter for use with the [OpenTelemetry
+Collector](https://github.com/open-telemetry/opentelemetry-collector). The
+version of this Application does not track the supported version of the
+OpenTelemetry Protocol (OTLP) . The currently used version of the [OTLP protobufs
+is v0.11.0](https://github.com/open-telemetry/opentelemetry-proto/tree/v0.11.0).
 
-Currently only supports the Tracer protocol using either GRPC or Protobuffers over HTTP1.1. Metrics are to come soon.
+Currently only supports the Tracer protocol using either GRPC or Protobuffers over HTTP1.1.
 
 ## Configuration
 
