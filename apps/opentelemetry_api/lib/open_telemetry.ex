@@ -10,16 +10,12 @@ defmodule OpenTelemetry do
 
   ## Example
 
-      require OpenTelemetry.Tracer
-      require OpenTelemetry.Span
+      require OpenTelemetry.Tracer, as: Tracer
 
-      Tracer.start_span("some-span")
-      ...
-      event = "ecto.query"
-      ecto_attributes = OpenTelemetry.event([{"query", query}, {"total_time", total_time}])
-      OpenTelemetry.Span.add_event(event, ecto_event)
-      ...
-      Tracer.end_span()
+      Tracer.with_span "some-span" do
+        event = OpenTelemetry.event("ecto.query", query: query, total_time: total_time)
+        Tracer.add_events([event])
+      end
   """
 
   @typedoc """

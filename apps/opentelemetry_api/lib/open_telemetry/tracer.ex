@@ -9,9 +9,9 @@ defmodule OpenTelemetry.Tracer do
   The macros `start_span` and `with_span` use the Tracer associated with the Application the module
   is included in. These Tracers are created at boot time for each loaded Application.
 
-      require OpenTelemetry.Tracer
+      require OpenTelemetry.Tracer, as: Tracer
 
-      OpenTelemetry.Tracer.with_span "span-1" do
+      Tracer.with_span "span-1" do
         ... do something ...
       end
   """

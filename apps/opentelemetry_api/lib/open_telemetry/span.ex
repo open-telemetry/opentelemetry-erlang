@@ -3,12 +3,14 @@ defmodule OpenTelemetry.Span do
   This module contains macros for Span operations that update the active current Span in the current process.
   An example of creating an Event and adding it to the current Span:
 
-      require OpenTelemetry.Span
+      require OpenTelemetry.Tracer, as: Tracer
+      require OpenTelemetry.Span, as: Span
+
+      span_ctx = Tracer.start_span("some-span")
       ...
-      event = "ecto.query"
-      ecto_attributes = OpenTelemetry.event([{"query", query}, {"total_time", total_time}])
-      OpenTelemetry.Span.add_event(event, ecto_attributes)
+      Span.add_event(span_ctx, "ecto.query", query: query, total_time: total_time)
       ...
+      Span.end_span(span_ctx)
 
   A Span represents a single operation within a trace. Spans can be nested to form a trace tree.
   Each trace contains a root span, which typically describes the end-to-end latency and, optionally,
