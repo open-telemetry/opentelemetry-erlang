@@ -59,24 +59,30 @@ jobs:
     - name: Covertool
       if: ${{ always() }}
       run: rebar3 covertool generate
-    - uses: codecov/codecov-action@v1
+    - uses: codecov/codecov-action@v2
       if: ${{ always() }}
       with:
         file: _build/test/covertool/opentelemetry.covertool.xml
         env_vars: OTP_VERSION
         flags: sdk,erlang
-    - uses: codecov/codecov-action@v1
+    - uses: codecov/codecov-action@v2
       if: ${{ always() }}
       with:
         file: _build/test/covertool/opentelemetry_api.covertool.xml
         env_vars: OTP_VERSION
         flags: api,erlang
-    - uses: codecov/codecov-action@v1
+    - uses: codecov/codecov-action@v2
       if: ${{ always() }}
       with:
         file: _build/test/covertool/opentelemetry_exporter.covertool.xml
         env_vars: OTP_VERSION
         flags: exporter,erlang
+    - uses: codecov/codecov-action@v2
+      if: ${{ always() }}
+      with:
+        file: _build/test/covertool/opentelemetry_zipkin.covertool.xml
+        env_vars: OTP_VERSION
+        flags: zipkin,erlang
   dialyzer:
     name: Dialyze on OTP ${{ matrix.otp_version }} and ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
