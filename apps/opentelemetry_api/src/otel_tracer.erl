@@ -35,10 +35,8 @@
 -define(is_recording(SpanCtx), SpanCtx =/= undefined andalso SpanCtx#span_ctx.is_recording =:= true).
 
 -type traced_fun(T) :: fun((opentelemetry:span_ctx()) -> T).
--type tracer_ctx() :: term().
 
--export_type([traced_fun/1,
-              tracer_ctx/0]).
+-export_type([traced_fun/1]).
 
 -callback start_span(otel_ctx:t(),
                      opentelemetry:tracer(),
