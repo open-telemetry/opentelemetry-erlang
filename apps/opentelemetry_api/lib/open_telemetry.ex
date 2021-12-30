@@ -10,16 +10,12 @@ defmodule OpenTelemetry do
 
   ## Example
 
-      require OpenTelemetry.Tracer
-      require OpenTelemetry.Span
+      require OpenTelemetry.Tracer, as: Tracer
 
-      Tracer.start_span("some-span")
-      ...
-      event = "ecto.query"
-      ecto_attributes = OpenTelemetry.event([{"query", query}, {"total_time", total_time}])
-      OpenTelemetry.Span.add_event(event, ecto_event)
-      ...
-      Tracer.end_span()
+      Tracer.with_span "some-span" do
+        event = OpenTelemetry.event("ecto.query", query: query, total_time: total_time)
+        Tracer.add_events([event])
+      end
   """
 
   @typedoc """
@@ -59,7 +55,6 @@ defmodule OpenTelemetry do
 
   @type attribute_key() :: :opentelemetry.attribute_key()
   @type attribute_value() :: :opentelemetry.attribute_value()
-  @type attribute() :: :opentelemetry.attribute()
 
   @typedoc """
   Attributes are a collection of key/value pairs. The value can be a string,
@@ -160,7 +155,7 @@ defmodule OpenTelemetry do
   defdelegate link(span_ctx), to: :opentelemetry
 
   @doc """
-  Creates a `t:link/0` from a `t:span_ctx/0` and list of `t:attributes/0`.
+  Creates a `t:link/0` from a `t:span_ctx/0` and list of `t:attributes_map/0`.
   """
   @spec link(span_ctx() | :undefined, attributes_map()) :: link()
   defdelegate link(span_ctx, attributes), to: :opentelemetry
