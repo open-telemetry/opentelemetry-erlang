@@ -42,8 +42,13 @@ init(undefined) ->
     undefined;
 init({ExporterModule, Config}) when is_atom(ExporterModule) ->
     try ExporterModule:init(Config) of
-        {ok, ExporterConfig} ->
-            {ExporterModule, ExporterConfig};
+        {ok, ExporterState} when ExporterModule =:= opentelemetry_exporter ->
+            %% since we log when the initialization failed so the user knows it later succeeded
+            ?LOG_INFO("OTLP exporter successfully initialized"),
+            {ExporterModule, ExporterState};
+        {ok, ExporterState} ->
+            ?LOG_INFO("Exporter ~tp successfully initialized", [ExporterModule]),
+            {ExporterModule, ExporterState};
         ignore ->
             undefined
     catch
@@ -70,7 +75,10 @@ init({ExporterModule, Config}) when is_atom(ExporterModule) ->
                                     undefined
                             catch
                                 _:_ ->
-                                    ?LOG_WARNING("OTLP tracer, ~p, failed to initialize when using GRPC protocol and `grpcbox` module is not available in the code path. Verify that you have the `grpcbox` dependency included and rerun.", [ExporterModule]),
+                                    ?LOG_WARNING("OTLP exporter failed to initialize when using the GRPC "
+                                                 "protocol and `grpcbox` module is not available in the "
+                                                 "code path. Verify that you have the `grpcbox` dependency "
+                                                 "included and rerun.", []),
                                     undefined
                             end;
                         _ ->
@@ -84,10 +92,13 @@ init({ExporterModule, Config}) when is_atom(ExporterModule) ->
                             undefined
                     end;
                 {error, undef} when ExporterModule =:= opentelemetry_exporter ->
-                    ?LOG_WARNING("Trace exporter module ~p not found. Verify you have included the `opentelemetry_exporter` dependency.", [ExporterModule]),
+                    ?LOG_WARNING("OTLP exporter module `opentelemetry_exporter` not found. "
+                                 "Verify you have included the `opentelemetry_exporter` dependency.",
+                                 [ExporterModule]),
                     undefined;
                 {error, undef} ->
-                    ?LOG_WARNING("Trace exporter module ~p not found. Verify you have included the dependency that contains the exporter module.", [ExporterModule]),
+                    ?LOG_WARNING("Exporter module ~tp not found. Verify you have included "
+                                 "the dependency that contains the exporter module.", [ExporterModule]),
                     undefined;
                 _ ->
                     %% same as the debug log above
@@ -115,13 +126,27 @@ report_cb(#{source := exporter,
             during := init,
             kind := Kind,
             reason := Reason,
+            exporter := opentelemetry_exporter,
+            stacktrace := StackTrace}) ->
+    {"OTLP exporter failed to initialize: ~ts",
+     [otel_utils:format_exception(Kind, Reason, StackTrace)]};
+report_cb(#{source := exporter,
+            during := init,
+            kind := Kind,
+            reason := Reason,
             exporter := ExporterModule,
             stacktrace := StackTrace}) ->
-    {"OTLP tracer ~p failed to initialize: ~ts",
+    {"Exporter ~tp failed to initialize: ~ts",
      [ExporterModule, otel_utils:format_exception(Kind, Reason, StackTrace)]};
 report_cb(#{source := exporter,
             during := init,
             kind := Kind,
             reason := Reason,
+            exporter := opentelemetry_exporter}) ->
+    {"OTLP exporter failed to initialize with exception ~tp:~tp", [Kind, Reason]};
+report_cb(#{source := exporter,
+            during := init,
+            kind := Kind,
+            reason := Reason,
             exporter := ExporterModule}) ->
-    {"OTLP tracer ~p failed to initialize with exception ~p:~p", [ExporterModule, Kind, Reason]}.
+    {"Exporter ~p failed to initialize with exception ~tp:~tp", [ExporterModule, Kind, Reason]}.
