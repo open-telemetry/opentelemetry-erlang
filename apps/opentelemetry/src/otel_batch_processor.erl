@@ -49,6 +49,7 @@
 -include("otel_span.hrl").
 
 -record(data, {exporter             :: {module(), term()} | undefined,
+               exporter_config      :: {module(), term()} | undefined,
                resource             :: otel_resource:t(),
                handed_off_table     :: atom() | undefined,
                runner_pid           :: pid() | undefined,
@@ -107,7 +108,6 @@ init([Args]) ->
     ScheduledDelay = maps:get(scheduled_delay_ms, Args, ?DEFAULT_SCHEDULED_DELAY_MS),
     CheckTableSize = maps:get(check_table_size_ms, Args, ?DEFAULT_CHECK_TABLE_SIZE_MS),
 
-    Exporter = otel_exporter:init(maps:get(exporter, Args, undefined)),
     Resource = otel_tracer_provider:resource(),
 
     _Tid1 = new_export_table(?TABLE_1),
@@ -116,7 +116,8 @@ init([Args]) ->
 
     enable(),
 
-    {ok, idle, #data{exporter=Exporter,
+    {ok, idle, #data{exporter=undefined,
+                     exporter_config=maps:get(exporter, Args, undefined),
                      resource = Resource,
                      handed_off_table=undefined,
                      max_queue_size=case SizeLimit of
@@ -130,8 +131,17 @@ init([Args]) ->
 callback_mode() ->
     [state_functions, state_enter].
 
+idle(enter, _OldState, Data=#data{exporter=undefined,
+                                  exporter_config=ExporterConfig,
+                                  scheduled_delay_ms=SendInterval}) ->
+    Exporter = otel_exporter:init(ExporterConfig),
+    {keep_state, Data#data{exporter=Exporter}, [{{timeout, export_spans}, SendInterval, export_spans}]};
 idle(enter, _OldState, #data{scheduled_delay_ms=SendInterval}) ->
     {keep_state_and_data, [{{timeout, export_spans}, SendInterval, export_spans}]};
+idle(_, export_spans, Data=#data{exporter=undefined,
+                                 exporter_config=ExporterConfig}) ->
+    Exporter = otel_exporter:init(ExporterConfig),
+    {next_state, exporting, Data#data{exporter=Exporter}};
 idle(_, export_spans, Data) ->
     {next_state, exporting, Data};
 idle(EventType, Event, Data) ->
@@ -142,6 +152,9 @@ idle(EventType, Event, Data) ->
 %% after
 exporting({timeout, export_spans}, export_spans, _) ->
     {keep_state_and_data, [postpone]};
+exporting(enter, _OldState, #data{exporter=undefined}) ->
+    %% exporter still undefined, go back to idle
+    {keep_state_and_data, [{state_timeout, 0, no_exporter}]};
 exporting(enter, _OldState, Data=#data{exporting_timeout_ms=ExportingTimeout,
                                        scheduled_delay_ms=SendInterval}) ->
     case export_spans(Data) of
@@ -155,8 +168,13 @@ exporting(enter, _OldState, Data=#data{exporting_timeout_ms=ExportingTimeout,
              [{state_timeout, ExportingTimeout, exporting_timeout},
               {{timeout, export_spans}, SendInterval, export_spans}]}
     end;
+
+%% two hacks since we can't transition to a new state or send an action from `enter'
+exporting(state_timeout, no_exporter, Data) ->
+    {next_state, idle, Data};
 exporting(state_timeout, empty_table, Data) ->
     {next_state, idle, Data};
+
 exporting(state_timeout, exporting_timeout, Data=#data{handed_off_table=ExportingTable}) ->
     %% kill current exporting process because it is taking too long
     %% which deletes the exporting table, so create a new one and
@@ -194,9 +212,15 @@ handle_event_(_State, {timeout, check_table_size}, check_table_size, #data{max_q
             enable(),
             keep_state_and_data
     end;
-handle_event_(_, {call, From}, {set_exporter, Exporter}, Data=#data{exporter=OldExporter}) ->
+handle_event_(_, {call, From}, {set_exporter, ExporterConfig}, Data=#data{exporter=OldExporter}) ->
     otel_exporter:shutdown(OldExporter),
-    {keep_state, Data#data{exporter=otel_exporter:init(Exporter)}, [{reply, From, ok}]};
+    {keep_state, Data#data{exporter=undefined,
+                           exporter_config=ExporterConfig}, [{reply, From, ok},
+                                                             {next_event, internal, init_exporter}]};
+handle_event_(_, internal, init_exporter, Data=#data{exporter=undefined,
+                                                     exporter_config=ExporterConfig}) ->
+    Exporter = otel_exporter:init(ExporterConfig),
+    {keep_state, Data#data{exporter=Exporter}};
 handle_event_(_, _, _, _) ->
     keep_state_and_data.
 

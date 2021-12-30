@@ -150,7 +150,6 @@ Approvers ([@open-telemetry/erlang-approvers](https://github.com/orgs/open-telem
 - [Tristan Sloughter](https://github.com/tsloughter), [Splunk](https://www.splunk.com/en_us/observability/apm-application-performance-monitoring.html)
 - [Bryan Naegele](https://github.com/bryannaegele), [SimpleBet](https://simplebet.io/)
 - [Greg Mefford](https://github.com/GregMefford), [STORD](https://www.stord.com/)
-- [Zach Daniel](https://github.com/zachdaniel), 
 - [Fred Hebert](https://github.com/ferd), [Honeycomb](https://www.honeycomb.io/)
 - [Łukasz Jan Niemier](https://github.com/hauleth)
 - [Iliia Khaprov](https://github.com/deadtrickster), [VMWare](https://www.vmware.com/)

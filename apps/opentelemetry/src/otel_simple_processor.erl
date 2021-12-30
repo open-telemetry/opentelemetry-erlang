@@ -44,6 +44,7 @@
 -include("otel_span.hrl").
 
 -record(data, {exporter             :: {module(), term()} | undefined,
+               exporter_config      :: {module(), term()} | undefined,
                current_from         :: gen_statem:from() | undefined,
                resource             :: otel_resource:t(),
                handed_off_table     :: atom() | undefined,
@@ -87,13 +88,13 @@ init([Args]) ->
 
     ExportingTimeout = maps:get(exporting_timeout_ms, Args, ?DEFAULT_EXPORTER_TIMEOUT_MS),
 
-    Exporter = otel_exporter:init(maps:get(exporter, Args, undefined)),
     Resource = otel_tracer_provider:resource(),
 
-    {ok, idle, #data{exporter=Exporter,
+    {ok, idle, #data{exporter=undefined,
+                     exporter_config=maps:get(exporter, Args, undefined),
                      resource = Resource,
                      handed_off_table=undefined,
-                     exporting_timeout_ms=ExportingTimeout}}.
+                     exporting_timeout_ms=ExportingTimeout}, [{next_event, internal, init_exporter}]}.
 
 callback_mode() ->
     state_functions.
@@ -129,6 +130,10 @@ exporting(info, {completed, FromPid}, Data=#data{runner_pid=FromPid}) ->
 exporting(EventType, Event, Data) ->
     handle_event_(exporting, EventType, Event, Data).
 
+handle_event_(_, internal, init_exporter, Data=#data{exporter=undefined,
+                                                     exporter_config=ExporterConfig}) ->
+    Exporter = otel_exporter:init(ExporterConfig),
+    {keep_state, Data#data{exporter=Exporter}};
 handle_event_(_, {call, From}, {set_exporter, Exporter}, Data=#data{exporter=OldExporter}) ->
     otel_exporter:shutdown(OldExporter),
     {keep_state, Data#data{exporter=otel_exporter:init(Exporter)}, [{reply, From, ok}]};
