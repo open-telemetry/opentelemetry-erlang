@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### [Exporter]
+
+#### Added
+
+- New `opentelemetry_exporter` application environment options:
+  - `otlp_protocol`: The transport protocol, supported values: `grpc` and `http_protobuf`. Defaults to `http_protobuf`.
+  - `otlp_traces_protocol`: The transport protocol to use for exporting traces, supported values: `grpc` and `http_protobuf`. Defaults to `http_protobuf`.
+  - `otlp_compression`: Compression type to use, supported values: `gzip`. Defaults to no compression.
+  - `otlp_traces_compression`: Compression type to use for exporting traces, supported values: `gzip`. Defaults to no compression.
+
+- New environment variable options:
+  - `OTEL_EXPORTER_OTLP_PROTOCOL`: The transport protocol to use, supported values: `grpc` and `http_protobuf`. Defaults to `http_protobuf`
+  - `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL`: The transport protocol to use for exporting traces, supported values: `grpc` and `http_protobuf`. Defaults to `http_protobuf`.
+  - `OTEL_EXPORTER_OTLP_COMPRESSION`: Compression to use, supported value: gzip. Defaults to no compression.
+  - `OTEL_EXPORTER_OTLP_TRACES_COMPRESSION`: Compression to use when exporting traces, supported value: gzip. Defaults to no compression.
+
 ## [API 1.0.0-rc.4.1] - 2021-12-28
 
 ##### Fixed
