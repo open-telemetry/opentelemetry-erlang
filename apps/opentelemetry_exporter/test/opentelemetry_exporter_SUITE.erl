@@ -77,7 +77,7 @@ configuration(_Config) ->
         ?assertMatch([#{scheme := "https", host := "localhost", port := 443, path := "/used/path"}],
                      opentelemetry_exporter:endpoints(<<"https://localhost:443/used/path">>, [])),
 
-        ?assertMatch([#{scheme := "http", host := "localhost", port := 4317, path := []}],
+        ?assertMatch([#{scheme := "http", host := "localhost", port := 4318, path := []}],
                      opentelemetry_exporter:endpoints("http://localhost", [])),
 
         ?assertMatch([], opentelemetry_exporter:endpoints("://badendpoint", [])),
@@ -243,7 +243,7 @@ verify_export(Config) ->
                grpc ->
                    4317;
                http_protobuf ->
-                   55681
+                   4318
            end,
     {ok, State} = opentelemetry_exporter:init(#{protocol => Protocol,
                                                 compression => Compression,

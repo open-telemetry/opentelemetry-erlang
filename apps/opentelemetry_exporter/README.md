@@ -51,12 +51,18 @@ config :opentelemetry, :processors,
 - `otlp_endpoint`: The URL to send traces and metrics to, for traces the path `v1/traces` is appended to the path in the URL.
 - `otlp_traces_endpoint`: URL to send only traces to. This takes precedence for exporting traces and the path of the URL is kept as is, no suffix is appended.
 - `otlp_headers`: List of additional headers (`[{unicode:chardata(), unicode:chardata()}]`) to add to export requests.
-- `otlp_traces_headers`: Additional headers (`[{unicode:chardata(), unicode:chardata()}]`) to add to only trace export requests.
-    
+- `otlp_traces_headers`: Additional headers (`[{unicode:chardata(),
+  unicode:chardata()}]`) to add to only trace export requests.
+- `otlp_protocol`: The transport protocol, supported values: `grpc` and `http_protobuf`. Defaults to `http_protobuf`.
+- `otlp_traces_protocol`: The transport protocol to use for exporting traces, supported values: `grpc` and `http_protobuf`. Defaults to `http_protobuf`.
+- `otlp_compression`: Compression type to use, supported values: `gzip`. Defaults to no compression.
+- `otlp_traces_compression`: Compression type to use for exporting traces, supported values: `gzip`. Defaults to no compression.
     
 ``` erlang
 {opentelemetry_exporter,
-  [{otlp_endpoint, "https://api.honeycomb.io:443"},
+  [{otlp_protocol, grpc},
+   {otlp_compression, gzip},
+   {otlp_endpoint, "https://api.honeycomb.io:443"},
    {otlp_headers, [{"x-honeycomb-dataset", "experiments"}]}]}
 ```
 
@@ -64,6 +70,8 @@ An Elixir release uses `releases.exs`:
 
 ``` elixir
 config :opentelemetry_exporter,
+  otlp_protocol: :grpc,
+  otlp_compression: :gzip,
   otlp_endpoint: "https://api.honeycomb.io:443",
   otlp_headers: [{"x-honeycomb-dataset", "experiments"}]
 ```
@@ -87,11 +95,16 @@ for more information on securing HTTP requests in Erlang.
 - `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`: URL to send only traces to. This takes precedence for exporting traces and the path of the URL is kept as is, no suffix is appended.
 - `OTEL_EXPORTER_OTLP_HEADERS`: List of additional headers to add to export requests.
 - `OTEL_EXPORTER_OTLP_TRACES_HEADERS`: Additional headers to add to only trace export requests.
+- `OTEL_EXPORTER_OTLP_PROTOCOL`: The transport protocol to use, supported values: `grpc` and `http_protobuf`. Defaults to `http_protobuf`
+- `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL`: The transport protocol to use for exporting traces, supported values: `grpc` and `http_protobuf`. Defaults to `http_protobuf`.
+- `OTEL_EXPORTER_OTLP_COMPRESSION`: Compression to use, supported value: gzip. Defaults to no compression.
+- `OTEL_EXPORTER_OTLP_TRACES_COMPRESSION`: Compression to use when exporting traces, supported value: gzip. Defaults to no compression.
 
 Example usage of setting the environment variables:
 ```
 OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=https://api.honeycomb.io:443
-OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=grpc
+OTEL_EXPORTER_OTLP_TRACES_COMPRESSION=gzip
 OTEL_EXPORTER_OTLP_TRACES_HEADERS=x-honeycomb-team=<HONEYCOMB API TOKEN>,x-honeycomb-dataset=experiments
 ```
 

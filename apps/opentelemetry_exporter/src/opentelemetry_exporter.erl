@@ -93,9 +93,9 @@
 
 -define(DEFAULT_ENDPOINTS, [#{host => "localhost",
                               path => [],
-                              port => 4317,
-                              scheme => "https"}]).
--define(DEFAULT_PORT, 4317).
+                              port => 4318,
+                              scheme => "http"}]).
+-define(DEFAULT_PORT, 4318).
 -define(DEFAULT_TRACES_PATH, "v1/traces").
 
 -type headers() :: [{unicode:chardata(), unicode:chardata()}].
