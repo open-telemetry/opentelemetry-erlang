@@ -562,7 +562,7 @@ to_links([#link{trace_id=TraceId,
     to_links(Rest, [#{trace_id => <<TraceId:128>>,
                       span_id => <<SpanId:64>>,
                       trace_state => to_tracestate_string(TraceState),
-                      attributes => to_attributes(Attributes),
+                      attributes => to_attributes(otel_attributes:map(Attributes)),
                       dropped_attributes_count => 0} | Acc]);
 to_links([_ | Rest], Acc) ->
     to_links(Rest, Acc).
