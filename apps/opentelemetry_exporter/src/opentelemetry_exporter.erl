@@ -24,13 +24,28 @@
 %%     `otlp_endpoint': The URL to send traces and metrics to, for traces the
 %%     path `v1/traces' is appended to the path in the URL.
 %%   </li>
-%%   <li>`otlp_traces_endpoint': URL to send only traces to. This takes precedence
+%%   <li>
+%%     `otlp_traces_endpoint': URL to send only traces to. This takes precedence
 %%     for exporting traces and the path of the URL is kept as is, no suffix is
 %%     appended.
 %%   </li>
-%%   <li>`otlp_headers': List of additional headers (`[{unicode:chardata(), unicode:chardata()}]') to add to export requests.</li>
+%%   <li>
+%%     `otlp_headers': List of additional headers (`[{unicode:chardata(), unicode:chardata()}]') to add to export requests.
+%%   </li>
 %%   <li>
 %%     `otlp_traces_headers': Additional headers (`[{unicode:chardata(), unicode:chardata()}]') to add to only trace export requests.
+%%   </li>
+%%   <li>
+%%     `otlp_protocol': The transport protocol, supported values: `grpc' and `http_protobuf'. Defaults to `http_protobuf'.
+%%   </li>
+%%   <li>
+%%     `otlp_traces_protocol': The transport protocol to use for exporting traces, supported values: `grpc' and `http_protobuf'. Defaults to `http_protobuf'
+%%   </li>
+%%   <li>
+%%     `otlp_compression': Compression type to use, supported values: `gzip'. Defaults to no compression.
+%%   </li>
+%%   <li>
+%%     `otlp_traces_compression': Compression type to use for exporting traces, supported values: `gzip'. Defaults to no compression.
 %%   </li>
 %% </ul>
 %%
@@ -42,6 +57,10 @@
 %%   <li>`OTEL_EXPORTER_OTLP_TRACES_ENDPOINT': URL to send only traces to. This takes precedence for exporting traces and the path of the URL is kept as is, no suffix is appended.</li>
 %%   <li>`OTEL_EXPORTER_OTLP_HEADERS': List of additional headers to add to export requests.</li>
 %%   <li>`OTEL_EXPORTER_OTLP_TRACES_HEADERS': Additional headers to add to only trace export requests.</li>
+%%   <li>`OTEL_EXPORTER_OTLP_PROTOCOL': The transport protocol to use, supported values: `grpc' and `http_protobuf'. Defaults to `http_protobuf'.</li>
+%%   <li>`OTEL_EXPORTER_OTLP_TRACES_PROTOCOL': The transport protocol to use for exporting traces, supported values: `grpc' and `http_protobuf'. Defaults to `http_protobuf'.</li>
+%%   <li>`OTEL_EXPORTER_OTLP_COMPRESSION': Compression to use, supported value: gzip. Defaults to no compression./li>
+%%   <li>`OTEL_EXPORTER_OTLP_TRACES_COMPRESSION': Compression to use when exporting traces, supported value: gzip. Defaults to no compression.</li>
 %% </ul>
 %%
 %% @end
@@ -310,7 +329,11 @@ merge_with_environment(Opts) ->
     Config = #{otlp_endpoint => undefined,
                otlp_traces_endpoint => undefined,
                otlp_headers => undefined,
-               otlp_traces_headers => undefined},
+               otlp_traces_headers => undefined,
+               otlp_protocol => undefined,
+               otlp_traces_protocol => undefined,
+               otlp_compression => undefined,
+               otlp_traces_compression => undefined},
 
     AppEnv = application:get_all_env(opentelemetry_exporter),
     AppOpts = otel_configuration:merge_list_with_environment(config_mapping(), AppEnv, Config),
@@ -320,7 +343,13 @@ merge_with_environment(Opts) ->
     Opts2 = update_opts(otlp_traces_endpoint, endpoints, ?DEFAULT_ENDPOINTS, AppOpts, Opts1, fun maybe_to_list/1),
 
     Opts3 = update_opts(otlp_headers, headers, [], AppOpts, Opts2),
-    update_opts(otlp_traces_headers, headers, [], AppOpts, Opts3).
+    Opts4 = update_opts(otlp_traces_headers, headers, [], AppOpts, Opts3),
+
+    Opts5 = update_opts(otlp_protocol, protocol, http_protobuf, AppOpts, Opts4),
+    Opts6 = update_opts(otlp_traces_protocol, protocol, http_protobuf, AppOpts, Opts5),
+
+    Opts7 = update_opts(otlp_compression, compression, undefined, AppOpts, Opts6),
+    update_opts(otlp_traces_compression, compression, undefined, AppOpts, Opts7).
 
 maybe_to_list(E) when is_list(E) ->
     case io_lib:printable_list(E) of
@@ -376,13 +405,24 @@ config_mapping() ->
 
      %% headers to include in requests the exporter makes over the Otel protocol
      {"OTEL_EXPORTER_OTLP_HEADERS", otlp_headers, key_value_list},
-     {"OTEL_EXPORTER_OTLP_TRACES_HEADERS", otlp_traces_headers, key_value_list}
+     {"OTEL_EXPORTER_OTLP_TRACES_HEADERS", otlp_traces_headers, key_value_list},
      %% {"OTEL_EXPORTER_OTLP_METRICS_HEADERS", otlp_metrics_headers, "", key_value_list}
 
-     %% the following are not yet defined in the spec
-     %% {"OTEL_EXPORTER_OTLP_PROTOCOL", exporter_otlp_protocol, "", string},
-     %% {"OTEL_EXPORTER_OTLP_TRACES_PROTOCOL", exporter_otlp_traces_protocol, "", string},
-     %% {"OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", exporter_otlp_metrics_protocol, "", string}
+     {"OTEL_EXPORTER_OTLP_PROTOCOL", otlp_protocol, existing_atom},
+     {"OTEL_EXPORTER_OTLP_TRACES_PROTOCOL", otlp_traces_protocol, existing_atom},
+     %% {"OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", exporter_otlp_metrics_protocol, string}
+
+     {"OTEL_EXPORTER_OTLP_COMPRESSION", otlp_compression, existing_atom},
+     {"OTEL_EXPORTER_OTLP_TRACES_COMPRESSION", otlp_traces_compression, existing_atom}
+     %% {"OTEL_EXPORTER_OTLP_METRICS_COMPRESSION", otlp_metrics_compression, existing_atom}
+
+     %% {"OTEL_EXPORTER_OTLP_CERTIFICATE", otlp_certificate, path},
+     %% {"OTEL_EXPORTER_OTLP_TRACES_CERTIFICATE", otlp_traces_certificate, path},
+     %% {"OTEL_EXPORTER_OTLP_METRICS_CERTIFICATE", otlp_metrics_certificate, path},
+
+     %% {"OTEL_EXPORTER_OTLP_TIMEOUT", otlp_timeout, integer},
+     %% {"OTEL_EXPORTER_OTLP_TRACES_TIMEOUT", otlp_traces_timeout, integer},
+     %% {"OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", otlp_metrics_timeout, integer}
     ].
 
 tab_to_proto(Tab, Resource) ->

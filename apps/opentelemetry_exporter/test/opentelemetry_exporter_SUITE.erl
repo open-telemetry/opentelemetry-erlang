@@ -97,7 +97,9 @@ configuration(_Config) ->
         ?assertEqual(#{endpoints =>
                            [#{host => "localhost", path => "/v1/traces", port => 4343,
                               scheme => "http"}],
-                       headers => [{"key1", "value1"}]},
+                       headers => [{"key1", "value1"}],
+                       compression => undefined,
+                       protocol => http_protobuf},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => []})),
 
         os:putenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4343/internal"),
@@ -105,7 +107,9 @@ configuration(_Config) ->
         ?assertEqual(#{endpoints =>
                            [#{host => "localhost", path => "/internal/v1/traces", port => 4343,
                               scheme => "http"}],
-                       headers => [{"key1", "value1"}]},
+                       headers => [{"key1", "value1"}],
+                       compression => undefined,
+                       protocol => http_protobuf},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => []})),
 
         %% TRACES_ENDPOINT takes precedence
@@ -114,16 +118,22 @@ configuration(_Config) ->
         ?assertEqual(#{endpoints =>
                            [#{host => "localhost", path => "/traces/path", port => 5353,
                               scheme => "http"}],
-                       headers => [{"key2", "value2"}]},
+                       headers => [{"key2", "value2"}],
+                       compression => undefined,
+                       protocol => http_protobuf},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => []})),
 
+        os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
+        ?assertMatch(#{protocol := grpc},
+                     opentelemetry_exporter:merge_with_environment(#{})),
 
         ok
     after
         os:unsetenv("OTEL_EXPORTER_OTLP_ENDPOINT"),
         os:unsetenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"),
         os:unsetenv("OTEL_EXPORTER_OTLP_HEADERS"),
-        os:unsetenv("OTEL_EXPORTER_OTLP_TRACES_HEADERS")
+        os:unsetenv("OTEL_EXPORTER_OTLP_TRACES_HEADERS"),
+        os:unsetenv("OTEL_EXPORTER_OTLP_PROTOCOL")
     end.
 
 ets_instrumentation_info(_Config) ->
@@ -228,6 +238,7 @@ verify_export(Config) ->
     os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=my-test-service,service.version=98da75ea6d38724743bf42b45565049238d86b3f"),
     Protocol = ?config(protocol, Config),
     Compression = ?config(compression, Config),
+
     Port = case Protocol of
                grpc ->
                    4317;
