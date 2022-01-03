@@ -3,7 +3,8 @@
 [![EEF Observability WG project](https://img.shields.io/badge/EEF-Observability-black)](https://github.com/erlef/eef-observability-wg)
 [![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry)](https://hex.pm/packages/opentelemetry_api)
 
-This is the API portion of [OpenTelemetry](https://opentelemetry.io/) for Erlang and Elixir Applications.
+This is the API portion of [OpenTelemetry](https://opentelemetry.io/) for Erlang
+and Elixir Applications, implementing the API portion of [the specification](https://github.com/open-telemetry/opentelemetry-specification).
 
 This is a library, it does not start any processes, and should be the only OpenTelemetry dependency of Erlang/Elixir Applications. 
 
@@ -24,7 +25,7 @@ Naming the `Tracers` provides additional metadata on spans and allows the user o
 ``` elixir
 def deps do
   [
-    {:opentelemetry_api, "~> 0.6.0"}
+    {:opentelemetry_api, "~> 1.0"}
   ]
 end
 ```

@@ -4,9 +4,22 @@ OpenTelemetry
 [![EEF Observability WG project](https://img.shields.io/badge/EEF-Observability-black)](https://github.com/erlef/eef-observability-wg)
 ![Build Status](https://github.com/open-telemetry/opentelemetry-erlang/workflows/Common%20Test/badge.svg)
 
-OpenTelemetry distributed tracing framework for Erlang.
+[OpenTelemetry](https://opentelemetry.io/) distributed tracing framework for
+Erlang and Elixir.
 
-Requires OTP 21.3 or above.
+These applications implement version 1.8.0 of the [OpenTelemetry
+Specification](https://github.com/open-telemetry/opentelemetry-specification),
+see the [spec compliance
+matrix](https://github.com/open-telemetry/opentelemetry-specification/blob/main/spec-compliance-matrix.md)
+for a list of features supported.
+
+## Requirements
+
+- OTP 21.3+
+
+If using the Elixir API:
+
+- Elixir 1.8+
 
 ## Contacting Us
 
