@@ -25,74 +25,60 @@ If using the Elixir API:
 
 We hold weekly meetings. See details at [community page](https://github.com/open-telemetry/community#special-interest-groups).
 
-We use [GitHub Discussions](https://github.com/open-telemetry/opentelemetry-erlang/discussions) for support or general questions. Feel free to drop us a line.
+We use [GitHub
+Discussions](https://github.com/open-telemetry/opentelemetry-erlang/discussions)
+for support or general questions. Feel free to drop us a line.
 
 We are also present in the #otel-erlang-elixir channel in the [CNCF
 slack](https://slack.cncf.io/). Please join us for more informal discussions.
 
-You can also find us in the #opentelemetry channel on [Elixir Slack](https://elixir-slackin.herokuapp.com/).
+You can also find us in the #opentelemetry channel on [Elixir
+Slack](https://elixir-slackin.herokuapp.com/).
 
 ## Design
 
-The [OpenTelemetry specification](https://github.com/open-telemetry/opentelemetry-specification) defines a language library as having 2 components, the API and the SDK. The API must not only define the interfaces of any implementation in that language but also be able to function as a noop implementation of the tracer. The SDK is the default implementation of the API that must be optional.
+The [OpenTelemetry
+specification](https://github.com/open-telemetry/opentelemetry-specification)
+defines a language library as having 2 components, the API and the SDK. The API
+must not only define the interfaces of any implementation in that language but
+also be able to function as a noop implementation of the tracer. The SDK is the
+default implementation of the API that must be optional.
 
 When instrumenting a project your application should only depend on the
 [OpenTelemetry API](https://hex.pm/packages/opentelemetry_api) application,
 found in directory `apps/opentelemetry_api` of this repo which is published as
 the hex package [opentelemetry_api](https://hex.pm/packages/opentelemetry_api). 
 
-This repository is the Erlang's SDK implementation and should be included in the final release and configured to setup the sampler, span processors and span exporters.
+The SDK implementation, found under `apps/opentelemetry` and hex package
+[opentelemetry](https://hex.pm/packages/opentelemetry), should be included in an
+OTP Release along with an exporter.
 
-## Usage
-
-### Hex Dependencies
-
-It is recommended to use the versions published on hex.pm for [OpenTelemetry
-API](https://hex.pm/packages/opentelemetry_api), [OpenTelemetry
-SDK](https://hex.pm/packages/opentelemetry) and the [OpenTelemetry
-Exporter](https://hex.pm/packages/opentelemetry_exporter).
-
-### Git Dependencies
-
-Because the OpenTelemetry OTP Applications are kept in a single repository,
-under the directory `apps`, either [rebar3's](https://rebar3.org) `git_subdir`
-(rebar 3.14 or above is required) or
-[mix's](](https://elixir-lang.org/getting-started/mix-otp/introduction-to-mix.html))
-`sparse` feature must be used when using as Git dependencies in a project. The
-blocks below shows how in rebar3 and mix the git repo for the API and/or SDK
-Applications can be used.
+Example of Release configuration in `rebar.config`:
 
 ``` erlang
-{opentelemetry_api, {git_subdir,
-"http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry_api"}}
-{opentelemetry, {git_subdir,
-"http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry"}}
+{relx, [{release, {my_instrumented_release, "0.1.0"},
+         [opentelemetry_exporter,
+	      {opentelemetry, temporary},
+          my_instrumented_app]},
+
+       ...]}.
 ```
+
+Example configuration for [mix's Release
+task](https://hexdocs.pm/mix/Mix.Tasks.Release.html):
 
 ``` elixir
-{:opentelemetry_api, github: "open-telemetry/opentelemetry-erlang", sparse:
-"apps/opentelemetry_api", override: true},
-{:opentelemetry, github: "open-telemetry/opentelemetry-erlang", sparse: "apps/opentelemetry", override: true},
-```
+def project do
+  [
+    releases: [
+      my_instrumented_release: [
+        applications: [:runtime_tools, :opentelemetry_exporter, {:opentelemetry, :temporary}, :my_instrumented_app]
+      ],
 
-The `override: true` is required because the SDK Application, `opentelemetry`, has
-the API in its `deps` list of its `rebar.config` as a hex dependency and this will
-clash when `mix` tries to resolve the dependencies and fail without the
-override. `override: true` is also used on the SDK because the
-`opentelemetry_exporter` application depends on it and the API as hex deps so if
-it is included the override is necessary.
-
-### Including in Release
-
-In an Erlang project add `opentelemetry_exporter` and `opentelemetry` as the
-first elements of the release's applications:
-
-``` erlang
-{relx, [{release, {<name>, <version>}, 
-         [opentelemetry_exporter,
-         {opentelemetry, temporary},
-          <your applications>]},
-        ...]}.
+      ...
+    ]
+  ]
+end
 ```
 
 In the above example `opentelemetry_exporter` is first to ensure all of its
@@ -105,6 +91,53 @@ optional, the `opentelemetry` application purposely sticks to `permanent` for
 the processes started by the root supervisor to leave it up to the end user
 whether they want the crash or shutdown or `opentelemetry` to be ignored or
 cause the shutdown of the rest of the applications in the release.
+
+
+## Git Dependencies
+
+Because the OpenTelemetry OTP Applications are kept in a single repository,
+under the directory `apps`, either [rebar3's](https://rebar3.org) `git_subdir`
+(rebar 3.14 or above is required) or
+[mix's](https://elixir-lang.org/getting-started/mix-otp/introduction-to-mix.html)
+`sparse` feature must be used when using as Git dependencies in a project. The
+blocks below shows how in rebar3 and mix the git repo for the API and/or SDK
+Applications can be used.
+
+``` erlang
+{opentelemetry_api, {git_subdir, "http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry_api"}},
+{opentelemetry, {git_subdir, "http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"},
+"apps/opentelemetry"}},
+{opentelemetry_exporter, {git_subdir, "http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry_exporter"}}
+```
+
+``` elixir
+{:opentelemetry_api, github: "open-telemetry/opentelemetry-erlang", sparse:
+"apps/opentelemetry_api", override: true},
+{:opentelemetry, github: "open-telemetry/opentelemetry-erlang", sparse:
+"apps/opentelemetry", override: true},
+{:opentelemetry_exporter, github: "open-telemetry/opentelemetry-erlang", sparse: "apps/opentelemetry_exporter", override: true}
+```
+
+The `override: true` is required because the SDK Application, `opentelemetry`, has
+the API in its `deps` list of its `rebar.config` as a hex dependency and this will
+clash when `mix` tries to resolve the dependencies and fail without the
+override. `override: true` is also used on the SDK because the
+`opentelemetry_exporter` application depends on it and the API as hex deps so if
+it is included the override is necessary.
+
+
+
+In an Erlang project add `opentelemetry_exporter` and `opentelemetry` as the
+first elements of the release's applications:
+
+``` erlang
+{relx, [{release, {<name>, <version>}, 
+         [opentelemetry_exporter,
+         {opentelemetry, temporary},
+          <your applications>]},
+        ...]}.
+```
+
 
 Doing the same for an Elixir project would be:
 

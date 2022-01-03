@@ -3,7 +3,7 @@
 The OpenTelemetry Protocol exporter for use with the [OpenTelemetry
 Collector](https://github.com/open-telemetry/opentelemetry-collector). The
 version of this Application does not track the supported version of the
-OpenTelemetry Protocol (OTLP) . The currently used version of the [OTLP protobufs
+OpenTelemetry Protocol (OTLP). The currently used version of the [OTLP protobufs
 is v0.11.0](https://github.com/open-telemetry/opentelemetry-proto/tree/v0.11.0).
 
 Currently only supports the Tracer protocol using either GRPC or Protobuffers over HTTP1.1.
@@ -12,7 +12,8 @@ Currently only supports the Tracer protocol using either GRPC or Protobuffers ov
 
 ### Options to Batch Processor
 
-Easiest way to setup is to add configuration for the batch processor in OpenTelemetry application environment.
+Exporter configuration can be done as arguments to the batch processor in
+the OpenTelemetry application environment.
 
 For an Erlang release in `sys.config`:
 
@@ -25,7 +26,8 @@ For an Erlang release in `sys.config`:
             headers => [{"x-honeycomb-dataset", "experiments"}]}}}}]}]}
 ```
 
-The default protocol is `http_protobuf`, to override this and use grpc add `protocol` to the config map:
+The default protocol is `http_protobuf`, to override this and use grpc add
+`protocol` to the config map:
 
 ``` erlang
 {opentelemetry,
@@ -47,6 +49,9 @@ config :opentelemetry, :processors,
 ```
 
 ### Application Environment
+
+Alternatively the `opentelemetry_exporter` Application can be configured itself.
+Available configuration keys:
 
 - `otlp_endpoint`: The URL to send traces and metrics to, for traces the path `v1/traces` is appended to the path in the URL.
 - `otlp_traces_endpoint`: URL to send only traces to. This takes precedence for exporting traces and the path of the URL is kept as is, no suffix is appended.
@@ -75,8 +80,7 @@ config :opentelemetry_exporter,
   otlp_endpoint: "https://api.honeycomb.io:443",
   otlp_headers: [{"x-honeycomb-dataset", "experiments"}]
 ```
-    
-    
+
 The default SSL options for HTTPS requests are set using
 [tls_certificate_check](https://hex.pm/packages/tls_certificate_check). This
 package also provides the [CA certificates from Mozilla](https://curl.se/docs/caextract.html).
@@ -90,6 +94,9 @@ inets](https://erlef.github.io/security-wg/secure_coding_and_deployment_hardenin
 for more information on securing HTTP requests in Erlang.
 
 ### OS Environment
+
+Lastly, configuring the exporter can be done with OS environment variables,
+which take precedence:
 
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: The URL to send traces and metrics to, for traces the path `v1/traces` is appended to the path in the URL.
 - `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`: URL to send only traces to. This takes precedence for exporting traces and the path of the URL is kept as is, no suffix is appended.
