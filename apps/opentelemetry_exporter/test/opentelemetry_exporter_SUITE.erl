@@ -6,6 +6,7 @@
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include_lib("opentelemetry_api/include/otel_tracer.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
 
 all() ->
@@ -267,6 +268,8 @@ verify_export(Config) ->
               attributes = otel_attributes:new([{<<"attr-2">>, <<"value-2">>}], 128, 128)},
     true = ets:insert(Tid, ParentSpan),
 
+    Link1 = opentelemetry:link(?start_span(<<"linked-span">>)),
+
     ChildSpan = #span{name = <<"span-2">>,
                       trace_id = TraceId,
                       span_id = otel_id_generator:generate_span_id(),
@@ -274,7 +277,7 @@ verify_export(Config) ->
                       kind = ?SPAN_KIND_SERVER,
                       start_time = opentelemetry:timestamp(),
                       end_time = opentelemetry:timestamp(),
-                      links = otel_links:new([], 128, 128, 128),
+                      links = otel_links:new([Link1], 128, 128, 128),
                       events = otel_events:add([#event{system_time_nano=erlang:system_time(nanosecond),
                                                        name = <<"event-1">>,
                                                        attributes = otel_attributes:new([{<<"attr-1">>, <<"value-1">>}], 128, 128)},
