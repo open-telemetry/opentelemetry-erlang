@@ -92,12 +92,15 @@ the processes started by the root supervisor to leave it up to the end user
 whether they want the crash or shutdown or `opentelemetry` to be ignored or
 cause the shutdown of the rest of the applications in the release.
 
-
 ## Git Dependencies
 
-Because the OpenTelemetry OTP Applications are kept in a single repository,
-under the directory `apps`, either [rebar3's](https://rebar3.org) `git_subdir`
-(rebar 3.14 or above is required) or
+While it is recommended to use the Hex packages for the
+[API](https://hex.pm/packages/opentelemetry_api),
+[SDK](https://hex.pm/packages/opentelemetry) and [OTLP
+exporter](https://hex.pm/packages/opentelemetry_exporter), there are times
+depending on the git repo is necessary. Because the OpenTelemetry OTP
+Applications are kept in a single repository, under the directory `apps`, either
+[rebar3's](https://rebar3.org) `git_subdir` (rebar 3.14 or above is required) or
 [mix's](https://elixir-lang.org/getting-started/mix-otp/introduction-to-mix.html)
 `sparse` feature must be used when using as Git dependencies in a project. The
 blocks below shows how in rebar3 and mix the git repo for the API and/or SDK
