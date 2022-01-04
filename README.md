@@ -19,11 +19,11 @@ for a list of features supported.
 
 ## Requirements
 
-- OTP 21.3+
+- Erlang/OTP 22+
 
 If using the Elixir API:
 
-- Elixir 1.8+
+- Elixir 1.11+
 
 ## Contacting Us
 
