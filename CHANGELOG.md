@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 1.0.0 - 2022-01-03
+
+### [SDK]
+
+#### Fixed
+
+- [SDK will continue to try initializing exporter if it fails to resolve startup
+  ordering issues](https://github.com/open-telemetry/opentelemetry-erlang/pull/338)
+- [elixir span docs: fix reference to attributes
+  type](https://github.com/open-telemetry/opentelemetry-erlang/pull/336)
+  
+### [API]
+
+#### Fixed
+
+- [events: accept map for attributes on an event](https://github.com/open-telemetry/opentelemetry-erlang/pull/335)
+
 ### [Exporter]
 
 #### Added
