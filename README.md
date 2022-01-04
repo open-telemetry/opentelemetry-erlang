@@ -125,37 +125,6 @@ override. `override: true` is also used on the SDK because the
 `opentelemetry_exporter` application depends on it and the API as hex deps so if
 it is included the override is necessary.
 
-
-
-In an Erlang project add `opentelemetry_exporter` and `opentelemetry` as the
-first elements of the release's applications:
-
-``` erlang
-{relx, [{release, {<name>, <version>}, 
-         [opentelemetry_exporter,
-         {opentelemetry, temporary},
-          <your applications>]},
-        ...]}.
-```
-
-
-Doing the same for an Elixir project would be:
-
-``` elixir
-def project do
-  [
-    ...
-    releases: [
-      <name>: [
-        applications: [:opentelemetry_exporter, opentelemetry: :temporary]
-      ],
-
-      ...
-    ]
-  ]
-end
-```
-
 ## Benchmarks
 
 Running benchmarks is done with [benchee](https://github.com/bencheeorg/benchee). Benchmark functions are in modules under `samples/`. To run them open a rebar3 shell in the `bench` profile:
