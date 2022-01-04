@@ -1,8 +1,12 @@
-OpenTelemetry
+OpenTelemetry Erlang/Elixir
 =====
 
-[![EEF Observability WG project](https://img.shields.io/badge/EEF-Observability-black)](https://github.com/erlef/eef-observability-wg)
-![Build Status](https://github.com/open-telemetry/opentelemetry-erlang/workflows/Common%20Test/badge.svg)
+[![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry_api?label=API&style=for-the-badge)](https://hex.pm/packages/opentelemetry_api)
+[![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry?label=SDK&style=for-the-badge)](https://hex.pm/packages/opentelemetry)
+[![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry_exporter?label=OTLP%20Exporter&style=for-the-badge)](https://hex.pm/packages/opentelemetry_exporter)
+[![EEF Observability WG
+project](https://img.shields.io/badge/EEF-Observability-black?style=for-the-badge)](https://github.com/erlef/eef-observability-wg)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/open-telemetry/opentelemetry-erlang/Erlang?style=for-the-badge)](https://github.com/open-telemetry/opentelemetry-erlang/actions)
 
 [OpenTelemetry](https://opentelemetry.io/) distributed tracing framework for
 Erlang and Elixir.
@@ -15,11 +19,11 @@ for a list of features supported.
 
 ## Requirements
 
-- OTP 21.3+
+- Erlang/OTP 22+
 
 If using the Elixir API:
 
-- Elixir 1.8+
+- Elixir 1.11+
 
 ## Contacting Us
 
@@ -151,7 +155,7 @@ Start the interop web server in a shell:
 ``` shell
 $ rebar3 as interop shell
 
-> w3c_trace_context_interop:run().
+> w3c_trace_context_interop:start().
 ```
 
 Then, clone the [W3C Trace Context repo](https://github.com/w3c/trace-context) and run the tests:
