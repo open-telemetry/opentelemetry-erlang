@@ -1,8 +1,12 @@
 OpenTelemetry
 =====
 
-[![EEF Observability WG project](https://img.shields.io/badge/EEF-Observability-black)](https://github.com/erlef/eef-observability-wg)
-![Build Status](https://github.com/open-telemetry/opentelemetry-erlang/workflows/Common%20Test/badge.svg)
+[![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry_api?label=API&style=for-the-badge)](https://hex.pm/packages/opentelemetry_api)
+[![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry?label=SDK&style=for-the-badge)](https://hex.pm/packages/opentelemetry)
+[![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry_exporter?label=OTLP%20Exporter&style=for-the-badge)](https://hex.pm/packages/opentelemetry_exporter)
+[![EEF Observability WG
+project](https://img.shields.io/badge/EEF-Observability-black?style=for-the-badge)](https://github.com/erlef/eef-observability-wg)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/open-telemetry/opentelemetry-erlang/Erlang?style=for-the-badge)](https://github.com/open-telemetry/opentelemetry-erlang/actions)
 
 [OpenTelemetry](https://opentelemetry.io/) distributed tracing framework for
 Erlang and Elixir.
