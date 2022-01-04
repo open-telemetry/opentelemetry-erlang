@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Fixed
 
-- [SDK will continue to try init'ing exporter if it fails to resolve startup
+- [SDK will continue to try initializing exporter if it fails to resolve startup
   ordering issues](https://github.com/open-telemetry/opentelemetry-erlang/pull/338)
 - [elixir span docs: fix reference to attributes
   type](https://github.com/open-telemetry/opentelemetry-erlang/pull/336)
