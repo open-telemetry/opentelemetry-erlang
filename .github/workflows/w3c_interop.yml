@@ -32,8 +32,9 @@ jobs:
       run: rebar3 as interop compile
 
     - uses: actions/checkout@v2
-      repository: 'https://github.com/w3c/trace-context'
-      path: 'trace-context'
+      with:
+        repository: 'w3c/trace-context'
+        path: 'trace-context'
     - name: Setup python
       uses: actions/setup-python@v2
       with:
@@ -41,8 +42,10 @@ jobs:
         architecture: x64
     - run: pip install aiohttp
     - run: |
-        erl -noinput -pa ./_build/interop/extras/interop/ $(rebar3 as interop path) -s w3c_trace_context_interop &
+        rebar3 as interop compile
 
+        erl -noinput -pa ./_build/interop/extras/interop/ $(rebar3 as interop path) -s w3c_trace_context_interop &
+        sleep 1
         cd trace-context/test
-        python3 test.py http://127.0.0.1:5000/test
+        STRICT_LEVEL=1 python3 test.py http://127.0.0.1:5000/test
       shell: bash

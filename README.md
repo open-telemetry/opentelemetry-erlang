@@ -1,4 +1,4 @@
-OpenTelemetry
+OpenTelemetry Erlang/Elixir
 =====
 
 [![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry_api?label=API&style=for-the-badge)](https://hex.pm/packages/opentelemetry_api)
@@ -155,7 +155,7 @@ Start the interop web server in a shell:
 ``` shell
 $ rebar3 as interop shell
 
-> w3c_trace_context_interop:run().
+> w3c_trace_context_interop:start().
 ```
 
 Then, clone the [W3C Trace Context repo](https://github.com/w3c/trace-context) and run the tests:
