@@ -170,7 +170,7 @@ $ python3 test.py http://127.0.0.1:5000/test
 Approvers ([@open-telemetry/erlang-approvers](https://github.com/orgs/open-telemetry/teams/erlang-approvers)):
 
 - [Tristan Sloughter](https://github.com/tsloughter), [Splunk](https://www.splunk.com/en_us/observability/apm-application-performance-monitoring.html)
-- [Bryan Naegele](https://github.com/bryannaegele), [SimpleBet](https://simplebet.io/)
+- [Bryan Naegele](https://github.com/bryannaegele), [Simplebet](https://simplebet.io/)
 - [Greg Mefford](https://github.com/GregMefford), [STORD](https://www.stord.com/)
 - [Fred Hebert](https://github.com/ferd), [Honeycomb](https://www.honeycomb.io/)
 - [Łukasz Jan Niemier](https://github.com/hauleth)
@@ -181,7 +181,7 @@ Approvers ([@open-telemetry/erlang-approvers](https://github.com/orgs/open-telem
 Maintainers ([@open-telemetry/erlang-maintainers](https://github.com/orgs/open-telemetry/teams/erlang-maintainers)):
 
 - [Tristan Sloughter](https://github.com/tsloughter), [Splunk](https://www.splunk.com/en_us/observability/apm-application-performance-monitoring.html)
-- [Bryan Naegele](https://github.com/bryannaegele), [SimpleBet](https://simplebet.io/)
+- [Bryan Naegele](https://github.com/bryannaegele), [Simplebet](https://simplebet.io/)
 - [Łukasz Jan Niemier](https://github.com/hauleth)
 - [Iliia Khaprov](https://github.com/deadtrickster), [VMWare](https://www.vmware.com/)
 
