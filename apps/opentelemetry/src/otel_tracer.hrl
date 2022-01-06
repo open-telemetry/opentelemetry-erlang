@@ -2,7 +2,7 @@
 %% The `tracer' contains the modules to use for span creation,
 %% the sampler to use at creation time and the processors to
 %% run `OnStart' and `OnEnd'.
-%% See OpenTelemetry Tracer spec: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/sdk-tracing.md#tracer-creation
+%% See OpenTelemetry Tracer spec: https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/sdk.md#tracer-creation
 -record(tracer,
         {
          module                  :: module(),
