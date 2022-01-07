@@ -60,13 +60,15 @@ rewrite(_Config) ->
                                                                 <<"00-10000000000000000000000000000000-1000000000000000-00">>},
                                                                {<<"tracestate">>,<<"a=b">>}])),
 
-
-    otel_propagator_text_map:extract([{<<"traceparent">>,
-                                       <<"00-10000000000000000000000000000000-1000000000000000-00">>}]),
+    otel_propagator_text_map:extract([{<<"tracestate">>,<<"a=j,c=d">>},
+                                      {<<"traceparent">>,
+                                       <<"00-10000000000000000000000000000000-1000000000000000-00">>},
+                                      {<<"tracestate">>,<<"a=b,c=d">>}]),
     ?assertEqual(RecordingSpanCtx#span_ctx{is_recording=false,
+                                           tracestate=[{<<"a">>,<<"b">>},{<<"c">>,<<"d">>}],
                                            is_remote=true}, otel_tracer:current_span_ctx()),
 
-    % should not fail on empty Carrier
+    %% should not fail on empty Carrier
     ?assertMatch(Ctx,
                  otel_propagator_trace_context:extract(Ctx, [],
                                                        fun otel_propagator_text_map:default_carrier_keys/1,

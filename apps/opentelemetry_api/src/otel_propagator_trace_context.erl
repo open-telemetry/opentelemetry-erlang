@@ -170,13 +170,13 @@ parse_pairs([Pair | Rest], Acc) ->
     case split(string:trim(Pair)) of
         {K, V} ->
             case re:run(K, ?KEY_MP) =/= nomatch
-                andalso not lists:keymember(K, 1, Acc)
                 andalso re:run(V, ?VALUE_MP) =/= nomatch
             of
                 false ->
                     [];
                 true ->
-                    parse_pairs(Rest, Acc ++ [{K, V}])
+                    %% replace existing key value or append to the end of the list
+                    parse_pairs(Rest, lists:keystore(K, 1, Acc, {K, V}))
             end;
         undefined ->
             []
