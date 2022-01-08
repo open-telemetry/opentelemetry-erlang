@@ -134,7 +134,7 @@ defmodule OpenTelemetry do
   defdelegate timestamp_to_nano(timestamp), to: :opentelemetry
 
   @doc """
-  Convert a native monotonic timestamp to POSIX time of any `:erlang.time_unit/0`.
+  Convert a native monotonic timestamp to POSIX time of any `t::erlang.time_unit/0`.
   Meaning the time since Epoch. Epoch is defined to be 00:00:00 UTC, 1970-01-01.
   """
   @spec convert_timestamp(integer(), :erlang.time_unit()) :: integer()

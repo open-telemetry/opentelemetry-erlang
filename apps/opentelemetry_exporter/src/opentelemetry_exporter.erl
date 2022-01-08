@@ -59,7 +59,7 @@
 %%   <li>`OTEL_EXPORTER_OTLP_TRACES_HEADERS': Additional headers to add to only trace export requests.</li>
 %%   <li>`OTEL_EXPORTER_OTLP_PROTOCOL': The transport protocol to use, supported values: `grpc' and `http_protobuf'. Defaults to `http_protobuf'.</li>
 %%   <li>`OTEL_EXPORTER_OTLP_TRACES_PROTOCOL': The transport protocol to use for exporting traces, supported values: `grpc' and `http_protobuf'. Defaults to `http_protobuf'.</li>
-%%   <li>`OTEL_EXPORTER_OTLP_COMPRESSION': Compression to use, supported value: gzip. Defaults to no compression./li>
+%%   <li>`OTEL_EXPORTER_OTLP_COMPRESSION': Compression to use, supported value: gzip. Defaults to no compression.</li>
 %%   <li>`OTEL_EXPORTER_OTLP_TRACES_COMPRESSION': Compression to use when exporting traces, supported value: gzip. Defaults to no compression.</li>
 %% </ul>
 %%
@@ -78,14 +78,6 @@
          endpoints/2,
          merge_with_environment/1]).
 -endif.
-
-%% dialyzer will warn about having catch all clauses on these
-%% functions because previous clauses cover all cases. But
-%% we want to not crash if something incorrect is passed
-%% through so we ignore those warnings.
--dialyzer({nowarn_function, to_events/2}).
--dialyzer({nowarn_function, to_links/2}).
--dialyzer({nowarn_function, to_tracestate_string/1}).
 
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
@@ -576,41 +568,28 @@ to_status(_) ->
 
 -spec to_events([#event{}]) -> [opentelemetry_exporter_trace_service_pb:event()].
 to_events(Events) ->
-    to_events(Events, []).
-
-to_events([], Acc)->
-    Acc;
-to_events([#event{system_time_nano=Timestamp,
-                  name=Name,
-                  attributes=Attributes} | Rest], Acc) ->
-    to_events(Rest, [#{time_unix_nano => to_unixnano(Timestamp),
-                       name => to_binary(Name),
-                       attributes => to_attributes(otel_attributes:map(Attributes))} | Acc]);
-to_events([_ | Rest], Acc) ->
-    to_events(Rest, Acc).
+    [#{time_unix_nano => to_unixnano(Timestamp),
+       name => to_binary(Name),
+       attributes => to_attributes(otel_attributes:map(Attributes))}
+     || #event{system_time_nano=Timestamp,
+               name=Name,
+               attributes=Attributes} <- Events].
 
 -spec to_links([#link{}]) -> [opentelemetry_exporter_trace_service_pb:link()].
 to_links(Links) ->
-    to_links(Links, []).
+    [#{trace_id => <<TraceId:128>>,
+       span_id => <<SpanId:64>>,
+       trace_state => to_tracestate_string(TraceState),
+       attributes => to_attributes(otel_attributes:map(Attributes)),
+       dropped_attributes_count => 0} || #link{trace_id=TraceId,
+                                               span_id=SpanId,
+                                               attributes=Attributes,
+                                               tracestate=TraceState} <- Links].
 
-to_links([], Acc)->
-    Acc;
-to_links([#link{trace_id=TraceId,
-                span_id=SpanId,
-                attributes=Attributes,
-                tracestate=TraceState} | Rest], Acc) ->
-    to_links(Rest, [#{trace_id => <<TraceId:128>>,
-                      span_id => <<SpanId:64>>,
-                      trace_state => to_tracestate_string(TraceState),
-                      attributes => to_attributes(otel_attributes:map(Attributes)),
-                      dropped_attributes_count => 0} | Acc]);
-to_links([_ | Rest], Acc) ->
-    to_links(Rest, Acc).
+-spec to_tracestate_string(opentelemetry:tracestate()) -> string().
+to_tracestate_string(List) ->
+    lists:join($,, [[Key, $=, Value] || {Key, Value} <- List]).
 
-to_tracestate_string(List) when is_list(List) ->
-    lists:join($,, [[Key, $=, Value] || {Key, Value} <- List]);
-to_tracestate_string(_) ->
-    [].
 
 -spec to_otlp_kind(atom()) -> opentelemetry_exporter_trace_service_pb:'span.SpanKind'().
 to_otlp_kind(?SPAN_KIND_INTERNAL) ->
