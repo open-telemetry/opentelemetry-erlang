@@ -278,12 +278,6 @@ parse_endpoint({Scheme, Host, Port, _}, DefaultSSLOpts) ->
              port => Port,
              path => [],
              ssl_options => update_ssl_opts(HostString, DefaultSSLOpts)}};
-parse_endpoint(Endpoint=#{host := Host, port := _Port, scheme := _Scheme, path := Path}, DefaultSSLOpts) ->
-    HostString = unicode:characters_to_list(Host),
-    {true, maps:merge(#{host => HostString,
-                        path => unicode:characters_to_list(Path),
-                        port => ?DEFAULT_PORT,
-                        ssl_options => update_ssl_opts(HostString, DefaultSSLOpts)}, Endpoint)};
 parse_endpoint(Endpoint=#{host := Host, scheme := _Scheme, path := Path}, DefaultSSLOpts) ->
     HostString = unicode:characters_to_list(Host),
     {true, maps:merge(#{host => unicode:characters_to_list(Host),
