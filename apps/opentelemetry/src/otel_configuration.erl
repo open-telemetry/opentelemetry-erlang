@@ -35,7 +35,7 @@
                resource_detectors => [module()],
                resource_detector_timeout => integer(),
                text_map_propagators := [atom()],
-               traces_exporter := {atom(), term()},
+               traces_exporter := {atom(), term()} | undefined,
                metrics_exporter := {atom(), term()} | undefined,
                processors := list(),
                sampler := {atom(), term()},
