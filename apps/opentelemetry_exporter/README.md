@@ -12,14 +12,14 @@ Currently only supports the Tracer protocol using either GRPC or Protobuffers ov
 
 ### Options to Batch Processor
 
-Exporter configuration can be done as arguments to the batch processor in
-the OpenTelemetry application environment.
+Exporter configuration can be done as arguments to the batch processor in the OpenTelemetry application environment.
+
 
 For an Erlang release in `sys.config`:
 
 ``` erlang
 {opentelemetry,
-  [{processors, 
+  [{processors,
     [{otel_batch_processor,
         #{exporter => {opentelemetry_exporter, #{endpoints =>
         ["http://localhost:9090"],
@@ -31,7 +31,7 @@ The default protocol is `http_protobuf`, to override this and use grpc add
 
 ``` erlang
 {opentelemetry,
-  [{processors, 
+  [{processors,
     [{otel_batch_processor,
         #{exporter => {opentelemetry_exporter, #{protocol => grpc,
                                                  endpoints => ["http://localhost:9090"],
@@ -48,6 +48,38 @@ config :opentelemetry, :processors,
   }
 ```
 
+  [{processors,
+    [{otel_batch_processor, #{exporter => {opentelemetry_exporter, #{}}}}]}]}
+```
+
+An Elixir release uses `releases.exs` or `runtime.ex`:
+
+``` elixir
+config :opentelemetry, :processors,
+  otel_batch_processor: %{exporter: {:opentelemetry_exporter, %{}}}
+```
+
+### The configuration map
+
+The second element of the configuration tuple is a configuration map. It can contain the following keys:
+
+- `protocol` - one of: `http_protobuf`, `grpc` or `http_json`. Defaults to `http_protobuf`. `http_json` is not implemented yet.
+- `endpoints` - A list of endpoints to send traces to. Can take one of the forms described below. By default, exporter sends data to `http://localhost:4318`.
+- `headers` - a list of headers to send to the collector (i.e `[{<<"x-access-key">> <<"secret">>}])`. Defaults to an empty list.
+- `compression` - An atom. Setting it to `gzip` enables gzip compression.
+
+### Endpoints configuration
+
+You can pass your collector endpoints in three forms:
+
+- As a string, i.e `"https://localhost:4000"`.
+- As a map, with the following keys: `#{host => unicode:chardata(), path => unicode:chardata(), port => integer() >= 0 | undefined, scheme => unicode:chardata()}`
+- As a 4 element tuple in format `{Scheme, Host, Port, SSLOptions}`.
+
+Unless specified directly, the port is not inferred from scheme, but defaults to `4318`. If you want to use standard port 443, you need to specify it.
+
+Also, while the endpoints value can be a list, currently only the first endpoint in that list is used to export traces, the rest is effectively ignored.
+
 ### Application Environment
 
 Alternatively the `opentelemetry_exporter` Application can be configured itself.
@@ -62,7 +94,7 @@ Available configuration keys:
 - `otlp_traces_protocol`: The transport protocol to use for exporting traces, supported values: `grpc` and `http_protobuf`. Defaults to `http_protobuf`.
 - `otlp_compression`: Compression type to use, supported values: `gzip`. Defaults to no compression.
 - `otlp_traces_compression`: Compression type to use for exporting traces, supported values: `gzip`. Defaults to no compression.
-    
+
 ``` erlang
 {opentelemetry_exporter,
   [{otlp_protocol, grpc},
@@ -136,4 +168,3 @@ $ mv src/opentelemetry_proto_collector_trace_v_1_trace_service_client.erl src/op
 ```
 
 Then open `src/opentelemetry_trace_service.erl` and fix the module name.
-

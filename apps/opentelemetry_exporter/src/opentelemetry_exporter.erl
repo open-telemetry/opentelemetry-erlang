@@ -17,7 +17,7 @@
 %% environment, the OS environment or directly through a map of options
 %% passed when setting up the exporter in the batch processor.
 %%
-%% `opentelemetry_exporter' application enevironment options are:
+%% `opentelemetry_exporter' application environment options are:
 %%
 %% <ul>
 %%   <li>
