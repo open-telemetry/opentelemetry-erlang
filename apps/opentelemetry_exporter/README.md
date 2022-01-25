@@ -10,10 +10,9 @@ Currently only supports the Tracer protocol using either GRPC or Protobuffers ov
 
 ## Configuration
 
-### Options to Batch Processor
+### Options to span processor
 
-Exporter configuration can be done as arguments to the batch processor in the OpenTelemetry application environment.
-
+Exporter configuration can be done as arguments to the span processor (simple or batch) in the OpenTelemetry application environment.
 
 For an Erlang release in `sys.config`:
 
@@ -32,13 +31,13 @@ The default protocol is `http_protobuf`, to override this and use grpc add
 ``` erlang
 {opentelemetry,
   [{processors,
-    [{otel_batch_processor,
+    [{otel_simple_processor,
         #{exporter => {opentelemetry_exporter, #{protocol => grpc,
                                                  endpoints => ["http://localhost:9090"],
                                                  headers => [{"x-honeycomb-dataset", "experiments"}]}}}}]}]}
 ```
 
-An Elixir release uses `releases.exs`:
+In Elixir, you can use `config.exs` or `runtime.exs`:
 
 ``` elixir
 config :opentelemetry, :processors,
@@ -48,24 +47,13 @@ config :opentelemetry, :processors,
   }
 ```
 
-  [{processors,
-    [{otel_batch_processor, #{exporter => {opentelemetry_exporter, #{}}}}]}]}
-```
-
-An Elixir release uses `releases.exs` or `runtime.ex`:
-
-``` elixir
-config :opentelemetry, :processors,
-  otel_batch_processor: %{exporter: {:opentelemetry_exporter, %{}}}
-```
-
 ### The configuration map
 
 The second element of the configuration tuple is a configuration map. It can contain the following keys:
 
 - `protocol` - one of: `http_protobuf`, `grpc` or `http_json`. Defaults to `http_protobuf`. `http_json` is not implemented yet.
 - `endpoints` - A list of endpoints to send traces to. Can take one of the forms described below. By default, exporter sends data to `http://localhost:4318`.
-- `headers` - a list of headers to send to the collector (i.e `[{<<"x-access-key">> <<"secret">>}])`. Defaults to an empty list.
+- `headers` - a list of headers to send to the collector (i.e `[{<<"x-access-key">> <<"secret">>}]`). Defaults to an empty list.
 - `compression` - An atom. Setting it to `gzip` enables gzip compression.
 
 ### Endpoints configuration
@@ -78,7 +66,7 @@ You can pass your collector endpoints in three forms:
 
 Unless specified directly, the port is not inferred from scheme, but defaults to `4318`. If you want to use standard port 443, you need to specify it.
 
-Also, while the endpoints value can be a list, currently only the first endpoint in that list is used to export traces, the rest is effectively ignored.
+While using `http_protobuf` protocol, currently only the first endpoint in that list is used to export traces, the rest is effectively ignored. `grpc` supports multiple endpoints.
 
 ### Application Environment
 
