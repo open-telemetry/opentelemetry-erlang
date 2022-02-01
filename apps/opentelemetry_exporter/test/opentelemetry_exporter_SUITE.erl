@@ -75,9 +75,9 @@ configuration(_Config) ->
                      opentelemetry_exporter:endpoints(<<"https://localhost:443">>, [])),
 
         ?assertMatch([#{scheme := "https", host := "localhost", port := 443, path := "/used/path"}],
-                     opentelemetry_exporter:endpoints(<<"https://localhost:443/used/path">>, [])),
+                     opentelemetry_exporter:endpoints(<<"https://localhost/used/path">>, [])),
 
-        ?assertMatch([#{scheme := "http", host := "localhost", port := 4318, path := []}],
+        ?assertMatch([#{scheme := "http", host := "localhost", port := 80, path := []}],
                      opentelemetry_exporter:endpoints("http://localhost", [])),
 
         ?assertMatch([], opentelemetry_exporter:endpoints("://badendpoint", [])),
