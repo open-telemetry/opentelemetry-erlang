@@ -19,8 +19,9 @@ all() ->
     [empty_os_environment, sampler, sampler_parent_based, sampler_parent_based_zero,
      sampler_trace_id, sampler_trace_id_default, sampler_parent_based_one,
      log_level, propagators, propagators_b3, propagators_b3multi, otlp_exporter,
-     jaeger_exporter, zipkin_exporter, none_exporter, span_limits, bad_span_limits,
-     bad_app_config, app_env_exporter, deny_list, resource_detectors].
+     jaeger_exporter, zipkin_exporter, none_exporter, app_env_exporter,
+     otlp_metrics_exporter, none_metrics_exporter, span_limits, bad_span_limits,
+     bad_app_config, deny_list, resource_detectors].
 
 init_per_testcase(empty_os_environment, Config) ->
     Vars = [],
@@ -109,6 +110,19 @@ init_per_testcase(jaeger_exporter, Config) ->
     [{os_vars, Vars} | Config];
 init_per_testcase(none_exporter, Config) ->
     Vars = [{"OTEL_TRACES_EXPORTER", "none"}],
+
+    setup_env(Vars),
+
+    [{os_vars, Vars} | Config];
+
+init_per_testcase(otlp_metrics_exporter, Config) ->
+    Vars = [{"OTEL_METRICS_EXPORTER", "otlp"}],
+
+    setup_env(Vars),
+
+    [{os_vars, Vars} | Config];
+init_per_testcase(none_metrics_exporter, Config) ->
+    Vars = [{"OTEL_METRICS_EXPORTER", "none"}],
 
     setup_env(Vars),
 
@@ -280,6 +294,18 @@ app_env_exporter(_Config) ->
     ?assertMatch({someother_exporter, #{}},
                  maps:get(traces_exporter,
                           otel_configuration:merge_with_os([{traces_exporter, {someother_exporter, #{}}}]))),
+
+    ok.
+
+otlp_metrics_exporter(_Config) ->
+    ?assertMatch({opentelemetry_exporter, #{}},
+                 maps:get(metrics_exporter, otel_configuration:merge_with_os([]))),
+
+    ok.
+
+none_metrics_exporter(_Config) ->
+    ?assertMatch(undefined,
+                 maps:get(metrics_exporter, otel_configuration:merge_with_os([]))),
 
     ok.
 
