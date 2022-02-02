@@ -365,8 +365,10 @@ child_spans(Config) ->
 update_span_data(Config) ->
     Tid = ?config(tid, Config),
 
-    Links = [#link{trace_id=0,
-                   span_id=0,
+    LinkTraceId = otel_id_generator:generate_trace_id(),
+    LinkSpanId = otel_id_generator:generate_span_id(),
+    Links = [#link{trace_id=LinkTraceId,
+                   span_id=LinkSpanId,
                    attributes=[],
                    tracestate=[]}],
 
@@ -388,15 +390,26 @@ update_span_data(Config) ->
     ?assertMatch(SpanCtx1, ?current_span_ctx),
     otel_span:end_span(SpanCtx1),
 
-    ?UNTIL_NOT_EQUAL([], ets:match(Tid, #span{trace_id=TraceId,
-                                              span_id=SpanId,
-                                              %% TODO: compare this another way since
-                                              %% attributes are now a record hidden behind a module
-                                              %% attributes=[{<<"key-1">>, <<"value-1">>}],
-                                              %% links=Links,
-                                              status=Status,
-                                              %% events=Events,
-                                              _='_'})).
+    [#span{attributes=A,
+           links=L,
+           events=E}] = ?UNTIL_NOT_EQUAL([], ets:match_object(Tid, #span{trace_id=TraceId,
+                                                                         span_id=SpanId,
+                                                                         status=Status,
+                                                                         _='_'})),
+
+
+    ?assertMatch(#{<<"key-1">> := <<"value-1">>}, otel_attributes:map(A)),
+    ?assertMatch([#link{trace_id=LinkTraceId,
+                        span_id=LinkSpanId}], otel_links:list(L)),
+    ?assertMatch([#event{system_time_nano=_,
+                         name = <<"event-name">>,
+                         attributes=_},
+                  #event{system_time_nano=_,
+                         name=event_1,
+                         attributes=_}], otel_events:list(E)),
+
+    ok.
+
 
 tracer_instrumentation_library(Config) ->
     Tid = ?config(tid, Config),
