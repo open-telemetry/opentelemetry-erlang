@@ -9,7 +9,7 @@ set -e
 
 rebar3 compile
 rebar3 edoc
-version=1.0.0
+version=1.0.1
 
 ex_doc "opentelemetry" $version "_build/default/lib/opentelemetry/ebin" \
   --source-ref v${version} \
