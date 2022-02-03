@@ -31,7 +31,8 @@
 -export([create/1,
          fields/1,
          inject/4,
-         extract/5]).
+         extract/5,
+         report_cb/1]).
 
 -include_lib("kernel/include/logger.hrl").
 
@@ -65,9 +66,9 @@ run_extractors(Context, Extractors, Carrier, CarrierKeysFun, CarrierGetFun) when
                         try otel_propagator_text_map:extract_to(ContextAcc, Propagator, Carrier, CarrierKeysFun, CarrierGetFun)
                         catch
                             C:E:S ->
-                                ?LOG_INFO("text map propagator failed to extract from carrier",
-                                          #{extractor => Propagator, carrier => Carrier,
-                                            class => C, exception => E, stacktrace => S}),
+                                ?LOG_INFO(#{extractor => Propagator, carrier => Carrier,
+                                            class => C, exception => E, stacktrace => S},
+                                          #{report_cb => fun ?MODULE:report_cb/1}),
                                 ContextAcc
                         end
                 end, Context, otel_propagator:builtins_to_modules(Extractors)).
@@ -77,9 +78,18 @@ run_injectors(Context, Injectors, Carrier, Setter) when is_list(Injectors) ->
                         try otel_propagator_text_map:inject_from(Context, Propagator, CarrierAcc, Setter)
                         catch
                             C:E:S ->
-                                ?LOG_INFO("text map propagator failed to inject to carrier",
-                                          #{injector => Propagator, carrier => CarrierAcc,
-                                            class => C, exception => E, stacktrace => S}),
+                                ?LOG_INFO(#{injector => Propagator, carrier => CarrierAcc,
+                                            class => C, exception => E, stacktrace => S},
+                                          #{report_cb => fun ?MODULE:report_cb/1}),
                                 CarrierAcc
                         end
                 end, Carrier, otel_propagator:builtins_to_modules(Injectors)).
+
+report_cb(#{extractor := Propagator, carrier := _Carrier,
+            class := Class, exception := Exception, stacktrace := StackTrace}) ->
+    {"text map propagator failed to extract from carrier: propagator=~ts exception=~ts",
+     [Propagator, otel_utils:format_exception(Class, Exception, StackTrace)]};
+report_cb(#{injector := Propagator, carrier := _Carrier,
+            class := Class, exception := Exception, stacktrace := StackTrace}) ->
+    {"text map propagator failed to inject to carrier: propagator=~ts exception=~ts",
+     [Propagator, otel_utils:format_exception(Class, Exception, StackTrace)]}.
