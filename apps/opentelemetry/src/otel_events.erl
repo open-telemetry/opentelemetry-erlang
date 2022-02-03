@@ -83,7 +83,7 @@ new_event(#{system_time_nano := Timestamp,
            attributes=otel_attributes:new(Attributes, AttributePerEventLimit, AttributeValueLengthLimit)};
 new_event(#{name := Name,
             attributes := Attributes}, AttributePerEventLimit, AttributeValueLengthLimit) ->
-    #event{system_time_nano=erlang:system_time(nanosecond),
+    #event{system_time_nano=opentelemetry:timestamp(),
            name=Name,
            attributes=otel_attributes:new(Attributes, AttributePerEventLimit, AttributeValueLengthLimit)};
 new_event({Time, Name, Attributes}, AttributePerEventLimit, AttributeValueLengthLimit)

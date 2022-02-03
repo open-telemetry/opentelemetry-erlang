@@ -375,7 +375,7 @@ update_span_data(Config) ->
     ?set_current_span(SpanCtx1),
     ?set_attribute(<<"key-1">>, <<"value-1">>),
 
-    Events = opentelemetry:events([{erlang:system_time(nanosecond),
+    Events = opentelemetry:events([{opentelemetry:timestamp(),
                                     <<"event-name">>, []}]),
     Status = opentelemetry:status(0, <<"status">>),
 
