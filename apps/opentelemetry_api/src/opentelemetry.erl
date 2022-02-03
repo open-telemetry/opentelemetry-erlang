@@ -341,7 +341,7 @@ link(_, _, _, _) ->
       Name :: event_name(),
       Attributes :: attributes_map().
 event(Name, Attributes) ->
-    event(erlang:system_time(nanosecond), Name, Attributes).
+    event(opentelemetry:timestamp(), Name, Attributes).
 
 -spec event(Timestamp, Name, Attributes) -> event() | undefined when
       Timestamp :: non_neg_integer(),
@@ -362,7 +362,7 @@ event(_, _, _) ->
     undefined.
 
 events(List) ->
-    Now = erlang:system_time(nanosecond),
+    Now = opentelemetry:timestamp(),
     lists:filtermap(fun({Time, Name, Attributes}) ->
                             case event(Time, Name, Attributes) of
                                 undefined ->
