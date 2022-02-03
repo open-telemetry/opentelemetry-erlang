@@ -278,12 +278,6 @@ parse_endpoint({Scheme, Host, Port, _}, DefaultSSLOpts) ->
              port => Port,
              path => [],
              ssl_options => update_ssl_opts(HostString, DefaultSSLOpts)}};
-parse_endpoint(Endpoint=#{host := Host, port := _Port, scheme := _Scheme, path := Path}, DefaultSSLOpts) ->
-    HostString = unicode:characters_to_list(Host),
-    {true, maps:merge(#{host => HostString,
-                        path => unicode:characters_to_list(Path),
-                        port => ?DEFAULT_PORT,
-                        ssl_options => update_ssl_opts(HostString, DefaultSSLOpts)}, Endpoint)};
 parse_endpoint(Endpoint=#{host := Host, scheme := _Scheme, path := Path}, DefaultSSLOpts) ->
     HostString = unicode:characters_to_list(Host),
     {true, maps:merge(#{host => unicode:characters_to_list(Host),
@@ -291,9 +285,21 @@ parse_endpoint(Endpoint=#{host := Host, scheme := _Scheme, path := Path}, Defaul
                         path => unicode:characters_to_list(Path),
                         ssl_options => update_ssl_opts(HostString, DefaultSSLOpts)}, Endpoint)};
 parse_endpoint(String, DefaultSSLOpts) when is_list(String) orelse is_binary(String) ->
-    parse_endpoint(uri_string:parse(unicode:characters_to_list(String)), DefaultSSLOpts);
+    ParsedUri = maybe_add_scheme_port(uri_string:parse(unicode:characters_to_list(String))),
+    parse_endpoint(ParsedUri, DefaultSSLOpts);
 parse_endpoint(_, _) ->
     false.
+
+maybe_add_scheme_port(Uri=#{port := _Port}) ->
+    Uri;
+maybe_add_scheme_port(Uri=#{scheme := "http"}) ->
+    Uri#{port => 80};
+maybe_add_scheme_port(Uri=#{scheme := "https"}) ->
+    Uri#{port => 443};
+%% an unknown scheme
+maybe_add_scheme_port(Uri) ->
+    Uri.
+
 
 %% if no ssl opts are defined by the user then use defaults from `tls_certificate_check'
 update_ssl_opts(Host, undefined) ->
