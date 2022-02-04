@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 1.0.1 - 2022-02-03
+
+### [API]
+
+#### Fixed
+
+- [W3C Tracestate: Keep last value for duplicate key](https://github.com/open-telemetry/opentelemetry-erlang/pull/346)
+- [add report_cb to format log messages in composite propagator to have more
+  detailed logs](https://github.com/open-telemetry/opentelemetry-erlang/pull/355)
+- [Fix use of wrong timestamp format on events](https://github.com/open-telemetry/opentelemetry-erlang/pull/354)
+
+#### Fixed
+
+### [SDK]
+
+- [Fix use of wrong timestamp format on events](https://github.com/open-telemetry/opentelemetry-erlang/pull/354)
+
+### [Exporter]
+
+#### Fixed
+
+- [use the default port of the scheme (http/https) instead of default OTLP
+  port](https://github.com/open-telemetry/opentelemetry-erlang/pull/354)
+
 ## 1.0.0 - 2022-01-03
 
 ### [SDK]
