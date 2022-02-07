@@ -83,11 +83,18 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
 
--define(DEFAULT_ENDPOINTS, [#{host => "localhost",
-                              path => [],
-                              port => 4318,
-                              scheme => "http"}]).
--define(DEFAULT_PORT, 4318).
+-define(DEFAULT_HTTP_PORT, 4318).
+-define(DEFAULT_HTTP_ENDPOINTS, [#{host => "localhost",
+                                   path => [],
+                                   port => ?DEFAULT_HTTP_PORT,
+                                   scheme => "http"}]).
+
+-define(DEFAULT_GRPC_PORT, 4317).
+-define(DEFAULT_GRPC_ENDPOINTS, [#{host => "localhost",
+                                   path => [],
+                                   port => ?DEFAULT_GRPC_PORT,
+                                   scheme => "http"}]).
+
 -define(DEFAULT_TRACES_PATH, "v1/traces").
 
 -type headers() :: [{unicode:chardata(), unicode:chardata()}].
@@ -124,11 +131,11 @@
 init(Opts) ->
     Opts1 = merge_with_environment(Opts),
     SSLOptions = maps:get(ssl_options, Opts1, undefined),
-    Endpoints = endpoints(maps:get(endpoints, Opts1, ?DEFAULT_ENDPOINTS), SSLOptions),
     Headers = headers(maps:get(headers, Opts1, [])),
     Compression = maps:get(compression, Opts1, undefined),
     case maps:get(protocol, Opts1, http_protobuf) of
         grpc ->
+            Endpoints = endpoints(maps:get(endpoints, Opts1, ?DEFAULT_GRPC_ENDPOINTS), SSLOptions),
             ChannelOpts = maps:get(channel_opts, Opts1, #{}),
             UpdatedChannelOpts = case Compression of
                                    undefined -> ChannelOpts;
@@ -155,11 +162,13 @@ init(Opts) ->
                                 protocol=http_protobuf}}
             end;
         http_protobuf ->
+            Endpoints = endpoints(maps:get(endpoints, Opts1, ?DEFAULT_HTTP_ENDPOINTS), SSLOptions),
             {ok, #state{endpoints=Endpoints,
                         headers=Headers,
                         compression=Compression,
                         protocol=http_protobuf}};
         http_json ->
+            Endpoints = endpoints(maps:get(endpoints, Opts1, ?DEFAULT_HTTP_ENDPOINTS), SSLOptions),
             {ok, #state{endpoints=Endpoints,
                         headers=Headers,
                         compression=Compression,
@@ -278,10 +287,10 @@ parse_endpoint({Scheme, Host, Port, _}, DefaultSSLOpts) ->
              port => Port,
              path => [],
              ssl_options => update_ssl_opts(HostString, DefaultSSLOpts)}};
-parse_endpoint(Endpoint=#{host := Host, scheme := _Scheme, path := Path}, DefaultSSLOpts) ->
+parse_endpoint(Endpoint=#{host := Host, scheme := Scheme, path := Path}, DefaultSSLOpts) ->
     HostString = unicode:characters_to_list(Host),
     {true, maps:merge(#{host => unicode:characters_to_list(Host),
-                        port => ?DEFAULT_PORT,
+                        port => scheme_port(Scheme),
                         path => unicode:characters_to_list(Path),
                         ssl_options => update_ssl_opts(HostString, DefaultSSLOpts)}, Endpoint)};
 parse_endpoint(String, DefaultSSLOpts) when is_list(String) orelse is_binary(String) ->
@@ -289,6 +298,14 @@ parse_endpoint(String, DefaultSSLOpts) when is_list(String) orelse is_binary(Str
     parse_endpoint(ParsedUri, DefaultSSLOpts);
 parse_endpoint(_, _) ->
     false.
+
+scheme_port(http) ->
+    80;
+scheme_port(https) ->
+    443;
+scheme_port(_) ->
+    %% unknown scheme
+    80.
 
 maybe_add_scheme_port(Uri=#{port := _Port}) ->
     Uri;
@@ -337,8 +354,8 @@ merge_with_environment(Opts) ->
     AppOpts = otel_configuration:merge_list_with_environment(config_mapping(), AppEnv, Config),
 
     %% append the default path `/v1/traces` only to the path of otlp_endpoint
-    Opts1 = update_opts(otlp_endpoint, endpoints, ?DEFAULT_ENDPOINTS, AppOpts, Opts, fun endpoints_append_path/1),
-    Opts2 = update_opts(otlp_traces_endpoint, endpoints, ?DEFAULT_ENDPOINTS, AppOpts, Opts1, fun maybe_to_list/1),
+    Opts1 = update_opts(otlp_endpoint, endpoints, ?DEFAULT_HTTP_ENDPOINTS, AppOpts, Opts, fun endpoints_append_path/1),
+    Opts2 = update_opts(otlp_traces_endpoint, endpoints, ?DEFAULT_HTTP_ENDPOINTS, AppOpts, Opts1, fun maybe_to_list/1),
 
     Opts3 = update_opts(otlp_headers, headers, [], AppOpts, Opts2),
     Opts4 = update_opts(otlp_traces_headers, headers, [], AppOpts, Opts3),
@@ -373,6 +390,8 @@ append_path({Scheme, Host, Port, SSLOptions}) ->
     #{scheme => atom_to_list(Scheme), host => Host, port => Port, path => "/v1/traces", ssl_options => SSLOptions};
 append_path(Endpoint=#{path := Path}) ->
     Endpoint#{path => filename:join(Path, ?DEFAULT_TRACES_PATH)};
+append_path(Endpoint=#{}) ->
+    Endpoint#{path => ?DEFAULT_TRACES_PATH};
 append_path(EndpointString) when is_list(EndpointString) orelse is_binary(EndpointString) ->
     Endpoint=#{path := Path} = uri_string:parse(EndpointString),
     Endpoint#{path => filename:join(Path, ?DEFAULT_TRACES_PATH)}.
