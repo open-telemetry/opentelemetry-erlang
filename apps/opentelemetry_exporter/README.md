@@ -54,19 +54,8 @@ The second element of the configuration tuple is a configuration map. It can con
 - `protocol` - one of: `http_protobuf`, `grpc` or `http_json`. Defaults to `http_protobuf`. `http_json` is not implemented yet.
 - `endpoints` - A list of endpoints to send traces to. Can take one of the forms described below. By default, exporter sends data to `http://localhost:4318`.
 - `headers` - a list of headers to send to the collector (i.e `[{<<"x-access-key">> <<"secret">>}]`). Defaults to an empty list.
-- `compression` - An atom. Setting it to `gzip` enables gzip compression.
-
-### Endpoints configuration
-
-You can pass your collector endpoints in three forms:
-
-- As a string, i.e `"https://localhost:4000"`.
-- As a map, with the following keys: `#{host => unicode:chardata(), path => unicode:chardata(), port => integer() >= 0 | undefined, scheme => unicode:chardata()}`
-- As a 4 element tuple in format `{Scheme, Host, Port, SSLOptions}`.
-
-Unless specified directly, the port is not inferred from scheme, but defaults to `4318`. If you want to use standard port 443, you need to specify it.
-
-While using `http_protobuf` protocol, currently only the first endpoint in that list is used to export traces, the rest is effectively ignored. `grpc` supports multiple endpoints.
+- `compression` - an atom. Setting it to `gzip` enables gzip compression.
+- `ssl_options` - a list of SSL options. See Erlang's [SSL docs](https://www.erlang.org/doc/man/ssl.html#TLS/DTLS%20OPTION%20DESCRIPTIONS%20-%20CLIENT) for what options are available.
 
 ### Application Environment
 
