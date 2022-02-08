@@ -21,7 +21,7 @@ all() ->
      log_level, propagators, propagators_b3, propagators_b3multi, otlp_exporter,
      jaeger_exporter, zipkin_exporter, none_exporter, app_env_exporter,
      otlp_metrics_exporter, none_metrics_exporter, span_limits, bad_span_limits,
-     bad_app_config, deny_list, resource_detectors].
+     bad_app_config, deny_list, resource_detectors, span_processors].
 
 init_per_testcase(empty_os_environment, Config) ->
     Vars = [],
@@ -186,6 +186,8 @@ init_per_testcase(bad_app_config, Config) ->
     [{os_vars, []} | Config];
 init_per_testcase(app_env_exporter, Config) ->
 
+    [{os_vars, []} | Config];
+init_per_testcase(span_processors, Config) ->
     [{os_vars, []} | Config].
 
 end_per_testcase(_, Config) ->
@@ -360,6 +362,35 @@ compare_span_limits(Config) ->
 
     %% verifies the defaults because the base record has the defaults set as well
     ?assertEqual(ExpectedRecord, SpanLimits),
+
+    ok.
+
+span_processors(_Config) ->
+    ?assertMatch(#{processors := [{otel_simple_processor, #{}}]},
+                 otel_configuration:merge_with_os([{span_processor, simple}])),
+
+    ?assertMatch(#{processors := [{otel_batch_processor, #{exporter := {opentelemetry_exporter,#{}},
+                                                           exporting_timeout_ms := 2,
+                                                           max_queue_size := 1,
+                                                           scheduled_delay_ms := 15000}}]},
+                 otel_configuration:merge_with_os([{span_processor, batch},
+                                                   {bsp_scheduled_delay_ms, 15000},
+                                                   {bsp_exporting_timeout_ms, 2},
+                                                   {bsp_max_queue_size, 1}])),
+
+    ?assertMatch(#{processors := [{otel_batch_processor, #{exporter := {opentelemetry_exporter,#{}},
+                                                           exporting_timeout_ms := 30000,
+                                                           max_queue_size := 2048,
+                                                           scheduled_delay_ms := 5000}}]},
+                 otel_configuration:merge_with_os([{span_processor, batch},
+                                                   {bsp_scheduled_delay_ms, undefined},
+                                                   {bsp_exporting_timeout_ms, undefined},
+                                                   {bsp_max_queue_size, undefined}])),
+
+    ?assertMatch(#{processors := [{otel_simple_processor, #{exporter := {opentelemetry_exporter,#{}},
+                                                            exporting_timeout_ms := 2}}]},
+                 otel_configuration:merge_with_os([{span_processor, simple},
+                                                   {ssp_exporting_timeout_ms, 2}])),
 
     ok.
 

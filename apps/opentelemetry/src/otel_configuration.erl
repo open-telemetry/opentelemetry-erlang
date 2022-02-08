@@ -25,6 +25,13 @@
 
 -include_lib("kernel/include/logger.hrl").
 
+-define(BATCH_PROCESSOR_DEFAULTS, #{scheduled_delay_ms => 5000,
+                                    exporting_timeout_ms => 30000,
+                                    max_queue_size => 2048,
+                                    exporter => {opentelemetry_exporter, #{}}}).
+-define(SIMPLE_PROCESSOR_DEFAULTS, #{exporting_timeout_ms => 30000,
+                                     exporter => {opentelemetry_exporter, #{}}}).
+
 %% required configuration
 %% using a map instead of a record because there can be more values
 -type t() :: #{log_level := atom(),
@@ -32,8 +39,13 @@
                create_application_tracers := boolean() | undefined,
                id_generator := module(),
                deny_list := [atom()],
-               resource_detectors => [module()],
-               resource_detector_timeout => integer(),
+
+               resource_detectors := [module()],
+               resource_detector_timeout := integer(),
+               bsp_scheduled_delay_ms := integer() | undefined,
+               bsp_exporting_timeout_ms := integer() | undefined,
+               bsp_max_queue_size := integer() | undefined,
+               ssp_exporting_timeout_ms := integer() | undefined,
                text_map_propagators := [atom()],
                traces_exporter := {atom(), term()} | undefined,
                metrics_exporter := {atom(), term()} | undefined,
@@ -60,13 +72,14 @@ new() ->
       resource_detectors => [otel_resource_env_var,
                              otel_resource_app_env],
       resource_detector_timeout => 5000,
+      bsp_scheduled_delay_ms => undefined,
+      bsp_exporting_timeout_ms => undefined,
+      bsp_max_queue_size => undefined,
+      ssp_exporting_timeout_ms => undefined,
       text_map_propagators => [trace_context, baggage],
       traces_exporter => {opentelemetry_exporter, #{}},
       metrics_exporter => {opentelemetry_exporter, #{}},
-      processors => [{otel_batch_processor, #{scheduled_delay_ms => 5000,
-                                              exporting_timeout_ms => 30000,
-                                              max_queue_size => 2048,
-                                              exporter => {opentelemetry_exporter, #{}}}}],
+      processors => [{otel_batch_processor, ?BATCH_PROCESSOR_DEFAULTS}],
       sampler => {parent_based, #{root => always_on}},
       sweeper => #{interval => timer:minutes(10),
                    strategy => drop,
@@ -130,16 +143,58 @@ sweeper(AppEnv, ConfigMap=#{sweeper := DefaultSweeperConfig}) ->
 
 -spec processors(list(), t()) -> t().
 processors(AppEnv, ConfigMap) ->
-    %% builtin processors have OS environment configuration per type of processor
-    %% so we must do an environment merge even with the default processor from
-    %% the ConfigMap to ensure we get all the user's configuration
-    Processors = proplists:get_value(processors, AppEnv, maps:get(processors, ConfigMap)),
+    SpanProcessors = case transform(span_processor, proplists:get_value(span_processor, AppEnv)) of
+                         undefined ->
+                             Processors = proplists:get_value(processors, AppEnv, maps:get(processors, ConfigMap)),
+                             transform(span_processors, Processors);
+                         SpanProcessor ->
+                             case proplists:get_value(processors, AppEnv) of
+                                 undefined ->
+                                     ok;
+                                 _ ->
+                                     ?LOG_INFO("both processors and span_processor set in configuration but "
+                                               "only one should be used. span_processor will be ignored.")
+                             end,
+
+                             [SpanProcessor]
+                     end,
 
     ProcessorsConfig = lists:map(fun({Name, Opts}) ->
-                                         {Name, merge_with_os_environment(config_mappings(Name), Opts)}
-                                 end, Processors),
+                                         Opts1 = merge_processor_config(Name, Opts, AppEnv),
+                                         {Name, Opts1}
+                                 end, SpanProcessors),
 
     ConfigMap#{processors := ProcessorsConfig}.
+
+%% use the top level app env and os env configuration to set processor config values
+merge_processor_config(otel_batch_processor, Opts, AppEnv) ->
+    BatchEnvMapping = [{bsp_scheduled_delay_ms, scheduled_delay_ms},
+                       {bsp_exporting_timeout_ms, exporting_timeout_ms},
+                       {bsp_max_queue_size, max_queue_size},
+                       {traces_exporter, exporter}],
+
+    lists:foldl(fun({K, V}, Acc) ->
+                     case proplists:get_value(K, AppEnv) of
+                         undefined ->
+                             Acc;
+                         Value ->
+                             Acc#{V => Value}
+                     end
+                end, Opts, BatchEnvMapping);
+merge_processor_config(otel_simple_processor, Opts, AppEnv) ->
+    SimpleEnvMapping = [{ssp_exporting_timeout_ms, exporting_timeout_ms}],
+
+    lists:foldl(fun({K, V}, Acc) ->
+                     case proplists:get_value(K, AppEnv) of
+                         undefined ->
+                             Acc;
+                         Value ->
+                             Acc#{V => Value}
+                     end
+                end, Opts, SimpleEnvMapping);
+merge_processor_config(_, Opts, _) ->
+    Opts.
+
 
 %% sampler configuration is unique since it has the _ARG that is a sort of
 %% sub-configuration of the sampler config, and isn't a list.
@@ -208,39 +263,6 @@ update_config_map(OSVar, Key, Transform, Value, ConfigMap) ->
             ConfigMap
     end.
 
--spec merge_with_os_environment([{OSVar, Key, Transform}], map()) -> map()
-              when OSVar :: string(),
-                   Key :: atom(),
-                   Transform :: atom().
-merge_with_os_environment(ConfigMappings, Opts) ->
-    lists:foldl(fun({OSVar, Key, Transform}, Acc) ->
-                        case os:getenv(OSVar) of
-                            false ->
-                                Acc;
-                            OSVal ->
-                                try transform(Transform, OSVal) of
-                                    Transformed ->
-                                        %% unlike the top level config `t()' not every config
-                                        %% key is guaranteed to exist here because it could
-                                        %% have been read from the application environment.
-                                        %% so use `=>' and not `:='
-                                        Acc#{Key => Transformed}
-                                catch
-                                    Kind:Reason:StackTrace ->
-                                        ?LOG_INFO(#{source => transform,
-                                                    kind => Kind,
-                                                    reason => Reason,
-                                                    os_var => OSVar,
-                                                    key => Key,
-                                                    transform => Transform,
-                                                    value => OSVal,
-                                                    stacktrace => StackTrace},
-                                                  #{report_cb => fun ?MODULE:report_cb/1}),
-                                        Acc
-                                end
-                        end
-                end, Opts, ConfigMappings).
-
 report_cb(#{source := transform,
             kind := Kind,
             reason := Reason,
@@ -265,15 +287,15 @@ config_mappings(general_sdk) ->
      {"OTEL_TRACES_EXPORTER", traces_exporter, exporter},
      {"OTEL_METRICS_EXPORTER", metrics_exporter, exporter},
      {"OTEL_RESOURCE_DETECTORS", resource_detectors, existing_atom_list},
-     {"OTEL_RESOURCE_DETECTOR_TIMEOUT", resource_detector_timeout, integer}];
-config_mappings(otel_batch_processor) ->
-    [{"OTEL_BSP_SCHEDULE_DELAY_MILLIS", scheduled_delay_ms, integer},
-     {"OTEL_BSP_EXPORT_TIMEOUT_MILLIS", exporting_timeout_ms, integer},
-     {"OTEL_BSP_MAX_QUEUE_SIZE", max_queue_size, integer},
-     %% a second usage of OTEL_TRACES_EXPORTER to set the exporter used by batch processor
-     {"OTEL_TRACES_EXPORTER", exporter, exporter}
-     %% the following are not supported yet
-     %% {"OTEL_BSP_MAX_EXPORT_BATCH_SIZE", max_export_batch_size, integer}
+     {"OTEL_RESOURCE_DETECTOR_TIMEOUT", resource_detector_timeout, integer},
+
+     {"OTEL_BSP_SCHEDULE_DELAY_MILLIS", bsp_scheduled_delay_ms, integer},
+     {"OTEL_BSP_EXPORT_TIMEOUT_MILLIS", bsp_exporting_timeout_ms, integer},
+     {"OTEL_BSP_MAX_QUEUE_SIZE", bsp_max_queue_size, integer},
+     %% the following is not supported yet
+     %% {"OTEL_BSP_MAX_EXPORT_BATCH_SIZE", bsp_max_export_batch_size, integer}
+
+     {"OTEL_SSP_EXPORT_TIMEOUT_MILLIS", ssp_exporting_timeout_ms, integer}
     ];
 config_mappings(span_limits) ->
     [{"OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", attribute_count_limit, integer},
@@ -290,9 +312,7 @@ config_mappings(sweeper) ->
      {"OTEL_SPAN_SWEEPER_STRATEGY", strategy, atom_or_fun},
      {"OTEL_SPAN_SWEEPER_SPAN_TTL", span_ttl, integer_infinity},
      {"OTEL_SPAN_SWEEPER_STORAGE_SIZE", storage_size, integer_infinity}
-    ];
-config_mappings(_) ->
-     [].
+    ].
 
 transform(_, undefined) ->
     undefined;
@@ -427,7 +447,18 @@ transform(propagator, Value) when Value =:= "b3" ;
 transform(propagator, Propagator) ->
     ?LOG_WARNING("Ignoring unknown propagator ~ts in OS environment variable $OTEL_PROPAGATORS",
                  [Propagator]),
-    undefined.
+    undefined;
+transform(span_processors, Processors) when is_list(Processors) ->
+    [transform(span_processor, Processor) || Processor <- Processors];
+transform(span_processors, Unknown) ->
+    ?LOG_WARNING("processors value must be a list, but ~ts given. No span processors will be used", [Unknown]),
+    [];
+transform(span_processor, batch) ->
+    {otel_batch_processor, ?BATCH_PROCESSOR_DEFAULTS};
+transform(span_processor, simple) ->
+    {otel_simple_processor, ?SIMPLE_PROCESSOR_DEFAULTS};
+transform(span_processor, SpanProcessor) ->
+    SpanProcessor.
 
 probability_string_to_float(Probability) ->
     try list_to_float(Probability) of
