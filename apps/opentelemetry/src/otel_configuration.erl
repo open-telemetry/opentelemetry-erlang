@@ -309,15 +309,15 @@ transform(existing_atom_list, String) when is_list(String) ->
                                     false
                             end
                     end, List);
-transform(exporter, "otlp") ->
+transform(exporter, Exporter) when Exporter =:= "otlp" ; Exporter =:= otlp ->
     {opentelemetry_exporter, #{}};
-transform(exporter, "jaeger") ->
+transform(exporter, Exporter) when Exporter =:= "jaeger" ; Exporter =:= jaeger ->
     ?LOG_WARNING("configuring jaeger exporter through OTEL_TRACES_EXPORTER is not yet supported ", []),
     undefined;
-transform(exporter, "zipkin") ->
+transform(exporter, Exporter)  when Exporter =:= "zipkin" ; Exporter =:= zipkin ->
     ?LOG_WARNING("configuring zipkin exporter through OTEL_TRACES_EXPORTER is not yet supported ", []),
     undefined;
-transform(exporter, "none") ->
+transform(exporter, Exporter) when Exporter =:= "none" ; Exporter =:= none ->
     undefined;
 transform(exporter, Value={Term, _}) when is_atom(Term) ->
     Value;

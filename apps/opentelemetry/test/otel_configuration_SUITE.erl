@@ -295,6 +295,18 @@ app_env_exporter(_Config) ->
                  maps:get(traces_exporter,
                           otel_configuration:merge_with_os([{traces_exporter, {someother_exporter, #{}}}]))),
 
+    ?assertMatch({opentelemetry_exporter, #{}},
+                 maps:get(traces_exporter,
+                          otel_configuration:merge_with_os([{traces_exporter, otlp}]))),
+
+    ?assertMatch(undefined,
+                 maps:get(traces_exporter,
+                          otel_configuration:merge_with_os([{traces_exporter, jaeger}]))),
+
+    ?assertMatch(undefined,
+                 maps:get(traces_exporter,
+                          otel_configuration:merge_with_os([{traces_exporter, zipkin}]))),
+
     ok.
 
 otlp_metrics_exporter(_Config) ->
