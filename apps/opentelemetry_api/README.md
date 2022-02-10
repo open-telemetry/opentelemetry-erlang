@@ -68,4 +68,6 @@ and on [hex.pm](https://hex.pm) under the [OpenTelemetry organization](https://h
 
 ## Contributing
 
-See the [contributing file](CONTRIBUTING.md).
+Read OpenTelemetry project [contributing
+guide](https://github.com/open-telemetry/community/blob/main/CONTRIBUTING.md)
+for general information about the project.
