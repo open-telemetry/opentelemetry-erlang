@@ -8,21 +8,7 @@
     stdlib,
     opentelemetry_api
    ]},
-  {env, [{sampler, {parent_based, #{root => always_on}}}, % default sampler
-
-         {text_map_propagators, [trace_context, baggage]},
-
-         %% list of disabled tracers
-         {deny_list, []},
-
-         {resource_detectors, [otel_resource_env_var,
-                               otel_resource_app_env]},
-
-         %% list of span processors
-         {processors, [%% #{id => my_processor,
-                       %%   module => otel_batch_processor,
-                       %%   config => #{}}
-                        ]}]},
+  {env, []},
   {modules, []},
 
   {doc, "doc"},
