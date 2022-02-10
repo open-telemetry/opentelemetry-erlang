@@ -20,3 +20,12 @@ ex_doc "opentelemetry_exporter" $version "_build/default/lib/opentelemetry_expor
   --source-ref v${version} \
   --config apps/opentelemetry_exporter/docs.config $@ \
   --output "apps/opentelemetry_exporter/doc"
+
+pushd apps/opentelemetry_api
+mix deps.get
+mix compile
+popd
+ex_doc "opentelemetry_api" $version "apps/opentelemetry_api/_build/dev/lib/opentelemetry_api/ebin" \
+  --source-ref v${version} \
+  --config apps/opentelemetry_api/docs.config $@ \
+  --output "apps/opentelemetry_api/doc"
