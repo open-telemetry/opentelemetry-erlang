@@ -17,7 +17,7 @@
 %% environment, the OS environment or directly through a map of options
 %% passed when setting up the exporter in the batch processor.
 %%
-%% `opentelemetry_exporter' application enevironment options are:
+%% `opentelemetry_exporter' application environment options are:
 %%
 %% <ul>
 %%   <li>
@@ -62,6 +62,35 @@
 %%   <li>`OTEL_EXPORTER_OTLP_COMPRESSION': Compression to use, supported value: gzip. Defaults to no compression.</li>
 %%   <li>`OTEL_EXPORTER_OTLP_TRACES_COMPRESSION': Compression to use when exporting traces, supported value: gzip. Defaults to no compression.</li>
 %% </ul>
+%%
+%% You can also set these configuration values in the map passed to the
+%% opentelemetry processor configuration.
+%% <ul>
+%%   <li>`endpoints': A list of endpoints to send traces to. Can take one of the forms described below. By default, exporter sends data to `http://localhost:4318'.</li>
+%%   <li>`headers': List of additional headers to add to export requests.</li>
+%%   <li>`protocol': The transport protocol to use, supported values: `grpc' and `http_protobuf'. Defaults to `http_protobuf'.</li>
+%%   <li>`compression': Compression to use, supported value: `gzip'. Defaults to no compression.</li>
+%%   <li>`ssl_options': a list of SSL options.  See Erlang's <a href='https://www.erlang.org/doc/man/ssl.html#TLS/DTLS%20OPTION%20DESCRIPTIONS%20-%20CLIENT'>SSL docs</a> for what options are available.</li>
+%% </ul>
+%%
+%% Endpoints configuration
+%%
+%% You can pass your collector endpoints in three forms:
+%%
+%% <ul>
+%%   <li> As a string, i.e `"https://localhost:4000"'.</li>
+%%   <li> As a map, with the following keys:
+%%     <ul>
+%%       <li>`host => unicode:chardata()'</li>
+%%       <li>`path => unicode:chardata()'</li>
+%%       <li>`port => integer() >= 0 | undefined'</li>
+%%       <li>`scheme => unicode:chardata()'</li>
+%%     </ul>
+%%   </li>
+%%   <li> As a 4 element tuple in format `{Scheme, Host, Port, SSLOptions}'.</li>
+%% </ul>
+%%
+%% While using `http_protobuf' protocol, currently only the first endpoint in that list is used to export traces, the rest is effectively ignored. `grpc' supports multiple endpoints.
 %%
 %% @end
 %%%-------------------------------------------------------------------------
