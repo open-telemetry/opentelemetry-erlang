@@ -10,56 +10,9 @@ Currently only supports the Tracer protocol using either GRPC or Protobuffers ov
 
 ## Configuration
 
-### Options to span processor
+By default the exporter will use HTTP to export protobuf encoded Spans to
+`http://localhost:4138/v1/traces`. 
 
-Exporter configuration can be done as arguments to the span processor (simple or batch) in the OpenTelemetry application environment.
-
-For an Erlang release in `sys.config`:
-
-``` erlang
-{opentelemetry,
-  [{processors,
-    [{otel_batch_processor,
-        #{exporter => {opentelemetry_exporter, #{endpoints =>
-        ["http://localhost:9090"],
-            headers => [{"x-honeycomb-dataset", "experiments"}]}}}}]}]}
-```
-
-The default protocol is `http_protobuf`, to override this and use grpc add
-`protocol` to the config map:
-
-``` erlang
-{opentelemetry,
-  [{processors,
-    [{otel_simple_processor,
-        #{exporter => {opentelemetry_exporter, #{protocol => grpc,
-                                                 endpoints => ["http://localhost:9090"],
-                                                 headers => [{"x-honeycomb-dataset", "experiments"}]}}}}]}]}
-```
-
-In Elixir, you can use `config.exs` or `runtime.exs`:
-
-``` elixir
-config :opentelemetry, :processors,
-  otel_batch_processor: %{
-    exporter: {:opentelemetry_exporter, %{endpoints: ["http://localhost:9090"],
-                                          headers: [{"x-honeycomb-dataset", "experiments"}]}}
-  }
-```
-
-### The configuration map
-
-The second element of the configuration tuple is a configuration map. It can contain the following keys:
-
-- `protocol` - one of: `http_protobuf`, `grpc` or `http_json`. Defaults to `http_protobuf`. `http_json` is not implemented yet.
-- `endpoints` - A list of endpoints to send traces to. Can take one of the forms described below. By default, exporter sends data to `http://localhost:4318`.
-- `headers` - a list of headers to send to the collector (i.e `[{<<"x-access-key">> <<"secret">>}]`). Defaults to an empty list.
-- `compression` - an atom. Setting it to `gzip` enables gzip compression.
-- `ssl_options` - a list of SSL options. See Erlang's [SSL docs](https://www.erlang.org/doc/man/ssl.html#TLS/DTLS%20OPTION%20DESCRIPTIONS%20-%20CLIENT) for what options are available.
-
-### Application Environment
-
-Alternatively the `opentelemetry_exporter` Application can be configured itself.
 Available configuration keys:
 
 - `otlp_endpoint`: The URL to send traces and metrics to, for traces the path `v1/traces` is appended to the path in the URL.
@@ -123,6 +76,56 @@ OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=grpc
 OTEL_EXPORTER_OTLP_TRACES_COMPRESSION=gzip
 OTEL_EXPORTER_OTLP_TRACES_HEADERS=x-honeycomb-team=<HONEYCOMB API TOKEN>,x-honeycomb-dataset=experiments
 ```
+
+### Options to span processor
+
+In addition to using the environment variables the exporter accepts a map of
+arguments. The argument to the exporter's `init` function can be configured as
+part of the Span Processor (simple or batch) in the OpenTelemetry application
+environment.
+
+For an Erlang release in `sys.config`:
+
+``` erlang
+{opentelemetry,
+  [{processors,
+    [{otel_batch_processor,
+        #{exporter => {opentelemetry_exporter, #{endpoints =>
+        ["http://localhost:9090"],
+            headers => [{"x-honeycomb-dataset", "experiments"}]}}}}]}]}
+```
+
+The default protocol is `http_protobuf`, to override this and use grpc add
+`protocol` to the config map:
+
+``` erlang
+{opentelemetry,
+  [{processors,
+    [{otel_simple_processor,
+        #{exporter => {opentelemetry_exporter, #{protocol => grpc,
+                                                 endpoints => ["http://localhost:9090"],
+                                                 headers => [{"x-honeycomb-dataset", "experiments"}]}}}}]}]}
+```
+
+In Elixir, you can use `config.exs` or `runtime.exs`:
+
+``` elixir
+config :opentelemetry, :processors,
+  otel_batch_processor: %{
+    exporter: {:opentelemetry_exporter, %{endpoints: ["http://localhost:9090"],
+                                          headers: [{"x-honeycomb-dataset", "experiments"}]}}
+  }
+```
+
+#### The configuration map
+
+The second element of the configuration tuple is a configuration map. It can contain the following keys:
+
+- `protocol` - one of: `http_protobuf`, `grpc` or `http_json`. Defaults to `http_protobuf`. `http_json` is not implemented yet.
+- `endpoints` - A list of endpoints to send traces to. Can take one of the forms described below. By default, exporter sends data to `http://localhost:4318`.
+- `headers` - a list of headers to send to the collector (i.e `[{<<"x-access-key">> <<"secret">>}]`). Defaults to an empty list.
+- `compression` - an atom. Setting it to `gzip` enables gzip compression.
+- `ssl_options` - a list of SSL options. See Erlang's [SSL docs](https://www.erlang.org/doc/man/ssl.html#TLS/DTLS%20OPTION%20DESCRIPTIONS%20-%20CLIENT) for what options are available.
 
 ## Contributing
 
