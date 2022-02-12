@@ -48,7 +48,7 @@ them through either the OS or Application environment.
 
 Spans are created by Tracers and each Tracer is associated with a [name and
 version](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#get-a-tracer).
-The name and version can be anything but the macros provided by the API will use
+The name and version can be anything, but the macros provided by the API will always use
 a Tracer with name/version of the OTP Application the macro is used in. To
 facilitate this a Tracer is created for each available Application when the SDK
 boots. It relies on mapping modules to Applications, so if there is a huge
