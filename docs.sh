@@ -13,7 +13,7 @@ version=1.0.1
 
 ex_doc "opentelemetry" $version "_build/default/lib/opentelemetry/ebin" \
   --source-ref v${version} \
-  --config docs.config $@ \
+  --config apps/opentelemetry/docs.config $@ \
   --output "apps/opentelemetry/doc"
 
 ex_doc "opentelemetry_exporter" $version "_build/default/lib/opentelemetry_exporter/ebin" \

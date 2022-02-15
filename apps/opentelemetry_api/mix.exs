@@ -19,10 +19,8 @@ defmodule OpenTelemetry.MixProject do
       # homepage_url: "http://YOUR_PROJECT_HOMEPAGE",
       test_coverage: [tool: :covertool],
       docs: [
-        markdown_processor: ExDoc.Markdown.Cmark,
-        main: "OpenTelemetry",
+        main: "readme"
         # logo: "path/to/logo.png",
-        extras: erlang_docs()
       ],
       aliases: [
         # when build docs first build edocs with rebar3
@@ -52,7 +50,6 @@ defmodule OpenTelemetry.MixProject do
       dep when is_atom(dep) -> {dep, ">= 0.0.0"}
     end)
     |> Enum.concat([
-      {:cmark, "~> 0.7", only: :dev, runtime: false},
       {:ex_doc, "0.21.0", only: :dev, runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:covertool, ">= 0.0.0", only: :test}
@@ -70,15 +67,6 @@ defmodule OpenTelemetry.MixProject do
         "OpenTelemetry.io" => "https://opentelemetry.io"
       }
     ]
-  end
-
-  def erlang_docs() do
-    files =
-      for file <- Path.wildcard("edoc/*.md"),
-          file != "edoc/README.md",
-          do: {String.to_atom(file), [title: Path.basename(file, ".md")]}
-
-    [{:"README.md", [title: "Overview"]} | files]
   end
 
   defp load_config do
