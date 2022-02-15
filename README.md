@@ -76,7 +76,7 @@ def project do
   [
     releases: [
       my_instrumented_release: [
-        applications: [:runtime_tools, :opentelemetry_exporter, {:opentelemetry, :temporary}, :my_instrumented_app]
+        applications: [opentelemetry_exporter: :permanent, opentelemetry: :temporary, my_instrumented_app: :permanent]
       ],
 
       ...
