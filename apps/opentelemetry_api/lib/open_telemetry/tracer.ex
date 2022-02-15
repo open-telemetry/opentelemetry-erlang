@@ -168,6 +168,16 @@ defmodule OpenTelemetry.Tracer do
   end
 
   @doc """
+  Creates and sets the Status of the currently active Span.
+
+  If used, this will override the default Span Status, which is `:unset`.
+  """
+  @spec set_status(OpenTelemetry.status_code(), String.t()) :: boolean()
+  def set_status(code, message) do
+    :otel_span.set_status(:otel_tracer.current_span_ctx(), code, message)
+  end
+
+  @doc """
   Sets the Status of the currently active Span.
 
   If used, this will override the default Span Status, which is `:unset`.

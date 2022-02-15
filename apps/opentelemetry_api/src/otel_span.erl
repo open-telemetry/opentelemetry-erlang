@@ -35,6 +35,7 @@
          record_exception/5,
          record_exception/6,
          set_status/2,
+         set_status/3,
          update_name/2,
          end_span/1,
          end_span/2]).
@@ -258,6 +259,13 @@ set_status(SpanCtx=#span_ctx{span_sdk={Module, _}}, Status) when ?is_recording(S
     Module:set_status(SpanCtx, Status);
 set_status(_, _) ->
     false.
+
+-spec set_status(SpanCtx, Code, Message) -> boolean() when
+      Code :: opentelemetry:status_code(),
+      Message :: unicode:unicode_binary(),
+      SpanCtx :: opentelemetry:span_ctx().
+set_status(SpanCtx, Code, Message) ->
+    set_status(SpanCtx, opentelemetry:status(Code, Message)).
 
 -spec update_name(SpanCtx, Name) -> boolean() when
       Name :: opentelemetry:span_name(),

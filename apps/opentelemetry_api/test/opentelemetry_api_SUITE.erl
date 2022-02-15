@@ -212,6 +212,7 @@ update_span_data(_Config) ->
     ?assertMatch(#status{code = ?OTEL_STATUS_OK, message = <<"">>}, Status),
 
     otel_span:set_status(SpanCtx1, Status),
+    otel_span:set_status(SpanCtx1, ?OTEL_STATUS_ERROR, <<"this is not ok">>),
     otel_span:add_events(SpanCtx1, Events),
 
     ?assertMatch(SpanCtx1, ?current_span_ctx),

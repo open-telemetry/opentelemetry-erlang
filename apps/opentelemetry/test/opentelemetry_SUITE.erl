@@ -373,15 +373,18 @@ update_span_data(Config) ->
                    tracestate=[]}],
 
     SpanCtx1=#span_ctx{trace_id=TraceId,
-                       span_id=SpanId} = ?start_span(<<"span-1">>, #{links => Links}),
+                       span_id=SpanId,
+                       is_recording=true} = ?start_span(<<"span-1">>, #{links => Links}),
     ?set_current_span(SpanCtx1),
     ?set_attribute(<<"key-1">>, <<"value-1">>),
 
     Events = opentelemetry:events([{opentelemetry:timestamp(),
                                     <<"event-name">>, []}]),
-    Status = opentelemetry:status(0, <<"status">>),
+    Status = opentelemetry:status(?OTEL_STATUS_ERROR, <<"status">>),
 
-    otel_span:set_status(SpanCtx1, Status),
+    ?assert(otel_span:set_status(SpanCtx1, Status)),
+    %% returns false if called with something that isn't a status record
+    ?assertNot(otel_span:set_status(SpanCtx1, notastatus)),
 
     %% returning not false means it successfully called the SDK
     ?assertNotEqual(false, otel_span:add_event(SpanCtx1, event_1, #{<<"attr-1">> => <<"attr-value-1">>})),

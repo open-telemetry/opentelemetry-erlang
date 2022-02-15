@@ -105,6 +105,8 @@ defmodule OpenTelemetry do
   """
   @type status() :: :opentelemetry.status()
 
+  @type status_code() :: :opentelemetry.status_code()
+
   defdelegate get_tracer(name), to: :opentelemetry
   defdelegate get_tracer(name, vsn, schema_url), to: :opentelemetry
   defdelegate set_default_tracer(t), to: :opentelemetry
