@@ -74,7 +74,7 @@ zipkin_span(Span, LocalEndpoint) ->
        kind=to_kind(Span#span.kind),
        parent_id=to_parent_id(Span#span.parent_span_id),
        annotations=to_annotations(otel_events:list(Span#span.events)),
-       tags=to_tags(Span#span.attributes),
+       tags=to_tags(Span),
        local_endpoint=LocalEndpoint
        %% remote_endpoint %% TODO: get from attributes?
      }.
@@ -103,22 +103,42 @@ to_string(Value) when is_list(Value) ;
                       is_binary(Value) ->
     Value;
 to_string(Value) ->
-    io_lib:format("~p", [Value]).
+    io_lib:format("~tp", [Value]).
 
 to_binary_string(Value) when is_function(Value) ->
     to_binary_string(Value());
-to_binary_string(Value) when is_list(Value) ->
-    list_to_binary(Value);
 to_binary_string(Value) when is_integer(Value) ->
     integer_to_binary(Value);
 to_binary_string(Value) when is_float(Value) ->
     float_to_binary(Value);
 to_binary_string(Value) when is_atom(Value) ->
     atom_to_binary(Value, utf8);
+to_binary_string(Value) when is_binary(Value) ->
+    Value;
 to_binary_string(Value) ->
-    Value.
+    %% attributes already check that the value is a binary string
+    %% and not a list string, so any other term, like a list,
+    %% can just be turned into a string of term
+    case unicode:characters_to_binary(io_lib:format("~tp", [Value])) of
+        S when is_binary(S) ->
+            S;
+        _ ->
+            %% {error, _, _} or {incomplete, _, _}
+            <<>>
+    end.
 
-to_tags(Attributes) ->
+to_tags(Span) ->
+    status_to_tags(Span#span.status) ++ attributes_to_tags(Span#span.attributes).
+
+status_to_tags(#status{code=?OTEL_STATUS_ERROR,
+                       message=Message}) ->
+    [{<<"otel.status_code">>, <<"ERROR">>}, {<<"error">>, Message}];
+status_to_tags(#status{code=?OTEL_STATUS_OK}) ->
+    [{<<"otel.status_code">>, <<"OK">>}];
+status_to_tags(_) ->
+    [].
+
+attributes_to_tags(Attributes) ->
     maps:fold(fun(Name, Value, Acc) ->
                      [{to_binary_string(Name), to_binary_string(Value)} | Acc]
               end, [], otel_attributes:map(Attributes)).

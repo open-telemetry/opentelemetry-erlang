@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [Simpler configuration of span processors](https://github.com/open-telemetry/opentelemetry-erlang/pull/357)
 
+### [Zipkin Exporter]
+
+#### Fixed
+
+- Attribute values that are lists are converted to strings in Zipkin tags
+- Status converted to Zipkin tags
+
 ## 1.0.1 - 2022-02-03
 
 ### [API]
