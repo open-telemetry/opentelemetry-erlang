@@ -103,20 +103,23 @@ to_string(Value) when is_list(Value) ;
                       is_binary(Value) ->
     Value;
 to_string(Value) ->
-    io_lib:format("~p", [Value]).
+    io_lib:format("~tp", [Value]).
 
 to_binary_string(Value) when is_function(Value) ->
     to_binary_string(Value());
-to_binary_string(Value) when is_list(Value) ->
-    list_to_binary(Value);
 to_binary_string(Value) when is_integer(Value) ->
     integer_to_binary(Value);
 to_binary_string(Value) when is_float(Value) ->
     float_to_binary(Value);
 to_binary_string(Value) when is_atom(Value) ->
     atom_to_binary(Value, utf8);
+to_binary_string(Value) when is_binary(Value) ->
+    Value;
 to_binary_string(Value) ->
-    Value.
+    %% attributes already check that the value is a binary string
+    %% and not a list string, so any other term, like a list,
+    %% can just be turned into a string of term
+    unicode:characters_to_binary(io_lib:format("~tp", [Value])).
 
 to_tags(Attributes) ->
     maps:fold(fun(Name, Value, Acc) ->
