@@ -74,7 +74,7 @@ zipkin_span(Span, LocalEndpoint) ->
        kind=to_kind(Span#span.kind),
        parent_id=to_parent_id(Span#span.parent_span_id),
        annotations=to_annotations(otel_events:list(Span#span.events)),
-       tags=to_tags(Span#span.attributes),
+       tags=to_tags(Span),
        local_endpoint=LocalEndpoint
        %% remote_endpoint %% TODO: get from attributes?
      }.
@@ -121,7 +121,18 @@ to_binary_string(Value) ->
     %% can just be turned into a string of term
     unicode:characters_to_binary(io_lib:format("~tp", [Value])).
 
-to_tags(Attributes) ->
+to_tags(Span) ->
+    status_to_tags(Span#span.status) ++ attributes_to_tags(Span#span.attributes).
+
+status_to_tags(#status{code=?OTEL_STATUS_ERROR,
+                       message=Message}) ->
+    [{<<"otel.status_code">>, <<"ERROR">>}, {<<"error">>, Message}];
+status_to_tags(#status{code=?OTEL_STATUS_OK}) ->
+    [{<<"otel.status_code">>, <<"OK">>}];
+status_to_tags(_) ->
+    [].
+
+attributes_to_tags(Attributes) ->
     maps:fold(fun(Name, Value, Acc) ->
                      [{to_binary_string(Name), to_binary_string(Value)} | Acc]
               end, [], otel_attributes:map(Attributes)).
