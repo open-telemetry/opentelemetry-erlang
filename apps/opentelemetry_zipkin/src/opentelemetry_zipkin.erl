@@ -119,7 +119,13 @@ to_binary_string(Value) ->
     %% attributes already check that the value is a binary string
     %% and not a list string, so any other term, like a list,
     %% can just be turned into a string of term
-    unicode:characters_to_binary(io_lib:format("~tp", [Value])).
+    case unicode:characters_to_binary(io_lib:format("~tp", [Value])) of
+        S when is_binary(S) ->
+            S;
+        _ ->
+            %% {error, _, _} or {incomplete, _, _}
+            <<>>
+    end.
 
 to_tags(Span) ->
     status_to_tags(Span#span.status) ++ attributes_to_tags(Span#span.attributes).
