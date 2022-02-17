@@ -394,9 +394,11 @@ update_span_data(Config) ->
                          message = <<>>}, UnsetStatus),
     ?assertEqual(UnsetStatus, opentelemetry:status(?OTEL_STATUS_UNSET)),
 
-    ?assert(otel_span:set_status(SpanCtx1, ErrorStatus)),
+    ?assert(otel_span:set_status(SpanCtx1, OkStatus)),
+    %% spec does not allow setting status to error/unset after it is ok
+    ?assertNot(otel_span:set_status(SpanCtx1, ErrorStatus)),
     ?assertNot(otel_span:set_status(SpanCtx1, ?OTEL_STATUS_ERROR)),
-    %% returns false if called with something that isn't a status record
+    %% %% returns false if called with something that isn't a status record
     ?assertNot(otel_span:set_status(SpanCtx1, notastatus)),
 
     %% returning not false means it successfully called the SDK
@@ -410,7 +412,7 @@ update_span_data(Config) ->
            links=L,
            events=E}] = ?UNTIL_NOT_EQUAL([], ets:match_object(Tid, #span{trace_id=TraceId,
                                                                          span_id=SpanId,
-                                                                         status=ErrorStatus,
+                                                                         status=OkStatus,
                                                                          _='_'})),
 
 
