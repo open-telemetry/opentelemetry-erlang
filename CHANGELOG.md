@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [Simpler configuration of span processors](https://github.com/open-telemetry/opentelemetry-erlang/pull/357)
 
+#### Fixed
+
+- Span Status: Ignore status changes that don't follow the [define precedence in
+  the spec](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#set-status)
+
 ### [Zipkin Exporter]
 
 #### Fixed
