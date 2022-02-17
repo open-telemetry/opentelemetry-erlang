@@ -380,9 +380,22 @@ update_span_data(Config) ->
 
     Events = opentelemetry:events([{opentelemetry:timestamp(),
                                     <<"event-name">>, []}]),
-    Status = opentelemetry:status(?OTEL_STATUS_ERROR, <<"status">>),
+    ErrorStatus = opentelemetry:status(?OTEL_STATUS_ERROR, <<"status">>),
+    ?assertMatch(#status{code=?OTEL_STATUS_ERROR,
+                         message = <<"status">>}, ErrorStatus),
 
-    ?assert(otel_span:set_status(SpanCtx1, Status)),
+    OkStatus = opentelemetry:status(?OTEL_STATUS_OK, <<"will be ignored">>),
+    ?assertMatch(#status{code=?OTEL_STATUS_OK,
+                         message = <<>>}, OkStatus),
+    ?assertEqual(OkStatus, opentelemetry:status(?OTEL_STATUS_OK)),
+
+    UnsetStatus = opentelemetry:status(?OTEL_STATUS_UNSET, <<"will be ignored">>),
+    ?assertMatch(#status{code=?OTEL_STATUS_UNSET,
+                         message = <<>>}, UnsetStatus),
+    ?assertEqual(UnsetStatus, opentelemetry:status(?OTEL_STATUS_UNSET)),
+
+    ?assert(otel_span:set_status(SpanCtx1, ErrorStatus)),
+    ?assertNot(otel_span:set_status(SpanCtx1, ?OTEL_STATUS_ERROR)),
     %% returns false if called with something that isn't a status record
     ?assertNot(otel_span:set_status(SpanCtx1, notastatus)),
 
@@ -397,7 +410,7 @@ update_span_data(Config) ->
            links=L,
            events=E}] = ?UNTIL_NOT_EQUAL([], ets:match_object(Tid, #span{trace_id=TraceId,
                                                                          span_id=SpanId,
-                                                                         status=Status,
+                                                                         status=ErrorStatus,
                                                                          _='_'})),
 
 

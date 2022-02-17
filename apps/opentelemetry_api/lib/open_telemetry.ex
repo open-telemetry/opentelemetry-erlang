@@ -191,6 +191,12 @@ defmodule OpenTelemetry do
   defdelegate events(event_list), to: :opentelemetry
 
   @doc """
+  Creates a Status with an empty description.
+  """
+  @spec status(:opentelemetry.status_code()) :: status()
+  defdelegate status(code), to: :opentelemetry
+
+  @doc """
   Creates a Status.
   """
   @spec status(:opentelemetry.status_code(), String.t()) :: status()

@@ -52,6 +52,7 @@
          event/2,
          event/3,
          events/1,
+         status/1,
          status/2,
          verify_and_set_term/3]).
 
@@ -380,6 +381,11 @@ events(List) ->
                        (_) ->
                             false
                     end, List).
+
+-spec status(Code) -> status() | undefined when
+      Code :: status_code().
+status(Code) ->
+    status(Code, <<>>).
 
 -spec status(Code, Message) -> status() | undefined when
       Code :: status_code(),

@@ -257,6 +257,11 @@ record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) ->
       SpanCtx :: opentelemetry:span_ctx().
 set_status(SpanCtx=#span_ctx{span_sdk={Module, _}}, Status) when ?is_recording(SpanCtx) ->
     Module:set_status(SpanCtx, Status);
+set_status(SpanCtx=#span_ctx{span_sdk={Module, _}}, Code) when ?is_recording(SpanCtx) andalso
+                                                               (Code =:= ?OTEL_STATUS_UNSET orelse
+                                                                Code =:= ?OTEL_STATUS_OK orelse
+                                                                Code =:= ?OTEL_STATUS_ERROR)->
+    Module:set_status(SpanCtx, opentelemetry:status(Code));
 set_status(_, _) ->
     false.
 
