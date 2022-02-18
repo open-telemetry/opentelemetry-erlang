@@ -5,7 +5,6 @@ Application.put_env(:opentelemetry, :processors, [
   {:otel_batch_processor, %{scheduled_delay_ms: 1}}
 ])
 
-Application.load(:opentelemetry_exporter)
-Application.ensure_all_started(:opentelemetry)
+{:ok, _} = Application.ensure_all_started(:opentelemetry_exporter)
 
 ExUnit.start()
