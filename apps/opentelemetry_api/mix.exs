@@ -3,58 +3,24 @@ defmodule OpenTelemetry.MixProject do
 
   def project do
     {app, desc} = load_app()
-    config = load_config()
 
     [
       app: app,
-      version: version(Keyword.fetch!(desc, :vsn)),
+      version: to_string(Keyword.fetch!(desc, :vsn)),
       description: to_string(Keyword.fetch!(desc, :description)),
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
-      # We should never have dependencies
-      deps: deps(Keyword.fetch!(config, :deps)),
-      # Docs
+      deps: [
+        {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+        {:covertool, ">= 0.0.0", only: :test}
+      ],
       name: "OpenTelemetry API",
-      # source_url: "https://github.com/USER/PROJECT",
-      # homepage_url: "http://YOUR_PROJECT_HOMEPAGE",
       test_coverage: [tool: :covertool],
-      docs: [
-        main: "readme"
-        # logo: "path/to/logo.png",
-      ],
-      aliases: [
-        # when build docs first build edocs with rebar3
-        docs: ["cmd rebar3 edoc", "docs"]
-      ],
       package: package()
     ]
   end
 
-  defp version(version) when is_list(version) do
-    List.to_string(version)
-  end
-
-  defp version({:file, path}) do
-    path
-    |> File.read!()
-    |> String.trim()
-  end
-
-  # Run "mix help compile.app" to learn about applications.
   def application, do: []
-
-  defp deps(rebar) do
-    rebar
-    |> Enum.map(fn
-      {dep, version} -> {dep, to_string(version)}
-      dep when is_atom(dep) -> {dep, ">= 0.0.0"}
-    end)
-    |> Enum.concat([
-      {:ex_doc, "0.21.0", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
-      {:covertool, ">= 0.0.0", only: :test}
-    ])
-  end
 
   defp package() do
     [
@@ -67,12 +33,6 @@ defmodule OpenTelemetry.MixProject do
         "OpenTelemetry.io" => "https://opentelemetry.io"
       }
     ]
-  end
-
-  defp load_config do
-    {:ok, config} = :file.consult('rebar.config')
-
-    config
   end
 
   defp load_app do
