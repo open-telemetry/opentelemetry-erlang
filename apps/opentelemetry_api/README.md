@@ -81,7 +81,7 @@ it as the currently active Span in the Context stored in the process dictionary
 and ending the Span when the `Fun` or body of the Elixir macro finish, even if
 an exception is thrown -- however, the exception is not caught, so it does not
 change how user code should deal with raised exceptions. After the Span is
-end'ed the Context in the process dictionary is reset to its value before the
+ended the Context in the process dictionary is reset to its value before the
 newly started Span was set as the active Span.
 
 ``` erlang
