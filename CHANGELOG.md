@@ -7,23 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### [SDK]
+## [API 1.0.2] - 2022-02-22
 
-#### Added
+### [Docs for Erlang and Elixir macros added](https://github.com/open-telemetry/opentelemetry-erlang/pull/362)
+
+## [SDK 1.0.2] - 2022-02-22
+
+### Added
 
 - [Simpler configuration of span processors](https://github.com/open-telemetry/opentelemetry-erlang/pull/357)
 
-#### Fixed
+### Fixed
 
 - Span Status: Ignore status changes that don't follow the [define precedence in
   the spec](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#set-status)
 
-### [Zipkin Exporter]
+## [Zipkin Exporter 1.0.0] - 2022-2-22
 
-#### Fixed
+### Fixed
 
-- Attribute values that are lists are converted to strings in Zipkin tags
-- Status converted to Zipkin tags
+- [Attribute values that are lists are converted to strings in Zipkin tags](https://github.com/open-telemetry/opentelemetry-erlang/pull/363)
+- [Status converted to Zipkin tags](https://github.com/open-telemetry/opentelemetry-erlang/pull/363)
 
 ## 1.0.1 - 2022-02-03
 
