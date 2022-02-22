@@ -82,7 +82,9 @@ and ending the Span when the `Fun` or body of the Elixir macro finish, even if
 an exception is thrown -- however, the exception is not caught, so it does not
 change how user code should deal with raised exceptions. After the Span is
 ended the Context in the process dictionary is reset to its value before the
-newly started Span was set as the active Span.
+newly started Span was set as the active Span. This handling of the active Span
+in the process dictionary ensures proper lineage of Spans is kept when starting
+and ending child Spans.
 
 ``` erlang
 ?with_span(SpanName, StartOpts, Fun)
@@ -100,8 +102,10 @@ end
 [SpanKind](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#spankind)
 defines the relationship between the Span, its parents, and its children in a
 Trace. Possible values: `internal`, `server`, `client`, `producer` and
-`consumer`.
-- `attributes`: [Attributes](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/common/common.md#attributes)
+`consumer`. Defaults to `internal` if not specified.
+- `attributes`: See
+  [Attributes](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/common/common.md#attributes)
+  for details about Attributes. Default is an empty list of attributes.
 - `links`:  List of [Links](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/overview.md#links-between-spans) to causally related Spans from the same or a different Trace.
 - `start_time`: The start time of the Span operation. Defaults to the current
   time. The option should only be set if the start of the operation described by
