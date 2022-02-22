@@ -56,7 +56,7 @@ jobs:
       - name: Compile
         run: rebar3 as test compile
       - name: ExUnit
-        run: mix test test/otel_tests.exs
+        run: mix test --no-start test/otel_tests.exs
 
   api_tests:
     runs-on: ${{ matrix.os }}

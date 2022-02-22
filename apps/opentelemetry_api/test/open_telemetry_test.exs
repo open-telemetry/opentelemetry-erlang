@@ -10,6 +10,9 @@ defmodule OpenTelemetryTest do
   @fields Record.extract(:span_ctx, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
   Record.defrecordp(:span_ctx, @fields)
 
+  @fields Record.extract(:status, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
+  Record.defrecordp(:status, @fields)
+
   test "current_span tracks last set_span" do
     span_ctx1 = Tracer.start_span("span-1")
     assert :undefined == Tracer.current_span_ctx()
@@ -48,6 +51,17 @@ defmodule OpenTelemetryTest do
         event2 = OpenTelemetry.event("event-2", [])
 
         Tracer.add_events([event1, event2])
+
+        error_status = OpenTelemetry.status(:error, "This is an error!")
+        assert status(code: :error, message: "This is an error!") = error_status
+        unset_status = OpenTelemetry.status(:unset, "This is ignored")
+        assert status(code: :unset, message: "") = unset_status
+
+        ok_status = OpenTelemetry.status(:ok, "This is ignored")
+        assert status(code: :ok, message: "") = ok_status
+
+        Tracer.set_status(error_status)
+        Tracer.set_status(:error, "this is not ok")
       end
     end
   end

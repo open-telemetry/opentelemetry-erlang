@@ -42,8 +42,11 @@
 -define(add_events(Events),
         otel_span:add_events(?current_span_ctx, Events)).
 
--define(set_status(Status),
-        otel_span:set_status(?current_span_ctx, Status)).
+-define(set_status(Code, Message),
+        otel_span:set_status(?current_span_ctx, Code, Message)).
+
+-define(set_status(StatusOrCode),
+        otel_span:set_status(?current_span_ctx, StatusOrCode)).
 
 -define(update_name(Name),
         otel_span:update_name(?current_span_ctx, Name)).

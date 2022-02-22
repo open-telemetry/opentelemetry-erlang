@@ -105,6 +105,8 @@ defmodule OpenTelemetry do
   """
   @type status() :: :opentelemetry.status()
 
+  @type status_code() :: :opentelemetry.status_code()
+
   defdelegate get_tracer(name), to: :opentelemetry
   defdelegate get_tracer(name, vsn, schema_url), to: :opentelemetry
   defdelegate set_default_tracer(t), to: :opentelemetry
@@ -187,6 +189,12 @@ defmodule OpenTelemetry do
   """
   @spec events(list()) :: [event()]
   defdelegate events(event_list), to: :opentelemetry
+
+  @doc """
+  Creates a Status with an empty description.
+  """
+  @spec status(:opentelemetry.status_code()) :: status()
+  defdelegate status(code), to: :opentelemetry
 
   @doc """
   Creates a Status.

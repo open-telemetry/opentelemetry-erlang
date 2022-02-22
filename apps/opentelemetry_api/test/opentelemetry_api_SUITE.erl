@@ -205,13 +205,17 @@ update_span_data(_Config) ->
     ErrorStatus = opentelemetry:status(?OTEL_STATUS_ERROR, <<"This is an error!">>),
     ?assertMatch(#status{code = ?OTEL_STATUS_ERROR, message = <<"This is an error!">>}, ErrorStatus),
 
+    %% for unset and ok status status/2 and status/1 should return the same record
     UnsetStatus = opentelemetry:status(?OTEL_STATUS_UNSET, <<"This is a message">>),
+    UnsetStatus = opentelemetry:status(?OTEL_STATUS_UNSET),
     ?assertMatch(#status{code = ?OTEL_STATUS_UNSET, message = <<"">>}, UnsetStatus),
 
     Status = opentelemetry:status(?OTEL_STATUS_OK, <<"This is Ok">>),
+    Status = opentelemetry:status(?OTEL_STATUS_OK),
     ?assertMatch(#status{code = ?OTEL_STATUS_OK, message = <<"">>}, Status),
 
     otel_span:set_status(SpanCtx1, Status),
+    otel_span:set_status(SpanCtx1, ?OTEL_STATUS_ERROR, <<"this is not ok">>),
     otel_span:add_events(SpanCtx1, Events),
 
     ?assertMatch(SpanCtx1, ?current_span_ctx),

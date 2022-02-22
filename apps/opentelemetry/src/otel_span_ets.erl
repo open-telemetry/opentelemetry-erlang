@@ -39,6 +39,7 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_span.hrl").
 -include("otel_span_ets.hrl").
+-include_lib("stdlib/include/ms_transform.hrl").
 
 -record(state, {}).
 
@@ -136,8 +137,24 @@ add_events(#span_ctx{span_id=SpanId}, NewEvents) ->
     end.
 
 -spec set_status(opentelemetry:span_ctx(), opentelemetry:status()) -> boolean().
-set_status(#span_ctx{span_id=SpanId}, Status) ->
-    ets:update_element(?SPAN_TAB, SpanId, {#span.status, Status}).
+set_status(#span_ctx{span_id=SpanId}, Status=#status{code=NewCode}) ->
+    MS = ets:fun2ms(fun(Span=#span{span_id=Id,
+                                   status=#status{code=?OTEL_STATUS_ERROR}}) when Id =:= SpanId ,
+                                                                                  NewCode =:= ?OTEL_STATUS_OK ->
+                            %% can only set status to OK if it has been set to ERROR before
+                            Span#span{status=#status{code=?OTEL_STATUS_OK}};
+                       (Span=#span{span_id=Id,
+                                   status=#status{code=?OTEL_STATUS_UNSET}}) when Id =:= SpanId ->
+                            %% if UNSET then the status can be updated to OK or ERROR
+                            Span#span{status=Status};
+                       (Span=#span{span_id=Id,
+                                   status=undefined}) when Id =:= SpanId ->
+                            %% if undefined then the status can be updated to anything
+                            Span#span{status=Status}
+                    end),
+    ets:select_replace(?SPAN_TAB, MS) =:= 1;
+set_status(_, _) ->
+    false.
 
 -spec update_name(opentelemetry:span_ctx(), opentelemetry:span_name()) -> boolean().
 update_name(#span_ctx{span_id=SpanId}, Name) ->

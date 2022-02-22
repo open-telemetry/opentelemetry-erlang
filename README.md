@@ -39,6 +39,16 @@ slack](https://slack.cncf.io/). Please join us for more informal discussions.
 You can also find us in the #opentelemetry channel on [Elixir
 Slack](https://elixir-slackin.herokuapp.com/).
 
+## Getting Started
+
+You can find a getting started guide on [opentelemetry.io](https://opentelemetry.io/docs/instrumentation/erlang/getting-started/).
+
+To start capturing distributed traces from your application it first needs to be
+instrumented. The easiest way to do this is by using an instrumentation library,
+there are a number of [officially supported instrumentation
+libraries](https://github.com/open-telemetry/opentelemetry-erlang-contrib) for
+popular Erlang and Elixir libraries and frameworks.
+
 ## Design
 
 The [OpenTelemetry

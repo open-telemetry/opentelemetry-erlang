@@ -373,15 +373,33 @@ update_span_data(Config) ->
                    tracestate=[]}],
 
     SpanCtx1=#span_ctx{trace_id=TraceId,
-                       span_id=SpanId} = ?start_span(<<"span-1">>, #{links => Links}),
+                       span_id=SpanId,
+                       is_recording=true} = ?start_span(<<"span-1">>, #{links => Links}),
     ?set_current_span(SpanCtx1),
     ?set_attribute(<<"key-1">>, <<"value-1">>),
 
     Events = opentelemetry:events([{opentelemetry:timestamp(),
                                     <<"event-name">>, []}]),
-    Status = opentelemetry:status(0, <<"status">>),
+    ErrorStatus = opentelemetry:status(?OTEL_STATUS_ERROR, <<"status">>),
+    ?assertMatch(#status{code=?OTEL_STATUS_ERROR,
+                         message = <<"status">>}, ErrorStatus),
 
-    otel_span:set_status(SpanCtx1, Status),
+    OkStatus = opentelemetry:status(?OTEL_STATUS_OK, <<"will be ignored">>),
+    ?assertMatch(#status{code=?OTEL_STATUS_OK,
+                         message = <<>>}, OkStatus),
+    ?assertEqual(OkStatus, opentelemetry:status(?OTEL_STATUS_OK)),
+
+    UnsetStatus = opentelemetry:status(?OTEL_STATUS_UNSET, <<"will be ignored">>),
+    ?assertMatch(#status{code=?OTEL_STATUS_UNSET,
+                         message = <<>>}, UnsetStatus),
+    ?assertEqual(UnsetStatus, opentelemetry:status(?OTEL_STATUS_UNSET)),
+
+    ?assert(otel_span:set_status(SpanCtx1, OkStatus)),
+    %% spec does not allow setting status to error/unset after it is ok
+    ?assertNot(otel_span:set_status(SpanCtx1, ErrorStatus)),
+    ?assertNot(otel_span:set_status(SpanCtx1, ?OTEL_STATUS_ERROR)),
+    %% %% returns false if called with something that isn't a status record
+    ?assertNot(otel_span:set_status(SpanCtx1, notastatus)),
 
     %% returning not false means it successfully called the SDK
     ?assertNotEqual(false, otel_span:add_event(SpanCtx1, event_1, #{<<"attr-1">> => <<"attr-value-1">>})),
@@ -394,7 +412,7 @@ update_span_data(Config) ->
            links=L,
            events=E}] = ?UNTIL_NOT_EQUAL([], ets:match_object(Tid, #span{trace_id=TraceId,
                                                                          span_id=SpanId,
-                                                                         status=Status,
+                                                                         status=OkStatus,
                                                                          _='_'})),
 
 
