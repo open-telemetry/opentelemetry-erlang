@@ -12,9 +12,10 @@ OpenTelemetry dependency of Erlang/Elixir Applications.
 ## Use
 
 There are both Erlang and Elixir macros that make use of the current module's
-name to lookup a Named Tracer -- a Named Tracer is created for each Application
-loaded in the system at start time -- for you and can be used for Trace and Span
-operations:
+name to lookup a [Named
+Tracer](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#tracer-name--meter-name)
+-- a Named Tracer is created for each Application loaded in the system at start
+time -- for you and can be used for Trace and Span operations:
 
 ``` erlang
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").
