@@ -127,6 +127,26 @@ The second element of the configuration tuple is a configuration map. It can con
 - `compression` - an atom. Setting it to `gzip` enables gzip compression.
 - `ssl_options` - a list of SSL options. See Erlang's [SSL docs](https://www.erlang.org/doc/man/ssl.html#TLS/DTLS%20OPTION%20DESCRIPTIONS%20-%20CLIENT) for what options are available.
 
+### Configuration for gRPC
+
+Additional configuration for `grpcbox` (`grpc` library used in exporter) are required to enable `grpc` option for exporter.
+
+in particular, Channel setting for `opentelemetry_exporter` need to be configured on `grpcbox`
+
+For an Erlang release in `sys.config`:
+``` erlang
+{grpcbox, [{client, #{channels => [{opentelemetry_exporter, [{http, "localhost", 8080, []}], %{}}]}}]}
+```
+
+In Elixir, `config.exs` or `runtime.exs`:
+``` elixir
+config :grpcbox, client: %{
+  channels: [
+    {:opentelemetry_exporter, [{:http, "localhost", "8080"}], %{}}
+  ]
+}
+```
+
 ## Contributing
 
 This project uses a submodule during development, it is not needed if the application is being used as a dependency, so be sure to clone with the option `recurse-submodules`:
