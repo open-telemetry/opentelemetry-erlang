@@ -1,12 +1,21 @@
-OpenTelemetry Erlang/Elixir
-=====
+## OpenTelemetry Erlang/Elixir
 
+---
+
+<p align="center">
 [![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry_api?label=API&style=for-the-badge)](https://hex.pm/packages/opentelemetry_api)
 [![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry?label=SDK&style=for-the-badge)](https://hex.pm/packages/opentelemetry)
 [![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry_exporter?label=OTLP%20Exporter&style=for-the-badge)](https://hex.pm/packages/opentelemetry_exporter)
 [![EEF Observability WG
 project](https://img.shields.io/badge/EEF-Observability-black?style=for-the-badge)](https://github.com/erlef/eef-observability-wg)
+</p>
+
+<p align="center">
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/open-telemetry/opentelemetry-erlang/Erlang?style=for-the-badge)](https://github.com/open-telemetry/opentelemetry-erlang/actions)
+![Codecov](https://img.shields.io/codecov/c/github/open-telemetry/opentelemetry-erlang?style=for-the-badge)
+</p>
+
+---
 
 [OpenTelemetry](https://opentelemetry.io/) distributed tracing framework for
 Erlang and Elixir.
