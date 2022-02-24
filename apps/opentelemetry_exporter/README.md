@@ -135,7 +135,7 @@ in particular, Channel setting for `opentelemetry_exporter` need to be configure
 
 For an Erlang release in `sys.config`:
 ``` erlang
-{grpcbox, [{client, #{channels => [{opentelemetry_exporter, [{http, "localhost", 8080, []}], %{}}]}}]}
+{grpcbox, [{client, #{channels => [{opentelemetry_exporter, [{http, "localhost", 8080}], %{}}]}}]}
 ```
 
 In Elixir, `config.exs` or `runtime.exs`:
