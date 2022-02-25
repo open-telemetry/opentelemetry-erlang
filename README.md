@@ -3,16 +3,33 @@
 ---
 
 <p align="center">
-[![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry_api?label=API&style=for-the-badge)](https://hex.pm/packages/opentelemetry_api)
-[![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry?label=SDK&style=for-the-badge)](https://hex.pm/packages/opentelemetry)
-[![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry_exporter?label=OTLP%20Exporter&style=for-the-badge)](https://hex.pm/packages/opentelemetry_exporter)
-[![EEF Observability WG
-project](https://img.shields.io/badge/EEF-Observability-black?style=for-the-badge)](https://github.com/erlef/eef-observability-wg)
+  <a href="https://hex.pm/packages/opentelemetry_api">
+    <img
+        src="https://img.shields.io/hexpm/v/opentelemetry_api?label=API&amp;style=for-the-badge"
+        alt="Hex.pm" />
+  </a>
+  <a href="https://hex.pm/packages/opentelemetry">
+    <img
+        src="https://img.shields.io/hexpm/v/opentelemetry?label=SDK&amp;style=for-the-badge"
+        alt="Hex.pm" />
+  </a>
+  <a href="https://hex.pm/packages/opentelemetry_exporter">
+    <img
+  src="https://img.shields.io/hexpm/v/opentelemetry_exporter?label=OTLP%20Exporter&amp;style=for-the-badge"
+  alt="Hex.pm" />
+  </a>
+  <a href="https://github.com/erlef/eef-observability-wg">
+    <img
+        src="https://img.shields.io/badge/EEF-Observability-black?style=for-the-badge"
+        alt="EEF Observability WG project" />
+  </a>
 </p>
 
 <p align="center">
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/open-telemetry/opentelemetry-erlang/Erlang?style=for-the-badge)](https://github.com/open-telemetry/opentelemetry-erlang/actions)
-![Codecov](https://img.shields.io/codecov/c/github/open-telemetry/opentelemetry-erlang?style=for-the-badge)
+  <a href="https://github.com/open-telemetry/opentelemetry-erlang/actions">
+    <img src="https://img.shields.io/github/workflow/status/open-telemetry/opentelemetry-erlang/Erlang?style=for-the-badge" alt="GitHub Workflow Status" />
+  </a>
+  <img src="https://img.shields.io/codecov/c/github/open-telemetry/opentelemetry-erlang?style=for-the-badge" alt="Codecov" />
 </p>
 
 ---
