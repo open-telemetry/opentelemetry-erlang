@@ -11,7 +11,7 @@ Currently only supports the Tracer protocol using either GRPC or Protobuffers ov
 ## Configuration
 
 By default the exporter will use HTTP to export protobuf encoded Spans to
-`http://localhost:4138/v1/traces`. 
+`http://localhost:4318/v1/traces`. 
 
 Available configuration keys:
 
