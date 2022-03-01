@@ -36,7 +36,7 @@
 %%   hackney_headers:store(Key, Value, Headers).
 %%
 %% some_fun_calling_hackney() ->
-%%   Headers = otel_propagator_text_map:inject(:opentelemetry.get_text_map_injector(), hackney_headers:new(), fun set_header/2),
+%%   Headers = otel_propagator_text_map:inject(opentelemetry:get_text_map_injector(), hackney_headers:new(), fun set_header/2),
 %%   ...
 %% '''
 %%
