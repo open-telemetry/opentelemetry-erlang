@@ -194,11 +194,14 @@ is_enabled() ->
     persistent_term:get(?ENABLED_KEY, true).
 
 do_insert(Span) ->
+    io:format("do_insert inserting span ~p~n", [Span]),
     try
         case is_enabled() of
             true ->
+                io:format("ets insert"),
                 ets:insert(?CURRENT_TABLE, Span);
             _ ->
+                io:format("dropped"),
                 dropped
         end
     catch
