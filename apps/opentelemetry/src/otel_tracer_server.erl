@@ -126,6 +126,7 @@ on_start(Processors) ->
 
 on_end(Processors) ->
     fun(Span) ->
+            io:format("on_end_processors: ~p : ~p~n", [Span, Processors]),
             lists:foldl(fun({P, Config}, Bool) ->
                                 Bool andalso P:on_end(Span, Config)
                         end, true, Processors)
