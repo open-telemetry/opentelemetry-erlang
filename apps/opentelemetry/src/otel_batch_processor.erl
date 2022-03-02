@@ -64,7 +64,7 @@
 -define(CURRENT_TABLE, persistent_term:get(?CURRENT_TABLES_KEY)).
 
 -define(DEFAULT_MAX_QUEUE_SIZE, 2048).
--define(DEFAULT_SCHEDULED_DELAY_MS, timer:seconds(5)).
+-define(DEFAULT_SCHEDULED_DELAY_MS, timer:seconds(1)).
 -define(DEFAULT_EXPORTER_TIMEOUT_MS, timer:minutes(5)).
 -define(DEFAULT_CHECK_TABLE_SIZE_MS, timer:seconds(1)).
 
