@@ -73,9 +73,10 @@ end_span(#span_ctx{span_id=SpanId,
                    tracestate=Tracestate}, Timestamp, Processors) ->
     case ets:take(?SPAN_TAB, SpanId) of
         [Span] ->
+            io:format("otel_span_ets span ENDING ~p~n", [Span]),
             Span1 = otel_span_utils:end_span(Span#span{tracestate=Tracestate,
                                                        is_recording=false}, Timestamp),
-            io:format("otel_span_ets processing span ~p~n", [Span1]),
+            io:format("otel_span_ets span ENDED ~p~n", [Span1]),
             Processors(Span1);
         _ ->
             false
