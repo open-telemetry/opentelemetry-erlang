@@ -27,6 +27,7 @@ init(Pid) ->
     {ok, Pid}.
 
 export(SpansTid, _Resource, Pid) ->
+    io:format("~p table info: ~p~n", [SpansTid, ets:info(SpansTid)]),
     ets:foldl(fun(Span, _Acc) ->
                       io:format("processing spans : ~p~n", [Span]),
                       Pid ! {span, Span}
