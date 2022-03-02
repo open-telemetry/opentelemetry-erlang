@@ -90,13 +90,10 @@ on_start(_Ctx, Span, _) ->
 -spec on_end(opentelemetry:span(), otel_span_processor:processor_config())
             -> true | dropped | {error, invalid_span} | {error, no_export_buffer}.
 on_end(#span{trace_flags=TraceFlags}, _) when not(?IS_SAMPLED(TraceFlags)) ->
-    io:format("span ~p is dropped", [TraceFlags]),
     dropped;
 on_end(Span=#span{}, _) ->
-    io:format("do_insert~n"),
     do_insert(Span);
 on_end(Span, _) ->
-    io:format("bad span ~p~n", [Span]),
     {error, invalid_span}.
 
 init([Args]) ->
@@ -197,14 +194,11 @@ is_enabled() ->
     persistent_term:get(?ENABLED_KEY, true).
 
 do_insert(Span) ->
-    io:format("do_insert inserting span ~p~n", [Span]),
     try
         case is_enabled() of
             true ->
-                io:format("ets insert"),
                 ets:insert(?CURRENT_TABLE, Span);
             _ ->
-                io:format("dropped"),
                 dropped
         end
     catch
@@ -309,7 +303,6 @@ shutdown_exporter({ExporterModule, Config}) ->
 
 export_spans(#data{exporter=Exporter,
                    resource=Resource}) ->
-    io:format("calling export_spans~n"),
     CurrentTable = ?CURRENT_TABLE,
     NewCurrentTable = case CurrentTable of
                           ?TABLE_1 ->
@@ -333,7 +326,6 @@ export_spans(#data{exporter=Exporter,
 send_spans(FromPid, Resource, Exporter) ->
     receive
         {'ETS-TRANSFER', Table, FromPid, export} ->
-            io:format("ETS-TRANSFER~n"),
             TableName = ets:rename(Table, current_send_table),
             export(Exporter, Resource, TableName),
             ets:delete(TableName),
