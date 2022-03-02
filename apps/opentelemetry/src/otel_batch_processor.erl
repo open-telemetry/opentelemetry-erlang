@@ -93,8 +93,10 @@ on_end(#span{trace_flags=TraceFlags}, _) when not(?IS_SAMPLED(TraceFlags)) ->
     io:format("span ~p is dropped", [TraceFlags]),
     dropped;
 on_end(Span=#span{}, _) ->
+    io:format("do_insert~n"),
     do_insert(Span);
-on_end(_Span, _) ->
+on_end(Span, _) ->
+    io:format("bad span ~p~n", [Span]),
     {error, invalid_span}.
 
 init([Args]) ->
@@ -307,7 +309,7 @@ shutdown_exporter({ExporterModule, Config}) ->
 
 export_spans(#data{exporter=Exporter,
                    resource=Resource}) ->
-    io:format("calling export_spans"),
+    io:format("calling export_spans~n"),
     CurrentTable = ?CURRENT_TABLE,
     NewCurrentTable = case CurrentTable of
                           ?TABLE_1 ->
@@ -331,6 +333,7 @@ export_spans(#data{exporter=Exporter,
 send_spans(FromPid, Resource, Exporter) ->
     receive
         {'ETS-TRANSFER', Table, FromPid, export} ->
+            io:format("ETS-TRANSFER~n"),
             TableName = ets:rename(Table, current_send_table),
             export(Exporter, Resource, TableName),
             ets:delete(TableName),
