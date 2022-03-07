@@ -82,15 +82,18 @@ init(Opts0) ->
     Headers = headers(maps:get(headers, Opts1, [])),
     case maps:get(protocol, Opts1, http_protobuf) of
         grpc ->
+            io:format("PROTOCOL : GRPC~n:),
             ChannelOpts = maps:get(channel_opts, Opts1, #{}),
             case grpcbox_channel:start_link(?MODULE, grpcbox_endpoints(Endpoints), ChannelOpts) of
                 {ok, ChannelPid} ->
+                    io:format("GRPC exporter started~n"),
                     {ok, #state{channel_pid=ChannelPid,
                                 endpoints=Endpoints,
                                 headers=Headers,
                                 grpc_metadata=headers_to_grpc_metadata(Headers),
                                 protocol=grpc}};
                 ErrorOrIgnore ->
+                    io:format("GRPC EXPORTER error : ~p~n", [ErrorOrIgnore]),
                     %% even if it is `ignore' we should just use `http_protobuf' because
                     %% `ignore' should never happen and means something is wrong
                     ?LOG_WARNING("unable to start grpc channel for exporting and falling back "
@@ -138,18 +141,25 @@ export(Tab, Resource, #state{protocol=http_protobuf,
 export(Tab, Resource, #state{protocol=grpc,
                              grpc_metadata=Metadata,
                              channel_pid=_ChannelPid}) ->
+    io:format("EXPORT GRPC RSOURCE: ~p~n", [Resource]),
     ExportRequest = tab_to_proto(Tab, Resource),
+    io:format("EXPORT GRPC TAB RESOURCE: ~p ~p ~p ~n", [Tab, Resource, ExportRequest]),
     Ctx = grpcbox_metadata:append_to_outgoing_ctx(ctx:new(), Metadata),
+    io:format("EXPORT CTX: ~p~n", [Ctx]),
     case opentelemetry_trace_service:export(Ctx, ExportRequest, #{channel => ?MODULE}) of
         {ok, _Response, _ResponseMetadata} ->
+            io:format("EXPORTED OK~n"),
             ok;
         {error, {Status, Message}, _} ->
+            io:format("EXPORTED FAIL [error] ~p ~p~n", [Status, Message]),
             ?LOG_INFO("OTLP grpc export failed with GRPC status ~s : ~s", [Status, Message]),
             error;
         {http_error, {Status, _}, _} ->
+            io:format("EXPORTED FAIL [http_error] ~p~n", [Status]),
             ?LOG_INFO("OTLP grpc export failed with HTTP status code ~s", [Status]),
             error;
         {error, Reason} ->
+            io:format("EXPORTED FAIL [error] ~p~n", [Reason]),
             ?LOG_INFO("OTLP grpc export failed with error: ~p", [Reason]),
             error
     end.
@@ -306,6 +316,7 @@ tab_to_proto(Tab, Resource) ->
     ResourceSpans = [#{resource => #{attributes => to_attributes(Attributes),
                                      dropped_attributes_count => 0},
                        instrumentation_library_spans => InstrumentationLibrarySpans}],
+    io:format("TAB_TO_PROTO: ~p~n, [ResourceSpans]),
     #{resource_spans => ResourceSpans}.
 
 to_proto_by_instrumentation_library(Tab) ->
