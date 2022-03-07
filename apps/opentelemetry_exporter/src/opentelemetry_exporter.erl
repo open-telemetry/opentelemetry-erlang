@@ -315,7 +315,7 @@ tab_to_proto(Tab, Resource) ->
     ResourceSpans = [#{resource => #{attributes => to_attributes(Attributes),
                                      dropped_attributes_count => 0},
                        instrumentation_library_spans => InstrumentationLibrarySpans}],
-    io:format("TAB_TO_PROTO: ~p~n, [ResourceSpans]),
+    io:format("TAB_TO_PROTO: ~p~n", [ResourceSpans]),
     #{resource_spans => ResourceSpans}.
 
 to_proto_by_instrumentation_library(Tab) ->
