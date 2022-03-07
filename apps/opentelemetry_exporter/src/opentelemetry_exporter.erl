@@ -82,11 +82,10 @@ init(Opts0) ->
     Headers = headers(maps:get(headers, Opts1, [])),
     case maps:get(protocol, Opts1, http_protobuf) of
         grpc ->
-            io:format("PROTOCOL : GRPC~n:),
+            io:format("PROTOCOL : GRPC~n"),
             ChannelOpts = maps:get(channel_opts, Opts1, #{}),
             case grpcbox_channel:start_link(?MODULE, grpcbox_endpoints(Endpoints), ChannelOpts) of
                 {ok, ChannelPid} ->
-                    io:format("GRPC exporter started~n"),
                     {ok, #state{channel_pid=ChannelPid,
                                 endpoints=Endpoints,
                                 headers=Headers,

@@ -80,6 +80,7 @@ set_exporter(Exporter) ->
 %% @doc Sets the batch exporter `Exporter'.
 -spec set_exporter(module(), term()) -> ok.
 set_exporter(Exporter, Options) ->
+    io:format("SETTING EXPORTER: ~p ~p~n", [Exporter, Options]),
     gen_statem:call(?MODULE, {set_exporter, {Exporter, Options}}).
 
 -spec on_start(otel_ctx:t(), opentelemetry:span(), otel_span_processor:processor_config())
@@ -93,7 +94,7 @@ on_end(#span{trace_flags=TraceFlags}, _) when not(?IS_SAMPLED(TraceFlags)) ->
     dropped;
 on_end(Span=#span{}, _) ->
     do_insert(Span);
-on_end(Span, _) ->
+on_end(_Span, _) ->
     {error, invalid_span}.
 
 init([Args]) ->
@@ -341,6 +342,7 @@ export({ExporterModule, Config}, Resource, SpansTid) ->
     %% don't let a exporter exception crash us
     %% and return true if exporter failed
     try
+        io:format("OTEL BATCH exporting : ~p ~p ~p~n", [SpansTid, Resource, Config]),
         ExporterModule:export(SpansTid, Resource, Config) =:= failed_not_retryable
     catch
         Kind:Reason:StackTrace ->
@@ -350,6 +352,7 @@ export({ExporterModule, Config}, Resource, SpansTid) ->
                         reason => Reason,
                         exporter => ExporterModule,
                         stacktrace => StackTrace}, #{report_cb => fun ?MODULE:report_cb/1}),
+            io:format("FAILED TO EXPORT ~p ~p ~p ~n", [Kind, Reason, StackTrace]),
             true
     end.
 
