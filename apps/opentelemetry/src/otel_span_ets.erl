@@ -49,6 +49,7 @@ start_link(Opts) ->
 -spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_span:start_opts(),
                  fun(), otel_tracer_server:instrumentation_library()) -> opentelemetry:span_ctx().
 start_span(Ctx, Name, Opts, Processors, InstrumentationLibrary) ->
+    io:format("[otel_span_ets/start_span]~nCtx: ~p~nName~p~nOpts ~p~n", [Ctx, Name, Opts]),
     case otel_span_utils:start_span(Ctx, Name, Opts) of
         {SpanCtx=#span_ctx{is_recording=true}, Span=#span{}} ->
             Span1 = Span#span{instrumentation_library=InstrumentationLibrary},
