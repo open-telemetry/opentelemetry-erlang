@@ -39,5 +39,10 @@ export(Input, Options) ->
 -spec export(ctx:t(), opentelemetry_exporter_trace_service_pb:export_trace_service_request(), grpcbox_client:options()) ->
     {ok, opentelemetry_exporter_trace_service_pb:export_trace_service_response(), grpcbox:metadata()} | grpcbox_stream:grpc_error_response().
 export(Ctx, Input, Options) ->
-    grpcbox_client:unary(Ctx, <<"/opentelemetry.proto.collector.trace.v1.TraceService/Export">>, Input, ?DEF(export_trace_service_request, export_trace_service_response, <<"opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest">>), Options).
+    Def = ?DEF(export_trace_service_request, export_trace_service_response, <<"opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest">>),
+    io:format("DEF: ~p~n", [Def]),
+    io:format("Ctx: ~p~n", [Ctx]),
+    io:format("Input ~p~n", [Input]),
+    io:format("Options ~p~n", [Options]),
+    grpcbox_client:unary(Ctx, <<"/opentelemetry.proto.collector.trace.v1.TraceService/Export">>, Input, Def, Options).
 

@@ -327,6 +327,7 @@ export_spans(#data{exporter=Exporter,
 send_spans(FromPid, Resource, Exporter) ->
     receive
         {'ETS-TRANSFER', Table, FromPid, export} ->
+            io:format("ets transfer ~p : ~p~n", [Table, ets:info(Table)]),
             TableName = ets:rename(Table, current_send_table),
             export(Exporter, Resource, TableName),
             ets:delete(TableName),
