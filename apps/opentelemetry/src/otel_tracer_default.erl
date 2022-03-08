@@ -34,7 +34,9 @@ start_span(Ctx, Tracer={_, #tracer{on_start_processors=Processors,
                                    on_end_processors=OnEndProcessors,
                                    instrumentation_library=InstrumentationLibrary}}, Name, Opts) ->
     Opts1 = maybe_set_sampler(Tracer, Opts),
+    io:format("[otel_tracer_server/start_span] ~p ~p ~p ~p ~p ~n", [Opts, Opts1, Ctx, Processors, InstrumentationLibrary]),
     SpanCtx = otel_span_ets:start_span(Ctx, Name, Opts1, Processors, InstrumentationLibrary),
+    io:format("[otel_tracer_server/start_span] ets: ~p~n", SpanCtx),
     SpanCtx#span_ctx{span_sdk={otel_span_ets, OnEndProcessors}}.
 
 maybe_set_sampler(_Tracer, Opts) when is_map_key(sampler, Opts) ->
