@@ -34,6 +34,7 @@ start_span(Ctx, Name, Opts) ->
     Kind = maps:get(kind, Opts, ?SPAN_KIND_INTERNAL),
     Sampler = maps:get(sampler, Opts),
     StartTime = maps:get(start_time, Opts, opentelemetry:timestamp()),
+    io:format("[otel_span_utils/start_span]~nCTX: ~p~nName: ~p~nSampler: ~p~nKind: ~p~nAttributes: ~p~n", [Ctx, Name, Sampler, Kind, Attributes]),
     new_span(Ctx, Name, Sampler, StartTime, Kind, Attributes, Links).
 
 new_span(Ctx, Name, Sampler, StartTime, Kind, Attributes, Links) ->
