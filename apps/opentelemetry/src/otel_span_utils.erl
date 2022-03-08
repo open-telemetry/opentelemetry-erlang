@@ -29,6 +29,7 @@
 -spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_span:start_opts())
                 -> {opentelemetry:span_ctx(), opentelemetry:span() | undefined}.
 start_span(Ctx, Name, Opts) ->
+    io:format("otel_span_utils/start_span ~p ~p ~p~n", [Ctx, Name, Opts]),
     Attributes = maps:get(attributes, Opts, []),
     Links = maps:get(links, Opts, []),
     Kind = maps:get(kind, Opts, ?SPAN_KIND_INTERNAL),
