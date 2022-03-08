@@ -53,10 +53,12 @@ start_span(Ctx, Name, Opts, Processors, InstrumentationLibrary) ->
         {SpanCtx=#span_ctx{is_recording=true}, Span=#span{}} ->
             Span1 = Span#span{instrumentation_library=InstrumentationLibrary},
             Span2 = Processors(Ctx, Span1),
+            io:format("ets_start_span: ~p ~p ~n", [Ctx, Span1, Span2]),
             _ = storage_insert(Span2),
             SpanCtx;
         {SpanCtx, #span{}} ->
             %% span isn't recorded so don't run processors or insert into ets table
+            io:format("span is not recorded ~p~n", [SpanCtx]),
             SpanCtx
     end.
 
@@ -146,8 +148,10 @@ update_name(#span_ctx{span_id=SpanId}, Name) ->
 %%
 
 storage_insert(undefined) ->
+    io:format("undefined span to be inserted"),
     ok;
 storage_insert(Span) ->
+    io:format("inserting into ets: ~p~n", [Span]),
     ets:insert(?SPAN_TAB, Span).
 
 init(_Opts) ->
