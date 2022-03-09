@@ -356,6 +356,7 @@ to_proto(#span{trace_id=TraceId,
                status=Status,
                trace_flags=_TraceFlags,
                is_recording=_IsRecording}) ->
+    io:format("TO_PROTO : MaybeParentSpanId ~p~n", [MaybeParentSpanId]),
     ParentSpanId = case MaybeParentSpanId of undefined -> <<>>; _ -> <<MaybeParentSpanId:64>> end,
     #{name                     => to_binary(Name),
       trace_id                 => <<TraceId:128>>,
