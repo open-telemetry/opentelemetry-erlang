@@ -318,15 +318,25 @@ parse_endpoint({Scheme, Host, Port, _}, DefaultSSLOpts) ->
              ssl_options => update_ssl_opts(HostString, DefaultSSLOpts)}};
 parse_endpoint(Endpoint=#{host := Host, scheme := Scheme, path := Path}, DefaultSSLOpts) ->
     HostString = unicode:characters_to_list(Host),
-    {true, maps:merge(#{host => unicode:characters_to_list(Host),
-                        port => scheme_port(Scheme),
-                        path => unicode:characters_to_list(Path),
-                        ssl_options => update_ssl_opts(HostString, DefaultSSLOpts)}, Endpoint)};
+    %% `merge' keeps the value in the second argument if the key is in both
+    %% so to always update the scheme/host/port to charlists we set those
+    %% separate from port/ssl_options which should only be added if not already
+    %% found in `Endpoint'
+    {true, maps:merge(#{port => scheme_port(Scheme),
+                        ssl_options => update_ssl_opts(HostString, DefaultSSLOpts)},
+                      Endpoint#{scheme => to_charlist(Scheme),
+                                host => HostString,
+                                path => unicode:characters_to_list(Path)})};
 parse_endpoint(String, DefaultSSLOpts) when is_list(String) orelse is_binary(String) ->
     ParsedUri = maybe_add_scheme_port(uri_string:parse(unicode:characters_to_list(String))),
     parse_endpoint(ParsedUri, DefaultSSLOpts);
 parse_endpoint(_, _) ->
     false.
+
+to_charlist(Atom) when is_atom(Atom) ->
+    atom_to_list(Atom);
+to_charlist(Other) ->
+    unicode:characters_to_list(Other).
 
 scheme_port(http) ->
     80;
