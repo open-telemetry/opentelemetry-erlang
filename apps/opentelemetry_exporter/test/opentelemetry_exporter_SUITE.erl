@@ -92,6 +92,23 @@ configuration(_Config) ->
                                        scheme := "http"}]},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}]})),
 
+        %% test that the os env and app env give the same configuration
+        application:set_env(opentelemetry_exporter, otlp_endpoint, <<"http://localhost:4317">>),
+        application:set_env(opentelemetry_exporter, otlp_protocol, grpc),
+        A = opentelemetry_exporter:merge_with_environment(#{}),
+        ?assertMatch([#{scheme := "http", host := "localhost", port := 4317}],
+             opentelemetry_exporter:endpoints(maps:get(endpoints, A), [])),
+
+        application:unset_env(opentelemetry_exporter, otlp_protocol),
+        os:putenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317"),
+        os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
+        B = opentelemetry_exporter:merge_with_environment(#{}),
+        ?assertEqual(opentelemetry_exporter:endpoints(maps:get(endpoints, A), []),
+                     opentelemetry_exporter:endpoints(maps:get(endpoints, B), [])),
+
+        os:unsetenv("OTEL_EXPORTER_OTLP_PROTOCOL"),
+        os:unsetenv("OTEL_EXPORTER_OTLP_ENDPOINT"),
+
         os:putenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4343"),
         os:putenv("OTEL_EXPORTER_OTLP_HEADERS", "key1=value1"),
         ?assertEqual(#{endpoints =>
