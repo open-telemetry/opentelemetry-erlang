@@ -54,7 +54,7 @@ start_span(Ctx, Name, Opts, Processors, InstrumentationLibrary) ->
         {SpanCtx=#span_ctx{is_recording=true}, Span=#span{}} ->
             Span1 = Span#span{instrumentation_library=InstrumentationLibrary},
             Span2 = Processors(Ctx, Span1),
-            io:format("ets_start_span: ~p ~p ~n", [Ctx, Span1, Span2]),
+            io:format("ets_start_span~nCtx ~p~nSpan1 ~p~nSpan2 ~p~n", [Ctx, Span1, Span2]),
             _ = storage_insert(Span2),
             SpanCtx;
         {SpanCtx, #span{}} ->
