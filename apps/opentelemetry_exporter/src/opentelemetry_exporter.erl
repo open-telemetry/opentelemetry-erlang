@@ -326,6 +326,7 @@ to_proto_by_instrumentation_library(_Tab, '$end_of_table') ->
     [];
 to_proto_by_instrumentation_library(Tab, Key) ->
     InstrumentationLibrarySpans = lists:foldl(fun(Span, Acc) ->
+                                                      io:format("TO_PROTO: Span ~p~n", [Span]),
                                                       [to_proto(Span) | Acc]
                                               end, [], ets:lookup(Tab, Key)),
     [#{instrumentation_library => to_instrumentation_library(Key),
