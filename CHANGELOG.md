@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [Exporter]
+
+- [Fix use of `otlp_endpoint` configuration from Elixir](https://github.com/open-telemetry/opentelemetry-erlang/pull/376)
+
 ## [API 1.0.2] - 2022-02-22
 
 - [Docs for Erlang and Elixir macros added](https://github.com/open-telemetry/opentelemetry-erlang/pull/362)
