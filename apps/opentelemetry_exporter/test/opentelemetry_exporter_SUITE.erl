@@ -50,6 +50,10 @@ end_per_group(_, _) ->
 
 configuration(_Config) ->
     try
+        ?assertMatch(#{endpoints := [#{host := "localhost", path := "/v1/traces", port := 4318,
+                                       scheme := "http"}]},
+                     opentelemetry_exporter:merge_with_environment(#{})),
+
         ?assertMatch(#{endpoints :=
                            [#{scheme := "http", host := "localhost",
                               port := 9090, path := "/v1/traces", ssl_options := []}]},
