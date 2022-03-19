@@ -114,7 +114,7 @@
 
 -define(DEFAULT_HTTP_PORT, 4318).
 -define(DEFAULT_HTTP_ENDPOINTS, [#{host => "localhost",
-                                   path => [],
+                                   path => filename:join([], ?DEFAULT_TRACES_PATH),
                                    port => ?DEFAULT_HTTP_PORT,
                                    scheme => "http"}]).
 
@@ -430,7 +430,7 @@ append_path({Scheme, Host, Port, SSLOptions}) ->
 append_path(Endpoint=#{path := Path}) ->
     Endpoint#{path => filename:join(Path, ?DEFAULT_TRACES_PATH)};
 append_path(Endpoint=#{}) ->
-    Endpoint#{path => ?DEFAULT_TRACES_PATH};
+    Endpoint#{path => filename:join([], ?DEFAULT_TRACES_PATH)};
 append_path(EndpointString) when is_list(EndpointString) orelse is_binary(EndpointString) ->
     Endpoint=#{path := Path} = uri_string:parse(EndpointString),
     Endpoint#{path => filename:join(Path, ?DEFAULT_TRACES_PATH)}.
