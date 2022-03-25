@@ -19,47 +19,79 @@
 
 -behaviour(otel_meter).
 
--export([new_instrument/4,
-         new_instruments/2,
-         labels/2,
-         record/3,
-         record/4,
-         record_batch/3,
-         bind/3,
-         release/2,
-         set_observer_callback/3,
-         register_observer/3,
-         observe/3]).
+-export([create_counter/4,
+         create_observable_counter/5,
+         create_histogram/4,
+         create_observable_gauge/5,
+         create_updown_counter/4,
+         create_observable_updowncounter/5]).
 
-new_instrument(_, _, _, _) ->
-    true.
+%% also act as noop version of instruments
+-export([add/3,
+         record/3]).
 
-new_instruments(_, _) ->
-    true.
+-spec create_counter(Meter, Name, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: otel_meter:t(),
+      Name :: otel_instrument:name(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: otel_meter:opts().
+create_counter(Meter, Name, ValueType, Opts) ->
+    noop_instrument(Meter, counter, Name, ValueType, Opts).
 
-labels(_, _) ->
-    #{}.
+-spec create_observable_counter(Meter, Name, Callback, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: otel_meter:t(),
+      Name :: otel_instrument:name(),
+      Callback :: otel_meter:callback(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: otel_meter:opts().
+create_observable_counter(Meter, Name, _Callback, ValueType, Opts) ->
+    noop_instrument(Meter, observable_counter, Name, ValueType, Opts).
 
-record(_, _, _) ->
+-spec create_histogram(Meter, Name, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: otel_meter:t(),
+      Name :: otel_instrument:name(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: otel_meter:opts().
+create_histogram(Meter, Name, ValueType, Opts) ->
+    noop_instrument(Meter, histogram, Name, ValueType, Opts).
+
+-spec create_observable_gauge(Meter, Name, Callback, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: otel_meter:t(),
+      Name :: otel_instrument:name(),
+      Callback :: otel_meter:callback(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: otel_meter:opts().
+create_observable_gauge(Meter, Name, _Callback, ValueType, Opts) ->
+    noop_instrument(Meter, observable_gauge, Name, ValueType, Opts).
+
+-spec create_updown_counter(Meter, Name, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: otel_meter:t(),
+      Name :: otel_instrument:name(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: otel_meter:opts().
+create_updown_counter(Meter, Name, ValueType, Opts) ->
+    noop_instrument(Meter, updown_counter, Name, ValueType, Opts).
+
+-spec create_observable_updowncounter(Meter, Name, Callback, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: otel_meter:t(),
+      Name :: otel_instrument:name(),
+      Callback :: otel_meter:callback(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: otel_meter:opts().
+create_observable_updowncounter(Meter, Name, _Callback, ValueType, Opts) ->
+    noop_instrument(Meter, observable_updowncounter, Name, ValueType, Opts).
+
+%%
+
+%% handles both noop counter and noop updown counter
+add(_Insturment, _Number, _Attributes) ->
     ok.
 
-record(_, _, _, _) ->
+record(_Insturment, _Number, _Attributes) ->
     ok.
 
-record_batch(_, _, _) ->
-    ok.
+%%
 
-bind(_, _, _) ->
-    [].
-
-release(_, _) ->
-    ok.
-
-set_observer_callback(_, _, _) ->
-    ok.
-
-register_observer(_, _, _) ->
-    ok.
-
-observe(_, _, _) ->
-    ok.
+noop_instrument(Meter, Kind, Name, ValueType, Opts) ->
+    otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
+                        maps:get(unit, Opts, undefined), ValueType).

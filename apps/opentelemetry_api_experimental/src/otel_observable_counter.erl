@@ -1,5 +1,5 @@
 %%%------------------------------------------------------------------------
-%% Copyright 2022, OpenTelemetry Authors
+%% Copyright 2019, OpenTelemetry Authors
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
 %% You may obtain a copy of the License at
@@ -12,16 +12,10 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc UpDownCounter is a synchronous Instrument which supports increments
-%% and decrements.
+%% @doc Asynchronous Counter is an asynchronous Instrument which reports
+%% monotonically increasing value(s) when the instrument is being observed.
 %% @end
 %%%-------------------------------------------------------------------------
--module(otel_updown_counter).
+-module(otel_observable_counter).
 
--export([add/3]).
-
--callback add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-
--spec add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-add(Instrument=#{module := Module}, Number, Attributes) ->
-    Module:record(Instrument, Number, Attributes).
+-export([]).

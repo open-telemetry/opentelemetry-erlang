@@ -12,16 +12,15 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc UpDownCounter is a synchronous Instrument which supports increments
-%% and decrements.
+%% @doc Asynchronous UpDownCounter is an asynchronous Instrument which
+%% reports additive value(s) (e.g. the process heap size - it makes
+%% sense to report the heap size from multiple processes and sum them up,
+%% so we get the total heap usage) when the instrument is being observed.
+%%
+%% Note: if the value is monotonically increasing, use Asynchronous Counter
+%% instead; if the value is non-additive, use Asynchronous Gauge instead.
 %% @end
 %%%-------------------------------------------------------------------------
--module(otel_updown_counter).
+-module(otel_observable_updowncounter).
 
--export([add/3]).
-
--callback add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-
--spec add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-add(Instrument=#{module := Module}, Number, Attributes) ->
-    Module:record(Instrument, Number, Attributes).
+-export([]).

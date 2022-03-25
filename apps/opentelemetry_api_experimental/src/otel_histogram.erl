@@ -12,16 +12,15 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc UpDownCounter is a synchronous Instrument which supports increments
-%% and decrements.
+%% @doc Histogram is a synchronous Instrument which can be used to report
+%% arbitrary values that are likely to be statistically meaningful. It is
+%% intended for statistics such as histograms, summaries, and percentile.
 %% @end
 %%%-------------------------------------------------------------------------
--module(otel_updown_counter).
+-module(otel_histogram).
 
--export([add/3]).
+-export([record/3]).
 
--callback add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-
--spec add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-add(Instrument=#{module := Module}, Number, Attributes) ->
+-spec record(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
+record(Instrument=#{module := Module}, Number, Attributes) ->
     Module:record(Instrument, Number, Attributes).
