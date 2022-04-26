@@ -138,21 +138,23 @@ add_events(#span_ctx{span_id=SpanId}, NewEvents) ->
 
 -spec set_status(opentelemetry:span_ctx(), opentelemetry:status()) -> boolean().
 set_status(#span_ctx{span_id=SpanId}, Status=#status{code=NewCode}) ->
-    MS = ets:fun2ms(fun(Span=#span{span_id=Id,
-                                   status=#status{code=?OTEL_STATUS_ERROR}}) when Id =:= SpanId ,
-                                                                                  NewCode =:= ?OTEL_STATUS_OK ->
-                            %% can only set status to OK if it has been set to ERROR before
-                            Span#span{status=#status{code=?OTEL_STATUS_OK}};
-                       (Span=#span{span_id=Id,
-                                   status=#status{code=?OTEL_STATUS_UNSET}}) when Id =:= SpanId ->
-                            %% if UNSET then the status can be updated to OK or ERROR
-                            Span#span{status=Status};
-                       (Span=#span{span_id=Id,
-                                   status=undefined}) when Id =:= SpanId ->
-                            %% if undefined then the status can be updated to anything
-                            Span#span{status=Status}
-                    end),
-    ets:select_replace(?SPAN_TAB, MS) =:= 1;
+    try ets:lookup_element(?SPAN_TAB, SpanId, #span.status) of
+         #status{code=?OTEL_STATUS_ERROR} when NewCode =:= ?OTEL_STATUS_OK ->
+            %% can only set status to OK if it has been set to ERROR before
+            ets:update_element(?SPAN_TAB, SpanId, {#span.status, Status});
+        #status{code=?OTEL_STATUS_UNSET} ->
+            %% if UNSET then the status can be updated to OK or ERROR
+            ets:update_element(?SPAN_TAB, SpanId, {#span.status, Status});
+        undefined ->
+            %% if undefined then the status can be updated to anything
+            ets:update_element(?SPAN_TAB, SpanId, {#span.status, Status});
+        _ ->
+            %% nothing to do since status code is either
+            %% OK or ERROR but NewCode is not OK
+            false
+    catch error:badarg ->
+            false
+    end;
 set_status(_, _) ->
     false.
 
