@@ -17,21 +17,19 @@
 %%%-------------------------------------------------------------------------
 -module(otel_instrument).
 
--export([new/7]).
+-export([new/7,
+         is_monotonic/1]).
+
+-include("otel_metrics.hrl").
 
 -type name() :: atom() | unicode:latin1_charlist().
 -type description() :: unicode:unicode_binary().
--type kind() :: counter | observable_counter | histogram |
-                observable_gauge | updown_counter | observable_updowncounter.
+-type kind() :: ?KIND_COUNTER | ?KIND_OBSERVABLE_COUNTER | ?KIND_HISTOGRAM |
+                ?KIND_OBSERVABLE_GAUGE | ?KIND_UPDOWN_COUNTER | ?KIND_OBSERVABLE_UPDOWNCOUNTER.
 -type unit() :: atom(). %% latin1, maximum length of 63 characters
 -type value_type() :: integer | float.
 
--type t() :: #{meter       := otel_meter:t(),
-               name        := name(),
-               description := description() | undefined,
-               kind        := kind(),
-               value_type  := value_type(),
-               unit        := unit() | undefined}.
+-type t() :: #instrument{}.
 
 -export_type([t/0,
               name/0,
@@ -42,10 +40,17 @@
 
 -spec new(module(), otel_meter:t(), kind(), name(), description(), unit(), value_type()) -> t().
 new(Module, Meter, Kind, Name, Description, Unit, ValueType) ->
-    #{module      => Module,
-      meter       => Meter,
-      name        => Name,
-      description => Description,
-      kind        => Kind,
-      value_type  => ValueType,
-      unit        => Unit}.
+    #instrument{module      = Module,
+                meter       = Meter,
+                name        = Name,
+                description = Description,
+                kind        = Kind,
+                value_type  = ValueType,
+                unit        = Unit}.
+
+is_monotonic(#instrument{kind=?KIND_COUNTER}) ->
+    true;
+is_monotonic(#instrument{kind=?KIND_OBSERVABLE_COUNTER}) ->
+    true;
+is_monotonic(_) ->
+    false.

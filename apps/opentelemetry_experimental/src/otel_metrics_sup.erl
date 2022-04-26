@@ -12,19 +12,33 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
-%%
+%% @doc Supervisor for processes belonging to the Metric SDK.
 %% @end
 %%%-------------------------------------------------------------------------
--module(otel_metric_aggregator).
+-module(otel_metrics_sup).
 
--include("otel_meter.hrl").
+-behaviour(supervisor).
 
--callback update(ets:tab(), otel_meter:name() | {otel_meter:name(), otel_meter:labels()}, otel_meter:number_kind(), number()) -> boolean().
+-export([start_link/1]).
 
--callback checkpoint(ets:tab(), otel_meter:name() | {otel_meter:name(), otel_meter:labels()}) -> boolean().
+-export([init/1]).
 
--callback merge(term(), term()) -> term().
+-define(SERVER, ?MODULE).
 
-%% TODO: rename to `new'
--callback initial_value(otel_meter:number_kind()) -> term().
+start_link(Opts) ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, [Opts]).
+
+init([Opts]) ->
+    SupFlags = #{strategy => one_for_one,
+                 intensity => 1,
+                 period => 5},
+
+    MeterServer = #{id => otel_meter_server,
+                    start => {otel_meter_server, start_link, [Opts]},
+                    restart => permanent,
+                    shutdown => 5000,
+                    type => worker,
+                    modules => [otel_meter_provider, otel_meter_server]},
+
+    ChildSpecs = [MeterServer],
+    {ok, {SupFlags, ChildSpecs}}.

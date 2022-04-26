@@ -27,11 +27,13 @@
          force_flush/0,
          force_flush/1]).
 
+-type meter() :: term().
+
 -spec get_meter(Name, Vsn, SchemaUrl) -> Meter when
       Name :: atom(),
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
-      Meter:: opentelemetry:meter().
+      Meter:: meter().
 get_meter(Name, Vsn, SchemaUrl) ->
     get_meter(?MODULE, Name, Vsn, SchemaUrl).
 
@@ -40,7 +42,7 @@ get_meter(Name, Vsn, SchemaUrl) ->
       Name :: atom(),
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
-      Meter:: opentelemetry:meter().
+      Meter:: meter().
 get_meter(ServerRef, Name, Vsn, SchemaUrl) ->
     try
         gen_server:call(ServerRef, {get_meter, Name, Vsn, SchemaUrl})

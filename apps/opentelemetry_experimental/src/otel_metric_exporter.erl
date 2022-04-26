@@ -1,5 +1,5 @@
 %%%------------------------------------------------------------------------
-%% Copyright 2019, OpenTelemetry Authors
+%% Copyright 2022, OpenTelemetry Authors
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
 %% You may obtain a copy of the License at
@@ -12,38 +12,27 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
-%%
+%% @doc MetricExporter defines the interface that protocol-specific
+%% exporters MUST implement so that they can be plugged into OpenTelemetry
+%% SDK and support sending of telemetry data.
 %% @end
 %%%-------------------------------------------------------------------------
+
 -module(otel_metric_exporter).
 
--behaviour(gen_server).
-
--export([start_link/1,
-         export/1]).
-
 -export([init/1,
-         handle_call/3,
-         handle_cast/2]).
+         export/2,
+         force_flush/0,
+         shutdown/0]).
 
--include_lib("opentelemetry_api/include/opentelemetry.hrl").
+init(_) ->
+    {ok, []}.
 
--record(state, {exporter :: {module(), term()}}).
+export(_Batch, _Config) ->
+    ok.
 
-start_link(Opts) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, Opts, []).
+force_flush() ->
+    ok.
 
-export(Records) ->
-    {Module, Args} = gen_server:call(?MODULE, exporter),
-    erlang:apply(Module, export, [Records | Args]).
-
-init(Opts) ->
-    Exporter = maps:get(metric_exporter, Opts, {otel_metric_exporter_stdout, []}),
-    {ok, #state{exporter=Exporter}}.
-
-handle_call(exporter, _From, State=#state{exporter=Exporter}) ->
-    {reply, Exporter, State}.
-
-handle_cast(_Msg, State) ->
-    {noreply, State}.
+shutdown() ->
+    ok.

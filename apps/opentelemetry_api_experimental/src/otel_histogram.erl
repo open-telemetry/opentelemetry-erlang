@@ -21,6 +21,10 @@
 
 -export([record/3]).
 
+-include("otel_metrics.hrl").
+
+-callback record(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
+
 -spec record(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-record(Instrument=#{module := Module}, Number, Attributes) ->
+record(Instrument=#instrument{module=Module}, Number, Attributes) ->
     Module:record(Instrument, Number, Attributes).

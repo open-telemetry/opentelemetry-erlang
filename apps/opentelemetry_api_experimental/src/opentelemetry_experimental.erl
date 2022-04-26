@@ -20,9 +20,7 @@
 -export([set_meter/2,
          set_default_meter/1,
          get_meter/0,
-         get_meter/1,
-         register_meter/2,
-         register_application_meter/1]).
+         get_meter/1]).
 
 -include_lib("kernel/include/logger.hrl").
 
@@ -39,14 +37,6 @@ set_default_meter(Meter) ->
 -spec set_meter(atom(), meter()) -> boolean().
 set_meter(Name, Meter) ->
     opentelemetry:verify_and_set_term(Meter, ?METER_KEY(Name), otel_meter).
-
--spec register_meter(atom(), string()) -> boolean().
-register_meter(Name, Vsn) ->
-    otel_meter_provider:register_meter(Name, Vsn).
-
--spec register_application_meter(atom()) -> boolean().
-register_application_meter(Name) ->
-    otel_meter_provider:register_application_meter(Name).
 
 -spec get_meter() -> meter().
 get_meter() ->

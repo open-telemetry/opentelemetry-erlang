@@ -20,8 +20,10 @@
 
 -export([add/3]).
 
--callback add(otel_instrument:t(), integer(), opentelemetry:attributes_map()) -> ok.
+-include("otel_metrics.hrl").
+
+-callback add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
 
 -spec add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-add(Instrument=#{module := Module}, Number, Attributes) ->
+add(Instrument=#instrument{module=Module}, Number, Attributes) ->
     Module:add(Instrument, Number, Attributes).
