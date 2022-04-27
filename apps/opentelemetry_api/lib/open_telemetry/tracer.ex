@@ -114,8 +114,10 @@ defmodule OpenTelemetry.Tracer do
   end
 
   @doc """
-  End the Span. Sets the end timestamp for the currently active Span. This has no effect on any
-  child Spans that may exist of this Span.
+  End the currently active Span and sets its end timestamp.
+  This has no effect on any child Spans that may exist of this Span.
+
+  To end a specific span, see `OpenTelemetry.Span.end_span/1`.
 
   The Span in the current Context has its `is_recording` set to `false`.
   """
