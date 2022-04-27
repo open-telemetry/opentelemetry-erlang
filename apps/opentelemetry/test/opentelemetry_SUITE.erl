@@ -394,6 +394,11 @@ update_span_data(Config) ->
                          message = <<>>}, UnsetStatus),
     ?assertEqual(UnsetStatus, opentelemetry:status(?OTEL_STATUS_UNSET)),
 
+    %% successfully set to unset status, replacing `undefined'
+    ?assert(otel_span:set_status(SpanCtx1, UnsetStatus)),
+    %% successfully set to an error status
+    ?assert(otel_span:set_status(SpanCtx1, ErrorStatus)),
+    %% successfully set to OK after it was an error already
     ?assert(otel_span:set_status(SpanCtx1, OkStatus)),
     %% spec does not allow setting status to error/unset after it is ok
     ?assertNot(otel_span:set_status(SpanCtx1, ErrorStatus)),
