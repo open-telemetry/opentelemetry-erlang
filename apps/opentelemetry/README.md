@@ -23,7 +23,7 @@ over HTTP to `http://localhost:4318`, encoding the Spans with protobufs.
 [
  {opentelemetry,
   [{span_processor, batch},
-   {exporter, otlp}]},
+   {traces_exporter, otlp}]},
 
  {opentelemetry_exporter, 
   [{otlp_protocol, http_protobuf},
@@ -34,7 +34,7 @@ over HTTP to `http://localhost:4318`, encoding the Spans with protobufs.
 ``` elixir
 config :opentelemetry, 
   span_processor: :batch,
-  exporter: :otlp
+  traces_exporter: :otlp
 
 config :opentelemetry_exporter,
   otlp_protocol: :http_protobuf,
