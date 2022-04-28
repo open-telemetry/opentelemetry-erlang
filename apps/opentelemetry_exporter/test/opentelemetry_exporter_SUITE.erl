@@ -29,22 +29,28 @@ end_per_suite(_Config) ->
 init_per_group(Group, Config) when Group =:= grpc ;
                                    Group =:= http_protobuf ->
     application:ensure_all_started(opentelemetry_exporter),
+    application:ensure_all_started(opentelemetry),
     [{protocol, Group}| Config];
 init_per_group(http_protobuf_gzip, Config) ->
     application:ensure_all_started(opentelemetry_exporter),
+    application:ensure_all_started(opentelemetry),
     [{protocol, http_protobuf}, {compression, gzip} | Config];
 init_per_group(grpc_gzip, Config) ->
     application:ensure_all_started(opentelemetry_exporter),
+    application:ensure_all_started(opentelemetry),
     [{protocol, grpc}, {compression, gzip} | Config];
 init_per_group(_, _) ->
     application:load(opentelemetry_exporter),
+    application:ensure_all_started(opentelemetry),
     ok.
 
 end_per_group(Group, _Config) when Group =:= grpc ;
                                    Group =:= http_protobuf ->
+    application:stop(opentelemetry),
     application:stop(opentelemetry_exporter),
     ok;
 end_per_group(_, _) ->
+    application:stop(opentelemetry),
     application:unload(opentelemetry_exporter),
     ok.
 
