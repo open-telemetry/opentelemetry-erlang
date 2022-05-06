@@ -338,6 +338,8 @@ to_charlist(Atom) when is_atom(Atom) ->
 to_charlist(Other) ->
     unicode:characters_to_list(Other).
 
+scheme_port(Scheme) when not is_atom(Scheme) ->
+    scheme_port(scheme(Scheme));
 scheme_port(http) ->
     80;
 scheme_port(https) ->
@@ -369,7 +371,18 @@ scheme(Scheme) when Scheme =:= "https" orelse Scheme =:= <<"https">> ->
 scheme(Scheme) when Scheme =:= "http" orelse Scheme =:= <<"http">> ->
     http;
 scheme(Scheme) ->
-    Scheme.
+    ?LOG_WARNING("unknown scheme ~p, converting to existing atom, if possible, and using as is", [Scheme]),
+    to_existing_atom(Scheme).
+
+to_existing_atom(Term) when is_atom(Term) ->
+    Term;
+to_existing_atom(Scheme) when is_list(Scheme) ->
+    list_to_existing_atom(Scheme);
+to_existing_atom(Scheme) when is_binary(Scheme) ->
+    %% TODO: switch to binary_to_existing_atom once we drop OTP-22 support
+    list_to_existing_atom(binary_to_list(Scheme));
+to_existing_atom(_) ->
+    erlang:error(bad_exporter_scheme).
 
 merge_with_environment(Opts) ->
     %% exporters are initialized by calling their `init/1' function from `opentelemetry'.
