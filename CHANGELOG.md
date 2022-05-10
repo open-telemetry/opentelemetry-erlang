@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Exporter 1.0.4 - 2022-05-06
+
+- [fix bug where port 80 is used even for https](https://github.com/open-telemetry/opentelemetry-erlang/pull/389)
+
 ## 1.0.3 - 2022-04-27
 
 ### [API 1.0.3]
