@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### [SDK]
+
+#### Fixed
+
+- [Setting the exporter with `traces_exporter` application environment variable
+  now properly overrides the configuration passed to the
+  processor](https://github.com/open-telemetry/opentelemetry-erlang/pull/393)
+
 ## Exporter 1.0.4 - 2022-05-06
 
 - [fix bug where port 80 is used even for https](https://github.com/open-telemetry/opentelemetry-erlang/pull/389)
