@@ -117,7 +117,7 @@ init([Args]) ->
     enable(),
 
     {ok, idle, #data{exporter=undefined,
-                     exporter_config=maps:get(exporter, Args, undefined),
+                     exporter_config=maps:get(traces_exporter, Args, undefined),
                      resource = Resource,
                      handed_off_table=undefined,
                      max_queue_size=case SizeLimit of

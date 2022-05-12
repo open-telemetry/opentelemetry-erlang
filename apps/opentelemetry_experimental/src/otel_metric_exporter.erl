@@ -39,7 +39,7 @@ export(Records) ->
     erlang:apply(Module, export, [Records | Args]).
 
 init(Opts) ->
-    Exporter = maps:get(metric_exporter, Opts, {otel_metric_exporter_stdout, []}),
+    Exporter = maps:get(metrics_exporter, Opts, {otel_metric_exporter_stdout, []}),
     {ok, #state{exporter=Exporter}}.
 
 handle_call(exporter, _From, State=#state{exporter=Exporter}) ->
