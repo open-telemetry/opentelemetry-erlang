@@ -19,6 +19,7 @@ all() ->
      disable_auto_creation,
      old_disable_auto_creation,
      application_tracers,
+     logger_metadata,
      %% force flush is a test of flushing the batch processor's table
      force_flush,
 
@@ -65,6 +66,9 @@ init_per_testcase(application_tracers, Config) ->
     %% if both are set then the new one, `create_application_tracers', is used
     application:set_env(opentelemetry, register_loaded_applications, false),
     application:set_env(opentelemetry, create_application_tracers, true),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
+init_per_testcase(logger_metadata, Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(propagator_configuration, Config) ->
@@ -169,6 +173,68 @@ application_tracers(_Config) ->
     ?assertEqual(<<"http://schema.org/myschema">>, NewLibrary1#instrumentation_scope.schema_url),
 
     ok.
+
+logger_metadata(_Config) ->
+    Tracer = opentelemetry:get_tracer(),
+
+    ?assert(empty_metadata()),
+
+    SpanCtx1 = ?start_span(<<"span-1">>),
+    otel_tracer:set_current_span(SpanCtx1),
+    HexSpanCtx1 = otel_span:hex_span_ctx(SpanCtx1),
+    ?assertMatch(#{otel_span_ctx := HexSpanCtx1}, logger:get_process_metadata()),
+
+    Result = some_result,
+    ?assertMatch(Result, otel_tracer:with_span(Tracer, <<"with-span-2">>, #{},
+                                               fun(SpanCtx2) ->
+                                                       ?assertNotEqual(SpanCtx1, SpanCtx2),
+                                                       ?assertEqual(SpanCtx2, ?current_span_ctx),
+
+                                                       HexSpanCtx2 = otel_span:hex_span_ctx(SpanCtx2),
+
+                                                       ?assertMatch(#{otel_span_ctx := HexSpanCtx2},
+                                                                    logger:get_process_metadata()),
+
+                                                       Result
+                                               end)),
+
+    ?assertMatch(#{otel_span_ctx := HexSpanCtx1}, logger:get_process_metadata()),
+
+    ?assertMatch(SpanCtx1, ?current_span_ctx),
+
+    otel_span:end_span(SpanCtx1),
+
+    otel_tracer:set_current_span(undefined),
+
+    ?assert(empty_metadata()),
+
+    ?assert(otel_tracer:with_span(Tracer, <<"with-span-3">>, #{},
+                                  fun(SpanCtx3) ->
+                                          ?assertNotEqual(SpanCtx1, SpanCtx3),
+                                          ?assertEqual(SpanCtx3, ?current_span_ctx),
+
+                                          HexSpanCtx3 = otel_span:hex_span_ctx(SpanCtx3),
+
+                                          ?assertMatch(#{otel_span_ctx := HexSpanCtx3},
+                                                       logger:get_process_metadata()),
+
+                                          true
+                                  end)),
+
+
+    ?assert(empty_metadata()),
+
+    ok.
+
+%% logger metadata will either be undefined, a map without the otel_span_ctx key or
+%% with the value of the key being undefined
+empty_metadata() ->
+    case logger:get_process_metadata() of
+        undefined ->
+            true;
+        M ->
+            maps:get(otel_span_ctx, M, #{}) =:= #{}
+    end.
 
 propagator_configuration(_Config) ->
     ?assertEqual({otel_propagator_text_map_composite,
