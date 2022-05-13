@@ -47,8 +47,8 @@
                bsp_max_queue_size := integer() | undefined,
                ssp_exporting_timeout_ms := integer() | undefined,
                text_map_propagators := [atom()],
-               traces_exporter := {atom(), term()} | undefined,
-               metrics_exporter := {atom(), term()} | undefined,
+               traces_exporter := {atom(), term()} | none | undefined,
+               metrics_exporter := {atom(), term()} | none | undefined,
                processors := list(),
                sampler := {atom(), term()},
                sweeper := #{interval => integer() | infinity,
@@ -160,41 +160,41 @@ processors(AppEnv, ConfigMap) ->
                      end,
 
     ProcessorsConfig = lists:map(fun({Name, Opts}) ->
-                                         Opts1 = merge_processor_config(Name, Opts, AppEnv),
+                                         Opts1 = merge_processor_config(Name, Opts, ConfigMap),
                                          {Name, Opts1}
                                  end, SpanProcessors),
 
     ConfigMap#{processors := ProcessorsConfig}.
 
-%% use the top level app env and os env configuration to set processor config values
-merge_processor_config(otel_batch_processor, Opts, AppEnv) ->
+%% use the top level app env and os env configuration to set/override processor config values
+merge_processor_config(otel_batch_processor, Opts, ConfigMap) ->
     BatchEnvMapping = [{bsp_scheduled_delay_ms, scheduled_delay_ms},
                        {bsp_exporting_timeout_ms, exporting_timeout_ms},
                        {bsp_max_queue_size, max_queue_size},
                        {traces_exporter, exporter}],
 
     lists:foldl(fun({K, V}, Acc) ->
-                     case proplists:get_value(K, AppEnv) of
-                         undefined ->
-                             Acc;
-                         Value ->
-                             Acc#{V => Value}
-                     end
+                        case maps:get(K, ConfigMap, undefined) of
+                            undefined ->
+                                Acc;
+                            Value ->
+                                Acc#{V => Value}
+                        end
                 end, Opts, BatchEnvMapping);
-merge_processor_config(otel_simple_processor, Opts, AppEnv) ->
-    SimpleEnvMapping = [{ssp_exporting_timeout_ms, exporting_timeout_ms}],
+merge_processor_config(otel_simple_processor, Opts, ConfigMap) ->
+    SimpleEnvMapping = [{ssp_exporting_timeout_ms, exporting_timeout_ms},
+                        {traces_exporter, exporter}],
 
     lists:foldl(fun({K, V}, Acc) ->
-                     case proplists:get_value(K, AppEnv) of
-                         undefined ->
-                             Acc;
-                         Value ->
-                             Acc#{V => Value}
-                     end
+                        case maps:get(K, ConfigMap, undefined) of
+                            undefined ->
+                                Acc;
+                            Value ->
+                                Acc#{V => Value}
+                        end
                 end, Opts, SimpleEnvMapping);
 merge_processor_config(_, Opts, _) ->
     Opts.
-
 
 %% sampler configuration is unique since it has the _ARG that is a sort of
 %% sub-configuration of the sampler config, and isn't a list.
@@ -333,12 +333,12 @@ transform(exporter, Exporter) when Exporter =:= "otlp" ; Exporter =:= otlp ->
     {opentelemetry_exporter, #{}};
 transform(exporter, Exporter) when Exporter =:= "jaeger" ; Exporter =:= jaeger ->
     ?LOG_WARNING("configuring jaeger exporter through OTEL_TRACES_EXPORTER is not yet supported ", []),
-    undefined;
+    none;
 transform(exporter, Exporter)  when Exporter =:= "zipkin" ; Exporter =:= zipkin ->
     ?LOG_WARNING("configuring zipkin exporter through OTEL_TRACES_EXPORTER is not yet supported ", []),
-    undefined;
+    none;
 transform(exporter, Exporter) when Exporter =:= "none" ; Exporter =:= none ->
-    undefined;
+    none;
 transform(exporter, Value={Term, _}) when is_atom(Term) ->
     Value;
 transform(exporter, UnknownExporter) when is_list(UnknownExporter) ->

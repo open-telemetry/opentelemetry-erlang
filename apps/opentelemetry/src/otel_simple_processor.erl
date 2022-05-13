@@ -91,7 +91,7 @@ init([Args]) ->
     Resource = otel_tracer_provider:resource(),
 
     {ok, idle, #data{exporter=undefined,
-                     exporter_config=maps:get(exporter, Args, undefined),
+                     exporter_config=maps:get(exporter, Args, none),
                      resource = Resource,
                      handed_off_table=undefined,
                      exporting_timeout_ms=ExportingTimeout}, [{next_event, internal, init_exporter}]}.
