@@ -9,7 +9,7 @@ set -e
 
 rebar3 compile
 rebar3 edoc
-sdk_version=1.0.3
+sdk_version=1.0.4
 api_version=1.0.3
 otlp_version=1.0.4
 zipkin_version=1.0.0

@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### [SDK]
+## SDK 1.0.4 - 2022-05-13
 
-#### Fixed
+### Fixed
 
 - [Setting the exporter with `traces_exporter` application environment variable
   now properly overrides the configuration passed to the
