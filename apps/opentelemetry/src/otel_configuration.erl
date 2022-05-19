@@ -445,9 +445,7 @@ transform(propagator, Value) when Value =:= "b3" ;
 %% transform(propagator, "jaeger") ->
 %%     jaeger;
 transform(propagator, Propagator) ->
-    ?LOG_WARNING("Ignoring unknown propagator ~ts in OS environment variable $OTEL_PROPAGATORS",
-                 [Propagator]),
-    undefined;
+    Propagator;
 transform(span_processors, Processors) when is_list(Processors) ->
     [transform(span_processor, Processor) || Processor <- Processors];
 transform(span_processors, Unknown) ->
