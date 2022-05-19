@@ -395,6 +395,18 @@ span_processors(_Config) ->
                                                            scheduled_delay_ms := 5000}}]},
                  otel_configuration:merge_with_os([{span_processor, batch}])),
 
+    ?assertMatch(#{processors := [{otel_batch_processor, #{exporter := {opentelemetry_exporter,
+                                                                        #{endpoints := ["https://example.com"]}},
+                                                           exporting_timeout_ms := 2,
+                                                           max_queue_size := 1,
+                                                           scheduled_delay_ms := 15000}}]},
+                 otel_configuration:merge_with_os([{processors, [{otel_batch_processor, #{exporter => {opentelemetry_exporter,#{endpoints => ["https://example.com"]}},
+                                                                                          scheduled_delay_ms => 15000,
+                                                                                          max_queue_size => 4,
+                                                                                          exporting_timeout_ms => 3}}]},
+                                                   {bsp_exporting_timeout_ms, 2},
+                                                   {bsp_max_queue_size, 1}])),
+
     ?assertMatch(#{processors := [{otel_simple_processor, #{exporter := {opentelemetry_exporter,#{}},
                                                             exporting_timeout_ms := 2}}]},
                  otel_configuration:merge_with_os([{span_processor, simple},
