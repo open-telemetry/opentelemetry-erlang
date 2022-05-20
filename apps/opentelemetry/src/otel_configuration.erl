@@ -160,41 +160,51 @@ processors(AppEnv, ConfigMap) ->
                      end,
 
     ProcessorsConfig = lists:map(fun({Name, Opts}) ->
-                                         Opts1 = merge_processor_config(Name, Opts, ConfigMap),
+                                         Opts1 = merge_processor_config(Name, Opts, ConfigMap, AppEnv),
                                          {Name, Opts1}
                                  end, SpanProcessors),
 
     ConfigMap#{processors := ProcessorsConfig}.
 
 %% use the top level app env and os env configuration to set/override processor config values
-merge_processor_config(otel_batch_processor, Opts, ConfigMap) ->
+merge_processor_config(otel_batch_processor, Opts, ConfigMap, AppEnv) ->
     BatchEnvMapping = [{bsp_scheduled_delay_ms, scheduled_delay_ms},
                        {bsp_exporting_timeout_ms, exporting_timeout_ms},
                        {bsp_max_queue_size, max_queue_size},
                        {traces_exporter, exporter}],
-
-    lists:foldl(fun({K, V}, Acc) ->
-                        case maps:get(K, ConfigMap, undefined) of
-                            undefined ->
-                                Acc;
-                            Value ->
-                                Acc#{V => Value}
-                        end
-                end, Opts, BatchEnvMapping);
-merge_processor_config(otel_simple_processor, Opts, ConfigMap) ->
+    merge_processor_config_(BatchEnvMapping, Opts, ConfigMap, AppEnv);
+merge_processor_config(otel_simple_processor, Opts, ConfigMap, AppEnv) ->
     SimpleEnvMapping = [{ssp_exporting_timeout_ms, exporting_timeout_ms},
                         {traces_exporter, exporter}],
+    merge_processor_config_(SimpleEnvMapping, Opts, ConfigMap, AppEnv);
+merge_processor_config(_, Opts, _, _) ->
+    Opts.
+
+merge_processor_config_(EnvMapping, Opts, ConfigMap, AppEnv) ->
+    Mappings = config_mappings(general_sdk),
 
     lists:foldl(fun({K, V}, Acc) ->
                         case maps:get(K, ConfigMap, undefined) of
                             undefined ->
                                 Acc;
                             Value ->
-                                Acc#{V => Value}
+                                %% use default only if the config isn't found in Opts
+                                %% but if the value in ConfigMap isn't the default use it
+                                IsDefault = is_default(K, AppEnv, Mappings),
+                                case (IsDefault andalso not maps:is_key(V, Opts)) orelse not IsDefault of
+                                    true ->
+                                        Acc#{V => Value};
+                                    false ->
+                                        Acc
+                                end
                         end
-                end, Opts, SimpleEnvMapping);
-merge_processor_config(_, Opts, _) ->
-    Opts.
+                end, Opts, EnvMapping).
+
+%% return true if the user (through application or os environment) configured
+%% a certain setting
+is_default(Key, AppEnv, Mappings) ->
+    {OSVarName, Key, _TransformType} = lists:keyfind(Key, 2, Mappings),
+    not lists:keymember(Key, 1, AppEnv) andalso os:getenv(OSVarName) =:= false.
 
 %% sampler configuration is unique since it has the _ARG that is a sort of
 %% sub-configuration of the sampler config, and isn't a list.
