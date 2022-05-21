@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## SDK 1.0.5 - 2022-05-20
+
+### Fixed
+
+- [span processor config: don't override user settings with
+  defaults](https://github.com/open-telemetry/opentelemetry-erlang/pull/397)
+
 ## SDK 1.0.4 - 2022-05-13
 
 ### Fixed
