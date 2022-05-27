@@ -131,6 +131,19 @@ optionally takes a timestamp to use as the end time of the Span.
 OpenTelemetry.Tracer.end_span(timestamp \\ :undefined)
 ```
 
+#### Sampling
+
+Sampling is performed at span creation time by the Sampler configured on the Tracer, see [Samplers](https://hexdocs.pm/opentelemetry/readme.html).
+
+To pass attributes for use by the sampler, use the attributes field of `StartOpts`/`start_opts` 
+
+example:
+
+``` elixir
+OpenTelemetry.Tracer.start_span(span_name, %{attributes: %{my_attribute: "my value"}})
+```
+
+
 #### Setting Attributes
 
 [Setting
