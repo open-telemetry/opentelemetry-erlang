@@ -14,7 +14,28 @@ defmodule OpenTelemetry.Tracer do
       Tracer.with_span "span-1" do
         ... do something ...
       end
+
+  The Tracer also provides a `@trace` annotation you can use to decorate functions to trace.
+
+      use OpenTelemtry.Tracer
+
+      @trace :my_function
+      def my_function()
+
+      @trace {:my_producer, kind: :producer}
+      def my_producer()
+
   """
+
+  defmacro __using__(_args) do
+    quote do
+      Module.register_attribute(__MODULE__, :otel_tracers, accumulate: true)
+      Module.register_attribute(__MODULE__, :otel_last_tracer, accumulate: false)
+
+      @before_compile OpenTelemetry.Macro
+      @on_definition OpenTelemetry.Macro
+    end
+  end
 
   @doc """
   Starts a new span and does not make it the current active span of the current process.
