@@ -224,6 +224,25 @@ and [Zipkin](https://zipkin.io/):
 - [OpenTelemetry Protocol](https://hex.pm/packages/opentelemetry_exporter)
 - [Zipkin](https://hex.pm/packages/opentelemetry_zipkin)
 
+### Log Correlation
+
+When a Span is made active in a process, for example when the `with_span` macro
+is used, it is added to the [logger
+metadata](https://www.erlang.org/doc/apps/kernel/logger_chapter.html). The
+metadata is under the key `otel_span_ctx`. Example usage:
+
+``` erlang
+{kernel,
+  [{logger_level, debug},
+    {logger,
+     [{handler, default, logger_std_h,
+       #{formatter => {logger_formatter,
+                        #{template => [time, " ", file, ":", line, " ", level, ": ",
+                                       {otel_span_ctx, ["trace_id=", [otel_span_ctx, trace_id], " ",
+                                                        "span_id=", [otel_span_ctx, span_id], " "], []},
+                                       msg,"\n"]}}}}]}]}
+```
+
 ### Integrations
 
 Instrumentations of many popular Erlang and Elixir projects can be found in the
