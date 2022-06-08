@@ -33,8 +33,8 @@ start_span(Ctx, {_, #tracer{on_start_processors=Processors,
                             on_end_processors=OnEndProcessors,
                             sampler=Sampler,
                             id_generator=IdGeneratorModule,
-                            instrumentation_library=InstrumentationLibrary}}, Name, Opts) ->
-    SpanCtx = otel_span_ets:start_span(Ctx, Name, Sampler, IdGeneratorModule, Opts, Processors, InstrumentationLibrary),
+                            instrumentation_scope=InstrumentationScope}}, Name, Opts) ->
+    SpanCtx = otel_span_ets:start_span(Ctx, Name, Sampler, IdGeneratorModule, Opts, Processors, InstrumentationScope),
     SpanCtx#span_ctx{span_sdk={otel_span_ets, OnEndProcessors}}.
 
 -spec with_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(),

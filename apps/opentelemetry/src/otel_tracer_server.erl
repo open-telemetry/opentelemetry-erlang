@@ -35,9 +35,9 @@
 -include("otel_span.hrl").
 
 -type telemetry_library() :: #telemetry_library{}.
--type instrumentation_library() :: #instrumentation_library{}.
+-type instrumentation_scope() :: #instrumentation_scope{}.
 -export_type([telemetry_library/0,
-              instrumentation_library/0]).
+              instrumentation_scope/0]).
 
 -record(state,
         {
@@ -100,15 +100,15 @@ handle_call({get_tracer, Name, Vsn, SchemaUrl}, _From, State=#state{shared_trace
         true ->
             {reply, {otel_tracer_noop, []}, State};
         false ->
-            InstrumentationLibrary = opentelemetry:instrumentation_library(Name, Vsn, SchemaUrl),
+            InstrumentationScope = opentelemetry:instrumentation_scope(Name, Vsn, SchemaUrl),
             TracerTuple = {Tracer#tracer.module,
-                           Tracer#tracer{instrumentation_library=InstrumentationLibrary}},
+                           Tracer#tracer{instrumentation_scope=InstrumentationScope}},
             {reply, TracerTuple, State}
     end;
-handle_call({get_tracer, InstrumentationLibrary}, _From, State=#state{shared_tracer=Tracer,
+handle_call({get_tracer, InstrumentationScope}, _From, State=#state{shared_tracer=Tracer,
                                                                       deny_list=_DenyList}) ->
     {reply, {Tracer#tracer.module,
-             Tracer#tracer{instrumentation_library=InstrumentationLibrary}}, State};
+             Tracer#tracer{instrumentation_scope=InstrumentationScope}}, State};
 handle_call(force_flush, _From, State=#state{processors=Processors}) ->
     Reply = lists:foldl(fun(Processor, Result) ->
                                 case force_flush_(Processor) of

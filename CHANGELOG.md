@@ -7,11 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [SDK]
+### [API]
+
+#### Added
+
+- [Instrumentation Scope replaces Instrumentation Library](https://github.com/open-telemetry/opentelemetry-erlang/pull/405)
+
+### [SDK]
+
+#### Added
+
+- [Instrumentation Scope replaces Instrumentation Library](https://github.com/open-telemetry/opentelemetry-erlang/pull/405)
 
 ### Fixed
 
 - [Allow custom text propagator to be configured via application env](https://github.com/open-telemetry/opentelemetry-erlang/pull/408)
+
+### [Exporter]
+
+#### Added
+
+- [Instrumentation Scope replaces Instrumentation Library]()
 
 ## SDK 1.0.5 - 2022-05-20
 

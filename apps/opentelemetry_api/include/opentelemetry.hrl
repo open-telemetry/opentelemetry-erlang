@@ -36,7 +36,7 @@
 
 %% Holds information about the instrumentation library specified when
 %% getting a Tracer from the TracerProvider.
--record(instrumentation_library, {name       :: unicode:unicode_binary() | undefined,
+-record(instrumentation_scope, {name       :: unicode:unicode_binary() | undefined,
                                   version    :: unicode:unicode_binary() | undefined,
                                   schema_url :: uri_string:uri_string() | undefined}).
 
