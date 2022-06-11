@@ -11,13 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Added
 
-- [Instrumentation Scope replaces Instrumentation Library](https://github.com/open-telemetry/opentelemetry-erlang/pull/405)
+- [Instrumentation Scope replaces Instrumentation
+  Library](https://github.com/open-telemetry/opentelemetry-erlang/pull/405) --
+  If you were using the record directly, please use the function
+  `opentelemetry:instrumentation_scope/3` or
+  `opentelemetry:instrumentation_library/3` to create an `instrumentation_scope`
+  record. 
 
 ### [SDK]
 
 #### Added
 
-- [Instrumentation Scope replaces Instrumentation Library](https://github.com/open-telemetry/opentelemetry-erlang/pull/405)
+- [Instrumentation Scope replaces Instrumentation
+  Library](https://github.com/open-telemetry/opentelemetry-erlang/pull/405) --
+  If you were using the record directly, please use the function
+  `opentelemetry:instrumentation_scope/3` or
+  `opentelemetry:instrumentation_library/3` to create an `instrumentation_scope`
+  record.
 
 ### Fixed
 
@@ -27,7 +37,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Added
 
-- [Instrumentation Scope replaces Instrumentation Library]()
+- [Instrumentation Scope replaces Instrumentation
+  Library](https://github.com/open-telemetry/opentelemetry-erlang/pull/405) --
+  If you were using the record directly, please use the function
+  `opentelemetry:instrumentation_scope/3` or
+  `opentelemetry:instrumentation_library/3` to create an `instrumentation_scope`
+  record.
 
 ## SDK 1.0.5 - 2022-05-20
 
