@@ -34,11 +34,11 @@
 -define(OTEL_STATUS_OK, ok).
 -define(OTEL_STATUS_ERROR, error).
 
-%% Holds information about the instrumentation library specified when
+%% Holds information about the instrumentation scope specified when
 %% getting a Tracer from the TracerProvider.
 -record(instrumentation_scope, {name       :: unicode:unicode_binary() | undefined,
-                                  version    :: unicode:unicode_binary() | undefined,
-                                  schema_url :: uri_string:uri_string() | undefined}).
+                                version    :: unicode:unicode_binary() | undefined,
+                                schema_url :: uri_string:uri_string() | undefined}).
 
 -record(span_ctx, {
           %% 128 bit int trace id
