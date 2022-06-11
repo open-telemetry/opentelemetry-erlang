@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [SDK]
+
+### Fixed
+
+- [Allow custom text propagator to be configured via application env](https://github.com/open-telemetry/opentelemetry-erlang/pull/408)
+
 ## SDK 1.0.5 - 2022-05-20
 
 ### Fixed
