@@ -164,10 +164,10 @@ new_export_table(Name) ->
                     {write_concurrency, true},
                     duplicate_bag,
                     %% OpenTelemetry exporter protos group by the
-                    %% instrumentation_library. So using instrumentation_library
+                    %% instrumentation_scope. So using instrumentation_scope
                     %% as the key means we can easily lookup all spans for
-                    %% for each instrumentation_library and export together.
-                    {keypos, #span.instrumentation_library}]).
+                    %% for each instrumentation_scope and export together.
+                    {keypos, #span.instrumentation_scope}]).
 
 export_span(Span, #data{exporter=Exporter,
                         resource=Resource}) ->
