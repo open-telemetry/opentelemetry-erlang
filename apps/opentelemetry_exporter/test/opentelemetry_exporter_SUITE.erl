@@ -29,22 +29,28 @@ end_per_suite(_Config) ->
 init_per_group(Group, Config) when Group =:= grpc ;
                                    Group =:= http_protobuf ->
     application:ensure_all_started(opentelemetry_exporter),
+    application:ensure_all_started(opentelemetry),
     [{protocol, Group}| Config];
 init_per_group(http_protobuf_gzip, Config) ->
     application:ensure_all_started(opentelemetry_exporter),
+    application:ensure_all_started(opentelemetry),
     [{protocol, http_protobuf}, {compression, gzip} | Config];
 init_per_group(grpc_gzip, Config) ->
     application:ensure_all_started(opentelemetry_exporter),
+    application:ensure_all_started(opentelemetry),
     [{protocol, grpc}, {compression, gzip} | Config];
 init_per_group(_, _) ->
     application:load(opentelemetry_exporter),
+    application:ensure_all_started(opentelemetry),
     ok.
 
 end_per_group(Group, _Config) when Group =:= grpc ;
                                    Group =:= http_protobuf ->
+    application:stop(opentelemetry),
     application:stop(opentelemetry_exporter),
     ok;
 end_per_group(_, _) ->
+    application:stop(opentelemetry),
     application:unload(opentelemetry_exporter),
     ok.
 
@@ -158,7 +164,7 @@ configuration(_Config) ->
     end.
 
 ets_instrumentation_info(_Config) ->
-    Tid = ets:new(span_tab, [duplicate_bag, {keypos, #span.instrumentation_library}]),
+    Tid = ets:new(span_tab, [duplicate_bag, {keypos, #span.instrumentation_scope}]),
 
     TraceId = otel_id_generator:generate_trace_id(),
     SpanId = otel_id_generator:generate_span_id(),
@@ -179,7 +185,7 @@ ets_instrumentation_info(_Config) ->
                                                name = <<"event-2">>,
                                                attributes = [{<<"attr-3">>, <<"value-3">>}]}], Events1),
               attributes = otel_attributes:new([{<<"attr-2">>, <<"value-2">>}], 128, 128),
-              instrumentation_library=#instrumentation_library{name = <<"tracer-2">>,
+              instrumentation_scope=#instrumentation_scope{name = <<"tracer-2">>,
                                                                version = <<"0.0.1">>}},
     true = ets:insert(Tid, ParentSpan),
 
@@ -199,18 +205,18 @@ ets_instrumentation_info(_Config) ->
                                                        name = <<"event-2">>,
                                                        attributes = [{<<"attr-3">>, <<"value-3">>}]}], Events2),
                       attributes = otel_attributes:new([{<<"attr-2">>, <<"value-2">>}], 128, 128),
-                      instrumentation_library=#instrumentation_library{name = <<"tracer-1">>,
+                      instrumentation_scope=#instrumentation_scope{name = <<"tracer-1">>,
                                                                        version = <<"0.0.1">>}},
     true = ets:insert(Tid, ChildSpan),
 
-    ?assertMatch([#{instrumentation_library :=
+    ?assertMatch([#{instrumentation_scope :=
                         #{name := <<"tracer-1">>,version := <<"0.0.1">>},
                     spans :=
                         [_]},
-                  #{instrumentation_library :=
+                  #{instrumentation_scope :=
                         #{name := <<"tracer-2">>,version := <<"0.0.1">>},
                     spans :=
-                        [_]}], lists:sort(opentelemetry_exporter:to_proto_by_instrumentation_library(Tid))),
+                        [_]}], lists:sort(opentelemetry_exporter:to_proto_by_instrumentation_scope(Tid))),
 
     ok.
 
@@ -241,7 +247,7 @@ span_round_trip(_Config) ->
                                                 ], 128, 128),
               status = #status{code=?OTEL_STATUS_OK,
                                message = <<"">>},
-              instrumentation_library = #instrumentation_library{name = <<"tracer-1">>,
+              instrumentation_scope = #instrumentation_scope{name = <<"tracer-1">>,
                                                                  version = <<"0.0.1">>}},
 
     PbSpan = opentelemetry_exporter:to_proto(Span),
@@ -269,7 +275,7 @@ verify_export(Config) ->
     {ok, State} = opentelemetry_exporter:init(#{protocol => Protocol,
                                                 compression => Compression,
                                                 endpoints => [{http, "localhost", Port, []}]}),
-    Tid = ets:new(span_tab, [duplicate_bag, {keypos, #span.instrumentation_library}]),
+    Tid = ets:new(span_tab, [duplicate_bag, {keypos, #span.instrumentation_scope}]),
 
     %% Tempoararily adding this because without this, we would face
     %% {error, no_endpoints} when attempt to export when we have more
@@ -329,7 +335,7 @@ verify_export(Config) ->
     true = ets:insert(Tid, ChildSpan),
 
     ?assertMatch([#{spans := [_, _]}],
-                 opentelemetry_exporter:to_proto_by_instrumentation_library(Tid)),
+                 opentelemetry_exporter:to_proto_by_instrumentation_scope(Tid)),
     Resource = otel_resource_env_var:get_resource([]),
     ?assertEqual(otel_attributes:new([{<<"service.name">>,<<"my-test-service">>},
                                       {<<"service.version">>,<<"98da75ea6d38724743bf42b45565049238d86b3f">>}], 128, 255), otel_resource:attributes(Resource)),

@@ -47,8 +47,8 @@
                bsp_max_queue_size := integer() | undefined,
                ssp_exporting_timeout_ms := integer() | undefined,
                text_map_propagators := [atom()],
-               traces_exporter := {atom(), term()} | undefined,
-               metrics_exporter := {atom(), term()} | undefined,
+               traces_exporter := {atom(), term()} | none | undefined,
+               metrics_exporter := {atom(), term()} | none | undefined,
                processors := list(),
                sampler := {atom(), term()},
                sweeper := #{interval => integer() | infinity,
@@ -160,41 +160,51 @@ processors(AppEnv, ConfigMap) ->
                      end,
 
     ProcessorsConfig = lists:map(fun({Name, Opts}) ->
-                                         Opts1 = merge_processor_config(Name, Opts, AppEnv),
+                                         Opts1 = merge_processor_config(Name, Opts, ConfigMap, AppEnv),
                                          {Name, Opts1}
                                  end, SpanProcessors),
 
     ConfigMap#{processors := ProcessorsConfig}.
 
-%% use the top level app env and os env configuration to set processor config values
-merge_processor_config(otel_batch_processor, Opts, AppEnv) ->
+%% use the top level app env and os env configuration to set/override processor config values
+merge_processor_config(otel_batch_processor, Opts, ConfigMap, AppEnv) ->
     BatchEnvMapping = [{bsp_scheduled_delay_ms, scheduled_delay_ms},
                        {bsp_exporting_timeout_ms, exporting_timeout_ms},
                        {bsp_max_queue_size, max_queue_size},
                        {traces_exporter, exporter}],
-
-    lists:foldl(fun({K, V}, Acc) ->
-                     case proplists:get_value(K, AppEnv) of
-                         undefined ->
-                             Acc;
-                         Value ->
-                             Acc#{V => Value}
-                     end
-                end, Opts, BatchEnvMapping);
-merge_processor_config(otel_simple_processor, Opts, AppEnv) ->
-    SimpleEnvMapping = [{ssp_exporting_timeout_ms, exporting_timeout_ms}],
-
-    lists:foldl(fun({K, V}, Acc) ->
-                     case proplists:get_value(K, AppEnv) of
-                         undefined ->
-                             Acc;
-                         Value ->
-                             Acc#{V => Value}
-                     end
-                end, Opts, SimpleEnvMapping);
-merge_processor_config(_, Opts, _) ->
+    merge_processor_config_(BatchEnvMapping, Opts, ConfigMap, AppEnv);
+merge_processor_config(otel_simple_processor, Opts, ConfigMap, AppEnv) ->
+    SimpleEnvMapping = [{ssp_exporting_timeout_ms, exporting_timeout_ms},
+                        {traces_exporter, exporter}],
+    merge_processor_config_(SimpleEnvMapping, Opts, ConfigMap, AppEnv);
+merge_processor_config(_, Opts, _, _) ->
     Opts.
 
+merge_processor_config_(EnvMapping, Opts, ConfigMap, AppEnv) ->
+    Mappings = config_mappings(general_sdk),
+
+    lists:foldl(fun({K, V}, Acc) ->
+                        case maps:get(K, ConfigMap, undefined) of
+                            undefined ->
+                                Acc;
+                            Value ->
+                                %% use default only if the config isn't found in Opts
+                                %% but if the value in ConfigMap isn't the default use it
+                                IsDefault = is_default(K, AppEnv, Mappings),
+                                case (IsDefault andalso not maps:is_key(V, Opts)) orelse not IsDefault of
+                                    true ->
+                                        Acc#{V => Value};
+                                    false ->
+                                        Acc
+                                end
+                        end
+                end, Opts, EnvMapping).
+
+%% return true if the user (through application or os environment) configured
+%% a certain setting
+is_default(Key, AppEnv, Mappings) ->
+    {OSVarName, Key, _TransformType} = lists:keyfind(Key, 2, Mappings),
+    not lists:keymember(Key, 1, AppEnv) andalso os:getenv(OSVarName) =:= false.
 
 %% sampler configuration is unique since it has the _ARG that is a sort of
 %% sub-configuration of the sampler config, and isn't a list.
@@ -333,12 +343,12 @@ transform(exporter, Exporter) when Exporter =:= "otlp" ; Exporter =:= otlp ->
     {opentelemetry_exporter, #{}};
 transform(exporter, Exporter) when Exporter =:= "jaeger" ; Exporter =:= jaeger ->
     ?LOG_WARNING("configuring jaeger exporter through OTEL_TRACES_EXPORTER is not yet supported ", []),
-    undefined;
+    none;
 transform(exporter, Exporter)  when Exporter =:= "zipkin" ; Exporter =:= zipkin ->
     ?LOG_WARNING("configuring zipkin exporter through OTEL_TRACES_EXPORTER is not yet supported ", []),
-    undefined;
+    none;
 transform(exporter, Exporter) when Exporter =:= "none" ; Exporter =:= none ->
-    undefined;
+    none;
 transform(exporter, Value={Term, _}) when is_atom(Term) ->
     Value;
 transform(exporter, UnknownExporter) when is_list(UnknownExporter) ->
@@ -444,6 +454,8 @@ transform(propagator, Value) when Value =:= "b3" ;
 %% TODO: support jager propagator format
 %% transform(propagator, "jaeger") ->
 %%     jaeger;
+transform(propagator, Propagator) when is_atom(Propagator) ->
+    Propagator;
 transform(propagator, Propagator) ->
     ?LOG_WARNING("Ignoring unknown propagator ~ts in OS environment variable $OTEL_PROPAGATORS",
                  [Propagator]),

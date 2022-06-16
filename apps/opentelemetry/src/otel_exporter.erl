@@ -38,8 +38,6 @@
 
 -include_lib("kernel/include/logger.hrl").
 
-init(undefined) ->
-    undefined;
 init({ExporterModule, Config}) when is_atom(ExporterModule) ->
     try ExporterModule:init(Config) of
         {ok, ExporterState} when ExporterModule =:= opentelemetry_exporter ->
@@ -111,6 +109,8 @@ init({ExporterModule, Config}) when is_atom(ExporterModule) ->
                     undefined
             end
     end;
+init(Exporter) when Exporter =:= none ; Exporter =:= undefined ->
+    undefined;
 init(ExporterModule) when is_atom(ExporterModule) ->
     init({ExporterModule, []}).
 

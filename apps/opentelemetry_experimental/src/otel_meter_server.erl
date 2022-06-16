@@ -45,9 +45,9 @@ register_meter(Name, Vsn, #state{meter=Meter,
         true ->
             opentelemetry_experimental:set_meter(Name, {otel_meter_noop, []});
         false ->
-            InstrumentationLibrary = opentelemetry:instrumentation_library(Name, Vsn, undefined),
+            InstrumentationScope = opentelemetry:instrumentation_scope(Name, Vsn, undefined),
             opentelemetry_experimental:set_meter(Name, {Meter#meter.module,
-                                                        Meter#meter{instrumentation_library=InstrumentationLibrary}})
+                                                        Meter#meter{instrumentation_scope=InstrumentationScope}})
     end.
 
 %%

@@ -102,7 +102,7 @@
 
 %% for testing
 -ifdef(TEST).
--export([to_proto_by_instrumentation_library/1,
+-export([to_proto_by_instrumentation_scope/1,
          to_proto/1,
          endpoints/2,
          merge_with_environment/1]).
@@ -338,6 +338,8 @@ to_charlist(Atom) when is_atom(Atom) ->
 to_charlist(Other) ->
     unicode:characters_to_list(Other).
 
+scheme_port(Scheme) when not is_atom(Scheme) ->
+    scheme_port(scheme(Scheme));
 scheme_port(http) ->
     80;
 scheme_port(https) ->
@@ -369,7 +371,18 @@ scheme(Scheme) when Scheme =:= "https" orelse Scheme =:= <<"https">> ->
 scheme(Scheme) when Scheme =:= "http" orelse Scheme =:= <<"http">> ->
     http;
 scheme(Scheme) ->
-    Scheme.
+    ?LOG_WARNING("unknown scheme ~p, converting to existing atom, if possible, and using as is", [Scheme]),
+    to_existing_atom(Scheme).
+
+to_existing_atom(Term) when is_atom(Term) ->
+    Term;
+to_existing_atom(Scheme) when is_list(Scheme) ->
+    list_to_existing_atom(Scheme);
+to_existing_atom(Scheme) when is_binary(Scheme) ->
+    %% TODO: switch to binary_to_existing_atom once we drop OTP-22 support
+    list_to_existing_atom(binary_to_list(Scheme));
+to_existing_atom(_) ->
+    erlang:error(bad_exporter_scheme).
 
 merge_with_environment(Opts) ->
     %% exporters are initialized by calling their `init/1' function from `opentelemetry'.
@@ -482,11 +495,11 @@ config_mapping() ->
     ].
 
 tab_to_proto(Tab, Resource) ->
-    InstrumentationLibrarySpans = to_proto_by_instrumentation_library(Tab),
+    InstrumentationScopeSpans = to_proto_by_instrumentation_scope(Tab),
     Attributes = otel_resource:attributes(Resource),
     ResourceSpans = #{resource => #{attributes => to_attributes(otel_attributes:map(Attributes)),
                                     dropped_attributes_count => otel_attributes:dropped(Attributes)},
-                      instrumentation_library_spans => InstrumentationLibrarySpans},
+                      scope_spans => InstrumentationScopeSpans},
     case otel_resource:schema_url(Resource) of
         undefined ->
             #{resource_spans => [ResourceSpans]};
@@ -494,32 +507,32 @@ tab_to_proto(Tab, Resource) ->
             #{resource_spans => [ResourceSpans#{schema_url => SchemaUrl}]}
     end.
 
-to_proto_by_instrumentation_library(Tab) ->
+to_proto_by_instrumentation_scope(Tab) ->
     Key = ets:first(Tab),
-    to_proto_by_instrumentation_library(Tab, Key).
+    to_proto_by_instrumentation_scope(Tab, Key).
 
-to_proto_by_instrumentation_library(_Tab, '$end_of_table') ->
+to_proto_by_instrumentation_scope(_Tab, '$end_of_table') ->
     [];
-to_proto_by_instrumentation_library(Tab, InstrumentationLibrary) ->
-    InstrumentationLibrarySpans = lists:foldl(fun(Span, Acc) ->
+to_proto_by_instrumentation_scope(Tab, InstrumentationScope) ->
+    InstrumentationScopeSpans = lists:foldl(fun(Span, Acc) ->
                                                       [to_proto(Span) | Acc]
-                                              end, [], ets:lookup(Tab, InstrumentationLibrary)),
-    InstrumentationLibrarySpansProto = to_instrumentation_library_proto(InstrumentationLibrary),
-    [InstrumentationLibrarySpansProto#{spans => InstrumentationLibrarySpans}
-    | to_proto_by_instrumentation_library(Tab, ets:next(Tab, InstrumentationLibrary))].
+                                              end, [], ets:lookup(Tab, InstrumentationScope)),
+    InstrumentationScopeSpansProto = to_instrumentation_scope_proto(InstrumentationScope),
+    [InstrumentationScopeSpansProto#{spans => InstrumentationScopeSpans}
+    | to_proto_by_instrumentation_scope(Tab, ets:next(Tab, InstrumentationScope))].
 
 
-to_instrumentation_library_proto(undefined) ->
+to_instrumentation_scope_proto(undefined) ->
     #{};
-to_instrumentation_library_proto(#instrumentation_library{name=Name,
+to_instrumentation_scope_proto(#instrumentation_scope{name=Name,
                                                           version=Version,
                                                           schema_url=undefined}) ->
-    #{instrumentation_library => #{name => Name,
+    #{instrumentation_scope => #{name => Name,
                                    version => Version}};
-to_instrumentation_library_proto(#instrumentation_library{name=Name,
+to_instrumentation_scope_proto(#instrumentation_scope{name=Name,
                                                           version=Version,
                                                           schema_url=SchemaUrl}) ->
-    #{instrumentation_library => #{name => Name,
+    #{instrumentation_scope => #{name => Name,
                                    version => Version},
       schema_url => SchemaUrl}.
 

@@ -7,28 +7,99 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [Exporter]
+### [API]
+
+#### Added
+
+- [Instrumentation Scope replaces Instrumentation
+  Library](https://github.com/open-telemetry/opentelemetry-erlang/pull/405) --
+  If you were using the record directly, please use the function
+  `opentelemetry:instrumentation_scope/3` or
+  `opentelemetry:instrumentation_library/3` to create an `instrumentation_scope`
+  record. 
+
+### [SDK]
+
+#### Added
+
+- [Instrumentation Scope replaces Instrumentation
+  Library](https://github.com/open-telemetry/opentelemetry-erlang/pull/405) --
+  If you were using the record directly, please use the function
+  `opentelemetry:instrumentation_scope/3` or
+  `opentelemetry:instrumentation_library/3` to create an `instrumentation_scope`
+  record.
+
+### Fixed
+
+- [Allow custom text propagator to be configured via application env](https://github.com/open-telemetry/opentelemetry-erlang/pull/408)
+
+### [Exporter]
+
+#### Added
+
+- [Instrumentation Scope replaces Instrumentation
+  Library](https://github.com/open-telemetry/opentelemetry-erlang/pull/405) --
+  If you were using the record directly, please use the function
+  `opentelemetry:instrumentation_scope/3` or
+  `opentelemetry:instrumentation_library/3` to create an `instrumentation_scope`
+  record.
+
+## SDK 1.0.5 - 2022-05-20
+
+### Fixed
+
+- [span processor config: don't override user settings with
+  defaults](https://github.com/open-telemetry/opentelemetry-erlang/pull/397)
+
+## SDK 1.0.4 - 2022-05-13
+
+### Fixed
+
+- [Setting the exporter with `traces_exporter` application environment variable
+  now properly overrides the configuration passed to the
+  processor](https://github.com/open-telemetry/opentelemetry-erlang/pull/393)
+
+## Exporter 1.0.4 - 2022-05-06
+
+- [fix bug where port 80 is used even for https](https://github.com/open-telemetry/opentelemetry-erlang/pull/389)
+
+## 1.0.3 - 2022-04-27
+
+### [API 1.0.3]
+
+- Doc fixes and improvements to `tracer.ex` and `otel_propagator_text_map.erl`
+
+### [SDK 1.0.3]
+
+- [Improve performance of Span set_status](https://github.com/open-telemetry/opentelemetry-erlang/pull/384)
+
+### [Exporter 1.0.3]
 
 - [Fix use of `otlp_endpoint` configuration from Elixir](https://github.com/open-telemetry/opentelemetry-erlang/pull/376)
+- [Remove the SDK application `opentelemetry` from the Exporter's runtime dependencies](https://github.com/open-telemetry/opentelemetry-erlang/pull/387)
 
-## [API 1.0.2] - 2022-02-22
+## 1.0.2 - 2022-02-22
+
+### [API 1.0.2]
+
+#### Added
 
 - [Docs for Erlang and Elixir macros added](https://github.com/open-telemetry/opentelemetry-erlang/pull/362)
 
-## [SDK 1.0.2] - 2022-02-22
+### [SDK 1.0.2]
 
-### Added
+#### Added
 
 - [Simpler configuration of span processors](https://github.com/open-telemetry/opentelemetry-erlang/pull/357)
 
-### Fixed
+#### Fixed
 
 - Span Status: Ignore status changes that don't follow the [define precedence in
   the spec](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#set-status)
 
-## [Zipkin Exporter 1.0.0] - 2022-2-22
+### [Zipkin Exporter 1.0.0]
 
-### Fixed
+#### Fixed
 
 - [Attribute values that are lists are converted to strings in Zipkin tags](https://github.com/open-telemetry/opentelemetry-erlang/pull/363)
 - [Status converted to Zipkin tags](https://github.com/open-telemetry/opentelemetry-erlang/pull/363)

@@ -3,7 +3,7 @@
 %% @end
 %%%-------------------------------------------------------------------
 
-%% this module was generated on 2020-07-02T14:11:39+00:00 and should not be modified manually
+%% this module was generated and should not be modified manually
 
 -module(opentelemetry_trace_service).
 
@@ -25,19 +25,19 @@
 
 %% @doc Unary RPC
 -spec export(opentelemetry_exporter_trace_service_pb:export_trace_service_request()) ->
-    {ok, opentelemetry_exporter_trace_service_pb:export_trace_service_response(), grpcbox:metadata()} | grpcbox_stream:grpc_error_response().
+    {ok, opentelemetry_exporter_trace_service_pb:export_trace_service_response(), grpcbox:metadata()} | grpcbox_stream:grpc_error_response() | {error, any()}.
 export(Input) ->
     export(ctx:new(), Input, #{}).
 
 -spec export(ctx:t() | opentelemetry_exporter_trace_service_pb:export_trace_service_request(), opentelemetry_exporter_trace_service_pb:export_trace_service_request() | grpcbox_client:options()) ->
-    {ok, opentelemetry_exporter_trace_service_pb:export_trace_service_response(), grpcbox:metadata()} | grpcbox_stream:grpc_error_response().
+    {ok, opentelemetry_exporter_trace_service_pb:export_trace_service_response(), grpcbox:metadata()} | grpcbox_stream:grpc_error_response() | {error, any()}.
 export(Ctx, Input) when ?is_ctx(Ctx) ->
     export(Ctx, Input, #{});
 export(Input, Options) ->
     export(ctx:new(), Input, Options).
 
 -spec export(ctx:t(), opentelemetry_exporter_trace_service_pb:export_trace_service_request(), grpcbox_client:options()) ->
-    {ok, opentelemetry_exporter_trace_service_pb:export_trace_service_response(), grpcbox:metadata()} | grpcbox_stream:grpc_error_response().
+    {ok, opentelemetry_exporter_trace_service_pb:export_trace_service_response(), grpcbox:metadata()} | grpcbox_stream:grpc_error_response() | {error, any()}.
 export(Ctx, Input, Options) ->
     grpcbox_client:unary(Ctx, <<"/opentelemetry.proto.collector.trace.v1.TraceService/Export">>, Input, ?DEF(export_trace_service_request, export_trace_service_response, <<"opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest">>), Options).
 

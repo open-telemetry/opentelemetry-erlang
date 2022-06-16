@@ -41,6 +41,7 @@
          get_text_map_extractor/0,
          set_text_map_injector/1,
          get_text_map_injector/0,
+         instrumentation_scope/3,
          instrumentation_library/3,
          timestamp/0,
          timestamp_to_nano/1,
@@ -60,7 +61,7 @@
 -include_lib("kernel/include/logger.hrl").
 
 -export_type([tracer/0,
-              instrumentation_library/0,
+              instrumentation_scope/0,
               trace_id/0,
               span_id/0,
               hex_trace_id/0,
@@ -86,7 +87,7 @@
 
 -type tracer()             :: {module(), term()}.
 
--type instrumentation_library() :: #instrumentation_library{}.
+-type instrumentation_scope() :: #instrumentation_scope{}.
 
 -type trace_id()           :: non_neg_integer().
 -type span_id()            :: non_neg_integer().
@@ -436,15 +437,20 @@ link_or_false(TraceId, SpanId, Attributes, TraceState) ->
             false
     end.
 
-instrumentation_library(Name, Vsn, SchemaUrl) ->
+instrumentation_scope(Name, Vsn, SchemaUrl) ->
     case name_to_binary(Name) of
         undefined ->
             undefined;
         BinaryName ->
-            #instrumentation_library{name=BinaryName,
-                                     version=vsn_to_binary(Vsn),
-                                     schema_url=schema_url_to_binary(SchemaUrl)}
+            #instrumentation_scope{name=BinaryName,
+                                   version=vsn_to_binary(Vsn),
+                                   schema_url=schema_url_to_binary(SchemaUrl)}
     end.
+
+%% this function remains solely to keep backwards compatibility
+%% but `instrumentation_scope' should be used instead
+instrumentation_library(Name, Vsn, SchemaUrl) ->
+    instrumentation_scope(Name, Vsn, SchemaUrl).
 
 %% schema_url is option, so set to undefined if its not a string
 schema_url_to_binary(SchemaUrl) when is_binary(SchemaUrl) ; is_list(SchemaUrl) ->
