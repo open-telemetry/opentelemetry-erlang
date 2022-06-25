@@ -161,7 +161,8 @@ required_attributes(Resource) ->
     ProgName = prog_name(),
     ProcessResource = otel_resource:create([{?PROCESS_EXECUTABLE_NAME, ProgName} | process_attributes()]),
     Resource1 = otel_resource:merge(ProcessResource, Resource),
-    add_service_name(Resource1, ProgName).
+    Resource2 = add_service_name(Resource1, ProgName),
+    add_service_instance(Resource2).
 
 process_attributes() ->
     OtpVsn = otp_vsn(),
@@ -235,6 +236,34 @@ add_service_name(Resource, ProgName) ->
             ServiceNameResource = otel_resource:create([{?SERVICE_NAME,
                                                          unicode:characters_to_binary(ServiceName)}]),
             otel_resource:merge(ServiceNameResource, Resource)
+    end.
+
+%% if OTEL_SERVICE_INSTANCE isn't set then check for service.name in attributes
+%% if that isn't found then try getting node.
+%% if node is nonode@nohost set a random instance id
+add_service_instance(Resource) ->
+    case os:getenv("OTEL_SERVICE_INSTANCE") of
+        false ->
+            Attributes = otel_resource:attributes(Resource),
+            case maps:is_key(?SERVICE_INSTANCE, otel_attributes:map(Attributes)) of
+                false ->
+                    case erlang:node() of
+                        nonode@nohost ->
+                            ServiceInstance = otel_id_generator:generate_trace_id(),
+                            ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE, ServiceInstance}]),
+                            otel_resource:merge(ServiceInstanceResource, Resource);
+                        ServiceInstance ->
+                            ServiceInstance1 = erlang:atom_to_binary(ServiceInstance, utf8),
+                            ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE, ServiceInstance1}]),
+                            otel_resource:merge(ServiceInstanceResource, Resource)
+                    end;
+                true ->
+                    Resource
+            end;
+        ServiceInstance ->
+            ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE,
+                                                         unicode:characters_to_binary(ServiceInstance)}]),
+            otel_resource:merge(ServiceInstanceResource, Resource)
     end.
 
 service_release_name(ProgName) ->
