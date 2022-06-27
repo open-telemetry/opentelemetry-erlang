@@ -222,7 +222,47 @@ service_instance_id_env(_Config) ->
         os:unsetenv("OTEL_SERVICE_INSTANCE")
     end.
 
-service_instance_id_node(_Config) ->
+service_instance_id_env_attributes(_Config) ->
+    try
+        os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.instance.id=test@instance"),
+        application:unload(opentelemetry),
+        application:load(opentelemetry),
+        application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
+
+        otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
+                                                                   otel_resource_app_env],
+                                            resource_detector_timeout => 100}),
+
+        Resource = otel_resource_detector:get_resource(),
+        ?assertMatch(#{<<"service.instance.id">> := <<"test@instance">>,
+                       <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+
+        ok
+    after
+        os:unsetenv("OTEL_RESOURCE_ATTRIBUTES")
+    end.
+
+service_instance_id_node_name(_Config) ->
+    try
+        net_kernel:start([test@instance, longnames]),
+        application:unload(opentelemetry),
+        application:load(opentelemetry),
+        application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
+
+        otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
+                                                                   otel_resource_app_env],
+                                            resource_detector_timeout => 100}),
+
+        Resource = otel_resource_detector:get_resource(),
+        ?assertMatch(#{<<"service.instance.id">> := <<"test@instance">>,
+                       <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+
+        ok
+    after
+        net_kernel:stop()
+    end.
+
+service_instance_id_node_id(_Config) ->
     application:unload(opentelemetry),
     application:load(opentelemetry),
     application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
