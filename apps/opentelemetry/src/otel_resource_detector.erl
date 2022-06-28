@@ -82,7 +82,7 @@ callback_mode() ->
     [handle_event_function, state_enter].
 
 handle_event(enter, _, ready, Data=#data{resource=Resource}) ->
-    NewResource = required_attributes(Resource),
+    NewResource = default_resource_attributes(Resource),
     {keep_state, Data#data{resource=NewResource}};
 handle_event(enter, _, _, _) ->
     keep_state_and_data;
@@ -157,7 +157,7 @@ spawn_detector(Detector={Module, Config}, Ref) ->
 spawn_detector(Module, Ref) ->
     spawn_detector({Module, []}, Ref).
 
-required_attributes(Resource) ->
+default_resource_attributes(Resource) ->
     ProgName = prog_name(),
     ProcessResource = otel_resource:create([{?PROCESS_EXECUTABLE_NAME, ProgName} | process_attributes()]),
     Resource1 = otel_resource:merge(ProcessResource, Resource),
