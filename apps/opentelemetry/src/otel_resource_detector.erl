@@ -249,13 +249,20 @@ add_service_instance(Resource) ->
                 false ->
                     case erlang:node() of
                         nonode@nohost ->
-                            ServiceInstance = otel_id_generator:generate_trace_id(),
-                            ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE, ServiceInstance}]),
+                            ServiceInstanceId = otel_id_generator:generate_trace_id(),
+                            ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE, ServiceInstanceId}]),
                             otel_resource:merge(ServiceInstanceResource, Resource);
                         ServiceInstance ->
                             ServiceInstance1 = erlang:atom_to_binary(ServiceInstance, utf8),
-                            ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE, ServiceInstance1}]),
-                            otel_resource:merge(ServiceInstanceResource, Resource)
+                            case binary:match(ServiceInstance1, <<"@localhost">>) of
+                                nomatch ->
+                                    ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE, ServiceInstance1}]),
+                                    otel_resource:merge(ServiceInstanceResource, Resource);
+                                Match ->
+                                    ServiceInstanceId = otel_id_generator:generate_trace_id(),
+                                    ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE, ServiceInstanceId}]),
+                                    otel_resource:merge(ServiceInstanceResource, Resource)
+                            end
                     end;
                 true ->
                     Resource

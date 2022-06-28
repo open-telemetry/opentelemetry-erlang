@@ -262,7 +262,28 @@ service_instance_id_node_name(_Config) ->
         net_kernel:stop()
     end.
 
-service_instance_id_node_id(_Config) ->
+service_instance_id_node_id1(_Config) ->
+    try
+        net_kernel:start([test@localhost, longnames]),
+        application:unload(opentelemetry),
+        application:load(opentelemetry),
+        application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
+
+        otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
+                                                                   otel_resource_app_env],
+                                            resource_detector_timeout => 100}),
+
+        Resource = otel_resource_detector:get_resource(),
+        ResourceMap = otel_attributes:map(otel_resource:attributes(Resource)),
+        ?assertNotMatch(#{<<"service.instance.id">> := <<"test@localhost">>}, ResourceMap),
+        ?assert(maps:is_key(<<"service.instance.id">>, ResourceMap)),
+
+        ok
+    after
+        net_kernel:stop()
+    end.
+
+service_instance_id_node_id2(_Config) ->
     application:unload(opentelemetry),
     application:load(opentelemetry),
     application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
@@ -273,7 +294,8 @@ service_instance_id_node_id(_Config) ->
 
     Resource = otel_resource_detector:get_resource(),
     ResourceMap = otel_attributes:map(otel_resource:attributes(Resource)),
-    ?assertMatch(true, maps:is_key(<<"service.instance.id">>, ResourceMap)),
+    ?assertNotMatch(#{<<"service.instance.id">> := <<"nonode@nohost">>}, ResourceMap),
+    ?assert(maps:is_key(<<"service.instance.id">>, ResourceMap)),
     ok.
 
 release_service_name_no_version(_Config) ->
