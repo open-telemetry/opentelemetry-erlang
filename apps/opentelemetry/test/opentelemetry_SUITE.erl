@@ -181,8 +181,10 @@ logger_metadata(_Config) ->
 
     SpanCtx1 = ?start_span(<<"span-1">>),
     otel_tracer:set_current_span(SpanCtx1),
-    HexSpanCtx1 = otel_span:hex_span_ctx(SpanCtx1),
-    ?assertMatch(#{otel_span_ctx := HexSpanCtx1}, logger:get_process_metadata()),
+    #{otel_trace_id := HexTraceId1,
+      otel_span_id := HexSpanId1} = otel_span:hex_span_ctx(SpanCtx1),
+    ?assertMatch(#{otel_trace_id := HexTraceId1,
+                   otel_span_id := HexSpanId1}, logger:get_process_metadata()),
 
     Result = some_result,
     ?assertMatch(Result, otel_tracer:with_span(Tracer, <<"with-span-2">>, #{},
@@ -190,15 +192,18 @@ logger_metadata(_Config) ->
                                                        ?assertNotEqual(SpanCtx1, SpanCtx2),
                                                        ?assertEqual(SpanCtx2, ?current_span_ctx),
 
-                                                       HexSpanCtx2 = otel_span:hex_span_ctx(SpanCtx2),
+                                                       #{otel_trace_id := HexTraceId2,
+                                                         otel_span_id := HexSpanId2}  = otel_span:hex_span_ctx(SpanCtx2),
 
-                                                       ?assertMatch(#{otel_span_ctx := HexSpanCtx2},
+                                                       ?assertMatch(#{otel_trace_id := HexTraceId2,
+                                                                      otel_span_id := HexSpanId2},
                                                                     logger:get_process_metadata()),
 
                                                        Result
                                                end)),
 
-    ?assertMatch(#{otel_span_ctx := HexSpanCtx1}, logger:get_process_metadata()),
+    ?assertMatch(#{otel_trace_id := HexTraceId1,
+                   otel_span_id := HexSpanId1}, logger:get_process_metadata()),
 
     ?assertMatch(SpanCtx1, ?current_span_ctx),
 
@@ -213,9 +218,11 @@ logger_metadata(_Config) ->
                                           ?assertNotEqual(SpanCtx1, SpanCtx3),
                                           ?assertEqual(SpanCtx3, ?current_span_ctx),
 
-                                          HexSpanCtx3 = otel_span:hex_span_ctx(SpanCtx3),
+                                          #{otel_trace_id := HexTraceId3,
+                                            otel_span_id := HexSpanId3} = otel_span:hex_span_ctx(SpanCtx3),
 
-                                          ?assertMatch(#{otel_span_ctx := HexSpanCtx3},
+                                          ?assertMatch(#{otel_trace_id := HexTraceId3,
+                                                         otel_span_id := HexSpanId3},
                                                        logger:get_process_metadata()),
 
                                           true

@@ -131,4 +131,4 @@ update_logger_process_metadata(Ctx) ->
 
 update_logger_process_metadata_from_span_ctx(SpanCtx) ->
     Metadata = otel_span:hex_span_ctx(SpanCtx),
-    logger:update_process_metadata(#{otel_span_ctx => Metadata}).
+    logger:update_process_metadata(Metadata).

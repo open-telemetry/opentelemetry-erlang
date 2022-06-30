@@ -238,8 +238,8 @@ metadata is under the key `otel_span_ctx`. Example usage:
      [{handler, default, logger_std_h,
        #{formatter => {logger_formatter,
                         #{template => [time, " ", file, ":", line, " ", level, ": ",
-                                       {otel_span_ctx, ["trace_id=", [otel_span_ctx, trace_id], " ",
-                                                        "span_id=", [otel_span_ctx, span_id], " "], []},
+                                       {otel_trace_id, ["trace_id=",otel_trace_id," "], []},
+                                       {otel_span_id, ["span_id=",otel_span_id," "], []},
                                        msg,"\n"]}}}}]}]}
 ```
 

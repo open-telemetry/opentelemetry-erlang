@@ -159,15 +159,16 @@ trace_id(#span_ctx{trace_id=TraceId}) ->
 span_id(#span_ctx{span_id=SpanId}) ->
     SpanId.
 
--spec hex_span_ctx(opentelemetry:span_ctx() | undefined) -> #{trace_id := opentelemetry:hex_trace_id(),
-                                                              span_id := opentelemetry:hex_span_id(),
-                                                              trace_flags := unicode:unicode_binary()} | #{}.
+%% keys are prefixed with `otel_' because the main use of this function is logger metadata
+-spec hex_span_ctx(opentelemetry:span_ctx() | undefined) -> #{otel_trace_id := unicode:charlist(),
+                                                              otel_span_id := unicode:charlist(),
+                                                              otel_trace_flags := unicode:charlist()} | #{}.
 hex_span_ctx(#span_ctx{trace_id=TraceId,
                        span_id=SpanId,
                        trace_flags=TraceFlags}) ->
-    #{trace_id => io_lib:format("~32.16.0b", [TraceId]),
-      span_id => io_lib:format("~16.16.0b", [SpanId]),
-      trace_flags => case TraceFlags band 1 of 1 -> "01"; _ -> "00" end};
+    #{otel_trace_id => io_lib:format("~32.16.0b", [TraceId]),
+      otel_span_id => io_lib:format("~16.16.0b", [SpanId]),
+      otel_trace_flags => case TraceFlags band 1 of 1 -> "01"; _ -> "00" end};
 hex_span_ctx(_) ->
     #{}.
 
