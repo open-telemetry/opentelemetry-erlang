@@ -79,5 +79,15 @@ data(#sum_aggregation{value=Value,
                       %% time_unix_nano=Time,
                       exemplars=Exemplars,
                       flags=Flags}]};
-data(_, _Attributes) ->
-    #last_value{}.
+data(#last_value_aggregation{attributes=Attributes,
+                             start_time_unix_nano=StartTimeUnixNano,
+                             value=Value}, Attributes) ->
+    Flags = 0,
+    Exemplars = [],
+    #gauge{datapoints=[#datapoint{
+                          value=Value,
+                          attributes=Attributes,
+                          start_time_unix_nano=StartTimeUnixNano,
+                          %% time_unix_nano=Time,
+                          exemplars=Exemplars,
+                          flags=Flags}]}.

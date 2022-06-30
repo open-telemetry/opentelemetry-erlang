@@ -63,9 +63,11 @@
          is_monotonic :: boolean()
         }).
 
--record(last_value,
+-record(gauge,
         {
+         datapoints :: [#datapoint{}]
         }).
+
 -record(metric,
         {
          name :: otel_view:name(),

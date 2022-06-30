@@ -15,10 +15,10 @@ new(_Instrument, Attributes, StartTimeUnixNano, _Options) ->
                             start_time_unix_nano=StartTimeUnixNano}.
 
 aggregate(#measurement{value=MeasurementValue}, Aggregation) ->
-     Aggregation#last_value_aggregation{value=MeasurementValue}.
+    Aggregation#last_value_aggregation{value=MeasurementValue}.
 
 collect(_AggregationTemporality, CollectionStartNano, #last_value_aggregation{attributes=Attributes,
-                                                                             value=Value}) ->
+                                                                              value=Value}) ->
     #datapoint{attributes=Attributes,
                start_time_unix_nano=0,
                time_unix_nano=CollectionStartNano,

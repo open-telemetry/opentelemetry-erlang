@@ -31,7 +31,8 @@
          end)()).
 
 all() ->
-    [provider_test, view_creation_test, counter_add, add_readers].
+    [provider_test, view_creation_test, counter_add, add_readers,
+     reader_aggregations].
 
 init_per_suite(Config) ->
     Config.
@@ -70,12 +71,7 @@ provider_test(_Config) ->
                              unit = CounterUnit}, Counter),
 
     ?assertEqual(ok, otel_meter_server:add_metric_reader(otel_metric_reader, #{exporter => {otel_metric_exporter_pid, self()}})),
-    %% ?assertEqual(ok, otel_meter_server:add_metric_reader(otel_metric_reader,
-    %%                                                      #{default_aggregation_mapping =>
-    %%                                                            #{?KIND_COUNTER => otel_aggregation_histogram_explicit,
-    %%                                                              ?KIND_OBSERVABLE_GAUGE => otel_aggregation_histogram_explicit}})),
 
-    %% View = otel_view:new(#{instrument_name => a_counter}, #{aggregation => sum}),
     otel_meter_server:add_view(#{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
     otel_meter_server:add_view(view_a, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
     otel_meter_server:add_view(view_b, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
@@ -160,5 +156,13 @@ add_readers(_Config) ->
                                                          #{default_aggregation_mapping =>
                                                                #{?KIND_COUNTER => otel_aggregation_histogram_explicit,
                                                                  ?KIND_OBSERVABLE_GAUGE => otel_aggregation_histogram_explicit}})),
+
+    ok.
+
+reader_aggregations(_Config) ->
+    %% ?assertEqual(ok, otel_meter_server:add_metric_reader(otel_metric_reader,
+    %%                                                      #{default_aggregation_mapping =>
+    %%                                                            #{?KIND_COUNTER => otel_aggregation_histogram_explicit,
+    %%                                                              ?KIND_OBSERVABLE_GAUGE => otel_aggregation_histogram_explicit}})),
 
     ok.
