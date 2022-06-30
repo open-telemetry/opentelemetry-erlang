@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Added
 
+- [Span context now set in logger metadata when context is updated in process
+  dictionary](https://github.com/open-telemetry/opentelemetry-erlang/pull/394)
 - [Instrumentation Scope replaces Instrumentation
   Library](https://github.com/open-telemetry/opentelemetry-erlang/pull/405) --
   If you were using the record directly, please use the function

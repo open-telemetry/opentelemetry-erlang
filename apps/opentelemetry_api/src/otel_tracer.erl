@@ -26,7 +26,8 @@
          set_current_span/1,
          set_current_span/2,
          current_span_ctx/0,
-         current_span_ctx/1]).
+         current_span_ctx/1,
+         update_logger_process_metadata/1]).
 
 -include("opentelemetry.hrl").
 
@@ -107,6 +108,7 @@ from_remote_span(TraceId, SpanId, Traceflags) ->
 
 -spec set_current_span(opentelemetry:span_ctx() | undefined) -> opentelemetry:span_ctx() | undefined.
 set_current_span(SpanCtx) ->
+    update_logger_process_metadata_from_span_ctx(SpanCtx),
     _ = otel_ctx:set_value(?CURRENT_SPAN_CTX, SpanCtx),
     SpanCtx.
 
@@ -121,3 +123,12 @@ current_span_ctx() ->
 -spec current_span_ctx(otel_ctx:t()) -> opentelemetry:span_ctx() | undefined.
 current_span_ctx(Ctx) ->
     otel_ctx:get_value(Ctx, ?CURRENT_SPAN_CTX, undefined).
+
+update_logger_process_metadata(Ctx) ->
+    update_logger_process_metadata_from_span_ctx(current_span_ctx(Ctx)).
+
+%%
+
+update_logger_process_metadata_from_span_ctx(SpanCtx) ->
+    Metadata = otel_span:hex_span_ctx(SpanCtx),
+    logger:update_process_metadata(Metadata).
