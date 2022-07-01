@@ -175,9 +175,7 @@ defmodule OpenTelemetry.Tracer do
   If trace is not provided, the stacktrace is retrieved from `Process.info/2`
   """
   @spec record_exception(Exception.t()) :: boolean()
-  def record_exception(exception, trace \\ nil, attributes \\ [])
-
-  def record_exception(exception, trace, attributes) do
+  def record_exception(exception, trace \\ nil, attributes \\ []) do
     OpenTelemetry.Span.record_exception(:otel_tracer.current_span_ctx(), exception, trace, attributes)
   end
 
