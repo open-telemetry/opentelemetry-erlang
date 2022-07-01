@@ -176,7 +176,12 @@ defmodule OpenTelemetry.Tracer do
   """
   @spec record_exception(Exception.t()) :: boolean()
   def record_exception(exception, trace \\ nil, attributes \\ []) do
-    OpenTelemetry.Span.record_exception(:otel_tracer.current_span_ctx(), exception, trace, attributes)
+    OpenTelemetry.Span.record_exception(
+      :otel_tracer.current_span_ctx(),
+      exception,
+      trace,
+      attributes
+    )
   end
 
   @doc """
