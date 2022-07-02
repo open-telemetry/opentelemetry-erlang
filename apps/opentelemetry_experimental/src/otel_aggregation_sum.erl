@@ -23,6 +23,8 @@ new_(Attributes, IsMonotonic, Temporality, StartTimeUnixNano) ->
                      instrument_temporality=Temporality,
                      start_time_unix_nano=StartTimeUnixNano,
                      value=case Temporality of
+                               ?AGGREGATION_TEMPORALITY_UNSPECIFIED ->
+                                   0;
                                ?AGGREGATION_TEMPORALITY_DELTA ->
                                    0;
                                ?AGGREGATION_TEMPORALITY_CUMULATIVE ->

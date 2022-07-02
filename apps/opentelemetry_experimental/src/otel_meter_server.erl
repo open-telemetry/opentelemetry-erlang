@@ -44,6 +44,7 @@
          add_view/4,
          record/3,
          record/4,
+         force_flush/0,
          report_cb/1]).
 
 -export([init/1,
@@ -132,6 +133,9 @@ record(Provider, Instrument, Number, Attributes) ->
                                                      value=Number,
                                                      attributes=Attributes}}).
 
+force_flush() ->
+    gen_server:call(?DEFAULT_METER_PROVIDER, force_flush).
+
 init(_) ->
     Resource = otel_resource_detector:get_resource(),
 
@@ -182,7 +186,8 @@ handle_call({add_view, Name, Criteria, Config}, _From, State=#state{views=Views}
     View = otel_view:new(Name, Criteria, Config),
     true = ets:insert(?VIEWS_TAB, View),
     {reply, true, State#state{views=[View | Views]}};
-handle_call(force_flush, _From, State) ->
+handle_call(force_flush, _From, State=#state{readers=Readers}) ->
+    [otel_metric_reader:collect(Pid) || {{Pid, _}, _} <- Readers],
     {reply, ok, State}.
 
 handle_cast({record, Measurement}, State=#state{view_aggregations=ViewAggregations,

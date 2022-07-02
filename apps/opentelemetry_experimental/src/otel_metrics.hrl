@@ -9,11 +9,6 @@
          attributes :: opentelemetry:attributes_map()
         }).
 
--record(aggregation,
-        {
-         key :: {otel_view:name(), atom(), atom()}
-        }).
-
 -record(drop_aggregation, {}).
 
 -record(sum_aggregation,
@@ -36,7 +31,7 @@
         {
          attributes :: opentelemetry:attributes_map(),
          start_time_unix_nano :: integer(),
-         boundaries :: tuple(),
+         boundaries :: list(),
          %% default: {0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0}
          bucket_counts :: tuple(),
          record_min_max :: boolean(),
@@ -68,14 +63,6 @@
          datapoints :: [#datapoint{}]
         }).
 
--record(metric,
-        {
-         name :: otel_view:name(),
-         description :: otel_instrument:description(),
-         unit :: otel_instrument:unit(),
-         data :: #sum{}
-        }).
-
 -record(histogram_datapoint,
         {
          attributes :: opentelemetry:attributes_map(),
@@ -89,4 +76,18 @@
          flags :: integer(),
          min :: integer() | undefined,
          max :: integer() | undefined
+        }).
+
+-record(histogram,
+       {
+        datapoints :: [#histogram_datapoint{}],
+        aggregation_temporality :: ?AGGREGATION_TEMPORALITY_UNSPECIFIED | ?AGGREGATION_TEMPORALITY_DELTA | ?AGGREGATION_TEMPORALITY_CUMULATIVE
+       }).
+
+-record(metric,
+        {
+         name :: otel_view:name(),
+         description :: otel_instrument:description(),
+         unit :: otel_instrument:unit(),
+         data :: #sum{}
         }).

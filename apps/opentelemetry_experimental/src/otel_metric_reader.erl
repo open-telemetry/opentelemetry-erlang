@@ -72,7 +72,7 @@ init(Config) ->
 
     %% if a periodic reader is needed then this value is set
     %% ExporterIntervalMs = maps:get(export_interval_ms, Config, undefined), %% somehow do default of 10000 millis
-    ExporterIntervalMs = 1000,
+    ExporterIntervalMs = 10000,
 
     %% ets tables are required for other parts to not crash so we create
     %% it in init and not in a handle_continue or whatever else

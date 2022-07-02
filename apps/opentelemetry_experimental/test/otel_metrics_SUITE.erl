@@ -10,20 +10,23 @@
 -include("otel_view.hrl").
 -include("otel_metrics.hrl").
 
--define(assertReceive(Name, Description, Value, Unit, Attributes),
+-define(assertReceive(Name, Description, Unit, Datapoints),
         (fun() ->
                  receive
                      #metric{name=MetricName,
                              description=MetricDescription,
                              unit=MetricUnit,
-                             data=#sum{datapoints=[#datapoint{value=MetricValue,
-                                                              attributes=MetricAttributes}]}}
+                             data=#sum{datapoints=MetricDatapoints}}
                      when MetricName =:= Name ->
                          ?assertEqual(Description, MetricDescription),
                          ?assertEqual(Unit, MetricUnit),
                          ?assertEqual(Description, MetricDescription),
-                         ?assertEqual(Value, MetricValue),
-                         ?assertEqual(Attributes, MetricAttributes)
+
+                         SortedDatapoints =
+                             lists:sort([{MetricValue, MetricAttributes} ||
+                                            #datapoint{value=MetricValue,
+                                                       attributes=MetricAttributes} <- MetricDatapoints]),
+                         ?assertMatch([], lists:sort(Datapoints) -- SortedDatapoints, SortedDatapoints)
                  after
                      5000 ->
                          ct:fail(metric_receive_timeout)
@@ -32,7 +35,7 @@
 
 all() ->
     [provider_test, view_creation_test, counter_add, add_readers,
-     reader_aggregations].
+     explicit_histograms, reader_aggregations].
 
 init_per_suite(Config) ->
     Config.
@@ -79,14 +82,15 @@ provider_test(_Config) ->
     %% use the default Reader aggregation
     otel_meter_server:add_view(view_c, #{instrument_name => a_counter}, #{}),
 
-
     ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
 
-    ?assertReceive(a_counter, <<"counter description">>, 11, kb, #{<<"c">> => <<"b">>}),
-    ?assertReceive(view_c, <<"counter description">>, 11, kb, #{<<"c">> => <<"b">>}),
+    otel_meter_server:force_flush(),
+
+    ?assertReceive(a_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
+    ?assertReceive(view_c, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
 
     ok.
 
@@ -156,6 +160,59 @@ add_readers(_Config) ->
                                                          #{default_aggregation_mapping =>
                                                                #{?KIND_COUNTER => otel_aggregation_histogram_explicit,
                                                                  ?KIND_OBSERVABLE_GAUGE => otel_aggregation_histogram_explicit}})),
+
+    ok.
+
+explicit_histograms(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    HistogramName = a_histogram,
+    HistogramDesc = <<"histogram description">>,
+    HistogramUnit = ms,
+    ValueType = integer,
+
+    Histogram = otel_meter:create_histogram(Meter, HistogramName, ValueType,
+                                            #{description => HistogramDesc,
+                                              unit => HistogramUnit}),
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = HistogramName,
+                             description = HistogramDesc,
+                             kind = histogram,
+                             value_type = ValueType,
+                             unit = HistogramUnit}, Histogram),
+
+    ?assertEqual(ok, otel_meter_server:add_metric_reader(otel_metric_reader, #{exporter => {otel_metric_exporter_pid, self()}})),
+
+    otel_meter_server:add_view(#{instrument_name => a_histogram}, #{}),
+
+
+    ?assertEqual(ok, otel_histogram:record(Histogram, 20, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Histogram, 30, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    ?assertEqual(ok, otel_histogram:record(Histogram, 44, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Histogram, 100, #{<<"c">> => <<"b">>})),
+
+    otel_meter_server:force_flush(),
+
+    receive
+        #metric{name=a_histogram,
+                data=#histogram{datapoints=Datapoints}} ->
+            AttributeBuckets =
+                [{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                               attributes=Attributes,
+                                                               min=Min,
+                                                               max=Max,
+                                                               sum=Sum}  <- Datapoints],
+            ?assertEqual([], [{#{<<"c">> => <<"b">>}, {0,0,0,1,1,0,1,0,0,0}, 20, 100, 164},
+                              {#{<<"a">> => <<"b">>, <<"d">> => <<"e">>}, {0,0,0,0,1,0,0,0,0,0}, 30, 30, 30}]
+                         -- AttributeBuckets, AttributeBuckets)
+    after
+        5000 ->
+            ct:fail(histogram_receive_timeout)
+    end,
 
     ok.
 
