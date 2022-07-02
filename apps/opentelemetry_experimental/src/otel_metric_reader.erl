@@ -100,7 +100,7 @@ handle_info(collect, State=#state{exporter={ExporterModule, Config},
     erlang:cancel_timer(TRef, []), %% {async, true} ?
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
 
-    ExporterModule:export(otel_aggregations, Config),
+    ExporterModule:export(otel_view_aggregations, Config),
 
     {noreply, State#state{tref=NewTRef}}.
 

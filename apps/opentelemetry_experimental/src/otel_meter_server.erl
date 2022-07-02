@@ -68,7 +68,7 @@
 -export_type([meter/0]).
 
 -define(VIEWS_TAB, otel_views).
--define(AGGREGATIONS_TAB, otel_aggregations).
+-define(VIEW_AGGREGATIONS_TAB, otel_view_aggregations).
 -define(ACTIVE_METRICS_TAB, otel_active_metrics).
 
 -record(state,
@@ -78,8 +78,6 @@
          instruments :: #{{otel_meter:t(), otel_instrument:name()} => otel_instrument:t()},
          views :: [otel_view:t()],
          readers :: [{pid(), #{}}],
-
-         view_aggregations :: #{otel_instrument:t() => #view_aggregation{}},
 
          %% the meter configuration shared between all named
          %% meters created by this provider
@@ -150,7 +148,6 @@ init(_) ->
 
     {ok, #state{shared_meter=Meter,
                 instruments=#{},
-                view_aggregations=#{},
                 views=[],
                 readers=[],
                 resource=Resource}}.
@@ -184,20 +181,20 @@ handle_call({add_instrument, Instrument=#instrument{meter=Meter,
 handle_call({add_view, Name, Criteria, Config}, _From, State=#state{views=Views}) ->
     %% TODO: drop View if Criteria is a wildcard instrument name and View name is not undefined
     View = otel_view:new(Name, Criteria, Config),
-    true = ets:insert(?VIEWS_TAB, View),
     {reply, true, State#state{views=[View | Views]}};
 handle_call(force_flush, _From, State=#state{readers=Readers}) ->
     [otel_metric_reader:collect(Pid) || {{Pid, _}, _} <- Readers],
     {reply, ok, State}.
 
-handle_cast({record, Measurement}, State=#state{view_aggregations=ViewAggregations,
-                                                readers=Readers}) ->
+handle_cast({record, Measurement}, State=#state{readers=Readers,
+                                                views=Views}) ->
     %% map of Instrument -> list of Aggregations
     %% for each Aggregation find the particular Metric to update based on the Attributes
     {_, ReaderAggregationMappings} = lists:unzip(Readers),
-    ViewAggregations1 = handle_measurement(Measurement, ViewAggregations, ReaderAggregationMappings),
-    maps:foreach(fun(K, V) -> ets:insert(?AGGREGATIONS_TAB, {K, V}) end, ViewAggregations1),
-    {noreply, State#state{view_aggregations=ViewAggregations1}}.
+
+    handle_measurement(Measurement, ReaderAggregationMappings, Views),
+
+    {noreply, State}.
 
 %% TODO: handle crashed reader
 handle_info(_, State) ->
@@ -209,63 +206,64 @@ code_change(State) ->
 %%
 
 create_tables() ->
-    case ets:info(?VIEWS_TAB, name) of
+    %% {otel_instrument:t(), [#view_aggregation{}]}
+    case ets:info(?VIEW_AGGREGATIONS_TAB, name) of
         undefined ->
-            ets:new(?VIEWS_TAB, [named_table,
-                                 set,
-                                 protected,
-                                 {read_concurrency, true},
-                                 {keypos, 2}
-                                ]);
-        _ ->
-            ok
-    end,
-
-    case ets:info(?AGGREGATIONS_TAB, name) of
-        undefined ->
-            ets:new(?AGGREGATIONS_TAB, [named_table,
-                                        set,
-                                        protected,
-                                        {read_concurrency, true},
-                                        {keypos, 1}
-                                ]);
+            ets:new(?VIEW_AGGREGATIONS_TAB, [named_table,
+                                             set,
+                                             protected,
+                                             {read_concurrency, true},
+                                             {keypos, 1}
+                                            ]);
         _ ->
             ok
     end.
 
 handle_measurement(Measurement=#measurement{instrument=Instrument,
-                                            attributes=Attributes}, ViewAggregations, ReaderAggregationMappings) ->
-    ViewAggregation =
-        case maps:find(Instrument, ViewAggregations) of
-            {ok, Matches} ->
-                update_aggregations(Measurement, Matches);
-            error ->
+                                            attributes=Attributes},
+                   ReaderAggregationMappings,
+                   Views) ->
+    InstrumentAggregations=
+        case ets:select(?VIEW_AGGREGATIONS_TAB, [{{Instrument, '$1'}, [], ['$1']}]) of
+            [] ->
                 %% no existing aggregation exists
                 %% go through all the instrument recordings and update views
-                Views = ets:tab2list(?VIEWS_TAB),
-
-                Matches = otel_view:match_instrument_to_views(Instrument, Attributes, Views, ReaderAggregationMappings),
+                Matches = otel_view:match_instrument_to_views(Instrument,
+                                                              Attributes,
+                                                              Views,
+                                                              ReaderAggregationMappings),
+                update_aggregations(Measurement, Matches);
+            [Matches] ->
                 update_aggregations(Measurement, Matches)
+
         end,
 
-    ViewAggregations#{Instrument => ViewAggregation}.
+    ets:insert(?VIEW_AGGREGATIONS_TAB, {Instrument, InstrumentAggregations}).
 
 update_aggregations(Measurement=#measurement{instrument=Instrument,
                                              attributes=Attributes}, ViewAggregations) ->
-    lists:map(fun(I=#view_aggregation{view=#view{aggregation_module=AggregationModule},
+    lists:map(fun(V=#view_aggregation{view=#view{aggregation_module=AggregationModule},
                                       attributes_aggregation=Aggregations}) ->
-                      case maps:find(Attributes, Aggregations) of
-                          {ok, Aggregation} ->
-                              I#view_aggregation{attributes_aggregation=maps:update(Attributes,
-                                                                                    AggregationModule:aggregate(Measurement, Aggregation),
-                                                                                    Aggregations)};
-                          error ->
-                              NewInstrument = AggregationModule:new(Instrument,
-                                                                    Attributes,
-                                                                    erlang:system_time(nanosecond), #{}),
-                              I#view_aggregation{attributes_aggregation=Aggregations#{Attributes => AggregationModule:aggregate(Measurement, NewInstrument)}}
-                      end
+                      V#view_aggregation{attributes_aggregation=
+                                             update_attribute_aggregations(Instrument,
+                                                                           AggregationModule,
+                                                                           Measurement,
+                                                                           Attributes,
+                                                                           Aggregations)}
               end, ViewAggregations).
+
+update_attribute_aggregations(Instrument, AggregationModule, Measurement, Attributes, Aggregations) ->
+    Aggregation = case maps:find(Attributes, Aggregations) of
+                      {ok, ExistingAggregation} ->
+                          ExistingAggregation;
+                      error ->
+                          AggregationModule:new(Instrument,
+                                                Attributes,
+                                                erlang:system_time(nanosecond), #{})
+
+                  end,
+    UpdatedAggregation = AggregationModule:aggregate(Measurement, Aggregation),
+    Aggregations#{Attributes => UpdatedAggregation}.
 
 report_cb(#{instrument_name := Name,
             class := Class,
