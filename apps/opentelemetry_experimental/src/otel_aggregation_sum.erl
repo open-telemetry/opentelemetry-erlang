@@ -2,7 +2,7 @@
 
 -export([new/4,
          aggregate/2,
-         collect/3]).
+         collect/4]).
 
 -include("otel_metrics.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
@@ -13,9 +13,9 @@
 
 new(Instrument, Attributes, StartTimeUnixNano, _Options) ->
     new_(Attributes,
-        otel_instrument:is_monotonic(Instrument),
-        otel_aggregation:instrument_temporality(Instrument),
-        StartTimeUnixNano).
+         otel_instrument:is_monotonic(Instrument),
+         otel_aggregation:instrument_temporality(Instrument),
+         StartTimeUnixNano).
 
 new_(Attributes, IsMonotonic, Temporality, StartTimeUnixNano) ->
     #sum_aggregation{attributes=Attributes,
@@ -36,11 +36,8 @@ aggregate(#measurement{value=MeasurementValue}, Aggregation=#sum_aggregation{val
 aggregate(#measurement{value=MeasurementValue}, Aggregation=#sum_aggregation{value=Value}) ->
    Aggregation#sum_aggregation{value=Value + MeasurementValue}.
 
-collect(_AggregationTemporality, CollectionStartNano, #sum_aggregation{attributes=Attributes,
-                                                                       instrument_is_monotonic=_IsMonotonic,
-                                                                       instrument_temporality=_Temporality,
-                                                                       start_time_unix_nano=StartTimeUnixNano,
-                                                                       value=Value}) ->
+collect(_AggregationTemporality, CollectionStartNano, #sum_aggregation{start_time_unix_nano=StartTimeUnixNano,
+                                                                       value=Value}, Attributes) ->
     #datapoint{
        attributes=Attributes,
        start_time_unix_nano=StartTimeUnixNano,

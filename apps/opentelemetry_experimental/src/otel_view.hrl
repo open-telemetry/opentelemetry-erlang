@@ -25,6 +25,11 @@
          view :: #view{},
          instrument :: otel_instrument:t(),
 
+         reader_pid :: pid(),
+         aggregation_module :: module(),
+         temporality :: otel_aggregation:temporality(),
+         is_monotonic :: boolean(),
+
          %% description from the view or the instrument if the view has no name
          description :: unicode:unicode_binary() | undefined,
 

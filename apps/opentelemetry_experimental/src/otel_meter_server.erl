@@ -71,13 +71,25 @@
 -define(VIEW_AGGREGATIONS_TAB, otel_view_aggregations).
 -define(ACTIVE_METRICS_TAB, otel_active_metrics).
 
+-record(reader,
+        {
+         pid                         :: pid(),
+         monitor_ref                 :: reference(),
+         module                      :: module(),
+         config                      :: term(),
+         default_aggregation_mapping :: #{},
+         default_temporality_mapping :: #{}
+        }).
+
+-type reader() :: #reader{}.
+
 -record(state,
         {
          shared_meter,
 
          instruments :: #{{otel_meter:t(), otel_instrument:name()} => otel_instrument:t()},
          views :: [otel_view:t()],
-         readers :: [{pid(), #{}}],
+         readers :: [#reader{}],
 
          %% the meter configuration shared between all named
          %% meters created by this provider
@@ -162,11 +174,9 @@ handle_call({get_meter, Name, Vsn, SchemaUrl}, _From, State=#state{shared_meter=
 handle_call({get_meter, InstrumentationLibrary}, _From, State=#state{shared_meter=Meter}) ->
     {reply, {Meter#meter.module,
              Meter#meter{instrumentation_library=InstrumentationLibrary}}, State};
-handle_call({add_metric_reader, _ReaderModule, ReaderOptions}, _From, State=#state{readers=Readers}) ->
-    {ok, ReaderPid} = otel_metric_reader:start_monitor(otel_metric_reader, ReaderOptions),
-    ReaderAggregationMapping = maps:merge(otel_aggregation:default_mapping(),
-                                          maps:get(default_aggregation_mapping, ReaderOptions, #{})),
-    {reply, ok, State#state{readers=[{ReaderPid, ReaderAggregationMapping} | Readers]}};
+handle_call({add_metric_reader, ReaderModule, ReaderConfig}, _From, State=#state{readers=Readers}) ->
+    Reader = start_reader(ReaderModule, ReaderConfig),
+    {reply, ok, State#state{readers=[Reader | Readers]}};
 handle_call({add_instrument, Instrument=#instrument{meter=Meter,
                                                     name=Name}}, _From,
             State=#state{instruments=Instruments}) ->
@@ -183,20 +193,27 @@ handle_call({add_view, Name, Criteria, Config}, _From, State=#state{views=Views}
     View = otel_view:new(Name, Criteria, Config),
     {reply, true, State#state{views=[View | Views]}};
 handle_call(force_flush, _From, State=#state{readers=Readers}) ->
-    [otel_metric_reader:collect(Pid) || {{Pid, _}, _} <- Readers],
+    [otel_metric_reader:collect(Pid) || #reader{pid=Pid} <- Readers],
     {reply, ok, State}.
 
 handle_cast({record, Measurement}, State=#state{readers=Readers,
                                                 views=Views}) ->
-    %% map of Instrument -> list of Aggregations
-    %% for each Aggregation find the particular Metric to update based on the Attributes
-    {_, ReaderAggregationMappings} = lists:unzip(Readers),
-
-    handle_measurement(Measurement, ReaderAggregationMappings, Views),
+    handle_measurement(Measurement, Readers, Views),
 
     {noreply, State}.
 
-%% TODO: handle crashed reader
+handle_info({'DOWN', Ref, process, ReaderPid, _Reason}, State=#state{readers=Readers}) ->
+    case lists:search(fun(#reader{pid=Pid,
+                                  monitor_ref=MonRef}) ->
+                              Pid =:= ReaderPid andalso MonRef =:= Ref
+                      end, Readers) of
+        {value, R=#reader{module=Module,
+                          config=Config}} ->
+            Reader = start_reader(Module, Config),
+            {noreply, State#state{readers=[Reader | lists:delete(R, Readers)]}};
+        false ->
+            {noreply, State}
+    end;
 handle_info(_, State) ->
     {noreply, State}.
 
@@ -221,18 +238,16 @@ create_tables() ->
 
 handle_measurement(Measurement=#measurement{instrument=Instrument,
                                             attributes=Attributes},
-                   ReaderAggregationMappings,
+                   Readers,
                    Views) ->
     InstrumentAggregations=
         case ets:select(?VIEW_AGGREGATIONS_TAB, [{{Instrument, '$1'}, [], ['$1']}]) of
             [] ->
                 %% no existing aggregation exists
                 %% go through all the instrument recordings and update views
-                Matches = otel_view:match_instrument_to_views(Instrument,
-                                                              Attributes,
-                                                              Views,
-                                                              ReaderAggregationMappings),
-                update_aggregations(Measurement, Matches);
+                Matches = otel_view:match_instrument_to_views(Instrument, Views),
+                Matches1 = per_reader_aggregations(Readers, Instrument, Matches, Attributes),
+                update_aggregations(Measurement, Matches1);
             [Matches] ->
                 update_aggregations(Measurement, Matches)
 
@@ -242,7 +257,7 @@ handle_measurement(Measurement=#measurement{instrument=Instrument,
 
 update_aggregations(Measurement=#measurement{instrument=Instrument,
                                              attributes=Attributes}, ViewAggregations) ->
-    lists:map(fun(V=#view_aggregation{view=#view{aggregation_module=AggregationModule},
+    lists:map(fun(V=#view_aggregation{aggregation_module=AggregationModule,
                                       attributes_aggregation=Aggregations}) ->
                       V#view_aggregation{attributes_aggregation=
                                              update_attribute_aggregations(Instrument,
@@ -264,6 +279,50 @@ update_attribute_aggregations(Instrument, AggregationModule, Measurement, Attrib
                   end,
     UpdatedAggregation = AggregationModule:aggregate(Measurement, Aggregation),
     Aggregations#{Attributes => UpdatedAggregation}.
+
+start_reader(ReaderModule, ReaderConfig) ->
+    {ok, {Pid, Mon}} = otel_metric_reader:start_monitor(otel_metric_reader, ReaderConfig),
+    ReaderAggregationMapping = maps:merge(otel_aggregation:default_mapping(),
+                                          maps:get(default_aggregation_mapping, ReaderConfig, #{})),
+    ReaderTemporalityMapping = maps:merge(otel_aggregation:temporality_mapping(),
+                                          maps:get(default_temporality_mapping, ReaderConfig, #{})),
+    #reader{pid=Pid,
+            monitor_ref=Mon,
+            module=ReaderModule,
+            config=ReaderConfig,
+            default_aggregation_mapping=ReaderAggregationMapping,
+            default_temporality_mapping=ReaderTemporalityMapping}.
+
+%% create an aggregation for each Reader and its possibly unique aggregation/temporality
+per_reader_aggregations([Reader | Rest], Instrument,
+                        ViewAggregations, Attributes) ->
+    [view_aggregation_for_reader(Instrument, ViewAggregation, Reader, Attributes)
+     || ViewAggregation <- ViewAggregations].
+
+view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation=#view_aggregation{view=View},
+                            Reader=#reader{pid=Pid,
+                                           default_aggregation_mapping=ReaderAggregationMapping,
+                                           default_temporality_mapping=ReaderTemporalityMapping}, Attributes) ->
+    AggregationModule = aggregation_module(Instrument, View, Reader),
+    Temporality = maps:get(Kind, ReaderTemporalityMapping),
+    ViewAggregation#view_aggregation{
+      reader_pid=Pid,
+      aggregation_module=AggregationModule,
+      temporality=Temporality,
+      attributes_aggregation=#{Attributes =>
+                                   AggregationModule:new(Instrument, Attributes, erlang:system_time(nanosecond), #{})}}.
+
+
+%% no aggregation defined for the View, so get the aggregation from the Reader
+%% the Reader's mapping of Instrument Kind to Aggregation was merged with the
+%% global default, so any missing Kind entries are filled in from the global
+%% mapping in `otel_aggregation'
+-spec aggregation_module(otel_instrument:t(), otel_view:t(), reader()) -> module().
+aggregation_module(#instrument{kind=Kind}, #view{aggregation_module=undefined},
+                   Reader=#reader{default_aggregation_mapping=ReaderAggregationMapping}) ->
+    maps:get(Kind, ReaderAggregationMapping);
+aggregation_module(_Instrument, #view{aggregation_module=Module}, _Reader) ->
+    Module.
 
 report_cb(#{instrument_name := Name,
             class := Class,

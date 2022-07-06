@@ -29,7 +29,7 @@
                          ?assertMatch([], lists:sort(Datapoints) -- SortedDatapoints, SortedDatapoints)
                  after
                      5000 ->
-                         ct:fail(metric_receive_timeout)
+                         ct:fail({metric_receive_timeout, ?LINE})
                  end
          end)()).
 
@@ -123,7 +123,7 @@ view_creation_test(_Config) ->
     %% view name becomes the instrument name
     ?assertEqual(a_counter, View#view.name),
     Attributes = #{},
-    Matches = otel_view:match_instrument_to_views(Counter, Attributes, [View], [otel_aggregation:default_mapping()]),
+    Matches = otel_view:match_instrument_to_views(Counter, [View]),
     ?assertMatch([_], Matches),
 
     %% views require a unique name

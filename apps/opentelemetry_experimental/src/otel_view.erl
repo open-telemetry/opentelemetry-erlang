@@ -19,7 +19,7 @@
 
 -export([new/2,
          new/3,
-         match_instrument_to_views/4]).
+         match_instrument_to_views/2]).
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_view.hrl").
@@ -63,45 +63,41 @@ new(Name, Criteria, Config) ->
     View = new(Criteria, Config),
     View#view{name=Name}.
 
--spec match_instrument_to_views(otel_instrument:t(), opentelemetry:attributes_map(), [t()], #{}) -> [#view_aggregation{}].
+-spec match_instrument_to_views(otel_instrument:t(), opentelemetry:attributes_map()) -> [#view_aggregation{}].
 match_instrument_to_views(Instrument=#instrument{name=Name,
-                                                 description=Description}, Attributes, Views, DefaultAggregationMappings) ->
+                                                 description=Description}, Views) ->
+    IsMonotonic = otel_instrument:is_monotonic(Instrument),
+    Temporality = otel_aggregation:instrument_temporality(Instrument),
     Aggs =
         lists:filtermap(fun(View=#view{name=ViewName,
                                        description=ViewDescription,
                                        selection=#selection{instrument_name=InstrumentName}})
                               when Name =:= InstrumentName ->
-                                %% create an aggregation for each Reader mapping of aggregation if
-                                %% the view does not define an aggregation
-                                AggregationModules = aggregation_modules(Instrument, View, DefaultAggregationMappings),
-                                {true, [#view_aggregation{name=case ViewName of
-                                                                   undefined ->
-                                                                       InstrumentName;
-                                                                   _ ->
-                                                                       ViewName
-                                                               end,
-                                                          view=View#view{aggregation_module=AggregationModule},
-                                                          instrument=Instrument,
-                                                          description=case ViewDescription of
-                                                                          undefined ->
-                                                                              Description;
-                                                                          _ ->
-                                                                              ViewDescription
-                                                                      end,
-                                                          attributes_aggregation=#{Attributes => AggregationModule:new(Instrument, Attributes, erlang:system_time(nanosecond), #{})}
-                                                         } || AggregationModule <- AggregationModules]};
+                                {true, #view_aggregation{name=case ViewName of
+                                                                  undefined ->
+                                                                      InstrumentName;
+                                                                  _ ->
+                                                                      ViewName
+                                                              end,
+                                                         view=View,
+                                                         instrument=Instrument,
+                                                         temporality=Temporality,
+                                                         is_monotonic=IsMonotonic,
+
+                                                         description=case ViewDescription of
+                                                                         undefined ->
+                                                                             Description;
+                                                                         _ ->
+                                                                             ViewDescription
+                                                                     end,
+                                                         attributes_aggregation=#{}
+                                                        }};
                            (_) ->
                                 false
                         end, Views),
     lists:flatten(Aggs).
 
 %%
-
-aggregation_modules(#instrument{kind=Kind}, #view{aggregation_module=undefined}, DefaultAggregationMappings) ->
-    %% will crash if the Reader's aggregation mapping doesn't have a match for the Instrument Kind
-    [maps:get(Kind, Mapping) || Mapping <- DefaultAggregationMappings];
-aggregation_modules(_Instrument, #view{aggregation_module=Module}, _DefaultAggregationMapping) ->
-    [Module].
 
 criteria_to_selection(Criteria) ->
     maps:fold(fun(instrument_name, InstrumentName, SelectionAcc) ->

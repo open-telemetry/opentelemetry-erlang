@@ -2,7 +2,7 @@
 
 -export([new/4,
          aggregate/2,
-         collect/3]).
+         collect/4]).
 
 -include("otel_metrics.hrl").
 
@@ -46,8 +46,31 @@ aggregate(#measurement{value=MeasurementValue},
     Aggregation#explicit_histogram_aggregation{bucket_counts=Buckets1,
                                                sum=Sum+MeasurementValue}.
 
-collect(_AggregationTemporality, _CollectionStartNano, _Aggregation) ->
-    #datapoint{}.
+collect(_AggregationTemporality, CollectionStartNano, #explicit_histogram_aggregation
+        {
+          start_time_unix_nano=StartTimeUnixNano,
+          boundaries=Boundaries,
+          bucket_counts=Buckets,
+          record_min_max=_RecordMinMax,
+          min=Min,
+          max=Max,
+          sum=Sum
+        }, Attributes) ->
+    #histogram_datapoint
+        {
+       attributes=Attributes,
+       start_time_unix_nano=StartTimeUnixNano,
+       time_unix_nano=CollectionStartNano,
+       count=0,
+       sum=Sum,
+       bucket_counts=Buckets,
+       explicit_bounds=Boundaries,
+       exemplars=[],
+       flags=0,
+       min=Min,
+       max=Max
+      }.
+
 
 %%
 

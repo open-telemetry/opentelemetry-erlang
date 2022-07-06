@@ -2,7 +2,7 @@
 
 -export([new/4,
          aggregate/2,
-         collect/3]).
+         collect/4]).
 
 -include("otel_metrics.hrl").
 
@@ -17,10 +17,8 @@ new(_Instrument, Attributes, StartTimeUnixNano, _Options) ->
 aggregate(#measurement{value=MeasurementValue}, Aggregation) ->
     Aggregation#last_value_aggregation{value=MeasurementValue}.
 
-collect(_AggregationTemporality, CollectionStartNano, #last_value_aggregation{attributes=Attributes,
-                                                                              value=Value}) ->
+collect(_AggregationTemporality, CollectionStartNano, #last_value_aggregation{value=Value}, Attributes) ->
     #datapoint{attributes=Attributes,
-               start_time_unix_nano=0,
                time_unix_nano=CollectionStartNano,
                value=Value,
                exemplars=[],

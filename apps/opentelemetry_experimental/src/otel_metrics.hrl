@@ -15,7 +15,7 @@
         {
          attributes :: opentelemetry:attributes_map(),
          instrument_is_monotonic :: boolean(),
-         instrument_temporality :: otel_metric_reader:temporality(),
+         instrument_temporality :: otel_aggregation:temporality(),
          start_time_unix_nano :: integer(),
          value :: number() | undefined
         }).
@@ -38,7 +38,7 @@
          min :: number() | neg_infinity | infinity,
          max :: number() | neg_infinity | infinity,
          sum :: number(),
-         instrument_temporality :: ?AGGREGATION_TEMPORALITY_DELTA | ?AGGREGATION_TEMPORALITY_CUMULATIVE
+         instrument_temporality :: otel_aggregation:temporality()
         }).
 
 -record(datapoint,
@@ -54,7 +54,7 @@
 -record(sum,
         {
          datapoints :: [#datapoint{}],
-         aggregation_temporality :: ?AGGREGATION_TEMPORALITY_UNSPECIFIED | ?AGGREGATION_TEMPORALITY_DELTA | ?AGGREGATION_TEMPORALITY_CUMULATIVE,
+         aggregation_temporality :: otel_aggregation:temporality(),
          is_monotonic :: boolean()
         }).
 
@@ -81,7 +81,7 @@
 -record(histogram,
        {
         datapoints :: [#histogram_datapoint{}],
-        aggregation_temporality :: ?AGGREGATION_TEMPORALITY_UNSPECIFIED | ?AGGREGATION_TEMPORALITY_DELTA | ?AGGREGATION_TEMPORALITY_CUMULATIVE
+        aggregation_temporality :: otel_aggregation:temporality()
        }).
 
 -record(metric,
