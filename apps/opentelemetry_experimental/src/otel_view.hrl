@@ -22,7 +22,6 @@
 -record(view_aggregation,
         {%% name of the view or instrument if the view has no name
          name ::  atom() | unicode:unicode_binary(),
-         view :: #view{},
          instrument :: otel_instrument:t(),
 
          reader_pid :: pid(),
@@ -33,6 +32,8 @@
          %% description from the view or the instrument if the view has no name
          description :: unicode:unicode_binary() | undefined,
 
+         default :: term() %% #active_metric{}
+
          %% map the attributes of an instrument to its aggregation
-         attributes_aggregation :: #{opentelemetry:attributes_map() => otel_aggregation:t()}
+         %% attributes_aggregation :: #{opentelemetry:attributes_map() => otel_aggregation:t()}
         }).

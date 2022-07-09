@@ -1,7 +1,6 @@
 -module(otel_aggregation_histogram_explicit).
 
--export([new/4,
-         aggregate/2,
+-export([aggregate/3,
          collect/4]).
 
 -include("otel_metrics.hrl").
@@ -10,20 +9,28 @@
 
 -export_type([t/0]).
 
-new(_Instrument, Attributes, StartTimeUnixNano, Options) ->
-    Boundaries = maps:get(boundaries, Options, [0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0]),
-    RecordMinMax = maps:get(record_min_max, Options, true),
-    #explicit_histogram_aggregation{attributes=Attributes,
-                                    start_time_unix_nano=StartTimeUnixNano,
-                                    boundaries=Boundaries,
-                                    bucket_counts=zero_buckets(length(Boundaries)),
-                                    record_min_max=RecordMinMax,
-                                    min=infinity, %% works because any atom is < any integer
-                                    max=neg_infinity,
-                                    sum=0,
-                                    instrument_temporality=?AGGREGATION_TEMPORALITY_DELTA}.
+-define(DEFAULT_BOUNDARIES, [0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0]).
 
-aggregate(#measurement{value=MeasurementValue},
+aggregate(Table, Key, Value) ->
+    case ets:lookup(Table, Key) of
+        [ActiveMetric=#active_metric{value=Current}] ->
+            ets:insert(Table, ActiveMetric#active_metric{value=aggregate(Value, Current)});
+        _ ->
+            Boundaries = ?DEFAULT_BOUNDARIES,
+            Init = #explicit_histogram_aggregation{boundaries=Boundaries,
+                                                   bucket_counts=zero_buckets(length(Boundaries)),
+                                                   record_min_max=true,
+                                                   min=infinity, %% works because any atom is < any integer
+                                                   max=neg_infinity,
+                                                   sum=0
+                                                  },
+
+            ets:insert(Table, #active_metric{key=Key,
+                                             start_time_unix_nano=erlang:system_time(nanosecond),
+                                             value=aggregate(Value, Init)})
+    end.
+
+aggregate(MeasurementValue,
           Aggregation=#explicit_histogram_aggregation{record_min_max=true,
                                                       boundaries=Boundaries,
                                                       bucket_counts=Buckets,
@@ -38,7 +45,7 @@ aggregate(#measurement{value=MeasurementValue},
                                                        _ -> max(Max, MeasurementValue)
                                                    end,
                                                sum=Sum+MeasurementValue};
-aggregate(#measurement{value=MeasurementValue},
+aggregate(MeasurementValue,
           Aggregation=#explicit_histogram_aggregation{boundaries=Boundaries,
                                                       bucket_counts=Buckets,
                                                       sum=Sum}) ->
@@ -46,16 +53,16 @@ aggregate(#measurement{value=MeasurementValue},
     Aggregation#explicit_histogram_aggregation{bucket_counts=Buckets1,
                                                sum=Sum+MeasurementValue}.
 
-collect(_AggregationTemporality, CollectionStartNano, #explicit_histogram_aggregation
-        {
-          start_time_unix_nano=StartTimeUnixNano,
-          boundaries=Boundaries,
-          bucket_counts=Buckets,
-          record_min_max=_RecordMinMax,
-          min=Min,
-          max=Max,
-          sum=Sum
-        }, Attributes) ->
+collect(_, _AggregationTemporality, CollectionStartNano, #active_metric{start_time_unix_nano=StartTimeUnixNano,
+                                                                        value=#explicit_histogram_aggregation
+                                                                        {
+                                                                          boundaries=Boundaries,
+                                                                          bucket_counts=Buckets,
+                                                                          record_min_max=_RecordMinMax,
+                                                                          min=Min,
+                                                                          max=Max,
+                                                                          sum=Sum
+                                                                        }}, Attributes) ->
     #histogram_datapoint
         {
        attributes=Attributes,
@@ -81,6 +88,8 @@ find_bucket(Boundaries, Value) ->
     find_bucket(Boundaries, Value, 1).
 
 find_bucket([X | _Rest], Value, Pos) when Value =< X ->
+    Pos;
+find_bucket([_X], Value, Pos) ->
     Pos;
 find_bucket([_X | Rest], Value, Pos) ->
     find_bucket(Rest, Value, Pos+1);

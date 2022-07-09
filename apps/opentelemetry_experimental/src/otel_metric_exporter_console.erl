@@ -34,13 +34,13 @@ export(Table, _) ->
     io:format("** METRICS FOR DEBUG **~n"),
 
     ets:foldl(fun({#instrument{}, ViewAggregations}, Acc) ->
-                      lists:foreach(fun(#view_aggregation{name=Name,
-                                                          attributes_aggregation=AttributesAggregation}) ->
-                                            maps:foreach(fun(Attributes, Aggregation) ->
-                                                                 AttributesString = attributes_string(Attributes),
-                                                                 Value = value(Aggregation),
-                                                                 io:format("~s{~s} ~p~n", [Name, AttributesString, Value])
-                                                         end, AttributesAggregation)
+                      lists:foreach(fun(#view_aggregation{name=Name}) ->
+                                            %% maps:foreach(fun(Attributes, Aggregation) ->
+                                            %%                      AttributesString = attributes_string(Attributes),
+                                            %%                      Value = value(Aggregation),
+                                            %%                      io:format("~s{~s} ~p~n", [Name, AttributesString, Value])
+                                            %%              end, AttributesAggregation)
+                                            ok
                                     end, ViewAggregations),
                       Acc
               end, ok, Table),

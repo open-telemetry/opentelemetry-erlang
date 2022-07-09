@@ -63,7 +63,7 @@ new(Name, Criteria, Config) ->
     View = new(Criteria, Config),
     View#view{name=Name}.
 
--spec match_instrument_to_views(otel_instrument:t(), opentelemetry:attributes_map()) -> [#view_aggregation{}].
+-spec match_instrument_to_views(otel_instrument:t(), opentelemetry:attributes_map()) -> [{otel_view:t(), #view_aggregation{}}].
 match_instrument_to_views(Instrument=#instrument{name=Name,
                                                  description=Description}, Views) ->
     IsMonotonic = otel_instrument:is_monotonic(Instrument),
@@ -73,25 +73,23 @@ match_instrument_to_views(Instrument=#instrument{name=Name,
                                        description=ViewDescription,
                                        selection=#selection{instrument_name=InstrumentName}})
                               when Name =:= InstrumentName ->
-                                {true, #view_aggregation{name=case ViewName of
-                                                                  undefined ->
-                                                                      InstrumentName;
-                                                                  _ ->
-                                                                      ViewName
-                                                              end,
-                                                         view=View,
-                                                         instrument=Instrument,
-                                                         temporality=Temporality,
-                                                         is_monotonic=IsMonotonic,
-
-                                                         description=case ViewDescription of
+                                {true, {View, #view_aggregation{name=case ViewName of
                                                                          undefined ->
-                                                                             Description;
+                                                                             InstrumentName;
                                                                          _ ->
-                                                                             ViewDescription
+                                                                             ViewName
                                                                      end,
-                                                         attributes_aggregation=#{}
-                                                        }};
+                                                                instrument=Instrument,
+                                                                temporality=Temporality,
+                                                                is_monotonic=IsMonotonic,
+
+                                                                description=case ViewDescription of
+                                                                                undefined ->
+                                                                                    Description;
+                                                                                _ ->
+                                                                                    ViewDescription
+                                                                            end
+                                                               }}};
                            (_) ->
                                 false
                         end, Views),

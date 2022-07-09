@@ -124,18 +124,31 @@ create_tables() ->
 collect_(MetricsTable) ->
     CollectionStartTime = erlang:system_time(nanosecond),
 
+    %% Need to be able to efficiently get all from VIEW_AGGREGATIONS_TAB that apply to this reader
+
+    %% for each VIEW_AGGGREGATIONS_TAB entry look up metrics from METRICS_TAB using the name
+    %% to select for key `{Name, '_'}'. This gives the current value for each set of attributes
+    %% for an aggregation.
+
+    %% use the information (temporality) from the VIEW_AGGREGATIONS_TAB entry to reset the
+    %% METRICS_TAB entry value (like setting value back to 0 for DELTA)
+
     ets:foldl(fun({#instrument{value_type=_ValueType,
                                unit=Unit}, ViewAggregations}, MetricsAcc) ->
                       lists:foldl(fun(#view_aggregation{name=Name,
                                                         aggregation_module=AggregationModule,
                                                         description=Description,
                                                         temporality=Temporality,
-                                                        is_monotonic=IsMonotonic,
-                                                        attributes_aggregation=AttributesAggregation}, Acc) ->
-                                          Data = data(AggregationModule, Temporality, IsMonotonic, AttributesAggregation, CollectionStartTime),
+                                                        is_monotonic=IsMonotonic
+                                                        }, Acc) ->
+                                          Select = #active_metric{key={Name, '_'}, _='_'},
+                                          AttributesAggregation = ets:select(otel_metrics, [{Select, [], ['$_']}]),
+                                          Data = data(AggregationModule, Temporality, IsMonotonic, AttributesAggregation, CollectionStartTime, MetricsTable),
 
                                           [metric(Name, Description, Unit, Data) | Acc]
-                                  end, MetricsAcc, ViewAggregations)
+                                  end, MetricsAcc, ViewAggregations);
+                 (_, Acc) ->
+                      Acc
               end, [], MetricsTable).
 
 
@@ -147,30 +160,23 @@ metric(Name, Description, Unit, Data) ->
             unit=Unit,
             data=Data}.
 
-data(otel_aggregation_sum, Temporality, IsMonotonic, AttributesAggregation, CollectionStartTime) ->
-    Datapoints = maps:fold(fun(Attributes, Aggregation, Acc) ->
-                                   [datapoint(Aggregation, Temporality, Attributes, CollectionStartTime) | Acc]
+data(otel_aggregation_sum, Temporality, IsMonotonic, AttributesAggregation, CollectionStartTime, MetricTab) ->
+    Datapoints = lists:foldl(fun(Aggregation=#active_metric{key={_, Attributes}}, Acc) ->
+                                   [otel_aggregation_sum:collect(MetricTab, Temporality, CollectionStartTime, Aggregation, Attributes) | Acc]
                            end, [], AttributesAggregation),
     #sum{
        aggregation_temporality=Temporality,
        is_monotonic=IsMonotonic,
        datapoints=Datapoints};
-data(otel_aggregation_last_value, Temporality, IsMonotonic, AttributesAggregation, CollectionStartTime) ->
-    Datapoints = maps:fold(fun(Attributes, Aggregation, Acc) ->
-                                   [datapoint(Aggregation, Temporality, Attributes, CollectionStartTime) | Acc]
+data(otel_aggregation_last_value, Temporality, _IsMonotonic, AttributesAggregation, CollectionStartTime, MetricTab) ->
+    Datapoints = lists:foldl(fun(Aggregation=#active_metric{key={_, Attributes}}, Acc) ->
+                                   [otel_aggregation_last_value:collect(MetricTab, Temporality, CollectionStartTime, Aggregation, Attributes) | Acc]
                            end, [], AttributesAggregation),
     #gauge{datapoints=Datapoints};
-data(otel_aggregation_histogram_explicit, Temporality, _IsMonotonic, AttributesAggregation, CollectionStartTime) ->
-    Datapoints = maps:fold(fun(Attributes, Aggregation, Acc) ->
-                                   [datapoint(Aggregation, Temporality, Attributes, CollectionStartTime) | Acc]
-                           end, [], AttributesAggregation),
+data(otel_aggregation_histogram_explicit, Temporality, _IsMonotonic, AttributesAggregation, CollectionStartTime, MetricTab) ->
+    Datapoints = lists:foldl(fun(Aggregation=#active_metric{key={_, Attributes}}, Acc) ->
+                                     [otel_aggregation_histogram_explicit:collect(MetricTab, Temporality, CollectionStartTime, Aggregation, Attributes) | Acc]
+                             end, [], AttributesAggregation),
     #histogram{datapoints=Datapoints,
                aggregation_temporality=Temporality
               }.
-
-datapoint(Sum=#sum_aggregation{}, AggregationTemporality, Attributes, CollectionStartTime) ->
-    otel_aggregation_sum:collect(AggregationTemporality, CollectionStartTime, Sum, Attributes);
-datapoint(LastValue=#last_value_aggregation{}, AggregationTemporality, Attributes, CollectionStartTime) ->
-    otel_aggregation_last_value:collect(AggregationTemporality, CollectionStartTime, LastValue, Attributes);
-datapoint(ExplicitHistogram=#explicit_histogram_aggregation{}, AggregationTemporality, Attributes, CollectionStartTime) ->
-    otel_aggregation_histogram_explicit:collect(AggregationTemporality, CollectionStartTime, ExplicitHistogram, Attributes).

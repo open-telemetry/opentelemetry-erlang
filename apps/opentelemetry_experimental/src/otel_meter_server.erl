@@ -69,6 +69,7 @@
 
 -define(VIEWS_TAB, otel_views).
 -define(VIEW_AGGREGATIONS_TAB, otel_view_aggregations).
+-define(METRICS_TAB, otel_metrics).
 -define(ACTIVE_METRICS_TAB, otel_active_metrics).
 
 -record(reader,
@@ -199,10 +200,10 @@ handle_call(force_flush, _From, State=#state{readers=Readers}) ->
 handle_cast({record, Measurement}, State=#state{readers=Readers,
                                                 views=Views}) ->
     handle_measurement(Measurement, Readers, Views),
-
     {noreply, State}.
 
 handle_info({'DOWN', Ref, process, ReaderPid, _Reason}, State=#state{readers=Readers}) ->
+    %% TODO: update all viewaggregations to reference the new pid of the reader
     case lists:search(fun(#reader{pid=Pid,
                                   monitor_ref=MonRef}) ->
                               Pid =:= ReaderPid andalso MonRef =:= Ref
@@ -230,55 +231,45 @@ create_tables() ->
                                              set,
                                              protected,
                                              {read_concurrency, true},
-                                             {keypos, 1}
+                                             {keypos, 2}
                                             ]);
         _ ->
             ok
+    end,
+
+    case ets:info(?METRICS_TAB, name) of
+        undefined ->
+            ets:new(?METRICS_TAB, [named_table,
+                                   set,
+                                   protected,
+                                   {read_concurrency, true},
+                                   {keypos, 2}
+                                  ]);
+        _ ->
+            ok
     end.
+
+%% a Measurement's Instrument is matched against Views
+%% each matched View+Reader becomes a ViewAggregation
+%% for each ViewAggregation a Measurement updates a Metric (`#active_metrics')
+%% active metrics are indexed by the ViewAggregation name + the Measurement's Attributes
 
 handle_measurement(Measurement=#measurement{instrument=Instrument,
                                             attributes=Attributes},
                    Readers,
                    Views) ->
-    InstrumentAggregations=
-        case ets:select(?VIEW_AGGREGATIONS_TAB, [{{Instrument, '$1'}, [], ['$1']}]) of
-            [] ->
-                %% no existing aggregation exists
-                %% go through all the instrument recordings and update views
-                Matches = otel_view:match_instrument_to_views(Instrument, Views),
-                Matches1 = per_reader_aggregations(Readers, Instrument, Matches, Attributes),
-                update_aggregations(Measurement, Matches1);
-            [Matches] ->
-                update_aggregations(Measurement, Matches)
-
-        end,
-
-    ets:insert(?VIEW_AGGREGATIONS_TAB, {Instrument, InstrumentAggregations}).
+    ViewMatches = otel_view:match_instrument_to_views(Instrument, Views),
+    Matches = per_reader_aggregations(Readers, Instrument, ViewMatches, Attributes),
+    ets:insert(?VIEW_AGGREGATIONS_TAB, {Instrument, Matches}),
+    update_aggregations(Measurement, Matches).
 
 update_aggregations(Measurement=#measurement{instrument=Instrument,
-                                             attributes=Attributes}, ViewAggregations) ->
-    lists:map(fun(V=#view_aggregation{aggregation_module=AggregationModule,
-                                      attributes_aggregation=Aggregations}) ->
-                      V#view_aggregation{attributes_aggregation=
-                                             update_attribute_aggregations(Instrument,
-                                                                           AggregationModule,
-                                                                           Measurement,
-                                                                           Attributes,
-                                                                           Aggregations)}
+                                             attributes=Attributes,
+                                             value=Value}, ViewAggregations) ->
+    lists:map(fun(V=#view_aggregation{name=Name,
+                                      aggregation_module=AggregationModule}) ->
+                          AggregationModule:aggregate(?METRICS_TAB, {Name, Attributes}, Value)
               end, ViewAggregations).
-
-update_attribute_aggregations(Instrument, AggregationModule, Measurement, Attributes, Aggregations) ->
-    Aggregation = case maps:find(Attributes, Aggregations) of
-                      {ok, ExistingAggregation} ->
-                          ExistingAggregation;
-                      error ->
-                          AggregationModule:new(Instrument,
-                                                Attributes,
-                                                erlang:system_time(nanosecond), #{})
-
-                  end,
-    UpdatedAggregation = AggregationModule:aggregate(Measurement, Aggregation),
-    Aggregations#{Attributes => UpdatedAggregation}.
 
 start_reader(ReaderModule, ReaderConfig) ->
     {ok, {Pid, Mon}} = otel_metric_reader:start_monitor(otel_metric_reader, ReaderConfig),
@@ -294,23 +285,34 @@ start_reader(ReaderModule, ReaderConfig) ->
             default_temporality_mapping=ReaderTemporalityMapping}.
 
 %% create an aggregation for each Reader and its possibly unique aggregation/temporality
+per_reader_aggregations([], _, _, _) ->
+    [];
 per_reader_aggregations([Reader | Rest], Instrument,
                         ViewAggregations, Attributes) ->
-    [view_aggregation_for_reader(Instrument, ViewAggregation, Reader, Attributes)
-     || ViewAggregation <- ViewAggregations].
+    [view_aggregation_for_reader(Instrument, ViewAggregation, View, Reader, Attributes)
+     || {View, ViewAggregation} <- ViewAggregations] ++
+        per_reader_aggregations(Rest, Instrument, ViewAggregations, Attributes).
 
-view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation=#view_aggregation{view=View},
+view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation=#view_aggregation{name=Name}, View,
                             Reader=#reader{pid=Pid,
-                                           default_aggregation_mapping=ReaderAggregationMapping,
                                            default_temporality_mapping=ReaderTemporalityMapping}, Attributes) ->
     AggregationModule = aggregation_module(Instrument, View, Reader),
     Temporality = maps:get(Kind, ReaderTemporalityMapping),
-    ViewAggregation#view_aggregation{
-      reader_pid=Pid,
-      aggregation_module=AggregationModule,
-      temporality=Temporality,
-      attributes_aggregation=#{Attributes =>
-                                   AggregationModule:new(Instrument, Attributes, erlang:system_time(nanosecond), #{})}}.
+
+    %% Agg = AggregationModule:new(Name, Instrument, Attributes, erlang:system_time(nanosecond), #{}),
+
+    %% ets:insert(?METRICS_TAB, Agg),
+
+    ViewAggregationReader = ViewAggregation#view_aggregation{
+                              reader_pid=Pid,
+                              aggregation_module=AggregationModule,
+                              temporality=Temporality},
+
+    ets:insert(?VIEW_AGGREGATIONS_TAB, ViewAggregationReader),
+
+    ViewAggregationReader.
+      %% attributes_aggregation=#{Attributes =>
+      %%                              AggregationModule:new(Name, Instrument, Attributes, erlang:system_time(nanosecond), #{})}}.
 
 
 %% no aggregation defined for the View, so get the aggregation from the Reader
@@ -319,7 +321,7 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation=#
 %% mapping in `otel_aggregation'
 -spec aggregation_module(otel_instrument:t(), otel_view:t(), reader()) -> module().
 aggregation_module(#instrument{kind=Kind}, #view{aggregation_module=undefined},
-                   Reader=#reader{default_aggregation_mapping=ReaderAggregationMapping}) ->
+                   #reader{default_aggregation_mapping=ReaderAggregationMapping}) ->
     maps:get(Kind, ReaderAggregationMapping);
 aggregation_module(_Instrument, #view{aggregation_module=Module}, _Reader) ->
     Module.

@@ -1,8 +1,7 @@
 -module(otel_aggregation_last_value).
 
--export([new/4,
-         aggregate/2,
-         collect/4]).
+-export([aggregate/3,
+         collect/5]).
 
 -include("otel_metrics.hrl").
 
@@ -10,14 +9,17 @@
 
 -export_type([t/0]).
 
-new(_Instrument, Attributes, StartTimeUnixNano, _Options) ->
-    #last_value_aggregation{attributes=Attributes,
-                            start_time_unix_nano=StartTimeUnixNano}.
+aggregate(Tab, Key, Value) ->
+    case ets:update_element(Tab, Key, {#active_metric.value, Value}) of
+        true ->
+            true;
+        false ->
+            ets:insert(Tab, #active_metric{key=Key,
+                                           start_time_unix_nano=erlang:system_time(nanosecond),
+                                           value=Value})
+    end.
 
-aggregate(#measurement{value=MeasurementValue}, Aggregation) ->
-    Aggregation#last_value_aggregation{value=MeasurementValue}.
-
-collect(_AggregationTemporality, CollectionStartNano, #last_value_aggregation{value=Value}, Attributes) ->
+collect(_, _AggregationTemporality, CollectionStartNano, #active_metric{value=Value}, Attributes) ->
     #datapoint{attributes=Attributes,
                time_unix_nano=CollectionStartNano,
                value=Value,

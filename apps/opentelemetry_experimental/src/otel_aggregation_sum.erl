@@ -1,8 +1,7 @@
 -module(otel_aggregation_sum).
 
--export([new/4,
-         aggregate/2,
-         collect/4]).
+-export([aggregate/3,
+         collect/5]).
 
 -include("otel_metrics.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
@@ -11,38 +10,34 @@
 
 -export_type([t/0]).
 
-new(Instrument, Attributes, StartTimeUnixNano, _Options) ->
-    new_(Attributes,
-         otel_instrument:is_monotonic(Instrument),
-         otel_aggregation:instrument_temporality(Instrument),
-         StartTimeUnixNano).
+aggregate(Tab, Key, Value) ->
+    try
+        ets:update_counter(Tab, Key, {#active_metric.value, Value})
+    catch
+        error:badarg ->
+            %% the use of `update_counter' guards against conflicting with another process
+            %% doing the update at the same time -- if we ever support that
 
-new_(Attributes, IsMonotonic, Temporality, StartTimeUnixNano) ->
-    #sum_aggregation{attributes=Attributes,
-                     instrument_is_monotonic=IsMonotonic,
-                     instrument_temporality=Temporality,
-                     start_time_unix_nano=StartTimeUnixNano,
-                     value=case Temporality of
-                               ?AGGREGATION_TEMPORALITY_UNSPECIFIED ->
-                                   0;
-                               ?AGGREGATION_TEMPORALITY_DELTA ->
-                                   0;
-                               ?AGGREGATION_TEMPORALITY_CUMULATIVE ->
-                                   undefined
-                           end}.
+            %% the default isn't just given in the first `update_counter' because then
+            %% we'd have to call `system_time' for every single measurement taken
+            ets:update_counter(Tab, Key, {#active_metric.value, Value},
+                               #active_metric{key=Key,
+                                              start_time_unix_nano=erlang:system_time(nanosecond),
+                                              value=0})
+    end.
 
-aggregate(#measurement{value=MeasurementValue}, Aggregation=#sum_aggregation{value=undefined}) ->
-    Aggregation#sum_aggregation{value=MeasurementValue};
-aggregate(#measurement{value=MeasurementValue}, Aggregation=#sum_aggregation{value=Value}) ->
-   Aggregation#sum_aggregation{value=Value + MeasurementValue}.
+collect(Tab, ?AGGREGATION_TEMPORALITY_DELTA, CollectionStartNano, ActiveMetric=#active_metric{key=Key}, Attributes) ->
+    _ = ets:update_element(Tab, Key, {#active_metric.value, 0}),
+    datapoint(CollectionStartNano, ActiveMetric, Attributes);
+collect(_Tab, _AggregationTemporality, CollectionStartNano, ActiveMetric, Attributes) ->
+    datapoint(CollectionStartNano, ActiveMetric, Attributes).
 
-collect(_AggregationTemporality, CollectionStartNano, #sum_aggregation{start_time_unix_nano=StartTimeUnixNano,
-                                                                       value=Value}, Attributes) ->
+datapoint(CollectionStartNano, ActiveMetric, Attributes) ->
     #datapoint{
        attributes=Attributes,
        start_time_unix_nano=StartTimeUnixNano,
        time_unix_nano=CollectionStartNano,
        value=Value,
-       exemplars=undefined,
+       exemplars=[],
        flags=0
       }.

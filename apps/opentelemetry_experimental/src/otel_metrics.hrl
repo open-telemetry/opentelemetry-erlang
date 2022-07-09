@@ -9,36 +9,44 @@
          attributes :: opentelemetry:attributes_map()
         }).
 
+-record(active_metric,
+        {
+         %% {name, attributes}
+         key :: {term(),  opentelemetry:attributes_map()},
+         start_time_unix_nano :: integer(),
+         value :: number() | term() | undefined
+        }).
+
 -record(drop_aggregation, {}).
 
 -record(sum_aggregation,
         {
-         attributes :: opentelemetry:attributes_map(),
+         key :: {term(),  opentelemetry:attributes_map()},
+         start_time_unix_nano :: integer(),
          instrument_is_monotonic :: boolean(),
          instrument_temporality :: otel_aggregation:temporality(),
-         start_time_unix_nano :: integer(),
          value :: number() | undefined
         }).
 
 -record(last_value_aggregation,
         {
-         attributes :: opentelemetry:attributes_map(),
+         key :: {term(),  opentelemetry:attributes_map()},
          start_time_unix_nano :: integer(),
          value :: number() | undefined
         }).
 
 -record(explicit_histogram_aggregation,
         {
-         attributes :: opentelemetry:attributes_map(),
+         key :: {term(),  opentelemetry:attributes_map()},
          start_time_unix_nano :: integer(),
+         %% instrument_temporality :: otel_aggregation:temporality(),
          boundaries :: list(),
          %% default: {0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0}
          bucket_counts :: tuple(),
          record_min_max :: boolean(),
          min :: number() | neg_infinity | infinity,
          max :: number() | neg_infinity | infinity,
-         sum :: number(),
-         instrument_temporality :: otel_aggregation:temporality()
+         sum :: number()
         }).
 
 -record(datapoint,
@@ -89,5 +97,5 @@
          name :: otel_view:name(),
          description :: otel_instrument:description(),
          unit :: otel_instrument:unit(),
-         data :: #sum{}
+         data :: #sum{} | #gauge{} | #histogram{}
         }).
