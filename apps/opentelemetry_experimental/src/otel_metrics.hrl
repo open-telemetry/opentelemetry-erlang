@@ -9,34 +9,34 @@
          attributes :: opentelemetry:attributes_map()
         }).
 
--record(active_metric,
-        {
-         %% {name, attributes}
-         key :: {term(),  opentelemetry:attributes_map()},
-         start_time_unix_nano :: integer(),
-         value :: number() | term() | undefined
-        }).
+%% -record(metric,
+%%         {
+%%          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
+%%          key :: {term(),  opentelemetry:attributes_map()},
+%%          start_time_unix_nano :: integer(),
+%%          value :: number() | term() | undefined
+%%         }).
 
 -record(drop_aggregation, {}).
 
 -record(sum_aggregation,
         {
+         %% TODO: attributes should be a tuple of just the values, sorted by attribute name
          key :: {term(),  opentelemetry:attributes_map()},
          start_time_unix_nano :: integer(),
-         instrument_is_monotonic :: boolean(),
-         instrument_temporality :: otel_aggregation:temporality(),
          value :: number() | undefined
         }).
 
 -record(last_value_aggregation,
         {
+         %% TODO: attributes should be a tuple of just the values, sorted by attribute name
          key :: {term(),  opentelemetry:attributes_map()},
-         start_time_unix_nano :: integer(),
          value :: number() | undefined
         }).
 
 -record(explicit_histogram_aggregation,
         {
+         %% TODO: attributes should be a tuple of just the values, sorted by attribute name
          key :: {term(),  opentelemetry:attributes_map()},
          start_time_unix_nano :: integer(),
          %% instrument_temporality :: otel_aggregation:temporality(),

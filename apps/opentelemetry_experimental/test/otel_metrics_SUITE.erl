@@ -17,7 +17,7 @@
                              description=MetricDescription,
                              unit=MetricUnit,
                              data=#sum{datapoints=MetricDatapoints}}
-                     when MetricName =:= Name ->
+                       when MetricName =:= Name ->
                          ?assertEqual(Description, MetricDescription),
                          ?assertEqual(Unit, MetricUnit),
                          ?assertEqual(Description, MetricDescription),
@@ -202,10 +202,10 @@ explicit_histograms(_Config) ->
                 data=#histogram{datapoints=Datapoints}} ->
             AttributeBuckets =
                 [{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
-                                                               attributes=Attributes,
-                                                               min=Min,
-                                                               max=Max,
-                                                               sum=Sum}  <- Datapoints],
+                                                                              attributes=Attributes,
+                                                                              min=Min,
+                                                                              max=Max,
+                                                                              sum=Sum}  <- Datapoints],
             ?assertEqual([], [{#{<<"c">> => <<"b">>}, {0,0,0,1,1,0,1,0,0,0}, 20, 100, 164},
                               {#{<<"a">> => <<"b">>, <<"d">> => <<"e">>}, {0,0,0,0,1,0,0,0,0,0}, 30, 30, 30}]
                          -- AttributeBuckets, AttributeBuckets)

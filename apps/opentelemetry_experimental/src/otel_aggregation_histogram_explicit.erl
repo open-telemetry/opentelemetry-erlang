@@ -1,7 +1,8 @@
 -module(otel_aggregation_histogram_explicit).
 
--export([aggregate/3,
-         collect/4]).
+-export([init/2,
+         aggregate/3,
+         collect/5]).
 
 -include("otel_metrics.hrl").
 
@@ -11,23 +12,28 @@
 
 -define(DEFAULT_BOUNDARIES, [0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0]).
 
+init(Key, Options) ->
+    Boundaries = maps:get(boundaries, Options, ?DEFAULT_BOUNDARIES),
+    RecordMinMax = maps:get(record_min_max, Options, true),
+    #explicit_histogram_aggregation{key=Key,
+                                    start_time_unix_nano=erlang:system_time(nanosecond),
+                                    boundaries=Boundaries,
+                                    bucket_counts=zero_buckets(length(Boundaries)),
+                                    record_min_max=RecordMinMax,
+                                    min=infinity, %% works because any atom is > any integer
+                                    max=neg_infinity, %% requires an explicit check
+                                    sum=0
+                                   }.
+
 aggregate(Table, Key, Value) ->
     case ets:lookup(Table, Key) of
-        [ActiveMetric=#active_metric{value=Current}] ->
-            ets:insert(Table, ActiveMetric#active_metric{value=aggregate(Value, Current)});
+        [Current] ->
+            %% TODO: needs to be changed to work with concurrent updates
+            ets:insert(Table, aggregate(Value, Current));
         _ ->
-            Boundaries = ?DEFAULT_BOUNDARIES,
-            Init = #explicit_histogram_aggregation{boundaries=Boundaries,
-                                                   bucket_counts=zero_buckets(length(Boundaries)),
-                                                   record_min_max=true,
-                                                   min=infinity, %% works because any atom is < any integer
-                                                   max=neg_infinity,
-                                                   sum=0
-                                                  },
-
-            ets:insert(Table, #active_metric{key=Key,
-                                             start_time_unix_nano=erlang:system_time(nanosecond),
-                                             value=aggregate(Value, Init)})
+            %% since we need the options to initialize a histogram `false' is
+            %% returned and `otel_metric_server' will initialize the histogram
+            false
     end.
 
 aggregate(MeasurementValue,
@@ -53,22 +59,21 @@ aggregate(MeasurementValue,
     Aggregation#explicit_histogram_aggregation{bucket_counts=Buckets1,
                                                sum=Sum+MeasurementValue}.
 
-collect(_, _AggregationTemporality, CollectionStartNano, #active_metric{start_time_unix_nano=StartTimeUnixNano,
-                                                                        value=#explicit_histogram_aggregation
-                                                                        {
-                                                                          boundaries=Boundaries,
-                                                                          bucket_counts=Buckets,
-                                                                          record_min_max=_RecordMinMax,
-                                                                          min=Min,
-                                                                          max=Max,
-                                                                          sum=Sum
-                                                                        }}, Attributes) ->
-    #histogram_datapoint
-        {
+collect(_, _AggregationTemporality, CollectionStartNano,
+        #explicit_histogram_aggregation{
+           start_time_unix_nano=StartTimeUnixNano,
+           boundaries=Boundaries,
+           bucket_counts=Buckets,
+           record_min_max=_RecordMinMax,
+           min=Min,
+           max=Max,
+           sum=Sum
+          }, Attributes) ->
+    #histogram_datapoint{
        attributes=Attributes,
        start_time_unix_nano=StartTimeUnixNano,
        time_unix_nano=CollectionStartNano,
-       count=0,
+       count=lists:sum(erlang:tuple_to_list(Buckets)),
        sum=Sum,
        bucket_counts=Buckets,
        explicit_bounds=Boundaries,
@@ -89,7 +94,7 @@ find_bucket(Boundaries, Value) ->
 
 find_bucket([X | _Rest], Value, Pos) when Value =< X ->
     Pos;
-find_bucket([_X], Value, Pos) ->
+find_bucket([_X], _Value, Pos) ->
     Pos;
 find_bucket([_X | Rest], Value, Pos) ->
     find_bucket(Rest, Value, Pos+1);

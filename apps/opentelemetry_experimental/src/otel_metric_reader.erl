@@ -44,7 +44,9 @@
          default_aggregation_mapping :: #{otel_instrument:kind() => module()},
          temporality_mapping :: #{otel_instrument:kind() => otel_aggregation:temporality()},
          export_interval_ms :: integer() | undefined,
-         tref :: reference()
+         tref :: reference(),
+         view_aggregation_table :: ets:tid(),
+         metrics_table :: ets:tid()
         }).
 
 -define(ACTIVE_VIEWS_TAB, otel_active_views).
@@ -80,7 +82,9 @@ init(Config) ->
                 default_aggregation_mapping=DefaultAggregationMapping,
                 temporality_mapping=Temporality,
                 export_interval_ms=ExporterIntervalMs,
-                tref=TRef}}.
+                tref=TRef,
+                view_aggregation_table=otel_view_aggregations,
+                metrics_table=otel_metrics}}.
 
 handle_call(shutdown, _From, State) ->
     {reply, ok, State};
@@ -92,12 +96,14 @@ handle_cast(_, State) ->
 
 handle_info(collect, State=#state{exporter={ExporterModule, Config},
                                   export_interval_ms=ExporterIntervalMs,
-                                  tref=TRef}) ->
+                                  tref=TRef,
+                                  view_aggregation_table=ViewAggregationTable,
+                                  metrics_table=MetricsTable}) ->
     erlang:cancel_timer(TRef, []), %% {async, true} ?
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
 
     %% collect from view aggregations table and then export
-    Metrics = collect_(otel_view_aggregations),
+    Metrics = collect_(ViewAggregationTable, MetricsTable),
 
     ExporterModule:export(Metrics, Config),
 
@@ -121,7 +127,7 @@ create_tables() ->
             ok
     end.
 
-collect_(MetricsTable) ->
+collect_(ViewAggregationTable, MetricsTable) ->
     CollectionStartTime = erlang:system_time(nanosecond),
 
     %% Need to be able to efficiently get all from VIEW_AGGREGATIONS_TAB that apply to this reader
@@ -141,15 +147,16 @@ collect_(MetricsTable) ->
                                                         temporality=Temporality,
                                                         is_monotonic=IsMonotonic
                                                         }, Acc) ->
-                                          Select = #active_metric{key={Name, '_'}, _='_'},
-                                          AttributesAggregation = ets:select(otel_metrics, [{Select, [], ['$_']}]),
+                                          Select = [{'$1',
+                                                     [{'==', Name, {element, 1, {element, 2, '$1'}}}],
+                                                      ['$1']}],
+                                          %% Select = #metric{key={Name, '_'}, _='_'},
+                                          AttributesAggregation = ets:select(otel_metrics, Select),
                                           Data = data(AggregationModule, Temporality, IsMonotonic, AttributesAggregation, CollectionStartTime, MetricsTable),
 
                                           [metric(Name, Description, Unit, Data) | Acc]
-                                  end, MetricsAcc, ViewAggregations);
-                 (_, Acc) ->
-                      Acc
-              end, [], MetricsTable).
+                                  end, MetricsAcc, ViewAggregations)
+              end, [], ViewAggregationTable).
 
 
 %%
@@ -161,20 +168,20 @@ metric(Name, Description, Unit, Data) ->
             data=Data}.
 
 data(otel_aggregation_sum, Temporality, IsMonotonic, AttributesAggregation, CollectionStartTime, MetricTab) ->
-    Datapoints = lists:foldl(fun(Aggregation=#active_metric{key={_, Attributes}}, Acc) ->
-                                   [otel_aggregation_sum:collect(MetricTab, Temporality, CollectionStartTime, Aggregation, Attributes) | Acc]
+    Datapoints = lists:foldl(fun(Aggregation=#sum_aggregation{key={_, Attributes}}, Acc) ->
+                                     [otel_aggregation_sum:collect(MetricTab, Temporality, CollectionStartTime, Aggregation, Attributes) | Acc]
                            end, [], AttributesAggregation),
     #sum{
        aggregation_temporality=Temporality,
        is_monotonic=IsMonotonic,
        datapoints=Datapoints};
 data(otel_aggregation_last_value, Temporality, _IsMonotonic, AttributesAggregation, CollectionStartTime, MetricTab) ->
-    Datapoints = lists:foldl(fun(Aggregation=#active_metric{key={_, Attributes}}, Acc) ->
+    Datapoints = lists:foldl(fun(Aggregation=#last_value_aggregation{key={_, Attributes}}, Acc) ->
                                    [otel_aggregation_last_value:collect(MetricTab, Temporality, CollectionStartTime, Aggregation, Attributes) | Acc]
                            end, [], AttributesAggregation),
     #gauge{datapoints=Datapoints};
 data(otel_aggregation_histogram_explicit, Temporality, _IsMonotonic, AttributesAggregation, CollectionStartTime, MetricTab) ->
-    Datapoints = lists:foldl(fun(Aggregation=#active_metric{key={_, Attributes}}, Acc) ->
+    Datapoints = lists:foldl(fun(Aggregation=#explicit_histogram_aggregation{key={_, Attributes}}, Acc) ->
                                      [otel_aggregation_histogram_explicit:collect(MetricTab, Temporality, CollectionStartTime, Aggregation, Attributes) | Acc]
                              end, [], AttributesAggregation),
     #histogram{datapoints=Datapoints,

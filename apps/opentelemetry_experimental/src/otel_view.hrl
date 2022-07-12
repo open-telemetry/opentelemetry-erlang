@@ -17,6 +17,7 @@
          description      :: unicode:unicode_binary() | undefined,
          attribute_keys   :: [opentelemetry:attribute_key()] | undefined,
          aggregation_module      :: module() | undefined,
+         aggregation_options :: term(),
          number=0 :: number()}).
 
 -record(view_aggregation,
@@ -25,15 +26,13 @@
          instrument :: otel_instrument:t(),
 
          reader_pid :: pid(),
+
          aggregation_module :: module(),
+         aggregation_options :: term(),
+
          temporality :: otel_aggregation:temporality(),
          is_monotonic :: boolean(),
 
          %% description from the view or the instrument if the view has no name
-         description :: unicode:unicode_binary() | undefined,
-
-         default :: term() %% #active_metric{}
-
-         %% map the attributes of an instrument to its aggregation
-         %% attributes_aggregation :: #{opentelemetry:attributes_map() => otel_aggregation:t()}
+         description :: unicode:unicode_binary() | undefined
         }).

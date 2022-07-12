@@ -56,14 +56,16 @@ new(Criteria, Config) ->
           selection=Selection,
           description=maps:get(description, Config, undefined),
           attribute_keys=maps:get(attribute_keys, Config, undefined),
-          aggregation_module=maps:get(aggregation, Config, undefined)}.
+          aggregation_module=maps:get(aggregation, Config, undefined),
+          aggregation_options=#{}}.
 
 -spec new(name(), criteria(), config()) -> t().
 new(Name, Criteria, Config) ->
     View = new(Criteria, Config),
     View#view{name=Name}.
 
--spec match_instrument_to_views(otel_instrument:t(), opentelemetry:attributes_map()) -> [{otel_view:t(), #view_aggregation{}}].
+-spec match_instrument_to_views(otel_instrument:t(), opentelemetry:attributes_map()) ->
+          [{otel_view:t(), #view_aggregation{}}].
 match_instrument_to_views(Instrument=#instrument{name=Name,
                                                  description=Description}, Views) ->
     IsMonotonic = otel_instrument:is_monotonic(Instrument),
@@ -71,6 +73,7 @@ match_instrument_to_views(Instrument=#instrument{name=Name,
     Aggs =
         lists:filtermap(fun(View=#view{name=ViewName,
                                        description=ViewDescription,
+                                       aggregation_options=AggregationOptions,
                                        selection=#selection{instrument_name=InstrumentName}})
                               when Name =:= InstrumentName ->
                                 {true, {View, #view_aggregation{name=case ViewName of
@@ -82,7 +85,7 @@ match_instrument_to_views(Instrument=#instrument{name=Name,
                                                                 instrument=Instrument,
                                                                 temporality=Temporality,
                                                                 is_monotonic=IsMonotonic,
-
+                                                                aggregation_options=AggregationOptions,
                                                                 description=case ViewDescription of
                                                                                 undefined ->
                                                                                     Description;

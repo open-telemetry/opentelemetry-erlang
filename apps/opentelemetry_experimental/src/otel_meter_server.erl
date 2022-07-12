@@ -241,7 +241,7 @@ create_tables() ->
         undefined ->
             ets:new(?METRICS_TAB, [named_table,
                                    set,
-                                   protected,
+                                   public,
                                    {read_concurrency, true},
                                    {keypos, 2}
                                   ]);
@@ -251,24 +251,31 @@ create_tables() ->
 
 %% a Measurement's Instrument is matched against Views
 %% each matched View+Reader becomes a ViewAggregation
-%% for each ViewAggregation a Measurement updates a Metric (`#active_metrics')
+%% for each ViewAggregation a Measurement updates a Metric (`#metric')
 %% active metrics are indexed by the ViewAggregation name + the Measurement's Attributes
 
-handle_measurement(Measurement=#measurement{instrument=Instrument,
-                                            attributes=Attributes},
+handle_measurement(Measurement=#measurement{instrument=Instrument},
                    Readers,
                    Views) ->
     ViewMatches = otel_view:match_instrument_to_views(Instrument, Views),
-    Matches = per_reader_aggregations(Readers, Instrument, ViewMatches, Attributes),
+    Matches = per_reader_aggregations(Readers, Instrument, ViewMatches),
     ets:insert(?VIEW_AGGREGATIONS_TAB, {Instrument, Matches}),
     update_aggregations(Measurement, Matches).
 
-update_aggregations(Measurement=#measurement{instrument=Instrument,
-                                             attributes=Attributes,
-                                             value=Value}, ViewAggregations) ->
-    lists:map(fun(V=#view_aggregation{name=Name,
-                                      aggregation_module=AggregationModule}) ->
-                          AggregationModule:aggregate(?METRICS_TAB, {Name, Attributes}, Value)
+update_aggregations(#measurement{attributes=Attributes,
+                                 value=Value}, ViewAggregations) ->
+    lists:map(fun(#view_aggregation{name=Name,
+                                    aggregation_module=AggregationModule,
+                                    aggregation_options=Options}) ->
+                          case AggregationModule:aggregate(?METRICS_TAB, {Name, Attributes}, Value) of
+                              true ->
+                                  ok;
+                              false ->
+                                  %% entry doesn't exist, create it and rerun the aggregate function
+                                  Metric = AggregationModule:init({Name, Attributes}, Options),
+                                  _ = ets:insert(?METRICS_TAB, Metric),
+                                  AggregationModule:aggregate(?METRICS_TAB, {Name, Attributes}, Value)
+                          end
               end, ViewAggregations).
 
 start_reader(ReaderModule, ReaderConfig) ->
@@ -285,35 +292,27 @@ start_reader(ReaderModule, ReaderConfig) ->
             default_temporality_mapping=ReaderTemporalityMapping}.
 
 %% create an aggregation for each Reader and its possibly unique aggregation/temporality
-per_reader_aggregations([], _, _, _) ->
+per_reader_aggregations([], _, _) ->
     [];
-per_reader_aggregations([Reader | Rest], Instrument,
-                        ViewAggregations, Attributes) ->
-    [view_aggregation_for_reader(Instrument, ViewAggregation, View, Reader, Attributes)
+per_reader_aggregations([Reader | Rest], Instrument, ViewAggregations) ->
+    [view_aggregation_for_reader(Instrument, ViewAggregation, View, Reader)
      || {View, ViewAggregation} <- ViewAggregations] ++
-        per_reader_aggregations(Rest, Instrument, ViewAggregations, Attributes).
+        per_reader_aggregations(Rest, Instrument, ViewAggregations).
 
-view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation=#view_aggregation{name=Name}, View,
+view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, View,
                             Reader=#reader{pid=Pid,
-                                           default_temporality_mapping=ReaderTemporalityMapping}, Attributes) ->
+                                           default_temporality_mapping=ReaderTemporalityMapping}) ->
     AggregationModule = aggregation_module(Instrument, View, Reader),
     Temporality = maps:get(Kind, ReaderTemporalityMapping),
-
-    %% Agg = AggregationModule:new(Name, Instrument, Attributes, erlang:system_time(nanosecond), #{}),
-
-    %% ets:insert(?METRICS_TAB, Agg),
 
     ViewAggregationReader = ViewAggregation#view_aggregation{
                               reader_pid=Pid,
                               aggregation_module=AggregationModule,
                               temporality=Temporality},
 
-    ets:insert(?VIEW_AGGREGATIONS_TAB, ViewAggregationReader),
+    %% ets:insert(?VIEW_AGGREGATIONS_TAB, ViewAggregationReader),
 
     ViewAggregationReader.
-      %% attributes_aggregation=#{Attributes =>
-      %%                              AggregationModule:new(Name, Instrument, Attributes, erlang:system_time(nanosecond), #{})}}.
-
 
 %% no aggregation defined for the View, so get the aggregation from the Reader
 %% the Reader's mapping of Instrument Kind to Aggregation was merged with the
