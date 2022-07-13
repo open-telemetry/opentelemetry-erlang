@@ -45,11 +45,9 @@
          temporality_mapping :: #{otel_instrument:kind() => otel_aggregation:temporality()},
          export_interval_ms :: integer() | undefined,
          tref :: reference(),
-         view_aggregation_table :: ets:tid(),
-         metrics_table :: ets:tid()
+         view_aggregation_tab :: ets:tid(),
+         metrics_tab :: ets:tid()
         }).
-
--define(ACTIVE_VIEWS_TAB, otel_active_views).
 
 -spec start_monitor(module(), otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
 start_monitor(ReaderModule, Config) ->
@@ -61,7 +59,8 @@ collect(ReaderPid) ->
 shutdown(ReaderPid) ->
     gen_server:call(ReaderPid, shutdown).
 
-init(Config) ->
+init(Config=#{view_aggregation_tab := ViewAggregationTab,
+              metrics_tab := MetricsTab}) ->
     ExporterModuleConfig = maps:get(exporter, Config, undefined),
     Exporter = otel_exporter:init(ExporterModuleConfig),
 
@@ -72,10 +71,6 @@ init(Config) ->
     %% ExporterIntervalMs = maps:get(export_interval_ms, Config, undefined), %% somehow do default of 10000 millis
     ExporterIntervalMs = 10000,
 
-    %% ets tables are required for other parts to not crash so we create
-    %% it in init and not in a handle_continue or whatever else
-    create_tables(),
-
     TRef = erlang:send_after(ExporterIntervalMs, self(), collect),
 
     {ok, #state{exporter=Exporter,
@@ -83,8 +78,8 @@ init(Config) ->
                 temporality_mapping=Temporality,
                 export_interval_ms=ExporterIntervalMs,
                 tref=TRef,
-                view_aggregation_table=otel_view_aggregations,
-                metrics_table=otel_metrics}}.
+                view_aggregation_tab=ViewAggregationTab,
+                metrics_tab=MetricsTab}}.
 
 handle_call(shutdown, _From, State) ->
     {reply, ok, State};
@@ -94,11 +89,17 @@ handle_call(_, _From, State) ->
 handle_cast(_, State) ->
     {noreply, State}.
 
+handle_info(collect, State=#state{exporter=undefined,
+                                  export_interval_ms=ExporterIntervalMs,
+                                  tref=TRef}) ->
+    erlang:cancel_timer(TRef, []), %% {async, true} ?
+    NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
+    {noreply, State#state{tref=NewTRef}};
 handle_info(collect, State=#state{exporter={ExporterModule, Config},
                                   export_interval_ms=ExporterIntervalMs,
                                   tref=TRef,
-                                  view_aggregation_table=ViewAggregationTable,
-                                  metrics_table=MetricsTable}) ->
+                                  view_aggregation_tab=ViewAggregationTable,
+                                  metrics_tab=MetricsTable}) ->
     erlang:cancel_timer(TRef, []), %% {async, true} ?
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
 
@@ -114,20 +115,7 @@ code_change(State) ->
 
 %%
 
-create_tables() ->
-    case ets:info(?ACTIVE_VIEWS_TAB, name) of
-        undefined ->
-            ets:new(?ACTIVE_VIEWS_TAB, [named_table,
-                                        set,
-                                        protected,
-                                        {read_concurrency, true},
-                                        {keypos, 2}
-                                       ]);
-        _ ->
-            ok
-    end.
-
-collect_(ViewAggregationTable, MetricsTable) ->
+collect_(ViewAggregationTab, MetricsTab) ->
     CollectionStartTime = erlang:system_time(nanosecond),
 
     %% Need to be able to efficiently get all from VIEW_AGGREGATIONS_TAB that apply to this reader
@@ -141,7 +129,9 @@ collect_(ViewAggregationTable, MetricsTable) ->
 
     ets:foldl(fun({#instrument{value_type=_ValueType,
                                unit=Unit}, ViewAggregations}, MetricsAcc) ->
-                      lists:foldl(fun(#view_aggregation{name=Name,
+                      lists:foldl(fun(#view_aggregation{aggregation_module=otel_aggregation_drop}, Acc) ->
+                                          Acc;
+                                     (#view_aggregation{name=Name,
                                                         aggregation_module=AggregationModule,
                                                         description=Description,
                                                         temporality=Temporality,
@@ -150,14 +140,13 @@ collect_(ViewAggregationTable, MetricsTable) ->
                                           Select = [{'$1',
                                                      [{'==', Name, {element, 1, {element, 2, '$1'}}}],
                                                       ['$1']}],
-                                          %% Select = #metric{key={Name, '_'}, _='_'},
-                                          AttributesAggregation = ets:select(otel_metrics, Select),
-                                          Data = data(AggregationModule, Temporality, IsMonotonic, AttributesAggregation, CollectionStartTime, MetricsTable),
+                                          AttributesAggregation = ets:select(MetricsTab, Select),
+                                          Data = data(AggregationModule, Temporality, IsMonotonic,
+                                                      AttributesAggregation, CollectionStartTime, MetricsTab),
 
                                           [metric(Name, Description, Unit, Data) | Acc]
                                   end, MetricsAcc, ViewAggregations)
-              end, [], ViewAggregationTable).
-
+              end, [], ViewAggregationTab).
 
 %%
 

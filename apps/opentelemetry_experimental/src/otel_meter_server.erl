@@ -67,17 +67,14 @@
 
 -export_type([meter/0]).
 
--define(VIEWS_TAB, otel_views).
--define(VIEW_AGGREGATIONS_TAB, otel_view_aggregations).
--define(METRICS_TAB, otel_metrics).
--define(ACTIVE_METRICS_TAB, otel_active_metrics).
-
 -record(reader,
         {
          pid                         :: pid(),
          monitor_ref                 :: reference(),
          module                      :: module(),
          config                      :: term(),
+         view_aggregation_tab        :: ets:tid(),
+         metrics_tab                 :: ets:tid(),
          default_aggregation_mapping :: #{},
          default_temporality_mapping :: #{}
         }).
@@ -155,10 +152,6 @@ init(_) ->
 
     opentelemetry_experimental:set_default_meter({otel_meter_default, Meter}),
 
-    %% ets tables are required for other parts to not crash so we create
-    %% it in init and not in a handle_continue or whatever else
-    create_tables(),
-
     {ok, #state{shared_meter=Meter,
                 instruments=#{},
                 views=[],
@@ -224,30 +217,17 @@ code_change(State) ->
 %%
 
 create_tables() ->
-    %% {otel_instrument:t(), [#view_aggregation{}]}
-    case ets:info(?VIEW_AGGREGATIONS_TAB, name) of
-        undefined ->
-            ets:new(?VIEW_AGGREGATIONS_TAB, [named_table,
-                                             set,
-                                             protected,
-                                             {read_concurrency, true},
-                                             {keypos, 2}
-                                            ]);
-        _ ->
-            ok
-    end,
-
-    case ets:info(?METRICS_TAB, name) of
-        undefined ->
-            ets:new(?METRICS_TAB, [named_table,
-                                   set,
-                                   public,
-                                   {read_concurrency, true},
-                                   {keypos, 2}
-                                  ]);
-        _ ->
-            ok
-    end.
+    ViewAggregationTab = ets:new(view_aggregation_tab, [set,
+                                                        protected,
+                                                        {read_concurrency, true},
+                                                        {keypos, 2}
+                                                       ]),
+    MetricsTab = ets:new(metrics_tab, [set,
+                                       public,
+                                       {read_concurrency, true},
+                                       {keypos, 2}
+                                      ]),
+    {ViewAggregationTab, MetricsTab}.
 
 %% a Measurement's Instrument is matched against Views
 %% each matched View+Reader becomes a ViewAggregation
@@ -258,28 +238,40 @@ handle_measurement(Measurement=#measurement{instrument=Instrument},
                    Readers,
                    Views) ->
     ViewMatches = otel_view:match_instrument_to_views(Instrument, Views),
-    Matches = per_reader_aggregations(Readers, Instrument, ViewMatches),
-    ets:insert(?VIEW_AGGREGATIONS_TAB, {Instrument, Matches}),
-    update_aggregations(Measurement, Matches).
+    lists:map(fun(Reader=#reader{view_aggregation_tab=ViewAggregationTab}) ->
+                      Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
+                      ets:insert(ViewAggregationTab, {Instrument, Matches}),
+                      update_aggregations(Measurement, Reader, Matches)
+              end, Readers).
 
 update_aggregations(#measurement{attributes=Attributes,
-                                 value=Value}, ViewAggregations) ->
+                                 value=Value}, #reader{metrics_tab=MetricsTab}, ViewAggregations) ->
     lists:map(fun(#view_aggregation{name=Name,
                                     aggregation_module=AggregationModule,
                                     aggregation_options=Options}) ->
-                          case AggregationModule:aggregate(?METRICS_TAB, {Name, Attributes}, Value) of
+                          case AggregationModule:aggregate(MetricsTab, {Name, Attributes}, Value) of
                               true ->
                                   ok;
                               false ->
                                   %% entry doesn't exist, create it and rerun the aggregate function
                                   Metric = AggregationModule:init({Name, Attributes}, Options),
-                                  _ = ets:insert(?METRICS_TAB, Metric),
-                                  AggregationModule:aggregate(?METRICS_TAB, {Name, Attributes}, Value)
+                                  _ = ets:insert(MetricsTab, Metric),
+                                  AggregationModule:aggregate(MetricsTab, {Name, Attributes}, Value)
                           end
               end, ViewAggregations).
 
 start_reader(ReaderModule, ReaderConfig) ->
-    {ok, {Pid, Mon}} = otel_metric_reader:start_monitor(otel_metric_reader, ReaderConfig),
+    {ViewAggregationTab, MetricsTab} = create_tables(),
+
+    %% TODO: using a monitor bc the original idea was readers could continue operating without
+    %% the meter server this isn't the case right now since the ets tables are owned by the meter server
+    %% unless this is changed this needs to be switched to a link
+    %% also need to be able to recover who the readers are when the meter server restarts
+    %% discovery by looking at a supervision tree could be a good idea as it would allow for added
+    %% readers to be returned to the server after a crash
+    {ok, {Pid, Mon}} = otel_metric_reader:start_monitor(otel_metric_reader,
+                                                        ReaderConfig#{view_aggregation_tab => ViewAggregationTab,
+                                                                      metrics_tab => MetricsTab}),
     ReaderAggregationMapping = maps:merge(otel_aggregation:default_mapping(),
                                           maps:get(default_aggregation_mapping, ReaderConfig, #{})),
     ReaderTemporalityMapping = maps:merge(otel_aggregation:temporality_mapping(),
@@ -288,16 +280,15 @@ start_reader(ReaderModule, ReaderConfig) ->
             monitor_ref=Mon,
             module=ReaderModule,
             config=ReaderConfig,
+            view_aggregation_tab=ViewAggregationTab,
+            metrics_tab=MetricsTab,
             default_aggregation_mapping=ReaderAggregationMapping,
             default_temporality_mapping=ReaderTemporalityMapping}.
 
 %% create an aggregation for each Reader and its possibly unique aggregation/temporality
-per_reader_aggregations([], _, _) ->
-    [];
-per_reader_aggregations([Reader | Rest], Instrument, ViewAggregations) ->
+per_reader_aggregations(Reader, Instrument, ViewAggregations) ->
     [view_aggregation_for_reader(Instrument, ViewAggregation, View, Reader)
-     || {View, ViewAggregation} <- ViewAggregations] ++
-        per_reader_aggregations(Rest, Instrument, ViewAggregations).
+     || {View, ViewAggregation} <- ViewAggregations].
 
 view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, View,
                             Reader=#reader{pid=Pid,
@@ -321,6 +312,7 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, 
 -spec aggregation_module(otel_instrument:t(), otel_view:t(), reader()) -> module().
 aggregation_module(#instrument{kind=Kind}, #view{aggregation_module=undefined},
                    #reader{default_aggregation_mapping=ReaderAggregationMapping}) ->
+    ct:pal("Mapping ~p", [ReaderAggregationMapping]),
     maps:get(Kind, ReaderAggregationMapping);
 aggregation_module(_Instrument, #view{aggregation_module=Module}, _Reader) ->
     Module.
