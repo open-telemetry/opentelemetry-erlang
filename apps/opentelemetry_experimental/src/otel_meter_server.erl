@@ -217,16 +217,15 @@ code_change(State) ->
 %%
 
 create_tables() ->
+    %% elements are {Instrument, [ViewAggregation]}
     ViewAggregationTab = ets:new(view_aggregation_tab, [set,
                                                         protected,
                                                         {read_concurrency, true},
-                                                        {keypos, 2}
-                                                       ]),
+                                                        {keypos, 1}]),
     MetricsTab = ets:new(metrics_tab, [set,
                                        public,
                                        {read_concurrency, true},
-                                       {keypos, 2}
-                                      ]),
+                                       {keypos, 2}]),
     {ViewAggregationTab, MetricsTab}.
 
 %% a Measurement's Instrument is matched against Views
@@ -239,9 +238,16 @@ handle_measurement(Measurement=#measurement{instrument=Instrument},
                    Views) ->
     ViewMatches = otel_view:match_instrument_to_views(Instrument, Views),
     lists:map(fun(Reader=#reader{view_aggregation_tab=ViewAggregationTab}) ->
-                      Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
-                      ets:insert(ViewAggregationTab, {Instrument, Matches}),
-                      update_aggregations(Measurement, Reader, Matches)
+                      case ets:lookup(ViewAggregationTab, Instrument) of
+                          [] ->
+                              %% this instrument hasn't been seen before
+                              Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
+                              true = ets:insert(ViewAggregationTab, {Instrument, Matches}),
+                              update_aggregations(Measurement, Reader, Matches);
+                          [{_, Matches}] ->
+                              %% TODO: matches need to be  updated when a new view is added
+                              update_aggregations(Measurement, Reader, Matches)
+                      end
               end, Readers).
 
 update_aggregations(#measurement{attributes=Attributes,
@@ -296,14 +302,10 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, 
     AggregationModule = aggregation_module(Instrument, View, Reader),
     Temporality = maps:get(Kind, ReaderTemporalityMapping),
 
-    ViewAggregationReader = ViewAggregation#view_aggregation{
-                              reader_pid=Pid,
-                              aggregation_module=AggregationModule,
-                              temporality=Temporality},
-
-    %% ets:insert(?VIEW_AGGREGATIONS_TAB, ViewAggregationReader),
-
-    ViewAggregationReader.
+    ViewAggregation#view_aggregation{
+      reader_pid=Pid,
+      aggregation_module=AggregationModule,
+      temporality=Temporality}.
 
 %% no aggregation defined for the View, so get the aggregation from the Reader
 %% the Reader's mapping of Instrument Kind to Aggregation was merged with the
@@ -312,7 +314,6 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, 
 -spec aggregation_module(otel_instrument:t(), otel_view:t(), reader()) -> module().
 aggregation_module(#instrument{kind=Kind}, #view{aggregation_module=undefined},
                    #reader{default_aggregation_mapping=ReaderAggregationMapping}) ->
-    ct:pal("Mapping ~p", [ReaderAggregationMapping]),
     maps:get(Kind, ReaderAggregationMapping);
 aggregation_module(_Instrument, #view{aggregation_module=Module}, _Reader) ->
     Module.
