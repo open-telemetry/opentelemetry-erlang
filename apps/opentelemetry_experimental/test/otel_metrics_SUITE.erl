@@ -33,6 +33,22 @@
                  end
          end)()).
 
+-define(assertNotReceive(Name, Description, Unit),
+        (fun() ->
+                 receive
+                     M=#metric{name=MetricName,
+                               description=MetricDescription,
+                               unit=MetricUnit}
+                       when MetricName =:= Name,
+                            MetricDescription =:= Description,
+                            MetricUnit =:= Unit ->
+                         ct:fail({metric_received, M})
+                 after
+                     0 ->
+                         ok
+                 end
+         end)()).
+
 all() ->
     [provider_test, view_creation_test, counter_add, add_readers,
      explicit_histograms, reader_aggregations].
@@ -122,7 +138,7 @@ view_creation_test(_Config) ->
     View = otel_view:new(#{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
     %% view name becomes the instrument name
     ?assertEqual(a_counter, View#view.name),
-    Attributes = #{},
+
     Matches = otel_view:match_instrument_to_views(Counter, [View]),
     ?assertMatch([_], Matches),
 
@@ -155,11 +171,44 @@ counter_add(_Config) ->
     ok.
 
 add_readers(_Config) ->
-    ?assertEqual(ok, otel_meter_server:add_metric_reader(otel_metric_reader, #{})),
+    Meter = opentelemetry_experimental:get_meter(),
+
+    CounterDesc = <<"counter description">>,
+    CounterUnit = kb,
+    ValueType = integer,
+
+    CounterA = otel_meter:create_counter(Meter, a_counter, ValueType,
+                                         #{description => CounterDesc,
+                                           unit => CounterUnit}),
+    CounterB = otel_meter:create_counter(Meter, b_counter, ValueType,
+                                         #{description => CounterDesc,
+                                           unit => CounterUnit}),
+
     ?assertEqual(ok, otel_meter_server:add_metric_reader(otel_metric_reader,
-                                                         #{default_aggregation_mapping =>
-                                                               #{?KIND_COUNTER => otel_aggregation_histogram_explicit,
-                                                                 ?KIND_OBSERVABLE_GAUGE => otel_aggregation_histogram_explicit}})),
+                                                         #{exporter => {otel_metric_exporter_pid, self()}})),
+    ?assertEqual(ok, otel_meter_server:add_metric_reader(otel_metric_reader,
+                                                         #{exporter => {otel_metric_exporter_pid, self()},
+                                                           default_aggregation_mapping =>
+                                                               #{?KIND_COUNTER => otel_aggregation_drop}})),
+
+    otel_meter_server:add_view(#{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
+    otel_meter_server:add_view(#{instrument_name => b_counter}, #{}),
+
+    ?assertEqual(ok, otel_counter:add(CounterA, 2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(CounterA, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    ?assertEqual(ok, otel_counter:add(CounterA, 4, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(CounterA, 5, #{<<"c">> => <<"b">>})),
+
+    ?assertEqual(ok, otel_counter:add(CounterB, 2, #{<<"c">> => <<"b">>})),
+
+    otel_meter_server:force_flush(),
+
+    %% 2nd reader has counter set to drop so only 1 of b_counter is expected bc it does
+    %% not set an aggregation in the view definition
+    ?assertReceive(a_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
+    ?assertReceive(a_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
+    ?assertReceive(b_counter, <<"counter description">>, kb, [{2, #{<<"c">> => <<"b">>}}]),
+    ?assertNotReceive(b_counter, <<"counter description">>, kb),
 
     ok.
 
