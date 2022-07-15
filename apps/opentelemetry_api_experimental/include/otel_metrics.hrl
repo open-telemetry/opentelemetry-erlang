@@ -4,7 +4,11 @@
                      description :: otel_instrument:description() | undefined,
                      kind        :: otel_instrument:kind(),
                      value_type  :: otel_instrument:value_type(),
-                     unit        :: otel_instrument:unit() | undefined}).
+                     unit        :: otel_instrument:unit() | undefined,
+                     callback    :: otel_instrument:callback() | undefined}).
+
+-define(VALUE_TYPE_INTEGER, integer).
+-define(VALUE_TYPE_FLOAT, float).
 
 -define(KIND_COUNTER, counter).
 -define(KIND_OBSERVABLE_COUNTER, observable_counter).

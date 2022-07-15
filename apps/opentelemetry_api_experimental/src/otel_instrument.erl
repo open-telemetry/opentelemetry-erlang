@@ -27,7 +27,8 @@
 -type kind() :: ?KIND_COUNTER | ?KIND_OBSERVABLE_COUNTER | ?KIND_HISTOGRAM |
                 ?KIND_OBSERVABLE_GAUGE | ?KIND_UPDOWN_COUNTER | ?KIND_OBSERVABLE_UPDOWNCOUNTER.
 -type unit() :: atom(). %% latin1, maximum length of 63 characters
--type value_type() :: integer | float.
+-type value_type() :: ?VALUE_TYPE_INTEGER | ?VALUE_TYPE_FLOAT.
+-type callback() :: fun().
 
 -type t() :: #instrument{}.
 
@@ -47,6 +48,17 @@ new(Module, Meter, Kind, Name, Description, Unit, ValueType) ->
                 kind        = Kind,
                 value_type  = ValueType,
                 unit        = Unit}.
+
+-spec new(module(), otel_meter:t(), kind(), name(), description(), unit(), value_type(), callback()) -> t().
+new(Module, Meter, Kind, Name, Description, Unit, ValueType, Callback) ->
+    #instrument{module      = Module,
+                meter       = Meter,
+                name        = Name,
+                description = Description,
+                kind        = Kind,
+                value_type  = ValueType,
+                unit        = Unit,
+                callback    = Callback}.
 
 is_monotonic(#instrument{kind=?KIND_COUNTER}) ->
     true;
