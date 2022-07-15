@@ -26,5 +26,13 @@
 -callback record(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
 
 -spec record(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-record(Instrument=#instrument{module=Module}, Number, Attributes) ->
-    Module:record(Instrument, Number, Attributes).
+record(Instrument=#instrument{module=Module,
+                              value_type=?VALUE_TYPE_INTEGER}, Number, Attributes)
+  when is_integer(Number) ->
+    Module:record(Instrument, Number, Attributes);
+record(Instrument=#instrument{module=Module,
+                              value_type=?VALUE_TYPE_FLOAT}, Number, Attributes)
+  when is_float(Number) ->
+    Module:record(Instrument, Number, Attributes);
+record(_, _, _) ->
+    ok.
