@@ -30,20 +30,12 @@
 init(_) ->
     {ok, []}.
 
-export(Table, _) ->
+export(Metrics, _) ->
     io:format("** METRICS FOR DEBUG **~n"),
-
-    ets:foldl(fun({#instrument{}, ViewAggregations}, Acc) ->
-                      lists:foreach(fun(#view_aggregation{name=Name}) ->
-                                            %% maps:foreach(fun(Attributes, Aggregation) ->
-                                            %%                      AttributesString = attributes_string(Attributes),
-                                            %%                      Value = value(Aggregation),
-                                            %%                      io:format("~s{~s} ~p~n", [Name, AttributesString, Value])
-                                            %%              end, AttributesAggregation)
-                                            ok
-                                    end, ViewAggregations),
-                      Acc
-              end, ok, Table),
+    lists:map(fun(#metric{name=Name,
+                          data=Data}) ->
+                      print_metric(Name, Data)
+              end, Metrics),
     ok.
 
 force_flush() ->
@@ -54,10 +46,39 @@ shutdown() ->
 
 %%
 
-value(#sum_aggregation{value=Value}) ->
-    Value;
-value(X) ->
-    X.
+print_metric(Name, #sum{datapoints=Datapoints}) ->
+    lists:map(fun(Datapoint) -> print_datapoint(Name, Datapoint) end, Datapoints);
+print_metric(Name, #gauge{datapoints=Datapoints}) ->
+    lists:map(fun(Datapoint) -> print_datapoint(Name, Datapoint) end, Datapoints);
+print_metric(Name, #histogram{datapoints=Datapoints}) ->
+    lists:map(fun(Datapoint) -> print_histogram_datapoint(Name, Datapoint) end, Datapoints).
+
+print_datapoint(Name, #datapoint{
+                         attributes=Attributes,
+                         start_time_unix_nano=_StartTimeUnixNano,
+                         time_unix_nano=_CollectionStartNano,
+                         value=Value,
+                         exemplars=_,
+                         flags=_
+                        }) ->
+    AttributesString = attributes_string(Attributes),
+    io:format("~s{~s} ~p~n", [Name, AttributesString, Value]).
+
+print_histogram_datapoint(Name, #histogram_datapoint{
+                                   attributes=Attributes,
+                                   start_time_unix_nano=_StartTimeUnixNano,
+                                   time_unix_nano=_CollectionStartNano,
+                                   count=_Count,
+                                   sum=_Sum,
+                                   bucket_counts=Buckets,
+                                   explicit_bounds=_Boundaries,
+                                   exemplars=[],
+                                   flags=0,
+                                   min=_Min,
+                                   max=_Max
+                                  }) ->
+    AttributesString = attributes_string(Attributes),
+    io:format("~s{~s} ~p~n", [Name, AttributesString, Buckets]).
 
 %% need to handle non-string values
 attributes_string(Attributes) ->
