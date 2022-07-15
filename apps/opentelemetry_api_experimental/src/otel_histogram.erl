@@ -23,8 +23,6 @@
 
 -include("otel_metrics.hrl").
 
--callback record(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-
 -spec record(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
 record(Instrument=#instrument{module=Module,
                               value_type=?VALUE_TYPE_INTEGER}, Number, Attributes)

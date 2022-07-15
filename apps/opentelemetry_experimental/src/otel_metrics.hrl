@@ -1,6 +1,17 @@
+-define(DEFAULT_METER_PROVIDER, otel_meter_provider_default).
+
 -define(AGGREGATION_TEMPORALITY_DELTA, aggregation_temporality_delta).
 -define(AGGREGATION_TEMPORALITY_CUMULATIVE, aggregation_temporality_cumulative).
 -define(AGGREGATION_TEMPORALITY_UNSPECIFIED, aggregation_temporality_unspecified).
+
+-record(meter, {module                  :: module(),
+                instrumentation_library :: otel_tracer_server:instrumentation_library() | undefined,
+                provider                :: atom()}).
+
+%% The name, version and language of this OpenTelemetry library
+-record(telemetry_library, {name     :: unicode:unicode_binary() | undefined,
+                            language :: unicode:unicode_binary() | undefined,
+                            version  :: unicode:unicode_binary() | undefined}).
 
 -record(measurement,
         {
@@ -8,14 +19,6 @@
          value :: number(),
          attributes :: opentelemetry:attributes_map()
         }).
-
-%% -record(metric,
-%%         {
-%%          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-%%          key :: {term(),  opentelemetry:attributes_map()},
-%%          start_time_unix_nano :: integer(),
-%%          value :: number() | term() | undefined
-%%         }).
 
 -record(drop_aggregation, {}).
 

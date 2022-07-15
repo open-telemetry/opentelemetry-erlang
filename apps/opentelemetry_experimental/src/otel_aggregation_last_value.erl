@@ -14,7 +14,6 @@ init(Key, _Options) ->
     #last_value_aggregation{key=Key,
                             value=0}.
 
-
 aggregate(Tab, Key, Value) ->
     case ets:update_element(Tab, Key, {#last_value_aggregation.value, Value}) of
         true ->

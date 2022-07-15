@@ -22,28 +22,20 @@
 -export([instrument/5,
          instrument/6]).
 
-%% also act as default version of instruments
--export([add/3,
-         record/3]).
+-export([record/3]).
+
+-include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
+-include("otel_metrics.hrl").
 
 instrument(Meter, Name, Kind, ValueType, Opts) ->
-    Instrument = otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
-                                     maps:get(unit, Opts, undefined), ValueType),
-    otel_meter_server:add_instrument(Instrument),
-    Instrument.
+    otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
+                        maps:get(unit, Opts, undefined), ValueType).
 
 instrument(Meter, Name, Kind, ValueType, Callback, Opts) ->
-    Instrument = otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
-                                     maps:get(unit, Opts, undefined), ValueType, Callback),
-    otel_meter_server:add_instrument(Instrument),
-    Instrument.
+    otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
+                        maps:get(unit, Opts, undefined), ValueType, Callback).
 
 %%
 
-%% handles both default counter and default updown counter
-add(Instrument, Number, Attributes) ->
-    otel_meter_server:record(Instrument, Number, Attributes).
-
-record(Instrument, Number, Attributes) ->
-    otel_meter_server:record(Instrument, Number, Attributes).
-
+record(Instrument=#instrument{meter={_, #meter{provider=Provider}}}, Number, Attributes) ->
+    otel_meter_server:record(Provider, Instrument, Number, Attributes).

@@ -89,14 +89,14 @@ provider_test(_Config) ->
                              value_type = ValueType,
                              unit = CounterUnit}, Counter),
 
-    ?assertEqual(ok, otel_meter_server:add_metric_reader(otel_metric_reader, #{exporter => {otel_metric_exporter_pid, self()}})),
+    ?assertEqual(ok, otel_meter_server:add_metric_reader(?DEFAULT_METER_PROVIDER, otel_metric_reader, #{exporter => {otel_metric_exporter_pid, self()}})),
 
-    otel_meter_server:add_view(#{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
-    otel_meter_server:add_view(view_a, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
-    otel_meter_server:add_view(view_b, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
+    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
+    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, view_a, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
+    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, view_b, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
 
     %% use the default Reader aggregation
-    otel_meter_server:add_view(view_c, #{instrument_name => a_counter}, #{}),
+    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, view_c, #{instrument_name => a_counter}, #{}),
 
     ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
@@ -109,14 +109,14 @@ provider_test(_Config) ->
     %% ignored because only positive measurements are allowed for counters
     ?assertEqual(ok, otel_counter:add(Counter, -10, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(),
+    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
 
     ?assertReceive(a_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
     ?assertReceive(view_c, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
 
     %% sum agg is default delta temporality so counter will reset
     ?assertEqual(ok, otel_counter:add(Counter, 7, #{<<"c">> => <<"b">>})),
-    otel_meter_server:force_flush(),
+    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
     ?assertReceive(a_counter, <<"counter description">>, kb, [{7, #{<<"c">> => <<"b">>}},
                                                               {0, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>}}]),
 
@@ -145,7 +145,7 @@ view_creation_test(_Config) ->
                              unit = CounterUnit}, Counter),
 
 
-    ?assert(otel_meter_server:add_view(view_a, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum})),
+    ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, view_a, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum})),
 
     View = otel_view:new(#{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
     %% view name becomes the instrument name
@@ -155,15 +155,15 @@ view_creation_test(_Config) ->
     ?assertMatch([_], Matches),
 
     %% views require a unique name
-    ?assert(otel_meter_server:add_view(view_b, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum})),
+    ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, view_b, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum})),
     %% ?assertNot(otel_meter_server:add_view(view_b, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum})),
 
     %% only one view that matches all instruments can be allowed
-    ?assert(otel_meter_server:add_view(view_c, #{}, #{aggregation => otel_aggregation_sum})),
+    ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, view_c, #{}, #{aggregation => otel_aggregation_sum})),
     %% ?assertNot(otel_meter_server:add_view(view_d, #{}, #{aggregation => otel_aggregation_sum})),
 
-    ?assert(otel_meter_server:add_view(#{instrument_name => b_counter}, #{aggregation => otel_aggregation_sum})),
-    ?assert(otel_meter_server:add_view(#{instrument_name => c_counter}, #{aggregation => otel_aggregation_sum})),
+    ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => b_counter}, #{aggregation => otel_aggregation_sum})),
+    ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => c_counter}, #{aggregation => otel_aggregation_sum})),
 
     ok.
 
@@ -196,15 +196,17 @@ add_readers(_Config) ->
                                   #{description => CounterDesc,
                                     unit => CounterUnit}),
 
-    ?assertEqual(ok, otel_meter_server:add_metric_reader(otel_metric_reader,
+    ?assertEqual(ok, otel_meter_server:add_metric_reader(?DEFAULT_METER_PROVIDER,
+                                                         otel_metric_reader,
                                                          #{exporter => {otel_metric_exporter_pid, self()}})),
-    ?assertEqual(ok, otel_meter_server:add_metric_reader(otel_metric_reader,
+    ?assertEqual(ok, otel_meter_server:add_metric_reader(?DEFAULT_METER_PROVIDER,
+                                                         otel_metric_reader,
                                                          #{exporter => {otel_metric_exporter_pid, self()},
                                                            default_aggregation_mapping =>
                                                                #{?KIND_COUNTER => otel_aggregation_drop}})),
 
-    otel_meter_server:add_view(#{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
-    otel_meter_server:add_view(#{instrument_name => b_counter}, #{}),
+    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
+    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => b_counter}, #{}),
 
     ?assertEqual(ok, otel_counter:add(CounterA, 2, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(CounterA, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
@@ -213,7 +215,7 @@ add_readers(_Config) ->
 
     ?assertEqual(ok, otel_counter:add(CounterB, 2, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(),
+    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
 
     %% 2nd reader has counter set to drop so only 1 of b_counter is expected bc it does
     %% not set an aggregation in the view definition
@@ -246,9 +248,9 @@ explicit_histograms(_Config) ->
                              value_type = ValueType,
                              unit = HistogramUnit}, Histogram),
 
-    ?assertEqual(ok, otel_meter_server:add_metric_reader(otel_metric_reader, #{exporter => {otel_metric_exporter_pid, self()}})),
+    ?assertEqual(ok, otel_meter_server:add_metric_reader(?DEFAULT_METER_PROVIDER, otel_metric_reader, #{exporter => {otel_metric_exporter_pid, self()}})),
 
-    otel_meter_server:add_view(#{instrument_name => a_histogram}, #{}),
+    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => a_histogram}, #{}),
 
 
     ?assertEqual(ok, otel_histogram:record(Histogram, 20, #{<<"c">> => <<"b">>})),
@@ -256,7 +258,7 @@ explicit_histograms(_Config) ->
     ?assertEqual(ok, otel_histogram:record(Histogram, 44, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_histogram:record(Histogram, 100, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(),
+    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
 
     receive
         #metric{name=a_histogram,
@@ -308,18 +310,19 @@ cumulative_counter(_Config) ->
                              unit = CounterUnit}, Counter),
 
     CumulativeCounterTemporality = #{?KIND_COUNTER =>?AGGREGATION_TEMPORALITY_CUMULATIVE},
-    ?assertEqual(ok, otel_meter_server:add_metric_reader(otel_metric_reader,
+    ?assertEqual(ok, otel_meter_server:add_metric_reader(?DEFAULT_METER_PROVIDER,
+                                                         otel_metric_reader,
                                                          #{exporter => {otel_metric_exporter_pid, self()},
                                                            default_temporality_mapping =>
                                                                CumulativeCounterTemporality})),
 
-    otel_meter_server:add_view(#{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
+    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
 
     ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(),
+    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
 
     ?assertReceive(a_counter, <<"counter description">>, kb, [{6, #{<<"c">> => <<"b">>}}]),
 
@@ -327,7 +330,7 @@ cumulative_counter(_Config) ->
     ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 7, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(),
+    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
 
     ?assertReceive(a_counter, <<"counter description">>, kb, [{18, #{<<"c">> => <<"b">>}}]),
 

@@ -35,16 +35,11 @@
 -behaviour(gen_server).
 
 -export([start_link/1,
-         add_metric_reader/2,
          add_metric_reader/3,
-         add_instrument/1,
-         add_instrument/2,
-         add_view/2,
          add_view/3,
          add_view/4,
-         record/3,
          record/4,
-         force_flush/0,
+         force_flush/1,
          report_cb/1]).
 
 -export([init/1,
@@ -59,10 +54,6 @@
 -include("otel_metrics.hrl").
 -include("otel_view.hrl").
 
--record(meter, {module                  :: module(),
-                instrumentation_library :: otel_tracer_server:instrumentation_library() | undefined,
-                telemetry_library       :: otel_tracer_server:telemetry_library() | undefined,
-                resource                :: otel_resource:t() | undefined}).
 -type meter() :: #meter{}.
 
 -export_type([meter/0]).
@@ -85,17 +76,14 @@
         {
          shared_meter,
 
-         instruments :: #{{otel_meter:t(), otel_instrument:name()} => otel_instrument:t()},
          views :: [otel_view:t()],
          readers :: [#reader{}],
 
          %% the meter configuration shared between all named
          %% meters created by this provider
+         telemetry_library :: #telemetry_library{} | undefined,
          resource :: otel_resource:t()
         }).
-
--define(SERVER, otel_meter_provider).
--define(DEFAULT_METER_PROVIDER, ?SERVER).
 
 -spec start_link(otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
 start_link(Config) ->
@@ -103,37 +91,19 @@ start_link(Config) ->
 
 -spec start_link(atom(), otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
 start_link(Provider, Config) ->
-    gen_server:start_link({local, Provider}, ?MODULE, Config, []).
-
--spec add_metric_reader(module(), term()) -> boolean().
-add_metric_reader(ReaderModule, ReaderOptions) ->
-    add_metric_reader(?DEFAULT_METER_PROVIDER, ReaderModule, ReaderOptions).
+    gen_server:start_link({local, Provider}, ?MODULE, [Provider, Config], []).
 
 -spec add_metric_reader(atom(), module(), term()) -> boolean().
 add_metric_reader(Provider, ReaderModule, ReaderOptions) ->
     gen_server:call(Provider, {add_metric_reader, ReaderModule, ReaderOptions}).
 
-add_instrument(Instrument) ->
-    add_instrument(?DEFAULT_METER_PROVIDER, Instrument).
-
-add_instrument(Provider, Instrument) ->
-    gen_server:call(Provider, {add_instrument, Instrument}).
-
--spec add_view(otel_view:criteria(), otel_view:config()) -> boolean().
-add_view(Criteria, Config) ->
-    add_view(?DEFAULT_METER_PROVIDER, undefined, Criteria, Config).
-
--spec add_view(otel_view:name(), otel_view:criteria(), otel_view:config()) -> boolean().
-add_view(Name, Criteria, Config) ->
-    add_view(?DEFAULT_METER_PROVIDER, Name, Criteria, Config).
+-spec add_view(atom(), otel_view:criteria(), otel_view:config()) -> boolean().
+add_view(Provider, Criteria, Config) ->
+    add_view(Provider, undefined, Criteria, Config).
 
 -spec add_view(atom(), otel_view:name(), otel_view:criteria(), otel_view:config()) -> boolean().
 add_view(Provider, Name, Criteria, Config) ->
     gen_server:call(Provider, {add_view, Name, Criteria, Config}).
-
--spec record(otel_instrument:t(), number(), otel_attributes:t()) -> ok.
-record(Instrument, Number, Attributes) ->
-    record(?DEFAULT_METER_PROVIDER, Instrument, Number, Attributes).
 
 -spec record(atom(), otel_instrument:t(), number(), otel_attributes:t()) -> ok.
 record(Provider, Instrument, Number, Attributes) ->
@@ -141,21 +111,27 @@ record(Provider, Instrument, Number, Attributes) ->
                                                      value=Number,
                                                      attributes=Attributes}}).
 
-force_flush() ->
-    gen_server:call(?DEFAULT_METER_PROVIDER, force_flush).
+force_flush(Provider) ->
+    gen_server:call(Provider, force_flush).
 
-init(_) ->
+init([Name, _Config]) ->
     Resource = otel_resource_detector:get_resource(),
 
     Meter = #meter{module=otel_meter_default,
-                   resource=Resource},
+                   provider=Name},
 
     opentelemetry_experimental:set_default_meter({otel_meter_default, Meter}),
 
+    {ok, LibraryVsn} = application:get_key(opentelemetry_experimental, vsn),
+    LibraryName = <<"opentelemetry">>,
+    LibraryLanguage = <<"erlang">>,
+    TelemetryLibrary = #telemetry_library{name=LibraryName,
+                                          language=LibraryLanguage,
+                                          version=list_to_binary(LibraryVsn)},
     {ok, #state{shared_meter=Meter,
-                instruments=#{},
                 views=[],
                 readers=[],
+                telemetry_library=TelemetryLibrary,
                 resource=Resource}}.
 
 handle_call(resource, _From, State=#state{resource=Resource}) ->
@@ -171,17 +147,6 @@ handle_call({get_meter, InstrumentationLibrary}, _From, State=#state{shared_mete
 handle_call({add_metric_reader, ReaderModule, ReaderConfig}, _From, State=#state{readers=Readers}) ->
     Reader = start_reader(ReaderModule, ReaderConfig),
     {reply, ok, State#state{readers=[Reader | Readers]}};
-handle_call({add_instrument, Instrument=#instrument{meter=Meter,
-                                                    name=Name}}, _From,
-            State=#state{instruments=Instruments}) ->
-    Key = {Meter, Name},
-    case maps:is_key(Key, Instruments) of
-        true ->
-            {reply, false, State};
-        false ->
-            NewInstruments = maps:put(Key, Instrument, Instruments),
-            {reply, true, State#state{instruments=NewInstruments}}
-        end;
 handle_call({add_view, Name, Criteria, Config}, _From, State=#state{views=Views}) ->
     %% TODO: drop View if Criteria is a wildcard instrument name and View name is not undefined
     View = otel_view:new(Name, Criteria, Config),

@@ -18,6 +18,7 @@
 -module(otel_instrument).
 
 -export([new/7,
+         new/8,
          is_monotonic/1]).
 
 -include("otel_metrics.hrl").

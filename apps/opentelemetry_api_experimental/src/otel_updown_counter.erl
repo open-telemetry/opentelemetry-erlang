@@ -22,8 +22,6 @@
 
 -include("otel_metrics.hrl").
 
--callback add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-
 -spec add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
 add(Instrument=#instrument{module=Module,
                            value_type=?VALUE_TYPE_INTEGER}, Number, Attributes)
