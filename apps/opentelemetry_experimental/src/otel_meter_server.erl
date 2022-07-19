@@ -260,13 +260,11 @@ per_reader_aggregations(Reader, Instrument, ViewAggregations) ->
      || {View, ViewAggregation} <- ViewAggregations].
 
 view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, View,
-                            Reader=#reader{pid=Pid,
-                                           default_temporality_mapping=ReaderTemporalityMapping}) ->
+                            Reader=#reader{default_temporality_mapping=ReaderTemporalityMapping}) ->
     AggregationModule = aggregation_module(Instrument, View, Reader),
     Temporality = maps:get(Kind, ReaderTemporalityMapping),
 
     ViewAggregation#view_aggregation{
-      reader_pid=Pid,
       aggregation_module=AggregationModule,
       temporality=Temporality}.
 

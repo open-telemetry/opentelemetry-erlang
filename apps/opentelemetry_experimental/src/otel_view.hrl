@@ -25,8 +25,6 @@
          name ::  atom() | unicode:unicode_binary(),
          instrument :: otel_instrument:t(),
 
-         reader_pid :: pid(),
-
          aggregation_module :: module(),
          aggregation_options :: term(),
 
