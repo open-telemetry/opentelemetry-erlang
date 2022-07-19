@@ -1,8 +1,26 @@
+%%%------------------------------------------------------------------------
+%% Copyright 2022, OpenTelemetry Authors
+%% Licensed under the Apache License, Version 2.0 (the "License");
+%% you may not use this file except in compliance with the License.
+%% You may obtain a copy of the License at
+%%
+%% http://www.apache.org/licenses/LICENSE-2.0
+%%
+%% Unless required by applicable law or agreed to in writing, software
+%% distributed under the License is distributed on an "AS IS" BASIS,
+%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+%% See the License for the specific language governing permissions and
+%% limitations under the License.
+%%
+%% @doc
+%% @end
+%%%-------------------------------------------------------------------------
 -module(otel_aggregation_last_value).
 
 -export([init/2,
          aggregate/3,
-         collect/5]).
+         checkpoint/5,
+         collect/4]).
 
 -include("otel_metrics.hrl").
 
@@ -23,11 +41,20 @@ aggregate(Tab, Key, Value) ->
             ets:insert(Tab, Metric#last_value_aggregation{value=Value})
     end.
 
-collect(_Tab, _, _, #last_value_aggregation{value=undefined}, _) ->
-    undefined;
-collect(Tab, _, CollectionStartNano, #last_value_aggregation{key=Key,
-                                                             value=Value}, Attributes) ->
-    _ = ets:update_element(Tab, Key, {#last_value_aggregation.value, undefined}),
+checkpoint(_Tab, _Name, _, _, _CollectionStartNano) ->
+    ok.
+
+collect(Tab, Name, _, CollectionStartTime) ->
+    Select = [{'$1',
+               [{'==', Name, {element, 1, {element, 2, '$1'}}}],
+               ['$1']}],
+    AttributesAggregation = ets:select(Tab, Select),
+    [datapoint(CollectionStartTime, SumAgg) || SumAgg <- AttributesAggregation].
+
+%%
+
+datapoint(CollectionStartNano, #last_value_aggregation{key={_, Attributes},
+                                                       value=Value})  ->
     #datapoint{attributes=Attributes,
                time_unix_nano=CollectionStartNano,
                value=Value,

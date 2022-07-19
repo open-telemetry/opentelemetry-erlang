@@ -27,7 +27,8 @@
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
          key :: {term(),  opentelemetry:attributes_map()},
          start_time_unix_nano :: integer(),
-         value :: number() | undefined
+         value :: number() | undefined,
+         checkpoint :: number() | undefined
         }).
 
 -record(last_value_aggregation,

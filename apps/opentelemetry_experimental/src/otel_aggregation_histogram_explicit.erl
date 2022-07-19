@@ -1,8 +1,26 @@
+%%%------------------------------------------------------------------------
+%% Copyright 2022, OpenTelemetry Authors
+%% Licensed under the Apache License, Version 2.0 (the "License");
+%% you may not use this file except in compliance with the License.
+%% You may obtain a copy of the License at
+%%
+%% http://www.apache.org/licenses/LICENSE-2.0
+%%
+%% Unless required by applicable law or agreed to in writing, software
+%% distributed under the License is distributed on an "AS IS" BASIS,
+%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+%% See the License for the specific language governing permissions and
+%% limitations under the License.
+%%
+%% @doc
+%% @end
+%%%-------------------------------------------------------------------------
 -module(otel_aggregation_histogram_explicit).
 
 -export([init/2,
          aggregate/3,
-         collect/5]).
+         checkpoint/5,
+         collect/4]).
 
 -include("otel_metrics.hrl").
 
@@ -59,16 +77,29 @@ aggregate(MeasurementValue,
     Aggregation#explicit_histogram_aggregation{bucket_counts=Buckets1,
                                                sum=Sum+MeasurementValue}.
 
-collect(_, _AggregationTemporality, CollectionStartNano,
-        #explicit_histogram_aggregation{
-           start_time_unix_nano=StartTimeUnixNano,
-           boundaries=Boundaries,
-           bucket_counts=Buckets,
-           record_min_max=_RecordMinMax,
-           min=Min,
-           max=Max,
-           sum=Sum
-          }, Attributes) ->
+%% TODO: handle delta temporary checkpoints
+checkpoint(_Tab, _Name, _, _, _CollectionStartNano) ->
+    ok.
+
+collect(Tab, Name, _, CollectionStartTime) ->
+    Select = [{'$1',
+               [{'==', Name, {element, 1, {element, 2, '$1'}}}],
+               ['$1']}],
+    AttributesAggregation = ets:select(Tab, Select),
+    [datapoint(CollectionStartTime, SumAgg) || SumAgg <- AttributesAggregation].
+
+%%
+
+datapoint(CollectionStartNano, #explicit_histogram_aggregation{
+                                  key={_, Attributes},
+                                  start_time_unix_nano=StartTimeUnixNano,
+                                  boundaries=Boundaries,
+                                  bucket_counts=Buckets,
+                                  record_min_max=_RecordMinMax,
+                                  min=Min,
+                                  max=Max,
+                                  sum=Sum
+                                 }) ->
     #histogram_datapoint{
        attributes=Attributes,
        start_time_unix_nano=StartTimeUnixNano,
@@ -82,9 +113,6 @@ collect(_, _AggregationTemporality, CollectionStartNano,
        min=Min,
        max=Max
       }.
-
-
-%%
 
 zero_buckets(Size) ->
     erlang:list_to_tuple(lists:duplicate(Size, 0)).

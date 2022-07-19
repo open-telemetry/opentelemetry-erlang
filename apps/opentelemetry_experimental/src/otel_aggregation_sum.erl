@@ -1,8 +1,26 @@
+%%%------------------------------------------------------------------------
+%% Copyright 2022, OpenTelemetry Authors
+%% Licensed under the Apache License, Version 2.0 (the "License");
+%% you may not use this file except in compliance with the License.
+%% You may obtain a copy of the License at
+%%
+%% http://www.apache.org/licenses/LICENSE-2.0
+%%
+%% Unless required by applicable law or agreed to in writing, software
+%% distributed under the License is distributed on an "AS IS" BASIS,
+%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+%% See the License for the specific language governing permissions and
+%% limitations under the License.
+%%
+%% @doc
+%% @end
+%%%-------------------------------------------------------------------------
 -module(otel_aggregation_sum).
 
 -export([init/2,
          aggregate/3,
-         collect/5]).
+         checkpoint/5,
+         collect/4]).
 
 -include("otel_metrics.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
@@ -32,15 +50,40 @@ aggregate(Tab, Key, Value) ->
             true
     end.
 
-collect(Tab, ?AGGREGATION_TEMPORALITY_DELTA, CollectionStartNano, ActiveMetric=#sum_aggregation{key=Key}, Attributes) ->
-    _ = ets:update_element(Tab, Key, [{#sum_aggregation.start_time_unix_nano, CollectionStartNano},
-                                      {#sum_aggregation.value, 0}]),
-    datapoint(CollectionStartNano, ActiveMetric, Attributes);
-collect(_Tab, _AggregationTemporality, CollectionStartNano, ActiveMetric, Attributes) ->
-    datapoint(CollectionStartNano, ActiveMetric, Attributes).
+checkpoint(Tab, Name, ?AGGREGATION_TEMPORALITY_DELTA, ?VALUE_TYPE_INTEGER, CollectionStartNano) ->
+    MS = [{#sum_aggregation{key='$1',
+                            value='$2',
+                            _='_'},
+           [{'=:=', {element, 1, '$1'}, {const, Name}}],
+           [{#sum_aggregation{key='$1',
+                              start_time_unix_nano={const, CollectionStartNano},
+                              checkpoint='$2',
+                              value=0}}]}],
+    _ = ets:select_replace(Tab, MS),
+    ok;
+checkpoint(Tab, Name, ?AGGREGATION_TEMPORALITY_CUMULATIVE, ?VALUE_TYPE_INTEGER, _CollectionStartNano) ->
+    MS = [{#sum_aggregation{key='$1',
+                            start_time_unix_nano='$2',
+                            value='$3',
+                            _='_'},
+           [{'=:=', {element, 1, '$1'}, {const, Name}}],
+           [{#sum_aggregation{key='$1',
+                              start_time_unix_nano='$2',
+                              checkpoint='$3',
+                              value='$3'}}]}],
+    _ = ets:select_replace(Tab, MS),
+    ok.
 
-datapoint(CollectionStartNano, #sum_aggregation{start_time_unix_nano=StartTimeUnixNano,
-                                                value=Value}, Attributes) ->
+collect(Tab, Name, _, CollectionStartTime) ->
+    Select = [{'$1',
+               [{'==', Name, {element, 1, {element, 2, '$1'}}}],
+               ['$1']}],
+    AttributesAggregation = ets:select(Tab, Select),
+    [datapoint(CollectionStartTime, SumAgg) || SumAgg <- AttributesAggregation].
+
+datapoint(CollectionStartNano, #sum_aggregation{key={_, Attributes},
+                                                start_time_unix_nano=StartTimeUnixNano,
+                                                checkpoint=Value}) ->
     #datapoint{
        attributes=Attributes,
        start_time_unix_nano=StartTimeUnixNano,

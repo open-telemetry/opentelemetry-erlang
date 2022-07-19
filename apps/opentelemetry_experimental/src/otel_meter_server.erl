@@ -185,11 +185,9 @@ create_tables() ->
     %% elements are {Instrument, [ViewAggregation]}
     ViewAggregationTab = ets:new(view_aggregation_tab, [set,
                                                         protected,
-                                                        {read_concurrency, true},
                                                         {keypos, 1}]),
     MetricsTab = ets:new(metrics_tab, [set,
                                        public,
-                                       {read_concurrency, true},
                                        {keypos, 2}]),
     {ViewAggregationTab, MetricsTab}.
 
