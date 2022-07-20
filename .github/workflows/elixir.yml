@@ -98,7 +98,7 @@ jobs:
         name: Deps
       - run: mix test --cover
         name: ExUnit
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v3
         if: ${{ always() }}
         with:
           file: apps/opentelemetry_api/coverage.xml
