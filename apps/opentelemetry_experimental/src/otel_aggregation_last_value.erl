@@ -41,7 +41,16 @@ aggregate(Tab, Key, Value) ->
             ets:insert(Tab, Metric#last_value_aggregation{value=Value})
     end.
 
-checkpoint(_Tab, _Name, _, _, _CollectionStartNano) ->
+checkpoint(Tab, Name, _, _, _CollectionStartNano) ->
+    MS = [{#last_value_aggregation{key='$1',
+                                   value='$3',
+                                   _='_'},
+           [{'=:=', {element, 1, '$1'}, {const, Name}}],
+           [{#last_value_aggregation{key='$1',
+                                     checkpoint='$3',
+                                     value=undefined}}]}],
+    _ = ets:select_replace(Tab, MS),
+
     ok.
 
 collect(Tab, Name, _, CollectionStartTime) ->
