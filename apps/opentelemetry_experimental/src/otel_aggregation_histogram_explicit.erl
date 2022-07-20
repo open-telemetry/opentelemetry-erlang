@@ -78,7 +78,32 @@ aggregate(MeasurementValue,
                                                sum=Sum+MeasurementValue}.
 
 %% TODO: handle delta temporary checkpoints
-checkpoint(_Tab, _Name, _, _, _CollectionStartNano) ->
+checkpoint(Tab, Name, _, _, _CollectionStartNano) ->
+    MS = [{#explicit_histogram_aggregation{key='$1',
+                                           start_time_unix_nano='$2',
+                                           boundaries='$3',
+                                           record_min_max='$4',
+                                           checkpoint='_',
+                                           bucket_counts='$5',
+                                           min='$6',
+                                           max='$7',
+                                           sum='$8'
+                                          },
+           [{'=:=', {element, 1, '$1'}, {const, Name}}],
+           [{#explicit_histogram_aggregation{key='$1',
+                                             start_time_unix_nano='$2',
+                                             boundaries='$3',
+                                             record_min_max='$4',
+                                             checkpoint={#explicit_histogram_checkpoint{bucket_counts='$5',
+                                                                                        min='$6',
+                                                                                        max='$7',
+                                                                                        sum='$8'}},
+                                             bucket_counts='$5',
+                                             min='$6',
+                                             max='$7',
+                                             sum='$8'}}]}],
+    _ = ets:select_replace(Tab, MS),
+
     ok.
 
 collect(Tab, Name, _, CollectionStartTime) ->
@@ -94,11 +119,10 @@ datapoint(CollectionStartNano, #explicit_histogram_aggregation{
                                   key={_, Attributes},
                                   start_time_unix_nano=StartTimeUnixNano,
                                   boundaries=Boundaries,
-                                  bucket_counts=Buckets,
-                                  record_min_max=_RecordMinMax,
-                                  min=Min,
-                                  max=Max,
-                                  sum=Sum
+                                  checkpoint=#explicit_histogram_checkpoint{bucket_counts=Buckets,
+                                                                            min=Min,
+                                                                            max=Max,
+                                                                            sum=Sum}
                                  }) ->
     #histogram_datapoint{
        attributes=Attributes,

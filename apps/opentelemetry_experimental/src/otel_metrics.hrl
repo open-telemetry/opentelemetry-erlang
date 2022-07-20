@@ -38,16 +38,26 @@
          value :: number() | undefined
         }).
 
+
+-record(explicit_histogram_checkpoint,
+        {
+         bucket_counts :: tuple(),
+         min :: number() | neg_infinity | infinity,
+         max :: number() | neg_infinity | infinity,
+         sum :: number()
+        }).
+
 -record(explicit_histogram_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
          key :: {term(),  opentelemetry:attributes_map()},
          start_time_unix_nano :: integer(),
          %% instrument_temporality :: otel_aggregation:temporality(),
-         boundaries :: list(),
          %% default: {0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0}
-         bucket_counts :: tuple(),
+         boundaries :: list(),
          record_min_max :: boolean(),
+         checkpoint :: #explicit_histogram_checkpoint{} | undefined,
+         bucket_counts :: tuple(),
          min :: number() | neg_infinity | infinity,
          max :: number() | neg_infinity | infinity,
          sum :: number()
