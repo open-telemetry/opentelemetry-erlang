@@ -8,7 +8,7 @@
 
 -record(view,
         {name             :: atom() | unicode:unicode_binary() | undefined,
-         selection        :: #selection{},
+         selection        :: #selection{} | undefined,
          %% instrument_kind  :: otel_instrument:kind(),
          %% instrument_name  :: otel_instrument:name(),
          %% meter_name       :: otel_meter:name(),

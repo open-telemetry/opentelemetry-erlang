@@ -57,7 +57,7 @@
          %% default: {0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0}
          boundaries :: list(),
          record_min_max :: boolean(),
-         checkpoint :: #explicit_histogram_checkpoint{} | undefined,
+         checkpoint :: #explicit_histogram_checkpoint{} | undefined | '_',
          bucket_counts :: tuple(),
          min :: number() | neg_infinity | infinity,
          max :: number() | neg_infinity | infinity,
@@ -93,8 +93,8 @@
          time_unix_nano :: integer(),
          count :: integer(),
          sum :: float(),
-         bucket_counts :: integer(),
-         explicit_bounds :: tuple(), %% tuple of floats
+         bucket_counts :: tuple(),
+         explicit_bounds :: list(), %% list of floats
          exemplars :: list(),
          flags :: integer(),
          min :: integer() | undefined,

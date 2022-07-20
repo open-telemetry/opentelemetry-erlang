@@ -50,6 +50,7 @@ aggregate(Tab, Key, Value) ->
             true
     end.
 
+-dialyzer({nowarn_function, checkpoint/5}).
 checkpoint(Tab, Name, ?AGGREGATION_TEMPORALITY_DELTA, ?VALUE_TYPE_INTEGER, CollectionStartNano) ->
     MS = [{#sum_aggregation{key='$1',
                             value='$2',

@@ -41,6 +41,7 @@ aggregate(Tab, Key, Value) ->
             ets:insert(Tab, Metric#last_value_aggregation{value=Value})
     end.
 
+-dialyzer({nowarn_function, checkpoint/5}).
 checkpoint(Tab, Name, _, _, _CollectionStartNano) ->
     MS = [{#last_value_aggregation{key='$1',
                                    value='$3',

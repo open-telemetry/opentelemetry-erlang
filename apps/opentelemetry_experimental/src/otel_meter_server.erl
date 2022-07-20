@@ -66,8 +66,8 @@
          config                      :: term(),
          view_aggregation_tab        :: ets:tid(),
          metrics_tab                 :: ets:tid(),
-         default_aggregation_mapping :: #{},
-         default_temporality_mapping :: #{}
+         default_aggregation_mapping :: map(),
+         default_temporality_mapping :: map()
         }).
 
 -type reader() :: #reader{}.
@@ -105,7 +105,7 @@ add_view(Provider, Criteria, Config) ->
 add_view(Provider, Name, Criteria, Config) ->
     gen_server:call(Provider, {add_view, Name, Criteria, Config}).
 
--spec record(atom(), otel_instrument:t(), number(), otel_attributes:t()) -> ok.
+-spec record(atom(), otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
 record(Provider, Instrument, Number, Attributes) ->
     gen_server:cast(Provider, {record,  #measurement{instrument=Instrument,
                                                      value=Number,
@@ -262,7 +262,7 @@ per_reader_aggregations(Reader, Instrument, ViewAggregations) ->
 view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, View,
                             Reader=#reader{default_temporality_mapping=ReaderTemporalityMapping}) ->
     AggregationModule = aggregation_module(Instrument, View, Reader),
-    Temporality = maps:get(Kind, ReaderTemporalityMapping),
+    Temporality = maps:get(Kind, ReaderTemporalityMapping, ?AGGREGATION_TEMPORALITY_UNSPECIFIED),
 
     ViewAggregation#view_aggregation{
       aggregation_module=AggregationModule,

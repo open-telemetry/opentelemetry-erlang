@@ -50,7 +50,7 @@
          end)()).
 
 all() ->
-    [provider_test, view_creation_test, counter_add, add_readers,
+    [default_view, provider_test, view_creation_test, counter_add, add_readers,
      explicit_histograms, reader_aggregations, cumulative_counter].
 
 init_per_suite(Config) ->
@@ -65,6 +65,41 @@ init_per_testcase(_, Config) ->
 
 end_per_testcase(_, _Config) ->
     ok = application:stop(opentelemetry_experimental),
+    ok.
+
+default_view(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = z_counter,
+    CounterDesc = <<"counter description">>,
+    CounterUnit = kb,
+    ValueType = integer,
+
+    Counter = otel_meter:counter(Meter, CounterName, ValueType,
+                                 #{description => CounterDesc,
+                                   unit => CounterUnit}),
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = CounterName,
+                             description = CounterDesc,
+                             kind = counter,
+                             value_type = ValueType,
+                             unit = CounterUnit}, Counter),
+
+    ?assertEqual(ok, otel_meter_server:add_metric_reader(?DEFAULT_METER_PROVIDER, otel_metric_reader, #{exporter => {otel_metric_exporter_pid, self()}})),
+
+    ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
+
+    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+
+    ?assertReceive(z_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
+
     ok.
 
 provider_test(_Config) ->

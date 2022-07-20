@@ -77,6 +77,7 @@ aggregate(MeasurementValue,
     Aggregation#explicit_histogram_aggregation{bucket_counts=Buckets1,
                                                sum=Sum+MeasurementValue}.
 
+-dialyzer({nowarn_function, checkpoint/5}).
 %% TODO: handle delta temporary checkpoints
 checkpoint(Tab, Name, _, _, _CollectionStartNano) ->
     MS = [{#explicit_histogram_aggregation{key='$1',
