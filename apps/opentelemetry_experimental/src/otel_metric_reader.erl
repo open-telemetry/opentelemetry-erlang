@@ -68,10 +68,15 @@ init(Config=#{view_aggregation_tab := ViewAggregationTab,
     Temporality = maps:get(temporality_mapping, Config, #{}),
 
     %% if a periodic reader is needed then this value is set
-    %% ExporterIntervalMs = maps:get(export_interval_ms, Config, undefined), %% somehow do default of 10000 millis
-    ExporterIntervalMs = 10000,
+    %% somehow need to do a default of 10000 millis, but only if this is a periodic reader
+    ExporterIntervalMs = maps:get(export_interval_ms, Config, undefined),
 
-    TRef = erlang:send_after(ExporterIntervalMs, self(), collect),
+    TRef = case ExporterIntervalMs of
+               undefined ->
+                   undefined;
+               _ ->
+                   erlang:send_after(ExporterIntervalMs, self(), collect)
+           end,
 
     {ok, #state{exporter=Exporter,
                 default_aggregation_mapping=DefaultAggregationMapping,
@@ -95,6 +100,17 @@ handle_info(collect, State=#state{exporter=undefined,
     erlang:cancel_timer(TRef, []), %% {async, true} ?
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
     {noreply, State#state{tref=NewTRef}};
+handle_info(collect, State=#state{exporter={ExporterModule, Config},
+                                  export_interval_ms=undefined,
+                                  tref=undefined,
+                                  view_aggregation_tab=ViewAggregationTable,
+                                  metrics_tab=MetricsTable}) ->
+    %% collect from view aggregations table and then export
+    Metrics = collect_(ViewAggregationTable, MetricsTable),
+
+    ExporterModule:export(Metrics, Config),
+
+    {noreply, State};
 handle_info(collect, State=#state{exporter={ExporterModule, Config},
                                   export_interval_ms=ExporterIntervalMs,
                                   tref=TRef,
