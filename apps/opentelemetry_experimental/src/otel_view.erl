@@ -70,33 +70,41 @@ match_instrument_to_views(Instrument=#instrument{name=Name,
                                                  description=Description}, Views) ->
     IsMonotonic = otel_instrument:is_monotonic(Instrument),
     Temporality = otel_aggregation:instrument_temporality(Instrument),
-    Aggs =
-        lists:filtermap(fun(View=#view{name=ViewName,
-                                       description=ViewDescription,
-                                       aggregation_options=AggregationOptions,
-                                       selection=#selection{instrument_name=InstrumentName}})
-                              when Name =:= InstrumentName ->
-                                {true, {View, #view_aggregation{name=case ViewName of
-                                                                         undefined ->
-                                                                             InstrumentName;
-                                                                         _ ->
-                                                                             ViewName
-                                                                     end,
-                                                                instrument=Instrument,
-                                                                temporality=Temporality,
-                                                                is_monotonic=IsMonotonic,
-                                                                aggregation_options=AggregationOptions,
-                                                                description=case ViewDescription of
-                                                                                undefined ->
-                                                                                    Description;
-                                                                                _ ->
-                                                                                    ViewDescription
-                                                                            end
-                                                               }}};
-                           (_) ->
-                                false
-                        end, Views),
-    lists:flatten(Aggs).
+    case lists:filtermap(fun(View=#view{name=ViewName,
+                                        description=ViewDescription,
+                                        aggregation_options=AggregationOptions,
+                                        selection=#selection{instrument_name=InstrumentName}})
+                               when Name =:= InstrumentName ->
+                                 {true, {View, #view_aggregation{name=case ViewName of
+                                                                          undefined ->
+                                                                              InstrumentName;
+                                                                          _ ->
+                                                                              ViewName
+                                                                      end,
+                                                                 instrument=Instrument,
+                                                                 temporality=Temporality,
+                                                                 is_monotonic=IsMonotonic,
+                                                                 aggregation_options=AggregationOptions,
+                                                                 description=case ViewDescription of
+                                                                                 undefined ->
+                                                                                     Description;
+                                                                                 _ ->
+                                                                                     ViewDescription
+                                                                             end
+                                                                }}};
+                            (_) ->
+                                 false
+                         end, Views) of
+        [] ->
+            [{#view{}, #view_aggregation{name=Name,
+                                         instrument=Instrument,
+                                         temporality=Temporality,
+                                         is_monotonic=IsMonotonic,
+                                         aggregation_options=[],
+                                         description=Description}}];
+        Aggs ->
+            Aggs
+    end.
 
 %%
 
