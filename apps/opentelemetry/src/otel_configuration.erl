@@ -454,6 +454,8 @@ transform(propagator, Value) when Value =:= "b3" ;
 %% TODO: support jager propagator format
 %% transform(propagator, "jaeger") ->
 %%     jaeger;
+transform(propagator, Propagator) when is_atom(Propagator) ->
+    Propagator;
 transform(propagator, Propagator) ->
     ?LOG_WARNING("Ignoring unknown propagator ~ts in OS environment variable $OTEL_PROPAGATORS",
                  [Propagator]),

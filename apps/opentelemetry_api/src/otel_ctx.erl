@@ -121,10 +121,13 @@ get_current() ->
 
 -spec attach(map()) -> token().
 attach(Ctx) ->
+    update_logger_process_metadata(Ctx),
     erlang:put(?CURRENT_CTX, Ctx).
 
 -spec detach(token()) -> ok.
 detach(Token) ->
+    %% at this time `Token' is a context
+    update_logger_process_metadata(Token),
     erlang:put(?CURRENT_CTX, Token).
 
 
@@ -142,3 +145,8 @@ text_map_injector(Key, ToText) ->
 
 text_map_injector_fun(TextMap, Key, ToText) ->
     TextMap ++ ToText(?MODULE:get_value(Key, undefined)).
+
+%%
+
+update_logger_process_metadata(Ctx) ->
+    otel_tracer:update_logger_process_metadata(Ctx).

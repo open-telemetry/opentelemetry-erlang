@@ -64,7 +64,7 @@
           %% trace flags lowest bit is 1 but simply not propagated.
           is_recording            :: boolean() | undefined,
 
-          instrumentation_library :: opentelemetry:instrumentation_library() | undefined
+          instrumentation_scope :: opentelemetry:instrumentation_scope() | undefined
          }).
 
 -record(span_limits, {

@@ -19,6 +19,7 @@ all() ->
      disable_auto_creation,
      old_disable_auto_creation,
      application_tracers,
+     logger_metadata,
      %% force flush is a test of flushing the batch processor's table
      force_flush,
 
@@ -28,7 +29,7 @@ all() ->
 
 all_cases() ->
     [with_span, macros, child_spans,
-     update_span_data, tracer_instrumentation_library, tracer_previous_ctx, stop_temporary_app,
+     update_span_data, tracer_instrumentation_scope, tracer_previous_ctx, stop_temporary_app,
      reset_after, attach_ctx, default_sampler, non_recording_ets_table,
      root_span_sampling_always_on, root_span_sampling_always_off,
      record_but_not_sample, record_exception_works, record_exception_with_message_works,
@@ -67,6 +68,9 @@ init_per_testcase(application_tracers, Config) ->
     application:set_env(opentelemetry, create_application_tracers, true),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
+init_per_testcase(logger_metadata, Config) ->
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
 init_per_testcase(propagator_configuration, Config) ->
     os:unsetenv("OTEL_PROPAGATORS"),
     application:set_env(opentelemetry, text_map_propagators, [b3multi, baggage]),
@@ -103,7 +107,7 @@ init_per_testcase(too_many_attributes, Config) ->
     Tid = ets:new(exported_spans, [public, bag]),
     otel_batch_processor:set_exporter(otel_exporter_tab, Tid),
     [{tid, Tid} | Config];
-init_per_testcase(tracer_instrumentation_library, Config) ->
+init_per_testcase(tracer_instrumentation_scope, Config) ->
     application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     %% adds an exporter for a new table
@@ -139,36 +143,105 @@ end_per_testcase(_, _Config) ->
     ok.
 
 disable_auto_creation(_Config) ->
-    {_, #tracer{instrumentation_library=Library}} = opentelemetry:get_tracer(
+    {_, #tracer{instrumentation_scope=Library}} = opentelemetry:get_tracer(
                                                       opentelemetry:get_application(kernel)),
     ?assertEqual(undefined, Library),
     ok.
 
 old_disable_auto_creation(_Config) ->
-    {_, #tracer{instrumentation_library=Library}} = opentelemetry:get_tracer(
+    {_, #tracer{instrumentation_scope=Library}} = opentelemetry:get_tracer(
                                                       opentelemetry:get_application(kernel)),
     ?assertEqual(undefined, Library),
     ok.
 
 application_tracers(_Config) ->
-    {_, #tracer{instrumentation_library=Library}} = opentelemetry:get_tracer(
+    {_, #tracer{instrumentation_scope=Library}} = opentelemetry:get_tracer(
                                                       opentelemetry:get_application(kernel)),
-    ?assertEqual(<<"kernel">>, Library#instrumentation_library.name),
+    ?assertEqual(<<"kernel">>, Library#instrumentation_scope.name),
 
     %% tracers are unique by name/version/schema_url
     NewKernelTracer = opentelemetry:get_tracer(kernel, <<"fake-version">>, undefined),
-    {_, #tracer{instrumentation_library=NewLibrary}} = NewKernelTracer,
-    ?assertEqual(<<"kernel">>, NewLibrary#instrumentation_library.name),
-    ?assertEqual(<<"fake-version">>, NewLibrary#instrumentation_library.version),
-    ?assertEqual(undefined, NewLibrary#instrumentation_library.schema_url),
+    {_, #tracer{instrumentation_scope=NewLibrary}} = NewKernelTracer,
+    ?assertEqual(<<"kernel">>, NewLibrary#instrumentation_scope.name),
+    ?assertEqual(<<"fake-version">>, NewLibrary#instrumentation_scope.version),
+    ?assertEqual(undefined, NewLibrary#instrumentation_scope.schema_url),
 
     Tracer = opentelemetry:get_tracer(kernel, <<"fake-version">>, <<"http://schema.org/myschema">>),
-    {_, #tracer{instrumentation_library=NewLibrary1}} = Tracer,
-    ?assertEqual(<<"kernel">>, NewLibrary1#instrumentation_library.name),
-    ?assertEqual(<<"fake-version">>, NewLibrary1#instrumentation_library.version),
-    ?assertEqual(<<"http://schema.org/myschema">>, NewLibrary1#instrumentation_library.schema_url),
+    {_, #tracer{instrumentation_scope=NewLibrary1}} = Tracer,
+    ?assertEqual(<<"kernel">>, NewLibrary1#instrumentation_scope.name),
+    ?assertEqual(<<"fake-version">>, NewLibrary1#instrumentation_scope.version),
+    ?assertEqual(<<"http://schema.org/myschema">>, NewLibrary1#instrumentation_scope.schema_url),
 
     ok.
+
+logger_metadata(_Config) ->
+    Tracer = opentelemetry:get_tracer(),
+
+    ?assert(empty_metadata()),
+
+    SpanCtx1 = ?start_span(<<"span-1">>),
+    otel_tracer:set_current_span(SpanCtx1),
+    #{otel_trace_id := HexTraceId1,
+      otel_span_id := HexSpanId1} = otel_span:hex_span_ctx(SpanCtx1),
+    ?assertMatch(#{otel_trace_id := HexTraceId1,
+                   otel_span_id := HexSpanId1}, logger:get_process_metadata()),
+
+    Result = some_result,
+    ?assertMatch(Result, otel_tracer:with_span(Tracer, <<"with-span-2">>, #{},
+                                               fun(SpanCtx2) ->
+                                                       ?assertNotEqual(SpanCtx1, SpanCtx2),
+                                                       ?assertEqual(SpanCtx2, ?current_span_ctx),
+
+                                                       #{otel_trace_id := HexTraceId2,
+                                                         otel_span_id := HexSpanId2}  = otel_span:hex_span_ctx(SpanCtx2),
+
+                                                       ?assertMatch(#{otel_trace_id := HexTraceId2,
+                                                                      otel_span_id := HexSpanId2},
+                                                                    logger:get_process_metadata()),
+
+                                                       Result
+                                               end)),
+
+    ?assertMatch(#{otel_trace_id := HexTraceId1,
+                   otel_span_id := HexSpanId1}, logger:get_process_metadata()),
+
+    ?assertMatch(SpanCtx1, ?current_span_ctx),
+
+    otel_span:end_span(SpanCtx1),
+
+    otel_tracer:set_current_span(undefined),
+
+    ?assert(empty_metadata()),
+
+    ?assert(otel_tracer:with_span(Tracer, <<"with-span-3">>, #{},
+                                  fun(SpanCtx3) ->
+                                          ?assertNotEqual(SpanCtx1, SpanCtx3),
+                                          ?assertEqual(SpanCtx3, ?current_span_ctx),
+
+                                          #{otel_trace_id := HexTraceId3,
+                                            otel_span_id := HexSpanId3} = otel_span:hex_span_ctx(SpanCtx3),
+
+                                          ?assertMatch(#{otel_trace_id := HexTraceId3,
+                                                         otel_span_id := HexSpanId3},
+                                                       logger:get_process_metadata()),
+
+                                          true
+                                  end)),
+
+
+    ?assert(empty_metadata()),
+
+    ok.
+
+%% logger metadata will either be undefined, a map without the otel_span_ctx key or
+%% with the value of the key being undefined
+empty_metadata() ->
+    case logger:get_process_metadata() of
+        undefined ->
+            true;
+        M ->
+            maps:get(otel_span_ctx, M, #{}) =:= #{}
+    end.
 
 propagator_configuration(_Config) ->
     ?assertEqual({otel_propagator_text_map_composite,
@@ -434,15 +507,15 @@ update_span_data(Config) ->
     ok.
 
 
-tracer_instrumentation_library(Config) ->
+tracer_instrumentation_scope(Config) ->
     Tid = ?config(tid, Config),
 
     TracerName = tracer1,
     TracerVsn = <<"1.0.0">>,
-    Tracer = {_, #tracer{instrumentation_library=IL}} =
+    Tracer = {_, #tracer{instrumentation_scope=IL}} =
         opentelemetry:get_tracer(TracerName, TracerVsn, "http://schema.org/myschema"),
 
-    ?assertMatch({instrumentation_library,<<"tracer1">>,<<"1.0.0">>,<<"http://schema.org/myschema">>},
+    ?assertMatch({instrumentation_scope,<<"tracer1">>,<<"1.0.0">>,<<"http://schema.org/myschema">>},
                  IL),
 
     SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{}),
@@ -451,8 +524,8 @@ tracer_instrumentation_library(Config) ->
 
     [Span1] = assert_exported(Tid, SpanCtx1),
 
-    ?assertMatch({instrumentation_library,<<"tracer1">>,<<"1.0.0">>,<<"http://schema.org/myschema">>},
-                 Span1#span.instrumentation_library).
+    ?assertMatch({instrumentation_scope,<<"tracer1">>,<<"1.0.0">>,<<"http://schema.org/myschema">>},
+                 Span1#span.instrumentation_scope).
 
 %% check that ending a span results in the tracer setting the previous tracer context
 %% as the current active and not use the parent span ctx of the span being ended --

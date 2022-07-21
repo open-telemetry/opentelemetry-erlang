@@ -1,5 +1,5 @@
 -record(meter, {module                  :: module(),
-                instrumentation_library :: otel_tracer_server:instrumentation_library() | undefined,
+                instrumentation_scope :: otel_tracer_server:instrumentation_scope() | undefined,
                 telemetry_library       :: otel_tracer_server:telemetry_library() | undefined,
                 resource                :: otel_resource:t() | undefined}).
 -type meter() :: #meter{}.

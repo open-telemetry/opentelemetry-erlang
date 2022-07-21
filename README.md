@@ -87,7 +87,7 @@ default implementation of the API that must be optional.
 When instrumenting a project your application should only depend on the
 [OpenTelemetry API](https://hex.pm/packages/opentelemetry_api) application,
 found in directory `apps/opentelemetry_api` of this repo which is published as
-the hex package [opentelemetry_api](https://hex.pm/packages/opentelemetry_api). 
+the hex package [opentelemetry_api](https://hex.pm/packages/opentelemetry_api).
 
 The SDK implementation, found under `apps/opentelemetry` and hex package
 [opentelemetry](https://hex.pm/packages/opentelemetry), should be included in an
@@ -120,6 +120,9 @@ def project do
   ]
 end
 ```
+
+Note that you also need  to add `opentelemetry_exporter` before your other `opentelemetry` dependencies in `mix.exs`
+so that it starts before `opentelemetry` does.
 
 In the above example `opentelemetry_exporter` is first to ensure all of its
 dependencies are booted before `opentelemetry` attempts to start the
