@@ -114,10 +114,16 @@ init([Args]) ->
     _Tid2 = new_export_table(?TABLE_2),
     persistent_term:put(?CURRENT_TABLES_KEY, ?TABLE_1),
 
-    enable(),
+    %% only enable export table if there is going to be an exporter
+    case maps:get(exporter, Args, none) of
+        ExporterConfig when ExporterConfig =:= none ; ExporterConfig =:= undefined ->
+            disable();
+        ExporterConfig ->
+            enable()
+    end,
 
     {ok, idle, #data{exporter=undefined,
-                     exporter_config=maps:get(exporter, Args, none),
+                     exporter_config=ExporterConfig,
                      resource = Resource,
                      handed_off_table=undefined,
                      max_queue_size=case SizeLimit of
@@ -134,13 +140,13 @@ callback_mode() ->
 idle(enter, _OldState, Data=#data{exporter=undefined,
                                   exporter_config=ExporterConfig,
                                   scheduled_delay_ms=SendInterval}) ->
-    Exporter = otel_exporter:init(ExporterConfig),
+    Exporter = init_exporter(ExporterConfig),
     {keep_state, Data#data{exporter=Exporter}, [{{timeout, export_spans}, SendInterval, export_spans}]};
 idle(enter, _OldState, #data{scheduled_delay_ms=SendInterval}) ->
     {keep_state_and_data, [{{timeout, export_spans}, SendInterval, export_spans}]};
 idle(_, export_spans, Data=#data{exporter=undefined,
                                  exporter_config=ExporterConfig}) ->
-    Exporter = otel_exporter:init(ExporterConfig),
+    Exporter = init_exporter(ExporterConfig),
     {next_state, exporting, Data#data{exporter=Exporter}};
 idle(_, export_spans, Data) ->
     {next_state, exporting, Data};
@@ -154,6 +160,13 @@ exporting({timeout, export_spans}, export_spans, _) ->
     {keep_state_and_data, [postpone]};
 exporting(enter, _OldState, #data{exporter=undefined}) ->
     %% exporter still undefined, go back to idle
+    %% first empty the table and disable the processor so no more spans are added
+    %% we wait until the attempt to export to disable so we don't lose spans
+    %% on startup but disable once it is clear an exporter isn't being set
+    clear_table_and_disable(),
+
+    %% use state timeout to transition to `idle' since we can't set a
+    %% new state in an `enter' handler
     {keep_state_and_data, [{state_timeout, 0, no_exporter}]};
 exporting(enter, _OldState, Data=#data{exporting_timeout_ms=ExportingTimeout,
                                        scheduled_delay_ms=SendInterval}) ->
@@ -214,12 +227,16 @@ handle_event_(_State, {timeout, check_table_size}, check_table_size, #data{max_q
     end;
 handle_event_(_, {call, From}, {set_exporter, ExporterConfig}, Data=#data{exporter=OldExporter}) ->
     otel_exporter:shutdown(OldExporter),
+
+    %% enable immediately or else spans will be dropped for a period even after this call returns
+    enable(),
+
     {keep_state, Data#data{exporter=undefined,
                            exporter_config=ExporterConfig}, [{reply, From, ok},
                                                              {next_event, internal, init_exporter}]};
 handle_event_(_, internal, init_exporter, Data=#data{exporter=undefined,
                                                      exporter_config=ExporterConfig}) ->
-    Exporter = otel_exporter:init(ExporterConfig),
+    Exporter = init_exporter(ExporterConfig),
     {keep_state, Data#data{exporter=Exporter}};
 handle_event_(_, _, _, _) ->
     keep_state_and_data.
@@ -229,6 +246,23 @@ terminate(_, _, _Data) ->
     ok.
 
 %%
+
+init_exporter(ExporterConfig) ->
+    case otel_exporter:init(ExporterConfig) of
+        Exporter when Exporter =/= undefined andalso Exporter =/= none ->
+            enable(),
+            Exporter;
+        _ ->
+            %% exporter is undefined/none
+            %% disable the insertion of new spans and delete the current table
+            clear_table_and_disable(),
+            undefined
+    end.
+
+clear_table_and_disable() ->
+    disable(),
+    ets:delete(?CURRENT_TABLE),
+    new_export_table(?CURRENT_TABLE).
 
 enable()->
     persistent_term:put(?ENABLED_KEY, true).
