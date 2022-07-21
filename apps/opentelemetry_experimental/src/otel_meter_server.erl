@@ -161,7 +161,6 @@ handle_cast({record, Measurement}, State=#state{readers=Readers,
     {noreply, State}.
 
 handle_info({'DOWN', Ref, process, ReaderPid, _Reason}, State=#state{readers=Readers}) ->
-    %% TODO: update all viewaggregations to reference the new pid of the reader
     case lists:search(fun(#reader{pid=Pid,
                                   monitor_ref=MonRef}) ->
                               Pid =:= ReaderPid andalso MonRef =:= Ref
