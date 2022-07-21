@@ -70,6 +70,12 @@
 
 -define(ENABLED_KEY, {?MODULE, enabled_key}).
 
+-ifdef(TEST).
+-export([current_tab_to_list/0]).
+current_tab_to_list() ->
+    ets:tab2list(?CURRENT_TABLE).
+-endif.
+
 start_link(Opts) ->
     gen_statem:start_link({local, ?MODULE}, ?MODULE, [Opts], []).
 

@@ -38,7 +38,7 @@ all_cases() ->
 
 groups() ->
     [{otel_simple_processor, [], all_cases()},
-     {otel_batch_processor, [], all_cases()}].
+     {otel_batch_processor, [], [no_exporter | all_cases()]}].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
@@ -89,6 +89,10 @@ init_per_testcase(force_flush, Config) ->
     Tid = ets:new(exported_spans, [public, bag]),
     otel_batch_processor:set_exporter(otel_exporter_tab, Tid),
     [{tid, Tid} | Config];
+init_per_testcase(no_exporter, Config) ->
+    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1000000}}]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
 init_per_testcase(dropped_attributes, Config) ->
     application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
     application:set_env(opentelemetry, attribute_value_length_limit, 2),
@@ -883,6 +887,26 @@ too_many_attributes(Config) ->
 
     %% order isn't guaranteed so just verify the number dropped is right
     ?assertEqual(2, otel_attributes:dropped(Span2#span.attributes)),
+
+    ok.
+
+no_exporter(_Config) ->
+    SpanCtx1 = ?start_span(<<"span-1">>),
+
+    %% set_exporter will enable the export table even if the exporter ends
+    %% up being undefined to ensure no spans are lost. so briefly spans
+    %% will be captured
+    otel_batch_processor:set_exporter(none),
+    otel_span:end_span(SpanCtx1),
+
+    %% once the exporter is "initialized" the table is cleared and disabled
+    %% future spans are not added
+    ?UNTIL([] =:= otel_batch_processor:current_tab_to_list()),
+
+    SpanCtx2 = ?start_span(<<"span-2">>),
+    otel_span:end_span(SpanCtx2),
+
+    ?assertEqual([], otel_batch_processor:current_tab_to_list()),
 
     ok.
 
