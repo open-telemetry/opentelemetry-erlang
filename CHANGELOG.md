@@ -33,7 +33,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [Allow custom text propagator to be configured via application env](https://github.com/open-telemetry/opentelemetry-erlang/pull/408)
+- [Allow custom text propagator to be configured via application
+  env](https://github.com/open-telemetry/opentelemetry-erlang/pull/408)
+- [No longer grow export table in batch processor if no export table is
+  configured](https://github.com/open-telemetry/opentelemetry-erlang/pull/413)
 
 ### [Exporter]
 
