@@ -22,15 +22,11 @@ startup(_Config) ->
         os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=1.1.1"),
 
         {ok, _} = application:ensure_all_started(opentelemetry),
-        {_, Tracer} = opentelemetry:get_tracer(),
         Resource = otel_tracer_provider:resource(),
         _ = application:stop(opentelemetry),
 
         ?assertMatch(#{<<"service.name">> := <<"cttest">>,
                        <<"service.version">> := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Resource))),
-
-       ?assertMatch(#{<<"service.name">> := <<"cttest">>,
-                      <<"service.version">> := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Tracer#tracer.resource))),
         ok
     after
         os:unsetenv("OTEL_RESOURCE_ATTRIBUTES"),
@@ -44,15 +40,11 @@ startup_env_service_name(_Config) ->
         os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=1.1.1"),
 
         {ok, _} = application:ensure_all_started(opentelemetry),
-        {_, Tracer} = opentelemetry:get_tracer(),
         Resource = otel_tracer_provider:resource(),
         _ = application:stop(opentelemetry),
 
         ?assertMatch(#{<<"service.name">> := <<"env-service-name">>,
                        <<"service.version">> := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Resource))),
-
-        ?assertMatch(#{<<"service.name">> := <<"env-service-name">>,
-                       <<"service.version">> := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Tracer#tracer.resource))),
         ok
     after
         os:unsetenv("OTEL_SERVICE_NAME"),

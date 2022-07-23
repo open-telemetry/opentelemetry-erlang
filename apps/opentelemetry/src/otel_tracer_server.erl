@@ -80,7 +80,6 @@ init(#{id_generator := IdGeneratorModule,
                      on_start_processors=on_start(Processors),
                      on_end_processors=on_end(Processors),
                      id_generator=IdGeneratorModule,
-                     resource=Resource,
                      telemetry_library=TelemetryLibrary},
     opentelemetry:set_default_tracer({otel_tracer_default, Tracer}),
 
