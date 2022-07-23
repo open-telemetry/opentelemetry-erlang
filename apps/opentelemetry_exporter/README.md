@@ -122,6 +122,17 @@ config :opentelemetry, :processors,
   }
 ```
 
+To explicitly disable exporting spans, the `traces_exporter` can be set to `none` in the
+`opentelemetry` config:
+
+```erlang
+{opentelemetry, [{traces_exporter, none}]}
+```
+
+```elixir
+config :opentelemetry, traces_exporter: :none
+```
+
 #### The configuration map
 
 The second element of the configuration tuple is a configuration map. It can contain the following keys:
