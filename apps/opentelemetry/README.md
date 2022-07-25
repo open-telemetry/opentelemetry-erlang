@@ -41,8 +41,8 @@ config :opentelemetry_exporter,
   otlp_endpoint: "http://localhost:4318"
 ```
 
-To disable opentelemetry, the `traces_exporter` can be set to the atom `none`.
-This will drop spans as they are collected to ensure memory does not overflow.
+If your exporting pipeline is not ready, you may disable trace exporting to prevent memory overflows.
+This can be done by setting `traces_exporter`'s value to the atom `none`.
 
 ```erlang
 [
