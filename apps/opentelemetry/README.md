@@ -19,7 +19,7 @@ span processor which then exports through the [OpenTelemetry
 Protocol](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/protocol/otlp.md)
 over HTTP to `http://localhost:4318`, encoding the Spans with protobufs.
 
-``` erlang
+```erlang
 [
  {opentelemetry,
   [{span_processor, batch},
@@ -31,7 +31,7 @@ over HTTP to `http://localhost:4318`, encoding the Spans with protobufs.
 ].
 ```
 
-``` elixir
+```elixir
 config :opentelemetry, 
   span_processor: :batch,
   traces_exporter: :otlp
@@ -39,6 +39,20 @@ config :opentelemetry,
 config :opentelemetry_exporter,
   otlp_protocol: :http_protobuf,
   otlp_endpoint: "http://localhost:4318"
+```
+
+If your exporting pipeline is not ready, you may disable trace exporting to prevent memory overflows.
+This can be done by setting `traces_exporter`'s value to the atom `none`.
+
+```erlang
+[
+ {opentelemetry,
+  [{traces_exporter, none}]}
+].
+```
+
+```elixir
+config :opentelemetry, traces_exporter: :none
 ```
 
 The following sections detail the available SDK options and how to configure
@@ -77,7 +91,7 @@ Sampling is a mechanism to control the number of traces collected and sent to th
 
 To create a custom sampler, implement a module with behaviour `otel_sampler`, and then install your custom sampler when configuring the `opentelemetry` application
 
-``` elixir
+```elixir
 defmodule MySampler do
   require OpenTelemetry.Tracer, as: Tracer
   @behaviour :otel_sampler
@@ -114,7 +128,7 @@ defmodule MySampler do
 end
 ```
 
-``` elixir
+```elixir
 config :opentelemetry,
   sampler: {:parent_based, %{root: {MySampler, %{my_config_arg: 1}}}},
   span_processor: :batch,
