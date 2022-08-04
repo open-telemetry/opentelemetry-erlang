@@ -22,6 +22,7 @@
 -module(otel_meter_provider).
 
 -export([get_meter/3,
+         get_meter/4,
          resource/0,
          resource/1,
          force_flush/0,
