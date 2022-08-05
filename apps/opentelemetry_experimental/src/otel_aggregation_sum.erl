@@ -53,8 +53,9 @@ aggregate(Tab, Key, Value) ->
 -dialyzer({nowarn_function, checkpoint/5}).
 checkpoint(Tab, Name, ?AGGREGATION_TEMPORALITY_DELTA, ?VALUE_TYPE_INTEGER, CollectionStartNano) ->
     MS = [{#sum_aggregation{key='$1',
-                            value='$2',
-                            _='_'},
+                            start_time_unix_nano='_',
+                            checkpoint='_',
+                            value='$2'},
            [{'=:=', {element, 1, '$1'}, {const, Name}}],
            [{#sum_aggregation{key='$1',
                               start_time_unix_nano={const, CollectionStartNano},
@@ -65,8 +66,8 @@ checkpoint(Tab, Name, ?AGGREGATION_TEMPORALITY_DELTA, ?VALUE_TYPE_INTEGER, Colle
 checkpoint(Tab, Name, ?AGGREGATION_TEMPORALITY_CUMULATIVE, ?VALUE_TYPE_INTEGER, _CollectionStartNano) ->
     MS = [{#sum_aggregation{key='$1',
                             start_time_unix_nano='$2',
-                            value='$3',
-                            _='_'},
+                            checkpoint='_',
+                            value='$3'},
            [{'=:=', {element, 1, '$1'}, {const, Name}}],
            [{#sum_aggregation{key='$1',
                               start_time_unix_nano='$2',

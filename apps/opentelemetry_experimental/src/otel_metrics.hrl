@@ -54,8 +54,8 @@
          key :: {term(),  opentelemetry:attributes_map()},
          start_time_unix_nano :: integer(),
          %% instrument_temporality :: otel_aggregation:temporality(),
-         %% default: {0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0}
-         boundaries :: list(),
+         %% default: [0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0]
+         boundaries :: [float()],
          record_min_max :: boolean(),
          checkpoint :: #explicit_histogram_checkpoint{} | undefined | '_',
          bucket_counts :: tuple(),
@@ -94,7 +94,7 @@
          count :: integer(),
          sum :: float(),
          bucket_counts :: tuple(),
-         explicit_bounds :: list(), %% list of floats
+         explicit_bounds :: [float()],
          exemplars :: list(),
          flags :: integer(),
          min :: integer() | undefined,

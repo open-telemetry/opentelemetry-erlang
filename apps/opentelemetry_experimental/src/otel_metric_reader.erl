@@ -44,7 +44,7 @@
          default_aggregation_mapping :: #{otel_instrument:kind() => module()},
          temporality_mapping :: #{otel_instrument:kind() => otel_aggregation:temporality()},
          export_interval_ms :: integer() | undefined,
-         tref :: reference(),
+         tref :: reference() | undefined,
          view_aggregation_tab :: ets:tid(),
          metrics_tab :: ets:tid()
         }).
