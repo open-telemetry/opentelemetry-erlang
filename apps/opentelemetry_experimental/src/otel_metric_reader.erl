@@ -136,7 +136,7 @@ collect_(ViewAggregationTab, MetricsTab) ->
 
     %% Need to be able to efficiently get all from VIEW_AGGREGATIONS_TAB that apply to this reader
 
-    %% for each VIEW_AGGGREGATIONS_TAB entry look up metrics from METRICS_TAB using the name
+    %% for each VIEW_AGGREGATIONS_TAB entry look up metrics from METRICS_TAB using the name
     %% to select for key `{Name, '_'}'. This gives the current value for each set of attributes
     %% for an aggregation.
 
