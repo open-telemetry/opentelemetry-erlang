@@ -75,22 +75,14 @@ match_instrument_to_views(Instrument=#instrument{name=Name,
                                         aggregation_options=AggregationOptions,
                                         selection=#selection{instrument_name=InstrumentName}})
                                when Name =:= InstrumentName ->
-                                 {true, {View, #view_aggregation{name=case ViewName of
-                                                                          undefined ->
-                                                                              InstrumentName;
-                                                                          _ ->
-                                                                              ViewName
-                                                                      end,
+                                 {true, {View, #view_aggregation{name=value_or(ViewName,
+                                                                               InstrumentName),
                                                                  instrument=Instrument,
                                                                  temporality=Temporality,
                                                                  is_monotonic=IsMonotonic,
                                                                  aggregation_options=AggregationOptions,
-                                                                 description=case ViewDescription of
-                                                                                 undefined ->
-                                                                                     Description;
-                                                                                 _ ->
-                                                                                     ViewDescription
-                                                                             end
+                                                                 description=value_or(ViewDescription,
+                                                                                      Description)
                                                                 }}};
                             (_) ->
                                  false
@@ -107,6 +99,11 @@ match_instrument_to_views(Instrument=#instrument{name=Name,
     end.
 
 %%
+
+value_or(undefined, Other) ->
+    Other;
+value_or(Value, _Other) ->
+    Value.
 
 criteria_to_selection(Criteria) ->
     maps:fold(fun(instrument_name, InstrumentName, SelectionAcc) ->

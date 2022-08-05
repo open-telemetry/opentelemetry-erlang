@@ -97,7 +97,7 @@ handle_cast(_, State) ->
 handle_info(collect, State=#state{exporter=undefined,
                                   export_interval_ms=ExporterIntervalMs,
                                   tref=TRef}) ->
-    erlang:cancel_timer(TRef, []), %% {async, true} ?
+    erlang:cancel_timer(TRef, [{async, true}]),
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
     {noreply, State#state{tref=NewTRef}};
 handle_info(collect, State=#state{exporter={ExporterModule, Config},
@@ -116,7 +116,7 @@ handle_info(collect, State=#state{exporter={ExporterModule, Config},
                                   tref=TRef,
                                   view_aggregation_tab=ViewAggregationTable,
                                   metrics_tab=MetricsTable}) ->
-    erlang:cancel_timer(TRef, []), %% {async, true} ?
+    erlang:cancel_timer(TRef, [{async, true}]),
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
 
     %% collect from view aggregations table and then export
