@@ -27,12 +27,14 @@
 -include("otel_view.hrl").
 -include("otel_metrics.hrl").
 
+init({Tag, Pid}) ->
+    {ok, {Tag, Pid}};
 init(Pid) ->
-    {ok, Pid}.
+    {ok, {otel_metric, Pid}}.
 
-export(Metrics, Pid) ->
+export(Metrics, {Tag, Pid}) ->
     lists:map(fun(Metric) ->
-                  Pid ! Metric
+                  Pid ! {Tag, Metric}
               end, Metrics),
     ok.
 
