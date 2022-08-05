@@ -22,6 +22,7 @@
 -export([record/3]).
 
 -include("otel_metrics.hrl").
+-include_lib("kernel/include/logger.hrl").
 
 -spec record(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
 record(Instrument=#instrument{module=Module,
@@ -32,5 +33,13 @@ record(Instrument=#instrument{module=Module,
                               value_type=?VALUE_TYPE_FLOAT}, Number, Attributes)
   when is_float(Number) ->
     Module:record(Instrument, Number, Attributes);
-record(_, _, _) ->
+record(#instrument{name=Name,
+                   value_type=?VALUE_TYPE_INTEGER}, Number, _) ->
+    ?LOG_DEBUG("Histogram instrument ~p does not support adding value ~p. "
+               "The value must be an integer.", [Name, Number]),
+    ok;
+record(#instrument{name=Name,
+                   value_type=?VALUE_TYPE_FLOAT}, Number, _) ->
+    ?LOG_DEBUG("Histogram instrument ~p does not support adding value ~p. "
+               "The value must be a float.", [Name, Number]),
     ok.
