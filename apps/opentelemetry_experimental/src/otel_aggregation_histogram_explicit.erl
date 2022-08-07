@@ -47,6 +47,9 @@ aggregate(Table, Key, Value) ->
     case ets:lookup(Table, Key) of
         [Current] ->
             %% TODO: needs to be changed to work with concurrent updates
+            %% at this time there are no concurrent updates, so nothing is lost
+            %% a basic compare and swap could fail
+            %% consider making each bucket its own record
             ets:insert(Table, aggregate(Value, Current));
         _ ->
             %% since we need the options to initialize a histogram `false' is
