@@ -30,6 +30,8 @@
 
 -define(DEFAULT_BOUNDARIES, [0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0]).
 
+-define(MIN_DOUBLE, -9223372036854775807.0). %% the proto representation of size `fixed64'
+
 init(Key, Options) ->
     Boundaries = maps:get(boundaries, Options, ?DEFAULT_BOUNDARIES),
     RecordMinMax = maps:get(record_min_max, Options, true),
@@ -39,7 +41,7 @@ init(Key, Options) ->
                                     bucket_counts=zero_buckets(length(Boundaries)),
                                     record_min_max=RecordMinMax,
                                     min=infinity, %% works because any atom is > any integer
-                                    max=neg_infinity, %% requires an explicit check
+                                    max=?MIN_DOUBLE,
                                     sum=0
                                    }.
 
@@ -67,10 +69,7 @@ aggregate(MeasurementValue,
     Buckets1 = bump_bucket_counts(MeasurementValue, Boundaries, Buckets),
     Aggregation#explicit_histogram_aggregation{bucket_counts=Buckets1,
                                                min=min(Min, MeasurementValue),
-                                               max=case Max of
-                                                       neg_infinity -> MeasurementValue;
-                                                       _ -> max(Max, MeasurementValue)
-                                                   end,
+                                               max=max(Max, MeasurementValue),
                                                sum=Sum+MeasurementValue};
 aggregate(MeasurementValue,
           Aggregation=#explicit_histogram_aggregation{boundaries=Boundaries,

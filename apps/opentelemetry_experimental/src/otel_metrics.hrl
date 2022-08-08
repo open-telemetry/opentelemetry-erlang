@@ -43,8 +43,8 @@
 -record(explicit_histogram_checkpoint,
         {
          bucket_counts :: tuple(),
-         min :: number() | neg_infinity | infinity,
-         max :: number() | neg_infinity | infinity,
+         min :: number(),
+         max :: number(),
          sum :: number()
         }).
 
@@ -59,8 +59,8 @@
          record_min_max :: boolean(),
          checkpoint :: #explicit_histogram_checkpoint{} | undefined | '_',
          bucket_counts :: tuple(),
-         min :: number() | neg_infinity | infinity,
-         max :: number() | neg_infinity | infinity,
+         min :: number() | infinity,
+         max :: number(),
          sum :: number()
         }).
 
