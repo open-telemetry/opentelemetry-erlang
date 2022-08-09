@@ -86,6 +86,7 @@ jobs:
             ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir_version }}-
       - run: mix deps.get
         name: Deps
+      - run: mix local.rebar --force
       - run: mix test --cover
         name: ExUnit
       - uses: codecov/codecov-action@v3
