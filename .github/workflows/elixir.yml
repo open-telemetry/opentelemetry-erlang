@@ -37,11 +37,6 @@ jobs:
         elixir_version: ['1.13.4', '1.12.3']
         rebar3_version: ['3.19.0']
         os: [ubuntu-18.04]
-        include:
-          - otp_version: '23.3.4.2'
-            elixir_version: '1.13.4'
-            rebar3_version: '3.19.0'
-            os: ubuntu-18.04
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir_version }}
@@ -67,11 +62,6 @@ jobs:
         elixir_version: ['1.13.4', '1.12.3']
         rebar3_version: ['3.19.0']
         os: [ubuntu-18.04]
-        include:
-          - otp_version: '23.3.4.2'
-            elixir_version: '1.13.4'
-            rebar3_version: '3.19.0'
-            os: ubuntu-18.04
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir_version }}
