@@ -49,7 +49,7 @@
          metrics_tab :: ets:tid()
         }).
 
--spec start_monitor(module(), otel_configuration:t()) -> {ok, {pid(), reference()}} | ignore | {error, term()}.
+-spec start_monitor(module(), map()) -> {ok, {pid(), reference()}} | ignore | {error, term()}.
 start_monitor(ReaderModule, Config) ->
     gen_server:start_monitor(ReaderModule, Config, []).
 
