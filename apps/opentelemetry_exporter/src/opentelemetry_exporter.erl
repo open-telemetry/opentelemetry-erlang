@@ -505,9 +505,9 @@ config_mapping() ->
      {"OTEL_EXPORTER_OTLP_TRACES_HEADERS", otlp_traces_headers, key_value_list},
      %% {"OTEL_EXPORTER_OTLP_METRICS_HEADERS", otlp_metrics_headers, "", key_value_list}
 
-     {"OTEL_EXPORTER_OTLP_PROTOCOL", otlp_protocol, existing_atom},
-     {"OTEL_EXPORTER_OTLP_TRACES_PROTOCOL", otlp_traces_protocol, existing_atom},
-     %% {"OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", exporter_otlp_metrics_protocol, string}
+     {"OTEL_EXPORTER_OTLP_PROTOCOL", otlp_protocol, otlp_protocol},
+     {"OTEL_EXPORTER_OTLP_TRACES_PROTOCOL", otlp_traces_protocol, otlp_protocol},
+     %% {"OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", exporter_otlp_metrics_protocol, otlp_protocol}
 
      {"OTEL_EXPORTER_OTLP_COMPRESSION", otlp_compression, existing_atom},
      {"OTEL_EXPORTER_OTLP_TRACES_COMPRESSION", otlp_traces_compression, existing_atom},
