@@ -22,12 +22,12 @@ init([Opts]) ->
                  period => 5},
 
     %%
-    MetricSup = #{id => otel_metric_sup,
-                  start => {otel_metric_sup, start_link, [Opts]},
+    MetricSup = #{id => otel_metrics_sup,
+                  start => {otel_metrics_sup, start_link, [Opts]},
                   restart => permanent,
                   shutdown => 5000,
                   type => supervisor,
-                  modules => [otel_metric_sup]},
+                  modules => [otel_metrics_sup]},
 
     ChildSpecs = [MetricSup],
     {ok, {SupFlags, ChildSpecs}}.

@@ -12,127 +12,112 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc `otel_meter' is responsible for creating Instruments. An Instrument
+%% is just a record so calling the creation function has no side effects.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_meter).
 
--include("otel_meter.hrl").
+-export([counter/4,
+         observable_counter/5,
+         histogram/4,
+         observable_gauge/5,
+         updown_counter/4,
+         observable_updowncounter/5,
 
--callback new_instrument(opentelemetry:meter(), name(), instrument_kind(), instrument_opts()) -> boolean().
--callback new_instruments(opentelemetry:meter(), [instrument_opts()]) -> boolean().
+         instrument/5,
+         instrument/6]).
 
--callback record(opentelemetry:meter(), term (), number()) -> ok.
--callback record(opentelemetry:meter(), name(), labels(), number()) -> ok.
+-include("otel_metrics.hrl").
 
--callback record_batch(opentelemetry:meter(), [{instrument(), number()}], labels()) -> ok.
+-callback instrument(Meter, Name, Kind, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: t(),
+      Name :: otel_instrument:name(),
+      Kind :: otel_instrument:kind(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: otel_meter:opts().
+-callback instrument(Meter, Name, Kind, ValueType, Callback, Opts) -> otel_instrument:t() when
+      Meter :: t(),
+      Name :: otel_instrument:name(),
+      Kind :: otel_instrument:kind(),
+      ValueType :: otel_instrument:value_type(),
+      Callback :: otel_instrument:callback(),
+      Opts :: otel_meter:opts().
 
--callback bind(opentelemetry:meter(), instrument(), labels()) -> term().
--callback release(opentelemetry:meter(), term()) -> ok.
+-type opts() :: #{description => otel_instrument:description(),
+                  unit => otel_instrument:unit()}.
 
--callback register_observer(opentelemetry:meter(), otel_meter:name(), otel_observer:callback()) -> ok | unknown_instrument.
--callback set_observer_callback(opentelemetry:meter(), otel_meter:name(), otel_observer:callback()) -> ok | unknown_instrument.
+-type t() :: {module(), term()}.
 
--callback observe(otel_observer:observer_instrument(), number(), labels()) -> ok.
+-export_type([t/0,
+              opts/0]).
 
--export([new_instrument/4,
-         new_instruments/2,
-         instrument_definition/4,
-         bind/3,
-         release/1,
-         record/2,
-         record/4,
-         record_batch/3,
-         register_observer/3,
-         set_observer_callback/3,
-         observe/3]).
+-spec counter(Meter, Name, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: t(),
+      Name :: otel_instrument:name(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: opts().
+counter(Meter, Name, ValueType, Opts) ->
+    instrument(Meter, Name, ?KIND_COUNTER, ValueType, Opts).
 
--type label_key() :: unicode:unicode_binary().
--type label_value() :: unicode:unicode_binary().
--type label() :: {label_key(), label_value()}.
--type labels() :: [label()].
+-spec observable_counter(Meter, Name, Callback, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: t(),
+      Name :: otel_instrument:name(),
+      Callback :: otel_instrument:callback(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: opts().
+observable_counter(Meter, Name, Callback, ValueType, Opts) ->
+    instrument(Meter, Name, ?KIND_OBSERVABLE_COUNTER, Callback, ValueType, Opts).
 
--type name() :: unicode:unicode_binary().
--type description() :: unicode:unicode_binary().
--type instrument_kind() :: module().
--type unit() :: atom().
--type number_kind() :: integer | float.
+-spec histogram(Meter, Name, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: t(),
+      Name :: otel_instrument:name(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: opts().
+histogram(Meter, Name, ValueType, Opts) ->
+    instrument(Meter, Name, ?KIND_HISTOGRAM, ValueType, Opts).
 
--type instrument_config() :: #{description => description(),
-                               number_kind => number_kind(),
-                               unit        => unit(),
-                               monotonic   := boolean(),
-                               synchronous := boolean()}.
+-spec observable_gauge(Meter, Name, Callback, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: t(),
+      Name :: otel_instrument:name(),
+      Callback :: otel_instrument:callback(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: opts().
+observable_gauge(Meter, Name, Callback, ValueType, Opts) ->
+    instrument(Meter, Name, ?KIND_OBSERVABLE_COUNTER, Callback, ValueType, Opts).
 
--type instrument_properties() :: #{monotonic   := boolean(),
-                                   synchronous := boolean()}.
+-spec updown_counter(Meter, Name, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: t(),
+      Name :: otel_instrument:name(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: opts().
+updown_counter(Meter, Name, ValueType, Opts) ->
+    instrument(Meter, Name, ?KIND_UPDOWN_COUNTER, ValueType, Opts).
 
--type instrument_opts() :: #{description => description(),
-                             number_kind => number_kind(),
-                             unit        => unit()}.
+-spec observable_updowncounter(Meter, Name, Callback, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: t(),
+      Name :: otel_instrument:name(),
+      Callback :: otel_instrument:callback(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: opts().
+observable_updowncounter(Meter, Name, Callback, ValueType, Opts) ->
+    instrument(Meter, Name, ?KIND_OBSERVABLE_COUNTER, Callback, ValueType, Opts).
 
--type instrument_definition() :: {name(), instrument_kind(), instrument_opts()}.
--type instrument() :: term().
--type bound_instrument() :: {opentelemetry:meter(), term()}.
+-spec instrument(Meter, Name, Kind, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: t(),
+      Name :: otel_instrument:name(),
+      Kind :: otel_instrument:kind(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: opts().
+instrument(Meter={Module, _}, Name, Kind, ValueType, Opts) ->
+    Module:instrument(Meter, Name, Kind, ValueType, Opts).
 
--type measurement() :: {bound_instrument() | name(), number()}.
-
--export_type([bound_instrument/0,
-              name/0,
-              description/0,
-              instrument_kind/0,
-              instrument_config/0,
-              instrument_opts/0,
-              instrument_definition/0,
-              number_kind/0,
-              unit/0,
-              measurement/0,
-              labels/0]).
-
--spec new_instrument(opentelemetry:meter(), name(), instrument_kind(), instrument_opts()) -> boolean().
-new_instrument(Meter={Module, _}, Name, InstrumentKind, InstrumentOpts) ->
-    Module:new_instrument(Meter, Name, InstrumentKind, InstrumentOpts).
-
--spec new_instruments(opentelemetry:meter(), [instrument_definition()]) -> boolean().
-new_instruments(Meter={Module, _}, List) ->
-    Module:new_instruments(Meter, List).
-
--spec instrument_definition(module(), name(), instrument_properties(), instrument_opts()) -> instrument_definition().
-instrument_definition(InstrumentModule, Name, Properties, Opts) ->
-    %% instrument config values are not allowed to be overridden so in case the user
-    %% attempts to pass as an optiion this merge will use the config value
-    {Name, InstrumentModule, maps:merge(Opts, Properties)}.
-
--spec bind(opentelemetry:meter(), name(), labels()) -> bound_instrument().
-bind(Meter={Module, _}, Name, Labels) ->
-    {Meter, Module:bind(Meter, Name, Labels)}.
-
--spec release(bound_instrument()) -> ok.
-release({Meter={Module, _}, BoundInstrument}) ->
-    Module:release(Meter, BoundInstrument).
-
--spec record(opentelemetry:meter(), name(), number(), labels()) -> ok.
-record(Meter={Module, _}, Name, Number, Labels) ->
-    Module:record(Meter, Name, Labels, Number).
-
--spec record(bound_instrument(), number()) -> ok.
-record({Meter={Module, _}, BoundInstrument}, Number) ->
-    Module:record(Meter, BoundInstrument, Number).
-
--spec record_batch(opentelemetry:meter(), labels(), [measurement()]) -> ok.
-record_batch(Meter={Module, _}, Labels, Measurements) ->
-    Module:record_batch(Meter, Labels, Measurements).
-
--spec register_observer(opentelemetry:meter(), otel_meter:name(), otel_observer:callback())
-                       -> ok | unknown_instrument.
-register_observer(Meter={Module, _}, Name, Callback) ->
-    Module:register_observer(Meter, Name, Callback).
-
--spec set_observer_callback(opentelemetry:meter(), otel_meter:name(), otel_observer:callback())
-                           -> ok | unknown_instrument.
-set_observer_callback(Meter={Module, _}, Name, Callback) ->
-    Module:set_observer_callback(Meter, Name, Callback).
-
--spec observe(otel_observer:observer_result(), number(), labels()) -> ok.
-observe({Module, Instrument}, Number, Labels) ->
-    Module:observe(Instrument, Number, Labels).
+-spec instrument(Meter, Name, Kind, Callback, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: t(),
+      Name :: otel_instrument:name(),
+      Kind :: otel_instrument:kind(),
+      Callback :: otel_instrument:callback(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: opts().
+instrument(Meter={Module, _}, Name, Kind, ValueType, Callback, Opts) ->
+    Module:instrument(Meter, Name, Kind, ValueType, Callback, Opts).
