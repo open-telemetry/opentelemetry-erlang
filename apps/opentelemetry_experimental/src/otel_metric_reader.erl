@@ -22,8 +22,9 @@
 %%%-------------------------------------------------------------------------
 -module(otel_metric_reader).
 
--export([start_monitor/2,
+-export([start_link/2,
          collect/1,
+         set_exporter/3,
          shutdown/1]).
 
 -export([init/1,
@@ -45,22 +46,28 @@
          temporality_mapping :: #{otel_instrument:kind() => otel_aggregation:temporality()},
          export_interval_ms :: integer() | undefined,
          tref :: reference() | undefined,
-         view_aggregation_tab :: ets:tid(),
-         metrics_tab :: ets:tid()
+         view_aggregation_tab :: atom(),
+         metrics_tab :: atom(),
+         config :: #{}
         }).
 
--spec start_monitor(module(), map()) -> {ok, {pid(), reference()}} | ignore | {error, term()}.
-start_monitor(ReaderModule, Config) ->
-    gen_server:start_monitor(ReaderModule, Config, []).
+-spec start_link(atom(), map()) -> {ok, pid()} | ignore | {error, term()}.
+start_link(ChildId, Config) ->
+    gen_server:start_link({local, ChildId}, ?MODULE, [ChildId, Config], []).
 
 collect(ReaderPid) ->
     ReaderPid ! collect.
 
+set_exporter(ReaderPid, Exporter, Options) ->
+    gen_server:call(ReaderPid, {set_exporter, Exporter, Options}).
+
 shutdown(ReaderPid) ->
     gen_server:call(ReaderPid, shutdown).
 
-init(Config=#{view_aggregation_tab := ViewAggregationTab,
-              metrics_tab := MetricsTab}) ->
+init([ChildId, Config]) ->
+    ViewAggregationTable = otel_meter_server:view_aggregation_table_name(ChildId),
+    MetricsTable = otel_meter_server:metrics_table_name(ChildId),
+
     ExporterModuleConfig = maps:get(exporter, Config, undefined),
     Exporter = otel_exporter:init(ExporterModuleConfig),
 
@@ -77,15 +84,19 @@ init(Config=#{view_aggregation_tab := ViewAggregationTab,
                _ ->
                    erlang:send_after(ExporterIntervalMs, self(), collect)
            end,
-
     {ok, #state{exporter=Exporter,
                 default_aggregation_mapping=DefaultAggregationMapping,
                 temporality_mapping=Temporality,
                 export_interval_ms=ExporterIntervalMs,
+                view_aggregation_tab=ViewAggregationTable,
+                metrics_tab=MetricsTable,
                 tref=TRef,
-                view_aggregation_tab=ViewAggregationTab,
-                metrics_tab=MetricsTab}}.
+                config=Config}}.
 
+handle_call({set_exporter, Module, Config}, _From, State=#state{exporter=OldExporter}) ->
+    otel_exporter:shutdown(OldExporter),
+    Exporter = otel_exporter:init({Module, Config}),
+    {reply, ok, State#state{exporter=Exporter}};
 handle_call(shutdown, _From, State) ->
     {reply, ok, State};
 handle_call(_, _From, State) ->
@@ -96,7 +107,7 @@ handle_cast(_, State) ->
 
 handle_info(collect, State=#state{exporter=undefined,
                                   export_interval_ms=ExporterIntervalMs,
-                                  tref=TRef}) ->
+                                  tref=TRef}) when TRef =/= undefined ->
     erlang:cancel_timer(TRef, [{async, true}]),
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
     {noreply, State#state{tref=NewTRef}};
@@ -124,7 +135,10 @@ handle_info(collect, State=#state{exporter={ExporterModule, Config},
 
     ExporterModule:export(Metrics, Config),
 
-    {noreply, State#state{tref=NewTRef}}.
+    {noreply, State#state{tref=NewTRef}};
+%% no tref or exporter, do nothing at all
+handle_info(_, State) ->
+    {noreply, State}.
 
 code_change(State) ->
     {ok, State}.

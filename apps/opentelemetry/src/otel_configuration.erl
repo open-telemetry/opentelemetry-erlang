@@ -49,6 +49,7 @@
                text_map_propagators := [atom()],
                traces_exporter := {atom(), term()} | none | undefined,
                metrics_exporter := {atom(), term()} | none | undefined,
+               readers := [#{id := atom(), module => module(), config => map()}],
                processors := list(),
                sampler := {atom(), term()},
                sweeper := #{interval => integer() | infinity,
@@ -79,6 +80,7 @@ new() ->
       text_map_propagators => [trace_context, baggage],
       traces_exporter => {opentelemetry_exporter, #{}},
       metrics_exporter => {opentelemetry_exporter, #{}},
+      readers => [],
       processors => [{otel_batch_processor, ?BATCH_PROCESSOR_DEFAULTS}],
       sampler => {parent_based, #{root => always_on}},
       sweeper => #{interval => timer:minutes(10),
@@ -296,6 +298,7 @@ config_mappings(general_sdk) ->
      {"OTEL_PROPAGATORS", text_map_propagators, propagators},
      {"OTEL_TRACES_EXPORTER", traces_exporter, exporter},
      {"OTEL_METRICS_EXPORTER", metrics_exporter, exporter},
+     {"OTEL_METRIC_READERS", readers, readers},
      {"OTEL_RESOURCE_DETECTORS", resource_detectors, existing_atom_list},
      {"OTEL_RESOURCE_DETECTOR_TIMEOUT", resource_detector_timeout, integer},
 
@@ -470,7 +473,10 @@ transform(span_processor, batch) ->
 transform(span_processor, simple) ->
     {otel_simple_processor, ?SIMPLE_PROCESSOR_DEFAULTS};
 transform(span_processor, SpanProcessor) ->
-    SpanProcessor.
+    SpanProcessor;
+transform(readers, Readers) ->
+    Readers.
+
 
 probability_string_to_float(Probability) ->
     try list_to_float(Probability) of

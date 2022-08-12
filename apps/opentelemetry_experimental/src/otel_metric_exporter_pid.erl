@@ -21,7 +21,7 @@
 -export([init/1,
          export/2,
          force_flush/0,
-         shutdown/0]).
+         shutdown/1]).
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_view.hrl").
@@ -41,7 +41,7 @@ export(Metrics, {Tag, Pid}) ->
 force_flush() ->
     ok.
 
-shutdown() ->
+shutdown(_) ->
     ok.
 
 %%
