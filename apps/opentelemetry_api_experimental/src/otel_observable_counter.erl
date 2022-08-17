@@ -1,5 +1,5 @@
 %%%------------------------------------------------------------------------
-%% Copyright 2022, OpenTelemetry Authors
+%% Copyright 2019, OpenTelemetry Authors
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
 %% You may obtain a copy of the License at
@@ -12,27 +12,10 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc MetricExporter defines the interface that protocol-specific
-%% exporters MUST implement so that they can be plugged into OpenTelemetry
-%% SDK and support sending of telemetry data.
+%% @doc Asynchronous Counter is an asynchronous Instrument which reports
+%% monotonically increasing value(s) when the instrument is being observed.
 %% @end
 %%%-------------------------------------------------------------------------
+-module(otel_observable_counter).
 
--module(otel_metric_exporter).
-
--export([init/1,
-         export/2,
-         force_flush/0,
-         shutdown/0]).
-
-init(_) ->
-    {ok, []}.
-
-export(_Batch, _Config) ->
-    ok.
-
-force_flush() ->
-    ok.
-
-shutdown() ->
-    ok.
+-export([]).

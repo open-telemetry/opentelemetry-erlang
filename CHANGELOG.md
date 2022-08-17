@@ -49,6 +49,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `opentelemetry:instrumentation_library/3` to create an `instrumentation_scope`
   record.
 
+### [Experimental API/SDK]
+
+#### Added
+
+- [Initial work to support the stable spec for the Metrics API and
+  SDK](https://github.com/open-telemetry/opentelemetry-erlang/pull/412)
+
 ## SDK 1.0.5 - 2022-05-20
 
 ### Fixed

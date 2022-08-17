@@ -22,15 +22,11 @@ startup(_Config) ->
         os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=1.1.1"),
 
         {ok, _} = application:ensure_all_started(opentelemetry),
-        {_, Tracer} = opentelemetry:get_tracer(),
         Resource = otel_tracer_provider:resource(),
         _ = application:stop(opentelemetry),
 
         ?assertMatch(#{<<"service.name">> := <<"cttest">>,
                        <<"service.version">> := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Resource))),
-
-       ?assertMatch(#{<<"service.name">> := <<"cttest">>,
-                      <<"service.version">> := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Tracer#tracer.resource))),
         ok
     after
         os:unsetenv("OTEL_RESOURCE_ATTRIBUTES"),
@@ -44,15 +40,11 @@ startup_env_service_name(_Config) ->
         os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=1.1.1"),
 
         {ok, _} = application:ensure_all_started(opentelemetry),
-        {_, Tracer} = opentelemetry:get_tracer(),
         Resource = otel_tracer_provider:resource(),
         _ = application:stop(opentelemetry),
 
         ?assertMatch(#{<<"service.name">> := <<"env-service-name">>,
                        <<"service.version">> := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Resource))),
-
-        ?assertMatch(#{<<"service.name">> := <<"env-service-name">>,
-                       <<"service.version">> := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Tracer#tracer.resource))),
         ok
     after
         os:unsetenv("OTEL_SERVICE_NAME"),
@@ -201,6 +193,102 @@ release_service_name(_Config) ->
         os:unsetenv("RELEASE_VSN"),
         os:unsetenv("RELEASE_NAME")
     end.
+
+service_instance_id_env(_Config) ->
+    try
+        os:putenv("OTEL_SERVICE_INSTANCE", "test@instance"),
+        application:unload(opentelemetry),
+        application:load(opentelemetry),
+        application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
+
+        otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
+                                                                   otel_resource_app_env],
+                                            resource_detector_timeout => 100}),
+
+        Resource = otel_resource_detector:get_resource(),
+        ?assertMatch(#{<<"service.instance.id">> := <<"test@instance">>,
+                       <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+
+        ok
+    after
+        os:unsetenv("OTEL_SERVICE_INSTANCE")
+    end.
+
+service_instance_id_env_attributes(_Config) ->
+    try
+        os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.instance.id=test@instance"),
+        application:unload(opentelemetry),
+        application:load(opentelemetry),
+        application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
+
+        otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
+                                                                   otel_resource_app_env],
+                                            resource_detector_timeout => 100}),
+
+        Resource = otel_resource_detector:get_resource(),
+        ?assertMatch(#{<<"service.instance.id">> := <<"test@instance">>,
+                       <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+
+        ok
+    after
+        os:unsetenv("OTEL_RESOURCE_ATTRIBUTES")
+    end.
+
+service_instance_id_node_name(_Config) ->
+    try
+        net_kernel:start([test@instance, longnames]),
+        application:unload(opentelemetry),
+        application:load(opentelemetry),
+        application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
+
+        otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
+                                                                   otel_resource_app_env],
+                                            resource_detector_timeout => 100}),
+
+        Resource = otel_resource_detector:get_resource(),
+        ?assertMatch(#{<<"service.instance.id">> := <<"test@instance">>,
+                       <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+
+        ok
+    after
+        net_kernel:stop()
+    end.
+
+service_instance_id_node_id1(_Config) ->
+    try
+        net_kernel:start([test@localhost, longnames]),
+        application:unload(opentelemetry),
+        application:load(opentelemetry),
+        application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
+
+        otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
+                                                                   otel_resource_app_env],
+                                            resource_detector_timeout => 100}),
+
+        Resource = otel_resource_detector:get_resource(),
+        ResourceMap = otel_attributes:map(otel_resource:attributes(Resource)),
+        ?assertNotMatch(#{<<"service.instance.id">> := <<"test@localhost">>}, ResourceMap),
+        ?assert(maps:is_key(<<"service.instance.id">>, ResourceMap)),
+
+        ok
+    after
+        net_kernel:stop()
+    end.
+
+service_instance_id_node_id2(_Config) ->
+    application:unload(opentelemetry),
+    application:load(opentelemetry),
+    application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
+
+    otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
+                                                                otel_resource_app_env],
+                                        resource_detector_timeout => 100}),
+
+    Resource = otel_resource_detector:get_resource(),
+    ResourceMap = otel_attributes:map(otel_resource:attributes(Resource)),
+    ?assertNotMatch(#{<<"service.instance.id">> := <<"nonode@nohost">>}, ResourceMap),
+    ?assert(maps:is_key(<<"service.instance.id">>, ResourceMap)),
+    ok.
 
 release_service_name_no_version(_Config) ->
     try

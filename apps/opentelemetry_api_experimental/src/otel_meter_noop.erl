@@ -19,47 +19,28 @@
 
 -behaviour(otel_meter).
 
--export([new_instrument/4,
-         new_instruments/2,
-         labels/2,
-         record/3,
-         record/4,
-         record_batch/3,
-         bind/3,
-         release/2,
-         set_observer_callback/3,
-         register_observer/3,
-         observe/3]).
+-export([instrument/5,
+         instrument/6]).
 
-new_instrument(_, _, _, _) ->
-    true.
+%% also act as noop version of instruments
+-export([add/3,
+         record/3]).
 
-new_instruments(_, _) ->
-    true.
+%%
 
-labels(_, _) ->
-    #{}.
-
-record(_, _, _) ->
+%% handles both noop counter and noop updown counter
+add(_Insturment, _Number, _Attributes) ->
     ok.
 
-record(_, _, _, _) ->
+record(_Insturment, _Number, _Attributes) ->
     ok.
 
-record_batch(_, _, _) ->
-    ok.
+%%
 
-bind(_, _, _) ->
-    [].
+instrument(Meter, Name, Kind, ValueType, Opts) ->
+    otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
+                        maps:get(unit, Opts, undefined), ValueType).
 
-release(_, _) ->
-    ok.
-
-set_observer_callback(_, _, _) ->
-    ok.
-
-register_observer(_, _, _) ->
-    ok.
-
-observe(_, _, _) ->
-    ok.
+instrument(Meter, Name, Kind, ValueType, Callback, Opts) ->
+    otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
+                        maps:get(unit, Opts, undefined), ValueType, Callback).

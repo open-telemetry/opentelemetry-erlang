@@ -12,27 +12,17 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc MetricExporter defines the interface that protocol-specific
-%% exporters MUST implement so that they can be plugged into OpenTelemetry
-%% SDK and support sending of telemetry data.
+%% @doc Asynchronous Gauge is an asynchronous Instrument which reports
+%% non-additive value(s) (e.g. the room temperature - it makes no sense
+%% to report the temperature value from multiple rooms and sum them up)
+%% when the instrument is being observed.
+
+%% Note: if the values are additive (e.g. the process heap size - it makes
+%% sense to report the heap size from multiple processes and sum them up,
+%% so we get the total heap usage), use Asynchronous Counter or
+%% Asynchronous UpDownCounter.
 %% @end
 %%%-------------------------------------------------------------------------
+-module(otel_observable_gauge).
 
--module(otel_metric_exporter).
-
--export([init/1,
-         export/2,
-         force_flush/0,
-         shutdown/0]).
-
-init(_) ->
-    {ok, []}.
-
-export(_Batch, _Config) ->
-    ok.
-
-force_flush() ->
-    ok.
-
-shutdown() ->
-    ok.
+-export([]).

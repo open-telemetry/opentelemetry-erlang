@@ -12,51 +12,33 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc Counter is a synchronous Instrument which supports non-negative
+%% increments.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_counter).
 
--behaviour(otel_instrument).
+-export([add/3]).
 
--export([new/2,
-         new/3,
-         definition/1,
-         definition/2,
-         add/2,
-         add/4,
-         measurement/2]).
+-include("otel_metrics.hrl").
+-include_lib("kernel/include/logger.hrl").
 
--include("otel_meter.hrl").
-
--define(PROPERTIES, #{monotonic => true,
-                      synchronous => true}).
-
--spec new(opentelemetry:meter(), otel_meter:name()) -> boolean().
-new(Meter, Name) ->
-    new(Meter, Name, #{}).
-
--spec new(opentelemetry:meter(), otel_meter:name(), otel_meter:instrument_opts()) -> boolean().
-new(Meter, Name, Opts) ->
-    otel_meter:new_instrument(Meter, Name, ?MODULE, Opts).
-
--spec definition(otel_meter:name()) -> otel_meter:instrument_definition().
-definition(Name) ->
-    definition(Name, #{}).
-
--spec definition(otel_meter:name(), otel_meter:instrument_opts()) -> otel_meter:instrument_definition().
-definition(Name, Opts) ->
-    otel_meter:instrument_definition(?MODULE, Name, ?PROPERTIES, Opts).
-
--spec add(otel_meter:bound_instrument(), number()) -> ok.
-add(BoundInstrument, Number) ->
-    otel_meter:record(BoundInstrument, Number).
-
--spec add(opentelemetry:meter(), otel_meter:name(), number(), otel_meter:labels()) -> ok.
-add(Meter, Name, Number, Labels) ->
-    otel_meter:record(Meter, Name, Number, Labels).
-
--spec measurement(otel_meter:bound_instrument() | otel_meter:name(), number())
-                 -> {otel_meter:bound_instrument() | otel_meter:name(), number()}.
-measurement(NameOrInstrument, Number) ->
-    {NameOrInstrument, Number}.
+-spec add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
+add(Instrument=#instrument{module=Module,
+                           value_type=?VALUE_TYPE_INTEGER}, Number, Attributes)
+  when is_integer(Number) andalso Number >= 0 ->
+    Module:record(Instrument, Number, Attributes);
+add(Instrument=#instrument{module=Module,
+                           value_type=?VALUE_TYPE_FLOAT}, Number, Attributes)
+  when is_float(Number) andalso Number >= 0 ->
+    Module:record(Instrument, Number, Attributes);
+add(#instrument{name=Name,
+                value_type=?VALUE_TYPE_INTEGER}, Number, _) ->
+    ?LOG_DEBUG("Counter instrument ~p does not support adding value ~p. "
+               "The value must be a positive integer.", [Name, Number]),
+    ok;
+add(#instrument{name=Name,
+                value_type=?VALUE_TYPE_FLOAT}, Number, _) ->
+    ?LOG_DEBUG("Counter instrument ~p does not support adding value ~p. "
+               "The value must be a positive float.", [Name, Number]),
+    ok.
