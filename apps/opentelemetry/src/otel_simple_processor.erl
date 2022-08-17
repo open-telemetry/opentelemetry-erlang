@@ -99,6 +99,8 @@ init([Args]) ->
 callback_mode() ->
     state_functions.
 
+idle({call, From}, {export, _Span}, #data{exporter=undefined}) ->
+    {keep_state_and_data, [{reply, From, dropped}]};
 idle({call, From}, {export, Span}, Data) ->
     {next_state, exporting, Data, [{next_event, internal, {export, From, Span}}]};
 idle(EventType, Event, Data) ->

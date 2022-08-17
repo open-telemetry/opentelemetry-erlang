@@ -12,33 +12,34 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc UpDownCounter is a synchronous Instrument which supports increments
-%% and decrements.
+%% @doc Histogram is a synchronous Instrument which can be used to report
+%% arbitrary values that are likely to be statistically meaningful. It is
+%% intended for statistics such as histograms, summaries, and percentile.
 %% @end
 %%%-------------------------------------------------------------------------
--module(otel_updown_counter).
+-module(otel_histogram).
 
--export([add/3]).
+-export([record/3]).
 
 -include("otel_metrics.hrl").
 -include_lib("kernel/include/logger.hrl").
 
--spec add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-add(Instrument=#instrument{module=Module,
-                           value_type=?VALUE_TYPE_INTEGER}, Number, Attributes)
+-spec record(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
+record(Instrument=#instrument{module=Module,
+                              value_type=?VALUE_TYPE_INTEGER}, Number, Attributes)
   when is_integer(Number) ->
     Module:record(Instrument, Number, Attributes);
-add(Instrument=#instrument{module=Module,
-                           value_type=?VALUE_TYPE_FLOAT}, Number, Attributes)
+record(Instrument=#instrument{module=Module,
+                              value_type=?VALUE_TYPE_FLOAT}, Number, Attributes)
   when is_float(Number) ->
     Module:record(Instrument, Number, Attributes);
-add(#instrument{name=Name,
-                value_type=?VALUE_TYPE_INTEGER}, Number, _) ->
-    ?LOG_DEBUG("UpDownCounter instrument ~p does not support adding value ~p. "
+record(#instrument{name=Name,
+                   value_type=?VALUE_TYPE_INTEGER}, Number, _) ->
+    ?LOG_DEBUG("Histogram instrument ~p does not support adding value ~p. "
                "The value must be an integer.", [Name, Number]),
     ok;
-add(#instrument{name=Name,
-                value_type=?VALUE_TYPE_FLOAT}, Number, _) ->
-    ?LOG_DEBUG("UpDownCounter instrument ~p does not support adding value ~p. "
+record(#instrument{name=Name,
+                   value_type=?VALUE_TYPE_FLOAT}, Number, _) ->
+    ?LOG_DEBUG("Histogram instrument ~p does not support adding value ~p. "
                "The value must be a float.", [Name, Number]),
     ok.

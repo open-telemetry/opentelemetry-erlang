@@ -19,7 +19,7 @@ span processor which then exports through the [OpenTelemetry
 Protocol](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/protocol/otlp.md)
 over HTTP to `http://localhost:4318`, encoding the Spans with protobufs.
 
-``` erlang
+```erlang
 [
  {opentelemetry,
   [{span_processor, batch},
@@ -31,7 +31,7 @@ over HTTP to `http://localhost:4318`, encoding the Spans with protobufs.
 ].
 ```
 
-``` elixir
+```elixir
 config :opentelemetry, 
   span_processor: :batch,
   traces_exporter: :otlp
@@ -39,6 +39,20 @@ config :opentelemetry,
 config :opentelemetry_exporter,
   otlp_protocol: :http_protobuf,
   otlp_endpoint: "http://localhost:4318"
+```
+
+If your exporting pipeline is not ready, you may disable trace exporting to prevent memory overflows.
+This can be done by setting `traces_exporter`'s value to the atom `none`.
+
+```erlang
+[
+ {opentelemetry,
+  [{traces_exporter, none}]}
+].
+```
+
+```elixir
+config :opentelemetry, traces_exporter: :none
 ```
 
 The following sections detail the available SDK options and how to configure
@@ -62,6 +76,64 @@ more than you want to wait on boot.
 Disabling the creation of Tracers at start-up means when the macros are used to
 start Spans the name and version of the Tracer creating those Spans will be
 undefined, but everything will continue to work as before.
+
+### Samplers
+
+Sampling is a mechanism to control the number of traces collected and sent to the backend. A Sampler is responsible for making a decision on whether to sample a trace or not. There are several [built-in samplers](https://opentelemetry.io/docs/reference/specification/trace/sdk/#built-in-samplers) available, and it's possible to create custom samplers.
+
+| OS                             | Application              | Default   | Type    |
+|:-------------------------------|:-------------------------|:----------|:--------|
+| OTEL_TRACES_SAMPLER             | sampler                 | parentbased_always_on | always_on, always_off, traceidratio, parentbased_always_on, parentbased_always_off, parentbased_traceidratio |
+| OTEL_TRACES_SAMPLER_ARG         | sampler                 |          | String. Each Sampler type defines its own expected input, if any.|
+
+
+#### Custom Sampler
+
+To create a custom sampler, implement a module with behaviour `otel_sampler`, and then install your custom sampler when configuring the `opentelemetry` application
+
+```elixir
+defmodule MySampler do
+  require OpenTelemetry.Tracer, as: Tracer
+  @behaviour :otel_sampler
+
+  @impl :otel_sampler
+  def setup(_sampler_opts) do
+    []
+  end
+
+  @impl :otel_sampler
+  def description(_sampler_config) do
+    "MySampler"
+  end
+
+  @impl :otel_sampler
+  def should_sample(
+        ctx,
+        _trace_id,
+        _links,
+        _span_name,
+        _span_kind,
+        _attributes,
+        _sampler_config
+  ) do
+    sample_decision = ... # custom logic to determine whether to sample or not
+
+    tracestate = Tracer.current_span_ctx(ctx) |> OpenTelemetry.Span.tracestate()
+
+    case sample_decision do
+      true -> {:record_and_sample, [], tracestate}
+      false -> {:drop, [], tracestate}
+    end
+  end
+end
+```
+
+```elixir
+config :opentelemetry,
+  sampler: {:parent_based, %{root: {MySampler, %{my_config_arg: 1}}}},
+  span_processor: :batch,
+  traces_exporter: :otlp
+```
 
 ### Propagators
 

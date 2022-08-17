@@ -12,36 +12,58 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc All measurements are associated with an instrument. To record
-%% measurements for an instrument it must first be created with `new' and
-%% then can be referenced by name.
+%% @doc All measurements are associated with an instrument.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_instrument).
 
-%% Calls the SDK to create a new instrument which can then be referenced by name.
--callback new(opentelemetry:meter(), otel_meter:name()) -> boolean().
--callback new(opentelemetry:meter(), otel_meter:name(), otel_meter:instrument_opts()) -> boolean().
+-export([new/7,
+         new/8,
+         is_monotonic/1]).
 
-%% Returns an instrument definition which can be used to create a new instrument
-%% by passing to `otel_meter:new_instruments/1'
--callback definition(otel_meter:name()) -> otel_meter:instrument_definition().
--callback definition(otel_meter:name(), otel_meter:instrument_opts()) -> otel_meter:instrument_definition().
+-include("otel_metrics.hrl").
 
-%% Used by additive instruments to record measurements.
--callback add(otel_meter:bound_instrument(), number()) -> ok.
--callback add(opentelemetry:meter(), otel_meter:name(), number(), otel_meter:labels()) -> ok.
+-type name() :: atom() | unicode:latin1_charlist().
+-type description() :: unicode:unicode_binary().
+-type kind() :: ?KIND_COUNTER | ?KIND_OBSERVABLE_COUNTER | ?KIND_HISTOGRAM |
+                ?KIND_OBSERVABLE_GAUGE | ?KIND_UPDOWN_COUNTER | ?KIND_OBSERVABLE_UPDOWNCOUNTER.
+-type unit() :: atom(). %% latin1, maximum length of 63 characters
+-type value_type() :: ?VALUE_TYPE_INTEGER | ?VALUE_TYPE_FLOAT.
+-type callback() :: fun().
 
-%% Used by non-additive instruments to record measurements.
--callback record(otel_meter:bound_instrument(), number()) -> ok.
--callback record(opentelemetry:meter(), otel_meter:name(), number(), otel_meter:labels()) -> ok.
+-type t() :: #instrument{}.
 
-%% Returns a measurement tuple that can be based to a batch recording through `otel_meter:batch_record/3'
--callback measurement(otel_meter:bound_instrument() | otel_meter:name(), number()) ->
-    {otel_meter:bound_instrument() | otel_meter:name(), number()}.
+-export_type([t/0,
+              name/0,
+              description/0,
+              kind/0,
+              value_type/0,
+              unit/0]).
 
--optional_callbacks([add/2,
-                     add/4,
-                     record/2,
-                     record/4,
-                     measurement/2]).
+-spec new(module(), otel_meter:t(), kind(), name(), description(), unit(), value_type()) -> t().
+new(Module, Meter, Kind, Name, Description, Unit, ValueType) ->
+    #instrument{module      = Module,
+                meter       = Meter,
+                name        = Name,
+                description = Description,
+                kind        = Kind,
+                value_type  = ValueType,
+                unit        = Unit}.
+
+-spec new(module(), otel_meter:t(), kind(), name(), description(), unit(), value_type(), callback()) -> t().
+new(Module, Meter, Kind, Name, Description, Unit, ValueType, Callback) ->
+    #instrument{module      = Module,
+                meter       = Meter,
+                name        = Name,
+                description = Description,
+                kind        = Kind,
+                value_type  = ValueType,
+                unit        = Unit,
+                callback    = Callback}.
+
+is_monotonic(#instrument{kind=?KIND_COUNTER}) ->
+    true;
+is_monotonic(#instrument{kind=?KIND_OBSERVABLE_COUNTER}) ->
+    true;
+is_monotonic(_) ->
+    false.

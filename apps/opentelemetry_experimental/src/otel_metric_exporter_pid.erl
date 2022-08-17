@@ -1,5 +1,5 @@
 %%%------------------------------------------------------------------------
-%% Copyright 2019, OpenTelemetry Authors
+%% Copyright 2022, OpenTelemetry Authors
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
 %% You may obtain a copy of the License at
@@ -13,18 +13,35 @@
 %% limitations under the License.
 %%
 %% @doc
-%%
 %% @end
 %%%-------------------------------------------------------------------------
--module(otel_metric_aggregator).
 
--include("otel_meter.hrl").
+-module(otel_metric_exporter_pid).
 
--callback update(ets:tab(), otel_meter:name() | {otel_meter:name(), otel_meter:labels()}, otel_meter:number_kind(), number()) -> boolean().
+-export([init/1,
+         export/2,
+         force_flush/0,
+         shutdown/0]).
 
--callback checkpoint(ets:tab(), otel_meter:name() | {otel_meter:name(), otel_meter:labels()}) -> boolean().
+-include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
+-include("otel_view.hrl").
+-include("otel_metrics.hrl").
 
--callback merge(term(), term()) -> term().
+init({Tag, Pid}) ->
+    {ok, {Tag, Pid}};
+init(Pid) ->
+    {ok, {otel_metric, Pid}}.
 
-%% TODO: rename to `new'
--callback initial_value(otel_meter:number_kind()) -> term().
+export(Metrics, {Tag, Pid}) ->
+    lists:map(fun(Metric) ->
+                  Pid ! {Tag, Metric}
+              end, Metrics),
+    ok.
+
+force_flush() ->
+    ok.
+
+shutdown() ->
+    ok.
+
+%%

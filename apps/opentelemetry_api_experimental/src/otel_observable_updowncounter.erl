@@ -1,5 +1,5 @@
 %%%------------------------------------------------------------------------
-%% Copyright 2019, OpenTelemetry Authors
+%% Copyright 2022, OpenTelemetry Authors
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
 %% You may obtain a copy of the License at
@@ -12,15 +12,15 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc Asynchronous UpDownCounter is an asynchronous Instrument which
+%% reports additive value(s) (e.g. the process heap size - it makes
+%% sense to report the heap size from multiple processes and sum them up,
+%% so we get the total heap usage) when the instrument is being observed.
 %%
+%% Note: if the value is monotonically increasing, use Asynchronous Counter
+%% instead; if the value is non-additive, use Asynchronous Gauge instead.
 %% @end
 %%%-------------------------------------------------------------------------
--module(otel_metric_exporter_stdout).
+-module(otel_observable_updowncounter).
 
--export([export/1]).
-
-export(Records) when map_size(Records) > 0 ->
-    io:format("*METRICS FOR DEBUG*~nRecords ~p~n", [Records]);
-export(_) ->
-    ok.
+-export([]).

@@ -12,73 +12,68 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc This module defines the API for a MeterProvider. A MeterProvider
+%% stores Meter configuration and is how Meters are accessed. An
+%% implementation must be a `gen_server' that handles the API's calls. The
+%% SDK should register a MeterProvider with the name `otel_meter_provider'
+%% which is used as the default global Provider.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_meter_provider).
 
--behaviour(gen_server).
+-export([get_meter/3,
+         get_meter/4,
+         resource/0,
+         resource/1,
+         force_flush/0,
+         force_flush/1]).
 
--export([start_link/2,
-         register_application_meter/1,
-         register_meter/2]).
+-type meter() :: term().
 
--export([init/1,
-         handle_call/3,
-         handle_cast/2]).
+-spec get_meter(Name, Vsn, SchemaUrl) -> Meter when
+      Name :: atom(),
+      Vsn :: unicode:chardata() | undefined,
+      SchemaUrl :: uri_string:uri_string() | undefined,
+      Meter:: meter().
+get_meter(Name, Vsn, SchemaUrl) ->
+    get_meter(?MODULE, Name, Vsn, SchemaUrl).
 
--type cb_state() :: term().
-
--callback init(term()) -> {ok, cb_state()}.
--callback register_meter(atom(), string(), cb_state()) -> boolean().
-
--record(state, {callback :: module(),
-                cb_state :: term()}).
-
-start_link(ProviderModule, Opts) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [ProviderModule, Opts], []).
-
--spec register_meter(atom(), string()) -> boolean().
-register_meter(Name, Vsn) ->
+-spec get_meter(ServerRef, Name, Vsn, SchemaUrl) -> Meter when
+      ServerRef :: atom() | pid(),
+      Name :: atom(),
+      Vsn :: unicode:chardata() | undefined,
+      SchemaUrl :: uri_string:uri_string() | undefined,
+      Meter:: meter().
+get_meter(ServerRef, Name, Vsn, SchemaUrl) ->
     try
-        gen_server:call(?MODULE, {register_meter, Name, Vsn})
+        gen_server:call(ServerRef, {get_meter, Name, Vsn, SchemaUrl})
     catch exit:{noproc, _} ->
-            %% ignore register_meter because no SDK has been included and started
+            %% ignore get_meter because no SDK has been included and started
             false
     end.
 
--spec register_application_meter(atom()) -> boolean().
-register_application_meter(Name) ->
+-spec resource() -> term() | undefined.
+resource() ->
+    resource(?MODULE).
+
+-spec resource(atom() | pid()) -> term() | undefined.
+resource(ServerRef) ->
     try
-        {ok, Vsn} = application:get_key(Name, vsn),
-        {ok, Modules} = application:get_key(Name, modules),
-        gen_server:call(?MODULE, {register_meter, Name, Vsn, Modules})
+        gen_server:call(ServerRef, resource)
     catch exit:{noproc, _} ->
-            %% ignore register_meter because no SDK has been included and started
-            false
+            %% ignore because no SDK has been included and started
+            undefined
     end.
 
-init([ProviderModule, Opts]) ->
-    case ProviderModule:init(Opts) of
-        {ok, CbState} ->
-            {ok, #state{callback=ProviderModule,
-                        cb_state=CbState}};
-        Other ->
-            Other
+-spec force_flush() -> ok | {error, term()} | timeout.
+force_flush() ->
+    force_flush(?MODULE).
+
+-spec force_flush(atom() | pid()) -> ok | {error, term()} | timeout.
+force_flush(ServerRef) ->
+    try
+        gen_server:call(ServerRef, force_flush)
+    catch exit:{noproc, _} ->
+            %% ignore because likely no SDK has been included and started
+            ok
     end.
-
-handle_call({register_meter, Name, Vsn, Modules}, _From, State=#state{callback=Cb,
-                                                                      cb_state=CbState}) ->
-    _ = Cb:register_meter(Name, Vsn, Modules, CbState),
-    {reply, true, State};
-handle_call({register_meter, Name, Vsn}, _From, State=#state{callback=Cb,
-                                                             cb_state=CbState}) ->
-    _ = Cb:register_meter(Name, Vsn, CbState),
-    {reply, true, State};
-handle_call(_Msg, _From, State) ->
-    {noreply, State}.
-
-handle_cast(_Msg, State) ->
-    {noreply, State}.
-
-%%

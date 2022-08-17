@@ -14,13 +14,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['24.1.2', '23.3.4.2', '22.3.4.20']
-        rebar3_version: ['3.16.1']
+        otp_version: ['25.0.3', '24.1.2', '23.3.4.16']
+        rebar3_version: ['3.19.0']
         os: [ubuntu-18.04]
-        include:
-          - otp_version: '22.3.4.20'
-            rebar3_version: '3.17.0'
-            os: ubuntu-18.04
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       OTEL_TRACES_EXPORTER: "none"
@@ -32,7 +28,7 @@ jobs:
       with:
         otp-version: ${{ matrix.otp_version }}
         rebar3-version: ${{ matrix.rebar3_version }}
-        elixir-version: '1.11.1'
+        elixir-version: '1.13.4'
     - uses: actions/cache@v2
       name: Cache
       with:
@@ -65,19 +61,19 @@ jobs:
         file: _build/test/covertool/opentelemetry.covertool.xml
         env_vars: OTP_VERSION
         flags: sdk,erlang
-    - uses: codecov/codecov-action@v2
+    - uses: codecov/codecov-action@v3
       if: ${{ always() }}
       with:
         file: _build/test/covertool/opentelemetry_api.covertool.xml
         env_vars: OTP_VERSION
         flags: api,erlang
-    - uses: codecov/codecov-action@v2
+    - uses: codecov/codecov-action@v3
       if: ${{ always() }}
       with:
         file: _build/test/covertool/opentelemetry_exporter.covertool.xml
         env_vars: OTP_VERSION
         flags: exporter,erlang
-    - uses: codecov/codecov-action@v2
+    - uses: codecov/codecov-action@v3
       if: ${{ always() }}
       with:
         file: _build/test/covertool/opentelemetry_zipkin.covertool.xml
@@ -88,13 +84,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['24.1.2', '23.3.4.2', '22.3.4.20']
-        rebar3_version: ['3.17.0']
+        otp_version: ['25.0.3']
+        rebar3_version: ['3.19.0']
         os: [ubuntu-18.04]
-        include:
-          - otp_version: '22.3.4.20'
-            rebar3_version: '3.17.0'
-            os: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
     - uses: erlef/setup-beam@v1
