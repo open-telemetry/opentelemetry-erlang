@@ -15,7 +15,9 @@
 all() ->
     [startup, startup_env_service_name, os_env_resource, app_env_resource, combining,
      combining_conflicting_schemas, crash_detector, timeout_detector, release_service_name,
-     unknown_service_name, release_service_name_no_version].
+     unknown_service_name, release_service_name_no_version, service_instance_id_env,
+     service_instance_id_env_attributes, service_instance_id_node_id1, service_instance_id_node_id2,
+     service_instance_id_node_name].
 
 startup(_Config) ->
     try

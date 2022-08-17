@@ -258,7 +258,7 @@ add_service_instance(Resource) ->
                                 nomatch ->
                                     ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE, ServiceInstance1}]),
                                     otel_resource:merge(ServiceInstanceResource, Resource);
-                                Match ->
+                                _Match ->
                                     ServiceInstanceId = otel_id_generator:generate_trace_id(),
                                     ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE, ServiceInstanceId}]),
                                     otel_resource:merge(ServiceInstanceResource, Resource)
