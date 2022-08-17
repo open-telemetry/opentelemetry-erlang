@@ -417,7 +417,7 @@ kill_reader(Config) ->
 
     %% have to set the exporter again since it wasn't part of the original config
     %% `my_reader_id' may not be up yet so keep trying until this succeeds
-    ?UNTIL(ok =:= catch otel_metric_reader:set_exporter(my_reader_id, otel_metric_exporter_pid, self())),
+    ?UNTIL(ok =:= otel_metric_reader:set_exporter(my_reader_id, otel_metric_exporter_pid, self())),
 
     ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
