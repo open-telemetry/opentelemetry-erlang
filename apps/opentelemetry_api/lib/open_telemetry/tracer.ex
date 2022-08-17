@@ -170,6 +170,21 @@ defmodule OpenTelemetry.Tracer do
   end
 
   @doc """
+  Record an exception as an event, following the semantics convetions for exceptions.
+
+  If trace is not provided, the stacktrace is retrieved from `Process.info/2`
+  """
+  @spec record_exception(Exception.t()) :: boolean()
+  def record_exception(exception, trace \\ nil, attributes \\ []) do
+    OpenTelemetry.Span.record_exception(
+      :otel_tracer.current_span_ctx(),
+      exception,
+      trace,
+      attributes
+    )
+  end
+
+  @doc """
   Creates and sets the Status of the currently active Span.
 
   If used, this will override the default Span Status, which is `:unset`.

@@ -36,6 +36,12 @@
 -define(set_attributes(Attributes),
         otel_span:set_attributes(?current_span_ctx, Attributes)).
 
+-define(record_exception(Class, Term, Stacktrace, Attributes),
+        otel_span:record_exception(?current_span_ctx, Class, Term, Stacktrace, Attributes)).
+
+-define(record_exception(Class, Term, Message, Stacktrace, Attributes),
+        otel_span:record_exception(?current_span_ctx, Class, Term, Message, Stacktrace, Attributes)).
+
 -define(add_event(Name, Attributes),
         otel_span:add_event(?current_span_ctx, Name, Attributes)).
 
