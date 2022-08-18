@@ -35,7 +35,8 @@
 -behaviour(gen_server).
 
 -export([start_link/1,
-         add_metric_reader/3,
+         view_aggregation_table_name/1,
+         metrics_table_name/1,
          add_view/3,
          add_view/4,
          record/4,
@@ -60,8 +61,7 @@
 
 -record(reader,
         {
-         pid                         :: pid(),
-         monitor_ref                 :: reference(),
+         child_id :: atom(),
          module                      :: module(),
          config                      :: term(),
          view_aggregation_tab        :: ets:tid(),
@@ -93,10 +93,6 @@ start_link(Config) ->
 start_link(Provider, Config) ->
     gen_server:start_link({local, Provider}, ?MODULE, [Provider, Config], []).
 
--spec add_metric_reader(atom(), module(), term()) -> boolean().
-add_metric_reader(Provider, ReaderModule, ReaderOptions) ->
-    gen_server:call(Provider, {add_metric_reader, ReaderModule, ReaderOptions}).
-
 -spec add_view(atom(), otel_view:criteria(), otel_view:config()) -> boolean().
 add_view(Provider, Criteria, Config) ->
     add_view(Provider, undefined, Criteria, Config).
@@ -111,10 +107,16 @@ record(Provider, Instrument, Number, Attributes) ->
                                                      value=Number,
                                                      attributes=Attributes}}).
 
+view_aggregation_table_name(ChildId) ->
+    list_to_atom(atom_to_list(ChildId) ++ "_view_aggregation_tab").
+
+metrics_table_name(ChildId) ->
+    list_to_atom(atom_to_list(ChildId) ++ "_metrics_tab").
+
 force_flush(Provider) ->
     gen_server:call(Provider, force_flush).
 
-init([Name, _Config]) ->
+init([Name, Config]) ->
     Resource = otel_resource_detector:get_resource(),
 
     Meter = #meter{module=otel_meter_default,
@@ -128,9 +130,12 @@ init([Name, _Config]) ->
     TelemetryLibrary = #telemetry_library{name=LibraryName,
                                           language=LibraryLanguage,
                                           version=list_to_binary(LibraryVsn)},
+
+    Readers = add_metric_readers(Config),
+
     {ok, #state{shared_meter=Meter,
                 views=[],
-                readers=[],
+                readers=Readers,
                 telemetry_library=TelemetryLibrary,
                 resource=Resource}}.
 
@@ -144,15 +149,12 @@ handle_call({get_meter, Name, Vsn, SchemaUrl}, _From, State=#state{shared_meter=
 handle_call({get_meter, InstrumentationLibrary}, _From, State=#state{shared_meter=Meter}) ->
     {reply, {Meter#meter.module,
              Meter#meter{instrumentation_library=InstrumentationLibrary}}, State};
-handle_call({add_metric_reader, ReaderModule, ReaderConfig}, _From, State=#state{readers=Readers}) ->
-    Reader = start_reader(ReaderModule, ReaderConfig),
-    {reply, ok, State#state{readers=[Reader | Readers]}};
 handle_call({add_view, Name, Criteria, Config}, _From, State=#state{views=Views}) ->
     %% TODO: drop View if Criteria is a wildcard instrument name and View name is not undefined
     View = otel_view:new(Name, Criteria, Config),
     {reply, true, State#state{views=[View | Views]}};
 handle_call(force_flush, _From, State=#state{readers=Readers}) ->
-    [otel_metric_reader:collect(Pid) || #reader{pid=Pid} <- Readers],
+    [otel_metric_reader:collect(ChildId) || #reader{child_id=ChildId} <- Readers],
     {reply, ok, State}.
 
 handle_cast({record, Measurement}, State=#state{readers=Readers,
@@ -160,18 +162,6 @@ handle_cast({record, Measurement}, State=#state{readers=Readers,
     handle_measurement(Measurement, Readers, Views),
     {noreply, State}.
 
-handle_info({'DOWN', Ref, process, ReaderPid, _Reason}, State=#state{readers=Readers}) ->
-    case lists:search(fun(#reader{pid=Pid,
-                                  monitor_ref=MonRef}) ->
-                              Pid =:= ReaderPid andalso MonRef =:= Ref
-                      end, Readers) of
-        {value, R=#reader{module=Module,
-                          config=Config}} ->
-            Reader = start_reader(Module, Config),
-            {noreply, State#state{readers=[Reader | lists:delete(R, Readers)]}};
-        false ->
-            {noreply, State}
-    end;
 handle_info(_, State) ->
     {noreply, State}.
 
@@ -180,15 +170,31 @@ code_change(State) ->
 
 %%
 
-create_tables() ->
-    %% elements are {Instrument, [ViewAggregation]}
-    ViewAggregationTab = ets:new(view_aggregation_tab, [set,
-                                                        protected,
-                                                        {keypos, 1}]),
-    MetricsTab = ets:new(metrics_tab, [set,
-                                       public,
-                                       {keypos, 2}]),
-    {ViewAggregationTab, MetricsTab}.
+add_metric_readers(Config) ->
+    ReaderConfigs = maps:get(readers, Config, []),
+    [metric_reader(ChildId, ReaderModule, ReaderConfig) ||
+        #{id := ChildId, module := ReaderModule, config := ReaderConfig} <- ReaderConfigs].
+
+metric_reader(ChildId, ReaderModule, ReaderConfig) ->
+    ViewAggregationTableName = view_aggregation_table_name(ChildId),
+    MetricsTableName = metrics_table_name(ChildId),
+
+    ViewAggregationTable = ets:new(ViewAggregationTableName, [set, protected, named_table, {keypos, 1}]),
+    MetricsTable = ets:new(MetricsTableName, [set, public, named_table, {keypos, 2}]),
+
+    ReaderAggregationMapping = maps:merge(otel_aggregation:default_mapping(),
+                                          maps:get(default_aggregation_mapping, ReaderConfig, #{})),
+    ReaderTemporalityMapping = maps:merge(otel_aggregation:temporality_mapping(),
+                                          maps:get(default_temporality_mapping, ReaderConfig, #{})),
+
+    #reader{child_id=ChildId,
+            module=ReaderModule,
+            config=ReaderConfig,
+            view_aggregation_tab=ViewAggregationTable,
+            metrics_tab=MetricsTable,
+            default_aggregation_mapping=ReaderAggregationMapping,
+            default_temporality_mapping=ReaderTemporalityMapping}.
+
 
 %% a Measurement's Instrument is matched against Views
 %% each matched View+Reader becomes a ViewAggregation
@@ -227,31 +233,6 @@ update_aggregations(#measurement{attributes=Attributes,
                                   AggregationModule:aggregate(MetricsTab, {Name, Attributes}, Value)
                           end
               end, ViewAggregations).
-
-start_reader(ReaderModule, ReaderConfig) ->
-    {ViewAggregationTab, MetricsTab} = create_tables(),
-
-    %% TODO: using a monitor bc the original idea was readers could continue operating without
-    %% the meter server this isn't the case right now since the ets tables are owned by the meter server
-    %% unless this is changed this needs to be switched to a link
-    %% also need to be able to recover who the readers are when the meter server restarts
-    %% discovery by looking at a supervision tree could be a good idea as it would allow for added
-    %% readers to be returned to the server after a crash
-    {ok, {Pid, Mon}} = otel_metric_reader:start_monitor(otel_metric_reader,
-                                                        ReaderConfig#{view_aggregation_tab => ViewAggregationTab,
-                                                                      metrics_tab => MetricsTab}),
-    ReaderAggregationMapping = maps:merge(otel_aggregation:default_mapping(),
-                                          maps:get(default_aggregation_mapping, ReaderConfig, #{})),
-    ReaderTemporalityMapping = maps:merge(otel_aggregation:temporality_mapping(),
-                                          maps:get(default_temporality_mapping, ReaderConfig, #{})),
-    #reader{pid=Pid,
-            monitor_ref=Mon,
-            module=ReaderModule,
-            config=ReaderConfig,
-            view_aggregation_tab=ViewAggregationTab,
-            metrics_tab=MetricsTab,
-            default_aggregation_mapping=ReaderAggregationMapping,
-            default_temporality_mapping=ReaderTemporalityMapping}.
 
 %% create an aggregation for each Reader and its possibly unique aggregation/temporality
 per_reader_aggregations(Reader, Instrument, ViewAggregations) ->

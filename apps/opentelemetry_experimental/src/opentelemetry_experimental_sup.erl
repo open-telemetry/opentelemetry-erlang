@@ -25,7 +25,7 @@ init([Opts]) ->
     MetricSup = #{id => otel_metrics_sup,
                   start => {otel_metrics_sup, start_link, [Opts]},
                   restart => permanent,
-                  shutdown => 5000,
+                  shutdown => infinity,
                   type => supervisor,
                   modules => [otel_metrics_sup]},
 

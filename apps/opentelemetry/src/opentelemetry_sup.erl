@@ -69,7 +69,7 @@ init([Opts]) ->
                 start => {otel_span_sup, start_link, [Opts]},
                 type => supervisor,
                 restart => permanent,
-                shutdown => 5000,
+                shutdown => infinity,
                 modules => [otel_span_sup]},
 
     %% `TracerServer' *must* start before the `BatchProcessor'

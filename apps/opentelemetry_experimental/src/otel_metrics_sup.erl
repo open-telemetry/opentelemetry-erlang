@@ -33,12 +33,21 @@ init([Opts]) ->
                  intensity => 1,
                  period => 5},
 
+    ProviderShutdownTimeout = maps:get(meter_provider_shutdown_timeout, Opts, 5000),
+
+    MetricReaderSup = #{id => otel_metric_reader_sup,
+                        start => {otel_metric_reader_sup, start_link, [Opts]},
+                        restart => permanent,
+                        shutdown => infinity,
+                        type => supervisor,
+                        modules => [otel_metric_reader_sup]},
+
     MeterServer = #{id => otel_meter_server,
                     start => {otel_meter_server, start_link, [Opts]},
                     restart => permanent,
-                    shutdown => 5000,
+                    shutdown => ProviderShutdownTimeout,
                     type => worker,
                     modules => [otel_meter_provider, otel_meter_server]},
 
-    ChildSpecs = [MeterServer],
+    ChildSpecs = [MeterServer, MetricReaderSup],
     {ok, {SupFlags, ChildSpecs}}.

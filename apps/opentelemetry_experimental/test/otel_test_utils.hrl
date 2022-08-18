@@ -2,10 +2,15 @@
 -define(UNTIL(X), (fun Until(I) when I =:= 10 ->
                            ct:fail("timeout: UNTIL(~s)", [??X]);
                        Until(I) ->
-                           case X of
+                           try X of
                                true ->
                                    ok;
                                false ->
+                                   timer:sleep(100),
+                                   Until(I+1)
+                           catch
+                               C:T:S ->
+                                   ct:pal("exception in UNTIL(~s): ~p:~p:~p", [??X, C, T, S]),
                                    timer:sleep(100),
                                    Until(I+1)
                            end
