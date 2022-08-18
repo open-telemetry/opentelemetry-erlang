@@ -9,7 +9,8 @@
                                    timer:sleep(100),
                                    Until(I+1)
                            catch
-                               _:_ ->
+                               C:T:S ->
+                                   ct:pal("exception in UNTIL(~s): ~p:~p:~p", [??X, C, T, S]),
                                    timer:sleep(100),
                                    Until(I+1)
                            end
