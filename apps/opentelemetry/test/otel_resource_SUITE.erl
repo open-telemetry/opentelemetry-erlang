@@ -16,8 +16,46 @@ all() ->
     [startup, startup_env_service_name, os_env_resource, app_env_resource, combining,
      combining_conflicting_schemas, crash_detector, timeout_detector, release_service_name,
      unknown_service_name, release_service_name_no_version, service_instance_id_env,
-     service_instance_id_env_attributes, service_instance_id_node_id1, service_instance_id_node_id2,
-     service_instance_id_node_name].
+     service_instance_id_env_attributes, {group, net_kernel_node_name}, service_instance_id_node_id2].
+
+groups() ->
+    [{net_kernel_node_name, [], [service_instance_id_node_id1,
+                                 service_instance_id_node_name]}].
+
+init_per_suite(Config) ->
+    Config.
+
+end_per_suite(_Config) ->
+    ok.
+
+init_per_group(net_kernel_node_name, Config) ->
+    case os:getenv("CI") of
+        "true" ->
+            {skip, github_ci};
+        _ ->
+            Config
+    end;
+init_per_group(_, Config) ->
+    Config.
+
+end_per_group(_, _Config) ->
+    ok.
+
+init_per_testcase(service_instance_id_node_name, Config) ->
+    start_net_kernel_and_detector([test@instance, shortnames]),
+    Config;
+init_per_testcase(service_instance_id_node_id1, Config) ->
+    start_net_kernel_and_detector([test@localhost, shortnames]),
+    Config;
+init_per_testcase(_, Config) ->
+    Config.
+
+end_per_testcase(TestCase, _Config) when TestCase =:= service_instance_id_node_name ;
+                                         TestCase =:= service_instance_id_node_id1 ->
+    net_kernel:stop(),
+    ok;
+end_per_testcase(_, _) ->
+    ok.
 
 startup(_Config) ->
     try
@@ -237,45 +275,19 @@ service_instance_id_env_attributes(_Config) ->
     end.
 
 service_instance_id_node_name(_Config) ->
-    try
-        net_kernel:start([test@instance, shortnames]),
-        application:unload(opentelemetry),
-        application:load(opentelemetry),
-        application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
+    Resource = otel_resource_detector:get_resource(),
+    ?assertMatch(#{<<"service.instance.id">> := <<"test@instance">>,
+                   <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
 
-        otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
-                                                                   otel_resource_app_env],
-                                            resource_detector_timeout => 100}),
-
-        Resource = otel_resource_detector:get_resource(),
-        ?assertMatch(#{<<"service.instance.id">> := <<"test@instance">>,
-                       <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
-
-        ok
-    after
-        net_kernel:stop()
-    end.
+    ok.
 
 service_instance_id_node_id1(_Config) ->
-    try
-        net_kernel:start([test@localhost, shortnames]),
-        application:unload(opentelemetry),
-        application:load(opentelemetry),
-        application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
+    Resource = otel_resource_detector:get_resource(),
+    ResourceMap = otel_attributes:map(otel_resource:attributes(Resource)),
+    ?assertNotMatch(#{<<"service.instance.id">> := <<"test@localhost">>}, ResourceMap),
+    ?assert(maps:is_key(<<"service.instance.id">>, ResourceMap)),
 
-        otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
-                                                                   otel_resource_app_env],
-                                            resource_detector_timeout => 100}),
-
-        Resource = otel_resource_detector:get_resource(),
-        ResourceMap = otel_attributes:map(otel_resource:attributes(Resource)),
-        ?assertNotMatch(#{<<"service.instance.id">> := <<"test@localhost">>}, ResourceMap),
-        ?assert(maps:is_key(<<"service.instance.id">>, ResourceMap)),
-
-        ok
-    after
-        net_kernel:stop()
-    end.
+    ok.
 
 service_instance_id_node_id2(_Config) ->
     application:unload(opentelemetry),
@@ -312,3 +324,16 @@ release_service_name_no_version(_Config) ->
     after
         os:unsetenv("RELEASE_NAME")
     end.
+
+%%
+
+start_net_kernel_and_detector(NetKernelArgs) ->
+    net_kernel:start(NetKernelArgs),
+    application:unload(opentelemetry),
+    application:load(opentelemetry),
+    application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
+
+    otel_resource_detector:start_link(#{resource_detectors => [otel_resource_env_var,
+                                                               otel_resource_app_env],
+                                        resource_detector_timeout => 100}),
+    ok.
