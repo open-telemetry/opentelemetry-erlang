@@ -238,7 +238,7 @@ service_instance_id_env_attributes(_Config) ->
 
 service_instance_id_node_name(_Config) ->
     try
-        net_kernel:start([test@instance, longnames]),
+        net_kernel:start([test@instance, shortnames]),
         application:unload(opentelemetry),
         application:load(opentelemetry),
         application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
@@ -258,7 +258,7 @@ service_instance_id_node_name(_Config) ->
 
 service_instance_id_node_id1(_Config) ->
     try
-        net_kernel:start([test@localhost, longnames]),
+        net_kernel:start([test@localhost, shortnames]),
         application:unload(opentelemetry),
         application:load(opentelemetry),
         application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
