@@ -82,7 +82,7 @@ callback_mode() ->
     [handle_event_function, state_enter].
 
 handle_event(enter, _, ready, Data=#data{resource=Resource}) ->
-    NewResource = required_attributes(Resource),
+    NewResource = default_resource_attributes(Resource),
     {keep_state, Data#data{resource=NewResource}};
 handle_event(enter, _, _, _) ->
     keep_state_and_data;
@@ -157,11 +157,12 @@ spawn_detector(Detector={Module, Config}, Ref) ->
 spawn_detector(Module, Ref) ->
     spawn_detector({Module, []}, Ref).
 
-required_attributes(Resource) ->
+default_resource_attributes(Resource) ->
     ProgName = prog_name(),
     ProcessResource = otel_resource:create([{?PROCESS_EXECUTABLE_NAME, ProgName} | process_attributes()]),
     Resource1 = otel_resource:merge(ProcessResource, Resource),
-    add_service_name(Resource1, ProgName).
+    Resource2 = add_service_name(Resource1, ProgName),
+    add_service_instance(Resource2).
 
 process_attributes() ->
     OtpVsn = otp_vsn(),
@@ -235,6 +236,41 @@ add_service_name(Resource, ProgName) ->
             ServiceNameResource = otel_resource:create([{?SERVICE_NAME,
                                                          unicode:characters_to_binary(ServiceName)}]),
             otel_resource:merge(ServiceNameResource, Resource)
+    end.
+
+%% if OTEL_SERVICE_INSTANCE isn't set then check for service.name in attributes
+%% if that isn't found then try getting node.
+%% if node is nonode@nohost set a random instance id
+add_service_instance(Resource) ->
+    case os:getenv("OTEL_SERVICE_INSTANCE") of
+        false ->
+            Attributes = otel_resource:attributes(Resource),
+            case maps:is_key(?SERVICE_INSTANCE, otel_attributes:map(Attributes)) of
+                false ->
+                    case erlang:node() of
+                        nonode@nohost ->
+                            ServiceInstanceId = otel_id_generator:generate_trace_id(),
+                            ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE, ServiceInstanceId}]),
+                            otel_resource:merge(ServiceInstanceResource, Resource);
+                        ServiceInstance ->
+                            ServiceInstance1 = erlang:atom_to_binary(ServiceInstance, utf8),
+                            case binary:match(ServiceInstance1, <<"@localhost">>) of
+                                nomatch ->
+                                    ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE, ServiceInstance1}]),
+                                    otel_resource:merge(ServiceInstanceResource, Resource);
+                                Match ->
+                                    ServiceInstanceId = otel_id_generator:generate_trace_id(),
+                                    ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE, ServiceInstanceId}]),
+                                    otel_resource:merge(ServiceInstanceResource, Resource)
+                            end
+                    end;
+                true ->
+                    Resource
+            end;
+        ServiceInstance ->
+            ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE,
+                                                         unicode:characters_to_binary(ServiceInstance)}]),
+            otel_resource:merge(ServiceInstanceResource, Resource)
     end.
 
 service_release_name(ProgName) ->
