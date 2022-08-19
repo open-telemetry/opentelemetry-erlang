@@ -281,7 +281,7 @@ verify_export(Config) ->
     %% {error, no_endpoints} when attempt to export when we have more
     %% than 1 gprc test case.
     timer:sleep(500),
-    ?assertMatch(ok, opentelemetry_exporter:export(Tid, otel_resource:create([]), State)),
+    ?assertMatch(ok, opentelemetry_exporter:export(traces, Tid, otel_resource:create([]), State)),
 
     TraceId = otel_id_generator:generate_trace_id(),
     SpanId = otel_id_generator:generate_span_id(),
@@ -339,6 +339,6 @@ verify_export(Config) ->
     Resource = otel_resource_env_var:get_resource([]),
     ?assertEqual(otel_attributes:new([{<<"service.name">>,<<"my-test-service">>},
                                       {<<"service.version">>,<<"98da75ea6d38724743bf42b45565049238d86b3f">>}], 128, 255), otel_resource:attributes(Resource)),
-    ?assertMatch(ok, opentelemetry_exporter:export(Tid, Resource, State)),
+    ?assertMatch(ok, opentelemetry_exporter:export(traces, Tid, Resource, State)),
 
     ok.

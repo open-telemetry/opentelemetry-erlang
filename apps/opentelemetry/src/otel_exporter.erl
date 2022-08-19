@@ -18,7 +18,8 @@
 -module(otel_exporter).
 
 -export([init/1,
-         export/4,
+         export_traces/4,
+         export_metrics/4,
          shutdown/1,
          report_cb/1]).
 
@@ -30,10 +31,10 @@
 %% spans that have been collected so far and the configuration returned in `init'.
 %% Do whatever needs to be done to export each span here, the caller will block
 %% until it returns.
--callback export(ets:tab(), otel_resource:t(), term()) -> ok |
-                                                          success |
-                                                          failed_not_retryable |
-                                                          failed_retryable.
+-callback export(traces | metrics, ets:tab(), otel_resource:t(), term()) -> ok |
+                                                                            success |
+                                                                            failed_not_retryable |
+                                                                            failed_retryable.
 -callback shutdown(term()) -> ok.
 
 -include_lib("kernel/include/logger.hrl").
@@ -114,8 +115,11 @@ init(Exporter) when Exporter =:= none ; Exporter =:= undefined ->
 init(ExporterModule) when is_atom(ExporterModule) ->
     init({ExporterModule, []}).
 
-export(ExporterModule, SpansTid, Resource, Config) ->
-    ExporterModule:export(SpansTid, Resource, Config).
+export_traces(ExporterModule, SpansTid, Resource, Config) ->
+    ExporterModule:export(traces, SpansTid, Resource, Config).
+
+export_metrics(ExporterModule, SpansTid, Resource, Config) ->
+    ExporterModule:export(metrics, SpansTid, Resource, Config).
 
 shutdown(undefined) ->
     ok;

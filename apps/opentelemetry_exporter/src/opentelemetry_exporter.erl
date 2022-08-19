@@ -97,7 +97,7 @@
 -module(opentelemetry_exporter).
 
 -export([init/1,
-         export/3,
+         export/4,
          shutdown/1]).
 
 %% for testing
@@ -205,22 +205,22 @@ init(Opts) ->
     end.
 
 %% @doc Export OTLP protocol telemery data to the configured endpoints.
-export(_Tab, _Resource, #state{protocol=http_json}) ->
+export(traces, _Tab, _Resource, #state{protocol=http_json}) ->
     {error, unimplemented};
-export(Tab, Resource, #state{protocol=http_protobuf,
-                             headers=Headers,
-                             compression=Compression,
-                             endpoints=[#{scheme := Scheme,
-                                          host := Host,
-                                          path := Path,
-                                          port := Port,
-                                          ssl_options := SSLOptions} | _]}) ->
+export(traces, Tab, Resource, #state{protocol=http_protobuf,
+                                     headers=Headers,
+                                     compression=Compression,
+                                     endpoints=[#{scheme := Scheme,
+                                                  host := Host,
+                                                  path := Path,
+                                                  port := Port,
+                                                  ssl_options := SSLOptions} | _]}) ->
     Proto = opentelemetry_exporter_trace_service_pb:encode_msg(tab_to_proto(Tab, Resource),
                                                                export_trace_service_request),
     {NewHeaders, NewProto} = case Compression of
-      gzip -> {[{"content-encoding", "gzip"} | Headers], zlib:gzip(Proto)};
-        _ -> {Headers, Proto}
-    end,
+                                 gzip -> {[{"content-encoding", "gzip"} | Headers], zlib:gzip(Proto)};
+                                 _ -> {Headers, Proto}
+                             end,
     Address = uri_string:normalize(#{scheme => Scheme,
                                      host => Host,
                                      port => Port,
@@ -238,9 +238,9 @@ export(Tab, Resource, #state{protocol=http_protobuf,
             ?LOG_INFO("client error exporting spans ~p", [Reason]),
             error
     end;
-export(Tab, Resource, #state{protocol=grpc,
-                             grpc_metadata=Metadata,
-                             channel_pid=_ChannelPid}) ->
+export(traces, Tab, Resource, #state{protocol=grpc,
+                                     grpc_metadata=Metadata,
+                                     channel_pid=_ChannelPid}) ->
     ExportRequest = tab_to_proto(Tab, Resource),
     Ctx = grpcbox_metadata:append_to_outgoing_ctx(ctx:new(), Metadata),
     case opentelemetry_trace_service:export(Ctx, ExportRequest, #{channel => ?MODULE}) of
@@ -255,7 +255,9 @@ export(Tab, Resource, #state{protocol=grpc,
         {error, Reason} ->
             ?LOG_INFO("OTLP grpc export failed with error: ~p", [Reason]),
             error
-    end.
+    end;
+export(_, _Tab, _Resource, _State) ->
+    {error, unimplemented}.
 
 %% @doc Shutdown the exporter.
 shutdown(#state{channel_pid=undefined}) ->
