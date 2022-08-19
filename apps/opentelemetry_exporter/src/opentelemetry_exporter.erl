@@ -323,7 +323,16 @@ parse_endpoint(Endpoint=#{host := Host, scheme := Scheme, path := Path}, Default
     %% separate from port/ssl_options which should only be added if not already
     %% found in `Endpoint'
     {true, maps:merge(#{port => scheme_port(Scheme),
-                        ssl_options => update_ssl_opts(HostString, DefaultSSLOpts)},
+                        %% we only want to run `tls_certificate_check' if absolutely
+                        %% necessary, so wrapping the setup of ssl options here
+                        %% in a check that it won't just be overwritten by the value
+                        %% from the Endpoint anyway
+                        ssl_options => case maps:is_key(ssl_options, Endpoint) of
+                                           true ->
+                                               [];
+                                           false ->
+                                               update_ssl_opts(HostString, DefaultSSLOpts)
+                                       end},
                       Endpoint#{scheme => to_charlist(Scheme),
                                 host => HostString,
                                 path => unicode:characters_to_list(Path)})};
