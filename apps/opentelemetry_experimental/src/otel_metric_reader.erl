@@ -46,6 +46,7 @@
          temporality_mapping :: #{otel_instrument:kind() => otel_aggregation:temporality()},
          export_interval_ms :: integer() | undefined,
          tref :: reference() | undefined,
+         callbacks_tab :: atom(),
          view_aggregation_tab :: atom(),
          metrics_tab :: atom(),
          config :: #{}
@@ -65,6 +66,7 @@ shutdown(ReaderPid) ->
     gen_server:call(ReaderPid, shutdown).
 
 init([ChildId, Config]) ->
+    CallbacksTable = otel_meter_server:callbacks_table_name(ChildId),
     ViewAggregationTable = otel_meter_server:view_aggregation_table_name(ChildId),
     MetricsTable = otel_meter_server:metrics_table_name(ChildId),
 
@@ -89,6 +91,7 @@ init([ChildId, Config]) ->
                 temporality_mapping=Temporality,
                 export_interval_ms=ExporterIntervalMs,
                 view_aggregation_tab=ViewAggregationTable,
+                callbacks_tab=CallbacksTable,
                 metrics_tab=MetricsTable,
                 tref=TRef,
                 config=Config}}.
@@ -114,10 +117,11 @@ handle_info(collect, State=#state{exporter=undefined,
 handle_info(collect, State=#state{exporter={ExporterModule, Config},
                                   export_interval_ms=undefined,
                                   tref=undefined,
+                                  callbacks_tab=CallbacksTab,
                                   view_aggregation_tab=ViewAggregationTable,
                                   metrics_tab=MetricsTable}) ->
     %% collect from view aggregations table and then export
-    Metrics = collect_(ViewAggregationTable, MetricsTable),
+    Metrics = collect_(CallbacksTab, ViewAggregationTable, MetricsTable),
 
     ExporterModule:export(Metrics, Config),
 
@@ -125,13 +129,14 @@ handle_info(collect, State=#state{exporter={ExporterModule, Config},
 handle_info(collect, State=#state{exporter={ExporterModule, Config},
                                   export_interval_ms=ExporterIntervalMs,
                                   tref=TRef,
+                                  callbacks_tab=CallbacksTab,
                                   view_aggregation_tab=ViewAggregationTable,
                                   metrics_tab=MetricsTable}) ->
     erlang:cancel_timer(TRef, [{async, true}]),
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
 
     %% collect from view aggregations table and then export
-    Metrics = collect_(ViewAggregationTable, MetricsTable),
+    Metrics = collect_(CallbacksTab, ViewAggregationTable, MetricsTable),
 
     ExporterModule:export(Metrics, Config),
 
@@ -145,8 +150,10 @@ code_change(State) ->
 
 %%
 
-collect_(ViewAggregationTab, MetricsTab) ->
+collect_(CallbacksTab, ViewAggregationTab, MetricsTab) ->
     CollectionStartTime = erlang:system_time(nanosecond),
+
+    _ = run_callbacks(CallbacksTab),
 
     %% Need to be able to efficiently get all from VIEW_AGGREGATIONS_TAB that apply to this reader
 
@@ -176,7 +183,12 @@ collect_(ViewAggregationTab, MetricsTab) ->
                                   end, MetricsAcc, ViewAggregations)
               end, [], ViewAggregationTab).
 
-%%
+run_callbacks(CallbacksTab) ->
+    ets:foldl(fun({Callback, Instrument}, Acc) ->
+                      Callback(Instrument),
+                      Acc
+              end, ok, CallbacksTab),
+    ok.
 
 metric(Name, Description, Unit, Data) ->
     #metric{name=Name,
