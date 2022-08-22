@@ -35,8 +35,10 @@
 -behaviour(gen_server).
 
 -export([start_link/1,
+         callbacks_table_name/1,
          view_aggregation_table_name/1,
          metrics_table_name/1,
+         add_instrument/2,
          add_view/3,
          add_view/4,
          record/4,
@@ -64,6 +66,7 @@
          child_id :: atom(),
          module                      :: module(),
          config                      :: term(),
+         callbacks_tab               :: ets:tid(),
          view_aggregation_tab        :: ets:tid(),
          metrics_tab                 :: ets:tid(),
          default_aggregation_mapping :: map(),
@@ -93,6 +96,10 @@ start_link(Config) ->
 start_link(Provider, Config) ->
     gen_server:start_link({local, Provider}, ?MODULE, [Provider, Config], []).
 
+-spec add_instrument(atom(), otel_instrument:t()) -> boolean().
+add_instrument(Provider, Instrument) ->
+    gen_server:call(Provider, {add_instrument, Instrument}).
+
 -spec add_view(atom(), otel_view:criteria(), otel_view:config()) -> boolean().
 add_view(Provider, Criteria, Config) ->
     add_view(Provider, undefined, Criteria, Config).
@@ -106,6 +113,9 @@ record(Provider, Instrument, Number, Attributes) ->
     gen_server:cast(Provider, {record,  #measurement{instrument=Instrument,
                                                      value=Number,
                                                      attributes=Attributes}}).
+
+callbacks_table_name(ChildId) ->
+    list_to_atom(atom_to_list(ChildId) ++ "_callbacks_tab").
 
 view_aggregation_table_name(ChildId) ->
     list_to_atom(atom_to_list(ChildId) ++ "_view_aggregation_tab").
@@ -141,6 +151,10 @@ init([Name, Config]) ->
 
 handle_call(resource, _From, State=#state{resource=Resource}) ->
     {reply, Resource, State};
+handle_call({add_instrument, Instrument}, _From, State=#state{readers=Readers,
+                                                              views=Views}) ->
+    add_instrument_(Instrument, Views, Readers),
+    {reply, ok, State};
 handle_call({get_meter, Name, Vsn, SchemaUrl}, _From, State=#state{shared_meter=Meter}) ->
     InstrumentationLibrary = opentelemetry:instrumentation_library(Name, Vsn, SchemaUrl),
     MeterTuple = {Meter#meter.module,
@@ -170,15 +184,32 @@ code_change(State) ->
 
 %%
 
+%% Match the Instrument to views and then store a per-Reader aggregation for the View
+add_instrument_(Instrument, Views, Readers) ->
+    ViewMatches = otel_view:match_instrument_to_views(Instrument, Views),
+    lists:map(fun(Reader=#reader{callbacks_tab=CallbackTab,
+                                 view_aggregation_tab=ViewAggregationTab}) ->
+                      Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
+                      _ = ets:insert(ViewAggregationTab, {Instrument, Matches}),
+                      case Instrument#instrument.callback of
+                          undefined ->
+                              ok;
+                          Callback ->
+                              ets:insert(CallbackTab, {Callback, Instrument})
+                      end
+              end, Readers).
+
 add_metric_readers(Config) ->
     ReaderConfigs = maps:get(readers, Config, []),
     [metric_reader(ChildId, ReaderModule, ReaderConfig) ||
         #{id := ChildId, module := ReaderModule, config := ReaderConfig} <- ReaderConfigs].
 
 metric_reader(ChildId, ReaderModule, ReaderConfig) ->
+    CallbacksTableName = callbacks_table_name(ChildId),
     ViewAggregationTableName = view_aggregation_table_name(ChildId),
     MetricsTableName = metrics_table_name(ChildId),
 
+    CallbacksTable = ets:new(CallbacksTableName, [set, protected, named_table, {keypos, 1}]),
     ViewAggregationTable = ets:new(ViewAggregationTableName, [set, protected, named_table, {keypos, 1}]),
     MetricsTable = ets:new(MetricsTableName, [set, public, named_table, {keypos, 2}]),
 
@@ -190,6 +221,7 @@ metric_reader(ChildId, ReaderModule, ReaderConfig) ->
     #reader{child_id=ChildId,
             module=ReaderModule,
             config=ReaderConfig,
+            callbacks_tab=CallbacksTable,
             view_aggregation_tab=ViewAggregationTable,
             metrics_tab=MetricsTable,
             default_aggregation_mapping=ReaderAggregationMapping,
@@ -223,7 +255,7 @@ update_aggregations(#measurement{attributes=Attributes,
     lists:map(fun(#view_aggregation{name=Name,
                                     aggregation_module=AggregationModule,
                                     aggregation_options=Options}) ->
-                          case AggregationModule:aggregate(MetricsTab, {Name, Attributes}, Value) of
+                      case AggregationModule:aggregate(MetricsTab, {Name, Attributes}, Value) of
                               true ->
                                   ok;
                               false ->

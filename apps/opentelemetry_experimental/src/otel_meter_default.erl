@@ -32,8 +32,11 @@ instrument(Meter, Name, Kind, ValueType, Opts) ->
                         maps:get(unit, Opts, undefined), ValueType).
 
 instrument(Meter, Name, Kind, ValueType, Callback, Opts) ->
-    otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
-                        maps:get(unit, Opts, undefined), ValueType, Callback).
+    Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
+        otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
+                            maps:get(unit, Opts, undefined), ValueType, Callback),
+    _ = otel_meter_server:add_instrument(Provider, Instrument),
+    Instrument.
 
 %%
 

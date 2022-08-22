@@ -51,7 +51,8 @@
 
 all() ->
     [default_view, provider_test, view_creation_test, counter_add, multiple_readers,
-     explicit_histograms, cumulative_counter, kill_reader, kill_server].
+     explicit_histograms, cumulative_counter, kill_reader, kill_server,
+     observable_counter].
 
 init_per_suite(Config) ->
     application:load(opentelemetry_experimental),
@@ -472,5 +473,40 @@ kill_server(_Config) ->
     %% at this time a crashed meter server will mean losing the recorded metrics up to that point
     ?assertNotReceive(a_counter, <<"counter description">>, kb),
     ?assertReceive(z_counter, <<"counter description">>, kb, [{9, #{<<"c">> => <<"b">>}}]),
+
+    ok.
+
+observable_counter(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = a_observable_counter,
+    CounterDesc = <<"observable counter description">>,
+    CounterUnit = kb,
+    ValueType = integer,
+
+    ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => CounterName}, #{aggregation => otel_aggregation_sum})),
+
+    Counter = otel_meter:observable_counter(Meter, CounterName, ValueType,
+                                            fun(Instrument) ->
+                                                    otel_observable_counter:add(Instrument, 4, #{<<"a">> => <<"b">>})
+                                            end,
+                                            #{description => CounterDesc,
+                                              unit => CounterUnit}),
+
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = CounterName,
+                             description = CounterDesc,
+                             kind = observable_counter,
+                             value_type = ValueType,
+                             unit = CounterUnit,
+                             callback=_}, Counter),
+
+    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+
+    ?assertReceive(CounterName, <<"observable counter description">>, kb, [{4, #{<<"a">> => <<"b">>}}]),
 
     ok.
