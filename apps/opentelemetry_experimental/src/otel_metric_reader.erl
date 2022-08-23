@@ -120,10 +120,11 @@ handle_info(collect, State=#state{exporter={ExporterModule, Config},
                                   callbacks_tab=CallbacksTab,
                                   view_aggregation_tab=ViewAggregationTable,
                                   metrics_tab=MetricsTable}) ->
+    Resource = [],
     %% collect from view aggregations table and then export
     Metrics = collect_(CallbacksTab, ViewAggregationTable, MetricsTable),
 
-    ExporterModule:export(Metrics, Config),
+    otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
 
     {noreply, State};
 handle_info(collect, State=#state{exporter={ExporterModule, Config},
@@ -132,13 +133,14 @@ handle_info(collect, State=#state{exporter={ExporterModule, Config},
                                   callbacks_tab=CallbacksTab,
                                   view_aggregation_tab=ViewAggregationTable,
                                   metrics_tab=MetricsTable}) ->
+    Resource = [],
     erlang:cancel_timer(TRef, [{async, true}]),
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
 
     %% collect from view aggregations table and then export
     Metrics = collect_(CallbacksTab, ViewAggregationTable, MetricsTable),
 
-    ExporterModule:export(Metrics, Config),
+    otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
 
     {noreply, State#state{tref=NewTRef}};
 %% no tref or exporter, do nothing at all
