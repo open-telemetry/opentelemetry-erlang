@@ -20,13 +20,13 @@
 -behaviour(otel_exporter).
 
 -export([init/1,
-         export/3,
+         export/4,
          shutdown/1]).
 
 init(Pid) ->
     {ok, Pid}.
 
-export(SpansTid, _Resource, Pid) ->
+export(traces, SpansTid, _Resource, Pid) ->
     ets:foldl(fun(Span, _Acc) ->
                       Pid ! {span, Span}
               end, [], SpansTid),
