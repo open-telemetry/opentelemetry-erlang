@@ -27,11 +27,11 @@
 add(Instrument=#instrument{module=Module,
                            value_type=?VALUE_TYPE_INTEGER}, Number, Attributes)
   when is_integer(Number) andalso Number >= 0 ->
-    Module:record(Instrument, Number, Attributes);
+    Module:sync_record(Instrument, Number, Attributes);
 add(Instrument=#instrument{module=Module,
                            value_type=?VALUE_TYPE_FLOAT}, Number, Attributes)
   when is_float(Number) andalso Number >= 0 ->
-    Module:record(Instrument, Number, Attributes);
+    Module:sync_record(Instrument, Number, Attributes);
 add(#instrument{name=Name,
                 value_type=?VALUE_TYPE_INTEGER}, Number, _) ->
     ?LOG_DEBUG("Counter instrument ~p does not support adding value ~p. "
