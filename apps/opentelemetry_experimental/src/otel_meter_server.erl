@@ -42,6 +42,7 @@
          add_view/3,
          add_view/4,
          record/4,
+         sync_record/4,
          force_flush/1,
          report_cb/1]).
 
@@ -114,6 +115,12 @@ record(Provider, Instrument, Number, Attributes) ->
                                                      value=Number,
                                                      attributes=Attributes}}).
 
+-spec sync_record(atom(), otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
+sync_record(Provider, Instrument, Number, Attributes) ->
+    gen_server:call(Provider, {record,  #measurement{instrument=Instrument,
+                                                     value=Number,
+                                                     attributes=Attributes}}).
+
 callbacks_table_name(ChildId) ->
     list_to_atom(atom_to_list(ChildId) ++ "_callbacks_tab").
 
@@ -149,6 +156,10 @@ init([Name, Config]) ->
                 telemetry_library=TelemetryLibrary,
                 resource=Resource}}.
 
+handle_call({record, Measurement}, _From, State=#state{readers=Readers,
+                                                       views=Views}) ->
+    handle_measurement(Measurement, Readers, Views),
+    {reply, ok, State};
 handle_call(resource, _From, State=#state{resource=Resource}) ->
     {reply, Resource, State};
 handle_call({add_instrument, Instrument}, _From, State=#state{readers=Readers,
