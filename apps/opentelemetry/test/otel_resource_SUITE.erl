@@ -328,7 +328,7 @@ release_service_name_no_version(_Config) ->
 %%
 
 start_net_kernel_and_detector(NetKernelArgs) ->
-    net_kernel:start(NetKernelArgs),
+    ?assertMatch({ok, _}, net_kernel:start(NetKernelArgs)),
     application:unload(opentelemetry),
     application:load(opentelemetry),
     application:set_env(opentelemetry, resource, #{<<"e">> => <<"f">>}),
