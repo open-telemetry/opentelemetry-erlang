@@ -34,11 +34,11 @@ add(Instrument=#instrument{module=Module,
     Module:sync_record(Instrument, Number, Attributes);
 add(#instrument{name=Name,
                 value_type=?VALUE_TYPE_INTEGER}, Number, _) ->
-    ?LOG_DEBUG("Counter instrument ~p does not support adding value ~p. "
+    ?LOG_DEBUG("ObservableCounter instrument ~p does not support adding value ~p. "
                "The value must be a positive integer.", [Name, Number]),
     ok;
 add(#instrument{name=Name,
                 value_type=?VALUE_TYPE_FLOAT}, Number, _) ->
-    ?LOG_DEBUG("Counter instrument ~p does not support adding value ~p. "
+    ?LOG_DEBUG("ObservableCounter instrument ~p does not support adding value ~p. "
                "The value must be a positive float.", [Name, Number]),
     ok.
