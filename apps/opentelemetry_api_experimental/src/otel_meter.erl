@@ -84,7 +84,7 @@ histogram(Meter, Name, ValueType, Opts) ->
       ValueType :: otel_instrument:value_type(),
       Opts :: opts().
 observable_gauge(Meter, Name, Callback, ValueType, Opts) ->
-    instrument(Meter, Name, ?KIND_OBSERVABLE_COUNTER, Callback, ValueType, Opts).
+    instrument(Meter, Name, ?KIND_OBSERVABLE_GAUGE, Callback, ValueType, Opts).
 
 -spec updown_counter(Meter, Name, ValueType, Opts) -> otel_instrument:t() when
       Meter :: t(),
