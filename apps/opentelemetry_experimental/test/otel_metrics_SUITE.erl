@@ -10,13 +10,36 @@
 -include("otel_view.hrl").
 -include("otel_metrics.hrl").
 
--define(assertReceive(Name, Description, Unit, Datapoints),
+-define(assertSumReceive(Name, Description, Unit, Datapoints),
         (fun() ->
                  receive
                      {otel_metric, #metric{name=MetricName,
                                            description=MetricDescription,
                                            unit=MetricUnit,
                                            data=#sum{datapoints=MetricDatapoints}}}
+                       when MetricName =:= Name ->
+                         ?assertEqual(Description, MetricDescription),
+                         ?assertEqual(Unit, MetricUnit),
+                         ?assertEqual(Description, MetricDescription),
+
+                         SortedDatapoints =
+                             lists:sort([{MetricValue, MetricAttributes} ||
+                                            #datapoint{value=MetricValue,
+                                                       attributes=MetricAttributes} <- MetricDatapoints]),
+                         ?assertMatch([], lists:sort(Datapoints) -- SortedDatapoints, SortedDatapoints)
+                 after
+                     5000 ->
+                         ct:fail({metric_receive_timeout, ?LINE})
+                 end
+         end)()).
+
+-define(assertLastValueReceive(Name, Description, Unit, Datapoints),
+        (fun() ->
+                 receive
+                     {otel_metric, #metric{name=MetricName,
+                                           description=MetricDescription,
+                                           unit=MetricUnit,
+                                           data=#gauge{datapoints=MetricDatapoints}}}
                        when MetricName =:= Name ->
                          ?assertEqual(Description, MetricDescription),
                          ?assertEqual(Unit, MetricUnit),
@@ -52,7 +75,7 @@
 all() ->
     [default_view, provider_test, view_creation_test, counter_add, multiple_readers,
      explicit_histograms, cumulative_counter, kill_reader, kill_server,
-     observable_counter, observable_updown_counter].
+     observable_counter, observable_updown_counter, observable_gauge].
 
 init_per_suite(Config) ->
     application:load(opentelemetry_experimental),
@@ -140,7 +163,7 @@ default_view(_Config) ->
 
     otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
 
-    ?assertReceive(z_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(z_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
 
     ok.
 
@@ -186,13 +209,13 @@ provider_test(_Config) ->
 
     otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
 
-    ?assertReceive(a_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
-    ?assertReceive(view_c, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(view_c, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
 
     %% sum agg is default delta temporality so counter will reset
     ?assertEqual(ok, otel_counter:add(Counter, 7, #{<<"c">> => <<"b">>})),
     otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
-    ?assertReceive(a_counter, <<"counter description">>, kb, [{7, #{<<"c">> => <<"b">>}},
+    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{7, #{<<"c">> => <<"b">>}},
                                                               {0, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>}}]),
 
     ok.
@@ -284,9 +307,9 @@ multiple_readers(_Config) ->
 
     %% 2nd reader has counter set to drop so only 1 of b_counter is expected bc it does
     %% not set an aggregation in the view definition
-    ?assertReceive(a_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
-    ?assertReceive(a_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
-    ?assertReceive(b_counter, <<"counter description">>, kb, [{2, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(b_counter, <<"counter description">>, kb, [{2, #{<<"c">> => <<"b">>}}]),
     ?assertNotReceive(b_counter, <<"counter description">>, kb),
 
     ok.
@@ -374,7 +397,7 @@ cumulative_counter(_Config) ->
 
     otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
 
-    ?assertReceive(a_counter, <<"counter description">>, kb, [{6, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{6, #{<<"c">> => <<"b">>}}]),
 
     ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
@@ -382,7 +405,7 @@ cumulative_counter(_Config) ->
 
     otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
 
-    ?assertReceive(a_counter, <<"counter description">>, kb, [{18, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{18, #{<<"c">> => <<"b">>}}]),
 
     ok.
 
@@ -425,7 +448,7 @@ kill_reader(Config) ->
 
     otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
 
-    ?assertReceive(z_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(z_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
 
     ok.
 
@@ -472,7 +495,7 @@ kill_server(_Config) ->
 
     %% at this time a crashed meter server will mean losing the recorded metrics up to that point
     ?assertNotReceive(a_counter, <<"counter description">>, kb),
-    ?assertReceive(z_counter, <<"counter description">>, kb, [{9, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(z_counter, <<"counter description">>, kb, [{9, #{<<"c">> => <<"b">>}}]),
 
     ok.
 
@@ -507,7 +530,7 @@ observable_counter(_Config) ->
 
     otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
 
-    ?assertReceive(CounterName, <<"observable counter description">>, kb, [{4, #{<<"a">> => <<"b">>}}]),
+    ?assertSumReceive(CounterName, <<"observable counter description">>, kb, [{4, #{<<"a">> => <<"b">>}}]),
 
     ok.
 
@@ -517,8 +540,8 @@ observable_updown_counter(_Config) ->
     Meter = opentelemetry_experimental:get_meter(),
     ?assertMatch({DefaultMeter, _}, Meter),
 
-    CounterName = a_observable_counter,
-    CounterDesc = <<"observable counter description">>,
+    CounterName = a_observable_updown_counter,
+    CounterDesc = <<"observable updown counter description">>,
     CounterUnit = kb,
     ValueType = integer,
 
@@ -535,13 +558,50 @@ observable_updown_counter(_Config) ->
                              module = DefaultMeter,
                              name = CounterName,
                              description = CounterDesc,
-                             kind = observable_counter,
+                             kind = observable_updown_counter,
                              value_type = ValueType,
                              unit = CounterUnit,
                              callback=_}, Counter),
 
     otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
 
-    ?assertReceive(CounterName, <<"observable counter description">>, kb, [{5, #{<<"a">> => <<"b">>}}]),
+    ?assertLastValueReceive(CounterName, <<"observable updown counter description">>, kb, [{5, #{<<"a">> => <<"b">>}}]),
+
+    ok.
+
+observable_gauge(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = a_observable_gauge,
+    CounterDesc = <<"observable gauge description">>,
+    CounterUnit = kb,
+    ValueType = integer,
+
+    ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => CounterName}, #{aggregation => otel_aggregation_last_value})),
+
+    Counter = otel_meter:observable_gauge(Meter, CounterName, ValueType,
+                                            fun(Instrument) ->
+                                                    otel_observable_gauge:observe(Instrument,
+                                                                                  5,
+                                                                                  #{<<"a">> => <<"b">>})
+                                            end,
+                                            #{description => CounterDesc,
+                                              unit => CounterUnit}),
+
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = CounterName,
+                             description = CounterDesc,
+                             kind = observable_gauge,
+                             value_type = ValueType,
+                             unit = CounterUnit,
+                             callback=_}, Counter),
+
+    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+
+    ?assertLastValueReceive(CounterName, CounterDesc, CounterUnit, [{5, #{<<"a">> => <<"b">>}}]),
 
     ok.

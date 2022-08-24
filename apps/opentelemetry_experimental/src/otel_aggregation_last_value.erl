@@ -59,14 +59,14 @@ collect(Tab, Name, _, CollectionStartTime) ->
                [{'==', Name, {element, 1, {element, 2, '$1'}}}],
                ['$1']}],
     AttributesAggregation = ets:select(Tab, Select),
-    [datapoint(CollectionStartTime, SumAgg) || SumAgg <- AttributesAggregation].
+    [datapoint(CollectionStartTime, LastValueAgg) || LastValueAgg <- AttributesAggregation].
 
 %%
 
 datapoint(CollectionStartNano, #last_value_aggregation{key={_, Attributes},
-                                                       value=Value})  ->
+                                                       checkpoint=Checkpoint}) ->
     #datapoint{attributes=Attributes,
                time_unix_nano=CollectionStartNano,
-               value=Value,
+               value=Checkpoint,
                exemplars=[],
                flags=0}.
