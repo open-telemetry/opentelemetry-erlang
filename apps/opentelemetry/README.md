@@ -79,7 +79,11 @@ undefined, but everything will continue to work as before.
 
 ### Samplers
 
-Sampling is a mechanism to control the number of traces collected and sent to the backend. A Sampler is responsible for making a decision on whether to sample a trace or not. There are several [built-in samplers](https://opentelemetry.io/docs/reference/specification/trace/sdk/#built-in-samplers) available, and it's possible to create custom samplers.
+Sampling is a mechanism to control the number of traces collected and sent to the backend. A [Sampler](https://opentelemetry.io/docs/reference/specification/trace/sdk/#sampler) is responsible for making a decision on whether to sample a trace or not.
+
+This decision happens when starting a span. For this reason, only the initial attributes passed to `with_span` or `start_span` are available to the Sampler. Attributes added within `with_span` or between `start_span` and `end_span` calls don't affect the outcome as the decision to sample or not has already been made.
+
+There are several [built-in samplers](https://opentelemetry.io/docs/reference/specification/trace/sdk/#built-in-samplers) available, and it's possible to create custom samplers.
 
 | OS                             | Application              | Default   | Type    |
 |:-------------------------------|:-------------------------|:----------|:--------|
