@@ -29,7 +29,7 @@
                 ?KIND_OBSERVABLE_GAUGE | ?KIND_UPDOWN_COUNTER | ?KIND_OBSERVABLE_UPDOWNCOUNTER.
 -type unit() :: atom(). %% latin1, maximum length of 63 characters
 -type value_type() :: ?VALUE_TYPE_INTEGER | ?VALUE_TYPE_FLOAT.
--type callback() :: fun().
+-type callback() :: fun(([t()]) -> ok).
 
 -type t() :: #instrument{}.
 
