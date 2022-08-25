@@ -25,6 +25,8 @@
          updown_counter/4,
          observable_updowncounter/5,
 
+         register_callback/3,
+
          instrument/5,
          instrument/6]).
 
@@ -43,6 +45,11 @@
       ValueType :: otel_instrument:value_type(),
       Callback :: otel_instrument:callback(),
       Opts :: otel_meter:opts().
+
+-callback register_callback(Meter, Instruments, Callback) -> ok when
+      Meter :: t(),
+      Instruments :: otel_instrument:t(),
+      Callback :: otel_instrument:callback().
 
 -type opts() :: #{description => otel_instrument:description(),
                   unit => otel_instrument:unit()}.
@@ -101,7 +108,7 @@ updown_counter(Meter, Name, ValueType, Opts) ->
       ValueType :: otel_instrument:value_type(),
       Opts :: opts().
 observable_updowncounter(Meter, Name, Callback, ValueType, Opts) ->
-    instrument(Meter, Name, ?KIND_OBSERVABLE_COUNTER, Callback, ValueType, Opts).
+    instrument(Meter, Name, ?KIND_OBSERVABLE_UPDOWNCOUNTER, Callback, ValueType, Opts).
 
 -spec instrument(Meter, Name, Kind, ValueType, Opts) -> otel_instrument:t() when
       Meter :: t(),
@@ -121,3 +128,10 @@ instrument(Meter={Module, _}, Name, Kind, ValueType, Opts) ->
       Opts :: opts().
 instrument(Meter={Module, _}, Name, Kind, ValueType, Callback, Opts) ->
     Module:instrument(Meter, Name, Kind, ValueType, Callback, Opts).
+
+-spec register_callback(Meter, Instruments, Callback) -> ok when
+      Meter :: t(),
+      Instruments :: [otel_instrument:t()],
+      Callback :: otel_instrument:callback().
+register_callback(Meter={Module, _}, Instruments, Callback) ->
+    Module:register_callback(Meter, Instruments, Callback).

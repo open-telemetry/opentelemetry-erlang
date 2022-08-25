@@ -39,6 +39,7 @@
          view_aggregation_table_name/1,
          metrics_table_name/1,
          add_instrument/2,
+         register_callback/3,
          add_view/3,
          add_view/4,
          record/4,
@@ -100,6 +101,10 @@ start_link(Provider, Config) ->
 -spec add_instrument(atom(), otel_instrument:t()) -> boolean().
 add_instrument(Provider, Instrument) ->
     gen_server:call(Provider, {add_instrument, Instrument}).
+
+-spec register_callback(atom(), [otel_instrument:t()], otel_instrument:callback()) -> boolean().
+register_callback(Provider, Instruments, Callback) ->
+    gen_server:call(Provider, {register_callback, Instruments, Callback}).
 
 -spec add_view(atom(), otel_view:criteria(), otel_view:config()) -> boolean().
 add_view(Provider, Criteria, Config) ->
@@ -164,7 +169,11 @@ handle_call(resource, _From, State=#state{resource=Resource}) ->
     {reply, Resource, State};
 handle_call({add_instrument, Instrument}, _From, State=#state{readers=Readers,
                                                               views=Views}) ->
-    add_instrument_(Instrument, Views, Readers),
+    _ = add_instrument_(Instrument, Views, Readers),
+    {reply, ok, State};
+handle_call({register_callback, Instruments, Callback}, _From, State=#state{readers=Readers,
+                                                                            views=Views}) ->
+    _ = register_callback_(Instruments, Callback, Views, Readers),
     {reply, ok, State};
 handle_call({get_meter, Name, Vsn, SchemaUrl}, _From, State=#state{shared_meter=Meter}) ->
     InstrumentationLibrary = opentelemetry:instrumentation_library(Name, Vsn, SchemaUrl),
@@ -209,6 +218,18 @@ add_instrument_(Instrument, Views, Readers) ->
                               ets:insert(CallbackTab, {Callback, Instrument})
                       end
               end, Readers).
+
+%% Match the Instrument to views and then store a per-Reader aggregation for the View
+register_callback_(Instruments, Callback, Views, Readers) ->
+    lists:map(fun(Instrument) ->
+                      ViewMatches = otel_view:match_instrument_to_views(Instrument, Views),
+                      lists:map(fun(Reader=#reader{callbacks_tab=CallbackTab,
+                                                   view_aggregation_tab=ViewAggregationTab}) ->
+                                        Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
+                                        _ = ets:insert(ViewAggregationTab, {Instrument, Matches}),
+                                        ets:insert(CallbackTab, {Callback, Instruments})
+                                end, Readers)
+              end, Instruments).
 
 add_metric_readers(Config) ->
     ReaderConfigs = maps:get(readers, Config, []),
