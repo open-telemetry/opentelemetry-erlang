@@ -411,7 +411,8 @@ merge_with_environment(Opts) ->
                otlp_protocol => undefined,
                otlp_traces_protocol => undefined,
                otlp_compression => undefined,
-               otlp_traces_compression => undefined},
+               otlp_traces_compression => undefined,
+               ssl_options => undefined},
 
     AppEnv = application:get_all_env(opentelemetry_exporter),
     AppOpts = otel_configuration:merge_list_with_environment(config_mapping(), AppEnv, Config),
@@ -427,7 +428,9 @@ merge_with_environment(Opts) ->
     Opts6 = update_opts(otlp_traces_protocol, protocol, http_protobuf, AppOpts, Opts5),
 
     Opts7 = update_opts(otlp_compression, compression, undefined, AppOpts, Opts6),
-    update_opts(otlp_traces_compression, compression, undefined, AppOpts, Opts7).
+    Opts8 = update_opts(otlp_traces_compression, compression, undefined, AppOpts, Opts7),
+
+    update_opts(ssl_options, ssl_options, undefined, AppOpts, Opts8).
 
 maybe_to_list(E) when is_list(E) ->
     case io_lib:printable_list(E) of
@@ -493,7 +496,7 @@ config_mapping() ->
      %% {"OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", exporter_otlp_metrics_protocol, string}
 
      {"OTEL_EXPORTER_OTLP_COMPRESSION", otlp_compression, existing_atom},
-     {"OTEL_EXPORTER_OTLP_TRACES_COMPRESSION", otlp_traces_compression, existing_atom}
+     {"OTEL_EXPORTER_OTLP_TRACES_COMPRESSION", otlp_traces_compression, existing_atom},
      %% {"OTEL_EXPORTER_OTLP_METRICS_COMPRESSION", otlp_metrics_compression, existing_atom}
 
      %% {"OTEL_EXPORTER_OTLP_CERTIFICATE", otlp_certificate, path},
@@ -503,6 +506,8 @@ config_mapping() ->
      %% {"OTEL_EXPORTER_OTLP_TIMEOUT", otlp_timeout, integer},
      %% {"OTEL_EXPORTER_OTLP_TRACES_TIMEOUT", otlp_traces_timeout, integer},
      %% {"OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", otlp_metrics_timeout, integer}
+
+     {"OTEL_EXPORTER_SSL_OPTIONS", ssl_options, key_value_list}
     ].
 
 tab_to_proto(Tab, Resource) ->

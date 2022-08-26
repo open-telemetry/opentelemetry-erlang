@@ -75,6 +75,42 @@ configuration(_Config) ->
                               port := 9090, path := "/v1/traces", ssl_options := [{verify, verify_none}]}]},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, [{verify, verify_none}]}]})),
 
+        application:set_env(opentelemetry_exporter, ssl_options, [{cacertfile, "/etc/ssl/other.pem"}]),
+        ?assertMatch(#{endpoints := [#{host := "localhost", path := "/v1/traces", port := 4318,
+                                       scheme := "http"}], ssl_options := [{cacertfile, "/etc/ssl/other.pem"}]},
+                     opentelemetry_exporter:merge_with_environment(#{})),
+
+        ?assertMatch(#{endpoints :=
+                           [#{scheme := "http", host := "localhost",
+                              port := 9090, path := "/v1/traces", ssl_options := []}],
+                       ssl_options := [{cacertfile, "/etc/ssl/other.pem"}]},
+                     opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}], ssl_options => [{cacertfile, "/etc/ssl/cert.pem"}]})),
+
+        ?assertMatch(#{endpoints :=
+                           [#{scheme := "http", host := "localhost",
+                              port := 9090, path := "/v1/traces", ssl_options := [{cacertfile, "/etc/ssl/cert.pem"}]}],
+                       ssl_options := [{cacertfile, "/etc/ssl/other.pem"}]},
+                     opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, [{cacertfile, "/etc/ssl/cert.pem"}]}]})),
+
+        ?assertMatch(#{endpoints :=
+                           [#{scheme := "http", host := "localhost",
+                              port := 9090, path := "/v1/traces", ssl_options := [{verify, verify_none}]}],
+                       ssl_options := [{cacertfile, "/etc/ssl/other.pem"}]},
+                     opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, [{verify, verify_none}]}]})),
+
+        ?assertMatch([#{scheme := "http", host := "localhost", port := 4318, path := "/v1/traces", ssl_options := [{cacertfile, "/etc/ssl/cert.pem"}]}],
+                     opentelemetry_exporter:endpoints(
+                       [#{host => "localhost", path => "/v1/traces", port => 4318, scheme => "http"}],
+                       [{cacertfile, "/etc/ssl/cert.pem"}]
+                      )),
+
+        ?assertMatch([#{scheme := "http", host := "localhost", port := 4318, path := "/v1/traces", ssl_options := [{verify, verify_none}]}],
+                     opentelemetry_exporter:endpoints(
+                       [#{host => "localhost", path => "/v1/traces", port => 4318, scheme => "http", ssl_options => [{verify, verify_none}]}],
+                       []
+                      )),
+        application:unset_env(opentelemetry_exporter, ssl_options),
+
         ?assertMatch([#{scheme := "http", host := "localhost", port := 443, path := [], ssl_options := [{cacertfile, "/etc/ssl/cert.pem"}]}],
                      opentelemetry_exporter:endpoints(["http://localhost:443"], [{cacertfile, "/etc/ssl/cert.pem"}])),
 
@@ -126,7 +162,8 @@ configuration(_Config) ->
                               scheme => "http"}],
                        headers => [{"key1", "value1"}],
                        compression => undefined,
-                       protocol => http_protobuf},
+                       protocol => http_protobuf,
+                       ssl_options => undefined},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => []})),
 
         os:putenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4343/internal"),
@@ -136,7 +173,8 @@ configuration(_Config) ->
                               scheme => "http"}],
                        headers => [{"key1", "value1"}],
                        compression => undefined,
-                       protocol => http_protobuf},
+                       protocol => http_protobuf,
+                       ssl_options => undefined},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => []})),
 
         %% TRACES_ENDPOINT takes precedence
@@ -147,7 +185,8 @@ configuration(_Config) ->
                               scheme => "http"}],
                        headers => [{"key2", "value2"}],
                        compression => undefined,
-                       protocol => http_protobuf},
+                       protocol => http_protobuf,
+                       ssl_options => undefined},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => []})),
 
         os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
