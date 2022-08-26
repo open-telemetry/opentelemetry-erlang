@@ -138,6 +138,9 @@ configuration(_Config) ->
                                        scheme := "http"}]},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}]})),
 
+        application:set_env(opentelemetry_exporter, otlp_endpoint, "\"http://withextraquotes.com:5353\""),
+        ?assertMatch(#{endpoints := []}, opentelemetry_exporter:merge_with_environment(#{})),
+
         %% test that the os env and app env give the same configuration
         application:set_env(opentelemetry_exporter, otlp_endpoint, <<"http://localhost:4317">>),
         application:set_env(opentelemetry_exporter, otlp_protocol, grpc),
