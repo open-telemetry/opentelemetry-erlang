@@ -341,7 +341,7 @@ parse_endpoint(Endpoint=#{host := Host, scheme := Scheme, path := Path}, Default
 parse_endpoint(String, DefaultSSLOpts) when is_list(String) orelse is_binary(String) ->
     case uri_string:parse(unicode:characters_to_list(String)) of
         {error, Reason, Message} ->
-            ?LOG_ERROR("error parsing endpoint URI: ~s : ~p", [Reason, Message]),
+            ?LOG_WARNING("error parsing endpoint URI: ~s : ~p", [Reason, Message]),
             false;
         ParsedUri ->
             ParsedUri1 = maybe_add_scheme_port(ParsedUri),
@@ -426,7 +426,7 @@ merge_with_environment(Opts) ->
     %% check for error in app env value parsing
     case maps:get(otlp_endpoint, AppOpts) of
         {error, Reason, Message} ->
-            ?LOG_ERROR("error parsing endpoint URI: ~s : ~p", [Reason, Message]),
+            ?LOG_WARNING("error parsing endpoint URI: ~s : ~p", [Reason, Message]),
             maps:put(endpoints, [], Opts);
 
         _ ->

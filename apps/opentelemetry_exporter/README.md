@@ -23,6 +23,7 @@ Available configuration keys:
 - `otlp_traces_protocol`: The transport protocol to use for exporting traces, supported values: `grpc` and `http_protobuf`. Defaults to `http_protobuf`.
 - `otlp_compression`: Compression type to use, supported values: `gzip`. Defaults to no compression.
 - `otlp_traces_compression`: Compression type to use for exporting traces, supported values: `gzip`. Defaults to no compression.
+- `ssl_options`: See [below](#ssl-options).
 
 ```erlang
 {opentelemetry_exporter,
@@ -53,7 +54,25 @@ package also provides the [CA certificates from Mozilla](https://curl.se/docs/ca
 
 The user can override these options either as part of the endpoint or for all
 endpoints used by the exporter with the Application environment variable
-`ssl_options`
+`ssl_options`:
+
+```erlang
+%% mTLS example
+SSLOptions = [{cert, "..."}, {key, "..."}] ++ tls_certificate_check:options("example.com"),
+
+{opentelemetry_exporter,
+  [{otlp_endpoint, "https://example.com:4318"},
+   {ssl_options, SSLOptions}]}
+```
+
+```elixir
+# mTLS example
+ssl_options = [cert: "...", key: "..."] ++ :tls_certificate_check.options("example.com")
+
+config :opentelemetry_exporter,
+  otlp_endpoint: "https://example.com:4318",
+  ssl_options: ssl_options
+```
 
 See [secure coding with
 inets](https://erlef.github.io/security-wg/secure_coding_and_deployment_hardening/inets)
