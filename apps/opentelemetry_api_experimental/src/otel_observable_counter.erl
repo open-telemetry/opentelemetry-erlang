@@ -18,27 +18,4 @@
 %%%-------------------------------------------------------------------------
 -module(otel_observable_counter).
 
--export([add/3]).
-
--include("otel_metrics.hrl").
--include_lib("kernel/include/logger.hrl").
-
--spec add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-add(Instrument=#instrument{module=Module,
-                           value_type=?VALUE_TYPE_INTEGER}, Number, Attributes)
-  when is_integer(Number) andalso Number >= 0 ->
-    Module:sync_record(Instrument, Number, Attributes);
-add(Instrument=#instrument{module=Module,
-                           value_type=?VALUE_TYPE_FLOAT}, Number, Attributes)
-  when is_float(Number) andalso Number >= 0 ->
-    Module:sync_record(Instrument, Number, Attributes);
-add(#instrument{name=Name,
-                value_type=?VALUE_TYPE_INTEGER}, Number, _) ->
-    ?LOG_DEBUG("ObservableCounter instrument ~p does not support adding value ~p. "
-               "The value must be a positive integer.", [Name, Number]),
-    ok;
-add(#instrument{name=Name,
-                value_type=?VALUE_TYPE_FLOAT}, Number, _) ->
-    ?LOG_DEBUG("ObservableCounter instrument ~p does not support adding value ~p. "
-               "The value must be a positive float.", [Name, Number]),
-    ok.
+-export([]).

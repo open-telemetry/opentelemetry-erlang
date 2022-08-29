@@ -214,8 +214,10 @@ add_instrument_(Instrument, Views, Readers) ->
                       case Instrument#instrument.callback of
                           undefined ->
                               ok;
+                          {Callback, CallbackArgs} ->
+                              ets:insert(CallbackTab, {Callback, CallbackArgs, [Instrument]});
                           Callback ->
-                              ets:insert(CallbackTab, {Callback, Instrument})
+                              ets:insert(CallbackTab, {Callback, [], [Instrument]})
                       end
               end, Readers).
 
@@ -227,7 +229,7 @@ register_callback_(Instruments, Callback, Views, Readers) ->
                                                    view_aggregation_tab=ViewAggregationTab}) ->
                                         Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
                                         _ = ets:insert(ViewAggregationTab, {Instrument, Matches}),
-                                        ets:insert(CallbackTab, {Callback, Instruments})
+                                        ets:insert(CallbackTab, {Callback, [], Instruments})
                                 end, Readers)
               end, Instruments).
 

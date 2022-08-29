@@ -155,7 +155,9 @@ code_change(State) ->
 collect_(CallbacksTab, ViewAggregationTab, MetricsTab) ->
     CollectionStartTime = erlang:system_time(nanosecond),
 
-    _ = run_callbacks(CallbacksTab),
+    Results = run_callbacks(CallbacksTab),
+    %% take the results of running each callback and aggregate the values
+    _ = handle_callback_results(Results, ViewAggregationTab, MetricsTab),
 
     %% Need to be able to efficiently get all from VIEW_AGGREGATIONS_TAB that apply to this reader
 
@@ -168,29 +170,80 @@ collect_(CallbacksTab, ViewAggregationTab, MetricsTab) ->
 
     ets:foldl(fun({#instrument{value_type=ValueType,
                                unit=Unit}, ViewAggregations}, MetricsAcc) ->
-                      lists:foldl(fun(#view_aggregation{aggregation_module=otel_aggregation_drop}, Acc) ->
-                                          Acc;
-                                     (#view_aggregation{name=Name,
-                                                        aggregation_module=AggregationModule,
-                                                        description=Description,
-                                                        temporality=Temporality,
-                                                        is_monotonic=IsMonotonic
-                                                        }, Acc) ->
-                                          AggregationModule:checkpoint(MetricsTab, Name, Temporality,
-                                                                       ValueType, CollectionStartTime),
-                                          Data = data(AggregationModule, Name, Temporality, IsMonotonic,
-                                                      CollectionStartTime, MetricsTab),
-
-                                          [metric(Name, Description, Unit, Data) | Acc]
-                                  end, MetricsAcc, ViewAggregations)
+                      checkpoint_metrics(MetricsTab, ValueType, Unit, CollectionStartTime, ViewAggregations)
+                          ++ MetricsAcc
               end, [], ViewAggregationTab).
 
+%% call each callback and associate the result with the Instruments it observes
 run_callbacks(CallbacksTab) ->
-    ets:foldl(fun({Callback, Instrument}, Acc) ->
-                      Callback(Instrument),
-                      Acc
-              end, ok, CallbacksTab),
-    ok.
+    ets:foldl(fun({Callback, CallbackArgs, Instruments}, Acc) ->
+                      [{Instruments, Callback(CallbackArgs)} | Acc]
+              end, [], CallbacksTab).
+
+handle_callback_results(Results, ViewAggregationTab, MetricsTab) ->
+    lists:foldl(fun({Instruments, Result}, Acc) when is_tuple(Result) ->
+                        handle_instrument_observation(Result,
+                                                      Instruments,
+                                                      ViewAggregationTab, MetricsTab) ++ Acc;
+                   ({Instruments, Result}, Acc) when is_list(Result) ->
+                        [handle_instrument_observation(R,
+                                                        Instruments,
+                                                        ViewAggregationTab, MetricsTab) || R <- Result] ++ Acc;
+                   (_, Acc) ->
+                        ?LOG_DEBUG("Return of metric callback must be a tuple or a list"),
+                        Acc
+                end, [], Results).
+
+%% single instrument callbacks return a 2-tuple of {number(), opentelemetry:attributes_map()}
+handle_instrument_observation({Number, Attributes}, [Instrument],
+                              ViewAggregationTab, MetricsTab)
+  when is_number(Number) ->
+    try ets:lookup_element(ViewAggregationTab, Instrument, 2) of
+        ViewAggregations ->
+            [AggregationModule:aggregate(MetricsTab, {Name, Attributes}, Number) || #view_aggregation{name=Name, aggregation_module=AggregationModule} <- ViewAggregations]
+    catch
+        exit:badarg ->
+            %% no Views for this Instrument, so nothing to do
+            []
+    end;
+%% multi-instrument callbacks return a 3-tuple of {otel_instrument:name(), number(), opentelemetry:attributes_map()}
+handle_instrument_observation({InstrumentName, Number, Attributes}, Instruments, ViewAggregationTab, MetricsTab)
+  when is_atom(InstrumentName), is_number(Number) ->
+    case lists:keyfind(InstrumentName, #instrument.name, Instruments) of
+        false ->
+            ?LOG_DEBUG("Unknown Instrument ~p used in metric callback", [InstrumentName]),
+            [];
+        Instrument ->
+            try ets:lookup_element(ViewAggregationTab, Instrument, 2) of
+                ViewAggregations ->
+                    [AggregationModule:aggregate(MetricsTab, {Name, Attributes}, Number) ||
+                        #view_aggregation{name=Name, aggregation_module=AggregationModule} <- ViewAggregations]
+            catch
+                exit:badarg ->
+                    %% no Views for this Instrument, so nothing to do
+                    []
+            end
+    end;
+handle_instrument_observation(_, _, _, _) ->
+    ?LOG_DEBUG("Metric callback return must be of type {number(), map()} or {atom(), number(), map()}", []),
+    [].
+
+checkpoint_metrics(MetricsTab, ValueType, Unit, CollectionStartTime, ViewAggregations) ->
+    lists:foldl(fun(#view_aggregation{aggregation_module=otel_aggregation_drop}, Acc) ->
+                        Acc;
+                   (#view_aggregation{name=Name,
+                                      aggregation_module=AggregationModule,
+                                      description=Description,
+                                      temporality=Temporality,
+                                      is_monotonic=IsMonotonic
+                                     }, Acc) ->
+                        AggregationModule:checkpoint(MetricsTab, Name, Temporality,
+                                                     ValueType, CollectionStartTime),
+                        Data = data(AggregationModule, Name, Temporality, IsMonotonic,
+                                    CollectionStartTime, MetricsTab),
+
+                        [metric(Name, Description, Unit, Data) | Acc]
+                end, [], ViewAggregations).
 
 metric(Name, Description, Unit, Data) ->
     #metric{name=Name,

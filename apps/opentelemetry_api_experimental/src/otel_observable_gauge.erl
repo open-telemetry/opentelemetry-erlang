@@ -25,27 +25,4 @@
 %%%-------------------------------------------------------------------------
 -module(otel_observable_gauge).
 
--export([observe/3]).
-
--include("otel_metrics.hrl").
--include_lib("kernel/include/logger.hrl").
-
--spec observe(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-observe(Instrument=#instrument{module=Module,
-                               value_type=?VALUE_TYPE_INTEGER}, Number, Attributes)
-  when is_integer(Number) ->
-    Module:sync_record(Instrument, Number, Attributes);
-observe(Instrument=#instrument{module=Module,
-                               value_type=?VALUE_TYPE_FLOAT}, Number, Attributes)
-  when is_float(Number) ->
-    Module:sync_record(Instrument, Number, Attributes);
-observe(#instrument{name=Name,
-                    value_type=?VALUE_TYPE_INTEGER}, Number, _) ->
-    ?LOG_DEBUG("ObservableGauge instrument ~p does not support observeing value ~p. "
-               "The value must be an integer.", [Name, Number]),
-    ok;
-observe(#instrument{name=Name,
-                    value_type=?VALUE_TYPE_FLOAT}, Number, _) ->
-    ?LOG_DEBUG("ObservableGauge instrument ~p does not support adding value ~p. "
-               "The value must be a float.", [Name, Number]),
-    ok.
+-export([]).

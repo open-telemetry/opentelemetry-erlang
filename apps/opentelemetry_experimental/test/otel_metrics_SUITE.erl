@@ -514,8 +514,9 @@ observable_counter(_Config) ->
     ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => CounterName}, #{aggregation => otel_aggregation_sum})),
 
     Counter = otel_meter:observable_counter(Meter, CounterName, ValueType,
-                                            fun(Instrument) ->
-                                                    otel_observable_counter:add(Instrument, 4, #{<<"a">> => <<"b">>})
+                                            fun(_Args) ->
+                                                    MeasurementAttributes = #{<<"a">> => <<"b">>},
+                                                    {4, MeasurementAttributes}
                                             end,
                                             #{description => CounterDesc,
                                               unit => CounterUnit}),
@@ -549,8 +550,9 @@ observable_updown_counter(_Config) ->
     ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => CounterName}, #{aggregation => otel_aggregation_sum})),
 
     Counter = otel_meter:observable_updowncounter(Meter, CounterName, ValueType,
-                                            fun(Instrument) ->
-                                                    otel_observable_updowncounter:add(Instrument, 5, #{<<"a">> => <<"b">>})
+                                            fun(_) ->
+                                                    MeasurementAttributes = #{<<"a">> => <<"b">>},
+                                                    {5, MeasurementAttributes}
                                             end,
                                             #{description => CounterDesc,
                                               unit => CounterUnit}),
@@ -584,10 +586,8 @@ observable_gauge(_Config) ->
     ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => CounterName}, #{aggregation => otel_aggregation_last_value})),
 
     Counter = otel_meter:observable_gauge(Meter, CounterName, ValueType,
-                                            fun(Instrument) ->
-                                                    otel_observable_gauge:observe(Instrument,
-                                                                                  5,
-                                                                                  #{<<"a">> => <<"b">>})
+                                            fun(_) ->
+                                                    {5, #{<<"a">> => <<"b">>}}
                                             end,
                                             #{description => CounterDesc,
                                               unit => CounterUnit}),
@@ -636,13 +636,9 @@ multi_instrument_callback(_Config) ->
 
 
     otel_meter:register_callback(Meter, [Counter, Gauge],
-                                 fun([CounterInstrument, GaugeInstrument]) ->
-                                         otel_observable_counter:add(CounterInstrument,
-                                                                     4,
-                                                                     #{<<"a">> => <<"b">>}),
-                                         otel_observable_gauge:observe(GaugeInstrument,
-                                                                       5,
-                                                                       #{<<"a">> => <<"b">>})
+                                 fun(_) ->
+                                         [{CounterName, 4, #{<<"a">> => <<"b">>}},
+                                          {GaugeName, 5, #{<<"a">> => <<"b">>}}]
                                  end),
 
     otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),

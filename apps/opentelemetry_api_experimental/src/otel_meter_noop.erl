@@ -19,7 +19,8 @@
 
 -behaviour(otel_meter).
 
--export([instrument/5,
+-export([register_callback/3,
+         instrument/5,
          instrument/6]).
 
 %% also act as noop version of instruments
@@ -36,6 +37,9 @@ record(_Insturment, _Number, _Attributes) ->
     ok.
 
 %%
+
+register_callback(_Meter, _Instruments, _Callback) ->
+    ok.
 
 instrument(Meter, Name, Kind, ValueType, Opts) ->
     otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),

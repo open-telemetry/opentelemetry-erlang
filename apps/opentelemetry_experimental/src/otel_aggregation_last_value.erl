@@ -30,7 +30,7 @@
 
 init(Key, _Options) ->
     #last_value_aggregation{key=Key,
-                            value=0}.
+                            value=undefined}.
 
 aggregate(Tab, Key, Value) ->
     case ets:update_element(Tab, Key, {#last_value_aggregation.value, Value}) of
@@ -49,7 +49,7 @@ checkpoint(Tab, Name, _, _, _CollectionStartNano) ->
            [{'=:=', {element, 1, '$1'}, {const, Name}}],
            [{#last_value_aggregation{key='$1',
                                      checkpoint='$2',
-                                     value=undefined}}]}],
+                                     value='$2'}}]}],
     _ = ets:select_replace(Tab, MS),
 
     ok.
