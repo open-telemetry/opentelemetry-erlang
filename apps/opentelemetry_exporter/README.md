@@ -57,21 +57,15 @@ endpoints used by the exporter with the Application environment variable
 `ssl_options`:
 
 ```erlang
-%% mTLS example
-SSLOptions = [{cert, "..."}, {key, "..."}] ++ tls_certificate_check:options("example.com"),
-
 {opentelemetry_exporter,
   [{otlp_endpoint, "https://example.com:4318"},
-   {ssl_options, SSLOptions}]}
+   {ssl_options, [{cert, "..."}, {key, "..."}]}]}
 ```
 
 ```elixir
-# mTLS example
-ssl_options = [cert: "...", key: "..."] ++ :tls_certificate_check.options("example.com")
-
 config :opentelemetry_exporter,
   otlp_endpoint: "https://example.com:4318",
-  ssl_options: ssl_options
+  ssl_options: [cert: "...", key: "..."]
 ```
 
 See [secure coding with
