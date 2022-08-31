@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### [API]
+## API 1.1.0 - 2020-8-31
 
 #### Added
 
@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `opentelemetry:instrumentation_library/3` to create an `instrumentation_scope`
   record. 
 
-### [SDK]
+## SDK 1.1.0 - 2020-8-31
 
 #### Added
 
@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [No longer grow export table in batch processor if no export table is
   configured](https://github.com/open-telemetry/opentelemetry-erlang/pull/413)
 
-### [Exporter]
+## Exporter 1.1.0 - 2020-8-31
 
 #### Added
 
@@ -49,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `opentelemetry:instrumentation_library/3` to create an `instrumentation_scope`
   record.
 
-### [Experimental API/SDK]
+## Experimental API/SDK
 
 #### Added
 
