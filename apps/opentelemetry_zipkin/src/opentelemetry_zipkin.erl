@@ -1,7 +1,7 @@
 -module(opentelemetry_zipkin).
 
 -export([init/1,
-         export/3,
+         export/4,
          shutdown/1]).
 
 -include_lib("kernel/include/logger.hrl").
@@ -21,8 +21,8 @@ init(Opts) ->
     {ok, #state{address=Address,
                 endpoint=LocalEndpoint}}.
 
-export(Tab, Resource, #state{address=Address,
-                             endpoint=LocalEndpoint}) ->
+export(traces, Tab, Resource, #state{address=Address,
+                                     endpoint=LocalEndpoint}) ->
     Attributes = otel_resource:attributes(Resource),
     LocalEndpoint1 = local_endpoint_from_resource(Attributes, LocalEndpoint),
     ZSpans = ets:foldl(fun(Span, Acc) ->
@@ -54,7 +54,12 @@ export(Tab, Resource, #state{address=Address,
                     ?LOG_INFO("client error exporting spans ~p", [Reason]),
                     error
             end
-    end.
+    end;
+export(Type, _Tab, _Resource, _State) ->
+    ?LOG_INFO("Unable to export data of type ~p with the Zipkin exporter. "
+              "Zipkin only supports traces", [Type]),
+    error.
+
 
 shutdown(_) ->
     ok.
