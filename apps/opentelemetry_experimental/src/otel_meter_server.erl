@@ -234,7 +234,7 @@ metric_reader(ChildId, ReaderModule, ReaderConfig) ->
     ViewAggregationTableName = view_aggregation_table_name(ChildId),
     MetricsTableName = metrics_table_name(ChildId),
 
-    CallbacksTable = ets:new(CallbacksTableName, [set, protected, named_table, {keypos, 1}]),
+    CallbacksTable = ets:new(CallbacksTableName, [bag, protected, named_table, {keypos, 1}]),
     ViewAggregationTable = ets:new(ViewAggregationTableName, [set, protected, named_table, {keypos, 1}]),
     MetricsTable = ets:new(MetricsTableName, [set, public, named_table, {keypos, 2}]),
 
