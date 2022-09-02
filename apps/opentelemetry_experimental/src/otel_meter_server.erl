@@ -43,7 +43,6 @@
          add_view/3,
          add_view/4,
          record/4,
-         sync_record/4,
          force_flush/1,
          report_cb/1]).
 
@@ -117,12 +116,6 @@ add_view(Provider, Name, Criteria, Config) ->
 -spec record(atom(), otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
 record(Provider, Instrument, Number, Attributes) ->
     gen_server:cast(Provider, {record,  #measurement{instrument=Instrument,
-                                                     value=Number,
-                                                     attributes=Attributes}}).
-
--spec sync_record(atom(), otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-sync_record(Provider, Instrument, Number, Attributes) ->
-    gen_server:call(Provider, {record,  #measurement{instrument=Instrument,
                                                      value=Number,
                                                      attributes=Attributes}}).
 

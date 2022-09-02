@@ -23,8 +23,7 @@
          instrument/7,
          register_callback/4]).
 
--export([record/3,
-         sync_record/3]).
+-export([record/3]).
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_metrics.hrl").
@@ -51,5 +50,3 @@ register_callback(_, _, _, _) ->
 record(Instrument=#instrument{meter={_, #meter{provider=Provider}}}, Number, Attributes) ->
     otel_meter_server:record(Provider, Instrument, Number, Attributes).
 
-sync_record(Instrument=#instrument{meter={_, #meter{provider=Provider}}}, Number, Attributes) ->
-    otel_meter_server:sync_record(Provider, Instrument, Number, Attributes).
