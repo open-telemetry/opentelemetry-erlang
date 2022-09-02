@@ -20,7 +20,7 @@ verify_export(_Config) ->
                                                                  port => 8000}}),
     Tid = ets:new(span_tab, [{keypos, #span.span_id}]),
 
-    ?assertMatch(ok, opentelemetry_zipkin:export(Tid, Resource, State)),
+    ?assertMatch(ok, opentelemetry_zipkin:export(traces, Tid, Resource, State)),
 
     TraceId = otel_id_generator:generate_trace_id(),
     SpanId = otel_id_generator:generate_span_id(),
@@ -69,5 +69,5 @@ verify_export(_Config) ->
                                                        ], 128, 128)},
     true = ets:insert(Tid, ChildSpan),
 
-    ?assertMatch(ok, opentelemetry_zipkin:export(Tid, Resource, State)),
+    ?assertMatch(ok, opentelemetry_zipkin:export(traces, Tid, Resource, State)),
     ok.
