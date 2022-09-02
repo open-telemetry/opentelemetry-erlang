@@ -10,7 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Zipkin Exporter
 
 - Support `opentelemetry_sdk ~> 1.1` exporter API
+- 
+### SDK
 
+- Fix dependency on API to require `~> 1.1`
+
+### Exporter
+
+- Fix dependency on API and SDK to require `~> 1.1`
+- 
 ## API 1.1.0 - 2020-8-31
 
 #### Added
