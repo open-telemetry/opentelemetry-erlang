@@ -9,10 +9,10 @@ set -e
 
 rebar3 compile
 rebar3 edoc
-sdk_version=1.1.0
+sdk_version=1.1.1
 api_version=1.1.0
-otlp_version=1.1.0
-zipkin_version=1.0.0
+otlp_version=1.1.1
+zipkin_version=1.1.0
 
 ex_doc "opentelemetry" $sdk_version "_build/default/lib/opentelemetry/ebin" \
   --source-ref v${sdk_version} \
