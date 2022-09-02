@@ -39,7 +39,7 @@
          view_aggregation_table_name/1,
          metrics_table_name/1,
          add_instrument/2,
-         register_callback/3,
+         register_callback/4,
          add_view/3,
          add_view/4,
          record/4,
@@ -102,9 +102,9 @@ start_link(Provider, Config) ->
 add_instrument(Provider, Instrument) ->
     gen_server:call(Provider, {add_instrument, Instrument}).
 
--spec register_callback(atom(), [otel_instrument:t()], otel_instrument:callback()) -> boolean().
-register_callback(Provider, Instruments, Callback) ->
-    gen_server:call(Provider, {register_callback, Instruments, Callback}).
+-spec register_callback(atom(), [otel_instrument:t()], otel_instrument:callback(), term()) -> boolean().
+register_callback(Provider, Instruments, Callback, CallbackArgs) ->
+    gen_server:call(Provider, {register_callback, Instruments, Callback, CallbackArgs}).
 
 -spec add_view(atom(), otel_view:criteria(), otel_view:config()) -> boolean().
 add_view(Provider, Criteria, Config) ->
@@ -171,9 +171,9 @@ handle_call({add_instrument, Instrument}, _From, State=#state{readers=Readers,
                                                               views=Views}) ->
     _ = add_instrument_(Instrument, Views, Readers),
     {reply, ok, State};
-handle_call({register_callback, Instruments, Callback}, _From, State=#state{readers=Readers,
+handle_call({register_callback, Instruments, Callback, CallbackArgs}, _From, State=#state{readers=Readers,
                                                                             views=Views}) ->
-    _ = register_callback_(Instruments, Callback, Views, Readers),
+    _ = register_callback_(Instruments, Callback, CallbackArgs, Views, Readers),
     {reply, ok, State};
 handle_call({get_meter, Name, Vsn, SchemaUrl}, _From, State=#state{shared_meter=Meter}) ->
     InstrumentationLibrary = opentelemetry:instrumentation_library(Name, Vsn, SchemaUrl),
@@ -211,25 +211,23 @@ add_instrument_(Instrument, Views, Readers) ->
                                  view_aggregation_tab=ViewAggregationTab}) ->
                       Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
                       _ = ets:insert(ViewAggregationTab, {Instrument, Matches}),
-                      case Instrument#instrument.callback of
-                          undefined ->
+                      case {Instrument#instrument.callback, Instrument#instrument.callback_args} of
+                          {undefined, _} ->
                               ok;
                           {Callback, CallbackArgs} ->
-                              ets:insert(CallbackTab, {Callback, CallbackArgs, [Instrument]});
-                          Callback ->
-                              ets:insert(CallbackTab, {Callback, [], [Instrument]})
+                              ets:insert(CallbackTab, {Callback, CallbackArgs, [Instrument]})
                       end
               end, Readers).
 
 %% Match the Instrument to views and then store a per-Reader aggregation for the View
-register_callback_(Instruments, Callback, Views, Readers) ->
+register_callback_(Instruments, Callback, CallbackArgs, Views, Readers) ->
     lists:map(fun(Instrument) ->
                       ViewMatches = otel_view:match_instrument_to_views(Instrument, Views),
                       lists:map(fun(Reader=#reader{callbacks_tab=CallbackTab,
                                                    view_aggregation_tab=ViewAggregationTab}) ->
                                         Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
                                         _ = ets:insert(ViewAggregationTab, {Instrument, Matches}),
-                                        ets:insert(CallbackTab, {Callback, [], Instruments})
+                                        ets:insert(CallbackTab, {Callback, CallbackArgs, Instruments})
                                 end, Readers)
               end, Instruments).
 

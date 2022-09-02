@@ -18,7 +18,7 @@
 -module(otel_instrument).
 
 -export([new/7,
-         new/8,
+         new/9,
          is_monotonic/1]).
 
 -include("otel_metrics.hrl").
@@ -50,16 +50,17 @@ new(Module, Meter, Kind, Name, Description, Unit, ValueType) ->
                 value_type  = ValueType,
                 unit        = Unit}.
 
--spec new(module(), otel_meter:t(), kind(), name(), description(), unit(), value_type(), callback()) -> t().
-new(Module, Meter, Kind, Name, Description, Unit, ValueType, Callback) ->
-    #instrument{module      = Module,
-                meter       = Meter,
-                name        = Name,
-                description = Description,
-                kind        = Kind,
-                value_type  = ValueType,
-                unit        = Unit,
-                callback    = Callback}.
+-spec new(module(), otel_meter:t(), kind(), name(), description(), unit(), value_type(), callback(), term()) -> t().
+new(Module, Meter, Kind, Name, Description, Unit, ValueType, Callback, CallbackArgs) ->
+    #instrument{module        = Module,
+                meter         = Meter,
+                name          = Name,
+                description   = Description,
+                kind          = Kind,
+                value_type    = ValueType,
+                unit          = Unit,
+                callback      = Callback,
+                callback_args = CallbackArgs}.
 
 is_monotonic(#instrument{kind=?KIND_COUNTER}) ->
     true;

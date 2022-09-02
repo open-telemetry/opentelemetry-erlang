@@ -518,6 +518,7 @@ observable_counter(_Config) ->
                                                     MeasurementAttributes = #{<<"a">> => <<"b">>},
                                                     {4, MeasurementAttributes}
                                             end,
+                                            [],
                                             #{description => CounterDesc,
                                               unit => CounterUnit}),
 
@@ -550,12 +551,13 @@ observable_updown_counter(_Config) ->
     ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => CounterName}, #{aggregation => otel_aggregation_sum})),
 
     Counter = otel_meter:observable_updowncounter(Meter, CounterName, ValueType,
-                                            fun(_) ->
-                                                    MeasurementAttributes = #{<<"a">> => <<"b">>},
-                                                    {5, MeasurementAttributes}
-                                            end,
-                                            #{description => CounterDesc,
-                                              unit => CounterUnit}),
+                                                  fun(_) ->
+                                                          MeasurementAttributes = #{<<"a">> => <<"b">>},
+                                                          {5, MeasurementAttributes}
+                                                  end,
+                                                  [],
+                                                  #{description => CounterDesc,
+                                                    unit => CounterUnit}),
 
     ?assertMatch(#instrument{meter = {DefaultMeter,_},
                              module = DefaultMeter,
@@ -586,11 +588,12 @@ observable_gauge(_Config) ->
     ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => CounterName}, #{aggregation => otel_aggregation_last_value})),
 
     Counter = otel_meter:observable_gauge(Meter, CounterName, ValueType,
-                                            fun(_) ->
-                                                    {5, #{<<"a">> => <<"b">>}}
-                                            end,
-                                            #{description => CounterDesc,
-                                              unit => CounterUnit}),
+                                          fun(_) ->
+                                                  {5, #{<<"a">> => <<"b">>}}
+                                          end,
+                                          [],
+                                          #{description => CounterDesc,
+                                            unit => CounterUnit}),
 
     ?assertMatch(#instrument{meter = {DefaultMeter,_},
                              module = DefaultMeter,
@@ -625,21 +628,20 @@ multi_instrument_callback(_Config) ->
     ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => CounterName}, #{aggregation => otel_aggregation_sum})),
 
     Counter = otel_meter:observable_counter(Meter, CounterName, ValueType,
-                                            undefined,
+                                            undefined, [],
                                             #{description => CounterDesc,
                                               unit => Unit}),
 
     Gauge = otel_meter:observable_gauge(Meter, GaugeName, ValueType,
-                                        undefined,
+                                        undefined, [],
                                         #{description => GaugeDesc,
                                           unit => Unit}),
-
 
     otel_meter:register_callback(Meter, [Counter, Gauge],
                                  fun(_) ->
                                          [{CounterName, 4, #{<<"a">> => <<"b">>}},
                                           {GaugeName, 5, #{<<"a">> => <<"b">>}}]
-                                 end),
+                                 end, []),
 
     otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
 
