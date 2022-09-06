@@ -256,6 +256,24 @@ export(traces, Tab, Resource, #state{protocol=grpc,
             ?LOG_INFO("OTLP grpc export failed with error: ~p", [Reason]),
             error
     end;
+export(metrics, Tab, Resource, #state{protocol=grpc,
+                                      grpc_metadata=Metadata,
+                                      channel_pid=_ChannelPid}) ->
+    ExportRequest = metrics_tab_to_proto(Tab, Resource),
+    Ctx = grpcbox_metadata:append_to_outgoing_ctx(ctx:new(), Metadata),
+    case opentelemetry_metrics_service:export(Ctx, ExportRequest, #{channel => ?MODULE}) of
+        {ok, _Response, _ResponseMetadata} ->
+            ok;
+        {error, {Status, Message}, _} ->
+            ?LOG_INFO("OTLP grpc export failed with GRPC status ~s : ~s", [Status, Message]),
+            error;
+        {http_error, {Status, _}, _} ->
+            ?LOG_INFO("OTLP grpc export failed with HTTP status code ~s", [Status]),
+            error;
+        {error, Reason} ->
+            ?LOG_INFO("OTLP grpc export failed with error: ~p", [Reason]),
+            error
+    end;
 export(_, _Tab, _Resource, _State) ->
     {error, unimplemented}.
 
@@ -267,6 +285,39 @@ shutdown(#state{channel_pid=Pid}) ->
     ok.
 
 %%
+
+metrics_tab_to_proto(Metrics, Resource) ->
+    InstrumentationScopeMetrics = to_metrics_proto_by_scope(Tab),
+    Attributes = otel_resource:attributes(Resource),
+    ResourceMetrics = #{resource => #{attributes => to_attributes(otel_attributes:map(Attributes)),
+                                      dropped_attributes_count => otel_attributes:dropped(Attributes)},
+                        scope_metrics => InstrumentationScopeMetrics},
+    case otel_resource:schema_url(Resource) of
+        undefined ->
+            #{resource_metrics => [ResourceMetrics]};
+        SchemaUrl ->
+            #{resource_metrics => [ResourceMetrics#{schema_url => SchemaUrl}]}
+    end.
+
+to_metrics_proto_by_scope(Tab) ->
+    Key = ets:first(Tab),
+    to_metrics_proto_by_scope(Tab, Key).
+
+to_metrics_proto_by_scope(_Tab, '$end_of_table') ->
+    [];
+to_metrics_proto_by_scope(Tab, InstrumentationScope) ->
+    InstrumentationScopeMetrics = lists:foldl(fun(Metric, Acc) ->
+                                                      [to_metrics_proto(Metric) | Acc]
+                                              end, [], ets:lookup(Tab, InstrumentationScope)),
+    InstrumentationScopeMetricsProto = to_metrics_scope_proto(InstrumentationScope),
+    [InstrumentationScopeMetricsProto#{metrics => InstrumentationScopeMetrics}
+    | to_metrics_proto_by_scope(Tab, ets:next(Tab, InstrumentationScope))].
+
+to_metrics_scope_proto(InstrumentationScope) ->
+    #{}.
+
+to_metrics_proto(Metric) ->
+    #{}.
 
 grpcbox_endpoints(Endpoints) ->
     [{scheme(Scheme), Host, Port, maps:get(ssl_options, Endpoint, [])} ||
