@@ -19,7 +19,7 @@
 -module(otel_metric_exporter_pid).
 
 -export([init/1,
-         export/2,
+         export/4,
          force_flush/0,
          shutdown/1]).
 
@@ -32,9 +32,9 @@ init({Tag, Pid}) ->
 init(Pid) ->
     {ok, {otel_metric, Pid}}.
 
-export(Metrics, {Tag, Pid}) ->
+export(metrics, Metrics, _Resource, {Tag, Pid}) ->
     lists:map(fun(Metric) ->
-                  Pid ! {Tag, Metric}
+                      Pid ! {Tag, Metric}
               end, Metrics),
     ok.
 

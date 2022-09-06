@@ -20,7 +20,8 @@
 -behaviour(otel_meter).
 
 -export([instrument/5,
-         instrument/6]).
+         instrument/7,
+         register_callback/4]).
 
 -export([record/3]).
 
@@ -31,11 +32,21 @@ instrument(Meter, Name, Kind, ValueType, Opts) ->
     otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
                         maps:get(unit, Opts, undefined), ValueType).
 
-instrument(Meter, Name, Kind, ValueType, Callback, Opts) ->
-    otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
-                        maps:get(unit, Opts, undefined), ValueType, Callback).
+instrument(Meter, Name, Kind, ValueType, Callback, CallbackArgs, Opts) ->
+    Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
+        otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
+                            maps:get(unit, Opts, undefined), ValueType, Callback, CallbackArgs),
+    _ = otel_meter_server:add_instrument(Provider, Instrument),
+    Instrument.
+
+register_callback({_, #meter{provider=Provider}}, Instruments, Callback, CallbackArgs) ->
+    otel_meter_server:register_callback(Provider, Instruments, Callback, CallbackArgs);
+register_callback(_, _, _, _) ->
+    ok.
+
 
 %%
 
 record(Instrument=#instrument{meter={_, #meter{provider=Provider}}}, Number, Attributes) ->
     otel_meter_server:record(Provider, Instrument, Number, Attributes).
+
