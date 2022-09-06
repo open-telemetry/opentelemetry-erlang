@@ -30,7 +30,7 @@
 
 init(Key, _Options) ->
     #last_value_aggregation{key=Key,
-                            value=0}.
+                            value=undefined}.
 
 aggregate(Tab, Key, Value) ->
     case ets:update_element(Tab, Key, {#last_value_aggregation.value, Value}) of
@@ -49,7 +49,7 @@ checkpoint(Tab, Name, _, _, _CollectionStartNano) ->
            [{'=:=', {element, 1, '$1'}, {const, Name}}],
            [{#last_value_aggregation{key='$1',
                                      checkpoint='$2',
-                                     value=undefined}}]}],
+                                     value='$2'}}]}],
     _ = ets:select_replace(Tab, MS),
 
     ok.
@@ -59,14 +59,14 @@ collect(Tab, Name, _, CollectionStartTime) ->
                [{'==', Name, {element, 1, {element, 2, '$1'}}}],
                ['$1']}],
     AttributesAggregation = ets:select(Tab, Select),
-    [datapoint(CollectionStartTime, SumAgg) || SumAgg <- AttributesAggregation].
+    [datapoint(CollectionStartTime, LastValueAgg) || LastValueAgg <- AttributesAggregation].
 
 %%
 
 datapoint(CollectionStartNano, #last_value_aggregation{key={_, Attributes},
-                                                       value=Value})  ->
+                                                       checkpoint=Checkpoint}) ->
     #datapoint{attributes=Attributes,
                time_unix_nano=CollectionStartNano,
-               value=Value,
+               value=Checkpoint,
                exemplars=[],
                flags=0}.
