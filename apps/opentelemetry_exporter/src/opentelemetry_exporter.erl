@@ -339,8 +339,14 @@ parse_endpoint(Endpoint=#{host := Host, scheme := Scheme, path := Path}, Default
                                 host => HostString,
                                 path => unicode:characters_to_list(Path)})};
 parse_endpoint(String, DefaultSSLOpts) when is_list(String) orelse is_binary(String) ->
-    ParsedUri = maybe_add_scheme_port(uri_string:parse(unicode:characters_to_list(String))),
-    parse_endpoint(ParsedUri, DefaultSSLOpts);
+    case uri_string:parse(unicode:characters_to_list(String)) of
+        {error, Reason, Message} ->
+            ?LOG_WARNING("error parsing endpoint URI: ~s : ~p", [Reason, Message]),
+            false;
+        ParsedUri ->
+            ParsedUri1 = maybe_add_scheme_port(ParsedUri),
+            parse_endpoint(ParsedUri1, DefaultSSLOpts)
+    end;
 parse_endpoint(_, _) ->
     false.
 
@@ -411,23 +417,34 @@ merge_with_environment(Opts) ->
                otlp_protocol => undefined,
                otlp_traces_protocol => undefined,
                otlp_compression => undefined,
-               otlp_traces_compression => undefined},
+               otlp_traces_compression => undefined,
+               ssl_options => undefined},
 
     AppEnv = application:get_all_env(opentelemetry_exporter),
     AppOpts = otel_configuration:merge_list_with_environment(config_mapping(), AppEnv, Config),
 
-    %% append the default path `/v1/traces` only to the path of otlp_endpoint
-    Opts1 = update_opts(otlp_endpoint, endpoints, ?DEFAULT_HTTP_ENDPOINTS, AppOpts, Opts, fun endpoints_append_path/1),
-    Opts2 = update_opts(otlp_traces_endpoint, endpoints, ?DEFAULT_HTTP_ENDPOINTS, AppOpts, Opts1, fun maybe_to_list/1),
+    %% check for error in app env value parsing
+    case maps:get(otlp_endpoint, AppOpts) of
+        {error, Reason, Message} ->
+            ?LOG_WARNING("error parsing endpoint URI: ~s : ~p", [Reason, Message]),
+            maps:put(endpoints, [], Opts);
 
-    Opts3 = update_opts(otlp_headers, headers, [], AppOpts, Opts2),
-    Opts4 = update_opts(otlp_traces_headers, headers, [], AppOpts, Opts3),
+        _ ->
+            %% append the default path `/v1/traces` only to the path of otlp_endpoint
+            Opts1 = update_opts(otlp_endpoint, endpoints, ?DEFAULT_HTTP_ENDPOINTS, AppOpts, Opts, fun endpoints_append_path/1),
+            Opts2 = update_opts(otlp_traces_endpoint, endpoints, ?DEFAULT_HTTP_ENDPOINTS, AppOpts, Opts1, fun maybe_to_list/1),
 
-    Opts5 = update_opts(otlp_protocol, protocol, http_protobuf, AppOpts, Opts4),
-    Opts6 = update_opts(otlp_traces_protocol, protocol, http_protobuf, AppOpts, Opts5),
+            Opts3 = update_opts(otlp_headers, headers, [], AppOpts, Opts2),
+            Opts4 = update_opts(otlp_traces_headers, headers, [], AppOpts, Opts3),
 
-    Opts7 = update_opts(otlp_compression, compression, undefined, AppOpts, Opts6),
-    update_opts(otlp_traces_compression, compression, undefined, AppOpts, Opts7).
+            Opts5 = update_opts(otlp_protocol, protocol, http_protobuf, AppOpts, Opts4),
+            Opts6 = update_opts(otlp_traces_protocol, protocol, http_protobuf, AppOpts, Opts5),
+
+            Opts7 = update_opts(otlp_compression, compression, undefined, AppOpts, Opts6),
+            Opts8 = update_opts(otlp_traces_compression, compression, undefined, AppOpts, Opts7),
+
+            update_opts(ssl_options, ssl_options, undefined, AppOpts, Opts8)
+    end.
 
 maybe_to_list(E) when is_list(E) ->
     case io_lib:printable_list(E) of
@@ -493,7 +510,7 @@ config_mapping() ->
      %% {"OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", exporter_otlp_metrics_protocol, string}
 
      {"OTEL_EXPORTER_OTLP_COMPRESSION", otlp_compression, existing_atom},
-     {"OTEL_EXPORTER_OTLP_TRACES_COMPRESSION", otlp_traces_compression, existing_atom}
+     {"OTEL_EXPORTER_OTLP_TRACES_COMPRESSION", otlp_traces_compression, existing_atom},
      %% {"OTEL_EXPORTER_OTLP_METRICS_COMPRESSION", otlp_metrics_compression, existing_atom}
 
      %% {"OTEL_EXPORTER_OTLP_CERTIFICATE", otlp_certificate, path},
@@ -503,6 +520,8 @@ config_mapping() ->
      %% {"OTEL_EXPORTER_OTLP_TIMEOUT", otlp_timeout, integer},
      %% {"OTEL_EXPORTER_OTLP_TRACES_TIMEOUT", otlp_traces_timeout, integer},
      %% {"OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", otlp_metrics_timeout, integer}
+
+     {"OTEL_EXPORTER_SSL_OPTIONS", ssl_options, key_value_list}
     ].
 
 tab_to_proto(Tab, Resource) ->
