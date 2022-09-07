@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
- 
+
+### Exporter
+
+- [Fix InstrumentationScope encoding in OTLP protobufs](https://github.com/open-telemetry/opentelemetry-erlang/pull/451)
+
 ## SDK 1.1.1 - 2022-09-02
 
 - Fix dependency on API to require `~> 1.1`
