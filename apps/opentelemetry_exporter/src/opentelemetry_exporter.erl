@@ -555,15 +555,15 @@ to_proto_by_instrumentation_scope(Tab, InstrumentationScope) ->
 to_instrumentation_scope_proto(undefined) ->
     #{};
 to_instrumentation_scope_proto(#instrumentation_scope{name=Name,
-                                                          version=Version,
-                                                          schema_url=undefined}) ->
-    #{instrumentation_scope => #{name => Name,
-                                   version => Version}};
+                                                      version=Version,
+                                                      schema_url=undefined}) ->
+    #{scope => #{name => Name,
+                 version => Version}};
 to_instrumentation_scope_proto(#instrumentation_scope{name=Name,
-                                                          version=Version,
-                                                          schema_url=SchemaUrl}) ->
-    #{instrumentation_scope => #{name => Name,
-                                   version => Version},
+                                                      version=Version,
+                                                      schema_url=SchemaUrl}) ->
+    #{scope => #{name => Name,
+                 version => Version},
       schema_url => SchemaUrl}.
 
 %% TODO: figure out why this type spec fails
