@@ -8,13 +8,14 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
+-include_lib("opentelemetry_experimental/src/otel_metrics.hrl").
 
 all() ->
     [{group, functional}, {group, http_protobuf}, {group, http_protobuf_gzip},
      {group, grpc}, {group, grpc_gzip}].
 
 groups() ->
-    [{functional, [], [configuration, span_round_trip, ets_instrumentation_info]},
+    [{functional, [], [configuration, span_round_trip, ets_instrumentation_info, metrics_maps]},
      {grpc, [], [verify_export]},
      {grpc_gzip, [], [verify_export]},
      {http_protobuf, [], [verify_export]},
@@ -52,6 +53,31 @@ end_per_group(Group, _Config) when Group =:= grpc ;
 end_per_group(_, _) ->
     application:stop(opentelemetry),
     application:unload(opentelemetry_exporter),
+    ok.
+
+metrics_maps(_Config) ->
+    Metrics = [#metric{scope=#instrumentation_scope{name = <<"scope-1">>,
+                                                    version = <<"version-1">>},
+                       name = <<"metric name">>,
+                       description = <<"some description">>,
+                       unit = kb,
+                       data = #sum{aggregation_temporality = 'AGGREGATION_TEMPORALITY_CUMULATIVE',
+                                   is_monotonic=true,
+                                   datapoints=[#datapoint{
+                                                attributes=[],
+                                                start_time_unix_nano=1111111,
+                                                time_unix_nano=1111112,
+                                                value={as_int, 5},
+                                                exemplars=[],
+                                                flags=0
+                                               }]}}],
+    Resource = otel_resource_env_var:get_resource([]),
+    Map = opentelemetry_exporter:metrics_tab_to_proto(Metrics, Resource),
+
+    Pb = opentelemetry_exporter_metrics_service_pb:encode_msg(Map, metrics_data),
+    ct:pal("Map ~p", [Pb]),
+    ?assertMatch([], Map),
+
     ok.
 
 configuration(_Config) ->

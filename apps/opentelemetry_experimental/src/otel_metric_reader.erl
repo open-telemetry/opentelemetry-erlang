@@ -246,8 +246,8 @@ checkpoint_metrics(MetricsTab, ValueType, Unit, CollectionStartTime, ViewAggrega
                         [metric(Instrument, Name, Description, Unit, Data) | Acc]
                 end, [], ViewAggregations).
 
-metric(Instrument, Name, Description, Unit, Data) ->
-    #metric{instrument=Instrument,
+metric(#instrument{meter=Meter}, Name, Description, Unit, Data) ->
+    #metric{scope=otel_meter_default:scope(Meter),
             name=Name,
             description=Description,
             unit=Unit,

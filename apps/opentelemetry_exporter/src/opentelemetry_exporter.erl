@@ -104,6 +104,7 @@
 -ifdef(TEST).
 -export([to_proto_by_instrumentation_scope/1,
          to_proto/1,
+         metrics_tab_to_proto/2,
          endpoints/2,
          merge_with_environment/1]).
 -endif.
@@ -111,6 +112,7 @@
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
+-include_lib("opentelemetry_experimental/src/otel_metrics.hrl").
 
 -define(DEFAULT_HTTP_PORT, 4318).
 -define(DEFAULT_HTTP_ENDPOINTS, [#{host => "localhost",
@@ -287,7 +289,7 @@ shutdown(#state{channel_pid=Pid}) ->
 %%
 
 metrics_tab_to_proto(Metrics, Resource) ->
-    InstrumentationScopeMetrics = to_metrics_proto_by_scope(Tab),
+    InstrumentationScopeMetrics = to_metrics_proto_by_scope(Metrics),
     Attributes = otel_resource:attributes(Resource),
     ResourceMetrics = #{resource => #{attributes => to_attributes(otel_attributes:map(Attributes)),
                                       dropped_attributes_count => otel_attributes:dropped(Attributes)},
@@ -299,25 +301,86 @@ metrics_tab_to_proto(Metrics, Resource) ->
             #{resource_metrics => [ResourceMetrics#{schema_url => SchemaUrl}]}
     end.
 
-to_metrics_proto_by_scope(Tab) ->
-    Key = ets:first(Tab),
-    to_metrics_proto_by_scope(Tab, Key).
+to_metrics_proto_by_scope(Metrics) ->
+    ByScopes = lists:foldl(fun(Metric=#metric{scope=Scope}, Acc) ->
+                                   Proto = to_metrics_proto(Metric),
+                                   maps:update_with(Scope, fun(List) -> [Proto | List] end, [Proto], Acc)
+                           end, #{}, Metrics),
+    maps:fold(fun(Scope, MetricsProto, Acc) ->
+                      [#{scope => to_instrumentation_scope_proto(Scope),
+                         metrics => MetricsProto
+                        %% schema_url              => unicode:chardata() % = 3, optional
+                       } | Acc]
+              end, [], ByScopes).
 
-to_metrics_proto_by_scope(_Tab, '$end_of_table') ->
-    [];
-to_metrics_proto_by_scope(Tab, InstrumentationScope) ->
-    InstrumentationScopeMetrics = lists:foldl(fun(Metric, Acc) ->
-                                                      [to_metrics_proto(Metric) | Acc]
-                                              end, [], ets:lookup(Tab, InstrumentationScope)),
-    InstrumentationScopeMetricsProto = to_metrics_scope_proto(InstrumentationScope),
-    [InstrumentationScopeMetricsProto#{metrics => InstrumentationScopeMetrics}
-    | to_metrics_proto_by_scope(Tab, ets:next(Tab, InstrumentationScope))].
+to_metrics_proto(#metric{name=Name,
+                         description=Description,
+                         unit=Unit,
+                         data=Data}) ->
+    #{name => Name,
+      description => Description,
+      unit => to_binary(Unit),
+      data => to_metrics_data(Data)}.
 
-to_metrics_scope_proto(InstrumentationScope) ->
-    #{}.
+to_metrics_data(#sum{aggregation_temporality=Temporality,
+                     is_monotonic=IsMonotonic,
+                     datapoints=Datapoints}) ->
+    {sum, #{data_points => [to_data_points(Datapoint) || Datapoint <- Datapoints],
+            aggregation_temporality => Temporality,
+            is_monotonic => IsMonotonic}};
+to_metrics_data(#gauge{datapoints=Datapoints}) ->
+    {gauge, #{data_points => [to_data_points(Datapoint) || Datapoint <- Datapoints]}};
+to_metrics_data(#histogram{datapoints=Datapoints,
+                           aggregation_temporality=Temporality
+                          }) ->
+    {histogram, #{data_points => [to_histogram_data_points(Datapoint) || Datapoint <- Datapoints],
+                  aggregation_temporality => Temporality}}.
 
-to_metrics_proto(Metric) ->
-    #{}.
+to_data_points(#datapoint{attributes=Attributes,
+                          start_time_unix_nano=StartTimeUnixNano,
+                          time_unix_nano=CollectionStartNano,
+                          value=Value,
+                          exemplars=Exemplars,
+                          flags=Flags
+                         }) ->
+    #{attributes => Attributes,
+      start_time_unix_nano => StartTimeUnixNano,
+      time_unix_nano => CollectionStartNano,
+      value => Value,
+      exemplars => Exemplars,
+      flags => Flags
+     }.
+
+to_histogram_data_points(#histogram_datapoint{
+                            attributes=Attributes,
+                            start_time_unix_nano=StartTimeUnixNano,
+                            time_unix_nano=CollectionStartNano,
+                            count=Count,
+                            sum=Sum,
+                            bucket_counts=Buckets,
+                            explicit_bounds=Boundaries,
+                            exemplars=Exemplars,
+                            flags=Flags,
+                            min=Min,
+                            max=Max
+                           }) ->
+    #{attributes => Attributes,
+      start_time_unix_nano => StartTimeUnixNano,
+      time_unix_nano => CollectionStartNano,
+      count => Count,
+      sum => Sum,
+      bucket_counts => Buckets,
+      explicit_bounds => Boundaries,
+      exemplars => Exemplars,
+      flags => Flags,
+      min => Min,
+      max => Max
+       }.
+
+%% to_buckets() ->
+%%     #{offset => Offset,
+%%       bucket_counts => Buckets
+%%      }.
 
 grpcbox_endpoints(Endpoints) ->
     [{scheme(Scheme), Host, Port, maps:get(ssl_options, Endpoint, [])} ||

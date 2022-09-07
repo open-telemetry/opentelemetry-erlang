@@ -53,6 +53,8 @@
          code_change/1]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+%% need to move shared records out of otel_span.hrl
+-include_lib("opentelemetry/include/otel_span.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include_lib("kernel/include/logger.hrl").
 -include("otel_metrics.hrl").
