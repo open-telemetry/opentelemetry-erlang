@@ -307,10 +307,15 @@ to_metrics_proto_by_scope(Metrics) ->
                                    maps:update_with(Scope, fun(List) -> [Proto | List] end, [Proto], Acc)
                            end, #{}, Metrics),
     maps:fold(fun(Scope, MetricsProto, Acc) ->
-                      [#{scope => to_instrumentation_scope_proto(Scope),
-                         metrics => MetricsProto
-                        %% schema_url              => unicode:chardata() % = 3, optional
-                       } | Acc]
+                      [case Scope#instrumentation_scope.schema_url of
+                           undefined ->
+                               #{scope => to_instrumentation_scope_proto(Scope),
+                                 metrics => MetricsProto};
+                           SchemaUrl ->
+                               #{scope => to_instrumentation_scope_proto(Scope),
+                                 metrics => MetricsProto,
+                                 schema_url => SchemaUrl}
+                       end | Acc]
               end, [], ByScopes).
 
 to_metrics_proto(#metric{name=Name,
@@ -343,9 +348,9 @@ to_data_points(#datapoint{attributes=Attributes,
                           exemplars=Exemplars,
                           flags=Flags
                          }) ->
-    #{attributes => Attributes,
-      start_time_unix_nano => StartTimeUnixNano,
-      time_unix_nano => CollectionStartNano,
+    #{attributes => to_attributes(otel_attributes:map(Attributes)),
+      start_time_unix_nano => to_unixnano(StartTimeUnixNano),
+      time_unix_nano => to_unixnano(CollectionStartNano),
       value => Value,
       exemplars => Exemplars,
       flags => Flags
@@ -364,7 +369,7 @@ to_histogram_data_points(#histogram_datapoint{
                             min=Min,
                             max=Max
                            }) ->
-    #{attributes => Attributes,
+    #{attributes => to_attributes(otel_attributes:map(Attributes)),
       start_time_unix_nano => StartTimeUnixNano,
       time_unix_nano => CollectionStartNano,
       count => Count,

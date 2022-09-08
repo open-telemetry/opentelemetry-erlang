@@ -15,9 +15,9 @@ all() ->
      {group, grpc}, {group, grpc_gzip}].
 
 groups() ->
-    [{functional, [], [configuration, span_round_trip, ets_instrumentation_info, metrics_maps]},
-     {grpc, [], [verify_export]},
-     {grpc_gzip, [], [verify_export]},
+    [{functional, [], [configuration, span_round_trip, ets_instrumentation_info]},
+     {grpc, [], [verify_export, verify_metrics_export]},
+     {grpc_gzip, [], [verify_export, verify_metrics_export]},
      {http_protobuf, [], [verify_export]},
      {http_protobuf_gzip, [], [verify_export]}].
 
@@ -55,28 +55,50 @@ end_per_group(_, _) ->
     application:unload(opentelemetry_exporter),
     ok.
 
-metrics_maps(_Config) ->
+verify_metrics_export(Config) ->
+    os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=my-test-service,service.version=98da75ea6d38724743bf42b45565049238d86b3f,schema_url=https://opentelemetry.io/schemas/1.8.0"),
+    Protocol = ?config(protocol, Config),
+    Compression = ?config(compression, Config),
+
+    Port = case Protocol of
+               grpc ->
+                   4317;
+               http_protobuf ->
+                   4318
+           end,
+
+    {ok, State} = opentelemetry_exporter:init(#{protocol => Protocol,
+                                                compression => Compression,
+                                                endpoints => [{http, "localhost", Port, []}]}),
     Metrics = [#metric{scope=#instrumentation_scope{name = <<"scope-1">>,
-                                                    version = <<"version-1">>},
+                                                    version = <<"version-1">>,
+                                                    schema_url = <<"https://example.com/schemas/1.8.0">>},
                        name = <<"metric name">>,
                        description = <<"some description">>,
                        unit = kb,
                        data = #sum{aggregation_temporality = 'AGGREGATION_TEMPORALITY_CUMULATIVE',
                                    is_monotonic=true,
                                    datapoints=[#datapoint{
-                                                attributes=[],
-                                                start_time_unix_nano=1111111,
-                                                time_unix_nano=1111112,
-                                                value={as_int, 5},
-                                                exemplars=[],
-                                                flags=0
-                                               }]}}],
+                                                  attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
+                                                                                 128, 128),
+                                                  start_time_unix_nano=opentelemetry:timestamp(),
+                                                  time_unix_nano=opentelemetry:timestamp(),
+                                                  value={as_int, 5},
+                                                  exemplars=[],
+                                                  flags=0
+                                                 },
+                                               #datapoint{
+                                                  attributes=otel_attributes:new(#{<<"key-2">> => <<"value-2">>},
+                                                                                 128, 128),
+                                                  start_time_unix_nano=opentelemetry:timestamp(),
+                                                  time_unix_nano=opentelemetry:timestamp(),
+                                                  value={as_int, 8},
+                                                  exemplars=[],
+                                                  flags=0
+                                                 }]}}],
     Resource = otel_resource_env_var:get_resource([]),
-    Map = opentelemetry_exporter:metrics_tab_to_proto(Metrics, Resource),
 
-    Pb = opentelemetry_exporter_metrics_service_pb:encode_msg(Map, metrics_data),
-    ct:pal("Map ~p", [Pb]),
-    ?assertMatch([], Map),
+    ?assertMatch(ok, opentelemetry_exporter:export(metrics, Metrics, Resource, State)),
 
     ok.
 
