@@ -251,11 +251,11 @@ ets_instrumentation_info(_Config) ->
                                                                        version = <<"0.0.1">>}},
     true = ets:insert(Tid, ChildSpan),
 
-    ?assertMatch([#{instrumentation_scope :=
+    ?assertMatch([#{scope :=
                         #{name := <<"tracer-1">>,version := <<"0.0.1">>},
                     spans :=
                         [_]},
-                  #{instrumentation_scope :=
+                  #{scope :=
                         #{name := <<"tracer-2">>,version := <<"0.0.1">>},
                     spans :=
                         [_]}], lists:sort(opentelemetry_exporter:to_proto_by_instrumentation_scope(Tid))),
@@ -290,7 +290,7 @@ span_round_trip(_Config) ->
               status = #status{code=?OTEL_STATUS_OK,
                                message = <<"">>},
               instrumentation_scope = #instrumentation_scope{name = <<"tracer-1">>,
-                                                                 version = <<"0.0.1">>}},
+                                                             version = <<"0.0.1">>}},
 
     PbSpan = opentelemetry_exporter:to_proto(Span),
     Proto = opentelemetry_exporter_trace_service_pb:encode_msg(PbSpan, span),
@@ -345,6 +345,8 @@ verify_export(Config) ->
                                                attributes = otel_attributes:new([{<<"attr-3">>, <<"value-3">>}], 128, 128)}], Events),
               status = #status{code=?OTEL_STATUS_UNSET,
                                message = <<"hello I'm unset">>},
+              instrumentation_scope = #instrumentation_scope{name = <<"tracer-1">>,
+                                                             version = <<"0.0.1">>},
               attributes = otel_attributes:new([{<<"attr-2">>, <<"value-2">>}], 128, 128)},
     true = ets:insert(Tid, ParentSpan),
 
@@ -366,6 +368,8 @@ verify_export(Config) ->
                                                        attributes = otel_attributes:new([{<<"attr-3">>, <<"value-3">>}], 128, 128)}], Events),
                       status = #status{code=?OTEL_STATUS_ERROR,
                                        message = <<"hello I'm an error">>},
+                      instrumentation_scope = #instrumentation_scope{name = <<"tracer-1">>,
+                                                                     version = <<"0.0.1">>},
                       attributes = otel_attributes:new([
                                                         {atom_attr, atom_value},
                                                         {<<"attr-2">>, <<"value-2">>},
