@@ -7,21 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Exporter
+## Exporter 1.2.0 - 2022-09-08
 
-- [Fix InstrumentationScope encoding in OTLP protobufs](https://github.com/open-telemetry/opentelemetry-erlang/pull/451)
+### Fixes
+
+- [Fix InstrumentationScope encoding in OTLP
+  protobufs](https://github.com/open-telemetry/opentelemetry-erlang/pull/451)
+  
+### Added
+  
 - [Exporter now respects top-level `ssl_options` application environment value
   and handles endpoint parse errors](https://github.com/open-telemetry/opentelemetry-erlang/pull/442)
 
 ## SDK 1.1.1 - 2022-09-02
 
+### Fixes
+
 - Fix dependency on API to require `~> 1.1`
 
-### Exporter 1.1.1 - 2022-09-02
+## Exporter 1.1.1 - 2022-09-02
+
+### Fixes
 
 - Fix dependency on API and SDK to require `~> 1.1`
 
-### Zipkin Exporter 1.1.0 - 2022-09-02
+## Zipkin Exporter 1.1.0 - 2022-09-02
+
+### Fixes
 
 - Support `opentelemetry_sdk ~> 1.1` exporter API
 
