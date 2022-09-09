@@ -73,8 +73,8 @@ verify_metrics_export(Config) ->
     Metrics = [#metric{scope=#instrumentation_scope{name = <<"scope-1">>,
                                                     version = <<"version-1">>,
                                                     schema_url = <<"https://example.com/schemas/1.8.0">>},
-                       name = <<"metric name">>,
-                       description = <<"some description">>,
+                       name = <<"sum name">>,
+                       description = <<"some sum description">>,
                        unit = kb,
                        data = #sum{aggregation_temporality = 'AGGREGATION_TEMPORALITY_CUMULATIVE',
                                    is_monotonic=true,
@@ -95,10 +95,34 @@ verify_metrics_export(Config) ->
                                                   value={as_int, 8},
                                                   exemplars=[],
                                                   flags=0
-                                                 }]}}],
-    Resource = otel_resource_env_var:get_resource([]),
+                                                 }]}},
+               #metric{scope=#instrumentation_scope{name = <<"scope-1">>,
+                                                    version = <<"version-1">>,
+                                                    schema_url = <<"https://example.com/schemas/1.8.0">>},
+                       name = <<"gauge name">>,
+                       description = <<"some gauge description">>,
+                       unit = kb,
+                       data = #gauge{datapoints=[#datapoint{
+                                                    attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
+                                                                                   128, 128),
+                                                    start_time_unix_nano=opentelemetry:timestamp(),
+                                                    time_unix_nano=opentelemetry:timestamp(),
+                                                    value={as_int, 8},
+                                                    exemplars=[],
+                                                    flags=0
+                                                   },
+                                                 #datapoint{
+                                                    attributes=otel_attributes:new(#{<<"key-2">> => <<"value-2">>},
+                                                                                   128, 128),
+                                                    start_time_unix_nano=opentelemetry:timestamp(),
+                                                    time_unix_nano=opentelemetry:timestamp(),
+                                                    value={as_int, 9},
+                                                    exemplars=[],
+                                                    flags=0
+                                                   }]}}],
+               Resource = otel_resource_env_var:get_resource([]),
 
-    ?assertMatch(ok, opentelemetry_exporter:export(metrics, Metrics, Resource, State)),
+               ?assertMatch(ok, opentelemetry_exporter:export(metrics, Metrics, Resource, State)),
 
     ok.
 
