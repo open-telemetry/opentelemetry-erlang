@@ -350,7 +350,7 @@ ets_instrumentation_info(_Config) ->
                   #{scope :=
                         #{name := <<"tracer-2">>,version := <<"0.0.1">>},
                     spans :=
-                        [_]}], lists:sort(opentelemetry_exporter:to_proto_by_instrumentation_scope(Tid))),
+                        [_]}], lists:sort(otel_otlp_traces:to_proto_by_instrumentation_scope(Tid))),
 
     ok.
 
@@ -384,7 +384,7 @@ span_round_trip(_Config) ->
               instrumentation_scope = #instrumentation_scope{name = <<"tracer-1">>,
                                                              version = <<"0.0.1">>}},
 
-    PbSpan = opentelemetry_exporter:to_proto(Span),
+    PbSpan = otel_otlp_traces:to_proto(Span),
     Proto = opentelemetry_exporter_trace_service_pb:encode_msg(PbSpan, span),
 
     PbSpan1 = maps:filter(fun(_, V) -> V =/= undefined end, PbSpan),
@@ -473,7 +473,7 @@ verify_export(Config) ->
     true = ets:insert(Tid, ChildSpan),
 
     ?assertMatch([#{spans := [_, _]}],
-                 opentelemetry_exporter:to_proto_by_instrumentation_scope(Tid)),
+                 otel_otlp_traces:to_proto_by_instrumentation_scope(Tid)),
     Resource = otel_resource_env_var:get_resource([]),
     ?assertEqual(otel_attributes:new([{<<"service.name">>,<<"my-test-service">>},
                                       {<<"service.version">>,<<"98da75ea6d38724743bf42b45565049238d86b3f">>}], 128, 255), otel_resource:attributes(Resource)),
