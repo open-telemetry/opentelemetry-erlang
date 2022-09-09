@@ -10,7 +10,6 @@
          on_end_processors       :: fun((opentelemetry:span()) -> boolean() | {error, term()}),
          sampler                 :: otel_sampler:t(),
          id_generator            :: otel_id_generator:t(),
-         instrumentation_scope   :: otel_tracer_server:instrumentation_scope() | undefined,
-         telemetry_library       :: otel_tracer_server:telemetry_library() | undefined
+         instrumentation_scope   :: otel_tracer_server:instrumentation_scope() | undefined
         }).
 -type tracer() :: #tracer{}.

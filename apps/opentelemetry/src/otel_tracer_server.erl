@@ -34,10 +34,8 @@
 -include("otel_tracer.hrl").
 -include("otel_span.hrl").
 
--type telemetry_library() :: #telemetry_library{}.
 -type instrumentation_scope() :: #instrumentation_scope{}.
--export_type([telemetry_library/0,
-              instrumentation_scope/0]).
+-export_type([instrumentation_scope/0]).
 
 -record(state,
         {
@@ -49,11 +47,7 @@
          resource :: otel_resource:t(),
 
          %% list of tracer names to return noop tracers for
-         deny_list :: [atom() | {atom(), string()}],
-
-         %% data about this SDK implementation itself
-         %% the name, language (erlang) and version
-         telemetry_library :: telemetry_library()
+         deny_list :: [atom() | {atom(), string()}]
         }).
 
 -spec start_link(otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
@@ -68,25 +62,16 @@ init(#{id_generator := IdGeneratorModule,
 
     Sampler = otel_sampler:new(SamplerSpec),
 
-    {ok, LibraryVsn} = application:get_key(opentelemetry, vsn),
-    LibraryName = <<"opentelemetry">>,
-    LibraryLanguage = <<"erlang">>,
-    TelemetryLibrary = #telemetry_library{name=LibraryName,
-                                          language=LibraryLanguage,
-                                          version=list_to_binary(LibraryVsn)},
-
     Tracer = #tracer{module=otel_tracer_default,
                      sampler=Sampler,
                      on_start_processors=on_start(Processors),
                      on_end_processors=on_end(Processors),
-                     id_generator=IdGeneratorModule,
-                     telemetry_library=TelemetryLibrary},
+                     id_generator=IdGeneratorModule},
     opentelemetry:set_default_tracer({otel_tracer_default, Tracer}),
 
     {ok, #state{shared_tracer=Tracer,
                 resource=Resource,
                 sampler=Sampler,
-                telemetry_library=TelemetryLibrary,
                 deny_list=DenyList,
                 processors=Processors}}.
 
@@ -122,16 +107,8 @@ handle_call(force_flush, _From, State=#state{processors=Processors}) ->
 handle_cast(_, State) ->
     {noreply, State}.
 
-%% the application vsn has likely changed during a code change
-%% so update the shared tracer data here
-code_change(State=#state{shared_tracer=Tracer=#tracer{telemetry_library=TelemetryLibrary}}) ->
-    {ok, LibraryVsn} = application:get_key(opentelemetry, vsn),
-
-    NewTelemetryLibrary = TelemetryLibrary#telemetry_library{version=list_to_binary(LibraryVsn)},
-    NewTracer = Tracer#tracer{telemetry_library=NewTelemetryLibrary},
-
-    {ok, State#state{shared_tracer=NewTracer}}.
-
+code_change(State) ->
+    {ok, State}.
 %%
 
 -spec update_force_flush_error(term(), ok | {error, list()}) -> {error, list()}.

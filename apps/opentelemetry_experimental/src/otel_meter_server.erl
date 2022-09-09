@@ -83,9 +83,6 @@
          views :: [otel_view:t()],
          readers :: [#reader{}],
 
-         %% the meter configuration shared between all named
-         %% meters created by this provider
-         telemetry_library :: #telemetry_library{} | undefined,
          resource :: otel_resource:t()
         }).
 
@@ -139,19 +136,11 @@ init([Name, Config]) ->
 
     opentelemetry_experimental:set_default_meter({otel_meter_default, Meter}),
 
-    {ok, LibraryVsn} = application:get_key(opentelemetry_experimental, vsn),
-    LibraryName = <<"opentelemetry">>,
-    LibraryLanguage = <<"erlang">>,
-    TelemetryLibrary = #telemetry_library{name=LibraryName,
-                                          language=LibraryLanguage,
-                                          version=list_to_binary(LibraryVsn)},
-
     Readers = add_metric_readers(Config),
 
     {ok, #state{shared_meter=Meter,
                 views=[],
                 readers=Readers,
-                telemetry_library=TelemetryLibrary,
                 resource=Resource}}.
 
 handle_call({record, Measurement}, _From, State=#state{readers=Readers,

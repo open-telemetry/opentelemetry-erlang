@@ -162,7 +162,8 @@ default_resource_attributes(Resource) ->
     ProcessResource = otel_resource:create([{?PROCESS_EXECUTABLE_NAME, ProgName} | process_attributes()]),
     Resource1 = otel_resource:merge(ProcessResource, Resource),
     Resource2 = add_service_name(Resource1, ProgName),
-    add_service_instance(Resource2).
+    Resource3 = add_service_instance(Resource2),
+    add_telemetry_info(Resource3).
 
 process_attributes() ->
     OtpVsn = otp_vsn(),
@@ -284,3 +285,13 @@ service_release_name(ProgName) ->
         _ ->
             otel_resource:create([{?SERVICE_NAME, <<"unknown_service:", ProgName/binary>>}])
     end.
+
+add_telemetry_info(Resource) ->
+    {ok, LibraryVsn} = application:get_key(opentelemetry, vsn),
+    LibraryName = <<"opentelemetry">>,
+    LibraryLanguage = <<"erlang">>,
+    ResourceAttributes = [{?LIBRARY_NAME, LibraryName},
+                          {?LIBRARY_LANGUAGE, LibraryLanguage},
+                          {?LIBRARY_VERSION, unicode:characters_to_binary(LibraryVsn)}],
+    TelemetryInfoResource = otel_resource:create(ResourceAttributes),
+    otel_resource:merge(TelemetryInfoResource, Resource).
