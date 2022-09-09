@@ -119,11 +119,45 @@ verify_metrics_export(Config) ->
                                                     value={as_int, 9},
                                                     exemplars=[],
                                                     flags=0
-                                                   }]}}],
-               Resource = otel_resource_env_var:get_resource([]),
+                                                   }]}},
+               #metric{scope=#instrumentation_scope{name = <<"scope-1">>,
+                                                    version = <<"version-1">>,
+                                                    schema_url = <<"https://example.com/schemas/1.8.0">>},
+                       name = <<"histogram name">>,
+                       description = <<"some histogram description">>,
+                       unit = kb,
+                       data = #histogram{aggregation_temporality = 'AGGREGATION_TEMPORALITY_CUMULATIVE',
+                                         datapoints=[#histogram_datapoint{
+                                                        attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
+                                                                                       128, 128),
+                                                        start_time_unix_nano=opentelemetry:timestamp(),
+                                                        time_unix_nano=opentelemetry:timestamp(),
+                                                        count = 3,
+                                                        sum = 9,
+                                                        bucket_counts = [1,1,1],
+                                                        explicit_bounds = [0,3,5],
+                                                        exemplars = [],
+                                                        flags = 0,
+                                                        min = 1,
+                                                        max = 5
+                                                       },
+                                                     #histogram_datapoint{
+                                                        attributes=otel_attributes:new(#{<<"key-2">> => <<"value-2">>},
+                                                                                       128, 128),
+                                                        start_time_unix_nano=opentelemetry:timestamp(),
+                                                        time_unix_nano=opentelemetry:timestamp(),
+                                                        count = 3,
+                                                        sum = 9,
+                                                        bucket_counts = [1,1,1],
+                                                        explicit_bounds = [0,3,5],
+                                                        exemplars = [],
+                                                        flags = 0,
+                                                        min = 1,
+                                                        max = 5
+                                                       }]}}],
+    Resource = otel_resource_env_var:get_resource([]),
 
-               ?assertMatch(ok, opentelemetry_exporter:export(metrics, Metrics, Resource, State)),
-
+    ?assertMatch(ok, opentelemetry_exporter:export(metrics, Metrics, Resource, State)),
     ok.
 
 configuration(_Config) ->

@@ -60,25 +60,25 @@ to_proto_by_scope(Metrics) ->
               end, [], ByScopes).
 
 to_proto(#metric{name=Name,
-                         description=Description,
-                         unit=Unit,
-                         data=Data}) ->
+                 description=Description,
+                 unit=Unit,
+                 data=Data}) ->
     #{name => Name,
       description => Description,
       unit => otel_otlp_common:to_binary(Unit),
       data => to_data(Data)}.
 
 to_data(#sum{aggregation_temporality=Temporality,
-                     is_monotonic=IsMonotonic,
-                     datapoints=Datapoints}) ->
+             is_monotonic=IsMonotonic,
+             datapoints=Datapoints}) ->
     {sum, #{data_points => [to_data_points(Datapoint) || Datapoint <- Datapoints],
             aggregation_temporality => Temporality,
             is_monotonic => IsMonotonic}};
 to_data(#gauge{datapoints=Datapoints}) ->
     {gauge, #{data_points => [to_data_points(Datapoint) || Datapoint <- Datapoints]}};
 to_data(#histogram{datapoints=Datapoints,
-                           aggregation_temporality=Temporality
-                          }) ->
+                   aggregation_temporality=Temporality
+                  }) ->
     {histogram, #{data_points => [to_histogram_data_points(Datapoint) || Datapoint <- Datapoints],
                   aggregation_temporality => Temporality}}.
 
@@ -121,9 +121,4 @@ to_histogram_data_points(#histogram_datapoint{
       flags => Flags,
       min => Min,
       max => Max
-       }.
-
-%% to_buckets() ->
-%%     #{offset => Offset,
-%%       bucket_counts => Buckets
-%%      }.
+     }.
