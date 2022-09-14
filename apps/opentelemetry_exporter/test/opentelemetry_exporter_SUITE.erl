@@ -180,6 +180,26 @@ configuration(_Config) ->
                        ssl_options => undefined},
                      opentelemetry_exporter:merge_with_environment(#{endpoints => []})),
 
+        %% test all supported protocols
+        application:unset_env(opentelemetry_exporter, otlp_protocol),
+        os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
+        ?assertMatch(#{protocol := grpc},
+                     opentelemetry_exporter:merge_with_environment(#{})),
+
+        %% the specification defines the value as "http/protobuf"
+        %% https://github.com/open-telemetry/opentelemetry-specification/blob/82707fd9f7b1266f1246b02ff3e00bebdee6b538/specification/protocol/exporter.md#specify-protocol
+        application:unset_env(opentelemetry_exporter, otlp_protocol),
+        os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf"),
+        ?assertMatch(#{protocol := http_protobuf},
+                     opentelemetry_exporter:merge_with_environment(#{})),
+
+        %% backwards compatible with earlier stable version that uses "http_protobuf"
+        application:unset_env(opentelemetry_exporter, otlp_protocol),
+        os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "http_protobuf"),
+        ?assertMatch(#{protocol := http_protobuf},
+                     opentelemetry_exporter:merge_with_environment(#{})),
+
+
         %% TRACES_ENDPOINT takes precedence
         os:putenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://localhost:5353/traces/path"),
         os:putenv("OTEL_EXPORTER_OTLP_TRACES_HEADERS", "key2=value2"),

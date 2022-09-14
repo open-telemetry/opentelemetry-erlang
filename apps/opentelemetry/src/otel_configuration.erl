@@ -358,6 +358,17 @@ transform(exporter, UnknownExporter) when is_list(UnknownExporter) ->
     ?LOG_WARNING("unknown exporter ~p. falling back to default otlp", [UnknownExporter]),
     {opentelemetry_exporter, #{}};
 
+transform(otlp_protocol, Proto) when Proto =:= "grpc"; Proto =:= grpc ->
+  grpc;
+transform(otlp_protocol, Proto) when Proto =:= "http/protobuf"; Proto =:= "http_protobuf"; Proto =:= http_protobuf ->
+  http_protobuf;
+transform(otlp_protocol, Proto) when Proto =:= "http/json"; Proto =:= "http_json"; Proto =:= http_json ->
+  ?LOG_WARNING("The http/json transport protocol is not supported by the OTLP exporter, spans will not be exported.", []),
+  undefined;
+transform(otlp_protocol, Proto) ->
+  ?LOG_WARNING("unknown ~ts transport protocol, spans will not be exported.", [Proto]),
+  undefined;
+
 transform(integer_infinity, infinity) ->
     infinity;
 transform(integer_infinity, Value) ->
