@@ -34,7 +34,7 @@ jobs:
     strategy:
       matrix:
         otp_version: ['25.0.3', '24.1.2', '23.3.4.2']
-        elixir_version: ['1.13.4', '1.12.3']
+        elixir_version: ['1.14', '1.13.4']
         rebar3_version: ['3.17.0']
         os: [ubuntu-18.04]
     env:
@@ -60,7 +60,7 @@ jobs:
     strategy:
       matrix:
         otp_version: ['25.0.3', '24.1.2', '23.3.4.2']
-        elixir_version: ['1.13.4', '1.12.3']
+        elixir_version: ['1.14', '1.13.4']
         rebar3_version: ['3.17.0']
         os: [ubuntu-18.04]
     env:
@@ -103,7 +103,7 @@ jobs:
     strategy:
       matrix:
         otp_version: ['25.0.3']
-        elixir_version: ['1.13.4']
+        elixir_version: ['1.14']
         os: [ubuntu-18.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
