@@ -8,11 +8,6 @@
                 instrumentation_library :: otel_tracer_server:instrumentation_library() | undefined,
                 provider                :: atom()}).
 
-%% The name, version and language of this OpenTelemetry library
--record(telemetry_library, {name     :: unicode:unicode_binary() | undefined,
-                            language :: unicode:unicode_binary() | undefined,
-                            version  :: unicode:unicode_binary() | undefined}).
-
 -record(measurement,
         {
          instrument :: otel_instrument:t(),

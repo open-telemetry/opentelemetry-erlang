@@ -16,11 +16,6 @@
 %% @end
 %%%-------------------------------------------------------------------------
 
-%% The name, version and language of this OpenTelemetry library
--record(telemetry_library, {name     :: unicode:unicode_binary() | undefined,
-                            language :: unicode:unicode_binary() | undefined,
-                            version  :: unicode:unicode_binary() | undefined}).
-
 -record(span, {
           %% 128 bit int trace id
           trace_id                :: opentelemetry:trace_id() | undefined,
