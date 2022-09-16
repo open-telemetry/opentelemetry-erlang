@@ -20,6 +20,7 @@
 -export([init/1,
          export_traces/4,
          export_metrics/4,
+         export_logs/4,
          shutdown/1,
          report_cb/1]).
 
@@ -120,6 +121,9 @@ export_traces(ExporterModule, SpansTid, Resource, Config) ->
 
 export_metrics(ExporterModule, MetricsTid, Resource, Config) ->
     ExporterModule:export(metrics, MetricsTid, Resource, Config).
+
+export_logs(ExporterModule, Batch, Resource, Config) ->
+    ExporterModule:export(logs, Batch, Resource, Config).
 
 shutdown(undefined) ->
     ok;

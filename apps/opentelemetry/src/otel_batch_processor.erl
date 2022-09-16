@@ -385,5 +385,5 @@ report_cb(#{source := exporter,
             reason := Reason,
             exporter := ExporterModule,
             stacktrace := StackTrace}) ->
-    {"exporter threw exception: exporter=~p ~ts",
+    {"span exporter threw exception: exporter=~p ~ts",
      [ExporterModule, otel_utils:format_exception(Kind, Reason, StackTrace)]}.
