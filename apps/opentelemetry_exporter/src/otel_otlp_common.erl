@@ -39,12 +39,14 @@ to_instrumentation_scope_proto(#instrumentation_scope{name=Name,
                  version => Version},
       schema_url => SchemaUrl}.
 
--spec to_attributes(otel_attributes:t()) -> [opentelemetry_exporter_trace_service_pb:key_value()].
-to_attributes(Attributes) ->
+-spec to_attributes(opentelemetry:attributes_map() | otel_attributes:t()) -> [opentelemetry_exporter_trace_service_pb:key_value()].
+to_attributes(Attributes) when is_map(Attributes) ->
     maps:fold(fun(Key, Value, Acc) ->
                       [#{key => to_binary(Key),
                          value => to_any_value(Value)} | Acc]
-              end, [], otel_attributes:map(Attributes)).
+              end, [], Attributes);
+to_attributes(Attributes) ->
+    to_attributes(otel_attributes:map(Attributes)).
 
 to_any_value(Value) when is_binary(Value) ->
     %% TODO: there is a bytes_value type we don't currently support bc we assume string

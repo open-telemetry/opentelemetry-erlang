@@ -92,6 +92,7 @@ match_instrument_to_views(Instrument=#instrument{name=Name,
                          end, Views) of
         [] ->
             [{#view{}, #view_aggregation{name=Name,
+                                         scope=Scope,
                                          instrument=Instrument,
                                          temporality=Temporality,
                                          is_monotonic=IsMonotonic,
