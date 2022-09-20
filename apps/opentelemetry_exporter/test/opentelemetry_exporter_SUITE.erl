@@ -17,7 +17,7 @@ all() ->
 groups() ->
     [{functional, [], [configuration, span_round_trip, ets_instrumentation_info]},
      {grpc, [], [verify_export, verify_metrics_export]},
-     {grpc_gzip, [], [verify_export, verify_metrics_export]},
+     {grpc_gzip, [], [verify_export]},
      {http_protobuf, [], [verify_export]},
      {http_protobuf_gzip, [], [verify_export]}].
 
