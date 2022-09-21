@@ -72,9 +72,16 @@ init([Opts]) ->
                 shutdown => infinity,
                 modules => [otel_span_sup]},
 
+    Monitor = #{id => otel_monitor,
+                start => {otel_monitor, start_link, []},
+                restart => permanent,
+                shutdown => 5000,
+                type => worker,
+                modules => [otel_monitor]},
+
     %% `TracerServer' *must* start before the `BatchProcessor'
     %% `BatchProcessor' relies on getting the `Resource' from
     %% the `TracerServer' process
-    ChildSpecs = [Detectors, TracerServer, BatchProcessor, SimpleProcessor, SpanSup],
+    ChildSpecs = [Detectors, TracerServer, BatchProcessor, SimpleProcessor, SpanSup, Monitor],
 
     {ok, {SupFlags, ChildSpecs}}.
