@@ -21,7 +21,8 @@
 
 -export([instrument/5,
          instrument/7,
-         register_callback/4]).
+         register_callback/4,
+         scope/1]).
 
 -export([record/3]).
 
@@ -44,6 +45,8 @@ register_callback({_, #meter{provider=Provider}}, Instruments, Callback, Callbac
 register_callback(_, _, _, _) ->
     ok.
 
+scope({_, #meter{instrumentation_library=Scope}}) ->
+    Scope.
 
 %%
 

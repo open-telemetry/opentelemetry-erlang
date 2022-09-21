@@ -118,8 +118,8 @@ init(ExporterModule) when is_atom(ExporterModule) ->
 export_traces(ExporterModule, SpansTid, Resource, Config) ->
     ExporterModule:export(traces, SpansTid, Resource, Config).
 
-export_metrics(ExporterModule, SpansTid, Resource, Config) ->
-    ExporterModule:export(metrics, SpansTid, Resource, Config).
+export_metrics(ExporterModule, MetricsTid, Resource, Config) ->
+    ExporterModule:export(metrics, MetricsTid, Resource, Config).
 
 shutdown(undefined) ->
     ok;

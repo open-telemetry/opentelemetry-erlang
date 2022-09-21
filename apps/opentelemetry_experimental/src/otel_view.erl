@@ -67,9 +67,11 @@ new(Name, Criteria, Config) ->
 -spec match_instrument_to_views(otel_instrument:t(), opentelemetry:attributes_map()) ->
           [{otel_view:t(), #view_aggregation{}}].
 match_instrument_to_views(Instrument=#instrument{name=Name,
+                                                 meter=Meter,
                                                  description=Description}, Views) ->
     IsMonotonic = otel_instrument:is_monotonic(Instrument),
     Temporality = otel_aggregation:instrument_temporality(Instrument),
+    Scope = otel_meter:scope(Meter),
     case lists:filtermap(fun(View=#view{name=ViewName,
                                         description=ViewDescription,
                                         aggregation_options=AggregationOptions,
@@ -77,6 +79,7 @@ match_instrument_to_views(Instrument=#instrument{name=Name,
                                when Name =:= InstrumentName ->
                                  {true, {View, #view_aggregation{name=value_or(ViewName,
                                                                                InstrumentName),
+                                                                 scope=Scope,
                                                                  instrument=Instrument,
                                                                  temporality=Temporality,
                                                                  is_monotonic=IsMonotonic,
@@ -89,6 +92,7 @@ match_instrument_to_views(Instrument=#instrument{name=Name,
                          end, Views) of
         [] ->
             [{#view{}, #view_aggregation{name=Name,
+                                         scope=Scope,
                                          instrument=Instrument,
                                          temporality=Temporality,
                                          is_monotonic=IsMonotonic,

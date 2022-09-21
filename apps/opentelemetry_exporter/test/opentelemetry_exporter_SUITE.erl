@@ -8,6 +8,7 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
+-include_lib("opentelemetry_experimental/src/otel_metrics.hrl").
 
 all() ->
     [{group, functional}, {group, http_protobuf}, {group, http_protobuf_gzip},
@@ -15,7 +16,7 @@ all() ->
 
 groups() ->
     [{functional, [], [configuration, span_round_trip, ets_instrumentation_info]},
-     {grpc, [], [verify_export]},
+     {grpc, [], [verify_export, verify_metrics_export]},
      {grpc_gzip, [], [verify_export]},
      {http_protobuf, [], [verify_export]},
      {http_protobuf_gzip, [], [verify_export]}].
@@ -52,6 +53,111 @@ end_per_group(Group, _Config) when Group =:= grpc ;
 end_per_group(_, _) ->
     application:stop(opentelemetry),
     application:unload(opentelemetry_exporter),
+    ok.
+
+verify_metrics_export(Config) ->
+    os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=my-test-service,service.version=98da75ea6d38724743bf42b45565049238d86b3f,schema_url=https://opentelemetry.io/schemas/1.8.0"),
+    Protocol = ?config(protocol, Config),
+    Compression = ?config(compression, Config),
+
+    Port = case Protocol of
+               grpc ->
+                   4317;
+               http_protobuf ->
+                   4318
+           end,
+
+    {ok, State} = opentelemetry_exporter:init(#{protocol => Protocol,
+                                                compression => Compression,
+                                                endpoints => [{http, "localhost", Port, []}]}),
+    Metrics = [#metric{scope=#instrumentation_scope{name = <<"scope-1">>,
+                                                    version = <<"version-1">>,
+                                                    schema_url = <<"https://example.com/schemas/1.8.0">>},
+                       name = <<"sum name">>,
+                       description = <<"some sum description">>,
+                       unit = kb,
+                       data = #sum{aggregation_temporality = 'AGGREGATION_TEMPORALITY_CUMULATIVE',
+                                   is_monotonic=true,
+                                   datapoints=[#datapoint{
+                                                  attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
+                                                                                 128, 128),
+                                                  start_time_unix_nano=opentelemetry:timestamp(),
+                                                  time_unix_nano=opentelemetry:timestamp(),
+                                                  value={as_int, 5},
+                                                  exemplars=[],
+                                                  flags=0
+                                                 },
+                                               #datapoint{
+                                                  attributes=otel_attributes:new(#{<<"key-2">> => <<"value-2">>},
+                                                                                 128, 128),
+                                                  start_time_unix_nano=opentelemetry:timestamp(),
+                                                  time_unix_nano=opentelemetry:timestamp(),
+                                                  value={as_int, 8},
+                                                  exemplars=[],
+                                                  flags=0
+                                                 }]}},
+               #metric{scope=#instrumentation_scope{name = <<"scope-1">>,
+                                                    version = <<"version-1">>,
+                                                    schema_url = <<"https://example.com/schemas/1.8.0">>},
+                       name = <<"gauge name">>,
+                       description = <<"some gauge description">>,
+                       unit = kb,
+                       data = #gauge{datapoints=[#datapoint{
+                                                    attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
+                                                                                   128, 128),
+                                                    start_time_unix_nano=opentelemetry:timestamp(),
+                                                    time_unix_nano=opentelemetry:timestamp(),
+                                                    value={as_int, 8},
+                                                    exemplars=[],
+                                                    flags=0
+                                                   },
+                                                 #datapoint{
+                                                    attributes=otel_attributes:new(#{<<"key-2">> => <<"value-2">>},
+                                                                                   128, 128),
+                                                    start_time_unix_nano=opentelemetry:timestamp(),
+                                                    time_unix_nano=opentelemetry:timestamp(),
+                                                    value={as_int, 9},
+                                                    exemplars=[],
+                                                    flags=0
+                                                   }]}},
+               #metric{scope=#instrumentation_scope{name = <<"scope-1">>,
+                                                    version = <<"version-1">>,
+                                                    schema_url = <<"https://example.com/schemas/1.8.0">>},
+                       name = <<"histogram name">>,
+                       description = <<"some histogram description">>,
+                       unit = kb,
+                       data = #histogram{aggregation_temporality = 'AGGREGATION_TEMPORALITY_CUMULATIVE',
+                                         datapoints=[#histogram_datapoint{
+                                                        attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
+                                                                                       128, 128),
+                                                        start_time_unix_nano=opentelemetry:timestamp(),
+                                                        time_unix_nano=opentelemetry:timestamp(),
+                                                        count = 3,
+                                                        sum = 9,
+                                                        bucket_counts = [1,1,1],
+                                                        explicit_bounds = [0,3,5],
+                                                        exemplars = [],
+                                                        flags = 0,
+                                                        min = 1,
+                                                        max = 5
+                                                       },
+                                                     #histogram_datapoint{
+                                                        attributes=otel_attributes:new(#{<<"key-2">> => <<"value-2">>},
+                                                                                       128, 128),
+                                                        start_time_unix_nano=opentelemetry:timestamp(),
+                                                        time_unix_nano=opentelemetry:timestamp(),
+                                                        count = 3,
+                                                        sum = 9,
+                                                        bucket_counts = [1,1,1],
+                                                        explicit_bounds = [0,3,5],
+                                                        exemplars = [],
+                                                        flags = 0,
+                                                        min = 1,
+                                                        max = 5
+                                                       }]}}],
+    Resource = otel_resource_env_var:get_resource([]),
+
+    ?assertMatch(ok, opentelemetry_exporter:export(metrics, Metrics, Resource, State)),
     ok.
 
 configuration(_Config) ->
@@ -278,7 +384,7 @@ ets_instrumentation_info(_Config) ->
                   #{scope :=
                         #{name := <<"tracer-2">>,version := <<"0.0.1">>},
                     spans :=
-                        [_]}], lists:sort(opentelemetry_exporter:to_proto_by_instrumentation_scope(Tid))),
+                        [_]}], lists:sort(otel_otlp_traces:to_proto_by_instrumentation_scope(Tid))),
 
     ok.
 
@@ -312,7 +418,7 @@ span_round_trip(_Config) ->
               instrumentation_scope = #instrumentation_scope{name = <<"tracer-1">>,
                                                              version = <<"0.0.1">>}},
 
-    PbSpan = opentelemetry_exporter:to_proto(Span),
+    PbSpan = otel_otlp_traces:to_proto(Span),
     Proto = opentelemetry_exporter_trace_service_pb:encode_msg(PbSpan, span),
 
     PbSpan1 = maps:filter(fun(_, V) -> V =/= undefined end, PbSpan),
@@ -401,7 +507,7 @@ verify_export(Config) ->
     true = ets:insert(Tid, ChildSpan),
 
     ?assertMatch([#{spans := [_, _]}],
-                 opentelemetry_exporter:to_proto_by_instrumentation_scope(Tid)),
+                 otel_otlp_traces:to_proto_by_instrumentation_scope(Tid)),
     Resource = otel_resource_env_var:get_resource([]),
     ?assertEqual(otel_attributes:new([{<<"service.name">>,<<"my-test-service">>},
                                       {<<"service.version">>,<<"98da75ea6d38724743bf42b45565049238d86b3f">>}], 128, 255), otel_resource:attributes(Resource)),

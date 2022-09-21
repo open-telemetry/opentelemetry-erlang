@@ -25,6 +25,8 @@
          updown_counter/4,
          observable_updowncounter/6,
 
+         scope/1,
+
          register_callback/4,
 
          instrument/5,
@@ -114,6 +116,12 @@ updown_counter(Meter, Name, ValueType, Opts) ->
       Opts :: opts().
 observable_updowncounter(Meter, Name, Callback, CallbackArgs, ValueType, Opts) ->
     instrument(Meter, Name, ?KIND_OBSERVABLE_UPDOWNCOUNTER, Callback, CallbackArgs, ValueType, Opts).
+
+-spec scope(Meter) -> Scope when
+      Meter :: t(),
+      Scope :: opentelemetry:instrumentation_scope().
+scope(Meter={Module, _}) ->
+    Module:scope(Meter).
 
 -spec instrument(Meter, Name, Kind, ValueType, Opts) -> otel_instrument:t() when
       Meter :: t(),

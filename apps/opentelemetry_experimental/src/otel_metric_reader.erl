@@ -232,6 +232,7 @@ checkpoint_metrics(MetricsTab, ValueType, Unit, CollectionStartTime, ViewAggrega
     lists:foldl(fun(#view_aggregation{aggregation_module=otel_aggregation_drop}, Acc) ->
                         Acc;
                    (#view_aggregation{name=Name,
+                                      instrument=Instrument,
                                       aggregation_module=AggregationModule,
                                       description=Description,
                                       temporality=Temporality,
@@ -242,11 +243,12 @@ checkpoint_metrics(MetricsTab, ValueType, Unit, CollectionStartTime, ViewAggrega
                         Data = data(AggregationModule, Name, Temporality, IsMonotonic,
                                     CollectionStartTime, MetricsTab),
 
-                        [metric(Name, Description, Unit, Data) | Acc]
+                        [metric(Instrument, Name, Description, Unit, Data) | Acc]
                 end, [], ViewAggregations).
 
-metric(Name, Description, Unit, Data) ->
-    #metric{name=Name,
+metric(#instrument{meter=Meter}, Name, Description, Unit, Data) ->
+    #metric{scope=otel_meter_default:scope(Meter),
+            name=Name,
             description=Description,
             unit=Unit,
             data=Data}.

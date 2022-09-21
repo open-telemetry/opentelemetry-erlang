@@ -102,15 +102,14 @@
 
 %% for testing
 -ifdef(TEST).
--export([to_proto_by_instrumentation_scope/1,
-         to_proto/1,
-         endpoints/2,
+-export([endpoints/2,
          merge_with_environment/1]).
 -endif.
 
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
+-include_lib("opentelemetry_experimental/src/otel_metrics.hrl").
 
 -define(DEFAULT_HTTP_PORT, 4318).
 -define(DEFAULT_HTTP_ENDPOINTS, [#{host => "localhost",
@@ -215,7 +214,7 @@ export(traces, Tab, Resource, #state{protocol=http_protobuf,
                                                   path := Path,
                                                   port := Port,
                                                   ssl_options := SSLOptions} | _]}) ->
-    Proto = opentelemetry_exporter_trace_service_pb:encode_msg(tab_to_proto(Tab, Resource),
+    Proto = opentelemetry_exporter_trace_service_pb:encode_msg(otel_otlp_traces:to_proto(Tab, Resource),
                                                                export_trace_service_request),
     {NewHeaders, NewProto} = case Compression of
                                  gzip -> {[{"content-encoding", "gzip"} | Headers], zlib:gzip(Proto)};
@@ -241,9 +240,27 @@ export(traces, Tab, Resource, #state{protocol=http_protobuf,
 export(traces, Tab, Resource, #state{protocol=grpc,
                                      grpc_metadata=Metadata,
                                      channel_pid=_ChannelPid}) ->
-    ExportRequest = tab_to_proto(Tab, Resource),
+    ExportRequest = otel_otlp_traces:to_proto(Tab, Resource),
     Ctx = grpcbox_metadata:append_to_outgoing_ctx(ctx:new(), Metadata),
     case opentelemetry_trace_service:export(Ctx, ExportRequest, #{channel => ?MODULE}) of
+        {ok, _Response, _ResponseMetadata} ->
+            ok;
+        {error, {Status, Message}, _} ->
+            ?LOG_INFO("OTLP grpc export failed with GRPC status ~s : ~s", [Status, Message]),
+            error;
+        {http_error, {Status, _}, _} ->
+            ?LOG_INFO("OTLP grpc export failed with HTTP status code ~s", [Status]),
+            error;
+        {error, Reason} ->
+            ?LOG_INFO("OTLP grpc export failed with error: ~p", [Reason]),
+            error
+    end;
+export(metrics, Tab, Resource, #state{protocol=grpc,
+                                      grpc_metadata=Metadata,
+                                      channel_pid=_ChannelPid}) ->
+    ExportRequest = otel_otlp_metrics:to_proto(Tab, Resource),
+    Ctx = grpcbox_metadata:append_to_outgoing_ctx(ctx:new(), Metadata),
+    case opentelemetry_metrics_service:export(Ctx, ExportRequest, #{channel => ?MODULE}) of
         {ok, _Response, _ResponseMetadata} ->
             ok;
         {error, {Status, Message}, _} ->
@@ -524,198 +541,3 @@ config_mapping() ->
      {"OTEL_EXPORTER_SSL_OPTIONS", ssl_options, key_value_list}
     ].
 
-tab_to_proto(Tab, Resource) ->
-    InstrumentationScopeSpans = to_proto_by_instrumentation_scope(Tab),
-    Attributes = otel_resource:attributes(Resource),
-    ResourceSpans = #{resource => #{attributes => to_attributes(otel_attributes:map(Attributes)),
-                                    dropped_attributes_count => otel_attributes:dropped(Attributes)},
-                      scope_spans => InstrumentationScopeSpans},
-    case otel_resource:schema_url(Resource) of
-        undefined ->
-            #{resource_spans => [ResourceSpans]};
-        SchemaUrl ->
-            #{resource_spans => [ResourceSpans#{schema_url => SchemaUrl}]}
-    end.
-
-to_proto_by_instrumentation_scope(Tab) ->
-    Key = ets:first(Tab),
-    to_proto_by_instrumentation_scope(Tab, Key).
-
-to_proto_by_instrumentation_scope(_Tab, '$end_of_table') ->
-    [];
-to_proto_by_instrumentation_scope(Tab, InstrumentationScope) ->
-    InstrumentationScopeSpans = lists:foldl(fun(Span, Acc) ->
-                                                      [to_proto(Span) | Acc]
-                                              end, [], ets:lookup(Tab, InstrumentationScope)),
-    InstrumentationScopeSpansProto = to_instrumentation_scope_proto(InstrumentationScope),
-    [InstrumentationScopeSpansProto#{spans => InstrumentationScopeSpans}
-    | to_proto_by_instrumentation_scope(Tab, ets:next(Tab, InstrumentationScope))].
-
-
-to_instrumentation_scope_proto(undefined) ->
-    #{};
-to_instrumentation_scope_proto(#instrumentation_scope{name=Name,
-                                                      version=Version,
-                                                      schema_url=undefined}) ->
-    #{scope => #{name => Name,
-                 version => Version}};
-to_instrumentation_scope_proto(#instrumentation_scope{name=Name,
-                                                      version=Version,
-                                                      schema_url=SchemaUrl}) ->
-    #{scope => #{name => Name,
-                 version => Version},
-      schema_url => SchemaUrl}.
-
-%% TODO: figure out why this type spec fails
-%% -spec to_proto(#span{}) -> opentelemetry_exporter_trace_service_pb:span().
-
-to_proto(#span{trace_id=TraceId,
-               span_id=SpanId,
-               tracestate=TraceState,
-               parent_span_id=MaybeParentSpanId,
-               name=Name,
-               kind=Kind,
-               start_time=StartTime,
-               end_time=EndTime,
-               attributes=Attributes,
-               events=TimedEvents,
-               links=Links,
-               status=Status,
-               trace_flags=_TraceFlags,
-               is_recording=_IsRecording}) ->
-    ParentSpanId = case MaybeParentSpanId of undefined -> <<>>; _ -> <<MaybeParentSpanId:64>> end,
-    #{name                     => to_binary(Name),
-      trace_id                 => <<TraceId:128>>,
-      span_id                  => <<SpanId:64>>,
-      parent_span_id           => ParentSpanId,
-      trace_state              => to_tracestate_string(TraceState),
-      kind                     => to_otlp_kind(Kind),
-      start_time_unix_nano     => to_unixnano(StartTime),
-      end_time_unix_nano       => to_unixnano(EndTime),
-      attributes               => to_attributes(otel_attributes:map(Attributes)),
-      dropped_attributes_count => otel_attributes:dropped(Attributes),
-      events                   => to_events(otel_events:list(TimedEvents)),
-      dropped_events_count     => otel_events:dropped(TimedEvents),
-      links                    => to_links(otel_links:list(Links)),
-      dropped_links_count      => otel_links:dropped(Links),
-      status                   => to_status(Status)}.
-
--spec to_unixnano(integer()) -> non_neg_integer().
-to_unixnano(Timestamp) ->
-    opentelemetry:timestamp_to_nano(Timestamp).
-
--spec to_attributes(opentelemetry:attributes_map()) -> [opentelemetry_exporter_trace_service_pb:key_value()].
-to_attributes(Attributes) ->
-    maps:fold(fun(Key, Value, Acc) ->
-                      [#{key => to_binary(Key),
-                         value => to_any_value(Value)} | Acc]
-              end, [], Attributes).
-
-to_any_value(Value) when is_binary(Value) ->
-    %% TODO: there is a bytes_value type we don't currently support bc we assume string
-    #{value => {string_value, Value}};
-to_any_value(Value) when is_atom(Value) ->
-    #{value => {string_value, to_binary(Value)}};
-to_any_value(Value) when is_integer(Value) ->
-    #{value => {int_value, Value}};
-to_any_value(Value) when is_float(Value) ->
-    #{value => {double_value, Value}};
-to_any_value(Value) when is_boolean(Value) ->
-    #{value => {bool_value, Value}};
-to_any_value(Value) when is_map(Value) ->
-    #{value => {kvlist_value, to_key_value_list(maps:to_list(Value))}};
-to_any_value(Value) when is_tuple(Value) ->
-    #{value => {array_value, to_array_value(tuple_to_list(Value))}};
-to_any_value(Value) when is_list(Value) ->
-    case is_proplist(Value) of
-        true ->
-            #{value => {kvlist_value, to_key_value_list(Value)}};
-        false ->
-            #{value => {array_value, to_array_value(Value)}}
-    end.
-
-to_key_value_list(List) ->
-    #{values => to_key_value_list(List, [])}.
-
-to_key_value_list([], Acc) ->
-    Acc;
-to_key_value_list([{Key, Value} | Rest], Acc) when is_atom(Key) ; is_binary(Key) ->
-    to_key_value_list(Rest, [to_key_value(Key, Value) | Acc]);
-to_key_value_list([_ | Rest], Acc) ->
-    to_key_value_list(Rest, Acc).
-
-to_key_value(Key, Value) ->
-    #{key => to_binary(Key),
-      value => to_any_value(Value)}.
-
-to_array_value(List) when is_list(List) ->
-    #{values => [to_any_value(V) || V <- List]};
-to_array_value(_) ->
-    #{values => []}.
-
-is_proplist([]) ->
-    true;
-is_proplist([{K, _} | L]) when is_atom(K) ; is_binary(K) ->
-    is_proplist(L);
-is_proplist(_) ->
-    false.
-
-to_binary(Term) when is_atom(Term) ->
-    erlang:atom_to_binary(Term, unicode);
-to_binary(Term) ->
-    unicode:characters_to_binary(Term).
-
--spec to_status(opentelemetry:status()) -> opentelemetry_exporter_trace_service_pb:status().
-to_status(#status{code=Code,
-                  message=Message}) ->
-    #{code => to_otlp_status(Code),
-      message => Message};
-to_status(_) ->
-    #{}.
-
--spec to_events([#event{}]) -> [opentelemetry_exporter_trace_service_pb:event()].
-to_events(Events) ->
-    [#{time_unix_nano => to_unixnano(Timestamp),
-       name => to_binary(Name),
-       attributes => to_attributes(otel_attributes:map(Attributes))}
-     || #event{system_time_nano=Timestamp,
-               name=Name,
-               attributes=Attributes} <- Events].
-
--spec to_links([#link{}]) -> [opentelemetry_exporter_trace_service_pb:link()].
-to_links(Links) ->
-    [#{trace_id => <<TraceId:128>>,
-       span_id => <<SpanId:64>>,
-       trace_state => to_tracestate_string(TraceState),
-       attributes => to_attributes(otel_attributes:map(Attributes)),
-       dropped_attributes_count => 0} || #link{trace_id=TraceId,
-                                               span_id=SpanId,
-                                               attributes=Attributes,
-                                               tracestate=TraceState} <- Links].
-
--spec to_tracestate_string(opentelemetry:tracestate()) -> string().
-to_tracestate_string(List) ->
-    lists:join($,, [[Key, $=, Value] || {Key, Value} <- List]).
-
-
--spec to_otlp_kind(atom()) -> opentelemetry_exporter_trace_service_pb:'span.SpanKind'().
-to_otlp_kind(?SPAN_KIND_INTERNAL) ->
-    'SPAN_KIND_INTERNAL';
-to_otlp_kind(?SPAN_KIND_SERVER) ->
-    'SPAN_KIND_SERVER';
-to_otlp_kind(?SPAN_KIND_CLIENT) ->
-    'SPAN_KIND_CLIENT';
-to_otlp_kind(?SPAN_KIND_PRODUCER) ->
-    'SPAN_KIND_PRODUCER';
-to_otlp_kind(?SPAN_KIND_CONSUMER) ->
-    'SPAN_KIND_CONSUMER';
-to_otlp_kind(_) ->
-    'SPAN_KIND_UNSPECIFIED'.
-
--spec to_otlp_status(atom()) -> opentelemetry_exporter_trace_service_pb:'status.StatusCode'().
-to_otlp_status(?OTEL_STATUS_UNSET) ->
-    'STATUS_CODE_UNSET';
-to_otlp_status(?OTEL_STATUS_OK) ->
-    'STATUS_CODE_OK';
-to_otlp_status(?OTEL_STATUS_ERROR) ->
-    'STATUS_CODE_ERROR'.

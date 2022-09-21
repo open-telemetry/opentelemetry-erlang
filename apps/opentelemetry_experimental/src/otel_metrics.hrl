@@ -105,6 +105,7 @@
 -record(metric,
         {
          name :: otel_view:name(),
+         scope :: opentelemetry:instrumentation_scope(),
          description :: otel_instrument:description(),
          unit :: otel_instrument:unit(),
          data :: #sum{} | #gauge{} | #histogram{}
