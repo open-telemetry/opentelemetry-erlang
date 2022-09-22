@@ -225,7 +225,7 @@ get_tracer(Name, Vsn, SchemaUrl) ->
 get_application_tracer(ModuleName) ->
     get_tracer(get_application(ModuleName)).
 
--spec get_application_scope(module()) -> tracer().
+-spec get_application_scope(module()) -> instrumentation_scope() | undefined.
 get_application_scope(ModuleName) ->
     case get_application(ModuleName) of
         {Name, Vsn, SchemaUrl} ->

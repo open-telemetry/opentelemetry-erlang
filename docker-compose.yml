@@ -7,7 +7,6 @@ services:
     ports:
       - 4317:4317
       - 4318:4318
-      - 55679:55679
     volumes:
       - ./config/otel-collector-config.yaml:/conf/otel-collector-config.yaml
     links:

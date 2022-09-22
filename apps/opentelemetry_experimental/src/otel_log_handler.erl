@@ -37,6 +37,15 @@
          exporting/3,
          handle_event/3]).
 
+-type config() :: #{id => logger:handler_id(),
+                    regname := atom(),
+                    config => term(),
+                    level => logger:level() | all | none,
+                    module => module(),
+                    filter_default => log | stop,
+                    filters => [{logger:filter_id(), logger:filter()}],
+                    formatter => {module(), logger:formatter_config()}}.
+
 -define(DEFAULT_CALL_TIMEOUT, 5000).
 -define(DEFAULT_MAX_QUEUE_SIZE, 2048).
 -define(DEFAULT_SCHEDULED_DELAY_MS, timer:seconds(5)).
@@ -52,7 +61,6 @@
                runner_pid           :: pid() | undefined,
                max_queue_size       :: integer() | infinity,
                exporting_timeout_ms :: integer(),
-               check_table_size_ms  :: integer() | infinity,
                scheduled_delay_ms   :: integer(),
 
                config :: #{},
@@ -62,7 +70,7 @@ start_link(RegName, Config) ->
     gen_statem:start_link({local, RegName}, ?MODULE, [RegName, Config], []).
 
 -spec adding_handler(Config) -> {ok, Config} | {error, Reason} when
-      Config :: logger:handler_config(),
+      Config :: config(),
       Reason :: term().
 adding_handler(#{id := Id,
                  module := Module}=Config) ->
@@ -90,9 +98,9 @@ adding_handler(#{id := Id,
 -spec changing_config(SetOrUpdate, OldConfig, NewConfig) ->
           {ok,Config} | {error,Reason} when
       SetOrUpdate :: set | update,
-      OldConfig :: logger:handler_config(),
-      NewConfig :: logger:handler_config(),
-      Config :: logger:handler_config(),
+      OldConfig :: config(),
+      NewConfig :: config(),
+      Config :: config(),
       Reason :: term().
 changing_config(SetOrUpdate, OldConfig, NewConfig=#{regname := Id}) ->
     gen_statem:call(Id, {changing_config, SetOrUpdate, OldConfig, NewConfig}).
@@ -100,7 +108,7 @@ changing_config(SetOrUpdate, OldConfig, NewConfig=#{regname := Id}) ->
 %%%-----------------------------------------------------------------
 %%% Handler being removed
 -spec removing_handler(Config) -> ok when
-      Config :: logger:handler_config().
+      Config :: config().
 removing_handler(Config=#{regname := Id}) ->
     gen_statem:call(Id, {removing_handler, Config}).
 
@@ -108,7 +116,7 @@ removing_handler(Config=#{regname := Id}) ->
 %%% Log a string or report
 -spec log(LogEvent, Config) -> ok when
       LogEvent :: logger:log_event(),
-      Config :: logger:handler_config().
+      Config :: config().
 log(LogEvent, _Config=#{regname := Id}) ->
     Scope = case LogEvent of
                 #{meta := #{otel_scope := Scope0=#instrumentation_scope{}}} ->
@@ -124,7 +132,7 @@ log(LogEvent, _Config=#{regname := Id}) ->
 %%%-----------------------------------------------------------------
 %%% Remove internal fields from configuration
 -spec filter_config(Config) -> Config when
-      Config :: logger:handler_config().
+      Config :: config().
 filter_config(Config=#{regname := Id}) ->
     gen_statem:call(Id, {filter_config, Config}).
 
@@ -185,7 +193,7 @@ exporting(EventType, EventContent, Data) ->
     handle_event(EventType, EventContent, Data).
 
 handle_event({call, From}, {changing_config, _SetOrUpdate, _OldConfig, NewConfig}, Data) ->
-    {keep_state, Data=#data{config=NewConfig}, [{reply, From, NewConfig}]};
+    {keep_state, Data#data{config=NewConfig}, [{reply, From, NewConfig}]};
 handle_event({call, From}, {removing_handler, Config}, _Data) ->
     %% TODO: flush
     {keep_state_and_data, [{reply, From, Config}]};
