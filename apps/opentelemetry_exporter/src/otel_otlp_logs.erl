@@ -21,8 +21,7 @@
 
 %% for testing
 -ifdef(TEST).
--export([to_proto_by_instrumentation_scope/1,
-         to_proto/1]).
+-export([to_proto_by_instrumentation_scope/2]).
 -endif.
 
 -include_lib("kernel/include/logger.hrl").
@@ -69,7 +68,18 @@ log_record(#{level := Level,
              meta := Metadata=#{time := ObservedTime}}, Config) ->
     Time = opentelemetry:timestamp(),
     {SeverityNumber, SeverityText} = level_to_severity(Level),
-    Body1 = format_msg(Body, Metadata, Config),
+    Body1 = case format_msg(Body, Metadata, Config) of
+                S when ?IS_STRING(S) ->
+                    %% if body is a string, make it a single line
+                    T = lists:reverse(
+                          trim(
+                            lists:reverse(
+                              trim(S, false)), true)),
+                    re:replace(T,",?\r?\n\s*",", ",
+                               [{return,list}, global, unicode]);
+                M ->
+                    M
+            end,
     Attributes = maps:without([gl, time, report_cb], Metadata),
     Attributes1 = maps:fold(fun(K, V, Acc) ->
                                     [#{key => otel_otlp_common:to_binary(K),
@@ -87,18 +97,13 @@ log_record(#{level := Level,
                         #{}
                 end,
 
-    T = lists:reverse(
-          trim(
-            lists:reverse(
-              trim(Body1, false)), true)),
-    Msg = re:replace(T,",?\r?\n\s*",", ",
-               [{return,list}, global, unicode]),
+
 
     LogRecord#{time_unix_nano          => Time,
                observed_time_unix_nano => ObservedTime,
                severity_number         => SeverityNumber,
                severity_text           => SeverityText,
-               body                    => otel_otlp_common:to_any_value(Msg),
+               body                    => otel_otlp_common:to_any_value(Body1),
                attributes              => Attributes1,
                dropped_attributes_count => DroppedAttributesCount,
                flags                   => Flags
@@ -137,10 +142,11 @@ format_msg({report, Report},#{report_cb := Fun}=Meta, Config) when is_function(F
                         [Report,{C,R,logger:filter_stacktrace(?MODULE,S)}]},
                        Meta,Config)
     end;
-format_msg({report,Report},Meta,Config) ->
-    format_msg({report,Report},
-               Meta#{report_cb=>fun logger:format_report/1},
-               Config);
+format_msg({report, Report}, _Meta, _Config) ->
+    %% report must be a map or key-value list so just return it as is
+    %% if the user doesn't supply a `report_cb' function. this makes
+    %% the LogRecord body also a list of key-value pairs
+    Report;
 format_msg(Msg, _Meta, #{depth := Depth,
                          chars_limit := CharsLimit,
                          single_line := Single}) ->
