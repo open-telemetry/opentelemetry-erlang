@@ -221,4 +221,63 @@ defmodule OpenTelemetry.Tracer do
   def update_name(name) do
     :otel_span.update_name(:otel_tracer.current_span_ctx(), name)
   end
+
+  @doc """
+  Takes the span context of an active process and returns it as a string.
+
+  Function is complementary with `from_string/1`.
+
+  Example usage context:
+
+  You have a function that broadcasts with pubsub, and executes on another node. Or
+  perhaps an oban job. Or some sort of microservice architecture.
+
+  The consuming node will not have any of the OTel process information so you cannot successfully
+  pass the full context you would normally get from `OpenTelemetry.Ctx.get_current/0`.
+
+  This allows one to pass the context around and re-hydrate the process via `from_string/1`.
+
+  """
+
+  @spec to_string() :: {:ok, String.t()} | {:error, atom()}
+  def to_string() do
+    case :otel_propagator_text_map.inject([]) do
+      [] -> {:error, :no_active_span}
+      [{"traceparent", traceparent}] -> {:ok, traceparent}
+    end
+  end
+
+  @doc """
+  Takes a span context represented as a string and inserts into the active process.
+
+  Function is complementary with `to_string/1`.
+
+  This must be executed where no span is currently active. It will not overwrite an
+  active span or otherwise modify it for parent/child relationships. It is not necessary to
+  use the returned context to attach or feed into `OpenTelemetry.Tracer.with_span`.
+
+  """
+  @spec from_string(String.t()) :: {:ok, :otel_ctx.t()} | {:error, atom()}
+  def from_string(string_trace) do
+    # reasoning explained in more detail, based on experimentation and discussions:
+
+    # if you try to extract the string trace into the current process and the process
+    # has an active span, it returns *the active span*. even with repeated invocations.
+    # the existing span is not modified.
+
+    # if it does not have an active span, it returns :undefined which is actually
+    # a successful extraction.
+
+    # a malformed string context will also return :undefined
+
+    current_context = :otel_ctx.get_current()
+    extraction_result = :otel_propagator_text_map.extract([{"traceparent", string_trace}])
+    new_context = :otel_ctx.get_current()
+
+    case {current_context, extraction_result, new_context} do
+      {%{}, :undefined, %{{:otel_tracer, :span_ctx} => _}} -> {:ok, new_context}
+      {%{}, :undefined, :undefined} -> {:error, :malformed}
+      {_, _, _} -> {:error, :already_existing_span}
+    end
+  end
 end
