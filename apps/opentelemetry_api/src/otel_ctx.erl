@@ -40,7 +40,7 @@
          text_map_extractor_fun/3,
          text_map_injector_fun/3]).
 
--type t() :: map().
+-type t() :: map() | undefined.
 -type key() :: term().
 -type value() :: term().
 

@@ -51,26 +51,35 @@ set(_) ->
     ok.
 
 %% Ctx will never be a list or binary so we can tell if a context is passed by checking that
--spec set(otel_ctx:t() | key() | unicode:charlist(), #{key() => value()} | [{key(), value()}] | value()) -> otel_ctx:t().
-set(Key, Value) when is_list(Key) ; is_binary(Key) ->
+-spec set(otel_ctx:t() | key() | unicode:charlist(), #{key() => value()} | [{key(), value()}] | value()) -> otel_ctx:t() | ok.
+set(Key, Value) when (is_list(Key) orelse is_binary(Key)) andalso is_binary(Value) ->
     set(Key, Value, []);
+%% drop bad value
+set(Key, Value) when (is_list(Key) orelse is_binary(Key)) andalso not is_binary(Value) ->
+    ok;
 set(Ctx, KeyValues) when is_list(KeyValues) ->
     set(Ctx, maps:from_list(KeyValues));
 set(Ctx, KeyValues) when is_map(KeyValues) ->
     Baggage = otel_ctx:get_value(Ctx, ?BAGGAGE_KEY, #{}),
     otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(KeyValues))).
 
--spec set(otel_ctx:t() | key(), key() | value(), value() | list()) -> ok | otel_ctx:t().
-set(Key, Value, Metadata) when is_list(Key) ; is_binary(Key) ->
+-spec set(otel_ctx:t() | key() | unicode:charlist(), key() | value() | unicode:charlist(), value() | list()) -> otel_ctx:t() | ok.
+set(Key, Value, Metadata) when (is_list(Key) orelse is_binary(Key)) andalso is_binary(Value) ->
     Baggage = otel_ctx:get_value(?BAGGAGE_KEY, #{}),
     otel_ctx:set_value(?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(#{Key => {Value, Metadata}})));
+%% drop bad value
+set(Key, Value, _Metadata) when (is_list(Key) orelse is_binary(Key)) andalso not is_binary(Value) ->
+    ok;
 set(Ctx, Key, Value) ->
     set(Ctx, Key, Value, []).
 
--spec set(otel_ctx:t(), key(), value(), metadata()) -> otel_ctx:t().
-set(Ctx, Key, Value, Metadata) ->
+-spec set(otel_ctx:t(), key() | unicode:charlist(), value(), metadata()) -> otel_ctx:t().
+set(Ctx, Key, Value, Metadata) when is_binary(Value) ->
     Baggage = otel_ctx:get_value(Ctx, ?BAGGAGE_KEY, #{}),
-    otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(#{Key => {Value, Metadata}}))).
+    otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(#{Key => {Value, Metadata}})));
+%% drop bad value
+set(Ctx, _, _, _) ->
+    Ctx.
 
 -spec get_all() -> t().
 get_all() ->

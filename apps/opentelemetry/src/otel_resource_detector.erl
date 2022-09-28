@@ -234,9 +234,15 @@ add_service_name(Resource, ProgName) ->
         ServiceName ->
             %% service.name resource first to override any other service.name
             %% attribute that could be set in the resource
-            ServiceNameResource = otel_resource:create([{?SERVICE_NAME,
-                                                         unicode:characters_to_binary(ServiceName)}]),
-            otel_resource:merge(ServiceNameResource, Resource)
+            case unicode:characters_to_binary(ServiceName) of
+                {_, _, _} ->
+                    ?LOG_WARNING("error converting service name ~s to utf8. falling back on the release name for service.name resource attributes", [ServiceName]),
+                    ServiceResource = service_release_name(ProgName),
+                    otel_resource:merge(ServiceResource, Resource);
+                BinaryString ->
+                    ServiceNameResource = otel_resource:create([{?SERVICE_NAME, BinaryString}]),
+                    otel_resource:merge(ServiceNameResource, Resource)
+            end
     end.
 
 %% if OTEL_SERVICE_INSTANCE isn't set then check for service.name in attributes
@@ -292,6 +298,6 @@ add_telemetry_info(Resource) ->
     LibraryLanguage = <<"erlang">>,
     ResourceAttributes = [{?LIBRARY_NAME, LibraryName},
                           {?LIBRARY_LANGUAGE, LibraryLanguage},
-                          {?LIBRARY_VERSION, unicode:characters_to_binary(LibraryVsn)}],
+                          {?LIBRARY_VERSION, LibraryVsn}],
     TelemetryInfoResource = otel_resource:create(ResourceAttributes),
     otel_resource:merge(TelemetryInfoResource, Resource).

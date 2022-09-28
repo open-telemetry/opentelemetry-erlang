@@ -42,7 +42,9 @@
               description/0,
               kind/0,
               value_type/0,
-              unit/0]).
+              unit/0,
+              callback/0,
+              callback_args/0]).
 
 -spec new(module(), otel_meter:t(), kind(), name(), description(), unit(), value_type()) -> t().
 new(Module, Meter, Kind, Name, Description, Unit, ValueType) ->

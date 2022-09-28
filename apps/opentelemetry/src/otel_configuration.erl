@@ -63,6 +63,8 @@
                attribute_per_event_limit := integer(),
                attribute_per_link_limit := integer()}.
 
+-export_type([t/0]).
+
 -spec new() -> t().
 new() ->
     #{log_level => info,

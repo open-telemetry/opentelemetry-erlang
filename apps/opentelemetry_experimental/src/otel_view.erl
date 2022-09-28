@@ -41,6 +41,7 @@
 -type selection() :: #selection{}.
 
 -export_type([t/0,
+              name/0,
               selection/0,
               criteria/0,
               config/0]).
