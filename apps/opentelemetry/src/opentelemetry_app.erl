@@ -20,7 +20,6 @@
 -behaviour(application).
 
 -export([start/2,
-         prep_stop/1,
          stop/1]).
 
 start(_StartType, _StartArgs) ->
@@ -41,14 +40,6 @@ start(_StartType, _StartArgs) ->
     create_loaded_application_tracers(Config),
 
     SupResult.
-
-%% called before the supervision tree is shutdown.
-prep_stop(_State) ->
-    %% on application stop set tracer to the noop implementation.
-    %% This is to ensure no crashes if the sdk isn't the last
-    %% thing to shutdown or if the opentelemetry application crashed.
-    opentelemetry:set_default_tracer({otel_tracer_noop, []}),
-    ok.
 
 stop(_State) ->
     ok.
