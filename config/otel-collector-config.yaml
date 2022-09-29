@@ -15,6 +15,8 @@ exporters:
     endpoint: "http://zipkin:9411/api/v2/spans"
   logging:
     loglevel: debug
+    sampling_initial: 1
+    sampling_thereafter: 1
 extensions:
   zpages: {}
 service:
@@ -25,6 +27,10 @@ service:
       processors: [batch]
       exporters: [logging, zipkin]
     metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging]
+    logs:
       receivers: [otlp]
       processors: [batch]
       exporters: [logging]

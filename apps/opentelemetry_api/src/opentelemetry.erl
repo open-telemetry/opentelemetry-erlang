@@ -36,6 +36,7 @@
          set_tracer/2,
          get_application/1,
          get_application_tracer/1,
+         get_application_scope/1,
          set_text_map_propagator/1,
          set_text_map_extractor/1,
          get_text_map_extractor/0,
@@ -223,6 +224,15 @@ get_tracer(Name, Vsn, SchemaUrl) ->
 -spec get_application_tracer(module()) -> tracer().
 get_application_tracer(ModuleName) ->
     get_tracer(get_application(ModuleName)).
+
+-spec get_application_scope(module()) -> instrumentation_scope() | undefined.
+get_application_scope(ModuleName) ->
+    case get_application(ModuleName) of
+        {Name, Vsn, SchemaUrl} ->
+            instrumentation_scope(Name, Vsn, SchemaUrl);
+        _ ->
+            instrumentation_scope(<<>>, <<>>, <<>>)
+    end.
 
 %% looks up the name, version and schema_url used to create a Trace for the OTP
 %% Application a module is in. This name is used to look up a Tracer to use so

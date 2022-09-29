@@ -188,6 +188,7 @@ exporting(enter, _OldState, Data=#data{exporting_timeout_ms=ExportingTimeout,
               {{timeout, export_spans}, SendInterval, export_spans}]}
     end;
 
+%% TODO: we need to just check if `exporter=undefined' right?
 %% two hacks since we can't transition to a new state or send an action from `enter'
 exporting(state_timeout, no_exporter, Data) ->
     {next_state, idle, Data};
@@ -385,5 +386,5 @@ report_cb(#{source := exporter,
             reason := Reason,
             exporter := ExporterModule,
             stacktrace := StackTrace}) ->
-    {"exporter threw exception: exporter=~p ~ts",
+    {"span exporter threw exception: exporter=~p ~ts",
      [ExporterModule, otel_utils:format_exception(Kind, Reason, StackTrace)]}.

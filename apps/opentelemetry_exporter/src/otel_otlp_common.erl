@@ -49,8 +49,13 @@ to_attributes(Attributes) ->
     to_attributes(otel_attributes:map(Attributes)).
 
 to_any_value(Value) when is_binary(Value) ->
-    %% TODO: there is a bytes_value type we don't currently support bc we assume string
-    #{value => {string_value, Value}};
+    case unicode:characters_to_binary(Value) of
+        {Failure, _, _} when Failure =:= error ;
+                             Failure =:= incomplete ->
+            #{value => {bytes_value, Value}};
+        String ->
+            #{value => {string_value, String}}
+    end;
 to_any_value(Value) when is_atom(Value) ->
     #{value => {string_value, to_binary(Value)}};
 to_any_value(Value) when is_integer(Value) ->
@@ -64,6 +69,20 @@ to_any_value(Value) when is_map(Value) ->
 to_any_value(Value) when is_tuple(Value) ->
     #{value => {array_value, to_array_value(tuple_to_list(Value))}};
 to_any_value(Value) when is_list(Value) ->
+    try unicode:characters_to_binary(Value) of
+        {Failure, _, _} when Failure =:= error ;
+                             Failure =:= incomplete ->
+            to_array_or_kvlist(Value);
+        String ->
+            #{value => {string_value, String}}
+    catch
+        _:_ ->
+            to_array_or_kvlist(Value)
+    end;
+to_any_value(Value) ->
+    #{value => {string_value, to_binary(io_lib:format("~p", [Value]))}}.
+
+to_array_or_kvlist(Value) ->
     case is_proplist(Value) of
         true ->
             #{value => {kvlist_value, to_key_value_list(Value)}};
