@@ -247,8 +247,13 @@ handle_event_(_, internal, init_exporter, Data=#data{exporter=undefined,
 handle_event_(_, _, _, _) ->
     keep_state_and_data.
 
-terminate(_, _, _Data) ->
-    %% TODO: flush buffers to exporter
+terminate(_Reason, _State, #data{exporter=Exporter,
+                                 resource=Resource}) ->
+    CurrentTable = ?CURRENT_TABLE,
+
+    %% `export' is used to perform a blocking export
+    _ = export(Exporter, Resource, CurrentTable),
+
     ok.
 
 %%
