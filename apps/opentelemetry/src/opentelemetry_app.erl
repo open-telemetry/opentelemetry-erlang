@@ -42,6 +42,7 @@ start(_StartType, _StartArgs) ->
     SupResult.
 
 stop(_State) ->
+    opentelemetry:set_default_tracer({otel_tracer_noop, []}),
     ok.
 
 %% internal functions
