@@ -49,9 +49,15 @@ inject(Ctx, Carrier, CarrierSet, _Options) ->
             Options = case TraceOptions band 1 of 1 -> <<"1">>; _ -> <<"0">> end,
             EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
             EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
-            CarrierSet(?B3_TRACE_ID, iolist_to_binary(EncodedTraceId),
-                       CarrierSet(?B3_SPAN_ID, iolist_to_binary(EncodedSpanId),
-                                  CarrierSet(?B3_SAMPLED, Options, Carrier)));
+            case {unicode:characters_to_binary(EncodedTraceId),
+                  unicode:characters_to_binary(EncodedSpanId)} of
+                {BinTraceId, BinSpanId} when is_binary(BinTraceId) , is_binary(BinSpanId) ->
+                    CarrierSet(?B3_TRACE_ID, BinTraceId,
+                               CarrierSet(?B3_SPAN_ID, BinSpanId,
+                                          CarrierSet(?B3_SAMPLED, Options, Carrier)));
+                _ ->
+                    Carrier
+            end;
         _ ->
             Carrier
     end.

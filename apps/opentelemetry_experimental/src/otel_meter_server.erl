@@ -69,9 +69,9 @@
          child_id :: atom(),
          module                      :: module(),
          config                      :: term(),
-         callbacks_tab               :: ets:tid(),
-         view_aggregation_tab        :: ets:tid(),
-         metrics_tab                 :: ets:tid(),
+         callbacks_tab               :: ets:tid() | atom(),
+         view_aggregation_tab        :: ets:tid() | atom(),
+         metrics_tab                 :: ets:tid() | atom(),
          default_aggregation_mapping :: map(),
          default_temporality_mapping :: map()
         }).

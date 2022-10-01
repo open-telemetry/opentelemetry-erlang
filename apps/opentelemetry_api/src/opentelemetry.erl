@@ -36,6 +36,7 @@
          set_tracer/2,
          get_application/1,
          get_application_tracer/1,
+         get_application_scope/1,
          set_text_map_propagator/1,
          set_text_map_extractor/1,
          get_text_map_extractor/0,
@@ -189,7 +190,7 @@ get_tracer() ->
     persistent_term:get(?DEFAULT_TRACER_KEY, {otel_tracer_noop, []}).
 
 -spec get_tracer(Name) -> Tracer when
-      Name :: atom() | {Name, Vsn, SchemaUrl},
+      Name :: atom() | {atom(), Vsn, SchemaUrl},
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
       Tracer:: opentelemetry:tracer().
@@ -223,6 +224,15 @@ get_tracer(Name, Vsn, SchemaUrl) ->
 -spec get_application_tracer(module()) -> tracer().
 get_application_tracer(ModuleName) ->
     get_tracer(get_application(ModuleName)).
+
+-spec get_application_scope(module()) -> instrumentation_scope() | undefined.
+get_application_scope(ModuleName) ->
+    case get_application(ModuleName) of
+        {Name, Vsn, SchemaUrl} ->
+            instrumentation_scope(Name, Vsn, SchemaUrl);
+        _ ->
+            instrumentation_scope(<<>>, <<>>, <<>>)
+    end.
 
 %% looks up the name, version and schema_url used to create a Trace for the OTP
 %% Application a module is in. This name is used to look up a Tracer to use so
@@ -311,11 +321,11 @@ links(List) when is_list(List) ->
 links(_) ->
     [].
 
--spec link(span_ctx() | undefined) -> link().
+-spec link(span_ctx() | undefined) -> link() | undefined.
 link(SpanCtx) ->
     link(SpanCtx, []).
 
--spec link(span_ctx() | undefined, attributes_map()) -> link().
+-spec link(span_ctx() | undefined, attributes_map()) -> link() | undefined.
 link(#span_ctx{trace_id=TraceId,
                span_id=SpanId,
                tracestate=TraceState}, Attributes) ->
@@ -346,7 +356,7 @@ event(Name, Attributes) ->
     event(opentelemetry:timestamp(), Name, Attributes).
 
 -spec event(Timestamp, Name, Attributes) -> event() | undefined when
-      Timestamp :: non_neg_integer(),
+      Timestamp :: integer(),
       Name :: event_name(),
       Attributes :: attributes_map().
 event(Timestamp, Name, Attributes) when is_integer(Timestamp),

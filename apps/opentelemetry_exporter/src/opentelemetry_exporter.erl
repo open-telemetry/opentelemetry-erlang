@@ -273,6 +273,24 @@ export(metrics, Tab, Resource, #state{protocol=grpc,
             ?LOG_INFO("OTLP grpc export failed with error: ~p", [Reason]),
             error
     end;
+export(logs, {Logs, Config}, Resource, #state{protocol=grpc,
+                                              grpc_metadata=Metadata,
+                                              channel_pid=_ChannelPid}) ->
+    ExportRequest = otel_otlp_logs:to_proto(Logs, Resource, Config),
+    Ctx = grpcbox_metadata:append_to_outgoing_ctx(ctx:new(), Metadata),
+    case opentelemetry_logs_service:export(Ctx, ExportRequest, #{channel => ?MODULE}) of
+        {ok, _Response, _ResponseMetadata} ->
+            ok;
+        {error, {Status, Message}, _} ->
+            ?LOG_INFO("OTLP grpc export failed with GRPC status ~s : ~s", [Status, Message]),
+            error;
+        {http_error, {Status, _}, _} ->
+            ?LOG_INFO("OTLP grpc export failed with HTTP status code ~s", [Status]),
+            error;
+        {error, Reason} ->
+            ?LOG_INFO("OTLP grpc export failed with error: ~p", [Reason]),
+            error
+    end;
 export(_, _Tab, _Resource, _State) ->
     {error, unimplemented}.
 
@@ -356,13 +374,19 @@ parse_endpoint(Endpoint=#{host := Host, scheme := Scheme, path := Path}, Default
                                 host => HostString,
                                 path => unicode:characters_to_list(Path)})};
 parse_endpoint(String, DefaultSSLOpts) when is_list(String) orelse is_binary(String) ->
-    case uri_string:parse(unicode:characters_to_list(String)) of
-        {error, Reason, Message} ->
-            ?LOG_WARNING("error parsing endpoint URI: ~s : ~p", [Reason, Message]),
+    case unicode:characters_to_list(String) of
+        {_, _, _} ->
+            ?LOG_WARNING("error converting endpoint URI ~s to utf8", [String]),
             false;
-        ParsedUri ->
-            ParsedUri1 = maybe_add_scheme_port(ParsedUri),
-            parse_endpoint(ParsedUri1, DefaultSSLOpts)
+        UnicodeList ->
+            case uri_string:parse(UnicodeList) of
+                {error, Reason, Message} ->
+                    ?LOG_WARNING("error parsing endpoint URI: ~s : ~p", [Reason, Message]),
+                    false;
+                ParsedUri ->
+                    ParsedUri1 = maybe_add_scheme_port(ParsedUri),
+                    parse_endpoint(ParsedUri1, DefaultSSLOpts)
+            end
     end;
 parse_endpoint(_, _) ->
     false.

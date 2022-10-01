@@ -46,7 +46,7 @@ get_tracer(ServerRef, Name, Vsn, SchemaUrl) ->
         gen_server:call(ServerRef, {get_tracer, Name, Vsn, SchemaUrl})
     catch exit:{noproc, _} ->
             %% ignore get_tracer because no SDK has been included and started
-            false
+            {otel_tracer_noop, []}
     end.
 
 -spec resource() -> term() | undefined.

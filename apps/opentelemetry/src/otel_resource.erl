@@ -37,6 +37,8 @@
                    attributes :: otel_attributes:t()}).
 -type t() :: #resource{}.
 
+-export_type([t/0]).
+
 -spec create(#{key() => value()} | [{key(), value()}]) -> t().
 create(Attributes) ->
     create(Attributes, undefined).

@@ -60,7 +60,12 @@
        }.
 
 -type export_metrics_service_response() ::
-      #{
+      #{partial_success         => export_metrics_partial_success() % = 1, optional
+       }.
+
+-type export_metrics_partial_success() ::
+      #{rejected_data_points    => integer(),       % = 1, optional, 64 bits
+        error_message           => unicode:chardata() % = 2, optional
        }.
 
 -type metrics_data() ::
@@ -70,18 +75,11 @@
 -type resource_metrics() ::
       #{resource                => resource(),      % = 1, optional
         scope_metrics           => [scope_metrics()], % = 2, repeated
-        instrumentation_library_metrics => [instrumentation_library_metrics()], % = 1000, repeated
         schema_url              => unicode:chardata() % = 3, optional
        }.
 
 -type scope_metrics() ::
       #{scope                   => instrumentation_scope(), % = 1, optional
-        metrics                 => [metric()],      % = 2, repeated
-        schema_url              => unicode:chardata() % = 3, optional
-       }.
-
--type instrumentation_library_metrics() ::
-      #{instrumentation_library => instrumentation_library(), % = 1, optional
         metrics                 => [metric()],      % = 2, repeated
         schema_url              => unicode:chardata() % = 3, optional
        }.
@@ -201,14 +199,11 @@
         value                   => any_value()      % = 2, optional
        }.
 
--type instrumentation_library() ::
-      #{name                    => unicode:chardata(), % = 1, optional
-        version                 => unicode:chardata() % = 2, optional
-       }.
-
 -type instrumentation_scope() ::
       #{name                    => unicode:chardata(), % = 1, optional
-        version                 => unicode:chardata() % = 2, optional
+        version                 => unicode:chardata(), % = 2, optional
+        attributes              => [key_value()],   % = 3, repeated
+        dropped_attributes_count => non_neg_integer() % = 4, optional, 32 bits
        }.
 
 -type resource() ::
@@ -216,9 +211,9 @@
         dropped_attributes_count => non_neg_integer() % = 2, optional, 32 bits
        }.
 
--export_type(['export_metrics_service_request'/0, 'export_metrics_service_response'/0, 'metrics_data'/0, 'resource_metrics'/0, 'scope_metrics'/0, 'instrumentation_library_metrics'/0, 'metric'/0, 'gauge'/0, 'sum'/0, 'histogram'/0, 'exponential_histogram'/0, 'summary'/0, 'number_data_point'/0, 'histogram_data_point'/0, 'buckets'/0, 'exponential_histogram_data_point'/0, 'value_at_quantile'/0, 'summary_data_point'/0, 'exemplar'/0, 'any_value'/0, 'array_value'/0, 'key_value_list'/0, 'key_value'/0, 'instrumentation_library'/0, 'instrumentation_scope'/0, 'resource'/0]).
--type '$msg_name'() :: export_metrics_service_request | export_metrics_service_response | metrics_data | resource_metrics | scope_metrics | instrumentation_library_metrics | metric | gauge | sum | histogram | exponential_histogram | summary | number_data_point | histogram_data_point | buckets | exponential_histogram_data_point | value_at_quantile | summary_data_point | exemplar | any_value | array_value | key_value_list | key_value | instrumentation_library | instrumentation_scope | resource.
--type '$msg'() :: export_metrics_service_request() | export_metrics_service_response() | metrics_data() | resource_metrics() | scope_metrics() | instrumentation_library_metrics() | metric() | gauge() | sum() | histogram() | exponential_histogram() | summary() | number_data_point() | histogram_data_point() | buckets() | exponential_histogram_data_point() | value_at_quantile() | summary_data_point() | exemplar() | any_value() | array_value() | key_value_list() | key_value() | instrumentation_library() | instrumentation_scope() | resource().
+-export_type(['export_metrics_service_request'/0, 'export_metrics_service_response'/0, 'export_metrics_partial_success'/0, 'metrics_data'/0, 'resource_metrics'/0, 'scope_metrics'/0, 'metric'/0, 'gauge'/0, 'sum'/0, 'histogram'/0, 'exponential_histogram'/0, 'summary'/0, 'number_data_point'/0, 'histogram_data_point'/0, 'buckets'/0, 'exponential_histogram_data_point'/0, 'value_at_quantile'/0, 'summary_data_point'/0, 'exemplar'/0, 'any_value'/0, 'array_value'/0, 'key_value_list'/0, 'key_value'/0, 'instrumentation_scope'/0, 'resource'/0]).
+-type '$msg_name'() :: export_metrics_service_request | export_metrics_service_response | export_metrics_partial_success | metrics_data | resource_metrics | scope_metrics | metric | gauge | sum | histogram | exponential_histogram | summary | number_data_point | histogram_data_point | buckets | exponential_histogram_data_point | value_at_quantile | summary_data_point | exemplar | any_value | array_value | key_value_list | key_value | instrumentation_scope | resource.
+-type '$msg'() :: export_metrics_service_request() | export_metrics_service_response() | export_metrics_partial_success() | metrics_data() | resource_metrics() | scope_metrics() | metric() | gauge() | sum() | histogram() | exponential_histogram() | summary() | number_data_point() | histogram_data_point() | buckets() | exponential_histogram_data_point() | value_at_quantile() | summary_data_point() | exemplar() | any_value() | array_value() | key_value_list() | key_value() | instrumentation_scope() | resource().
 -export_type(['$msg_name'/0, '$msg'/0]).
 
 -if(?OTP_RELEASE >= 24).
@@ -240,10 +235,10 @@ encode_msg(Msg, MsgName, Opts) ->
     case MsgName of
         export_metrics_service_request -> encode_msg_export_metrics_service_request(id(Msg, TrUserData), TrUserData);
         export_metrics_service_response -> encode_msg_export_metrics_service_response(id(Msg, TrUserData), TrUserData);
+        export_metrics_partial_success -> encode_msg_export_metrics_partial_success(id(Msg, TrUserData), TrUserData);
         metrics_data -> encode_msg_metrics_data(id(Msg, TrUserData), TrUserData);
         resource_metrics -> encode_msg_resource_metrics(id(Msg, TrUserData), TrUserData);
         scope_metrics -> encode_msg_scope_metrics(id(Msg, TrUserData), TrUserData);
-        instrumentation_library_metrics -> encode_msg_instrumentation_library_metrics(id(Msg, TrUserData), TrUserData);
         metric -> encode_msg_metric(id(Msg, TrUserData), TrUserData);
         gauge -> encode_msg_gauge(id(Msg, TrUserData), TrUserData);
         sum -> encode_msg_sum(id(Msg, TrUserData), TrUserData);
@@ -261,7 +256,6 @@ encode_msg(Msg, MsgName, Opts) ->
         array_value -> encode_msg_array_value(id(Msg, TrUserData), TrUserData);
         key_value_list -> encode_msg_key_value_list(id(Msg, TrUserData), TrUserData);
         key_value -> encode_msg_key_value(id(Msg, TrUserData), TrUserData);
-        instrumentation_library -> encode_msg_instrumentation_library(id(Msg, TrUserData), TrUserData);
         instrumentation_scope -> encode_msg_instrumentation_scope(id(Msg, TrUserData), TrUserData);
         resource -> encode_msg_resource(id(Msg, TrUserData), TrUserData)
     end.
@@ -280,7 +274,46 @@ encode_msg_export_metrics_service_request(#{} = M, Bin, TrUserData) ->
         _ -> Bin
     end.
 
-encode_msg_export_metrics_service_response(_Msg, _TrUserData) -> <<>>.
+encode_msg_export_metrics_service_response(Msg, TrUserData) -> encode_msg_export_metrics_service_response(Msg, <<>>, TrUserData).
+
+
+encode_msg_export_metrics_service_response(#{} = M, Bin, TrUserData) ->
+    case M of
+        #{partial_success := F1} ->
+            begin
+                TrF1 = id(F1, TrUserData),
+                if TrF1 =:= undefined -> Bin;
+                   true -> e_mfield_export_metrics_service_response_partial_success(TrF1, <<Bin/binary, 10>>, TrUserData)
+                end
+            end;
+        _ -> Bin
+    end.
+
+encode_msg_export_metrics_partial_success(Msg, TrUserData) -> encode_msg_export_metrics_partial_success(Msg, <<>>, TrUserData).
+
+
+encode_msg_export_metrics_partial_success(#{} = M, Bin, TrUserData) ->
+    B1 = case M of
+             #{rejected_data_points := F1} ->
+                 begin
+                     TrF1 = id(F1, TrUserData),
+                     if TrF1 =:= 0 -> Bin;
+                        true -> e_type_int64(TrF1, <<Bin/binary, 8>>, TrUserData)
+                     end
+                 end;
+             _ -> Bin
+         end,
+    case M of
+        #{error_message := F2} ->
+            begin
+                TrF2 = id(F2, TrUserData),
+                case is_empty_string(TrF2) of
+                    true -> B1;
+                    false -> e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
+                end
+            end;
+        _ -> B1
+    end.
 
 encode_msg_metrics_data(Msg, TrUserData) -> encode_msg_metrics_data(Msg, <<>>, TrUserData).
 
@@ -317,24 +350,16 @@ encode_msg_resource_metrics(#{} = M, Bin, TrUserData) ->
                  end;
              _ -> B1
          end,
-    B3 = case M of
-             #{instrumentation_library_metrics := F3} ->
-                 TrF3 = id(F3, TrUserData),
-                 if TrF3 == [] -> B2;
-                    true -> e_field_resource_metrics_instrumentation_library_metrics(TrF3, B2, TrUserData)
-                 end;
-             _ -> B2
-         end,
     case M of
-        #{schema_url := F4} ->
+        #{schema_url := F3} ->
             begin
-                TrF4 = id(F4, TrUserData),
-                case is_empty_string(TrF4) of
-                    true -> B3;
-                    false -> e_type_string(TrF4, <<B3/binary, 26>>, TrUserData)
+                TrF3 = id(F3, TrUserData),
+                case is_empty_string(TrF3) of
+                    true -> B2;
+                    false -> e_type_string(TrF3, <<B2/binary, 26>>, TrUserData)
                 end
             end;
-        _ -> B3
+        _ -> B2
     end.
 
 encode_msg_scope_metrics(Msg, TrUserData) -> encode_msg_scope_metrics(Msg, <<>>, TrUserData).
@@ -356,40 +381,6 @@ encode_msg_scope_metrics(#{} = M, Bin, TrUserData) ->
                  TrF2 = id(F2, TrUserData),
                  if TrF2 == [] -> B1;
                     true -> e_field_scope_metrics_metrics(TrF2, B1, TrUserData)
-                 end;
-             _ -> B1
-         end,
-    case M of
-        #{schema_url := F3} ->
-            begin
-                TrF3 = id(F3, TrUserData),
-                case is_empty_string(TrF3) of
-                    true -> B2;
-                    false -> e_type_string(TrF3, <<B2/binary, 26>>, TrUserData)
-                end
-            end;
-        _ -> B2
-    end.
-
-encode_msg_instrumentation_library_metrics(Msg, TrUserData) -> encode_msg_instrumentation_library_metrics(Msg, <<>>, TrUserData).
-
-
-encode_msg_instrumentation_library_metrics(#{} = M, Bin, TrUserData) ->
-    B1 = case M of
-             #{instrumentation_library := F1} ->
-                 begin
-                     TrF1 = id(F1, TrUserData),
-                     if TrF1 =:= undefined -> Bin;
-                        true -> e_mfield_instrumentation_library_metrics_instrumentation_library(TrF1, <<Bin/binary, 10>>, TrUserData)
-                     end
-                 end;
-             _ -> Bin
-         end,
-    B2 = case M of
-             #{metrics := F2} ->
-                 TrF2 = id(F2, TrUserData),
-                 if TrF2 == [] -> B1;
-                    true -> e_field_instrumentation_library_metrics_metrics(TrF2, B1, TrUserData)
                  end;
              _ -> B1
          end,
@@ -1062,33 +1053,6 @@ encode_msg_key_value(#{} = M, Bin, TrUserData) ->
         _ -> B1
     end.
 
-encode_msg_instrumentation_library(Msg, TrUserData) -> encode_msg_instrumentation_library(Msg, <<>>, TrUserData).
-
-
-encode_msg_instrumentation_library(#{} = M, Bin, TrUserData) ->
-    B1 = case M of
-             #{name := F1} ->
-                 begin
-                     TrF1 = id(F1, TrUserData),
-                     case is_empty_string(TrF1) of
-                         true -> Bin;
-                         false -> e_type_string(TrF1, <<Bin/binary, 10>>, TrUserData)
-                     end
-                 end;
-             _ -> Bin
-         end,
-    case M of
-        #{version := F2} ->
-            begin
-                TrF2 = id(F2, TrUserData),
-                case is_empty_string(TrF2) of
-                    true -> B1;
-                    false -> e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
-                end
-            end;
-        _ -> B1
-    end.
-
 encode_msg_instrumentation_scope(Msg, TrUserData) -> encode_msg_instrumentation_scope(Msg, <<>>, TrUserData).
 
 
@@ -1104,16 +1068,34 @@ encode_msg_instrumentation_scope(#{} = M, Bin, TrUserData) ->
                  end;
              _ -> Bin
          end,
+    B2 = case M of
+             #{version := F2} ->
+                 begin
+                     TrF2 = id(F2, TrUserData),
+                     case is_empty_string(TrF2) of
+                         true -> B1;
+                         false -> e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
+                     end
+                 end;
+             _ -> B1
+         end,
+    B3 = case M of
+             #{attributes := F3} ->
+                 TrF3 = id(F3, TrUserData),
+                 if TrF3 == [] -> B2;
+                    true -> e_field_instrumentation_scope_attributes(TrF3, B2, TrUserData)
+                 end;
+             _ -> B2
+         end,
     case M of
-        #{version := F2} ->
+        #{dropped_attributes_count := F4} ->
             begin
-                TrF2 = id(F2, TrUserData),
-                case is_empty_string(TrF2) of
-                    true -> B1;
-                    false -> e_type_string(TrF2, <<B1/binary, 18>>, TrUserData)
+                TrF4 = id(F4, TrUserData),
+                if TrF4 =:= 0 -> B3;
+                   true -> e_varint(TrF4, <<B3/binary, 32>>, TrUserData)
                 end
             end;
-        _ -> B1
+        _ -> B3
     end.
 
 encode_msg_resource(Msg, TrUserData) -> encode_msg_resource(Msg, <<>>, TrUserData).
@@ -1150,6 +1132,11 @@ e_field_export_metrics_service_request_resource_metrics([Elem | Rest], Bin, TrUs
     e_field_export_metrics_service_request_resource_metrics(Rest, Bin3, TrUserData);
 e_field_export_metrics_service_request_resource_metrics([], Bin, _TrUserData) -> Bin.
 
+e_mfield_export_metrics_service_response_partial_success(Msg, Bin, TrUserData) ->
+    SubBin = encode_msg_export_metrics_partial_success(Msg, <<>>, TrUserData),
+    Bin2 = e_varint(byte_size(SubBin), Bin),
+    <<Bin2/binary, SubBin/binary>>.
+
 e_mfield_metrics_data_resource_metrics(Msg, Bin, TrUserData) ->
     SubBin = encode_msg_resource_metrics(Msg, <<>>, TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
@@ -1177,17 +1164,6 @@ e_field_resource_metrics_scope_metrics([Elem | Rest], Bin, TrUserData) ->
     e_field_resource_metrics_scope_metrics(Rest, Bin3, TrUserData);
 e_field_resource_metrics_scope_metrics([], Bin, _TrUserData) -> Bin.
 
-e_mfield_resource_metrics_instrumentation_library_metrics(Msg, Bin, TrUserData) ->
-    SubBin = encode_msg_instrumentation_library_metrics(Msg, <<>>, TrUserData),
-    Bin2 = e_varint(byte_size(SubBin), Bin),
-    <<Bin2/binary, SubBin/binary>>.
-
-e_field_resource_metrics_instrumentation_library_metrics([Elem | Rest], Bin, TrUserData) ->
-    Bin2 = <<Bin/binary, 194, 62>>,
-    Bin3 = e_mfield_resource_metrics_instrumentation_library_metrics(id(Elem, TrUserData), Bin2, TrUserData),
-    e_field_resource_metrics_instrumentation_library_metrics(Rest, Bin3, TrUserData);
-e_field_resource_metrics_instrumentation_library_metrics([], Bin, _TrUserData) -> Bin.
-
 e_mfield_scope_metrics_scope(Msg, Bin, TrUserData) ->
     SubBin = encode_msg_instrumentation_scope(Msg, <<>>, TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
@@ -1203,22 +1179,6 @@ e_field_scope_metrics_metrics([Elem | Rest], Bin, TrUserData) ->
     Bin3 = e_mfield_scope_metrics_metrics(id(Elem, TrUserData), Bin2, TrUserData),
     e_field_scope_metrics_metrics(Rest, Bin3, TrUserData);
 e_field_scope_metrics_metrics([], Bin, _TrUserData) -> Bin.
-
-e_mfield_instrumentation_library_metrics_instrumentation_library(Msg, Bin, TrUserData) ->
-    SubBin = encode_msg_instrumentation_library(Msg, <<>>, TrUserData),
-    Bin2 = e_varint(byte_size(SubBin), Bin),
-    <<Bin2/binary, SubBin/binary>>.
-
-e_mfield_instrumentation_library_metrics_metrics(Msg, Bin, TrUserData) ->
-    SubBin = encode_msg_metric(Msg, <<>>, TrUserData),
-    Bin2 = e_varint(byte_size(SubBin), Bin),
-    <<Bin2/binary, SubBin/binary>>.
-
-e_field_instrumentation_library_metrics_metrics([Elem | Rest], Bin, TrUserData) ->
-    Bin2 = <<Bin/binary, 18>>,
-    Bin3 = e_mfield_instrumentation_library_metrics_metrics(id(Elem, TrUserData), Bin2, TrUserData),
-    e_field_instrumentation_library_metrics_metrics(Rest, Bin3, TrUserData);
-e_field_instrumentation_library_metrics_metrics([], Bin, _TrUserData) -> Bin.
 
 e_mfield_metric_gauge(Msg, Bin, TrUserData) ->
     SubBin = encode_msg_gauge(Msg, <<>>, TrUserData),
@@ -1486,6 +1446,17 @@ e_mfield_key_value_value(Msg, Bin, TrUserData) ->
     Bin2 = e_varint(byte_size(SubBin), Bin),
     <<Bin2/binary, SubBin/binary>>.
 
+e_mfield_instrumentation_scope_attributes(Msg, Bin, TrUserData) ->
+    SubBin = encode_msg_key_value(Msg, <<>>, TrUserData),
+    Bin2 = e_varint(byte_size(SubBin), Bin),
+    <<Bin2/binary, SubBin/binary>>.
+
+e_field_instrumentation_scope_attributes([Elem | Rest], Bin, TrUserData) ->
+    Bin2 = <<Bin/binary, 26>>,
+    Bin3 = e_mfield_instrumentation_scope_attributes(id(Elem, TrUserData), Bin2, TrUserData),
+    e_field_instrumentation_scope_attributes(Rest, Bin3, TrUserData);
+e_field_instrumentation_scope_attributes([], Bin, _TrUserData) -> Bin.
+
 e_mfield_resource_attributes(Msg, Bin, TrUserData) ->
     SubBin = encode_msg_key_value(Msg, <<>>, TrUserData),
     Bin2 = e_varint(byte_size(SubBin), Bin),
@@ -1642,10 +1613,10 @@ decode_msg_1_catch(Bin, MsgName, TrUserData) ->
 
 decode_msg_2_doit(export_metrics_service_request, Bin, TrUserData) -> id(decode_msg_export_metrics_service_request(Bin, TrUserData), TrUserData);
 decode_msg_2_doit(export_metrics_service_response, Bin, TrUserData) -> id(decode_msg_export_metrics_service_response(Bin, TrUserData), TrUserData);
+decode_msg_2_doit(export_metrics_partial_success, Bin, TrUserData) -> id(decode_msg_export_metrics_partial_success(Bin, TrUserData), TrUserData);
 decode_msg_2_doit(metrics_data, Bin, TrUserData) -> id(decode_msg_metrics_data(Bin, TrUserData), TrUserData);
 decode_msg_2_doit(resource_metrics, Bin, TrUserData) -> id(decode_msg_resource_metrics(Bin, TrUserData), TrUserData);
 decode_msg_2_doit(scope_metrics, Bin, TrUserData) -> id(decode_msg_scope_metrics(Bin, TrUserData), TrUserData);
-decode_msg_2_doit(instrumentation_library_metrics, Bin, TrUserData) -> id(decode_msg_instrumentation_library_metrics(Bin, TrUserData), TrUserData);
 decode_msg_2_doit(metric, Bin, TrUserData) -> id(decode_msg_metric(Bin, TrUserData), TrUserData);
 decode_msg_2_doit(gauge, Bin, TrUserData) -> id(decode_msg_gauge(Bin, TrUserData), TrUserData);
 decode_msg_2_doit(sum, Bin, TrUserData) -> id(decode_msg_sum(Bin, TrUserData), TrUserData);
@@ -1663,7 +1634,6 @@ decode_msg_2_doit(any_value, Bin, TrUserData) -> id(decode_msg_any_value(Bin, Tr
 decode_msg_2_doit(array_value, Bin, TrUserData) -> id(decode_msg_array_value(Bin, TrUserData), TrUserData);
 decode_msg_2_doit(key_value_list, Bin, TrUserData) -> id(decode_msg_key_value_list(Bin, TrUserData), TrUserData);
 decode_msg_2_doit(key_value, Bin, TrUserData) -> id(decode_msg_key_value(Bin, TrUserData), TrUserData);
-decode_msg_2_doit(instrumentation_library, Bin, TrUserData) -> id(decode_msg_instrumentation_library(Bin, TrUserData), TrUserData);
 decode_msg_2_doit(instrumentation_scope, Bin, TrUserData) -> id(decode_msg_instrumentation_scope(Bin, TrUserData), TrUserData);
 decode_msg_2_doit(resource, Bin, TrUserData) -> id(decode_msg_resource(Bin, TrUserData), TrUserData).
 
@@ -1721,39 +1691,116 @@ skip_32_export_metrics_service_request(<<_:32, Rest/binary>>, Z1, Z2, F, F@_1, T
 
 skip_64_export_metrics_service_request(<<_:64, Rest/binary>>, Z1, Z2, F, F@_1, TrUserData) -> dfp_read_field_def_export_metrics_service_request(Rest, Z1, Z2, F, F@_1, TrUserData).
 
-decode_msg_export_metrics_service_response(Bin, TrUserData) -> dfp_read_field_def_export_metrics_service_response(Bin, 0, 0, 0, TrUserData).
+decode_msg_export_metrics_service_response(Bin, TrUserData) -> dfp_read_field_def_export_metrics_service_response(Bin, 0, 0, 0, id('$undef', TrUserData), TrUserData).
 
-dfp_read_field_def_export_metrics_service_response(<<>>, 0, 0, _, _) -> #{};
-dfp_read_field_def_export_metrics_service_response(Other, Z1, Z2, F, TrUserData) -> dg_read_field_def_export_metrics_service_response(Other, Z1, Z2, F, TrUserData).
-
-dg_read_field_def_export_metrics_service_response(<<1:1, X:7, Rest/binary>>, N, Acc, F, TrUserData) when N < 32 - 7 -> dg_read_field_def_export_metrics_service_response(Rest, N + 7, X bsl N + Acc, F, TrUserData);
-dg_read_field_def_export_metrics_service_response(<<0:1, X:7, Rest/binary>>, N, Acc, _, TrUserData) ->
-    Key = X bsl N + Acc,
-    case Key band 7 of
-        0 -> skip_varint_export_metrics_service_response(Rest, 0, 0, Key bsr 3, TrUserData);
-        1 -> skip_64_export_metrics_service_response(Rest, 0, 0, Key bsr 3, TrUserData);
-        2 -> skip_length_delimited_export_metrics_service_response(Rest, 0, 0, Key bsr 3, TrUserData);
-        3 -> skip_group_export_metrics_service_response(Rest, 0, 0, Key bsr 3, TrUserData);
-        5 -> skip_32_export_metrics_service_response(Rest, 0, 0, Key bsr 3, TrUserData)
+dfp_read_field_def_export_metrics_service_response(<<10, Rest/binary>>, Z1, Z2, F, F@_1, TrUserData) -> d_field_export_metrics_service_response_partial_success(Rest, Z1, Z2, F, F@_1, TrUserData);
+dfp_read_field_def_export_metrics_service_response(<<>>, 0, 0, _, F@_1, _) ->
+    S1 = #{},
+    if F@_1 == '$undef' -> S1;
+       true -> S1#{partial_success => F@_1}
     end;
-dg_read_field_def_export_metrics_service_response(<<>>, 0, 0, _, _) -> #{}.
+dfp_read_field_def_export_metrics_service_response(Other, Z1, Z2, F, F@_1, TrUserData) -> dg_read_field_def_export_metrics_service_response(Other, Z1, Z2, F, F@_1, TrUserData).
 
-skip_varint_export_metrics_service_response(<<1:1, _:7, Rest/binary>>, Z1, Z2, F, TrUserData) -> skip_varint_export_metrics_service_response(Rest, Z1, Z2, F, TrUserData);
-skip_varint_export_metrics_service_response(<<0:1, _:7, Rest/binary>>, Z1, Z2, F, TrUserData) -> dfp_read_field_def_export_metrics_service_response(Rest, Z1, Z2, F, TrUserData).
+dg_read_field_def_export_metrics_service_response(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, TrUserData) when N < 32 - 7 -> dg_read_field_def_export_metrics_service_response(Rest, N + 7, X bsl N + Acc, F, F@_1, TrUserData);
+dg_read_field_def_export_metrics_service_response(<<0:1, X:7, Rest/binary>>, N, Acc, _, F@_1, TrUserData) ->
+    Key = X bsl N + Acc,
+    case Key of
+        10 -> d_field_export_metrics_service_response_partial_success(Rest, 0, 0, 0, F@_1, TrUserData);
+        _ ->
+            case Key band 7 of
+                0 -> skip_varint_export_metrics_service_response(Rest, 0, 0, Key bsr 3, F@_1, TrUserData);
+                1 -> skip_64_export_metrics_service_response(Rest, 0, 0, Key bsr 3, F@_1, TrUserData);
+                2 -> skip_length_delimited_export_metrics_service_response(Rest, 0, 0, Key bsr 3, F@_1, TrUserData);
+                3 -> skip_group_export_metrics_service_response(Rest, 0, 0, Key bsr 3, F@_1, TrUserData);
+                5 -> skip_32_export_metrics_service_response(Rest, 0, 0, Key bsr 3, F@_1, TrUserData)
+            end
+    end;
+dg_read_field_def_export_metrics_service_response(<<>>, 0, 0, _, F@_1, _) ->
+    S1 = #{},
+    if F@_1 == '$undef' -> S1;
+       true -> S1#{partial_success => F@_1}
+    end.
 
-skip_length_delimited_export_metrics_service_response(<<1:1, X:7, Rest/binary>>, N, Acc, F, TrUserData) when N < 57 -> skip_length_delimited_export_metrics_service_response(Rest, N + 7, X bsl N + Acc, F, TrUserData);
-skip_length_delimited_export_metrics_service_response(<<0:1, X:7, Rest/binary>>, N, Acc, F, TrUserData) ->
+d_field_export_metrics_service_response_partial_success(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, TrUserData) when N < 57 -> d_field_export_metrics_service_response_partial_success(Rest, N + 7, X bsl N + Acc, F, F@_1, TrUserData);
+d_field_export_metrics_service_response_partial_success(<<0:1, X:7, Rest/binary>>, N, Acc, F, Prev, TrUserData) ->
+    {NewFValue, RestF} = begin Len = X bsl N + Acc, <<Bs:Len/binary, Rest2/binary>> = Rest, {id(decode_msg_export_metrics_partial_success(Bs, TrUserData), TrUserData), Rest2} end,
+    dfp_read_field_def_export_metrics_service_response(RestF,
+                                                       0,
+                                                       0,
+                                                       F,
+                                                       if Prev == '$undef' -> NewFValue;
+                                                          true -> merge_msg_export_metrics_partial_success(Prev, NewFValue, TrUserData)
+                                                       end,
+                                                       TrUserData).
+
+skip_varint_export_metrics_service_response(<<1:1, _:7, Rest/binary>>, Z1, Z2, F, F@_1, TrUserData) -> skip_varint_export_metrics_service_response(Rest, Z1, Z2, F, F@_1, TrUserData);
+skip_varint_export_metrics_service_response(<<0:1, _:7, Rest/binary>>, Z1, Z2, F, F@_1, TrUserData) -> dfp_read_field_def_export_metrics_service_response(Rest, Z1, Z2, F, F@_1, TrUserData).
+
+skip_length_delimited_export_metrics_service_response(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, TrUserData) when N < 57 -> skip_length_delimited_export_metrics_service_response(Rest, N + 7, X bsl N + Acc, F, F@_1, TrUserData);
+skip_length_delimited_export_metrics_service_response(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
-    dfp_read_field_def_export_metrics_service_response(Rest2, 0, 0, F, TrUserData).
+    dfp_read_field_def_export_metrics_service_response(Rest2, 0, 0, F, F@_1, TrUserData).
 
-skip_group_export_metrics_service_response(Bin, _, Z2, FNum, TrUserData) ->
+skip_group_export_metrics_service_response(Bin, _, Z2, FNum, F@_1, TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_export_metrics_service_response(Rest, 0, Z2, FNum, TrUserData).
+    dfp_read_field_def_export_metrics_service_response(Rest, 0, Z2, FNum, F@_1, TrUserData).
 
-skip_32_export_metrics_service_response(<<_:32, Rest/binary>>, Z1, Z2, F, TrUserData) -> dfp_read_field_def_export_metrics_service_response(Rest, Z1, Z2, F, TrUserData).
+skip_32_export_metrics_service_response(<<_:32, Rest/binary>>, Z1, Z2, F, F@_1, TrUserData) -> dfp_read_field_def_export_metrics_service_response(Rest, Z1, Z2, F, F@_1, TrUserData).
 
-skip_64_export_metrics_service_response(<<_:64, Rest/binary>>, Z1, Z2, F, TrUserData) -> dfp_read_field_def_export_metrics_service_response(Rest, Z1, Z2, F, TrUserData).
+skip_64_export_metrics_service_response(<<_:64, Rest/binary>>, Z1, Z2, F, F@_1, TrUserData) -> dfp_read_field_def_export_metrics_service_response(Rest, Z1, Z2, F, F@_1, TrUserData).
+
+decode_msg_export_metrics_partial_success(Bin, TrUserData) -> dfp_read_field_def_export_metrics_partial_success(Bin, 0, 0, 0, id(0, TrUserData), id(<<>>, TrUserData), TrUserData).
+
+dfp_read_field_def_export_metrics_partial_success(<<8, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> d_field_export_metrics_partial_success_rejected_data_points(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData);
+dfp_read_field_def_export_metrics_partial_success(<<18, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> d_field_export_metrics_partial_success_error_message(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData);
+dfp_read_field_def_export_metrics_partial_success(<<>>, 0, 0, _, F@_1, F@_2, _) -> #{rejected_data_points => F@_1, error_message => F@_2};
+dfp_read_field_def_export_metrics_partial_success(Other, Z1, Z2, F, F@_1, F@_2, TrUserData) -> dg_read_field_def_export_metrics_partial_success(Other, Z1, Z2, F, F@_1, F@_2, TrUserData).
+
+dg_read_field_def_export_metrics_partial_success(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, TrUserData) when N < 32 - 7 -> dg_read_field_def_export_metrics_partial_success(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, TrUserData);
+dg_read_field_def_export_metrics_partial_success(<<0:1, X:7, Rest/binary>>, N, Acc, _, F@_1, F@_2, TrUserData) ->
+    Key = X bsl N + Acc,
+    case Key of
+        8 -> d_field_export_metrics_partial_success_rejected_data_points(Rest, 0, 0, 0, F@_1, F@_2, TrUserData);
+        18 -> d_field_export_metrics_partial_success_error_message(Rest, 0, 0, 0, F@_1, F@_2, TrUserData);
+        _ ->
+            case Key band 7 of
+                0 -> skip_varint_export_metrics_partial_success(Rest, 0, 0, Key bsr 3, F@_1, F@_2, TrUserData);
+                1 -> skip_64_export_metrics_partial_success(Rest, 0, 0, Key bsr 3, F@_1, F@_2, TrUserData);
+                2 -> skip_length_delimited_export_metrics_partial_success(Rest, 0, 0, Key bsr 3, F@_1, F@_2, TrUserData);
+                3 -> skip_group_export_metrics_partial_success(Rest, 0, 0, Key bsr 3, F@_1, F@_2, TrUserData);
+                5 -> skip_32_export_metrics_partial_success(Rest, 0, 0, Key bsr 3, F@_1, F@_2, TrUserData)
+            end
+    end;
+dg_read_field_def_export_metrics_partial_success(<<>>, 0, 0, _, F@_1, F@_2, _) -> #{rejected_data_points => F@_1, error_message => F@_2}.
+
+d_field_export_metrics_partial_success_rejected_data_points(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, TrUserData) when N < 57 ->
+    d_field_export_metrics_partial_success_rejected_data_points(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, TrUserData);
+d_field_export_metrics_partial_success_rejected_data_points(<<0:1, X:7, Rest/binary>>, N, Acc, F, _, F@_2, TrUserData) ->
+    {NewFValue, RestF} = {begin <<Res:64/signed-native>> = <<(X bsl N + Acc):64/unsigned-native>>, id(Res, TrUserData) end, Rest},
+    dfp_read_field_def_export_metrics_partial_success(RestF, 0, 0, F, NewFValue, F@_2, TrUserData).
+
+d_field_export_metrics_partial_success_error_message(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, TrUserData) when N < 57 -> d_field_export_metrics_partial_success_error_message(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, TrUserData);
+d_field_export_metrics_partial_success_error_message(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, _, TrUserData) ->
+    {NewFValue, RestF} = begin Len = X bsl N + Acc, <<Bytes:Len/binary, Rest2/binary>> = Rest, Bytes2 = binary:copy(Bytes), {id(Bytes2, TrUserData), Rest2} end,
+    dfp_read_field_def_export_metrics_partial_success(RestF, 0, 0, F, F@_1, NewFValue, TrUserData).
+
+skip_varint_export_metrics_partial_success(<<1:1, _:7, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> skip_varint_export_metrics_partial_success(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData);
+skip_varint_export_metrics_partial_success(<<0:1, _:7, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> dfp_read_field_def_export_metrics_partial_success(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData).
+
+skip_length_delimited_export_metrics_partial_success(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, TrUserData) when N < 57 -> skip_length_delimited_export_metrics_partial_success(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, TrUserData);
+skip_length_delimited_export_metrics_partial_success(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, TrUserData) ->
+    Length = X bsl N + Acc,
+    <<_:Length/binary, Rest2/binary>> = Rest,
+    dfp_read_field_def_export_metrics_partial_success(Rest2, 0, 0, F, F@_1, F@_2, TrUserData).
+
+skip_group_export_metrics_partial_success(Bin, _, Z2, FNum, F@_1, F@_2, TrUserData) ->
+    {_, Rest} = read_group(Bin, FNum),
+    dfp_read_field_def_export_metrics_partial_success(Rest, 0, Z2, FNum, F@_1, F@_2, TrUserData).
+
+skip_32_export_metrics_partial_success(<<_:32, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> dfp_read_field_def_export_metrics_partial_success(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData).
+
+skip_64_export_metrics_partial_success(<<_:64, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> dfp_read_field_def_export_metrics_partial_success(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData).
 
 decode_msg_metrics_data(Bin, TrUserData) -> dfp_read_field_def_metrics_data(Bin, 0, 0, 0, id([], TrUserData), TrUserData).
 
@@ -1807,56 +1854,48 @@ skip_32_metrics_data(<<_:32, Rest/binary>>, Z1, Z2, F, F@_1, TrUserData) -> dfp_
 
 skip_64_metrics_data(<<_:64, Rest/binary>>, Z1, Z2, F, F@_1, TrUserData) -> dfp_read_field_def_metrics_data(Rest, Z1, Z2, F, F@_1, TrUserData).
 
-decode_msg_resource_metrics(Bin, TrUserData) -> dfp_read_field_def_resource_metrics(Bin, 0, 0, 0, id('$undef', TrUserData), id([], TrUserData), id([], TrUserData), id(<<>>, TrUserData), TrUserData).
+decode_msg_resource_metrics(Bin, TrUserData) -> dfp_read_field_def_resource_metrics(Bin, 0, 0, 0, id('$undef', TrUserData), id([], TrUserData), id(<<>>, TrUserData), TrUserData).
 
-dfp_read_field_def_resource_metrics(<<10, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> d_field_resource_metrics_resource(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
-dfp_read_field_def_resource_metrics(<<18, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> d_field_resource_metrics_scope_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
-dfp_read_field_def_resource_metrics(<<194, 62, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> d_field_resource_metrics_instrumentation_library_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
-dfp_read_field_def_resource_metrics(<<26, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> d_field_resource_metrics_schema_url(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
-dfp_read_field_def_resource_metrics(<<>>, 0, 0, _, F@_1, R1, R2, F@_4, TrUserData) ->
-    S1 = #{schema_url => F@_4},
+dfp_read_field_def_resource_metrics(<<10, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> d_field_resource_metrics_resource(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData);
+dfp_read_field_def_resource_metrics(<<18, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> d_field_resource_metrics_scope_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData);
+dfp_read_field_def_resource_metrics(<<26, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> d_field_resource_metrics_schema_url(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData);
+dfp_read_field_def_resource_metrics(<<>>, 0, 0, _, F@_1, R1, F@_3, TrUserData) ->
+    S1 = #{schema_url => F@_3},
     S2 = if F@_1 == '$undef' -> S1;
             true -> S1#{resource => F@_1}
          end,
-    S3 = if R1 == '$undef' -> S2;
-            true -> S2#{scope_metrics => lists_reverse(R1, TrUserData)}
-         end,
-    if R2 == '$undef' -> S3;
-       true -> S3#{instrumentation_library_metrics => lists_reverse(R2, TrUserData)}
+    if R1 == '$undef' -> S2;
+       true -> S2#{scope_metrics => lists_reverse(R1, TrUserData)}
     end;
-dfp_read_field_def_resource_metrics(Other, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> dg_read_field_def_resource_metrics(Other, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData).
+dfp_read_field_def_resource_metrics(Other, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> dg_read_field_def_resource_metrics(Other, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData).
 
-dg_read_field_def_resource_metrics(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData) when N < 32 - 7 -> dg_read_field_def_resource_metrics(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
-dg_read_field_def_resource_metrics(<<0:1, X:7, Rest/binary>>, N, Acc, _, F@_1, F@_2, F@_3, F@_4, TrUserData) ->
+dg_read_field_def_resource_metrics(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, TrUserData) when N < 32 - 7 -> dg_read_field_def_resource_metrics(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, TrUserData);
+dg_read_field_def_resource_metrics(<<0:1, X:7, Rest/binary>>, N, Acc, _, F@_1, F@_2, F@_3, TrUserData) ->
     Key = X bsl N + Acc,
     case Key of
-        10 -> d_field_resource_metrics_resource(Rest, 0, 0, 0, F@_1, F@_2, F@_3, F@_4, TrUserData);
-        18 -> d_field_resource_metrics_scope_metrics(Rest, 0, 0, 0, F@_1, F@_2, F@_3, F@_4, TrUserData);
-        8002 -> d_field_resource_metrics_instrumentation_library_metrics(Rest, 0, 0, 0, F@_1, F@_2, F@_3, F@_4, TrUserData);
-        26 -> d_field_resource_metrics_schema_url(Rest, 0, 0, 0, F@_1, F@_2, F@_3, F@_4, TrUserData);
+        10 -> d_field_resource_metrics_resource(Rest, 0, 0, 0, F@_1, F@_2, F@_3, TrUserData);
+        18 -> d_field_resource_metrics_scope_metrics(Rest, 0, 0, 0, F@_1, F@_2, F@_3, TrUserData);
+        26 -> d_field_resource_metrics_schema_url(Rest, 0, 0, 0, F@_1, F@_2, F@_3, TrUserData);
         _ ->
             case Key band 7 of
-                0 -> skip_varint_resource_metrics(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, F@_4, TrUserData);
-                1 -> skip_64_resource_metrics(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, F@_4, TrUserData);
-                2 -> skip_length_delimited_resource_metrics(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, F@_4, TrUserData);
-                3 -> skip_group_resource_metrics(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, F@_4, TrUserData);
-                5 -> skip_32_resource_metrics(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, F@_4, TrUserData)
+                0 -> skip_varint_resource_metrics(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, TrUserData);
+                1 -> skip_64_resource_metrics(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, TrUserData);
+                2 -> skip_length_delimited_resource_metrics(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, TrUserData);
+                3 -> skip_group_resource_metrics(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, TrUserData);
+                5 -> skip_32_resource_metrics(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, TrUserData)
             end
     end;
-dg_read_field_def_resource_metrics(<<>>, 0, 0, _, F@_1, R1, R2, F@_4, TrUserData) ->
-    S1 = #{schema_url => F@_4},
+dg_read_field_def_resource_metrics(<<>>, 0, 0, _, F@_1, R1, F@_3, TrUserData) ->
+    S1 = #{schema_url => F@_3},
     S2 = if F@_1 == '$undef' -> S1;
             true -> S1#{resource => F@_1}
          end,
-    S3 = if R1 == '$undef' -> S2;
-            true -> S2#{scope_metrics => lists_reverse(R1, TrUserData)}
-         end,
-    if R2 == '$undef' -> S3;
-       true -> S3#{instrumentation_library_metrics => lists_reverse(R2, TrUserData)}
+    if R1 == '$undef' -> S2;
+       true -> S2#{scope_metrics => lists_reverse(R1, TrUserData)}
     end.
 
-d_field_resource_metrics_resource(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData) when N < 57 -> d_field_resource_metrics_resource(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
-d_field_resource_metrics_resource(<<0:1, X:7, Rest/binary>>, N, Acc, F, Prev, F@_2, F@_3, F@_4, TrUserData) ->
+d_field_resource_metrics_resource(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, TrUserData) when N < 57 -> d_field_resource_metrics_resource(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, TrUserData);
+d_field_resource_metrics_resource(<<0:1, X:7, Rest/binary>>, N, Acc, F, Prev, F@_2, F@_3, TrUserData) ->
     {NewFValue, RestF} = begin Len = X bsl N + Acc, <<Bs:Len/binary, Rest2/binary>> = Rest, {id(decode_msg_resource(Bs, TrUserData), TrUserData), Rest2} end,
     dfp_read_field_def_resource_metrics(RestF,
                                         0,
@@ -1867,41 +1906,34 @@ d_field_resource_metrics_resource(<<0:1, X:7, Rest/binary>>, N, Acc, F, Prev, F@
                                         end,
                                         F@_2,
                                         F@_3,
-                                        F@_4,
                                         TrUserData).
 
-d_field_resource_metrics_scope_metrics(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData) when N < 57 -> d_field_resource_metrics_scope_metrics(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
-d_field_resource_metrics_scope_metrics(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, Prev, F@_3, F@_4, TrUserData) ->
+d_field_resource_metrics_scope_metrics(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, TrUserData) when N < 57 -> d_field_resource_metrics_scope_metrics(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, TrUserData);
+d_field_resource_metrics_scope_metrics(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, Prev, F@_3, TrUserData) ->
     {NewFValue, RestF} = begin Len = X bsl N + Acc, <<Bs:Len/binary, Rest2/binary>> = Rest, {id(decode_msg_scope_metrics(Bs, TrUserData), TrUserData), Rest2} end,
-    dfp_read_field_def_resource_metrics(RestF, 0, 0, F, F@_1, cons(NewFValue, Prev, TrUserData), F@_3, F@_4, TrUserData).
+    dfp_read_field_def_resource_metrics(RestF, 0, 0, F, F@_1, cons(NewFValue, Prev, TrUserData), F@_3, TrUserData).
 
-d_field_resource_metrics_instrumentation_library_metrics(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData) when N < 57 ->
-    d_field_resource_metrics_instrumentation_library_metrics(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
-d_field_resource_metrics_instrumentation_library_metrics(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, Prev, F@_4, TrUserData) ->
-    {NewFValue, RestF} = begin Len = X bsl N + Acc, <<Bs:Len/binary, Rest2/binary>> = Rest, {id(decode_msg_instrumentation_library_metrics(Bs, TrUserData), TrUserData), Rest2} end,
-    dfp_read_field_def_resource_metrics(RestF, 0, 0, F, F@_1, F@_2, cons(NewFValue, Prev, TrUserData), F@_4, TrUserData).
-
-d_field_resource_metrics_schema_url(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData) when N < 57 -> d_field_resource_metrics_schema_url(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
-d_field_resource_metrics_schema_url(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, _, TrUserData) ->
+d_field_resource_metrics_schema_url(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, TrUserData) when N < 57 -> d_field_resource_metrics_schema_url(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, TrUserData);
+d_field_resource_metrics_schema_url(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, _, TrUserData) ->
     {NewFValue, RestF} = begin Len = X bsl N + Acc, <<Bytes:Len/binary, Rest2/binary>> = Rest, Bytes2 = binary:copy(Bytes), {id(Bytes2, TrUserData), Rest2} end,
-    dfp_read_field_def_resource_metrics(RestF, 0, 0, F, F@_1, F@_2, F@_3, NewFValue, TrUserData).
+    dfp_read_field_def_resource_metrics(RestF, 0, 0, F, F@_1, F@_2, NewFValue, TrUserData).
 
-skip_varint_resource_metrics(<<1:1, _:7, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> skip_varint_resource_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
-skip_varint_resource_metrics(<<0:1, _:7, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> dfp_read_field_def_resource_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData).
+skip_varint_resource_metrics(<<1:1, _:7, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> skip_varint_resource_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData);
+skip_varint_resource_metrics(<<0:1, _:7, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> dfp_read_field_def_resource_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData).
 
-skip_length_delimited_resource_metrics(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData) when N < 57 -> skip_length_delimited_resource_metrics(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
-skip_length_delimited_resource_metrics(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData) ->
+skip_length_delimited_resource_metrics(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, TrUserData) when N < 57 -> skip_length_delimited_resource_metrics(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, TrUserData);
+skip_length_delimited_resource_metrics(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
-    dfp_read_field_def_resource_metrics(Rest2, 0, 0, F, F@_1, F@_2, F@_3, F@_4, TrUserData).
+    dfp_read_field_def_resource_metrics(Rest2, 0, 0, F, F@_1, F@_2, F@_3, TrUserData).
 
-skip_group_resource_metrics(Bin, _, Z2, FNum, F@_1, F@_2, F@_3, F@_4, TrUserData) ->
+skip_group_resource_metrics(Bin, _, Z2, FNum, F@_1, F@_2, F@_3, TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_resource_metrics(Rest, 0, Z2, FNum, F@_1, F@_2, F@_3, F@_4, TrUserData).
+    dfp_read_field_def_resource_metrics(Rest, 0, Z2, FNum, F@_1, F@_2, F@_3, TrUserData).
 
-skip_32_resource_metrics(<<_:32, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> dfp_read_field_def_resource_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData).
+skip_32_resource_metrics(<<_:32, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> dfp_read_field_def_resource_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData).
 
-skip_64_resource_metrics(<<_:64, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> dfp_read_field_def_resource_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData).
+skip_64_resource_metrics(<<_:64, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> dfp_read_field_def_resource_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData).
 
 decode_msg_scope_metrics(Bin, TrUserData) -> dfp_read_field_def_scope_metrics(Bin, 0, 0, 0, id('$undef', TrUserData), id([], TrUserData), id(<<>>, TrUserData), TrUserData).
 
@@ -1983,89 +2015,6 @@ skip_group_scope_metrics(Bin, _, Z2, FNum, F@_1, F@_2, F@_3, TrUserData) ->
 skip_32_scope_metrics(<<_:32, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> dfp_read_field_def_scope_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData).
 
 skip_64_scope_metrics(<<_:64, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> dfp_read_field_def_scope_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData).
-
-decode_msg_instrumentation_library_metrics(Bin, TrUserData) -> dfp_read_field_def_instrumentation_library_metrics(Bin, 0, 0, 0, id('$undef', TrUserData), id([], TrUserData), id(<<>>, TrUserData), TrUserData).
-
-dfp_read_field_def_instrumentation_library_metrics(<<10, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> d_field_instrumentation_library_metrics_instrumentation_library(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData);
-dfp_read_field_def_instrumentation_library_metrics(<<18, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> d_field_instrumentation_library_metrics_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData);
-dfp_read_field_def_instrumentation_library_metrics(<<26, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> d_field_instrumentation_library_metrics_schema_url(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData);
-dfp_read_field_def_instrumentation_library_metrics(<<>>, 0, 0, _, F@_1, R1, F@_3, TrUserData) ->
-    S1 = #{schema_url => F@_3},
-    S2 = if F@_1 == '$undef' -> S1;
-            true -> S1#{instrumentation_library => F@_1}
-         end,
-    if R1 == '$undef' -> S2;
-       true -> S2#{metrics => lists_reverse(R1, TrUserData)}
-    end;
-dfp_read_field_def_instrumentation_library_metrics(Other, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> dg_read_field_def_instrumentation_library_metrics(Other, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData).
-
-dg_read_field_def_instrumentation_library_metrics(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, TrUserData) when N < 32 - 7 -> dg_read_field_def_instrumentation_library_metrics(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, TrUserData);
-dg_read_field_def_instrumentation_library_metrics(<<0:1, X:7, Rest/binary>>, N, Acc, _, F@_1, F@_2, F@_3, TrUserData) ->
-    Key = X bsl N + Acc,
-    case Key of
-        10 -> d_field_instrumentation_library_metrics_instrumentation_library(Rest, 0, 0, 0, F@_1, F@_2, F@_3, TrUserData);
-        18 -> d_field_instrumentation_library_metrics_metrics(Rest, 0, 0, 0, F@_1, F@_2, F@_3, TrUserData);
-        26 -> d_field_instrumentation_library_metrics_schema_url(Rest, 0, 0, 0, F@_1, F@_2, F@_3, TrUserData);
-        _ ->
-            case Key band 7 of
-                0 -> skip_varint_instrumentation_library_metrics(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, TrUserData);
-                1 -> skip_64_instrumentation_library_metrics(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, TrUserData);
-                2 -> skip_length_delimited_instrumentation_library_metrics(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, TrUserData);
-                3 -> skip_group_instrumentation_library_metrics(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, TrUserData);
-                5 -> skip_32_instrumentation_library_metrics(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, TrUserData)
-            end
-    end;
-dg_read_field_def_instrumentation_library_metrics(<<>>, 0, 0, _, F@_1, R1, F@_3, TrUserData) ->
-    S1 = #{schema_url => F@_3},
-    S2 = if F@_1 == '$undef' -> S1;
-            true -> S1#{instrumentation_library => F@_1}
-         end,
-    if R1 == '$undef' -> S2;
-       true -> S2#{metrics => lists_reverse(R1, TrUserData)}
-    end.
-
-d_field_instrumentation_library_metrics_instrumentation_library(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, TrUserData) when N < 57 ->
-    d_field_instrumentation_library_metrics_instrumentation_library(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, TrUserData);
-d_field_instrumentation_library_metrics_instrumentation_library(<<0:1, X:7, Rest/binary>>, N, Acc, F, Prev, F@_2, F@_3, TrUserData) ->
-    {NewFValue, RestF} = begin Len = X bsl N + Acc, <<Bs:Len/binary, Rest2/binary>> = Rest, {id(decode_msg_instrumentation_library(Bs, TrUserData), TrUserData), Rest2} end,
-    dfp_read_field_def_instrumentation_library_metrics(RestF,
-                                                       0,
-                                                       0,
-                                                       F,
-                                                       if Prev == '$undef' -> NewFValue;
-                                                          true -> merge_msg_instrumentation_library(Prev, NewFValue, TrUserData)
-                                                       end,
-                                                       F@_2,
-                                                       F@_3,
-                                                       TrUserData).
-
-d_field_instrumentation_library_metrics_metrics(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, TrUserData) when N < 57 -> d_field_instrumentation_library_metrics_metrics(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, TrUserData);
-d_field_instrumentation_library_metrics_metrics(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, Prev, F@_3, TrUserData) ->
-    {NewFValue, RestF} = begin Len = X bsl N + Acc, <<Bs:Len/binary, Rest2/binary>> = Rest, {id(decode_msg_metric(Bs, TrUserData), TrUserData), Rest2} end,
-    dfp_read_field_def_instrumentation_library_metrics(RestF, 0, 0, F, F@_1, cons(NewFValue, Prev, TrUserData), F@_3, TrUserData).
-
-d_field_instrumentation_library_metrics_schema_url(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, TrUserData) when N < 57 -> d_field_instrumentation_library_metrics_schema_url(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, TrUserData);
-d_field_instrumentation_library_metrics_schema_url(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, _, TrUserData) ->
-    {NewFValue, RestF} = begin Len = X bsl N + Acc, <<Bytes:Len/binary, Rest2/binary>> = Rest, Bytes2 = binary:copy(Bytes), {id(Bytes2, TrUserData), Rest2} end,
-    dfp_read_field_def_instrumentation_library_metrics(RestF, 0, 0, F, F@_1, F@_2, NewFValue, TrUserData).
-
-skip_varint_instrumentation_library_metrics(<<1:1, _:7, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> skip_varint_instrumentation_library_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData);
-skip_varint_instrumentation_library_metrics(<<0:1, _:7, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> dfp_read_field_def_instrumentation_library_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData).
-
-skip_length_delimited_instrumentation_library_metrics(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, TrUserData) when N < 57 ->
-    skip_length_delimited_instrumentation_library_metrics(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, TrUserData);
-skip_length_delimited_instrumentation_library_metrics(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, TrUserData) ->
-    Length = X bsl N + Acc,
-    <<_:Length/binary, Rest2/binary>> = Rest,
-    dfp_read_field_def_instrumentation_library_metrics(Rest2, 0, 0, F, F@_1, F@_2, F@_3, TrUserData).
-
-skip_group_instrumentation_library_metrics(Bin, _, Z2, FNum, F@_1, F@_2, F@_3, TrUserData) ->
-    {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_instrumentation_library_metrics(Rest, 0, Z2, FNum, F@_1, F@_2, F@_3, TrUserData).
-
-skip_32_instrumentation_library_metrics(<<_:32, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> dfp_read_field_def_instrumentation_library_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData).
-
-skip_64_instrumentation_library_metrics(<<_:64, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData) -> dfp_read_field_def_instrumentation_library_metrics(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, TrUserData).
 
 decode_msg_metric(Bin, TrUserData) -> dfp_read_field_def_metric(Bin, 0, 0, 0, id(<<>>, TrUserData), id(<<>>, TrUserData), id(<<>>, TrUserData), id('$undef', TrUserData), TrUserData).
 
@@ -3714,107 +3663,79 @@ skip_32_key_value(<<_:32, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> d
 
 skip_64_key_value(<<_:64, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> dfp_read_field_def_key_value(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData).
 
-decode_msg_instrumentation_library(Bin, TrUserData) -> dfp_read_field_def_instrumentation_library(Bin, 0, 0, 0, id(<<>>, TrUserData), id(<<>>, TrUserData), TrUserData).
+decode_msg_instrumentation_scope(Bin, TrUserData) -> dfp_read_field_def_instrumentation_scope(Bin, 0, 0, 0, id(<<>>, TrUserData), id(<<>>, TrUserData), id([], TrUserData), id(0, TrUserData), TrUserData).
 
-dfp_read_field_def_instrumentation_library(<<10, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> d_field_instrumentation_library_name(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData);
-dfp_read_field_def_instrumentation_library(<<18, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> d_field_instrumentation_library_version(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData);
-dfp_read_field_def_instrumentation_library(<<>>, 0, 0, _, F@_1, F@_2, _) -> #{name => F@_1, version => F@_2};
-dfp_read_field_def_instrumentation_library(Other, Z1, Z2, F, F@_1, F@_2, TrUserData) -> dg_read_field_def_instrumentation_library(Other, Z1, Z2, F, F@_1, F@_2, TrUserData).
+dfp_read_field_def_instrumentation_scope(<<10, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> d_field_instrumentation_scope_name(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
+dfp_read_field_def_instrumentation_scope(<<18, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> d_field_instrumentation_scope_version(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
+dfp_read_field_def_instrumentation_scope(<<26, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> d_field_instrumentation_scope_attributes(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
+dfp_read_field_def_instrumentation_scope(<<32, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> d_field_instrumentation_scope_dropped_attributes_count(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
+dfp_read_field_def_instrumentation_scope(<<>>, 0, 0, _, F@_1, F@_2, R1, F@_4, TrUserData) ->
+    S1 = #{name => F@_1, version => F@_2, dropped_attributes_count => F@_4},
+    if R1 == '$undef' -> S1;
+       true -> S1#{attributes => lists_reverse(R1, TrUserData)}
+    end;
+dfp_read_field_def_instrumentation_scope(Other, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> dg_read_field_def_instrumentation_scope(Other, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData).
 
-dg_read_field_def_instrumentation_library(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, TrUserData) when N < 32 - 7 -> dg_read_field_def_instrumentation_library(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, TrUserData);
-dg_read_field_def_instrumentation_library(<<0:1, X:7, Rest/binary>>, N, Acc, _, F@_1, F@_2, TrUserData) ->
+dg_read_field_def_instrumentation_scope(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData) when N < 32 - 7 -> dg_read_field_def_instrumentation_scope(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
+dg_read_field_def_instrumentation_scope(<<0:1, X:7, Rest/binary>>, N, Acc, _, F@_1, F@_2, F@_3, F@_4, TrUserData) ->
     Key = X bsl N + Acc,
     case Key of
-        10 -> d_field_instrumentation_library_name(Rest, 0, 0, 0, F@_1, F@_2, TrUserData);
-        18 -> d_field_instrumentation_library_version(Rest, 0, 0, 0, F@_1, F@_2, TrUserData);
+        10 -> d_field_instrumentation_scope_name(Rest, 0, 0, 0, F@_1, F@_2, F@_3, F@_4, TrUserData);
+        18 -> d_field_instrumentation_scope_version(Rest, 0, 0, 0, F@_1, F@_2, F@_3, F@_4, TrUserData);
+        26 -> d_field_instrumentation_scope_attributes(Rest, 0, 0, 0, F@_1, F@_2, F@_3, F@_4, TrUserData);
+        32 -> d_field_instrumentation_scope_dropped_attributes_count(Rest, 0, 0, 0, F@_1, F@_2, F@_3, F@_4, TrUserData);
         _ ->
             case Key band 7 of
-                0 -> skip_varint_instrumentation_library(Rest, 0, 0, Key bsr 3, F@_1, F@_2, TrUserData);
-                1 -> skip_64_instrumentation_library(Rest, 0, 0, Key bsr 3, F@_1, F@_2, TrUserData);
-                2 -> skip_length_delimited_instrumentation_library(Rest, 0, 0, Key bsr 3, F@_1, F@_2, TrUserData);
-                3 -> skip_group_instrumentation_library(Rest, 0, 0, Key bsr 3, F@_1, F@_2, TrUserData);
-                5 -> skip_32_instrumentation_library(Rest, 0, 0, Key bsr 3, F@_1, F@_2, TrUserData)
+                0 -> skip_varint_instrumentation_scope(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, F@_4, TrUserData);
+                1 -> skip_64_instrumentation_scope(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, F@_4, TrUserData);
+                2 -> skip_length_delimited_instrumentation_scope(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, F@_4, TrUserData);
+                3 -> skip_group_instrumentation_scope(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, F@_4, TrUserData);
+                5 -> skip_32_instrumentation_scope(Rest, 0, 0, Key bsr 3, F@_1, F@_2, F@_3, F@_4, TrUserData)
             end
     end;
-dg_read_field_def_instrumentation_library(<<>>, 0, 0, _, F@_1, F@_2, _) -> #{name => F@_1, version => F@_2}.
+dg_read_field_def_instrumentation_scope(<<>>, 0, 0, _, F@_1, F@_2, R1, F@_4, TrUserData) ->
+    S1 = #{name => F@_1, version => F@_2, dropped_attributes_count => F@_4},
+    if R1 == '$undef' -> S1;
+       true -> S1#{attributes => lists_reverse(R1, TrUserData)}
+    end.
 
-d_field_instrumentation_library_name(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, TrUserData) when N < 57 -> d_field_instrumentation_library_name(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, TrUserData);
-d_field_instrumentation_library_name(<<0:1, X:7, Rest/binary>>, N, Acc, F, _, F@_2, TrUserData) ->
+d_field_instrumentation_scope_name(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData) when N < 57 -> d_field_instrumentation_scope_name(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
+d_field_instrumentation_scope_name(<<0:1, X:7, Rest/binary>>, N, Acc, F, _, F@_2, F@_3, F@_4, TrUserData) ->
     {NewFValue, RestF} = begin Len = X bsl N + Acc, <<Bytes:Len/binary, Rest2/binary>> = Rest, Bytes2 = binary:copy(Bytes), {id(Bytes2, TrUserData), Rest2} end,
-    dfp_read_field_def_instrumentation_library(RestF, 0, 0, F, NewFValue, F@_2, TrUserData).
+    dfp_read_field_def_instrumentation_scope(RestF, 0, 0, F, NewFValue, F@_2, F@_3, F@_4, TrUserData).
 
-d_field_instrumentation_library_version(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, TrUserData) when N < 57 -> d_field_instrumentation_library_version(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, TrUserData);
-d_field_instrumentation_library_version(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, _, TrUserData) ->
+d_field_instrumentation_scope_version(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData) when N < 57 -> d_field_instrumentation_scope_version(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
+d_field_instrumentation_scope_version(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, _, F@_3, F@_4, TrUserData) ->
     {NewFValue, RestF} = begin Len = X bsl N + Acc, <<Bytes:Len/binary, Rest2/binary>> = Rest, Bytes2 = binary:copy(Bytes), {id(Bytes2, TrUserData), Rest2} end,
-    dfp_read_field_def_instrumentation_library(RestF, 0, 0, F, F@_1, NewFValue, TrUserData).
+    dfp_read_field_def_instrumentation_scope(RestF, 0, 0, F, F@_1, NewFValue, F@_3, F@_4, TrUserData).
 
-skip_varint_instrumentation_library(<<1:1, _:7, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> skip_varint_instrumentation_library(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData);
-skip_varint_instrumentation_library(<<0:1, _:7, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> dfp_read_field_def_instrumentation_library(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData).
+d_field_instrumentation_scope_attributes(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData) when N < 57 -> d_field_instrumentation_scope_attributes(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
+d_field_instrumentation_scope_attributes(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, Prev, F@_4, TrUserData) ->
+    {NewFValue, RestF} = begin Len = X bsl N + Acc, <<Bs:Len/binary, Rest2/binary>> = Rest, {id(decode_msg_key_value(Bs, TrUserData), TrUserData), Rest2} end,
+    dfp_read_field_def_instrumentation_scope(RestF, 0, 0, F, F@_1, F@_2, cons(NewFValue, Prev, TrUserData), F@_4, TrUserData).
 
-skip_length_delimited_instrumentation_library(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, TrUserData) when N < 57 -> skip_length_delimited_instrumentation_library(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, TrUserData);
-skip_length_delimited_instrumentation_library(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, TrUserData) ->
+d_field_instrumentation_scope_dropped_attributes_count(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData) when N < 57 ->
+    d_field_instrumentation_scope_dropped_attributes_count(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
+d_field_instrumentation_scope_dropped_attributes_count(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, _, TrUserData) ->
+    {NewFValue, RestF} = {id((X bsl N + Acc) band 4294967295, TrUserData), Rest},
+    dfp_read_field_def_instrumentation_scope(RestF, 0, 0, F, F@_1, F@_2, F@_3, NewFValue, TrUserData).
+
+skip_varint_instrumentation_scope(<<1:1, _:7, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> skip_varint_instrumentation_scope(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
+skip_varint_instrumentation_scope(<<0:1, _:7, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> dfp_read_field_def_instrumentation_scope(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData).
+
+skip_length_delimited_instrumentation_scope(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData) when N < 57 -> skip_length_delimited_instrumentation_scope(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData);
+skip_length_delimited_instrumentation_scope(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, F@_3, F@_4, TrUserData) ->
     Length = X bsl N + Acc,
     <<_:Length/binary, Rest2/binary>> = Rest,
-    dfp_read_field_def_instrumentation_library(Rest2, 0, 0, F, F@_1, F@_2, TrUserData).
+    dfp_read_field_def_instrumentation_scope(Rest2, 0, 0, F, F@_1, F@_2, F@_3, F@_4, TrUserData).
 
-skip_group_instrumentation_library(Bin, _, Z2, FNum, F@_1, F@_2, TrUserData) ->
+skip_group_instrumentation_scope(Bin, _, Z2, FNum, F@_1, F@_2, F@_3, F@_4, TrUserData) ->
     {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_instrumentation_library(Rest, 0, Z2, FNum, F@_1, F@_2, TrUserData).
+    dfp_read_field_def_instrumentation_scope(Rest, 0, Z2, FNum, F@_1, F@_2, F@_3, F@_4, TrUserData).
 
-skip_32_instrumentation_library(<<_:32, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> dfp_read_field_def_instrumentation_library(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData).
+skip_32_instrumentation_scope(<<_:32, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> dfp_read_field_def_instrumentation_scope(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData).
 
-skip_64_instrumentation_library(<<_:64, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> dfp_read_field_def_instrumentation_library(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData).
-
-decode_msg_instrumentation_scope(Bin, TrUserData) -> dfp_read_field_def_instrumentation_scope(Bin, 0, 0, 0, id(<<>>, TrUserData), id(<<>>, TrUserData), TrUserData).
-
-dfp_read_field_def_instrumentation_scope(<<10, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> d_field_instrumentation_scope_name(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData);
-dfp_read_field_def_instrumentation_scope(<<18, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> d_field_instrumentation_scope_version(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData);
-dfp_read_field_def_instrumentation_scope(<<>>, 0, 0, _, F@_1, F@_2, _) -> #{name => F@_1, version => F@_2};
-dfp_read_field_def_instrumentation_scope(Other, Z1, Z2, F, F@_1, F@_2, TrUserData) -> dg_read_field_def_instrumentation_scope(Other, Z1, Z2, F, F@_1, F@_2, TrUserData).
-
-dg_read_field_def_instrumentation_scope(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, TrUserData) when N < 32 - 7 -> dg_read_field_def_instrumentation_scope(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, TrUserData);
-dg_read_field_def_instrumentation_scope(<<0:1, X:7, Rest/binary>>, N, Acc, _, F@_1, F@_2, TrUserData) ->
-    Key = X bsl N + Acc,
-    case Key of
-        10 -> d_field_instrumentation_scope_name(Rest, 0, 0, 0, F@_1, F@_2, TrUserData);
-        18 -> d_field_instrumentation_scope_version(Rest, 0, 0, 0, F@_1, F@_2, TrUserData);
-        _ ->
-            case Key band 7 of
-                0 -> skip_varint_instrumentation_scope(Rest, 0, 0, Key bsr 3, F@_1, F@_2, TrUserData);
-                1 -> skip_64_instrumentation_scope(Rest, 0, 0, Key bsr 3, F@_1, F@_2, TrUserData);
-                2 -> skip_length_delimited_instrumentation_scope(Rest, 0, 0, Key bsr 3, F@_1, F@_2, TrUserData);
-                3 -> skip_group_instrumentation_scope(Rest, 0, 0, Key bsr 3, F@_1, F@_2, TrUserData);
-                5 -> skip_32_instrumentation_scope(Rest, 0, 0, Key bsr 3, F@_1, F@_2, TrUserData)
-            end
-    end;
-dg_read_field_def_instrumentation_scope(<<>>, 0, 0, _, F@_1, F@_2, _) -> #{name => F@_1, version => F@_2}.
-
-d_field_instrumentation_scope_name(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, TrUserData) when N < 57 -> d_field_instrumentation_scope_name(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, TrUserData);
-d_field_instrumentation_scope_name(<<0:1, X:7, Rest/binary>>, N, Acc, F, _, F@_2, TrUserData) ->
-    {NewFValue, RestF} = begin Len = X bsl N + Acc, <<Bytes:Len/binary, Rest2/binary>> = Rest, Bytes2 = binary:copy(Bytes), {id(Bytes2, TrUserData), Rest2} end,
-    dfp_read_field_def_instrumentation_scope(RestF, 0, 0, F, NewFValue, F@_2, TrUserData).
-
-d_field_instrumentation_scope_version(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, TrUserData) when N < 57 -> d_field_instrumentation_scope_version(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, TrUserData);
-d_field_instrumentation_scope_version(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, _, TrUserData) ->
-    {NewFValue, RestF} = begin Len = X bsl N + Acc, <<Bytes:Len/binary, Rest2/binary>> = Rest, Bytes2 = binary:copy(Bytes), {id(Bytes2, TrUserData), Rest2} end,
-    dfp_read_field_def_instrumentation_scope(RestF, 0, 0, F, F@_1, NewFValue, TrUserData).
-
-skip_varint_instrumentation_scope(<<1:1, _:7, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> skip_varint_instrumentation_scope(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData);
-skip_varint_instrumentation_scope(<<0:1, _:7, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> dfp_read_field_def_instrumentation_scope(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData).
-
-skip_length_delimited_instrumentation_scope(<<1:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, TrUserData) when N < 57 -> skip_length_delimited_instrumentation_scope(Rest, N + 7, X bsl N + Acc, F, F@_1, F@_2, TrUserData);
-skip_length_delimited_instrumentation_scope(<<0:1, X:7, Rest/binary>>, N, Acc, F, F@_1, F@_2, TrUserData) ->
-    Length = X bsl N + Acc,
-    <<_:Length/binary, Rest2/binary>> = Rest,
-    dfp_read_field_def_instrumentation_scope(Rest2, 0, 0, F, F@_1, F@_2, TrUserData).
-
-skip_group_instrumentation_scope(Bin, _, Z2, FNum, F@_1, F@_2, TrUserData) ->
-    {_, Rest} = read_group(Bin, FNum),
-    dfp_read_field_def_instrumentation_scope(Rest, 0, Z2, FNum, F@_1, F@_2, TrUserData).
-
-skip_32_instrumentation_scope(<<_:32, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> dfp_read_field_def_instrumentation_scope(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData).
-
-skip_64_instrumentation_scope(<<_:64, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, TrUserData) -> dfp_read_field_def_instrumentation_scope(Rest, Z1, Z2, F, F@_1, F@_2, TrUserData).
+skip_64_instrumentation_scope(<<_:64, Rest/binary>>, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData) -> dfp_read_field_def_instrumentation_scope(Rest, Z1, Z2, F, F@_1, F@_2, F@_3, F@_4, TrUserData).
 
 decode_msg_resource(Bin, TrUserData) -> dfp_read_field_def_resource(Bin, 0, 0, 0, id([], TrUserData), id(0, TrUserData), TrUserData).
 
@@ -3945,10 +3866,10 @@ merge_msgs(Prev, New, MsgName, Opts) ->
     case MsgName of
         export_metrics_service_request -> merge_msg_export_metrics_service_request(Prev, New, TrUserData);
         export_metrics_service_response -> merge_msg_export_metrics_service_response(Prev, New, TrUserData);
+        export_metrics_partial_success -> merge_msg_export_metrics_partial_success(Prev, New, TrUserData);
         metrics_data -> merge_msg_metrics_data(Prev, New, TrUserData);
         resource_metrics -> merge_msg_resource_metrics(Prev, New, TrUserData);
         scope_metrics -> merge_msg_scope_metrics(Prev, New, TrUserData);
-        instrumentation_library_metrics -> merge_msg_instrumentation_library_metrics(Prev, New, TrUserData);
         metric -> merge_msg_metric(Prev, New, TrUserData);
         gauge -> merge_msg_gauge(Prev, New, TrUserData);
         sum -> merge_msg_sum(Prev, New, TrUserData);
@@ -3966,7 +3887,6 @@ merge_msgs(Prev, New, MsgName, Opts) ->
         array_value -> merge_msg_array_value(Prev, New, TrUserData);
         key_value_list -> merge_msg_key_value_list(Prev, New, TrUserData);
         key_value -> merge_msg_key_value(Prev, New, TrUserData);
-        instrumentation_library -> merge_msg_instrumentation_library(Prev, New, TrUserData);
         instrumentation_scope -> merge_msg_instrumentation_scope(Prev, New, TrUserData);
         resource -> merge_msg_resource(Prev, New, TrUserData)
     end.
@@ -3982,7 +3902,28 @@ merge_msg_export_metrics_service_request(PMsg, NMsg, TrUserData) ->
     end.
 
 -compile({nowarn_unused_function,merge_msg_export_metrics_service_response/3}).
-merge_msg_export_metrics_service_response(_Prev, New, _TrUserData) -> New.
+merge_msg_export_metrics_service_response(PMsg, NMsg, TrUserData) ->
+    S1 = #{},
+    case {PMsg, NMsg} of
+        {#{partial_success := PFpartial_success}, #{partial_success := NFpartial_success}} -> S1#{partial_success => merge_msg_export_metrics_partial_success(PFpartial_success, NFpartial_success, TrUserData)};
+        {_, #{partial_success := NFpartial_success}} -> S1#{partial_success => NFpartial_success};
+        {#{partial_success := PFpartial_success}, _} -> S1#{partial_success => PFpartial_success};
+        {_, _} -> S1
+    end.
+
+-compile({nowarn_unused_function,merge_msg_export_metrics_partial_success/3}).
+merge_msg_export_metrics_partial_success(PMsg, NMsg, _) ->
+    S1 = #{},
+    S2 = case {PMsg, NMsg} of
+             {_, #{rejected_data_points := NFrejected_data_points}} -> S1#{rejected_data_points => NFrejected_data_points};
+             {#{rejected_data_points := PFrejected_data_points}, _} -> S1#{rejected_data_points => PFrejected_data_points};
+             _ -> S1
+         end,
+    case {PMsg, NMsg} of
+        {_, #{error_message := NFerror_message}} -> S2#{error_message => NFerror_message};
+        {#{error_message := PFerror_message}, _} -> S2#{error_message => PFerror_message};
+        _ -> S2
+    end.
 
 -compile({nowarn_unused_function,merge_msg_metrics_data/3}).
 merge_msg_metrics_data(PMsg, NMsg, TrUserData) ->
@@ -4009,17 +3950,10 @@ merge_msg_resource_metrics(PMsg, NMsg, TrUserData) ->
              {#{scope_metrics := PFscope_metrics}, _} -> S2#{scope_metrics => PFscope_metrics};
              {_, _} -> S2
          end,
-    S4 = case {PMsg, NMsg} of
-             {#{instrumentation_library_metrics := PFinstrumentation_library_metrics}, #{instrumentation_library_metrics := NFinstrumentation_library_metrics}} ->
-                 S3#{instrumentation_library_metrics => 'erlang_++'(PFinstrumentation_library_metrics, NFinstrumentation_library_metrics, TrUserData)};
-             {_, #{instrumentation_library_metrics := NFinstrumentation_library_metrics}} -> S3#{instrumentation_library_metrics => NFinstrumentation_library_metrics};
-             {#{instrumentation_library_metrics := PFinstrumentation_library_metrics}, _} -> S3#{instrumentation_library_metrics => PFinstrumentation_library_metrics};
-             {_, _} -> S3
-         end,
     case {PMsg, NMsg} of
-        {_, #{schema_url := NFschema_url}} -> S4#{schema_url => NFschema_url};
-        {#{schema_url := PFschema_url}, _} -> S4#{schema_url => PFschema_url};
-        _ -> S4
+        {_, #{schema_url := NFschema_url}} -> S3#{schema_url => NFschema_url};
+        {#{schema_url := PFschema_url}, _} -> S3#{schema_url => PFschema_url};
+        _ -> S3
     end.
 
 -compile({nowarn_unused_function,merge_msg_scope_metrics/3}).
@@ -4029,27 +3963,6 @@ merge_msg_scope_metrics(PMsg, NMsg, TrUserData) ->
              {#{scope := PFscope}, #{scope := NFscope}} -> S1#{scope => merge_msg_instrumentation_scope(PFscope, NFscope, TrUserData)};
              {_, #{scope := NFscope}} -> S1#{scope => NFscope};
              {#{scope := PFscope}, _} -> S1#{scope => PFscope};
-             {_, _} -> S1
-         end,
-    S3 = case {PMsg, NMsg} of
-             {#{metrics := PFmetrics}, #{metrics := NFmetrics}} -> S2#{metrics => 'erlang_++'(PFmetrics, NFmetrics, TrUserData)};
-             {_, #{metrics := NFmetrics}} -> S2#{metrics => NFmetrics};
-             {#{metrics := PFmetrics}, _} -> S2#{metrics => PFmetrics};
-             {_, _} -> S2
-         end,
-    case {PMsg, NMsg} of
-        {_, #{schema_url := NFschema_url}} -> S3#{schema_url => NFschema_url};
-        {#{schema_url := PFschema_url}, _} -> S3#{schema_url => PFschema_url};
-        _ -> S3
-    end.
-
--compile({nowarn_unused_function,merge_msg_instrumentation_library_metrics/3}).
-merge_msg_instrumentation_library_metrics(PMsg, NMsg, TrUserData) ->
-    S1 = #{},
-    S2 = case {PMsg, NMsg} of
-             {#{instrumentation_library := PFinstrumentation_library}, #{instrumentation_library := NFinstrumentation_library}} -> S1#{instrumentation_library => merge_msg_instrumentation_library(PFinstrumentation_library, NFinstrumentation_library, TrUserData)};
-             {_, #{instrumentation_library := NFinstrumentation_library}} -> S1#{instrumentation_library => NFinstrumentation_library};
-             {#{instrumentation_library := PFinstrumentation_library}, _} -> S1#{instrumentation_library => PFinstrumentation_library};
              {_, _} -> S1
          end,
     S3 = case {PMsg, NMsg} of
@@ -4481,32 +4394,29 @@ merge_msg_key_value(PMsg, NMsg, TrUserData) ->
         {_, _} -> S2
     end.
 
--compile({nowarn_unused_function,merge_msg_instrumentation_library/3}).
-merge_msg_instrumentation_library(PMsg, NMsg, _) ->
-    S1 = #{},
-    S2 = case {PMsg, NMsg} of
-             {_, #{name := NFname}} -> S1#{name => NFname};
-             {#{name := PFname}, _} -> S1#{name => PFname};
-             _ -> S1
-         end,
-    case {PMsg, NMsg} of
-        {_, #{version := NFversion}} -> S2#{version => NFversion};
-        {#{version := PFversion}, _} -> S2#{version => PFversion};
-        _ -> S2
-    end.
-
 -compile({nowarn_unused_function,merge_msg_instrumentation_scope/3}).
-merge_msg_instrumentation_scope(PMsg, NMsg, _) ->
+merge_msg_instrumentation_scope(PMsg, NMsg, TrUserData) ->
     S1 = #{},
     S2 = case {PMsg, NMsg} of
              {_, #{name := NFname}} -> S1#{name => NFname};
              {#{name := PFname}, _} -> S1#{name => PFname};
              _ -> S1
          end,
+    S3 = case {PMsg, NMsg} of
+             {_, #{version := NFversion}} -> S2#{version => NFversion};
+             {#{version := PFversion}, _} -> S2#{version => PFversion};
+             _ -> S2
+         end,
+    S4 = case {PMsg, NMsg} of
+             {#{attributes := PFattributes}, #{attributes := NFattributes}} -> S3#{attributes => 'erlang_++'(PFattributes, NFattributes, TrUserData)};
+             {_, #{attributes := NFattributes}} -> S3#{attributes => NFattributes};
+             {#{attributes := PFattributes}, _} -> S3#{attributes => PFattributes};
+             {_, _} -> S3
+         end,
     case {PMsg, NMsg} of
-        {_, #{version := NFversion}} -> S2#{version => NFversion};
-        {#{version := PFversion}, _} -> S2#{version => PFversion};
-        _ -> S2
+        {_, #{dropped_attributes_count := NFdropped_attributes_count}} -> S4#{dropped_attributes_count => NFdropped_attributes_count};
+        {#{dropped_attributes_count := PFdropped_attributes_count}, _} -> S4#{dropped_attributes_count => PFdropped_attributes_count};
+        _ -> S4
     end.
 
 -compile({nowarn_unused_function,merge_msg_resource/3}).
@@ -4532,10 +4442,10 @@ verify_msg(Msg, MsgName, Opts) ->
     case MsgName of
         export_metrics_service_request -> v_msg_export_metrics_service_request(Msg, [MsgName], TrUserData);
         export_metrics_service_response -> v_msg_export_metrics_service_response(Msg, [MsgName], TrUserData);
+        export_metrics_partial_success -> v_msg_export_metrics_partial_success(Msg, [MsgName], TrUserData);
         metrics_data -> v_msg_metrics_data(Msg, [MsgName], TrUserData);
         resource_metrics -> v_msg_resource_metrics(Msg, [MsgName], TrUserData);
         scope_metrics -> v_msg_scope_metrics(Msg, [MsgName], TrUserData);
-        instrumentation_library_metrics -> v_msg_instrumentation_library_metrics(Msg, [MsgName], TrUserData);
         metric -> v_msg_metric(Msg, [MsgName], TrUserData);
         gauge -> v_msg_gauge(Msg, [MsgName], TrUserData);
         sum -> v_msg_sum(Msg, [MsgName], TrUserData);
@@ -4553,7 +4463,6 @@ verify_msg(Msg, MsgName, Opts) ->
         array_value -> v_msg_array_value(Msg, [MsgName], TrUserData);
         key_value_list -> v_msg_key_value_list(Msg, [MsgName], TrUserData);
         key_value -> v_msg_key_value(Msg, [MsgName], TrUserData);
-        instrumentation_library -> v_msg_instrumentation_library(Msg, [MsgName], TrUserData);
         instrumentation_scope -> v_msg_instrumentation_scope(Msg, [MsgName], TrUserData);
         resource -> v_msg_resource(Msg, [MsgName], TrUserData);
         _ -> mk_type_error(not_a_known_message, Msg, [])
@@ -4582,11 +4491,38 @@ v_msg_export_metrics_service_request(X, Path, _TrUserData) -> mk_type_error({exp
 
 -compile({nowarn_unused_function,v_msg_export_metrics_service_response/3}).
 -dialyzer({nowarn_function,v_msg_export_metrics_service_response/3}).
-v_msg_export_metrics_service_response(#{} = M, Path, _) ->
-    lists:foreach(fun (OtherKey) -> mk_type_error({extraneous_key, OtherKey}, M, Path) end, maps:keys(M)),
+v_msg_export_metrics_service_response(#{} = M, Path, TrUserData) ->
+    case M of
+        #{partial_success := F1} -> v_msg_export_metrics_partial_success(F1, [partial_success | Path], TrUserData);
+        _ -> ok
+    end,
+    lists:foreach(fun (partial_success) -> ok;
+                      (OtherKey) -> mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
     ok;
 v_msg_export_metrics_service_response(M, Path, _TrUserData) when is_map(M) -> mk_type_error({missing_fields, [] -- maps:keys(M), export_metrics_service_response}, M, Path);
 v_msg_export_metrics_service_response(X, Path, _TrUserData) -> mk_type_error({expected_msg, export_metrics_service_response}, X, Path).
+
+-compile({nowarn_unused_function,v_msg_export_metrics_partial_success/3}).
+-dialyzer({nowarn_function,v_msg_export_metrics_partial_success/3}).
+v_msg_export_metrics_partial_success(#{} = M, Path, TrUserData) ->
+    case M of
+        #{rejected_data_points := F1} -> v_type_int64(F1, [rejected_data_points | Path], TrUserData);
+        _ -> ok
+    end,
+    case M of
+        #{error_message := F2} -> v_type_string(F2, [error_message | Path], TrUserData);
+        _ -> ok
+    end,
+    lists:foreach(fun (rejected_data_points) -> ok;
+                      (error_message) -> ok;
+                      (OtherKey) -> mk_type_error({extraneous_key, OtherKey}, M, Path)
+                  end,
+                  maps:keys(M)),
+    ok;
+v_msg_export_metrics_partial_success(M, Path, _TrUserData) when is_map(M) -> mk_type_error({missing_fields, [] -- maps:keys(M), export_metrics_partial_success}, M, Path);
+v_msg_export_metrics_partial_success(X, Path, _TrUserData) -> mk_type_error({expected_msg, export_metrics_partial_success}, X, Path).
 
 -compile({nowarn_unused_function,v_msg_metrics_data/3}).
 -dialyzer({nowarn_function,v_msg_metrics_data/3}).
@@ -4625,21 +4561,11 @@ v_msg_resource_metrics(#{} = M, Path, TrUserData) ->
         _ -> ok
     end,
     case M of
-        #{instrumentation_library_metrics := F3} ->
-            if is_list(F3) ->
-                   _ = [v_msg_instrumentation_library_metrics(Elem, [instrumentation_library_metrics | Path], TrUserData) || Elem <- F3],
-                   ok;
-               true -> mk_type_error({invalid_list_of, {msg, instrumentation_library_metrics}}, F3, [instrumentation_library_metrics | Path])
-            end;
-        _ -> ok
-    end,
-    case M of
-        #{schema_url := F4} -> v_type_string(F4, [schema_url | Path], TrUserData);
+        #{schema_url := F3} -> v_type_string(F3, [schema_url | Path], TrUserData);
         _ -> ok
     end,
     lists:foreach(fun (resource) -> ok;
                       (scope_metrics) -> ok;
-                      (instrumentation_library_metrics) -> ok;
                       (schema_url) -> ok;
                       (OtherKey) -> mk_type_error({extraneous_key, OtherKey}, M, Path)
                   end,
@@ -4677,36 +4603,6 @@ v_msg_scope_metrics(#{} = M, Path, TrUserData) ->
     ok;
 v_msg_scope_metrics(M, Path, _TrUserData) when is_map(M) -> mk_type_error({missing_fields, [] -- maps:keys(M), scope_metrics}, M, Path);
 v_msg_scope_metrics(X, Path, _TrUserData) -> mk_type_error({expected_msg, scope_metrics}, X, Path).
-
--compile({nowarn_unused_function,v_msg_instrumentation_library_metrics/3}).
--dialyzer({nowarn_function,v_msg_instrumentation_library_metrics/3}).
-v_msg_instrumentation_library_metrics(#{} = M, Path, TrUserData) ->
-    case M of
-        #{instrumentation_library := F1} -> v_msg_instrumentation_library(F1, [instrumentation_library | Path], TrUserData);
-        _ -> ok
-    end,
-    case M of
-        #{metrics := F2} ->
-            if is_list(F2) ->
-                   _ = [v_msg_metric(Elem, [metrics | Path], TrUserData) || Elem <- F2],
-                   ok;
-               true -> mk_type_error({invalid_list_of, {msg, metric}}, F2, [metrics | Path])
-            end;
-        _ -> ok
-    end,
-    case M of
-        #{schema_url := F3} -> v_type_string(F3, [schema_url | Path], TrUserData);
-        _ -> ok
-    end,
-    lists:foreach(fun (instrumentation_library) -> ok;
-                      (metrics) -> ok;
-                      (schema_url) -> ok;
-                      (OtherKey) -> mk_type_error({extraneous_key, OtherKey}, M, Path)
-                  end,
-                  maps:keys(M)),
-    ok;
-v_msg_instrumentation_library_metrics(M, Path, _TrUserData) when is_map(M) -> mk_type_error({missing_fields, [] -- maps:keys(M), instrumentation_library_metrics}, M, Path);
-v_msg_instrumentation_library_metrics(X, Path, _TrUserData) -> mk_type_error({expected_msg, instrumentation_library_metrics}, X, Path).
 
 -compile({nowarn_unused_function,v_msg_metric/3}).
 -dialyzer({nowarn_function,v_msg_metric/3}).
@@ -5309,26 +5205,6 @@ v_msg_key_value(#{} = M, Path, TrUserData) ->
 v_msg_key_value(M, Path, _TrUserData) when is_map(M) -> mk_type_error({missing_fields, [] -- maps:keys(M), key_value}, M, Path);
 v_msg_key_value(X, Path, _TrUserData) -> mk_type_error({expected_msg, key_value}, X, Path).
 
--compile({nowarn_unused_function,v_msg_instrumentation_library/3}).
--dialyzer({nowarn_function,v_msg_instrumentation_library/3}).
-v_msg_instrumentation_library(#{} = M, Path, TrUserData) ->
-    case M of
-        #{name := F1} -> v_type_string(F1, [name | Path], TrUserData);
-        _ -> ok
-    end,
-    case M of
-        #{version := F2} -> v_type_string(F2, [version | Path], TrUserData);
-        _ -> ok
-    end,
-    lists:foreach(fun (name) -> ok;
-                      (version) -> ok;
-                      (OtherKey) -> mk_type_error({extraneous_key, OtherKey}, M, Path)
-                  end,
-                  maps:keys(M)),
-    ok;
-v_msg_instrumentation_library(M, Path, _TrUserData) when is_map(M) -> mk_type_error({missing_fields, [] -- maps:keys(M), instrumentation_library}, M, Path);
-v_msg_instrumentation_library(X, Path, _TrUserData) -> mk_type_error({expected_msg, instrumentation_library}, X, Path).
-
 -compile({nowarn_unused_function,v_msg_instrumentation_scope/3}).
 -dialyzer({nowarn_function,v_msg_instrumentation_scope/3}).
 v_msg_instrumentation_scope(#{} = M, Path, TrUserData) ->
@@ -5340,8 +5216,23 @@ v_msg_instrumentation_scope(#{} = M, Path, TrUserData) ->
         #{version := F2} -> v_type_string(F2, [version | Path], TrUserData);
         _ -> ok
     end,
+    case M of
+        #{attributes := F3} ->
+            if is_list(F3) ->
+                   _ = [v_msg_key_value(Elem, [attributes | Path], TrUserData) || Elem <- F3],
+                   ok;
+               true -> mk_type_error({invalid_list_of, {msg, key_value}}, F3, [attributes | Path])
+            end;
+        _ -> ok
+    end,
+    case M of
+        #{dropped_attributes_count := F4} -> v_type_uint32(F4, [dropped_attributes_count | Path], TrUserData);
+        _ -> ok
+    end,
     lists:foreach(fun (name) -> ok;
                       (version) -> ok;
+                      (attributes) -> ok;
+                      (dropped_attributes_count) -> ok;
                       (OtherKey) -> mk_type_error({extraneous_key, OtherKey}, M, Path)
                   end,
                   maps:keys(M)),
@@ -5493,19 +5384,15 @@ get_msg_defs() ->
     [{{enum, 'opentelemetry.proto.metrics.v1.AggregationTemporality'}, [{'AGGREGATION_TEMPORALITY_UNSPECIFIED', 0, []}, {'AGGREGATION_TEMPORALITY_DELTA', 1, []}, {'AGGREGATION_TEMPORALITY_CUMULATIVE', 2, []}]},
      {{enum, 'opentelemetry.proto.metrics.v1.DataPointFlags'}, [{'FLAG_NONE', 0, []}, {'FLAG_NO_RECORDED_VALUE', 1, []}]},
      {{msg, export_metrics_service_request}, [#{name => resource_metrics, fnum => 1, rnum => 2, type => {msg, resource_metrics}, occurrence => repeated, opts => []}]},
-     {{msg, export_metrics_service_response}, []},
+     {{msg, export_metrics_service_response}, [#{name => partial_success, fnum => 1, rnum => 2, type => {msg, export_metrics_partial_success}, occurrence => defaulty, opts => []}]},
+     {{msg, export_metrics_partial_success}, [#{name => rejected_data_points, fnum => 1, rnum => 2, type => int64, occurrence => defaulty, opts => []}, #{name => error_message, fnum => 2, rnum => 3, type => string, occurrence => defaulty, opts => []}]},
      {{msg, metrics_data}, [#{name => resource_metrics, fnum => 1, rnum => 2, type => {msg, resource_metrics}, occurrence => repeated, opts => []}]},
      {{msg, resource_metrics},
       [#{name => resource, fnum => 1, rnum => 2, type => {msg, resource}, occurrence => defaulty, opts => []},
        #{name => scope_metrics, fnum => 2, rnum => 3, type => {msg, scope_metrics}, occurrence => repeated, opts => []},
-       #{name => instrumentation_library_metrics, fnum => 1000, rnum => 4, type => {msg, instrumentation_library_metrics}, occurrence => repeated, opts => [deprecated]},
-       #{name => schema_url, fnum => 3, rnum => 5, type => string, occurrence => defaulty, opts => []}]},
+       #{name => schema_url, fnum => 3, rnum => 4, type => string, occurrence => defaulty, opts => []}]},
      {{msg, scope_metrics},
       [#{name => scope, fnum => 1, rnum => 2, type => {msg, instrumentation_scope}, occurrence => defaulty, opts => []},
-       #{name => metrics, fnum => 2, rnum => 3, type => {msg, metric}, occurrence => repeated, opts => []},
-       #{name => schema_url, fnum => 3, rnum => 4, type => string, occurrence => defaulty, opts => []}]},
-     {{msg, instrumentation_library_metrics},
-      [#{name => instrumentation_library, fnum => 1, rnum => 2, type => {msg, instrumentation_library}, occurrence => defaulty, opts => []},
        #{name => metrics, fnum => 2, rnum => 3, type => {msg, metric}, occurrence => repeated, opts => []},
        #{name => schema_url, fnum => 3, rnum => 4, type => string, occurrence => defaulty, opts => []}]},
      {{msg, metric},
@@ -5595,18 +5482,21 @@ get_msg_defs() ->
      {{msg, array_value}, [#{name => values, fnum => 1, rnum => 2, type => {msg, any_value}, occurrence => repeated, opts => []}]},
      {{msg, key_value_list}, [#{name => values, fnum => 1, rnum => 2, type => {msg, key_value}, occurrence => repeated, opts => []}]},
      {{msg, key_value}, [#{name => key, fnum => 1, rnum => 2, type => string, occurrence => defaulty, opts => []}, #{name => value, fnum => 2, rnum => 3, type => {msg, any_value}, occurrence => defaulty, opts => []}]},
-     {{msg, instrumentation_library}, [#{name => name, fnum => 1, rnum => 2, type => string, occurrence => defaulty, opts => []}, #{name => version, fnum => 2, rnum => 3, type => string, occurrence => defaulty, opts => []}]},
-     {{msg, instrumentation_scope}, [#{name => name, fnum => 1, rnum => 2, type => string, occurrence => defaulty, opts => []}, #{name => version, fnum => 2, rnum => 3, type => string, occurrence => defaulty, opts => []}]},
+     {{msg, instrumentation_scope},
+      [#{name => name, fnum => 1, rnum => 2, type => string, occurrence => defaulty, opts => []},
+       #{name => version, fnum => 2, rnum => 3, type => string, occurrence => defaulty, opts => []},
+       #{name => attributes, fnum => 3, rnum => 4, type => {msg, key_value}, occurrence => repeated, opts => []},
+       #{name => dropped_attributes_count, fnum => 4, rnum => 5, type => uint32, occurrence => defaulty, opts => []}]},
      {{msg, resource}, [#{name => attributes, fnum => 1, rnum => 2, type => {msg, key_value}, occurrence => repeated, opts => []}, #{name => dropped_attributes_count, fnum => 2, rnum => 3, type => uint32, occurrence => defaulty, opts => []}]}].
 
 
 get_msg_names() ->
     [export_metrics_service_request,
      export_metrics_service_response,
+     export_metrics_partial_success,
      metrics_data,
      resource_metrics,
      scope_metrics,
-     instrumentation_library_metrics,
      metric,
      gauge,
      sum,
@@ -5624,7 +5514,6 @@ get_msg_names() ->
      array_value,
      key_value_list,
      key_value,
-     instrumentation_library,
      instrumentation_scope,
      resource].
 
@@ -5635,10 +5524,10 @@ get_group_names() -> [].
 get_msg_or_group_names() ->
     [export_metrics_service_request,
      export_metrics_service_response,
+     export_metrics_partial_success,
      metrics_data,
      resource_metrics,
      scope_metrics,
-     instrumentation_library_metrics,
      metric,
      gauge,
      sum,
@@ -5656,7 +5545,6 @@ get_msg_or_group_names() ->
      array_value,
      key_value_list,
      key_value,
-     instrumentation_library,
      instrumentation_scope,
      resource].
 
@@ -5679,19 +5567,16 @@ fetch_enum_def(EnumName) ->
 
 
 find_msg_def(export_metrics_service_request) -> [#{name => resource_metrics, fnum => 1, rnum => 2, type => {msg, resource_metrics}, occurrence => repeated, opts => []}];
-find_msg_def(export_metrics_service_response) -> [];
+find_msg_def(export_metrics_service_response) -> [#{name => partial_success, fnum => 1, rnum => 2, type => {msg, export_metrics_partial_success}, occurrence => defaulty, opts => []}];
+find_msg_def(export_metrics_partial_success) ->
+    [#{name => rejected_data_points, fnum => 1, rnum => 2, type => int64, occurrence => defaulty, opts => []}, #{name => error_message, fnum => 2, rnum => 3, type => string, occurrence => defaulty, opts => []}];
 find_msg_def(metrics_data) -> [#{name => resource_metrics, fnum => 1, rnum => 2, type => {msg, resource_metrics}, occurrence => repeated, opts => []}];
 find_msg_def(resource_metrics) ->
     [#{name => resource, fnum => 1, rnum => 2, type => {msg, resource}, occurrence => defaulty, opts => []},
      #{name => scope_metrics, fnum => 2, rnum => 3, type => {msg, scope_metrics}, occurrence => repeated, opts => []},
-     #{name => instrumentation_library_metrics, fnum => 1000, rnum => 4, type => {msg, instrumentation_library_metrics}, occurrence => repeated, opts => [deprecated]},
-     #{name => schema_url, fnum => 3, rnum => 5, type => string, occurrence => defaulty, opts => []}];
+     #{name => schema_url, fnum => 3, rnum => 4, type => string, occurrence => defaulty, opts => []}];
 find_msg_def(scope_metrics) ->
     [#{name => scope, fnum => 1, rnum => 2, type => {msg, instrumentation_scope}, occurrence => defaulty, opts => []},
-     #{name => metrics, fnum => 2, rnum => 3, type => {msg, metric}, occurrence => repeated, opts => []},
-     #{name => schema_url, fnum => 3, rnum => 4, type => string, occurrence => defaulty, opts => []}];
-find_msg_def(instrumentation_library_metrics) ->
-    [#{name => instrumentation_library, fnum => 1, rnum => 2, type => {msg, instrumentation_library}, occurrence => defaulty, opts => []},
      #{name => metrics, fnum => 2, rnum => 3, type => {msg, metric}, occurrence => repeated, opts => []},
      #{name => schema_url, fnum => 3, rnum => 4, type => string, occurrence => defaulty, opts => []}];
 find_msg_def(metric) ->
@@ -5781,8 +5666,11 @@ find_msg_def(any_value) ->
 find_msg_def(array_value) -> [#{name => values, fnum => 1, rnum => 2, type => {msg, any_value}, occurrence => repeated, opts => []}];
 find_msg_def(key_value_list) -> [#{name => values, fnum => 1, rnum => 2, type => {msg, key_value}, occurrence => repeated, opts => []}];
 find_msg_def(key_value) -> [#{name => key, fnum => 1, rnum => 2, type => string, occurrence => defaulty, opts => []}, #{name => value, fnum => 2, rnum => 3, type => {msg, any_value}, occurrence => defaulty, opts => []}];
-find_msg_def(instrumentation_library) -> [#{name => name, fnum => 1, rnum => 2, type => string, occurrence => defaulty, opts => []}, #{name => version, fnum => 2, rnum => 3, type => string, occurrence => defaulty, opts => []}];
-find_msg_def(instrumentation_scope) -> [#{name => name, fnum => 1, rnum => 2, type => string, occurrence => defaulty, opts => []}, #{name => version, fnum => 2, rnum => 3, type => string, occurrence => defaulty, opts => []}];
+find_msg_def(instrumentation_scope) ->
+    [#{name => name, fnum => 1, rnum => 2, type => string, occurrence => defaulty, opts => []},
+     #{name => version, fnum => 2, rnum => 3, type => string, occurrence => defaulty, opts => []},
+     #{name => attributes, fnum => 3, rnum => 4, type => {msg, key_value}, occurrence => repeated, opts => []},
+     #{name => dropped_attributes_count, fnum => 4, rnum => 5, type => uint32, occurrence => defaulty, opts => []}];
 find_msg_def(resource) -> [#{name => attributes, fnum => 1, rnum => 2, type => {msg, key_value}, occurrence => repeated, opts => []}, #{name => dropped_attributes_count, fnum => 2, rnum => 3, type => uint32, occurrence => defaulty, opts => []}];
 find_msg_def(_) -> error.
 
@@ -5872,10 +5760,10 @@ service_and_rpc_name_to_fqbins(S, R) -> error({gpb_error, {badservice_or_rpc, {S
 
 fqbin_to_msg_name(<<"opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest">>) -> export_metrics_service_request;
 fqbin_to_msg_name(<<"opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceResponse">>) -> export_metrics_service_response;
+fqbin_to_msg_name(<<"opentelemetry.proto.collector.metrics.v1.ExportMetricsPartialSuccess">>) -> export_metrics_partial_success;
 fqbin_to_msg_name(<<"opentelemetry.proto.metrics.v1.MetricsData">>) -> metrics_data;
 fqbin_to_msg_name(<<"opentelemetry.proto.metrics.v1.ResourceMetrics">>) -> resource_metrics;
 fqbin_to_msg_name(<<"opentelemetry.proto.metrics.v1.ScopeMetrics">>) -> scope_metrics;
-fqbin_to_msg_name(<<"opentelemetry.proto.metrics.v1.InstrumentationLibraryMetrics">>) -> instrumentation_library_metrics;
 fqbin_to_msg_name(<<"opentelemetry.proto.metrics.v1.Metric">>) -> metric;
 fqbin_to_msg_name(<<"opentelemetry.proto.metrics.v1.Gauge">>) -> gauge;
 fqbin_to_msg_name(<<"opentelemetry.proto.metrics.v1.Sum">>) -> sum;
@@ -5893,7 +5781,6 @@ fqbin_to_msg_name(<<"opentelemetry.proto.common.v1.AnyValue">>) -> any_value;
 fqbin_to_msg_name(<<"opentelemetry.proto.common.v1.ArrayValue">>) -> array_value;
 fqbin_to_msg_name(<<"opentelemetry.proto.common.v1.KeyValueList">>) -> key_value_list;
 fqbin_to_msg_name(<<"opentelemetry.proto.common.v1.KeyValue">>) -> key_value;
-fqbin_to_msg_name(<<"opentelemetry.proto.common.v1.InstrumentationLibrary">>) -> instrumentation_library;
 fqbin_to_msg_name(<<"opentelemetry.proto.common.v1.InstrumentationScope">>) -> instrumentation_scope;
 fqbin_to_msg_name(<<"opentelemetry.proto.resource.v1.Resource">>) -> resource;
 fqbin_to_msg_name(E) -> error({gpb_error, {badmsg, E}}).
@@ -5901,10 +5788,10 @@ fqbin_to_msg_name(E) -> error({gpb_error, {badmsg, E}}).
 
 msg_name_to_fqbin(export_metrics_service_request) -> <<"opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest">>;
 msg_name_to_fqbin(export_metrics_service_response) -> <<"opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceResponse">>;
+msg_name_to_fqbin(export_metrics_partial_success) -> <<"opentelemetry.proto.collector.metrics.v1.ExportMetricsPartialSuccess">>;
 msg_name_to_fqbin(metrics_data) -> <<"opentelemetry.proto.metrics.v1.MetricsData">>;
 msg_name_to_fqbin(resource_metrics) -> <<"opentelemetry.proto.metrics.v1.ResourceMetrics">>;
 msg_name_to_fqbin(scope_metrics) -> <<"opentelemetry.proto.metrics.v1.ScopeMetrics">>;
-msg_name_to_fqbin(instrumentation_library_metrics) -> <<"opentelemetry.proto.metrics.v1.InstrumentationLibraryMetrics">>;
 msg_name_to_fqbin(metric) -> <<"opentelemetry.proto.metrics.v1.Metric">>;
 msg_name_to_fqbin(gauge) -> <<"opentelemetry.proto.metrics.v1.Gauge">>;
 msg_name_to_fqbin(sum) -> <<"opentelemetry.proto.metrics.v1.Sum">>;
@@ -5922,7 +5809,6 @@ msg_name_to_fqbin(any_value) -> <<"opentelemetry.proto.common.v1.AnyValue">>;
 msg_name_to_fqbin(array_value) -> <<"opentelemetry.proto.common.v1.ArrayValue">>;
 msg_name_to_fqbin(key_value_list) -> <<"opentelemetry.proto.common.v1.KeyValueList">>;
 msg_name_to_fqbin(key_value) -> <<"opentelemetry.proto.common.v1.KeyValue">>;
-msg_name_to_fqbin(instrumentation_library) -> <<"opentelemetry.proto.common.v1.InstrumentationLibrary">>;
 msg_name_to_fqbin(instrumentation_scope) -> <<"opentelemetry.proto.common.v1.InstrumentationScope">>;
 msg_name_to_fqbin(resource) -> <<"opentelemetry.proto.resource.v1.Resource">>;
 msg_name_to_fqbin(E) -> error({gpb_error, {badmsg, E}}).
@@ -5965,26 +5851,10 @@ get_all_source_basenames() -> ["metrics_service.proto", "metrics.proto", "common
 get_all_proto_names() -> ["metrics_service", "metrics", "common", "resource"].
 
 
-get_msg_containment("metrics_service") -> [export_metrics_service_request, export_metrics_service_response];
+get_msg_containment("metrics_service") -> [export_metrics_partial_success, export_metrics_service_request, export_metrics_service_response];
 get_msg_containment("metrics") ->
-    [exemplar,
-     exponential_histogram,
-     exponential_histogram_data_point,
-     buckets,
-     gauge,
-     histogram,
-     histogram_data_point,
-     instrumentation_library_metrics,
-     metric,
-     metrics_data,
-     number_data_point,
-     resource_metrics,
-     scope_metrics,
-     sum,
-     summary,
-     summary_data_point,
-     value_at_quantile];
-get_msg_containment("common") -> [any_value, array_value, instrumentation_library, instrumentation_scope, key_value, key_value_list];
+    [exemplar, exponential_histogram, exponential_histogram_data_point, buckets, gauge, histogram, histogram_data_point, metric, metrics_data, number_data_point, resource_metrics, scope_metrics, sum, summary, summary_data_point, value_at_quantile];
+get_msg_containment("common") -> [any_value, array_value, instrumentation_scope, key_value, key_value_list];
 get_msg_containment("resource") -> [resource];
 get_msg_containment(P) -> error({gpb_error, {badproto, P}}).
 
@@ -6022,8 +5892,8 @@ get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.metrics.v1.Exemplar">>) ->
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.metrics.v1.ScopeMetrics">>) -> "metrics";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.metrics.v1.ResourceMetrics">>) -> "metrics";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.metrics.v1.Metric">>) -> "metrics";
-get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.metrics.v1.InstrumentationLibraryMetrics">>) -> "metrics";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.metrics.v1.ExponentialHistogramDataPoint.Buckets">>) -> "metrics";
+get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.collector.metrics.v1.ExportMetricsPartialSuccess">>) -> "metrics_service";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.common.v1.KeyValueList">>) -> "common";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.metrics.v1.SummaryDataPoint">>) -> "metrics";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.metrics.v1.NumberDataPoint">>) -> "metrics";
@@ -6038,7 +5908,6 @@ get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.common.v1.AnyValue">>) -> 
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.metrics.v1.SummaryDataPoint.ValueAtQuantile">>) -> "metrics";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.metrics.v1.Gauge">>) -> "metrics";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceResponse">>) -> "metrics_service";
-get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.common.v1.InstrumentationLibrary">>) -> "common";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.metrics.v1.Summary">>) -> "metrics";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.metrics.v1.Sum">>) -> "metrics";
 get_proto_by_msg_name_as_fqbin(<<"opentelemetry.proto.metrics.v1.Histogram">>) -> "metrics";

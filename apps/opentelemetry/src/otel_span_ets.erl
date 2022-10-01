@@ -101,7 +101,7 @@ get_ctx(#span{trace_id=TraceId,
               tracestate=TraceState,
               is_recording=IsRecording}.
 
--spec set_attribute(opentelemetry:span_ctx(),
+-spec set_attribute(opentelemetry:span_ctx() | undefined,
                     opentelemetry:attribute_key(),
                     opentelemetry:attribute_value()) -> boolean().
 set_attribute(#span_ctx{span_id=SpanId}, Key, Value) ->
@@ -119,7 +119,7 @@ set_attribute(_, _, _) ->
 %% are not a real concern. This allows `add_events' and `set_attributes' to lookup and
 %% update only the specific element of the `span' without worrying about it having been
 %% changed by another process between the lookup and update.
--spec set_attributes(opentelemetry:span_ctx(), opentelemetry:attributes_map()) -> boolean().
+-spec set_attributes(opentelemetry:span_ctx() | undefined, opentelemetry:attributes_map()) -> boolean().
 set_attributes(#span_ctx{span_id=SpanId}, NewAttributes) ->
     try ets:lookup_element(?SPAN_TAB, SpanId, #span.attributes) of
         Attributes ->
@@ -129,12 +129,12 @@ set_attributes(#span_ctx{span_id=SpanId}, NewAttributes) ->
             false
     end.
 
--spec add_event(opentelemetry:span_ctx(), unicode:unicode_binary(), opentelemetry:attributes_map()) -> boolean().
+-spec add_event(opentelemetry:span_ctx() | undefined, unicode:unicode_binary(), opentelemetry:attributes_map()) -> boolean().
 add_event(SpanCtx, Name, Attributes) ->
     Events = opentelemetry:events([{Name, Attributes}]),
     add_events(SpanCtx, Events).
 
--spec add_events(opentelemetry:span_ctx(), [opentelemetry:event()]) -> boolean().
+-spec add_events(opentelemetry:span_ctx() | undefined, [opentelemetry:event()]) -> boolean().
 add_events(#span_ctx{span_id=SpanId}, NewEvents) ->
     try ets:lookup_element(?SPAN_TAB, SpanId, #span.events) of
         Events ->
@@ -143,7 +143,7 @@ add_events(#span_ctx{span_id=SpanId}, NewEvents) ->
             false
     end.
 
--spec set_status(opentelemetry:span_ctx(), opentelemetry:status()) -> boolean().
+-spec set_status(opentelemetry:span_ctx() | undefined, opentelemetry:status()) -> boolean().
 set_status(#span_ctx{span_id=SpanId}, Status=#status{code=NewCode}) ->
     try ets:lookup_element(?SPAN_TAB, SpanId, #span.status) of
          #status{code=?OTEL_STATUS_ERROR} when NewCode =:= ?OTEL_STATUS_OK ->
@@ -165,9 +165,11 @@ set_status(#span_ctx{span_id=SpanId}, Status=#status{code=NewCode}) ->
 set_status(_, _) ->
     false.
 
--spec update_name(opentelemetry:span_ctx(), opentelemetry:span_name()) -> boolean().
+-spec update_name(opentelemetry:span_ctx() | undefined, opentelemetry:span_name()) -> boolean().
 update_name(#span_ctx{span_id=SpanId}, Name) ->
-    ets:update_element(?SPAN_TAB, SpanId, {#span.name, Name}).
+    ets:update_element(?SPAN_TAB, SpanId, {#span.name, Name});
+update_name(_, _) ->
+    false.
 
 %%
 
