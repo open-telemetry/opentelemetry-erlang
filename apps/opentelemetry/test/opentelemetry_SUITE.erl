@@ -613,16 +613,28 @@ reset_after(Config) ->
     ok.
 
 stop_temporary_app(_Config) ->
+    Tracer = opentelemetry:get_tracer(),
+
     SpanCtx1 = ?start_span(<<"span-1">>),
     ?assertNotMatch(#span_ctx{trace_id=0,
                               span_id=0}, SpanCtx1),
 
     ok = application:stop(opentelemetry),
 
-    %% stopping opentelemetry resets the tracer to a noop
-    SpanCtx2 = ?start_span(<<"span-2">>),
-    ?assertMatch(#span_ctx{trace_id=0,
-                           span_id=0}, SpanCtx2),
+    %% stopping opentelemetry deletes the active span ETS table
+    %% so eventually newly started spans will be no-ops because
+    %% inserting a new span will fail
+    ?UNTIL(case ?start_span(<<"span-2">>) of
+               #span_ctx{trace_id=0,
+                         span_id=0} ->
+                   true;
+               _ ->
+                   false
+           end),
+
+    %% tracers retrieved before stopping the SDK must also not fail
+    ?assertNotException(error, badarg, otel_tracer:start_span(Tracer, <<"span-3">>, #{})),
+
     ok.
 
 default_sampler(_Config) ->
