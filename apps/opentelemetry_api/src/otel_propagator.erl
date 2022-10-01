@@ -57,12 +57,12 @@
 %% convert the short name of a propagator to its module name if it is a builtin
 %% if the name doesn't match a builtin it is assumed to be a module
 %% @hidden
--spec builtins_to_modules([t()]) -> [module()].
+-spec builtins_to_modules([t()]) -> [module() | {module(), term()}].
 builtins_to_modules(Propagators) ->
     [builtin_to_module(P) || P <- Propagators].
 
 %% @hidden
--spec builtin_to_module(builtin() | module()) -> module().
+-spec builtin_to_module(builtin() | module() | {module(), term()}) -> module() | {module(), term()}.
 builtin_to_module(tracecontext) ->
     otel_propagator_trace_context;
 builtin_to_module(trace_context) ->

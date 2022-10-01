@@ -190,7 +190,7 @@ get_tracer() ->
     persistent_term:get(?DEFAULT_TRACER_KEY, {otel_tracer_noop, []}).
 
 -spec get_tracer(Name) -> Tracer when
-      Name :: atom() | {Name, Vsn, SchemaUrl},
+      Name :: atom() | {atom(), Vsn, SchemaUrl},
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
       Tracer:: opentelemetry:tracer().
@@ -321,11 +321,11 @@ links(List) when is_list(List) ->
 links(_) ->
     [].
 
--spec link(span_ctx() | undefined) -> link().
+-spec link(span_ctx() | undefined) -> link() | undefined.
 link(SpanCtx) ->
     link(SpanCtx, []).
 
--spec link(span_ctx() | undefined, attributes_map()) -> link().
+-spec link(span_ctx() | undefined, attributes_map()) -> link() | undefined.
 link(#span_ctx{trace_id=TraceId,
                span_id=SpanId,
                tracestate=TraceState}, Attributes) ->
@@ -356,7 +356,7 @@ event(Name, Attributes) ->
     event(opentelemetry:timestamp(), Name, Attributes).
 
 -spec event(Timestamp, Name, Attributes) -> event() | undefined when
-      Timestamp :: non_neg_integer(),
+      Timestamp :: integer(),
       Name :: event_name(),
       Attributes :: attributes_map().
 event(Timestamp, Name, Attributes) when is_integer(Timestamp),

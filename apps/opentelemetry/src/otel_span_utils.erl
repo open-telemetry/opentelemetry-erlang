@@ -76,7 +76,7 @@ new_span(Ctx, Name, Sampler, IdGeneratorModule, StartTime, Kind, Attributes, Eve
                          is_valid=true,
                          is_recording=IsRecording}, Span}.
 
--spec new_span_ctx(otel_ctx:t(), otel_id_generator:t()) -> {opentelemetry:span_ctx(), opentelemetry:span_id()}.
+-spec new_span_ctx(otel_ctx:t(), otel_id_generator:t()) -> {opentelemetry:span_ctx(), opentelemetry:span_id() | undefined}.
 new_span_ctx(Ctx, IdGeneratorModule) ->
     case otel_tracer:current_span_ctx(Ctx) of
         undefined ->
