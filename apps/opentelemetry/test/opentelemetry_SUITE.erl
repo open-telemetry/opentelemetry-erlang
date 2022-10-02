@@ -501,10 +501,10 @@ update_span_data(Config) ->
     ?assertMatch(#{<<"key-1">> := <<"value-1">>}, otel_attributes:map(A)),
     ?assertMatch([#link{trace_id=LinkTraceId,
                         span_id=LinkSpanId}], otel_links:list(L)),
-    ?assertMatch([#event{system_time_nano=_,
+    ?assertMatch([#event{system_time_native=_,
                          name = <<"event-name">>,
                          attributes=_},
-                  #event{system_time_nano=_,
+                  #event{system_time_native=_,
                          name=event_1,
                          attributes=_}], otel_events:list(E)),
 
@@ -799,7 +799,8 @@ record_exception_with_message_works(Config) ->
         throw(my_error)
     catch
         Class:Term:Stacktrace ->
-            otel_span:record_exception(SpanCtx, Class, Term, <<"My message">>, Stacktrace, [{<<"some-attribute">>, <<"value">>}]),
+            otel_span:record_exception(SpanCtx, Class, Term, <<"My message">>,
+                                       Stacktrace, [{<<"some-attribute">>, <<"value">>}]),
             otel_span:end_span(SpanCtx),
             [Span] = assert_exported(Tid, SpanCtx),
             [Event] = otel_events:list(Span#span.events),

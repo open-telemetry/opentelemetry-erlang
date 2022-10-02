@@ -5,7 +5,7 @@
 -define(AGGREGATION_TEMPORALITY_UNSPECIFIED, aggregation_temporality_unspecified).
 
 -record(meter, {module                  :: module(),
-                instrumentation_library :: otel_tracer_server:instrumentation_library() | undefined,
+                instrumentation_scope  :: opentelemetry:instrumentation_scope() | undefined,
                 provider                :: atom()}).
 
 -record(measurement,
@@ -86,7 +86,7 @@
          attributes :: opentelemetry:attributes_map(),
          start_time_unix_nano :: integer() | undefined,
          time_unix_nano :: integer(),
-         count :: integer(),
+         count :: number(),
          sum :: float(),
          bucket_counts :: tuple(),
          explicit_bounds :: [float()],

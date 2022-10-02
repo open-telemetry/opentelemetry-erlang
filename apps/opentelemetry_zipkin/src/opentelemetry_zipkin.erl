@@ -8,6 +8,7 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
 -include("opentelemetry_zipkin_pb.hrl").
+-include_lib("gradualizer/include/gradualizer.hrl").
 
 -define(DEFAULT_ZIPKIN_ADDRESS, "http://localhost:9411/api/v2/spans").
 -define(DEFAULT_LOCAL_ENDPOINT, #{service_name => node()}).
@@ -69,11 +70,11 @@ shutdown(_) ->
 
 zipkin_span(Span, LocalEndpoint) ->
     #zipkin_span{
-       trace_id = <<(Span#span.trace_id):128>>,
-       name=iolist_to_binary(Span#span.name),
-       id = <<(Span#span.span_id):64>>,
-       timestamp=opentelemetry:convert_timestamp(Span#span.start_time, microsecond),
-       duration=erlang:convert_time_unit(Span#span.end_time - Span#span.start_time, native, microsecond),
+       trace_id = <<(?assert_type(Span#span.trace_id, opentelemetry:trace_id())):128>>,
+       name=to_binary_string(Span#span.name),
+       id = <<(?assert_type(Span#span.span_id, opentelemetry:span_id())):64>>,
+       timestamp=?assert_type(opentelemetry:convert_timestamp(Span#span.start_time, microsecond), non_neg_integer()),
+       duration=?assert_type(erlang:convert_time_unit(?assert_type(Span#span.end_time, non_neg_integer()) - Span#span.start_time, native, microsecond), non_neg_integer()),
        %% debug=false, %% TODO: get from attributes?
        %% shared=false, %% TODO: get from attributes?
        kind=to_kind(Span#span.kind),
@@ -89,10 +90,10 @@ to_annotations(TimeEvents) ->
 
 to_annotations([], Annotations) ->
     Annotations;
-to_annotations([#event{system_time_nano=Timestamp,
+to_annotations([#event{system_time_native=Timestamp,
                        name=Name,
                        attributes=Attributes} | Rest], Annotations) ->
-    to_annotations(Rest, [#zipkin_annotation{timestamp=erlang:convert_time_unit(Timestamp, nanosecond, microsecond),
+    to_annotations(Rest, [#zipkin_annotation{timestamp=?assert_type(erlang:convert_time_unit(Timestamp, native, microsecond), non_neg_integer()),
                                              value=annotation_value(Name, Attributes)} | Annotations]).
 
 annotation_value(Name, Attributes) ->

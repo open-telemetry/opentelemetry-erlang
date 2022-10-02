@@ -28,9 +28,9 @@
 
 -type criteria() :: #{instrument_name => otel_instrument:name(),
                       instrument_kind => otel_instrument:kind(),
-                      meter_name => otel_meter:name(),
-                      meter_version => otel_meter:version(),
-                      meter_schema_url => otel_meter:schema_url()}.
+                      meter_name => unicode:unicode_binary() | undefined,
+                      meter_version => unicode:unicode_binary() | undefined,
+                      meter_schema_url => unicode:unicode_binary() | undefined}.
 -type config() :: #{description => unicode:unicode_binary(),
                     attribute_keys => [atom()],
                     aggregation => module() | default
@@ -65,7 +65,7 @@ new(Name, Criteria, Config) ->
     View = new(Criteria, Config),
     View#view{name=Name}.
 
--spec match_instrument_to_views(otel_instrument:t(), opentelemetry:attributes_map()) ->
+-spec match_instrument_to_views(otel_instrument:t(), [otel_view:t()]) ->
           [{otel_view:t(), #view_aggregation{}}].
 match_instrument_to_views(Instrument=#instrument{name=Name,
                                                  meter=Meter,

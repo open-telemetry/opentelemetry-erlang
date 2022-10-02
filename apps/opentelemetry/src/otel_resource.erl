@@ -35,7 +35,7 @@
 
 -record(resource, {schema_url :: schema_url() | undefined,
                    attributes :: otel_attributes:t()}).
--type t() :: #resource{}.
+-type t() :: #resource{} | undefined.
 
 -export_type([t/0]).
 
@@ -62,11 +62,15 @@ create(List, SchemaUrl) when is_list(List) ->
 
 -spec schema_url(t()) -> schema_url() | undefined.
 schema_url(#resource{schema_url=Schema}) ->
-    Schema.
+    Schema;
+schema_url(_) ->
+    undefined.
 
--spec attributes(t()) -> otel_attributes:t().
+-spec attributes(t()) -> otel_attributes:t() | undefined.
 attributes(#resource{attributes=Attributes}) ->
-    Attributes.
+    Attributes;
+attributes(_) ->
+    undefined.
 
 %% in case of collision the updating, first argument, resource takes precedence.
 -spec merge(t(), t()) -> t().

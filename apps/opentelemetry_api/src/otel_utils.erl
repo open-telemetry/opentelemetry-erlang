@@ -17,7 +17,12 @@
 %%%-----------------------------------------------------------------------
 -module(otel_utils).
 
--export([format_exception/3]).
+-export([format_exception/3,
+         format_binary_string/2,
+         format_binary_string/3,
+         assert_to_binary/1]).
+
+-include_lib("gradualizer/include/gradualizer.hrl").
 
 -if(?OTP_RELEASE >= 24).
 format_exception(Kind, Reason, StackTrace) ->
@@ -26,3 +31,15 @@ format_exception(Kind, Reason, StackTrace) ->
 format_exception(Kind, Reason, StackTrace) ->
     io_lib:format("~p:~p ~p", [Kind, Reason, StackTrace]).
 -endif.
+
+-spec format_binary_string(io:format(), [term()]) -> binary().
+format_binary_string(Format, Data) ->
+    ?assert_type(unicode:characters_to_binary(io_lib:format(Format, Data)), binary()).
+
+-spec format_binary_string(io:format(), [term()], [{chars_limit, integer()}]) -> binary().
+format_binary_string(Format, Data, Options) ->
+    ?assert_type(unicode:characters_to_binary(io_lib:format(Format, Data, Options)), binary()).
+
+-spec assert_to_binary(unicode:chardata()) -> binary().
+assert_to_binary(String) ->
+    ?assert_type(unicode:characters_to_binary(String), binary()).

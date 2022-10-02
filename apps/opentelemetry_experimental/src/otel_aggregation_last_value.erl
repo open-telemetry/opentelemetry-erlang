@@ -28,6 +28,8 @@
 
 -export_type([t/0]).
 
+-include_lib("gradualizer/include/gradualizer.hrl").
+
 init(Key, _Options) ->
     #last_value_aggregation{key=Key,
                             value=undefined}.
@@ -38,7 +40,7 @@ aggregate(Tab, Key, Value) ->
             true;
         false ->
             Metric = init(Key, []),
-            ets:insert(Tab, Metric#last_value_aggregation{value=Value})
+            ets:insert(Tab, ?assert_type((?assert_type(Metric, #last_value_aggregation{}))#last_value_aggregation{value=Value}, tuple()))
     end.
 
 -dialyzer({nowarn_function, checkpoint/5}).

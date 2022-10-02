@@ -1,13 +1,13 @@
 
 -record(selection,
-        {instrument_name = '_' :: otel_instrument:name() | '_',
+        {instrument_name = '_' :: otel_instrument:name() | '_' | undefined,
          instrument_kind = '_' :: otel_instrument:kind() | '_',
-         meter_name = '_'      :: otel_meter:name() | '_',
-         meter_version = '_'   :: otel_meter:version() | '_',
-         schema_url = '_'      :: otel_meter:schema_url() | '_'}).
+         meter_name = '_'      :: unicode:unicode_binary() | undefined | '_',
+         meter_version = '_'   :: unicode:unicode_binary() | undefined | '_',
+         schema_url = '_'      :: unicode:unicode_binary() | undefined | '_'}).
 
 -record(view,
-        {name             :: atom() | unicode:unicode_binary() | undefined,
+        {name             :: otel_instrument:name() | '_' | undefined,
          selection        :: #selection{} | undefined,
          %% instrument_kind  :: otel_instrument:kind(),
          %% instrument_name  :: otel_instrument:name(),

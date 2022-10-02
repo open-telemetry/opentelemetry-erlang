@@ -120,9 +120,9 @@
                               ?SPAN_KIND_CLIENT      |
                               ?SPAN_KIND_PRODUCER    |
                               ?SPAN_KIND_CONSUMER.
--type event()              :: #{system_time_nano => non_neg_integer(),
-                                name            := event_name(),
-                                attributes      := attributes_map()}.
+-type event()              :: #{system_time_native => integer(),
+                                name              := event_name(),
+                                attributes        := attributes_map()}.
 -type event_name()         :: unicode:unicode_binary() | atom().
 -type link()               :: #{trace_id   := trace_id(),
                                 span_id    := span_id(),
@@ -148,6 +148,8 @@
 -define(MODULE_TO_APPLICATION_KEY, {?MODULE, otel_module_to_application_key}).
 -define(TEXT_MAP_EXTRACTOR_KEY, {?MODULE, text_map_extractor}).
 -define(TEXT_MAP_INJECTOR_KEY, {?MODULE, text_map_injector}).
+
+-include_lib("gradualizer/include/gradualizer.hrl").
 
 -spec set_default_tracer(tracer()) -> boolean().
 set_default_tracer(Tracer) ->
@@ -281,9 +283,9 @@ timestamp() ->
 %% @doc Convert a native monotonic timestamp to nanosecond POSIX time. Meaning the time since Epoch.
 %% Epoch is defined to be 00:00:00 UTC, 1970-01-01.
 %% @end
--spec timestamp_to_nano(timestamp()) -> integer().
+-spec timestamp_to_nano(timestamp()) -> pos_integer().
 timestamp_to_nano(Timestamp) ->
-    convert_timestamp(Timestamp, nanosecond).
+    ?assert_type(convert_timestamp(Timestamp, nanosecond), pos_integer()).
 
 %% @doc Convert a native monotonic timestamp to POSIX time of any {@link erlang:time_unit()}.
 %% Meaning the time since Epoch. Epoch is defined to be 00:00:00 UTC, 1970-01-01.
@@ -364,7 +366,7 @@ event(Timestamp, Name, Attributes) when is_integer(Timestamp),
 
     case otel_span:is_valid_name(Name) of
         true ->
-            #{system_time_nano => Timestamp,
+            #{system_time_native => Timestamp,
               name => Name,
               attributes => otel_span:process_attributes(Attributes)};
         false ->

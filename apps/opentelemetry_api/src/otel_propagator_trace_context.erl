@@ -36,6 +36,7 @@
          extract/5]).
 
 -include("opentelemetry.hrl").
+-include_lib("gradualizer/include/gradualizer.hrl").
 
 -define(VERSION, <<"00">>).
 
@@ -107,20 +108,22 @@ encode_span_ctx(#span_ctx{trace_id=TraceId,
 
 encode_traceparent(TraceId, SpanId, TraceOptions) ->
     Options = case TraceOptions band 1 of 1 -> <<"01">>; _ -> <<"00">> end,
-    EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
-    EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
-    iolist_to_binary([?VERSION, "-", EncodedTraceId, "-", EncodedSpanId, "-", Options]).
+    EncodedTraceId = otel_utils:format_binary_string("~32.16.0b", [TraceId]),
+    EncodedSpanId = otel_utils:format_binary_string("~16.16.0b", [SpanId]),
+    otel_utils:assert_to_binary([?VERSION, "-", EncodedTraceId, "-",
+                                 EncodedSpanId, "-", Options]).
 
 encode_tracestate(Entries=[_|_]) ->
     StateHeaderValue = lists:join($,, [[Key, $=, Value] || {Key, Value} <- Entries]),
-    unicode:characters_to_binary(StateHeaderValue);
+    otel_utils:assert_to_binary(StateHeaderValue);
 encode_tracestate(_) ->
     <<>>.
 
 split(Pair) ->
     case string:split(Pair, "=", all) of
         [Key, Value] when Value =/= [] andalso Value =/= <<>> ->
-            {iolist_to_binary(Key), iolist_to_binary(Value)};
+            {otel_utils:assert_to_binary(Key),
+             otel_utils:assert_to_binary(Value)};
         _ ->
             undefined
     end.
@@ -145,8 +148,8 @@ to_span_ctx(Version, TraceId, SpanId, Opts) ->
     try
         %% verify version is hexadecimal
         _ = binary_to_integer(Version, 16),
-        otel_tracer:from_remote_span(binary_to_integer(TraceId, 16),
-                                     binary_to_integer(SpanId, 16),
+        otel_tracer:from_remote_span(?assert_type(binary_to_integer(TraceId, 16), non_neg_integer()),
+                                     ?assert_type(binary_to_integer(SpanId, 16), non_neg_integer()),
                                      case Opts of <<"01">> -> 1; <<"00">> -> 0; _ -> error(badarg) end)
     catch
         %% to integer from base 16 string failed

@@ -90,7 +90,7 @@ to_proto(#span{trace_id=TraceId,
       dropped_links_count      => otel_links:dropped(Links),
       status                   => to_status(Status)}.
 
--spec to_status(opentelemetry:status()) -> opentelemetry_exporter_trace_service_pb:status().
+-spec to_status(opentelemetry:status() | undefined) -> opentelemetry_exporter_trace_service_pb:status().
 to_status(#status{code=Code,
                   message=Message}) ->
     #{code => to_otlp_status(Code),
@@ -103,7 +103,7 @@ to_events(Events) ->
     [#{time_unix_nano => opentelemetry:timestamp_to_nano(Timestamp),
        name => otel_otlp_common:to_binary(Name),
        attributes => otel_otlp_common:to_attributes(Attributes)}
-     || #event{system_time_nano=Timestamp,
+     || #event{system_time_native=Timestamp,
                name=Name,
                attributes=Attributes} <- Events].
 

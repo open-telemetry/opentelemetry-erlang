@@ -160,13 +160,13 @@ handle_call({register_callback, Instruments, Callback, CallbackArgs}, _From, Sta
     _ = register_callback_(Instruments, Callback, CallbackArgs, Views, Readers),
     {reply, ok, State};
 handle_call({get_meter, Name, Vsn, SchemaUrl}, _From, State=#state{shared_meter=Meter}) ->
-    InstrumentationLibrary = opentelemetry:instrumentation_library(Name, Vsn, SchemaUrl),
+    Scope = opentelemetry:instrumentation_scope(Name, Vsn, SchemaUrl),
     MeterTuple = {Meter#meter.module,
-                  Meter#meter{instrumentation_library=InstrumentationLibrary}},
+                  Meter#meter{instrumentation_scope=Scope}},
     {reply, MeterTuple, State};
-handle_call({get_meter, InstrumentationLibrary}, _From, State=#state{shared_meter=Meter}) ->
+handle_call({get_meter, Scope}, _From, State=#state{shared_meter=Meter}) ->
     {reply, {Meter#meter.module,
-             Meter#meter{instrumentation_library=InstrumentationLibrary}}, State};
+             Meter#meter{instrumentation_scope=Scope}}, State};
 handle_call({add_view, Name, Criteria, Config}, _From, State=#state{views=Views}) ->
     %% TODO: drop View if Criteria is a wildcard instrument name and View name is not undefined
     View = otel_view:new(Name, Criteria, Config),

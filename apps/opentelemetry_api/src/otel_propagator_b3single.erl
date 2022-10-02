@@ -47,7 +47,8 @@ inject(Ctx, Carrier, CarrierSet, _Options) ->
             Options = case TraceOptions band 1 of 1 -> <<"1">>; _ -> <<"0">> end,
             EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
             EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
-            B3Context = iolist_to_binary([EncodedTraceId, "-", EncodedSpanId, "-", Options]),
+            B3Context = otel_utils:assert_to_binary([EncodedTraceId, "-",
+                                                     EncodedSpanId, "-", Options]),
             CarrierSet(?B3_CONTEXT_KEY, B3Context, Carrier);
         _ ->
             Carrier

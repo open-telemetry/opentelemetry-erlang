@@ -79,7 +79,7 @@
          }).
 
 -record(event, {
-          system_time_nano :: non_neg_integer(),
-          name             :: unicode:unicode_binary() | atom(),
-          attributes       :: otel_attributes:t()
+          system_time_native :: integer(),
+          name               :: unicode:unicode_binary() | atom(),
+          attributes         :: otel_attributes:t()
          }).
