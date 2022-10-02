@@ -72,9 +72,10 @@ init([Opts]) ->
                 shutdown => infinity,
                 modules => [otel_span_sup]},
 
+    %% SpanSup should be the last to shutdown so the ETS table lives until the end
     %% `TracerServer' *must* start before the `BatchProcessor'
     %% `BatchProcessor' relies on getting the `Resource' from
     %% the `TracerServer' process
-    ChildSpecs = [Detectors, TracerServer, BatchProcessor, SimpleProcessor, SpanSup],
+    ChildSpecs = [SpanSup, Detectors, TracerServer, BatchProcessor, SimpleProcessor],
 
     {ok, {SupFlags, ChildSpecs}}.

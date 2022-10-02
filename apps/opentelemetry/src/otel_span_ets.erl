@@ -55,8 +55,15 @@ start_span(Ctx, Name, Sampler, IdGeneratorModule, Opts, Processors, Instrumentat
         {SpanCtx=#span_ctx{is_recording=true}, Span=#span{}} ->
             Span1 = Span#span{instrumentation_scope=InstrumentationScope},
             Span2 = Processors(Ctx, Span1),
-            _ = storage_insert(Span2),
-            SpanCtx;
+            case storage_insert(Span2) of
+                true ->
+                    SpanCtx;
+                _ ->
+                    %% adding the span to storage failed, this means there
+                    %% is no span backing the spanctx and we must return
+                    %% a noop span instead
+                    otel_tracer_noop:noop_span_ctx()
+            end;
         {SpanCtx, #span{}} ->
             %% span isn't recorded so don't run processors or insert into ets table
             SpanCtx
@@ -167,9 +174,14 @@ update_name(_, _) ->
 %%
 
 storage_insert(undefined) ->
-    ok;
+    true;
 storage_insert(Span) ->
-    ets:insert(?SPAN_TAB, Span).
+    try
+        ets:insert(?SPAN_TAB, Span)
+    catch
+        error:badarg ->
+            false
+    end.
 
 init(_Opts) ->
     %% ets table is required for other parts to not crash so we create
