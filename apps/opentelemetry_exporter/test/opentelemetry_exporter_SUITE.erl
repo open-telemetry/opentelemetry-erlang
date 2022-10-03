@@ -8,7 +8,7 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
--include_lib("opentelemetry_experimental/src/otel_metrics.hrl").
+-include_lib("opentelemetry_experimental/include/otel_metrics.hrl").
 
 all() ->
     [{group, functional}, {group, http_protobuf}, {group, http_protobuf_gzip},

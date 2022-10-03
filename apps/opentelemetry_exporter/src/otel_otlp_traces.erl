@@ -28,7 +28,6 @@
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
--include_lib("opentelemetry_experimental/src/otel_metrics.hrl").
 
 to_proto(Tab, Resource) ->
     InstrumentationScopeSpans = to_proto_by_instrumentation_scope(Tab),

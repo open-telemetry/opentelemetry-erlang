@@ -27,7 +27,6 @@
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
--include_lib("opentelemetry_experimental/src/otel_metrics.hrl").
 
 -define(IS_STRING(String),
         (is_list(String) orelse is_binary(String))).
