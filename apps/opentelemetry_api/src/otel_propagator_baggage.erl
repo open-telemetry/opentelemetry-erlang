@@ -87,7 +87,7 @@ extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet, _Options) ->
                                     Acc#{decode_key(Key) => decode_value(Value)}
 
                             end, #{}, Pairs),
-            otel_baggage:set(Ctx, DecodedBaggage)
+            otel_baggage:set_to(Ctx, DecodedBaggage)
     end.
 
 %%

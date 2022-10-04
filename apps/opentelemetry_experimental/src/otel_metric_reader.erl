@@ -229,7 +229,6 @@ handle_instrument_observation(_, _, _, _) ->
     ?LOG_DEBUG("Metric callback return must be of type {number(), map()} or {atom(), number(), map()}", []),
     [].
 
--spec checkpoint_metrics(ets:tid(), otel_instrument:value_type(), otel_instrument:unit(), integer(), list()) -> list().
 checkpoint_metrics(MetricsTab, ValueType, Unit, CollectionStartTime, ViewAggregations) ->
     lists:foldl(fun(#view_aggregation{aggregation_module=otel_aggregation_drop}, Acc) ->
                         Acc;

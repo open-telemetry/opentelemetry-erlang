@@ -23,7 +23,7 @@
 
 -include("otel_metrics.hrl").
 
--type name() :: atom() | unicode:unicode_binary(). %% unicode:latin1_charlist().
+-type name() :: atom() | unicode:latin1_chardata().
 -type description() :: unicode:unicode_binary().
 -type kind() :: ?KIND_COUNTER | ?KIND_OBSERVABLE_COUNTER | ?KIND_HISTOGRAM |
                 ?KIND_OBSERVABLE_GAUGE | ?KIND_UPDOWN_COUNTER | ?KIND_OBSERVABLE_UPDOWNCOUNTER.

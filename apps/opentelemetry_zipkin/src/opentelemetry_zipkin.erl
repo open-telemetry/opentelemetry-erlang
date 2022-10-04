@@ -69,12 +69,16 @@ shutdown(_) ->
 
 
 zipkin_span(Span, LocalEndpoint) ->
+    StartTime = ?assert_type(Span#span.start_time, opentelemetry:timestamp()),
+    EndTime = ?assert_type(Span#span.end_time, non_neg_integer()),
+    Timestamp = ?assert_type(opentelemetry:convert_timestamp(StartTime, microsecond), non_neg_integer()),
+    Duration = ?assert_type(erlang:convert_time_unit(EndTime - StartTime, native, microsecond), non_neg_integer()),
     #zipkin_span{
        trace_id = <<(?assert_type(Span#span.trace_id, opentelemetry:trace_id())):128>>,
        name=to_binary_string(Span#span.name),
        id = <<(?assert_type(Span#span.span_id, opentelemetry:span_id())):64>>,
-       timestamp=?assert_type(opentelemetry:convert_timestamp(Span#span.start_time, microsecond), non_neg_integer()),
-       duration=?assert_type(erlang:convert_time_unit(?assert_type(Span#span.end_time, non_neg_integer()) - Span#span.start_time, native, microsecond), non_neg_integer()),
+       timestamp=Timestamp,
+       duration=Duration,
        %% debug=false, %% TODO: get from attributes?
        %% shared=false, %% TODO: get from attributes?
        kind=to_kind(Span#span.kind),

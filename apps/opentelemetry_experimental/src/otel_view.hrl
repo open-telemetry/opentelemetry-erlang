@@ -22,7 +22,7 @@
 
 -record(view_aggregation,
         {%% name of the view or instrument if the view has no name
-         name ::  atom() | unicode:unicode_binary(),
+         name ::  atom() | unicode:latin1_chardata(),
          scope :: opentelemetry:instrumentation_scope(),
          instrument :: otel_instrument:t(),
 

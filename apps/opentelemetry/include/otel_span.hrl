@@ -18,48 +18,48 @@
 
 -record(span, {
           %% 128 bit int trace id
-          trace_id                :: opentelemetry:trace_id() | undefined,
+          trace_id                :: opentelemetry:trace_id() | undefined | '_',
 
           %% 64 bit int span id
-          span_id                 :: opentelemetry:span_id() | undefined,
+          span_id                 :: opentelemetry:span_id() | undefined | '$1',
 
-          tracestate = []         :: opentelemetry:tracestate(),
+          tracestate = []         :: opentelemetry:tracestate() | '_',
 
           %% 64 bit int parent span
-          parent_span_id          :: opentelemetry:span_id() | undefined,
+          parent_span_id          :: opentelemetry:span_id() | undefined | '_',
 
           %% name of the span
-          name                    :: unicode:unicode_binary() | atom(),
+          name                    :: unicode:unicode_binary() | atom() | '_',
 
           %% Distinguishes between spans generated in a particular context. For example,
           %% two spans with the same name may be distinguished using `client` (caller)
           %% and `server` (callee) to identify queueing latency associated with the span.status
-          kind                    :: opentelemetry:span_kind() | undefined,
+          kind                    :: opentelemetry:span_kind() | undefined | '_',
 
-          start_time              :: opentelemetry:timestamp(),
-          end_time                :: opentelemetry:timestamp() | undefined,
+          start_time              :: opentelemetry:timestamp() | '$2',
+          end_time                :: opentelemetry:timestamp() | undefined | '_',
 
           %% A set of attributes on the span.
-          attributes              :: otel_attributes:t() | undefined,
+          attributes              :: otel_attributes:t() | undefined | '_',
 
           %% List of time-stamped events in the Span.
-          events                  :: otel_events:t(),
+          events                  :: otel_events:t() | '_',
 
           %% links to spans in other traces
-          links                   :: otel_links:t(),
+          links                   :: otel_links:t() | '_',
 
           %% An optional final status for this span.
-          status                  :: opentelemetry:status() | undefined,
+          status                  :: opentelemetry:status() | undefined | '_',
 
           %% 8-bit integer, lowest bit is if it is sampled
-          trace_flags = 1         :: integer() | undefined,
+          trace_flags = 1         :: integer() | undefined | '_',
 
           %% this field is not propagated and is only here as an implementation optimization
           %% If true updates like adding events are done on the span. The same as if the
           %% trace flags lowest bit is 1 but simply not propagated.
-          is_recording            :: boolean() | undefined,
+          is_recording            :: boolean() | undefined | '_',
 
-          instrumentation_scope :: opentelemetry:instrumentation_scope() | undefined
+          instrumentation_scope :: opentelemetry:instrumentation_scope() | undefined | '_'
          }).
 
 -record(span_limits, {
