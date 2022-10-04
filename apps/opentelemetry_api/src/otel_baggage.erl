@@ -23,6 +23,9 @@
          set/2,
          set/3,
          set/4,
+         set_to/2,
+         set_to/3,
+         set_to/4,
          get_all/0,
          get_all/1,
          clear/0,
@@ -31,6 +34,8 @@
 %% keys and values are UTF-8 binaries
 -type key() :: unicode:unicode_binary().
 -type value() :: unicode:unicode_binary().
+-type input_key() :: key() | unicode:charlist().
+-type input_value() :: value() | unicode:charlist() | atom().
 -type metadata() :: [unicode:unicode_binary() | {unicode:unicode_binary(), unicode:unicode_binary()}].
 
 -type t() :: #{key() => {value(), metadata()}}.
@@ -40,6 +45,8 @@
               value/0]).
 
 -define(BAGGAGE_KEY, '$__otel_baggage_ctx_key').
+
+-include_lib("gradualizer/include/gradualizer.hrl").
 
 -spec set(#{key() => value()} | [{key(), value()}]) -> ok.
 set(KeyValues) when is_list(KeyValues) ->
@@ -51,19 +58,26 @@ set(_) ->
     ok.
 
 %% Ctx will never be a list or binary so we can tell if a context is passed by checking that
--spec set(otel_ctx:t() | key() | unicode:charlist(), #{key() => value()} | [{key(), value()}] | value()) -> otel_ctx:t() | ok.
+-spec set(otel_ctx:t() | input_key(), #{input_key() => input_value()} | [{input_key(), input_value()}] | input_value()) -> otel_ctx:t() | ok.
 set(Key, Value) when (is_list(Key) orelse is_binary(Key)) andalso is_binary(Value) ->
-    set(Key, Value, []);
+    ?assert_type(set(Key, Value, []), ok | undefined | #{any() => any()});
 %% drop bad value
 set(Key, Value) when (is_list(Key) orelse is_binary(Key)) andalso not is_binary(Value) ->
     ok;
 set(Ctx, KeyValues) when is_list(KeyValues) ->
-    set(Ctx, maps:from_list(KeyValues));
-set(Ctx, KeyValues) when is_map(KeyValues) ->
+    ?assert_type(set(Ctx, maps:from_list(KeyValues)), ok | undefined | #{any() => any()});
+set(Ctx, KeyValues) when is_map(KeyValues) andalso (is_map(Ctx) orelse Ctx =:= undefined)->
     Baggage = otel_ctx:get_value(Ctx, ?BAGGAGE_KEY, #{}),
     otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(KeyValues))).
 
--spec set(otel_ctx:t() | key() | unicode:charlist(), key() | value() | unicode:charlist(), value() | list()) -> otel_ctx:t() | ok.
+-spec set_to(otel_ctx:t(), #{input_key() => input_value()} | [{input_key(), input_value()}]) -> otel_ctx:t().
+set_to(Ctx, KeyValues) when is_list(KeyValues) ->
+    set_to(Ctx, maps:from_list(KeyValues));
+set_to(Ctx, KeyValues) when is_map(KeyValues) ->
+    Baggage = otel_ctx:get_value(Ctx, ?BAGGAGE_KEY, #{}),
+    otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(KeyValues))).
+
+-spec set(otel_ctx:t() | input_key(), input_key() | input_value(), input_value() | metadata()) -> otel_ctx:t() | ok.
 set(Key, Value, Metadata) when (is_list(Key) orelse is_binary(Key)) andalso is_binary(Value) ->
     Baggage = otel_ctx:get_value(?BAGGAGE_KEY, #{}),
     otel_ctx:set_value(?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(#{Key => {Value, Metadata}})));
@@ -71,14 +85,29 @@ set(Key, Value, Metadata) when (is_list(Key) orelse is_binary(Key)) andalso is_b
 set(Key, Value, _Metadata) when (is_list(Key) orelse is_binary(Key)) andalso not is_binary(Value) ->
     ok;
 set(Ctx, Key, Value) ->
-    set(Ctx, Key, Value, []).
+    set_to(?assert_type(Ctx, otel_ctx:t()),
+           ?assert_type(Key, input_key()),
+           ?assert_type(Value, input_value()),
+           []).
 
--spec set(otel_ctx:t(), key() | unicode:charlist(), value(), metadata()) -> otel_ctx:t().
+-spec set_to(otel_ctx:t(), input_key(), input_value()) -> otel_ctx:t().
+set_to(Ctx, Key, Value) ->
+    set_to(Ctx, Key, Value, []).
+
+-spec set(otel_ctx:t(), input_key(), input_value(), metadata()) -> otel_ctx:t().
 set(Ctx, Key, Value, Metadata) when is_binary(Value) ->
     Baggage = otel_ctx:get_value(Ctx, ?BAGGAGE_KEY, #{}),
     otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(#{Key => {Value, Metadata}})));
 %% drop bad value
 set(Ctx, _, _, _) ->
+    Ctx.
+
+-spec set_to(otel_ctx:t(), input_key(), input_value(), metadata()) -> otel_ctx:t().
+set_to(Ctx, Key, Value, Metadata) when is_binary(Value) ->
+    Baggage = otel_ctx:get_value(Ctx, ?BAGGAGE_KEY, #{}),
+    otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(#{Key => {Value, Metadata}})));
+%% drop bad value
+set_to(Ctx, _, _, _) ->
     Ctx.
 
 -spec get_all() -> t().
