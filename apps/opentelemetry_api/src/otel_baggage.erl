@@ -46,6 +46,9 @@
 
 -define(BAGGAGE_KEY, '$__otel_baggage_ctx_key').
 
+%% needed until change to gradualizer header is merged upstream
+-ignore_xref(['::'/2, ':::'/2]).
+
 -include_lib("gradualizer/include/gradualizer.hrl").
 
 -spec set(#{key() => value()} | [{key(), value()}]) -> ok.

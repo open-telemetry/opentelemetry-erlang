@@ -33,6 +33,9 @@
 
 -export_type([t/0]).
 
+%% needed until change to gradualizer header is merged upstream
+-ignore_xref(['::'/2, ':::'/2]).
+
 -include_lib("gradualizer/include/gradualizer.hrl").
 
 %% @doc Calls a module implementing the `otel_id_generator' behaviour to generate a trace id

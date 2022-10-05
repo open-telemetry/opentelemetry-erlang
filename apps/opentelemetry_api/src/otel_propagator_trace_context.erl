@@ -36,6 +36,10 @@
          extract/5]).
 
 -include("opentelemetry.hrl").
+
+%% needed until change to gradualizer header is merged upstream
+-ignore_xref(['::'/2, ':::'/2]).
+
 -include_lib("gradualizer/include/gradualizer.hrl").
 
 -define(VERSION, <<"00">>).

@@ -8,6 +8,10 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
 -include("opentelemetry_zipkin_pb.hrl").
+
+%% needed until change to gradualizer header is merged upstream
+-ignore_xref(['::'/2, ':::'/2]).
+
 -include_lib("gradualizer/include/gradualizer.hrl").
 
 -define(DEFAULT_ZIPKIN_ADDRESS, "http://localhost:9411/api/v2/spans").
