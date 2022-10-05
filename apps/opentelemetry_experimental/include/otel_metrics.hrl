@@ -5,7 +5,7 @@
 -define(AGGREGATION_TEMPORALITY_UNSPECIFIED, aggregation_temporality_unspecified).
 
 -record(meter, {module                  :: module(),
-                instrumentation_scope  :: opentelemetry:instrumentation_scope() | undefined,
+                instrumentation_scope   :: opentelemetry:instrumentation_scope() | undefined,
                 provider                :: atom()}).
 
 -record(measurement,
