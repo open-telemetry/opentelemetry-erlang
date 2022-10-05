@@ -53,6 +53,7 @@
          boundaries :: [float()],
          record_min_max :: boolean(),
          checkpoint :: #explicit_histogram_checkpoint{} | undefined | '_',
+         zeroed_counts :: tuple(),
          bucket_counts :: tuple(),
          min :: number() | infinity,
          max :: number(),
