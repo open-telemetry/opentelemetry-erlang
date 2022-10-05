@@ -37,10 +37,7 @@
 -include("otel_span.hrl").
 -include_lib("kernel/include/logger.hrl").
 
-%% needed until change to gradualizer header is merged upstream
--ignore_xref(['::'/2, ':::'/2]).
-
--include_lib("gradualizer/include/gradualizer.hrl").
+-include_lib("opentelemetry_api/include/gradualizer.hrl").
 
 -record(data, {interval :: integer() | infinity,
                strategy :: drop | end_span | failed_attribute_and_end_span | fun((opentelemetry:span()) -> ok),

@@ -149,10 +149,7 @@
 -define(TEXT_MAP_EXTRACTOR_KEY, {?MODULE, text_map_extractor}).
 -define(TEXT_MAP_INJECTOR_KEY, {?MODULE, text_map_injector}).
 
-%% needed until change to gradualizer header is merged upstream
--ignore_xref(['::'/2, ':::'/2]).
-
--include_lib("gradualizer/include/gradualizer.hrl").
+-include("gradualizer.hrl").
 
 -spec set_default_tracer(tracer()) -> boolean().
 set_default_tracer(Tracer) ->

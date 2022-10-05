@@ -154,10 +154,7 @@
                 grpc_metadata :: map() | undefined,
                 endpoints :: [endpoint_map()]}).
 
-%% needed until change to gradualizer header is merged upstream
--ignore_xref(['::'/2, ':::'/2]).
-
--include_lib("gradualizer/include/gradualizer.hrl").
+-include_lib("opentelemetry_api/include/gradualizer.hrl").
 
 %% @doc Initialize the exporter based on the provided configuration.
 -spec init(opts()) -> {ok, #state{}}.

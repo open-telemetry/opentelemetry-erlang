@@ -41,10 +41,7 @@
 -include("otel_span_ets.hrl").
 -include_lib("stdlib/include/ms_transform.hrl").
 
-%% needed until change to gradualizer header is merged upstream
--ignore_xref(['::'/2, ':::'/2]).
-
--include_lib("gradualizer/include/gradualizer.hrl").
+-include_lib("opentelemetry_api/include/gradualizer.hrl").
 
 -record(state, {}).
 
