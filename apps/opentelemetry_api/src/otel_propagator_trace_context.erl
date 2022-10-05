@@ -112,8 +112,8 @@ encode_span_ctx(#span_ctx{trace_id=TraceId,
 
 encode_traceparent(TraceId, SpanId, TraceOptions) ->
     Options = case TraceOptions band 1 of 1 -> <<"01">>; _ -> <<"00">> end,
-    EncodedTraceId = otel_utils:format_binary_string("~32.16.0b", [TraceId]),
-    EncodedSpanId = otel_utils:format_binary_string("~16.16.0b", [SpanId]),
+    {ok, EncodedTraceId} = otel_utils:format_binary_string("~32.16.0b", [TraceId]),
+    {ok, EncodedSpanId} = otel_utils:format_binary_string("~16.16.0b", [SpanId]),
     otel_utils:assert_to_binary([?VERSION, "-", EncodedTraceId, "-",
                                  EncodedSpanId, "-", Options]).
 
