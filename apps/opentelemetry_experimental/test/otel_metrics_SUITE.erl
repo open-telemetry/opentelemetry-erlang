@@ -74,7 +74,7 @@
 
 all() ->
     [default_view, provider_test, view_creation_test, counter_add, multiple_readers,
-     explicit_histograms, cumulative_counter, kill_reader, kill_server,
+     explicit_histograms, delta_explicit_histograms, cumulative_counter, kill_reader, kill_server,
      observable_counter, observable_updown_counter, observable_gauge,
      multi_instrument_callback].
 
@@ -112,6 +112,20 @@ init_per_testcase(cumulative_counter, Config) ->
                                                                      module => otel_metric_reader,
                                                                      config => #{default_temporality_mapping =>
                                                                CumulativeCounterTemporality}}]),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    ?assertEqual(ok, otel_metric_reader:set_exporter(ReaderId, otel_metric_exporter_pid, self())),
+
+    [{reader_id, ReaderId} | Config];
+init_per_testcase(delta_explicit_histograms, Config) ->
+    ReaderId = my_reader_id,
+    DeltaHistogramTemporality = #{?KIND_HISTOGRAM =>?AGGREGATION_TEMPORALITY_DELTA},
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers, [#{id => ReaderId,
+                                                                     module => otel_metric_reader,
+                                                                     config => #{default_temporality_mapping =>
+                                                                                     DeltaHistogramTemporality}}]),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
@@ -359,6 +373,81 @@ explicit_histograms(_Config) ->
             ?assertEqual([], [{#{<<"c">> => <<"b">>}, {0,0,0,1,1,0,1,0,0,0}, 20, 100, 164},
                               {#{<<"a">> => <<"b">>, <<"d">> => <<"e">>}, {0,0,0,0,1,0,0,0,0,0}, 30, 30, 30}]
                          -- AttributeBuckets, AttributeBuckets)
+    after
+        5000 ->
+            ct:fail(histogram_receive_timeout)
+    end,
+
+    ok.
+
+delta_explicit_histograms(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    HistogramName = a_histogram,
+    HistogramDesc = <<"histogram description">>,
+    HistogramUnit = ms,
+    ValueType = integer,
+
+    Histogram = otel_meter:histogram(Meter, HistogramName, ValueType,
+                                     #{description => HistogramDesc,
+                                       unit => HistogramUnit}),
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = HistogramName,
+                             description = HistogramDesc,
+                             kind = histogram,
+                             value_type = ValueType,
+                             unit = HistogramUnit}, Histogram),
+
+    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => a_histogram}, #{}),
+
+
+    ?assertEqual(ok, otel_histogram:record(Histogram, 20, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Histogram, 30, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    ?assertEqual(ok, otel_histogram:record(Histogram, 44, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Histogram, 100, #{<<"c">> => <<"b">>})),
+
+    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+
+    receive
+        {otel_metric, #metric{name=a_histogram,
+                              data=#histogram{datapoints=Datapoints}}} ->
+            AttributeBuckets =
+                [{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                              attributes=Attributes,
+                                                                              min=Min,
+                                                                              max=Max,
+                                                                              sum=Sum}  <- Datapoints],
+            ?assertEqual([], [{#{<<"c">> => <<"b">>}, {0,0,0,1,1,0,1,0,0,0}, 20, 100, 164},
+                              {#{<<"a">> => <<"b">>, <<"d">> => <<"e">>}, {0,0,0,0,1,0,0,0,0,0}, 30, 30, 30}]
+                         -- AttributeBuckets, AttributeBuckets)
+    after
+        5000 ->
+            ct:fail(histogram_receive_timeout)
+    end,
+
+    ?assertEqual(ok, otel_histogram:record(Histogram, 88, #{<<"c">> => <<"b">>})),
+
+    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+
+    receive
+        {otel_metric, #metric{name=a_histogram,
+                              data=#histogram{datapoints=Datapoints1}}} ->
+            AttributeBuckets1 =
+                [{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                              attributes=Attributes,
+                                                                              min=Min,
+                                                                              max=Max,
+                                                                              sum=Sum}  <- Datapoints1],
+            ?assertEqual([], [{#{<<"c">> => <<"b">>}, {0,0,0,0,0,0,1,0,0,0}, 88, 88, 88},
+                              {#{<<"a">> => <<"b">>,<<"d">> => <<"e">>},
+                               {0,0,0,0,0,0,0,0,0,0},
+                               infinity,-9.223372036854776e18,0}
+                             ]
+                         -- AttributeBuckets1, AttributeBuckets1)
     after
         5000 ->
             ct:fail(histogram_receive_timeout)

@@ -38,6 +38,7 @@ init(Key, Options) ->
     #explicit_histogram_aggregation{key=Key,
                                     start_time_unix_nano=erlang:system_time(nanosecond),
                                     boundaries=Boundaries,
+                                    zeroed_counts=zero_buckets(length(Boundaries)),
                                     bucket_counts=zero_buckets(length(Boundaries)),
                                     record_min_max=RecordMinMax,
                                     min=infinity, %% works because any atom is > any integer
@@ -81,12 +82,42 @@ aggregate(MeasurementValue,
 
 -dialyzer({nowarn_function, checkpoint/5}).
 %% TODO: handle delta temporary checkpoints
+checkpoint(Tab, Name, ?AGGREGATION_TEMPORALITY_DELTA, _, CollectionStartNano) ->
+    MS = [{#explicit_histogram_aggregation{key='$1',
+                                           start_time_unix_nano='_',
+                                           boundaries='$2',
+                                           record_min_max='$3',
+                                           checkpoint='_',
+                                           zeroed_counts='$4',
+                                           bucket_counts='$5',
+                                           min='$6',
+                                           max='$7',
+                                           sum='$8'
+                                          },
+           [{'=:=', {element, 1, '$1'}, {const, Name}}],
+           [{#explicit_histogram_aggregation{key='$1',
+                                             start_time_unix_nano={const, CollectionStartNano},
+                                             boundaries='$2',
+                                             record_min_max='$3',
+                                             checkpoint={#explicit_histogram_checkpoint{bucket_counts='$5',
+                                                                                        min='$6',
+                                                                                        max='$7',
+                                                                                        sum='$8'}},
+                                             zeroed_counts='$4',
+                                             bucket_counts='$4',
+                                             min=infinity,
+                                             max=?MIN_DOUBLE,
+                                             sum=0}}]}],
+    _ = ets:select_replace(Tab, MS),
+
+    ok;
 checkpoint(Tab, Name, _, _, _CollectionStartNano) ->
     MS = [{#explicit_histogram_aggregation{key='$1',
                                            start_time_unix_nano='$2',
                                            boundaries='$3',
                                            record_min_max='$4',
                                            checkpoint='_',
+                                           zeroed_counts='$9',
                                            bucket_counts='$5',
                                            min='$6',
                                            max='$7',
@@ -101,6 +132,7 @@ checkpoint(Tab, Name, _, _, _CollectionStartNano) ->
                                                                                         min='$6',
                                                                                         max='$7',
                                                                                         sum='$8'}},
+                                             zeroed_counts='$9',
                                              bucket_counts='$5',
                                              min='$6',
                                              max='$7',
