@@ -5,7 +5,7 @@
 -define(AGGREGATION_TEMPORALITY_UNSPECIFIED, aggregation_temporality_unspecified).
 
 -record(meter, {module                  :: module(),
-                instrumentation_library :: otel_tracer_server:instrumentation_library() | undefined,
+                instrumentation_scope   :: opentelemetry:instrumentation_scope() | undefined,
                 provider                :: atom()}).
 
 -record(measurement,
@@ -20,43 +20,43 @@
 -record(sum_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-         key :: {term(),  opentelemetry:attributes_map()},
-         start_time_unix_nano :: integer(),
-         checkpoint :: number() | undefined,
-         value :: number() | undefined
+         key :: {term(),  opentelemetry:attributes_map()} | '$1',
+         start_time_unix_nano :: integer() | '_' | '$2' | {const, integer()},
+         checkpoint :: number() | undefined | '_' | '$2' | '$3',
+         value :: number() | undefined | '$2' | '$3'
         }).
 
 -record(last_value_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-         key :: {term(),  opentelemetry:attributes_map()},
-         checkpoint :: number() | undefined,
-         value :: number() | undefined
+         key :: {term(),  opentelemetry:attributes_map()} | '$1',
+         checkpoint :: number() | undefined | '_' | '$2',
+         value :: number() | undefined | '$2'
         }).
 
 
 -record(explicit_histogram_checkpoint,
         {
-         bucket_counts :: tuple(),
-         min :: number(),
-         max :: number(),
-         sum :: number()
+         bucket_counts :: tuple() | '$5',
+         min :: number() | '$6',
+         max :: number() | '$7',
+         sum :: number() | '$8'
         }).
 
 -record(explicit_histogram_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-         key :: {term(),  opentelemetry:attributes_map()},
-         start_time_unix_nano :: integer(),
+         key :: {term(),  opentelemetry:attributes_map()} | '$1',
+         start_time_unix_nano :: integer() | '$2',
          %% instrument_temporality :: otel_aggregation:temporality(),
          %% default: [0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0]
-         boundaries :: [float()],
-         record_min_max :: boolean(),
-         checkpoint :: #explicit_histogram_checkpoint{} | undefined | '_',
-         bucket_counts :: tuple(),
-         min :: number() | infinity,
-         max :: number(),
-         sum :: number()
+         boundaries :: [float()] | '$3',
+         record_min_max :: boolean() | '$4',
+         checkpoint :: #explicit_histogram_checkpoint{} | undefined | '_' | {#explicit_histogram_checkpoint{}},
+         bucket_counts :: tuple() | '$5',
+         min :: number() | infinity | '$6',
+         max :: number() | '$7',
+         sum :: number() | '$8'
         }).
 
 -record(datapoint,
@@ -86,7 +86,7 @@
          attributes :: opentelemetry:attributes_map(),
          start_time_unix_nano :: integer() | undefined,
          time_unix_nano :: integer(),
-         count :: integer(),
+         count :: number(),
          sum :: float(),
          bucket_counts :: tuple(),
          explicit_bounds :: [float()],

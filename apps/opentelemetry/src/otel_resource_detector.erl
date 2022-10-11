@@ -276,7 +276,7 @@ add_service_instance(Resource) ->
             end;
         ServiceInstance ->
             ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE,
-                                                         unicode:characters_to_binary(ServiceInstance)}]),
+                                                             otel_utils:assert_to_binary(ServiceInstance)}]),
             otel_resource:merge(ServiceInstanceResource, Resource)
     end.
 

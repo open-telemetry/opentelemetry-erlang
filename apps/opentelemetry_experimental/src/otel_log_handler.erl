@@ -89,7 +89,7 @@ adding_handler(#{id := Id,
             {ok, Config#{regname => RegName}};
         {error, {Reason, Ch}} when is_tuple(Ch), element(1, Ch) == child ->
             {error, Reason};
-        Error ->
+        {error, _Reason}=Error ->
             Error
     end.
 

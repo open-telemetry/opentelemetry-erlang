@@ -41,6 +41,8 @@
 -include("otel_span_ets.hrl").
 -include_lib("stdlib/include/ms_transform.hrl").
 
+-include_lib("opentelemetry_api/include/gradualizer.hrl").
+
 -record(state, {}).
 
 start_link(Opts) ->
@@ -82,8 +84,8 @@ end_span(#span_ctx{span_id=SpanId,
                    tracestate=Tracestate}, Timestamp, Processors) ->
     case ets:take(?SPAN_TAB, SpanId) of
         [Span] ->
-            Span1 = otel_span_utils:end_span(Span#span{tracestate=Tracestate,
-                                                       is_recording=false}, Timestamp),
+            Span1 = otel_span_utils:end_span((?assert_type(Span, #span{}))#span{tracestate=Tracestate,
+                                                                                is_recording=false}, Timestamp),
             Processors(Span1);
         _ ->
             false

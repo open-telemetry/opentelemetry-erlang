@@ -37,13 +37,15 @@
 -include("otel_span.hrl").
 -include_lib("kernel/include/logger.hrl").
 
+-include_lib("opentelemetry_api/include/gradualizer.hrl").
+
 -record(data, {interval :: integer() | infinity,
                strategy :: drop | end_span | failed_attribute_and_end_span | fun((opentelemetry:span()) -> ok),
                ttl :: integer() | infinity,
                storage_size :: integer() | infinity}).
 
 storage_size() ->
-    {ets:info(?SPAN_TAB, size), ets:info(?SPAN_TAB, memory) * erlang:system_info({wordsize, external})}.
+    {ets:info(?SPAN_TAB, size), ?assert_type(ets:info(?SPAN_TAB, memory), integer()) * erlang:system_info({wordsize, external})}.
 
 start_link(Config) ->
     gen_statem:start_link({local, ?MODULE}, ?MODULE, [Config], []).

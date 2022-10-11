@@ -75,25 +75,25 @@ add_events_([NewEvent | Rest], Limit, Events=#events{attribute_per_event_limit=A
             add_events_(Rest, Limit - 1, Events#events{list=[Event | List]})
     end.
 
-new_event(#{system_time_nano := Timestamp,
+new_event(#{system_time_native := Timestamp,
             name := Name,
             attributes := Attributes}, AttributePerEventLimit, AttributeValueLengthLimit) ->
-    #event{system_time_nano=Timestamp,
+    #event{system_time_native=Timestamp,
            name=Name,
            attributes=otel_attributes:new(Attributes, AttributePerEventLimit, AttributeValueLengthLimit)};
 new_event(#{name := Name,
             attributes := Attributes}, AttributePerEventLimit, AttributeValueLengthLimit) ->
-    #event{system_time_nano=opentelemetry:timestamp(),
+    #event{system_time_native=opentelemetry:timestamp(),
            name=Name,
            attributes=otel_attributes:new(Attributes, AttributePerEventLimit, AttributeValueLengthLimit)};
 new_event({Time, Name, Attributes}, AttributePerEventLimit, AttributeValueLengthLimit)
   when is_binary(Name) ; is_atom(Name) ->
-    #event{system_time_nano=Time,
+    #event{system_time_native=Time,
            name=Name,
            attributes=otel_attributes:new(Attributes, AttributePerEventLimit, AttributeValueLengthLimit)};
 new_event({Name, Attributes}, AttributePerEventLimit, AttributeValueLengthLimit)
   when is_binary(Name) ; is_atom(Name) ->
-    #event{system_time_nano=opentelemetry:timestamp(),
+    #event{system_time_native=opentelemetry:timestamp(),
            name=Name,
            attributes=otel_attributes:new(Attributes, AttributePerEventLimit, AttributeValueLengthLimit)};
 new_event(_, _, _) ->
