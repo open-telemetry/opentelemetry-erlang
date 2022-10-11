@@ -39,14 +39,18 @@ to_instrumentation_scope_proto(#instrumentation_scope{name=Name,
                  version => Version},
       schema_url => SchemaUrl}.
 
--spec to_attributes(opentelemetry:attributes_map() | otel_attributes:t()) -> [opentelemetry_exporter_trace_service_pb:key_value()].
+-spec to_attributes(opentelemetry:attributes_map() | otel_attributes:t() | undefined) -> [opentelemetry_exporter_trace_service_pb:key_value()].
 to_attributes(Attributes) when is_map(Attributes) ->
     maps:fold(fun(Key, Value, Acc) ->
                       [#{key => to_binary(Key),
                          value => to_any_value(Value)} | Acc]
               end, [], Attributes);
-to_attributes(Attributes) ->
-    to_attributes(otel_attributes:map(Attributes)).
+to_attributes(Attributes) when is_list(Attributes) ->
+    to_attributes(maps:from_list(Attributes));
+to_attributes(Attributes) when is_tuple(Attributes) ->
+    to_attributes(otel_attributes:map(Attributes));
+to_attributes(undefined) ->
+    [].
 
 to_any_value(Value) when is_binary(Value) ->
     case unicode:characters_to_binary(Value) of

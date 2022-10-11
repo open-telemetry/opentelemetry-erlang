@@ -152,6 +152,7 @@ code_change(State) ->
 
 %%
 
+-spec collect_(any(), any(), any()) -> [any()].
 collect_(CallbacksTab, ViewAggregationTab, MetricsTab) ->
     CollectionStartTime = erlang:system_time(nanosecond),
 

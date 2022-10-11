@@ -63,7 +63,7 @@ set_value(Key, Value) ->
     erlang:put(?CURRENT_CTX, set_value(erlang:get(?CURRENT_CTX), Key, Value)),
     ok.
 
--spec set_value(t(), term(), term()) -> map().
+-spec set_value(t(), term(), term()) -> t().
 set_value(Ctx, Key, Value) when is_map(Ctx) ->
     Ctx#{Key => Value};
 set_value(_, Key, Value) ->
@@ -119,7 +119,7 @@ get_current() ->
             #{}
     end.
 
--spec attach(map()) -> token().
+-spec attach(t()) -> token().
 attach(Ctx) ->
     update_logger_process_metadata(Ctx),
     erlang:put(?CURRENT_CTX, Ctx).
@@ -148,5 +148,7 @@ text_map_injector_fun(TextMap, Key, ToText) ->
 
 %%
 
+update_logger_process_metadata(undefined) ->
+    ok;
 update_logger_process_metadata(Ctx) ->
     otel_tracer:update_logger_process_metadata(Ctx).

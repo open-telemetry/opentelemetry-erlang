@@ -45,7 +45,7 @@ register_callback({_, #meter{provider=Provider}}, Instruments, Callback, Callbac
 register_callback(_, _, _, _) ->
     ok.
 
-scope({_, #meter{instrumentation_library=Scope}}) ->
+scope({_, #meter{instrumentation_scope=Scope}}) ->
     Scope.
 
 %%

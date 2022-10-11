@@ -61,7 +61,7 @@ parse_values(Key, Values) when is_list(Values) ->
                                   %% map value means we have more subkeys
                                   parse_values([Key, ".", to_string(SubKey)], Value);
                              ({SubKey, Value})->
-                                  [{unicode:characters_to_binary([Key, ".", to_string(SubKey)]), Value}]
+                                  [{otel_utils:assert_to_binary([Key, ".", to_string(SubKey)]), Value}]
                           end, Values)
     end;
 parse_values(Key, Value) ->
@@ -71,6 +71,6 @@ parse_values(Key, Value) ->
 to_string(K) when is_atom(K) ->
     atom_to_binary(K, utf8);
 to_string(K) when is_list(K) ->
-    list_to_binary(K);
-to_string(K) ->
+    otel_utils:assert_to_binary(K);
+to_string(K) when is_binary(K) ->
     K.

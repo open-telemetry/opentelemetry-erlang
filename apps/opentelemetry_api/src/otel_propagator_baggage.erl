@@ -64,7 +64,7 @@ inject(Ctx, Carrier, CarrierSet, _Options) ->
                            [$,, [encode_key(Key), "=", encode_value(Value)] | Acc]
                    end, [], Baggage) of
         [$, | List] ->
-            CarrierSet(?BAGGAGE_HEADER, unicode:characters_to_binary(List), Carrier);
+            CarrierSet(?BAGGAGE_HEADER, otel_utils:assert_to_binary(List), Carrier);
         _ ->
             Carrier
     end.
@@ -87,7 +87,7 @@ extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet, _Options) ->
                                     Acc#{decode_key(Key) => decode_value(Value)}
 
                             end, #{}, Pairs),
-            otel_baggage:set(Ctx, DecodedBaggage)
+            otel_baggage:set_to(Ctx, DecodedBaggage)
     end.
 
 %%
@@ -98,7 +98,7 @@ encode_key(Key) ->
 encode_value({Value, Metadata}) ->
     EncodedMetadata = encode_metadata(Metadata),
     EncodedValue = form_urlencode(Value, [{encoding, utf8}]),
-    unicode:characters_to_binary(lists:join(<<";">>, [EncodedValue | EncodedMetadata])).
+    otel_utils:assert_to_binary(lists:join(<<";">>, [EncodedValue | EncodedMetadata])).
 
 encode_metadata(Metadata) when is_list(Metadata) ->
     lists:filtermap(fun({MK, MV}) when is_binary(MK) , is_binary(MV)  ->
@@ -112,7 +112,7 @@ encode_metadata(_) ->
     [].
 
 decode_key(Key) ->
-    percent_decode(string:trim(unicode:characters_to_binary(Key))).
+    percent_decode(string:trim(otel_utils:assert_to_binary(Key))).
 
 decode_value(ValueAndMetadata) ->
     [Value | MetadataList] = string:lexemes(ValueAndMetadata, [$;]),
@@ -129,14 +129,13 @@ metadata_decode(Metadata) ->
     end.
 
 string_decode(S) ->
-    percent_decode(string:trim(unicode:characters_to_binary(S))).
+    percent_decode(string:trim(otel_utils:assert_to_binary(S))).
 
 %% TODO: call `uri_string:percent_decode' and remove this when OTP-23 is
 %% the oldest version we maintain support for
 -spec percent_decode(URI) -> Result when
-      URI :: uri_string:uri_string(),
-      Result :: uri_string:uri_string() |
-                {error, {invalid, {atom(), {term(), term()}}}}.
+      URI :: unicode:chardata(),
+      Result :: unicode:chardata() | uri_string:error().
 percent_decode(URI) when is_list(URI) orelse
                          is_binary(URI) ->
     raw_decode(URI).
@@ -203,7 +202,7 @@ raw_decode(Cs) ->
 %%
 raw_decode(L, Acc) when is_list(L) ->
     try
-        B0 = unicode:characters_to_binary(L),
+        B0 = otel_utils:assert_to_binary(L),
         B1 = raw_decode(B0, Acc),
         unicode:characters_to_list(B1)
     catch
@@ -233,7 +232,7 @@ check_utf8(Cs) ->
         _ -> Cs
     end.
 
--spec is_hex_digit(char()) -> boolean().
+-spec is_hex_digit(non_neg_integer()) -> boolean().
 is_hex_digit(C)
   when $0 =< C, C =< $9;$a =< C, C =< $f;$A =< C, C =< $F -> true;
 is_hex_digit(_) -> false.

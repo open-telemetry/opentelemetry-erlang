@@ -33,6 +33,8 @@
 
 -export_type([t/0]).
 
+-include_lib("opentelemetry_api/include/gradualizer.hrl").
+
 %% @doc Calls a module implementing the `otel_id_generator' behaviour to generate a trace id
 -spec generate_trace_id(t()) -> opentelemetry:trace_id().
 generate_trace_id(Module) ->
@@ -46,9 +48,9 @@ generate_span_id(Module) ->
 %% @doc Generates a 128 bit random integer to use as a trace id.
 -spec generate_trace_id() -> opentelemetry:trace_id().
 generate_trace_id() ->
-    rand:uniform(2 bsl 127 - 1). %% 2 shifted left by 127 == 2 ^ 128
+    rand:uniform(?assert_type(2 bsl 127 - 1, pos_integer())). %% 2 shifted left by 127 == 2 ^ 128
 
 %% @doc Generates a 64 bit random integer to use as a span id.
 -spec generate_span_id() -> opentelemetry:span_id().
 generate_span_id() ->
-    rand:uniform(2 bsl 63 - 1). %% 2 shifted left by 63 == 2 ^ 64
+    rand:uniform(?assert_type(2 bsl 63 - 1, pos_integer())). %% 2 shifted left by 63 == 2 ^ 64
