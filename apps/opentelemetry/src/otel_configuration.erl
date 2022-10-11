@@ -23,8 +23,6 @@
          merge_list_with_environment/3,
          report_cb/1]).
 
--include_lib("kernel/include/logger.hrl").
-
 -define(BATCH_PROCESSOR_DEFAULTS, #{scheduled_delay_ms => 5000,
                                     exporting_timeout_ms => 30000,
                                     max_queue_size => 2048,
@@ -52,7 +50,7 @@
                readers := [#{id := atom(), module => module(), config => map()}],
                processors := list(),
                sampler := {atom(), term()},
-               sweeper := #{interval => integer() | infinity,
+               sweeper := #{sinterval => integer() | infinity,
                             strategy => atom() | fun(),
                             span_ttl => integer() | infinity,
                             storage_size => integer() | infinity},
@@ -65,36 +63,39 @@
 
 -export_type([t/0]).
 
+-include_lib("kernel/include/logger.hrl").
+-include_lib("opentelemetry_api/include/gradualizer.hrl").
+
 -spec new() -> t().
 new() ->
-    #{log_level => info,
-      register_loaded_applications => undefined,
-      create_application_tracers => undefined,
-      id_generator => otel_id_generator,
-      deny_list => [],
-      resource_detectors => [otel_resource_env_var,
-                             otel_resource_app_env],
-      resource_detector_timeout => 5000,
-      bsp_scheduled_delay_ms => undefined,
-      bsp_exporting_timeout_ms => undefined,
-      bsp_max_queue_size => undefined,
-      ssp_exporting_timeout_ms => undefined,
-      text_map_propagators => [trace_context, baggage],
-      traces_exporter => {opentelemetry_exporter, #{}},
-      metrics_exporter => {opentelemetry_exporter, #{}},
-      readers => [],
-      processors => [{otel_batch_processor, ?BATCH_PROCESSOR_DEFAULTS}],
-      sampler => {parent_based, #{root => always_on}},
-      sweeper => #{interval => timer:minutes(10),
-                   strategy => drop,
-                   span_ttl => timer:minutes(30),
-                   storage_size => infinity},
-      attribute_count_limit => 128,
-      attribute_value_length_limit => infinity,
-      event_count_limit => 128,
-      link_count_limit => 128,
-      attribute_per_event_limit => 128,
-      attribute_per_link_limit => 128}.
+    ?assert_type(#{log_level => info,
+                   register_loaded_applications => undefined,
+                   create_application_tracers => undefined,
+                   id_generator => otel_id_generator,
+                   deny_list => [],
+                   resource_detectors => [otel_resource_env_var,
+                                          otel_resource_app_env],
+                   resource_detector_timeout => 5000,
+                   bsp_scheduled_delay_ms => undefined,
+                   bsp_exporting_timeout_ms => undefined,
+                   bsp_max_queue_size => undefined,
+                   ssp_exporting_timeout_ms => undefined,
+                   text_map_propagators => [trace_context, baggage],
+                   traces_exporter => {opentelemetry_exporter, #{}},
+                   metrics_exporter => {opentelemetry_exporter, #{}},
+                   readers => [],
+                   processors => [{otel_batch_processor, ?BATCH_PROCESSOR_DEFAULTS}],
+                   sampler => {parent_based, #{root => always_on}},
+                   sweeper => #{interval => timer:minutes(10),
+                                strategy => drop,
+                                span_ttl => timer:minutes(30),
+                                storage_size => infinity},
+                   attribute_count_limit => 128,
+                   attribute_value_length_limit => infinity,
+                   event_count_limit => 128,
+                   link_count_limit => 128,
+                   attribute_per_event_limit => 128,
+                   attribute_per_link_limit => 128}, t()).
 
 -spec merge_with_os(list()) -> t().
 merge_with_os(AppEnv) ->
@@ -133,7 +134,7 @@ general(AppEnv, ConfigMap) ->
                                        Bool
                                end, Config),
 
-    Config1.
+    ?assert_type(Config1, t()).
 
 -spec sweeper(list(), t()) -> t().
 sweeper(AppEnv, ConfigMap=#{sweeper := DefaultSweeperConfig}) ->

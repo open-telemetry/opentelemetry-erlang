@@ -46,7 +46,7 @@
           %% 64 bit int span id
           span_id           :: opentelemetry:span_id(),
           %% 8-bit integer, lowest bit is if it is sampled
-          trace_flags = 0   :: integer() | undefined,
+          trace_flags = 0   :: integer(),
           %% Tracestate represents tracing-system specific context in a list of key-value pairs.
           %% Tracestate allows different vendors propagate additional information and
           %% inter-operate with their legacy Id formats.

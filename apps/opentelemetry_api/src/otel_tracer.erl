@@ -112,7 +112,7 @@ set_current_span(SpanCtx) ->
     _ = otel_ctx:set_value(?CURRENT_SPAN_CTX, SpanCtx),
     SpanCtx.
 
--spec set_current_span(otel_ctx:t(), opentelemetry:span_ctx() | undefined) -> otel_ctx:t() | undefined.
+-spec set_current_span(otel_ctx:t(), opentelemetry:span_ctx() | undefined) -> otel_ctx:t().
 set_current_span(Ctx, SpanCtx) ->
     otel_ctx:set_value(Ctx, ?CURRENT_SPAN_CTX, SpanCtx).
 

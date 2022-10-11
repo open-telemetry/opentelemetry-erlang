@@ -50,7 +50,7 @@
 
 -record(data, {exporter             :: {module(), term()} | undefined,
                exporter_config      :: {module(), term()} | undefined,
-               resource             :: otel_resource:t(),
+               resource             :: otel_resource:t() | undefined,
                handed_off_table     :: atom() | undefined,
                runner_pid           :: pid() | undefined,
                max_queue_size       :: integer() | infinity,

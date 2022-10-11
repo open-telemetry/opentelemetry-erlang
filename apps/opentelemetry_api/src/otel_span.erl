@@ -174,11 +174,21 @@ hex_span_ctx(_) ->
 
 -spec hex_trace_id(opentelemetry:span_ctx()) -> opentelemetry:hex_trace_id().
 hex_trace_id(#span_ctx{trace_id=TraceId}) ->
-    iolist_to_binary(io_lib:format("~32.16.0b", [TraceId])).
+    case otel_utils:format_binary_string("~32.16.0b", [TraceId]) of
+        {ok, Binary} ->
+            Binary;
+        _ ->
+            <<>>
+    end.
 
 -spec hex_span_id(opentelemetry:span_ctx()) -> opentelemetry:hex_span_id().
 hex_span_id(#span_ctx{span_id=SpanId}) ->
-    iolist_to_binary(io_lib:format("~16.16.0b", [SpanId])).
+    case otel_utils:format_binary_string("~16.16.0b", [SpanId]) of
+        {ok, Binary} ->
+            Binary;
+        _ ->
+            <<>>
+    end.
 
 -spec tracestate(opentelemetry:span_ctx() | undefined) -> opentelemetry:tracestate().
 tracestate(#span_ctx{tracestate=Tracestate}) ->
@@ -248,10 +258,16 @@ add_events(_, _) ->
       Term :: term(),
       Stacktrace :: list(any()),
       Attributes :: opentelemetry:attributes_map().
-record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) ->
-    ExceptionAttributes = [{<<"exception.type">>, iolist_to_binary(io_lib:format("~0tP:~0tP", [Class, 10, Term, 10], [{chars_limit, 50}]))},
-                           {<<"exception.stacktrace">>, iolist_to_binary(io_lib:format("~0tP", [Stacktrace, 10], [{chars_limit, 50}]))}],
-    add_event(SpanCtx, <<"exception">>, ExceptionAttributes ++ Attributes).
+record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) when is_list(Attributes) ->
+    record_exception(SpanCtx, Class, Term, Stacktrace, maps:from_list(Attributes));
+record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) when is_map(Attributes) ->
+    {ok, ExceptionType} = otel_utils:format_binary_string("~0tP:~0tP", [Class, 10, Term, 10], [{chars_limit, 50}]),
+    {ok, StacktraceString} = otel_utils:format_binary_string("~0tP", [Stacktrace, 10], [{chars_limit, 50}]),
+    ExceptionAttributes = #{<<"exception.type">> => ExceptionType,
+                            <<"exception.stacktrace">> => StacktraceString},
+    add_event(SpanCtx, <<"exception">>, maps:merge(ExceptionAttributes, Attributes));
+record_exception(_, _, _, _, _) ->
+    false.
 
 -spec record_exception(SpanCtx, Class, Term,  Message, Stacktrace, Attributes) -> boolean() when
       SpanCtx :: opentelemetry:span_ctx(),
@@ -260,14 +276,20 @@ record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) ->
       Message :: unicode:unicode_binary(),
       Stacktrace :: list(any()),
       Attributes :: opentelemetry:attributes_map().
-record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) ->
-    ExceptionAttributes = [{<<"exception.type">>, iolist_to_binary(io_lib:format("~0tP:~0tP", [Class, 10, Term, 10], [{chars_limit, 50}]))},
-                           {<<"exception.stacktrace">>, iolist_to_binary(io_lib:format("~0tP", [Stacktrace, 10], [{chars_limit, 50}]))},
-                           {<<"exception.message">>, Message}],
-    add_event(SpanCtx, <<"exception">>, ExceptionAttributes ++ Attributes).
+record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) when is_list(Attributes) ->
+    record_exception(SpanCtx, Class, Term, Message, Stacktrace, maps:from_list(Attributes));
+record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) when is_map(Attributes) ->
+    {ok, ExceptionType} = otel_utils:format_binary_string("~0tP:~0tP", [Class, 10, Term, 10], [{chars_limit, 50}]),
+    {ok, StacktraceString} = otel_utils:format_binary_string("~0tP", [Stacktrace, 10], [{chars_limit, 50}]),
+    ExceptionAttributes = #{<<"exception.type">> => ExceptionType,
+                            <<"exception.stacktrace">> => StacktraceString,
+                            <<"exception.message">> => Message},
+    add_event(SpanCtx, <<"exception">>, maps:merge(ExceptionAttributes, Attributes));
+record_exception(_, _, _, _, _, _) ->
+    false.
 
 -spec set_status(SpanCtx, Status) -> boolean() when
-      Status :: opentelemetry:status(),
+      Status :: opentelemetry:status() | undefined,
       SpanCtx :: opentelemetry:span_ctx().
 set_status(SpanCtx=#span_ctx{span_sdk={Module, _}}, Status) when ?is_recording(SpanCtx) ->
     Module:set_status(SpanCtx, Status);
