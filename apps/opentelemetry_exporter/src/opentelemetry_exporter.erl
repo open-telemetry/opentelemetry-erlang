@@ -109,7 +109,6 @@
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
--include_lib("opentelemetry_experimental/include/otel_metrics.hrl").
 
 -define(DEFAULT_HTTP_PORT, 4318).
 -define(DEFAULT_HTTP_ENDPOINTS, [#{host => "localhost",

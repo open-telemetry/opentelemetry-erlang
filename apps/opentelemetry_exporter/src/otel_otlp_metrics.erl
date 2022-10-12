@@ -17,12 +17,9 @@
 %%%-------------------------------------------------------------------------
 -module(otel_otlp_metrics).
 
+%% add {d, 'EXPERIMENTAL'} to `erl_opts' to enable metrics exporting
+-ifdef(EXPERIMENTAL).
 -export([to_proto/2]).
-
-%% for testing
--ifdef(TEST).
--export([to_proto/1]).
--endif.
 
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
@@ -122,3 +119,4 @@ to_histogram_data_points(#histogram_datapoint{
       min => Min,
       max => Max
      }.
+-endif.
