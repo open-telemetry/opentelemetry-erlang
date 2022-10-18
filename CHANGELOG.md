@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Experimental API 0.1.0
+
+#### Added
+
+- Erlang Metrics API
+
+## Experimental SDK 0.1.0
+
+#### Added
+
+- Metrics SDK
+- Logging handler and exporter
+
 ## Exporter 1.2.0 - 2022-09-08
 
 ### Fixes
