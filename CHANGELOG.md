@@ -7,19 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## Experimental API 0.1.0
+## Experimental API 0.1.0 - 2022-10-19
 
-#### Added
+### Added
 
 - Erlang Metrics API
 
-## Experimental SDK 0.1.0
+### Removed
 
-#### Added
+- [Old experimental metrics
+  api](https://github.com/open-telemetry/opentelemetry-erlang/pull/479)
+  
+## Experimental SDK 0.1.0 - 2022-10-19
+
+### Added
 
 - Metrics SDK
 - Logging handler and exporter
+- [Delta support for explicit
+  histogram](https://github.com/open-telemetry/opentelemetry-erlang/pull/475)
+- [Logging
+  Handler](https://github.com/open-telemetry/opentelemetry-erlang/pull/468)
+- [OTLP Metrics
+  exporting](https://github.com/open-telemetry/opentelemetry-erlang/pull/456)
+  
+### Fixed
 
+- [Fix OTLP Protocol allowed
+  values](https://github.com/open-telemetry/opentelemetry-erlang/pull/420)  
+  
+## API 1.1.1 - 2022-10-19
+
+### Fixed
+
+- Gradualizer cleanup of type specs
+
+## SDK 1.1.2 - 2022-10-19
+
+#### Added
+
+- [Replaced telemetry_library record with library info as resource
+  attributes](https://github.com/open-telemetry/opentelemetry-erlang/pull/457)
+  
+## Exporter 1.2.1 - 2022-09-08
+
+### Fixes
+
+- Gradualizer cleanup
+  
 ## Exporter 1.2.0 - 2022-09-08
 
 ### Fixes
@@ -33,6 +68,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and handles endpoint parse errors](https://github.com/open-telemetry/opentelemetry-erlang/pull/442)
 
 ## SDK 1.1.1 - 2022-09-02
+
+### Added
+
+- [Flush Trace Provider on application
+  shutdown](https://github.com/open-telemetry/opentelemetry-erlang/pull/470)
 
 ### Fixes
 
