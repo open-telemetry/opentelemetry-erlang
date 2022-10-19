@@ -17,8 +17,6 @@
 %%%-------------------------------------------------------------------------
 -module(otel_otlp_metrics).
 
-%% add {d, 'EXPERIMENTAL'} to `erl_opts' to enable metrics exporting
--ifdef(EXPERIMENTAL).
 -export([to_proto/2]).
 
 -include_lib("kernel/include/logger.hrl").
@@ -119,4 +117,3 @@ to_histogram_data_points(#histogram_datapoint{
       min => Min,
       max => Max
      }.
--endif.

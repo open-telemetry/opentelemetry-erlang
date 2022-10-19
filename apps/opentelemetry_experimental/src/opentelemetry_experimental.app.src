@@ -6,6 +6,7 @@
   {applications,
    [kernel,
     stdlib,
+    opentelemetry_api,
     opentelemetry_api_experimental,
     opentelemetry
    ]},
