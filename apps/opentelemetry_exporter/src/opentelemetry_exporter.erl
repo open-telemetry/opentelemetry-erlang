@@ -146,7 +146,8 @@
               endpoint/0,
               protocol/0]).
 
--record(state, {protocol :: protocol(),
+-record(state, {channel :: term(),
+                protocol :: protocol(),
                 channel_pid :: pid() | undefined,
                 headers :: headers(),
                 compression :: compression() | undefined,
@@ -170,11 +171,17 @@ init(Opts) ->
                                    undefined -> ChannelOpts;
                                    Encoding -> maps:put(encoding, Encoding, ChannelOpts)
                                  end,
-            case grpcbox_channel:start_link(?MODULE,
+
+            %% Channel name can be any term. To separate Channels per
+            %% the process calling the exporter (like the batch processor,
+            %% metric reader and log handler) use the current pid
+            Channel = self(),
+            case grpcbox_channel:start_link(Channel,
                                             grpcbox_endpoints(Endpoints),
                                             UpdatedChannelOpts) of
                 {ok, ChannelPid} ->
-                    {ok, #state{channel_pid=ChannelPid,
+                    {ok, #state{channel=Channel,
+                                channel_pid=ChannelPid,
                                 endpoints=Endpoints,
                                 headers=Headers,
                                 compression=Compression,
@@ -240,10 +247,10 @@ export(traces, Tab, Resource, #state{protocol=http_protobuf,
     end;
 export(traces, Tab, Resource, #state{protocol=grpc,
                                      grpc_metadata=Metadata,
-                                     channel_pid=_ChannelPid}) ->
+                                     channel=Channel}) ->
     ExportRequest = otel_otlp_traces:to_proto(Tab, Resource),
     Ctx = grpcbox_metadata:append_to_outgoing_ctx(ctx:new(), Metadata),
-    case opentelemetry_trace_service:export(Ctx, ExportRequest, #{channel => ?MODULE}) of
+    case opentelemetry_trace_service:export(Ctx, ExportRequest, #{channel => Channel}) of
         {ok, _Response, _ResponseMetadata} ->
             ok;
         {error, {Status, Message}, _} ->
@@ -258,10 +265,10 @@ export(traces, Tab, Resource, #state{protocol=grpc,
     end;
 export(metrics, Tab, Resource, #state{protocol=grpc,
                                       grpc_metadata=Metadata,
-                                      channel_pid=_ChannelPid}) ->
+                                      channel=Channel}) ->
     ExportRequest = otel_otlp_metrics:to_proto(Tab, Resource),
     Ctx = grpcbox_metadata:append_to_outgoing_ctx(ctx:new(), Metadata),
-    case opentelemetry_metrics_service:export(Ctx, ExportRequest, #{channel => ?MODULE}) of
+    case opentelemetry_metrics_service:export(Ctx, ExportRequest, #{channel => Channel}) of
         {ok, _Response, _ResponseMetadata} ->
             ok;
         {error, {Status, Message}, _} ->
@@ -274,12 +281,12 @@ export(metrics, Tab, Resource, #state{protocol=grpc,
             ?LOG_INFO("OTLP grpc export failed with error: ~p", [Reason]),
             error
     end;
-export(logs, {Logs, Config}, Resource, #state{protocol=grpc,
-                                              grpc_metadata=Metadata,
-                                              channel_pid=_ChannelPid}) ->
+export(logs, {Logs, Config}, Resource, #state{channel=Channel,
+                                              protocol=grpc,
+                                              grpc_metadata=Metadata}) ->
     ExportRequest = otel_otlp_logs:to_proto(Logs, Resource, Config),
     Ctx = grpcbox_metadata:append_to_outgoing_ctx(ctx:new(), Metadata),
-    case opentelemetry_logs_service:export(Ctx, ExportRequest, #{channel => ?MODULE}) of
+    case opentelemetry_logs_service:export(Ctx, ExportRequest, #{channel => Channel}) of
         {ok, _Response, _ResponseMetadata} ->
             ok;
         {error, {Status, Message}, _} ->
