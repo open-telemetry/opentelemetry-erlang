@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Exporter 1.2.2 - 2022-10-21
+
+### Fixes
+
+- [Allow multiple instances of OTLP grpc
+  connections](https://github.com/open-telemetry/opentelemetry-erlang/pull/481)
+
 ## Experimental API 0.1.0 - 2022-10-19
 
 ### Added

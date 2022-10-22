@@ -1,6 +1,6 @@
 {application, opentelemetry_exporter,
  [{description, "OpenTelemetry Protocol Exporter"},
-  {vsn, "1.2.1"},
+  {vsn, "1.2.2"},
   {registered, []},
   {applications,
    [kernel,
