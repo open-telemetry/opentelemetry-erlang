@@ -31,6 +31,7 @@
          force_flush/1,
          set_exporter/1,
          set_exporter/2,
+         set_exporter/3,
          report_cb/1]).
 
 -export([init/1,
@@ -52,18 +53,28 @@
                exporting_timeout_ms :: integer()}).
 
 -define(DEFAULT_EXPORTER_TIMEOUT_MS, timer:minutes(5)).
+-define(NAME_TO_ATOM(Name, Unique), list_to_atom(lists:concat([Name, "_", Unique]))).
 
-start_link(Opts) ->
-    gen_statem:start_link({local, ?MODULE}, ?MODULE, [Opts], []).
+start_link(Config) ->
+    Name = maps:get(name, Config, default),
+    RegisterName = ?NAME_TO_ATOM(?MODULE, Name),
+    Config1 = Config#{reg_name => RegisterName},
+    {ok, Pid} = gen_statem:start_link({local, RegisterName}, ?MODULE, [Config1], []),
+    {ok, Pid, Config1}.
 
 %% @equiv set_exporter(Exporter, [])
 set_exporter(Exporter) ->
-    set_exporter(Exporter, []).
+    set_exporter(default, Exporter, []).
 
 %% @doc Sets the batch exporter `Exporter'.
 -spec set_exporter(module(), term()) -> ok.
 set_exporter(Exporter, Options) ->
-    gen_statem:call(?MODULE, {set_exporter, {Exporter, Options}}).
+    gen_statem:call(?REG_NAME(default), {set_exporter, {Exporter, Options}}).
+
+%% @doc Sets the batch exporter `Exporter'.
+-spec set_exporter(atom(), module(), term()) -> ok.
+set_exporter(Name, Exporter, Options) ->
+    gen_statem:call(?REG_NAME(Name), {set_exporter, {Exporter, Options}}).
 
 -spec on_start(otel_ctx:t(), opentelemetry:span(), otel_span_processor:processor_config())
               -> opentelemetry:span().
@@ -74,27 +85,35 @@ on_start(_Ctx, Span, _) ->
             -> true | dropped | {error, invalid_span} | {error, no_export_buffer}.
 on_end(#span{trace_flags=TraceFlags}, _) when not(?IS_SAMPLED(TraceFlags)) ->
     dropped;
-on_end(Span=#span{}, _) ->
-    gen_statem:call(?MODULE, {export, Span});
+on_end(Span=#span{}, #{reg_name := RegName}) ->
+    gen_statem:call(RegName, {export, Span});
 on_end(_Span, _) ->
     {error, invalid_span}.
 
 -spec force_flush(otel_span_processor:processor_config()) -> ok.
-force_flush(_) ->
-    gen_statem:cast(?MODULE, force_flush).
+force_flush(#{reg_name := RegName}) ->
+    gen_statem:cast(RegName, force_flush).
 
 init([Args]) ->
     process_flag(trap_exit, true),
 
     ExportingTimeout = maps:get(exporting_timeout_ms, Args, ?DEFAULT_EXPORTER_TIMEOUT_MS),
 
-    Resource = otel_tracer_provider:resource(),
+    %% TODO: this should be passed in from the tracer server
+    Resource = case maps:find(resource, Args) of
+                   {ok, R} ->
+                       R;
+                   error ->
+                       otel_resource_detector:get_resource()
+               end,
+    %% Resource = otel_tracer_provider:resource(),
 
     {ok, idle, #data{exporter=undefined,
                      exporter_config=maps:get(exporter, Args, none),
                      resource = Resource,
                      handed_off_table=undefined,
-                     exporting_timeout_ms=ExportingTimeout}, [{next_event, internal, init_exporter}]}.
+                     exporting_timeout_ms=ExportingTimeout},
+     [{next_event, internal, init_exporter}]}.
 
 callback_mode() ->
     state_functions.

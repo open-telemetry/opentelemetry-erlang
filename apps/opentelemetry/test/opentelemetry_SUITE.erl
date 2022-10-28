@@ -23,6 +23,9 @@ all() ->
      %% force flush is a test of flushing the batch processor's table
      force_flush,
 
+     multiple_processors,
+     multiple_tracer_providers,
+
      %% all other tests are run with both the simple and batch processor
      {group, otel_simple_processor},
      {group, otel_batch_processor}].
@@ -119,6 +122,19 @@ init_per_testcase(tracer_instrumentation_scope, Config) ->
     Tid = ets:new(exported_spans, [public, bag]),
     otel_batch_processor:set_exporter(otel_exporter_tab, Tid),
     [{tid, Tid} | Config];
+init_per_testcase(multiple_tracer_providers, Config) ->
+    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    otel_batch_processor:set_exporter(otel_exporter_pid, self()),
+    Config;
+init_per_testcase(multiple_processors, Config) ->
+    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}},
+                                                    {otel_batch_processor, #{name => second,
+                                                                             scheduled_delay_ms => 1}}]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    otel_batch_processor:set_exporter(otel_exporter_pid, self()),
+    otel_batch_processor:set_exporter(second, otel_exporter_pid, self()),
+    Config;
 init_per_testcase(_, Config) ->
     Processor = ?config(processor, Config),
     application:set_env(opentelemetry, processors, [{Processor, #{scheduled_delay_ms => 1}}]),
@@ -531,6 +547,78 @@ tracer_instrumentation_scope(Config) ->
     ?assertMatch({instrumentation_scope,<<"tracer1">>,<<"1.0.0">>,<<"http://schema.org/myschema">>},
                  Span1#span.instrumentation_scope).
 
+multiple_processors(_Config) ->
+    Tracer = opentelemetry:get_tracer(),
+
+    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{}),
+    ?set_current_span(SpanCtx1),
+    ?assertMatch(SpanCtx1, ?current_span_ctx),
+
+    otel_span:end_span(SpanCtx1),
+
+    %% should receive the span once from each processors
+
+    receive
+        {span, Span} ->
+            ?assertEqual(<<"span-1">>, Span#span.name)
+    after
+        1000 ->
+            ct:fail(timeout)
+    end,
+
+    receive
+        {span, Span1} ->
+            ?assertEqual(<<"span-1">>, Span1#span.name)
+    after
+        1000 ->
+            ct:fail(timeout)
+    end,
+
+    ok.
+
+multiple_tracer_providers(_Config) ->
+    ?assertMatch({ok, _}, opentelemetry:start_tracer_provider(test_provider,
+                                                              #{id_generator => otel_id_generator,
+                                                                sampler => {otel_sampler_always_on, []},
+                                                                processors => [{otel_batch_processor, #{name => test_batch,
+                                                                                                        scheduled_delay_ms => 1}}],
+                                                                deny_list => []})),
+
+    otel_batch_processor:set_exporter(test_batch, otel_exporter_pid, self()),
+
+    Tracer1 = otel_tracer_provider:get_tracer(test_provider, <<"tracer-name">>, <<>>, <<>>),
+
+    Tracer = opentelemetry:get_tracer(),
+
+    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{}),
+    ?set_current_span(SpanCtx1),
+    ?assertMatch(SpanCtx1, ?current_span_ctx),
+
+    otel_span:end_span(SpanCtx1),
+
+    receive
+        {span, Span} ->
+            ?assertEqual(<<"span-1">>, Span#span.name)
+    end,
+
+    %% now a span with the tracer from the non-global tracer provider
+
+    SpanCtx2 = otel_tracer:start_span(Tracer1, <<"span-2">>, #{}),
+    ?set_current_span(SpanCtx2),
+    ?assertMatch(SpanCtx2, ?current_span_ctx),
+
+    otel_span:end_span(SpanCtx2),
+
+    receive
+        {span, Span1} ->
+            ?assertEqual(<<"span-2">>, Span1#span.name)
+    after
+        1000 ->
+            ct:fail(failed)
+    end,
+
+    ok.
+
 %% check that ending a span results in the tracer setting the previous tracer context
 %% as the current active and not use the parent span ctx of the span being ended --
 %% though at times those will be the same.
@@ -914,12 +1002,12 @@ no_exporter(_Config) ->
 
     %% once the exporter is "initialized" the table is cleared and disabled
     %% future spans are not added
-    ?UNTIL([] =:= otel_batch_processor:current_tab_to_list()),
+    ?UNTIL([] =:= otel_batch_processor:current_tab_to_list(otel_batch_processor_default)),
 
     SpanCtx2 = ?start_span(<<"span-2">>),
     otel_span:end_span(SpanCtx2),
 
-    ?assertEqual([], otel_batch_processor:current_tab_to_list()),
+    ?assertEqual([], otel_batch_processor:current_tab_to_list(otel_batch_processor_default)),
 
     ok.
 

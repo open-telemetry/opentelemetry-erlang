@@ -22,6 +22,8 @@
 -export([start/2,
          stop/1]).
 
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
+
 start(_StartType, _StartArgs) ->
     Config = otel_configuration:merge_with_os(
              application:get_all_env(opentelemetry)),
@@ -33,6 +35,8 @@ start(_StartType, _StartArgs) ->
     setup_text_map_propagators(Config),
 
     SupResult = opentelemetry_sup:start_link(Config),
+
+    _ = opentelemetry:start_tracer_provider(?GLOBAL_TRACER_PROVIDER_NAME, Config),
 
     %% must be done after the supervisor starts so that otel_tracer_server is running
     %% TODO: make this work with release upgrades. Currently if an application's version
