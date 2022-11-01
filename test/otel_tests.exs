@@ -16,7 +16,8 @@ defmodule OtelTests do
   Record.defrecordp(:span_ctx, @fields)
 
   test "use Tracer to set current active Span's attributes" do
-    :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
+    :erlang.register(:test_registered_pid, self())
+
     OpenTelemetry.get_tracer(:test_tracer, "0.1.0", :undefined)
 
     Tracer.with_span "span-1" do
@@ -35,7 +36,8 @@ defmodule OtelTests do
   end
 
   test "use Tracer to start a Span as currently active with an explicit parent" do
-    :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
+    :erlang.register(:test_registered_pid, self())
+
     OpenTelemetry.get_tracer(:test_tracer, "0.1.0", :undefined)
 
     s1 = Tracer.start_span("span-1")
@@ -68,7 +70,7 @@ defmodule OtelTests do
   end
 
   test "use Span to set attributes" do
-    :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
+    :erlang.register(:test_registered_pid, self())
 
     s = Tracer.start_span("span-2")
     Span.set_attribute(s, "attr-1", "value-1")
@@ -87,7 +89,8 @@ defmodule OtelTests do
   end
 
   test "create child Span in Task" do
-    :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
+    :erlang.register(:test_registered_pid, self())
+
     OpenTelemetry.get_tracer(:test_tracer, "0.1.0", :undefined)
 
     # create the parent span
@@ -132,7 +135,8 @@ defmodule OtelTests do
   end
 
   test "create Span with Link to outer Span in Task" do
-    :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
+    true = :erlang.register(:test_registered_pid, self())
+
     OpenTelemetry.get_tracer(:test_tracer, "0.1.0", :undefined)
 
     parent_ctx = Ctx.new()
@@ -179,7 +183,7 @@ defmodule OtelTests do
   end
 
   test "use explicit Context for parent of started Span" do
-    :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
+    :erlang.register(:test_registered_pid, self())
 
     s1 = Tracer.start_span("span-1")
     ctx = Tracer.set_current_span(Ctx.new(), s1)
@@ -228,7 +232,8 @@ defmodule OtelTests do
   end
 
   test "Span.record_exception/4 should add an exception event to the span" do
-    :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
+    :erlang.register(:test_registered_pid, self())
+
     s = Tracer.start_span("span-4")
 
     try do

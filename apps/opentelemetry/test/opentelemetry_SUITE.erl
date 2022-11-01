@@ -57,6 +57,9 @@ init_per_group(Processor, Config) ->
 end_per_group(_, _Config) ->
     ok.
 
+%% TODO: need a new way to disable exporting on a processor or provider
+init_per_testcase(no_exporter, _Config) ->
+    {skip, no_set_exporter};
 init_per_testcase(disable_auto_creation, Config) ->
     application:set_env(opentelemetry, create_application_tracers, false),
     {ok, _} = application:ensure_all_started(opentelemetry),
@@ -85,64 +88,49 @@ init_per_testcase(propagator_configuration_with_os_env, Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(force_flush, Config) ->
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1000000}}]),
+    Config1 = set_batch_tab_processor(1000000, Config),
     {ok, _} = application:ensure_all_started(opentelemetry),
-    %% adds an exporter for a new table
-    %% spans will be exported to a separate table for each of the test cases
-    Tid = ets:new(exported_spans, [public, bag]),
-    otel_batch_processor:set_exporter(otel_exporter_tab, Tid),
-    [{tid, Tid} | Config];
+    Config1;
 init_per_testcase(no_exporter, Config) ->
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1000000}}]),
+    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1000000,
+                                                                             exporter => none}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(dropped_attributes, Config) ->
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
+    Config1 = set_batch_tab_processor(Config),
+
     application:set_env(opentelemetry, attribute_value_length_limit, 2),
     {ok, _} = application:ensure_all_started(opentelemetry),
-    %% adds an exporter for a new table
-    %% spans will be exported to a separate table for each of the test cases
-    Tid = ets:new(exported_spans, [public, bag]),
-    otel_batch_processor:set_exporter(otel_exporter_tab, Tid),
-    [{tid, Tid} | Config];
+
+    Config1;
 init_per_testcase(too_many_attributes, Config) ->
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
+    Config1 = set_batch_tab_processor(Config),
     application:set_env(opentelemetry, attribute_count_limit, 2),
     {ok, _} = application:ensure_all_started(opentelemetry),
-    %% adds an exporter for a new table
-    %% spans will be exported to a separate table for each of the test cases
-    Tid = ets:new(exported_spans, [public, bag]),
-    otel_batch_processor:set_exporter(otel_exporter_tab, Tid),
-    [{tid, Tid} | Config];
+    Config1;
 init_per_testcase(tracer_instrumentation_scope, Config) ->
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
+    Config1 = set_batch_tab_processor(Config),
     {ok, _} = application:ensure_all_started(opentelemetry),
-    %% adds an exporter for a new table
-    %% spans will be exported to a separate table for each of the test cases
-    Tid = ets:new(exported_spans, [public, bag]),
-    otel_batch_processor:set_exporter(otel_exporter_tab, Tid),
-    [{tid, Tid} | Config];
+    Config1;
 init_per_testcase(multiple_tracer_providers, Config) ->
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
-    {ok, _} = application:ensure_all_started(opentelemetry),
-    otel_batch_processor:set_exporter(otel_exporter_pid, self()),
-    Config;
-init_per_testcase(multiple_processors, Config) ->
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}},
-                                                    {otel_batch_processor, #{name => second,
+    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{exporter => {otel_exporter_pid, self()},
                                                                              scheduled_delay_ms => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
-    otel_batch_processor:set_exporter(otel_exporter_pid, self()),
-    otel_batch_processor:set_exporter(second, otel_exporter_pid, self()),
+    Config;
+init_per_testcase(multiple_processors, Config) ->
+    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1,
+                                                                            exporter => {otel_exporter_pid, self()}}},
+                                                    {otel_batch_processor, #{name => second,
+                                                                             scheduled_delay_ms => 1,
+                                                                             exporter => {otel_exporter_pid, self()}}}]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(_, Config) ->
     Processor = ?config(processor, Config),
-    application:set_env(opentelemetry, processors, [{Processor, #{scheduled_delay_ms => 1}}]),
-    {ok, _} = application:ensure_all_started(opentelemetry),
-    %% adds an exporter for a new table
-    %% spans will be exported to a separate table for each of the test cases
     Tid = ets:new(exported_spans, [public, bag]),
-    Processor:set_exporter(otel_exporter_tab, Tid),
+    application:set_env(opentelemetry, processors, [{Processor, #{scheduled_delay_ms => 1,
+                                                                  exporter => {otel_exporter_tab, Tid}}}]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
     [{tid, Tid} | Config].
 
 end_per_testcase(disable_auto_creation, _Config) ->
@@ -161,6 +149,18 @@ end_per_testcase(_, _Config) ->
     application:unset_env(opentelemetry, attribute_value_length_limit),
     _ = application:stop(opentelemetry),
     ok.
+
+set_batch_tab_processor(Config) ->
+    set_batch_tab_processor(1, Config).
+
+set_batch_tab_processor(DelayMs, Config) ->
+    Tid = ets:new(exported_spans, [public, bag]),
+    application:set_env(opentelemetry, processors,
+                        [{otel_batch_processor, #{exporter => {otel_exporter_tab, Tid},
+                                                  scheduled_delay_ms => DelayMs}}]),
+    [{tid, Tid} | Config].
+
+%% test cases
 
 disable_auto_creation(_Config) ->
     {_, #tracer{instrumentation_scope=Library}} = opentelemetry:get_tracer(
@@ -581,10 +581,9 @@ multiple_tracer_providers(_Config) ->
                                                               #{id_generator => otel_id_generator,
                                                                 sampler => {otel_sampler_always_on, []},
                                                                 processors => [{otel_batch_processor, #{name => test_batch,
-                                                                                                        scheduled_delay_ms => 1}}],
+                                                                                                        scheduled_delay_ms => 1,
+                                                                                                        exporter => {otel_exporter_pid, self()}}}],
                                                                 deny_list => []})),
-
-    otel_batch_processor:set_exporter(test_batch, otel_exporter_pid, self()),
 
     Tracer1 = otel_tracer_provider:get_tracer(test_provider, <<"tracer-name">>, <<>>, <<>>),
 
@@ -991,6 +990,7 @@ too_many_attributes(Config) ->
 
     ok.
 
+%% TODO: this test case is skipped because `set_exporter' is gone
 no_exporter(_Config) ->
     SpanCtx1 = ?start_span(<<"span-1">>),
 
