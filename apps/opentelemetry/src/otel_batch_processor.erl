@@ -387,7 +387,7 @@ export_spans(#data{exporter=Exporter,
 
             Self = self(),
             RunnerPid = erlang:spawn_link(fun() -> send_spans(Self, Resource, Exporter) end),
-            ets:give_away(CurrentTable, RunnerPid, export),
+            ets:give_away(CurrentTable, RunnerPid, {export, RegName}),
             {CurrentTable, RunnerPid}
     end.
 
@@ -395,8 +395,9 @@ export_spans(#data{exporter=Exporter,
 %% timeout if the actual exporting takes longer than the call timeout
 send_spans(FromPid, Resource, Exporter) ->
     receive
-        {'ETS-TRANSFER', Table, FromPid, export} ->
-            TableName = ets:rename(Table, current_send_table),
+        {'ETS-TRANSFER', Table, FromPid, {export, RegName}} ->
+            TableName = ets:rename(Table, list_to_atom(lists:concat([current_send_table,
+                                                                     RegName]))),
             export(Exporter, Resource, TableName),
             ets:delete(TableName),
             completed(FromPid)
