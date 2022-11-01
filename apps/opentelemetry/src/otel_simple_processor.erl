@@ -29,9 +29,9 @@
          on_start/3,
          on_end/2,
          force_flush/1,
-         set_exporter/1,
-         set_exporter/2,
-         set_exporter/3,
+         %% set_exporter/1,
+         %% set_exporter/2,
+         %% set_exporter/3,
          report_cb/1]).
 
 -export([init/1,
@@ -63,18 +63,18 @@ start_link(Config) ->
     {ok, Pid, Config1}.
 
 %% @equiv set_exporter(Exporter, [])
-set_exporter(Exporter) ->
-    set_exporter(default, Exporter, []).
+%% set_exporter(Exporter) ->
+%%     set_exporter(default, Exporter, []).
 
-%% @doc Sets the batch exporter `Exporter'.
--spec set_exporter(module(), term()) -> ok.
-set_exporter(Exporter, Options) ->
-    gen_statem:call(?REG_NAME(default), {set_exporter, {Exporter, Options}}).
+%% %% @doc Sets the batch exporter `Exporter'.
+%% -spec set_exporter(module(), term()) -> ok.
+%% set_exporter(Exporter, Options) ->
+%%     gen_statem:call(?REG_NAME(default), {set_exporter, {Exporter, Options}}).
 
-%% @doc Sets the batch exporter `Exporter'.
--spec set_exporter(atom(), module(), term()) -> ok.
-set_exporter(Name, Exporter, Options) ->
-    gen_statem:call(?REG_NAME(Name), {set_exporter, {Exporter, Options}}).
+%% %% @doc Sets the batch exporter `Exporter'.
+%% -spec set_exporter(atom(), module(), term()) -> ok.
+%% set_exporter(Name, Exporter, Options) ->
+%%     gen_statem:call(?REG_NAME(Name), {set_exporter, {Exporter, Options}}).
 
 -spec on_start(otel_ctx:t(), opentelemetry:span(), otel_span_processor:processor_config())
               -> opentelemetry:span().
