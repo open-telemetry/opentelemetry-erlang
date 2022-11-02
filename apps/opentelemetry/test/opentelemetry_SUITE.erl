@@ -91,11 +91,6 @@ init_per_testcase(force_flush, Config) ->
     Config1 = set_batch_tab_processor(1000000, Config),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config1;
-init_per_testcase(no_exporter, Config) ->
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1000000,
-                                                                             exporter => none}}]),
-    {ok, _} = application:ensure_all_started(opentelemetry),
-    Config;
 init_per_testcase(dropped_attributes, Config) ->
     Config1 = set_batch_tab_processor(Config),
 
