@@ -23,8 +23,7 @@
          merge_list_with_environment/3,
          report_cb/1]).
 
--define(BATCH_PROCESSOR_DEFAULTS, #{name => default,
-                                    scheduled_delay_ms => 5000,
+-define(BATCH_PROCESSOR_DEFAULTS, #{scheduled_delay_ms => 5000,
                                     exporting_timeout_ms => 30000,
                                     max_queue_size => 2048,
                                     exporter => {opentelemetry_exporter, #{}}}).

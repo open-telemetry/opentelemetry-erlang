@@ -57,9 +57,11 @@ init_per_group(Processor, Config) ->
 end_per_group(_, _Config) ->
     ok.
 
-%% TODO: need a new way to disable exporting on a processor or provider
-init_per_testcase(no_exporter, _Config) ->
-    {skip, no_set_exporter};
+init_per_testcase(no_exporter, Config) ->
+    application:set_env(opentelemetry, processors,
+                        [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
 init_per_testcase(disable_auto_creation, Config) ->
     application:set_env(opentelemetry, create_application_tracers, false),
     {ok, _} = application:ensure_all_started(opentelemetry),
@@ -985,7 +987,6 @@ too_many_attributes(Config) ->
 
     ok.
 
-%% TODO: this test case is skipped because `set_exporter' is gone
 no_exporter(_Config) ->
     SpanCtx1 = ?start_span(<<"span-1">>),
 
@@ -997,12 +998,12 @@ no_exporter(_Config) ->
 
     %% once the exporter is "initialized" the table is cleared and disabled
     %% future spans are not added
-    ?UNTIL([] =:= otel_batch_processor:current_tab_to_list(otel_batch_processor_default)),
+    ?UNTIL([] =:= otel_batch_processor:current_tab_to_list(otel_batch_processor_global)),
 
     SpanCtx2 = ?start_span(<<"span-2">>),
     otel_span:end_span(SpanCtx2),
 
-    ?assertEqual([], otel_batch_processor:current_tab_to_list(otel_batch_processor_default)),
+    ?assertEqual([], otel_batch_processor:current_tab_to_list(otel_batch_processor_global)),
 
     ok.
 

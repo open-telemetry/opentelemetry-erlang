@@ -34,10 +34,12 @@
          on_start/3,
          on_end/2,
          force_flush/1,
-         %% set_exporter/1,
-         %% set_exporter/2,
-         %% set_exporter/3,
-         report_cb/1]).
+         report_cb/1,
+
+         %% deprecated
+         set_exporter/1,
+         set_exporter/2,
+         set_exporter/3]).
 
 -export([init/1,
          callback_mode/0,
@@ -99,19 +101,19 @@ start_link(Config) ->
     {ok, Pid} = gen_statem:start_link({local, RegisterName}, ?MODULE, [Config1], []),
     {ok, Pid, Config1}.
 
-%% @equiv set_exporter(Exporter, [])
-%% set_exporter(Exporter) ->
-%%     set_exporter(default, Exporter, []).
+%% @deprecated Please use {@link otel_tracer_provider}
+set_exporter(Exporter) ->
+    set_exporter(global, Exporter, []).
 
-%% %% @doc Sets the batch exporter `Exporter'.
-%% -spec set_exporter(module(), term()) -> ok.
-%% set_exporter(Exporter, Options) ->
-%%     gen_statem:call(?REG_NAME(default), {set_exporter, {Exporter, Options}}).
+%% @deprecated Please use {@link otel_tracer_provider}
+-spec set_exporter(module(), term()) -> ok.
+set_exporter(Exporter, Options) ->
+    gen_statem:call(?REG_NAME(global), {set_exporter, {Exporter, Options}}).
 
-%% %% @doc Sets the batch exporter `Exporter'.
-%% -spec set_exporter(atom(), module(), term()) -> ok.
-%% set_exporter(Name, Exporter, Options) ->
-%%     gen_statem:call(?REG_NAME(Name), {set_exporter, {Exporter, Options}}).
+%% @deprecated Please use {@link otel_tracer_provider}
+-spec set_exporter(atom(), module(), term()) -> ok.
+set_exporter(Name, Exporter, Options) ->
+    gen_statem:call(?REG_NAME(Name), {set_exporter, {Exporter, Options}}).
 
 -spec on_start(otel_ctx:t(), opentelemetry:span(), otel_span_processor:processor_config())
               -> opentelemetry:span().

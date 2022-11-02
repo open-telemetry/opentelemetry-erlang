@@ -127,29 +127,53 @@ update_force_flush_error(Reason, ok) ->
 update_force_flush_error(Reason, {error, List}) ->
     {error, [Reason | List]}.
 
+%% TODO: remove after a period of deprecation for processor `set_exporter' functions
+%% This is a hack that makes it so there is a known name for the processor if there
+%% is only one, like was once guaranteed. This allows functions like `set_exporter'
+%% to work. But if there is more than one processor defined or it isn't one of the
+%% builtin processors we will not do this hack of adding a name to the config.
+init_processors(SpanProcessorSup, [{P, Config}]) when P =:= otel_batch_processor ;
+                                                      P =:= otel_simple_processor ->
+    case init_processor(SpanProcessorSup, P, maps:merge(#{name => global}, Config)) of
+        {true, {_, _}=Processor} ->
+            [Processor];
+        _ ->
+            []
+    end;
 init_processors(SpanProcessorSup, Processors) ->
-    lists:filtermap(fun({P, Config}) ->
-                            %% start_link is an optional callback for processors
-                            case erlang:function_exported(P, start_link, 1) of
-                                true ->
-                                    try
-                                        case supervisor:start_child(SpanProcessorSup, [P, Config]) of
-                                            {ok, _Pid, Config1} ->
-                                                {true, {P, Config1}};
-                                            {error, Reason} ->
-                                                ?LOG_INFO("Dropping span processor ~p because `processor_init/1` failed ~p", [P, Reason]),
-                                                false
-                                        end
-                                    catch
-                                        C:T:S ->
-                                            ?LOG_DEBUG("Dropping span processor ~p because `processor_init/1` threw an exception ~p:~p:~p", [P, C, T, S]),
-                                            ?LOG_INFO("Dropping span processor ~p because `processor_init/1` threw an exception ~p:~p", [P, C, T]),
-                                            false
-                                    end;
-                                false ->
-                                    {true, {P, Config}}
-                            end
-                    end, Processors).
+    init_processors_(SpanProcessorSup, Processors).
+
+init_processors_(_SpanProcessorSup, []) ->
+    [];
+init_processors_(SpanProcessorSup, [{P, Config} | Rest]) ->
+    case init_processor(SpanProcessorSup, P, Config) of
+        {true, {_, _}=Processor} ->
+            [Processor | init_processors_(SpanProcessorSup, Rest)];
+        _ ->
+            init_processors_(SpanProcessorSup, Rest)
+    end.
+
+init_processor(SpanProcessorSup, ProcessorModule, Config) ->
+    %% start_link is an optional callback for processors
+    case erlang:function_exported(ProcessorModule, start_link, 1) of
+        true ->
+            try
+                case supervisor:start_child(SpanProcessorSup, [ProcessorModule, Config]) of
+                    {ok, _Pid, Config1} ->
+                        {true, {ProcessorModule, Config1}};
+                    {error, Reason} ->
+                        ?LOG_INFO("Dropping span processor ~p because `processor_init/1` failed ~p", [ProcessorModule, Reason]),
+                        false
+                end
+            catch
+                C:T:S ->
+                    ?LOG_DEBUG("Dropping span processor ~p because `processor_init/1` threw an exception ~p:~p:~p", [ProcessorModule, C, T, S]),
+                    ?LOG_INFO("Dropping span processor ~p because `processor_init/1` threw an exception ~p:~p", [ProcessorModule, C, T]),
+                    false
+            end;
+        false ->
+            {true, {ProcessorModule, Config}}
+    end.
 
 on_start(Processors) ->
     fun(Ctx, Span) ->
