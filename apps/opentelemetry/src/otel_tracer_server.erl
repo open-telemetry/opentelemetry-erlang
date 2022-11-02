@@ -185,7 +185,7 @@ on_start(Processors) ->
 on_end(Processors) ->
     fun(Span) ->
             lists:foldl(fun({P, Config}, Bool) ->
-                                Bool andalso P:on_end(Span, Config)
+                                Bool andalso P:on_end(Span, Config) =:= true
                         end, true, Processors)
     end.
 
