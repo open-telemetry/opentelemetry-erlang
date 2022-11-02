@@ -30,6 +30,7 @@
 
 -export([start_tracer_provider/2,
          set_default_tracer/1,
+         set_default_tracer/2,
          create_application_tracers/1,
          get_tracer/0,
          get_tracer/1,
@@ -144,8 +145,8 @@
 
 -type text_map()       :: [{unicode:unicode_binary(), unicode:unicode_binary()}].
 
--define(TRACER_KEY(Name), {?MODULE, tracer, Name}).
--define(DEFAULT_TRACER_KEY, ?TRACER_KEY('$__default_tracer')).
+-define(TRACER_KEY(TracerProvider, Name), {?MODULE, TracerProvider, tracer, Name}).
+-define(DEFAULT_TRACER_KEY(TracerProvider), ?TRACER_KEY(TracerProvider, '$__default_tracer')).
 -define(MODULE_TO_APPLICATION_KEY, {?MODULE, otel_module_to_application_key}).
 -define(TEXT_MAP_EXTRACTOR_KEY, {?MODULE, text_map_extractor}).
 -define(TEXT_MAP_INJECTOR_KEY, {?MODULE, text_map_injector}).
@@ -158,7 +159,11 @@ start_tracer_provider(Name, Config) ->
 
 -spec set_default_tracer(tracer()) -> boolean().
 set_default_tracer(Tracer) ->
-    verify_and_set_term(Tracer, ?DEFAULT_TRACER_KEY, otel_tracer).
+    set_default_tracer(?GLOBAL_TRACER_PROVIDER_NAME, Tracer).
+
+-spec set_default_tracer(atom(), tracer()) -> boolean().
+set_default_tracer(TracerProvider, Tracer) ->
+    verify_and_set_term(Tracer, ?DEFAULT_TRACER_KEY(TracerProvider), otel_tracer).
 
 -spec set_tracer(atom(), tracer()) -> boolean().
 set_tracer(Name, Tracer) ->
@@ -179,7 +184,7 @@ set_tracer(Name, Vsn, SchemaUrl, Tracer) ->
       SchemaUrl :: uri_string:uri_string() | undefined,
       Tracer:: opentelemetry:tracer().
 set_tracer(TracerProvider, Name, Vsn, SchemaUrl, Tracer) ->
-    verify_and_set_term(Tracer, ?TRACER_KEY({TracerProvider, Name, Vsn, SchemaUrl}), otel_tracer).
+    verify_and_set_term(Tracer, ?TRACER_KEY(TracerProvider, {Name, Vsn, SchemaUrl}), otel_tracer).
 
 -spec create_application_tracers([{Application, Description, Vsn}]) -> ok when
       Application :: atom(),
@@ -203,7 +208,11 @@ module_to_application(Name, Version, SchemaUrl) ->
 
 -spec get_tracer() -> tracer().
 get_tracer() ->
-    persistent_term:get(?DEFAULT_TRACER_KEY, {otel_tracer_noop, []}).
+    get_tracer_(?GLOBAL_TRACER_PROVIDER_NAME).
+
+-spec get_tracer_(atom()) -> tracer().
+get_tracer_(TracerProvider) ->
+    persistent_term:get(?DEFAULT_TRACER_KEY(TracerProvider), {otel_tracer_noop, []}).
 
 -spec get_tracer(Name) -> Tracer when
       Name :: atom() | {atom(), Vsn, SchemaUrl},
@@ -233,7 +242,7 @@ get_tracer(Name, Vsn, SchemaUrl) ->
       Tracer:: opentelemetry:tracer().
 get_tracer(TracerProvider, Name, Vsn, SchemaUrl) ->
     %% check cache and then use provider to get the tracer if it isn't cached yet
-    case persistent_term:get(?TRACER_KEY({TracerProvider, Name, Vsn, SchemaUrl}), undefined) of
+    case persistent_term:get(?TRACER_KEY(TracerProvider, {Name, Vsn, SchemaUrl}), undefined) of
         undefined ->
             VsnBin = vsn_to_binary(Vsn),
             Tracer = otel_tracer_provider:get_tracer(TracerProvider, Name, VsnBin, SchemaUrl),

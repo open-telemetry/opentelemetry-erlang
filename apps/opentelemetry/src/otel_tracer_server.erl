@@ -23,7 +23,7 @@
 
 -behaviour(gen_server).
 
--export([start_link/3]).
+-export([start_link/4]).
 
 -export([init/1,
          handle_call/3,
@@ -54,14 +54,14 @@
          deny_list :: [atom() | {atom(), string()}]
         }).
 
--spec start_link(atom(), atom(), otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
-start_link(RegName, SpanProcessorSupRegName, Config) ->
-    gen_server:start_link({local, RegName}, ?MODULE, [SpanProcessorSupRegName, Config], []).
+-spec start_link(atom(), atom(), atom(), otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
+start_link(Name, RegName, SpanProcessorSupRegName, Config) ->
+    gen_server:start_link({local, RegName}, ?MODULE, [Name, SpanProcessorSupRegName, Config], []).
 
-init([SpanProcessorSup, #{id_generator := IdGeneratorModule,
-                          sampler := SamplerSpec,
-                          processors := Processors,
-                          deny_list := DenyList}]) ->
+init([Name, SpanProcessorSup, #{id_generator := IdGeneratorModule,
+                                sampler := SamplerSpec,
+                                processors := Processors,
+                                deny_list := DenyList}]) ->
     Resource = otel_resource_detector:get_resource(),
 
     Sampler = otel_sampler:new(SamplerSpec),
@@ -73,7 +73,7 @@ init([SpanProcessorSup, #{id_generator := IdGeneratorModule,
                      on_start_processors=on_start(Processors1),
                      on_end_processors=on_end(Processors1),
                      id_generator=IdGeneratorModule},
-    opentelemetry:set_default_tracer({otel_tracer_default, Tracer}),
+    opentelemetry:set_default_tracer(Name, {otel_tracer_default, Tracer}),
 
     {ok, #state{id_generator=IdGeneratorModule,
                 resource=Resource,

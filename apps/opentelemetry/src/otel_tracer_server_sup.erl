@@ -47,7 +47,8 @@ init([Name, Opts]) ->
                          modules => [otel_span_processor_sup, otel_span_processor]},
 
     TracerServer = #{id => otel_tracer_server,
-                     start => {otel_tracer_server, start_link, [TracerServeRegName,
+                     start => {otel_tracer_server, start_link, [Name,
+                                                                TracerServeRegName,
                                                                 SpanProcessorSupRegName,
                                                                 Opts]},
                      restart => permanent,

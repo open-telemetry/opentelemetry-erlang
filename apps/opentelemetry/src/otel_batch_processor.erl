@@ -84,7 +84,16 @@ current_tab_to_list(RegName) ->
 -endif.
 
 start_link(Config) ->
-    Name = maps:get(name, Config, default),
+    Name = case maps:find(name, Config) of
+               {ok, N} ->
+                   N;
+               error ->
+                   %% use a unique reference to distiguish multiple batch processors while
+                   %% still having a single name, instead of a possibly changing pid, to
+                   %% communicate with the processor
+                   erlang:ref_to_list(erlang:make_ref())
+           end,
+
     RegisterName = ?REG_NAME(Name),
     Config1 = Config#{reg_name => RegisterName},
     {ok, Pid} = gen_statem:start_link({local, RegisterName}, ?MODULE, [Config1], []),
