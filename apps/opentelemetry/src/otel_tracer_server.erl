@@ -100,7 +100,7 @@ handle_call({get_tracer, Name, Vsn, SchemaUrl}, _From, State=#state{shared_trace
             {reply, TracerTuple, State}
     end;
 handle_call({get_tracer, InstrumentationScope}, _From, State=#state{shared_tracer=Tracer,
-                                                                      deny_list=_DenyList}) ->
+                                                                    deny_list=_DenyList}) ->
     {reply, {Tracer#tracer.module,
              Tracer#tracer{instrumentation_scope=InstrumentationScope}}, State};
 handle_call(force_flush, _From, State=#state{processors=Processors}) ->
