@@ -155,7 +155,7 @@ init_processors_(SpanProcessorSup, [{P, Config} | Rest]) ->
 
 init_processor(SpanProcessorSup, ProcessorModule, Config) ->
     %% start_link is an optional callback for processors
-    case erlang:function_exported(ProcessorModule, start_link, 1) of
+    case lists:member({start_link, 1}, ProcessorModule:module_info(exports)) of
         true ->
             try
                 case supervisor:start_child(SpanProcessorSup, [ProcessorModule, Config]) of
