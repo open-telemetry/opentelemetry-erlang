@@ -16,9 +16,18 @@ defmodule OtelTests do
   Record.defrecordp(:span_ctx, @fields)
 
   setup do
-    :erlang.register(:test_registered_pid, self())
+    Application.load(:opentelemetry)
 
-    []
+    Application.put_env(:opentelemetry, :processors, [
+      {:otel_simple_processor, %{exporter: {:otel_exporter_pid, self()}}}
+    ])
+
+    {:ok, _} = Application.ensure_all_started(:opentelemetry)
+
+    on_exit(fn ->
+      Application.stop(:opentelemetry)
+      Application.unload(:opentelemetry)
+    end)
   end
 
   test "use Tracer to set current active Span's attributes" do
