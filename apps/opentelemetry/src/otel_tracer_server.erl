@@ -157,14 +157,12 @@ init_processor(SpanProcessorSup, ProcessorModule, Config) ->
     %% start_link is an optional callback for processors
     case lists:member({start_link, 1}, ProcessorModule:module_info(exports)) of
         true ->
-            try
-                case supervisor:start_child(SpanProcessorSup, [ProcessorModule, Config]) of
-                    {ok, _Pid, Config1} ->
-                        {true, {ProcessorModule, Config1}};
-                    {error, Reason} ->
-                        ?LOG_INFO("Dropping span processor ~p because `processor_init/1` failed ~p", [ProcessorModule, Reason]),
-                        false
-                end
+            try supervisor:start_child(SpanProcessorSup, [ProcessorModule, Config]) of
+                {ok, _Pid, Config1} ->
+                    {true, {ProcessorModule, Config1}};
+                {error, Reason} ->
+                    ?LOG_INFO("Dropping span processor ~p because `processor_init/1` failed ~p", [ProcessorModule, Reason]),
+                    false
             catch
                 C:T:S ->
                     ?LOG_DEBUG("Dropping span processor ~p because `processor_init/1` threw an exception ~p:~p:~p", [ProcessorModule, C, T, S]),
