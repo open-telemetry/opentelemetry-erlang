@@ -402,19 +402,15 @@ export_spans(#data{exporter=Exporter,
 
             Self = self(),
             RunnerPid = erlang:spawn_link(fun() -> send_spans(Self, Resource, Exporter) end),
-            ets:give_away(CurrentTable, RunnerPid, {export, RegName}),
+            ets:give_away(CurrentTable, RunnerPid, export),
             {CurrentTable, RunnerPid}
     end.
 
-%% Additional benefit of using a separate process is calls to `register` won't
-%% timeout if the actual exporting takes longer than the call timeout
 send_spans(FromPid, Resource, Exporter) ->
     receive
-        {'ETS-TRANSFER', Table, FromPid, {export, RegName}} ->
-            TableName = ets:rename(Table, list_to_atom(lists:concat([current_send_table,
-                                                                     RegName]))),
-            export(Exporter, Resource, TableName),
-            ets:delete(TableName),
+        {'ETS-TRANSFER', Table, FromPid, export} ->
+            export(Exporter, Resource, Table),
+            ets:delete(Table),
             completed(FromPid)
     end.
 
