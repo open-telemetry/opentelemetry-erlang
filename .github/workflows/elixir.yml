@@ -30,7 +30,7 @@ jobs:
         working-directory: apps/opentelemetry_api/
   sdk_tests:
     runs-on: ${{ matrix.os }}
-    name: Test on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
+    name: Test SDK on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
         otp_version: ['25.0.3', '24.1.2', '23.3.4.2']
@@ -40,7 +40,6 @@ jobs:
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir_version }}
-      OTEL_TRACES_EXPORTER: "none"
     steps:
       - uses: actions/checkout@v2
       - uses: erlef/setup-beam@v1
@@ -56,7 +55,7 @@ jobs:
 
   api_tests:
     runs-on: ${{ matrix.os }}
-    name: Test on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
+    name: Test API on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
         otp_version: ['25.0.3', '24.1.2', '23.3.4.2']

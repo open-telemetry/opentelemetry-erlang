@@ -34,15 +34,22 @@
          on_start/3,
          on_end/2,
          force_flush/1,
+         report_cb/1,
+
+         %% deprecated
          set_exporter/1,
          set_exporter/2,
-         report_cb/1]).
+         set_exporter/3]).
 
 -export([init/1,
          callback_mode/0,
          idle/3,
          exporting/3,
          terminate/3]).
+
+-deprecated({set_exporter, 1, "set through the otel_tracer_provider instead"}).
+-deprecated({set_exporter, 2, "set through the otel_tracer_provider instead"}).
+-deprecated({set_exporter, 3, "set through the otel_tracer_provider instead"}).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("kernel/include/logger.hrl").
@@ -56,37 +63,61 @@
                max_queue_size       :: integer() | infinity,
                exporting_timeout_ms :: integer(),
                check_table_size_ms  :: integer() | infinity,
-               scheduled_delay_ms   :: integer()}).
+               scheduled_delay_ms   :: integer(),
+               table_1              :: atom(),
+               table_2              :: atom(),
+               reg_name             :: atom()}).
 
--define(CURRENT_TABLES_KEY, {?MODULE, current_table}).
--define(TABLE_1, otel_export_table1).
--define(TABLE_2, otel_export_table2).
--define(CURRENT_TABLE, persistent_term:get(?CURRENT_TABLES_KEY)).
+-define(CURRENT_TABLES_KEY(Name), {?MODULE, current_table, Name}).
+
+%% create unique table names to support multiple batch processors at once
+-define(TABLE_NAME(TN), lists:concat([TN, "_", erlang:pid_to_list(self())])).
+-define(TABLE_1, ?REG_NAME(?TABLE_NAME(otel_export_table1))).
+-define(TABLE_2, ?REG_NAME(?TABLE_NAME(otel_export_table2))).
+-define(CURRENT_TABLE(RegName), persistent_term:get(?CURRENT_TABLES_KEY(RegName))).
 
 -define(DEFAULT_MAX_QUEUE_SIZE, 2048).
 -define(DEFAULT_SCHEDULED_DELAY_MS, timer:seconds(5)).
 -define(DEFAULT_EXPORTER_TIMEOUT_MS, timer:minutes(5)).
 -define(DEFAULT_CHECK_TABLE_SIZE_MS, timer:seconds(1)).
 
--define(ENABLED_KEY, {?MODULE, enabled_key}).
+-define(ENABLED_KEY(RegName), {?MODULE, enabled_key, RegName}).
 
 -ifdef(TEST).
--export([current_tab_to_list/0]).
-current_tab_to_list() ->
-    ets:tab2list(?CURRENT_TABLE).
+-export([current_tab_to_list/1]).
+current_tab_to_list(RegName) ->
+    ets:tab2list(?CURRENT_TABLE(RegName)).
 -endif.
 
-start_link(Opts) ->
-    gen_statem:start_link({local, ?MODULE}, ?MODULE, [Opts], []).
+start_link(Config) ->
+    Name = case maps:find(name, Config) of
+               {ok, N} ->
+                   N;
+               error ->
+                   %% use a unique reference to distiguish multiple batch processors while
+                   %% still having a single name, instead of a possibly changing pid, to
+                   %% communicate with the processor
+                   erlang:ref_to_list(erlang:make_ref())
+           end,
 
-%% @equiv set_exporter(Exporter, [])
+    RegisterName = ?REG_NAME(Name),
+    Config1 = Config#{reg_name => RegisterName},
+    {ok, Pid} = gen_statem:start_link({local, RegisterName}, ?MODULE, [Config1], []),
+    {ok, Pid, Config1}.
+
+%% @deprecated Please use {@link otel_tracer_provider}
 set_exporter(Exporter) ->
-    set_exporter(Exporter, []).
+    set_exporter(global, Exporter, []).
 
-%% @doc Sets the batch exporter `Exporter'.
+%% @deprecated Please use {@link otel_tracer_provider}
 -spec set_exporter(module(), term()) -> ok.
 set_exporter(Exporter, Options) ->
-    gen_statem:call(?MODULE, {set_exporter, {Exporter, Options}}).
+    gen_statem:call(?REG_NAME(global), {set_exporter, {Exporter, Options}}).
+
+%% @deprecated Please use {@link otel_tracer_provider}
+-spec set_exporter(atom(), module(), term()) -> ok.
+set_exporter(Name, Exporter, Options) ->
+    gen_statem:call(?REG_NAME(Name), {set_exporter, {Exporter, Options}}).
 
 -spec on_start(otel_ctx:t(), opentelemetry:span(), otel_span_processor:processor_config())
               -> opentelemetry:span().
@@ -97,16 +128,16 @@ on_start(_Ctx, Span, _) ->
             -> true | dropped | {error, invalid_span} | {error, no_export_buffer}.
 on_end(#span{trace_flags=TraceFlags}, _) when not(?IS_SAMPLED(TraceFlags)) ->
     dropped;
-on_end(Span=#span{}, _) ->
-    do_insert(Span);
+on_end(Span=#span{}, #{reg_name := RegName}) ->
+    do_insert(RegName, Span);
 on_end(_Span, _) ->
     {error, invalid_span}.
 
 -spec force_flush(otel_span_processor:processor_config()) -> ok.
-force_flush(_) ->
-    gen_statem:cast(?MODULE, force_flush).
+force_flush(#{reg_name := RegName}) ->
+    gen_statem:cast(RegName, force_flush).
 
-init([Args]) ->
+init([Args=#{reg_name := RegName}]) ->
     process_flag(trap_exit, true),
 
     SizeLimit = maps:get(max_queue_size, Args, ?DEFAULT_MAX_QUEUE_SIZE),
@@ -114,18 +145,28 @@ init([Args]) ->
     ScheduledDelay = maps:get(scheduled_delay_ms, Args, ?DEFAULT_SCHEDULED_DELAY_MS),
     CheckTableSize = maps:get(check_table_size_ms, Args, ?DEFAULT_CHECK_TABLE_SIZE_MS),
 
-    Resource = otel_tracer_provider:resource(),
+    %% TODO: this should be passed in from the tracer server
+    Resource = case maps:find(resource, Args) of
+                   {ok, R} ->
+                       R;
+                   error ->
+                       otel_resource_detector:get_resource()
+               end,
+    %% Resource = otel_tracer_provider:resource(),
 
-    _Tid1 = new_export_table(?TABLE_1),
-    _Tid2 = new_export_table(?TABLE_2),
-    persistent_term:put(?CURRENT_TABLES_KEY, ?TABLE_1),
+    Table1 = ?TABLE_1,
+    Table2 = ?TABLE_2,
+
+    _Tid1 = new_export_table(Table1),
+    _Tid2 = new_export_table(Table2),
+    persistent_term:put(?CURRENT_TABLES_KEY(RegName), Table1),
 
     %% only enable export table if there is going to be an exporter
     case maps:get(exporter, Args, none) of
         ExporterConfig when ExporterConfig =:= none ; ExporterConfig =:= undefined ->
-            disable();
+            disable(RegName);
         ExporterConfig ->
-            enable()
+            enable(RegName)
     end,
 
     {ok, idle, #data{exporter=undefined,
@@ -138,21 +179,26 @@ init([Args]) ->
                                     end,
                      exporting_timeout_ms=ExportingTimeout,
                      check_table_size_ms=CheckTableSize,
-                     scheduled_delay_ms=ScheduledDelay}}.
+                     scheduled_delay_ms=ScheduledDelay,
+                     table_1=Table1,
+                     table_2=Table2,
+                     reg_name=RegName}}.
 
 callback_mode() ->
     [state_functions, state_enter].
 
 idle(enter, _OldState, Data=#data{exporter=undefined,
                                   exporter_config=ExporterConfig,
-                                  scheduled_delay_ms=SendInterval}) ->
-    Exporter = init_exporter(ExporterConfig),
+                                  scheduled_delay_ms=SendInterval,
+                                  reg_name=RegName}) ->
+    Exporter = init_exporter(RegName, ExporterConfig),
     {keep_state, Data#data{exporter=Exporter}, [{{timeout, export_spans}, SendInterval, export_spans}]};
 idle(enter, _OldState, #data{scheduled_delay_ms=SendInterval}) ->
     {keep_state_and_data, [{{timeout, export_spans}, SendInterval, export_spans}]};
 idle(_, export_spans, Data=#data{exporter=undefined,
-                                 exporter_config=ExporterConfig}) ->
-    Exporter = init_exporter(ExporterConfig),
+                                 exporter_config=ExporterConfig,
+                                 reg_name=RegName}) ->
+    Exporter = init_exporter(RegName, ExporterConfig),
     {next_state, exporting, Data#data{exporter=Exporter}};
 idle(_, export_spans, Data) ->
     {next_state, exporting, Data};
@@ -164,12 +210,13 @@ idle(EventType, Event, Data) ->
 %% after
 exporting({timeout, export_spans}, export_spans, _) ->
     {keep_state_and_data, [postpone]};
-exporting(enter, _OldState, #data{exporter=undefined}) ->
+exporting(enter, _OldState, #data{exporter=undefined,
+                                  reg_name=RegName}) ->
     %% exporter still undefined, go back to idle
     %% first empty the table and disable the processor so no more spans are added
     %% we wait until the attempt to export to disable so we don't lose spans
     %% on startup but disable once it is clear an exporter isn't being set
-    clear_table_and_disable(),
+    clear_table_and_disable(RegName),
 
     %% use state timeout to transition to `idle' since we can't set a
     %% new state in an `enter' handler
@@ -223,34 +270,38 @@ handle_event_(_State, _, force_flush, Data) ->
 
 handle_event_(_State, {timeout, check_table_size}, check_table_size, #data{max_queue_size=infinity}) ->
     keep_state_and_data;
-handle_event_(_State, {timeout, check_table_size}, check_table_size, #data{max_queue_size=MaxQueueSize}) ->
-    case ets:info(?CURRENT_TABLE, size) of
+handle_event_(_State, {timeout, check_table_size}, check_table_size, #data{max_queue_size=MaxQueueSize,
+                                                                           reg_name=RegName}) ->
+    case ets:info(?CURRENT_TABLE(RegName), size) of
         M when M >= MaxQueueSize ->
-            disable(),
+            disable(RegName),
             keep_state_and_data;
         _ ->
-            enable(),
+            enable(RegName),
             keep_state_and_data
     end;
-handle_event_(_, {call, From}, {set_exporter, ExporterConfig}, Data=#data{exporter=OldExporter}) ->
+handle_event_(_, {call, From}, {set_exporter, ExporterConfig}, Data=#data{exporter=OldExporter,
+                                                                          reg_name=RegName}) ->
     otel_exporter:shutdown(OldExporter),
 
     %% enable immediately or else spans will be dropped for a period even after this call returns
-    enable(),
+    enable(RegName),
 
     {keep_state, Data#data{exporter=undefined,
                            exporter_config=ExporterConfig}, [{reply, From, ok},
                                                              {next_event, internal, init_exporter}]};
 handle_event_(_, internal, init_exporter, Data=#data{exporter=undefined,
-                                                     exporter_config=ExporterConfig}) ->
-    Exporter = init_exporter(ExporterConfig),
+                                                     exporter_config=ExporterConfig,
+                                                     reg_name=RegName}) ->
+    Exporter = init_exporter(RegName, ExporterConfig),
     {keep_state, Data#data{exporter=Exporter}};
 handle_event_(_, _, _, _) ->
     keep_state_and_data.
 
 terminate(_Reason, _State, #data{exporter=Exporter,
-                                 resource=Resource}) ->
-    CurrentTable = ?CURRENT_TABLE,
+                                 resource=Resource,
+                                 reg_name=RegName}) ->
+    CurrentTable = ?CURRENT_TABLE(RegName),
 
     %% `export' is used to perform a blocking export
     _ = export(Exporter, Resource, CurrentTable),
@@ -259,37 +310,37 @@ terminate(_Reason, _State, #data{exporter=Exporter,
 
 %%
 
-init_exporter(ExporterConfig) ->
+init_exporter(RegName, ExporterConfig) ->
     case otel_exporter:init(ExporterConfig) of
         Exporter when Exporter =/= undefined andalso Exporter =/= none ->
-            enable(),
+            enable(RegName),
             Exporter;
         _ ->
             %% exporter is undefined/none
             %% disable the insertion of new spans and delete the current table
-            clear_table_and_disable(),
+            clear_table_and_disable(RegName),
             undefined
     end.
 
-clear_table_and_disable() ->
-    disable(),
-    ets:delete(?CURRENT_TABLE),
-    new_export_table(?CURRENT_TABLE).
+clear_table_and_disable(RegName) ->
+    disable(RegName),
+    ets:delete(?CURRENT_TABLE(RegName)),
+    new_export_table(?CURRENT_TABLE(RegName)).
 
-enable()->
-    persistent_term:put(?ENABLED_KEY, true).
+enable(RegName)->
+    persistent_term:put(?ENABLED_KEY(RegName), true).
 
-disable() ->
-    persistent_term:put(?ENABLED_KEY, false).
+disable(RegName) ->
+    persistent_term:put(?ENABLED_KEY(RegName), false).
 
-is_enabled() ->
-    persistent_term:get(?ENABLED_KEY, true).
+is_enabled(RegName) ->
+    persistent_term:get(?ENABLED_KEY(RegName), true).
 
-do_insert(Span) ->
+do_insert(RegName, Span) ->
     try
-        case is_enabled() of
+        case is_enabled(RegName) of
             true ->
-                ets:insert(?CURRENT_TABLE, Span);
+                ets:insert(?CURRENT_TABLE(RegName), Span);
             _ ->
                 dropped
         end
@@ -327,24 +378,27 @@ new_export_table(Name) ->
                     {keypos, #span.instrumentation_scope}]).
 
 export_spans(#data{exporter=Exporter,
-                   resource=Resource}) ->
-    CurrentTable = ?CURRENT_TABLE,
+                   resource=Resource,
+                   table_1=Table1,
+                   table_2=Table2,
+                   reg_name=RegName}) ->
+    CurrentTable = ?CURRENT_TABLE(RegName),
     case ets:info(CurrentTable, size) of
         0 ->
             %% nothing to do if the table is empty
             ok;
         _ ->
             NewCurrentTable = case CurrentTable of
-                                  ?TABLE_1 ->
-                                      ?TABLE_2;
-                                  ?TABLE_2 ->
-                                      ?TABLE_1
+                                  Table1 ->
+                                      Table2;
+                                  Table2 ->
+                                      Table2
                               end,
 
             %% an atom is a single word so this does not trigger a global GC
-            persistent_term:put(?CURRENT_TABLES_KEY, NewCurrentTable),
+            persistent_term:put(?CURRENT_TABLES_KEY(RegName), NewCurrentTable),
             %% set the table to accept inserts
-            enable(),
+            enable(RegName),
 
             Self = self(),
             RunnerPid = erlang:spawn_link(fun() -> send_spans(Self, Resource, Exporter) end),
@@ -352,14 +406,11 @@ export_spans(#data{exporter=Exporter,
             {CurrentTable, RunnerPid}
     end.
 
-%% Additional benefit of using a separate process is calls to `register` won't
-%% timeout if the actual exporting takes longer than the call timeout
 send_spans(FromPid, Resource, Exporter) ->
     receive
         {'ETS-TRANSFER', Table, FromPid, export} ->
-            TableName = ets:rename(Table, current_send_table),
-            export(Exporter, Resource, TableName),
-            ets:delete(TableName),
+            export(Exporter, Resource, Table),
+            ets:delete(Table),
             completed(FromPid)
     end.
 

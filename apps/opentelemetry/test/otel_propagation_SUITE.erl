@@ -26,7 +26,8 @@ groups() ->
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
+    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1,
+                                                                             exporter => none}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config.
 
