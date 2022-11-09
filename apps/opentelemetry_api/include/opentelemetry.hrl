@@ -13,6 +13,12 @@
 %% limitations under the License.
 %%%------------------------------------------------------------------------
 
+%% convert 2 strings (one meant to be like a namspace and the other a unique name)
+%% to an atom for use registering a process
+-define(REG_NAME(Name), list_to_atom(lists:concat([?MODULE, "_", Name]))).
+-define(GLOBAL_TRACER_PROVIDER_NAME, global).
+-define(GLOBAL_TRACER_PROVIDER_REG_NAME, otel_tracer_provider_global).
+
 %% These records are based on protos found in the opentelemetry-proto repo:
 %% src/opentelemetry/proto/trace/v1/trace.proto
 %% They are not exact translations because further processing is done after

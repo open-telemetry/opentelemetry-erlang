@@ -23,13 +23,14 @@
 
 -behaviour(gen_server).
 
--export([start_link/1]).
+-export([start_link/4]).
 
 -export([init/1,
          handle_call/3,
          handle_cast/2,
          code_change/1]).
 
+-include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_tracer.hrl").
 -include("otel_span.hrl").
@@ -41,42 +42,51 @@
         {
          %% the tracer configuration shared between all named
          %% tracers created by this provider
-         shared_tracer :: tracer(),
+         shared_tracer :: tracer() | undefined,
+         id_generator :: module(),
          processors :: [module()],
          sampler :: otel_sampler:t(),
          resource :: otel_resource:t(),
+
+         span_processor_sup :: atom(),
 
          %% list of tracer names to return noop tracers for
          deny_list :: [atom() | {atom(), string()}]
         }).
 
--spec start_link(otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
-start_link(Config) ->
-    gen_server:start_link({local, otel_tracer_provider}, ?MODULE, Config, []).
+-spec start_link(atom(), atom(), atom(), otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
+start_link(Name, RegName, SpanProcessorSupRegName, Config) ->
+    gen_server:start_link({local, RegName}, ?MODULE, [Name, SpanProcessorSupRegName, Config], []).
 
-init(#{id_generator := IdGeneratorModule,
-       sampler := SamplerSpec,
-       processors := Processors,
-       deny_list := DenyList}) ->
+init([Name, SpanProcessorSup, #{id_generator := IdGeneratorModule,
+                                sampler := SamplerSpec,
+                                processors := Processors,
+                                deny_list := DenyList}]) ->
     Resource = otel_resource_detector:get_resource(),
 
     Sampler = otel_sampler:new(SamplerSpec),
 
+    Processors1 = init_processors(SpanProcessorSup, Processors),
+
     Tracer = #tracer{module=otel_tracer_default,
                      sampler=Sampler,
-                     on_start_processors=on_start(Processors),
-                     on_end_processors=on_end(Processors),
+                     on_start_processors=on_start(Processors1),
+                     on_end_processors=on_end(Processors1),
                      id_generator=IdGeneratorModule},
-    opentelemetry:set_default_tracer({otel_tracer_default, Tracer}),
+    opentelemetry:set_default_tracer(Name, {otel_tracer_default, Tracer}),
 
-    {ok, #state{shared_tracer=Tracer,
+    {ok, #state{id_generator=IdGeneratorModule,
                 resource=Resource,
                 sampler=Sampler,
                 deny_list=DenyList,
-                processors=Processors}}.
+                shared_tracer=Tracer,
+                span_processor_sup=SpanProcessorSup,
+                processors=Processors1}}.
 
 handle_call(resource, _From, State=#state{resource=Resource}) ->
     {reply, Resource, State};
+handle_call({get_tracer, _Name, _Vsn, _SchemaUrl}, _From, State=#state{shared_tracer=undefined}) ->
+    {reply, {otel_tracer_noop, []}, State};
 handle_call({get_tracer, Name, Vsn, SchemaUrl}, _From, State=#state{shared_tracer=Tracer,
                                                                     deny_list=DenyList}) ->
     %% TODO: support semver constraints in denylist
@@ -90,7 +100,7 @@ handle_call({get_tracer, Name, Vsn, SchemaUrl}, _From, State=#state{shared_trace
             {reply, TracerTuple, State}
     end;
 handle_call({get_tracer, InstrumentationScope}, _From, State=#state{shared_tracer=Tracer,
-                                                                      deny_list=_DenyList}) ->
+                                                                    deny_list=_DenyList}) ->
     {reply, {Tracer#tracer.module,
              Tracer#tracer{instrumentation_scope=InstrumentationScope}}, State};
 handle_call(force_flush, _From, State=#state{processors=Processors}) ->
@@ -117,6 +127,51 @@ update_force_flush_error(Reason, ok) ->
 update_force_flush_error(Reason, {error, List}) ->
     {error, [Reason | List]}.
 
+%% TODO: remove after a period of deprecation for processor `set_exporter' functions
+%% This is a hack that makes it so there is a known name for the processor if there
+%% is only one, like was once guaranteed. This allows functions like `set_exporter'
+%% to work. But if there is more than one processor defined or it isn't one of the
+%% builtin processors we will not do this hack of adding a name to the config.
+init_processors(SpanProcessorSup, [{P, Config}]) when P =:= otel_batch_processor ;
+                                                      P =:= otel_simple_processor ->
+    case init_processor(SpanProcessorSup, P, maps:merge(#{name => global}, Config)) of
+        {true, {_, _}=Processor} ->
+            [Processor];
+        _ ->
+            []
+    end;
+init_processors(SpanProcessorSup, Processors) ->
+    init_processors_(SpanProcessorSup, Processors).
+
+init_processors_(_SpanProcessorSup, []) ->
+    [];
+init_processors_(SpanProcessorSup, [{P, Config} | Rest]) ->
+    case init_processor(SpanProcessorSup, P, Config) of
+        {true, {_, _}=Processor} ->
+            [Processor | init_processors_(SpanProcessorSup, Rest)];
+        _ ->
+            init_processors_(SpanProcessorSup, Rest)
+    end.
+
+init_processor(SpanProcessorSup, ProcessorModule, Config) ->
+    %% start_link is an optional callback for processors
+    case lists:member({start_link, 1}, ProcessorModule:module_info(exports)) of
+        true ->
+            try supervisor:start_child(SpanProcessorSup, [ProcessorModule, Config]) of
+                {ok, _Pid, Config1} ->
+                    {true, {ProcessorModule, Config1}};
+                {error, Reason} ->
+                    ?LOG_INFO("Dropping span processor ~p because `processor_init/1` failed ~p", [ProcessorModule, Reason]),
+                    false
+            catch
+                C:T:S ->
+                    ?LOG_DEBUG("Dropping span processor ~p because `processor_init/1` threw an exception ~p:~p:~p", [ProcessorModule, C, T, S]),
+                    ?LOG_INFO("Dropping span processor ~p because `processor_init/1` threw an exception ~p:~p", [ProcessorModule, C, T]),
+                    false
+            end;
+        false ->
+            {true, {ProcessorModule, Config}}
+    end.
 
 on_start(Processors) ->
     fun(Ctx, Span) ->
@@ -128,7 +183,7 @@ on_start(Processors) ->
 on_end(Processors) ->
     fun(Span) ->
             lists:foldl(fun({P, Config}, Bool) ->
-                                Bool andalso P:on_end(Span, Config)
+                                Bool andalso P:on_end(Span, Config) =:= true
                         end, true, Processors)
     end.
 

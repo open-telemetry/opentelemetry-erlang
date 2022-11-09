@@ -25,6 +25,8 @@
 
 -define(SERVER, ?MODULE).
 
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
+
 start_link(Opts) ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, [Opts]).
 
@@ -40,30 +42,12 @@ init([Opts]) ->
                    type => worker,
                    modules => [otel_resource_detector]},
 
-    %% configuration server
-    TracerServer = #{id => otel_tracer_server,
-                     start => {otel_tracer_server, start_link, [Opts]},
-                     restart => permanent,
-                     shutdown => 5000,
-                     type => worker,
-                     modules => [otel_tracer_provider, otel_tracer_server]},
-
-    Processors = maps:get(processors, Opts),
-    BatchProcessorOpts = proplists:get_value(otel_batch_processor, Processors, #{}),
-    BatchProcessor = #{id => otel_batch_processor,
-                       start => {otel_batch_processor, start_link, [BatchProcessorOpts]},
-                       restart => permanent,
-                       shutdown => 5000,
-                       type => worker,
-                       modules => [otel_batch_processor]},
-
-    SimpleProcessorOpts = proplists:get_value(otel_simple_processor, Processors, #{}),
-    SimpleProcessor = #{id => otel_simple_processor,
-                       start => {otel_simple_processor, start_link, [SimpleProcessorOpts]},
-                       restart => permanent,
-                       shutdown => 5000,
-                       type => worker,
-                       modules => [otel_simple_processor]},
+    TracerProviderSup = #{id => otel_tracer_provider_sup,
+                          start => {otel_tracer_provider_sup, start_link, []},
+                          restart => permanent,
+                          shutdown => 5000,
+                          type => supervisor,
+                          modules => [otel_tracer_provider_sup]},
 
     SpanSup = #{id => otel_span_sup,
                 start => {otel_span_sup, start_link, [Opts]},
@@ -72,10 +56,8 @@ init([Opts]) ->
                 shutdown => infinity,
                 modules => [otel_span_sup]},
 
-    %% SpanSup should be the last to shutdown so the ETS table lives until the end
-    %% `TracerServer' *must* start before the `BatchProcessor'
-    %% `BatchProcessor' relies on getting the `Resource' from
+    %% `SpanSup' should be the last to shutdown so the ETS table lives until the end
     %% the `TracerServer' process
-    ChildSpecs = [SpanSup, Detectors, TracerServer, BatchProcessor, SimpleProcessor],
+    ChildSpecs = [SpanSup, Detectors, TracerProviderSup],
 
     {ok, {SupFlags, ChildSpecs}}.

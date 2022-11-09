@@ -177,11 +177,13 @@ merge_processor_config(otel_batch_processor, Opts, ConfigMap, AppEnv) ->
                        {bsp_exporting_timeout_ms, exporting_timeout_ms},
                        {bsp_max_queue_size, max_queue_size},
                        {traces_exporter, exporter}],
-    merge_processor_config_(BatchEnvMapping, Opts, ConfigMap, AppEnv);
+    maps:merge(?BATCH_PROCESSOR_DEFAULTS,
+               merge_processor_config_(BatchEnvMapping, Opts, ConfigMap, AppEnv));
 merge_processor_config(otel_simple_processor, Opts, ConfigMap, AppEnv) ->
     SimpleEnvMapping = [{ssp_exporting_timeout_ms, exporting_timeout_ms},
                         {traces_exporter, exporter}],
-    merge_processor_config_(SimpleEnvMapping, Opts, ConfigMap, AppEnv);
+    maps:merge(?SIMPLE_PROCESSOR_DEFAULTS,
+               merge_processor_config_(SimpleEnvMapping, Opts, ConfigMap, AppEnv));
 merge_processor_config(_, Opts, _, _) ->
     Opts.
 

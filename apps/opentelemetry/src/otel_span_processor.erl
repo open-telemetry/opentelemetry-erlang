@@ -17,11 +17,13 @@
 %%%-------------------------------------------------------------------------
 -module(otel_span_processor).
 
--export([]).
+-export([start_link/2]).
 
 -type processor_config() :: term().
 
 -export_type([processor_config/0]).
+
+-callback processor_init(pid(), processor_config()) -> processor_config().
 
 -callback on_start(otel_ctx:t(), opentelemetry:span(), processor_config()) -> opentelemetry:span().
 -callback on_end(opentelemetry:span(), processor_config()) -> true |
@@ -30,3 +32,15 @@
                                                               {error, no_export_buffer}.
 -callback force_flush(processor_config()) -> ok |
                                              {error, term()}.
+
+-optional_callbacks([processor_init/2]).
+
+start_link(Module, Config) ->
+    case Module:start_link(Config) of
+        {ok, Pid} ->
+            {ok, Pid, Config};
+        {ok, Pid, Config1} ->
+            {ok, Pid, Config1};
+        {error, _}=Error ->
+            Error
+    end.
