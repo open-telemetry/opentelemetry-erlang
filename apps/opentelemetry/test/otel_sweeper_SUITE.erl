@@ -28,6 +28,7 @@ init_per_suite(Config) ->
 
 end_per_suite(_Config) ->
     application:unload(opentelemetry),
+    application:stop(opentelemetry),
     ok.
 
 init_per_testcase(storage_size, Config) ->
@@ -36,20 +37,19 @@ init_per_testcase(storage_size, Config) ->
                                                   span_ttl => 500,
                                                   storage_size => 100}),
     application:set_env(opentelemetry, tracer, otel_tracer_default),
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
+    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1,
+                                                                            exporter => {otel_exporter_pid, self()}}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
 
-    otel_batch_processor:set_exporter(otel_exporter_pid, self()),
     Config;
 init_per_testcase(Type, Config) ->
     application:set_env(opentelemetry, sweeper, #{interval => 250,
                                                   strategy => Type,
                                                   span_ttl => 500}),
     application:set_env(opentelemetry, tracer, otel_tracer_default),
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
+    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1,
+                                                                             exporter => {otel_exporter_pid, self()}}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
-
-    otel_batch_processor:set_exporter(otel_exporter_pid, self()),
 
     Config.
 

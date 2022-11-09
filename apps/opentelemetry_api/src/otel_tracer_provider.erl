@@ -21,11 +21,20 @@
 %%%-------------------------------------------------------------------------
 -module(otel_tracer_provider).
 
--export([get_tracer/3,
+-export([start/2,
+         get_tracer/3,
+         get_tracer/4,
          resource/0,
          resource/1,
          force_flush/0,
          force_flush/1]).
+
+-include("opentelemetry.hrl").
+
+start(Name, Config) ->
+    %% SDK must register a simple one for one supervisor of tracer providers
+    %% under the name `otel_tracer_provider_sup'
+    supervisor:start_child(otel_tracer_provider_sup, [Name, Config]).
 
 -spec get_tracer(Name, Vsn, SchemaUrl) -> Tracer when
       Name :: atom(),
@@ -33,17 +42,19 @@
       SchemaUrl :: uri_string:uri_string() | undefined,
       Tracer:: opentelemetry:tracer().
 get_tracer(Name, Vsn, SchemaUrl) ->
-    get_tracer(?MODULE, Name, Vsn, SchemaUrl).
+    get_tracer(?GLOBAL_TRACER_PROVIDER_NAME, Name, Vsn, SchemaUrl).
 
 -spec get_tracer(ServerRef, Name, Vsn, SchemaUrl) -> Tracer when
-      ServerRef :: atom() | pid(),
+      ServerRef :: atom() | pid() | string(),
       Name :: atom(),
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
       Tracer:: opentelemetry:tracer().
 get_tracer(ServerRef, Name, Vsn, SchemaUrl) ->
     try
-        gen_server:call(ServerRef, {get_tracer, Name, Vsn, SchemaUrl})
+        %% update atom name to the registered name
+        Server = maybe_to_reg_name(ServerRef),
+        gen_server:call(Server, {get_tracer, Name, Vsn, SchemaUrl})
     catch exit:{noproc, _} ->
             %% ignore get_tracer because no SDK has been included and started
             {otel_tracer_noop, []}
@@ -51,12 +62,13 @@ get_tracer(ServerRef, Name, Vsn, SchemaUrl) ->
 
 -spec resource() -> term() | undefined.
 resource() ->
-    resource(?MODULE).
+    resource(?GLOBAL_TRACER_PROVIDER_NAME).
 
--spec resource(atom() | pid()) -> term() | undefined.
+-spec resource(atom() | pid() | string()) -> term() | undefined.
 resource(ServerRef) ->
     try
-        gen_server:call(ServerRef, resource)
+        Server = maybe_to_reg_name(ServerRef),
+        gen_server:call(Server, resource)
     catch exit:{noproc, _} ->
             %% ignore because no SDK has been included and started
             undefined
@@ -64,13 +76,23 @@ resource(ServerRef) ->
 
 -spec force_flush() -> ok | {error, term()} | timeout.
 force_flush() ->
-    force_flush(?MODULE).
+    force_flush(?GLOBAL_TRACER_PROVIDER_NAME).
 
 -spec force_flush(atom() | pid()) -> ok | {error, term()} | timeout.
 force_flush(ServerRef) ->
     try
-        gen_server:call(ServerRef, force_flush)
+        Server = maybe_to_reg_name(ServerRef),
+        gen_server:call(Server, force_flush)
     catch exit:{noproc, _} ->
             %% ignore because likely no SDK has been included and started
             ok
     end.
+
+%%
+
+maybe_to_reg_name(Name) when is_atom(Name) ->
+    ?REG_NAME(Name);
+maybe_to_reg_name(Pid) when is_pid(Pid) ->
+    Pid;
+maybe_to_reg_name(Other) ->
+    Other.
