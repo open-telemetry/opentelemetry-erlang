@@ -176,15 +176,16 @@ it is included the override is necessary.
 Running benchmarks is done with [benchee](https://github.com/bencheeorg/benchee). Benchmark functions are in modules under `samples/`. To run them open a rebar3 shell in the `bench` profile:
 
 ``` shell
-$ rebar3 as bench compile
+$ rebar3 as bench shell
 
 > otel_benchmarks:run().
 ```
 
-If an Elixir script is wanted for the benchmarks they could be run like:
+If an Elixir script is wanted for the benchmarks they could be run like (after
+running `rebar3 as bench compile`):
 
 ``` shell
-$ ERL_LIBS=_build/bench/lib/ mix run --no-mix-exs samples/run.exs
+$ ERL_AFLAGS="-pa ./_build/bench/extras/samples/" ERL_LIBS=_build/bench/lib/ mix run --no-mix-exs samples/run.exs
 ```
 
 ## W3C Trace Context Interop Tests
