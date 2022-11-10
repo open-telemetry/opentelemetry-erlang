@@ -18,3 +18,12 @@ You can then use the macros for the attribute keys:
 ```
 ?DB_CONNECTION_STRING
 ```
+
+### Elixir
+
+You could also use `OpenTelemetry.SemanticConventions.Logs`, `OpenTelemetry.SemanticConventions.Resource` or
+`OpenTelemetry.SemanticConventions.Trace` modules.
+
+    iex> require OpenTelemetry.SemanticConventions.Logs
+    ...> OpenTelemetry.SemanticConventions.Logs.event_name()
+    :"event.name"
