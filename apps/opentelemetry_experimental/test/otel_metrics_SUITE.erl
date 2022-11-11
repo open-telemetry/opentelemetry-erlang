@@ -92,16 +92,14 @@ init_per_testcase(multiple_readers, Config) ->
     application:load(opentelemetry_experimental),
     ok = application:set_env(opentelemetry_experimental, readers, [#{id => ReaderId,
                                                                      module => otel_metric_reader,
-                                                                     config => #{}},
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()}}},
                                                                    #{id => DropReaderId,
                                                                      module => otel_metric_reader,
-                                                                     config => #{default_aggregation_mapping =>
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_aggregation_mapping =>
                                                                                      #{?KIND_COUNTER => otel_aggregation_drop}}}]),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
-
-    ?assertEqual(ok, otel_metric_reader:set_exporter(ReaderId, otel_metric_exporter_pid, self())),
-    ?assertEqual(ok, otel_metric_reader:set_exporter(DropReaderId, otel_metric_exporter_pid, self())),
 
     [{reader_id, ReaderId} | Config];
 init_per_testcase(cumulative_counter, Config) ->
@@ -110,12 +108,11 @@ init_per_testcase(cumulative_counter, Config) ->
     application:load(opentelemetry_experimental),
     ok = application:set_env(opentelemetry_experimental, readers, [#{id => ReaderId,
                                                                      module => otel_metric_reader,
-                                                                     config => #{default_temporality_mapping =>
-                                                               CumulativeCounterTemporality}}]),
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping =>
+                                                                                     CumulativeCounterTemporality}}]),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
-
-    ?assertEqual(ok, otel_metric_reader:set_exporter(ReaderId, otel_metric_exporter_pid, self())),
 
     [{reader_id, ReaderId} | Config];
 init_per_testcase(delta_explicit_histograms, Config) ->
@@ -124,12 +121,11 @@ init_per_testcase(delta_explicit_histograms, Config) ->
     application:load(opentelemetry_experimental),
     ok = application:set_env(opentelemetry_experimental, readers, [#{id => ReaderId,
                                                                      module => otel_metric_reader,
-                                                                     config => #{default_temporality_mapping =>
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping =>
                                                                                      DeltaHistogramTemporality}}]),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
-
-    ?assertEqual(ok, otel_metric_reader:set_exporter(ReaderId, otel_metric_exporter_pid, self())),
 
     [{reader_id, ReaderId} | Config];
 init_per_testcase(_, Config) ->
@@ -137,11 +133,10 @@ init_per_testcase(_, Config) ->
     application:load(opentelemetry_experimental),
     ok = application:set_env(opentelemetry_experimental, readers, [#{id => ReaderId,
                                                                      module => otel_metric_reader,
-                                                                     config => #{}}]),
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()}}}]),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
-    ?assertEqual(ok, otel_metric_reader:set_exporter(ReaderId, otel_metric_exporter_pid, self())),
 
     [{reader_id, ReaderId} | Config].
 
@@ -490,6 +485,7 @@ cumulative_counter(_Config) ->
     ?assertSumReceive(a_counter, <<"counter description">>, kb, [{6, #{<<"c">> => <<"b">>}}]),
 
     ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
+
     ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 7, #{<<"c">> => <<"b">>})),
 
@@ -522,23 +518,32 @@ kill_reader(Config) ->
                              value_type = ValueType,
                              unit = CounterUnit}, Counter),
 
-    ?assertEqual(ok, otel_metric_reader:set_exporter(ReaderId, otel_metric_exporter_pid, self())),
+    %% ?assertEqual(ok, otel_metric_reader:set_exporter(ReaderId, otel_metric_exporter_pid, self())),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
 
-    erlang:exit(erlang:whereis(my_reader_id), kill),
+    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
 
-    %% have to set the exporter again since it wasn't part of the original config
-    %% `my_reader_id' may not be up yet so keep trying until this succeeds
-    ?UNTIL(ok =:= otel_metric_reader:set_exporter(my_reader_id, otel_metric_exporter_pid, self())),
+    ?assertSumReceive(z_counter, <<"counter description">>, kb, [{3, #{<<"c">> => <<"b">>}}]),
+
+    [{_, ProviderSupPid, _, _}] = supervisor:which_children(otel_meter_provider_sup),
+    {_, ReaderSup, _, _} = lists:keyfind(otel_metric_reader_sup, 1, supervisor:which_children(ProviderSupPid)),
+
+    [ReaderPid] = [Pid || {_, Pid, _, _} <- supervisor:which_children(ReaderSup)],
+    erlang:exit(ReaderPid, kill),
+
+    %% loop until a new reader has started
+    ?UNTIL([Pid || {_, Pid, _, _} <- supervisor:which_children(ReaderSup),
+                   Pid =/= ReaderPid] =/= []),
 
     ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
 
-    ?assertSumReceive(z_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
+    %% for now the tables are lost when a reader crashes, so the counter resets
+    ?assertSumReceive(z_counter, <<"counter description">>, kb, [{9, #{<<"c">> => <<"b">>}}]),
 
     ok.
 

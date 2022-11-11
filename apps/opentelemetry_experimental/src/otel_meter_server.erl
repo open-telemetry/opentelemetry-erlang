@@ -35,6 +35,8 @@
 -behaviour(gen_server).
 
 -export([start_link/1,
+         start_link/2,
+         add_metric_reader/7,
          callbacks_table_name/1,
          view_aggregation_table_name/1,
          metrics_table_name/1,
@@ -67,6 +69,8 @@
 -record(reader,
         {
          child_id :: atom(),
+         pid                         :: pid(),
+         monitor_ref                 :: reference(),
          module                      :: module(),
          config                      :: term(),
          callbacks_tab               :: ets:tid() | atom(),
@@ -100,6 +104,11 @@ start_link(Provider, Config) ->
 add_instrument(Provider, Instrument) ->
     gen_server:call(Provider, {add_instrument, Instrument}).
 
+add_metric_reader(Provider, ReaderPid, DefaultAggregationMapping, Temporality,
+                  ViewAggregationTable, CallbacksTable, MetricsTable) ->
+    gen_server:call(Provider, {add_metric_reader, ReaderPid, DefaultAggregationMapping, Temporality,
+                               ViewAggregationTable, CallbacksTable, MetricsTable}).
+
 -spec register_callback(atom(), [otel_instrument:t()], otel_instrument:callback(), term()) -> boolean().
 register_callback(Provider, Instruments, Callback, CallbackArgs) ->
     gen_server:call(Provider, {register_callback, Instruments, Callback, CallbackArgs}).
@@ -130,7 +139,7 @@ metrics_table_name(ChildId) ->
 force_flush(Provider) ->
     gen_server:call(Provider, force_flush).
 
-init([Name, Config]) ->
+init([Name, _Config]) ->
     Resource = otel_resource_detector:get_resource(),
 
     Meter = #meter{module=otel_meter_default,
@@ -138,13 +147,16 @@ init([Name, Config]) ->
 
     opentelemetry_experimental:set_default_meter({otel_meter_default, Meter}),
 
-    Readers = add_metric_readers(Config),
-
     {ok, #state{shared_meter=Meter,
                 views=[],
-                readers=Readers,
+                readers=[],
                 resource=Resource}}.
 
+handle_call({add_metric_reader, ReaderPid, DefaultAggregationMapping, Temporality,
+             ViewAggregationTable, CallbacksTable, MetricsTable}, _From, State=#state{readers=Readers}) ->
+
+    {reply, ok, State#state{readers=[metric_reader(ReaderPid, DefaultAggregationMapping, Temporality,
+                                                   ViewAggregationTable, CallbacksTable, MetricsTable) | Readers]}};
 handle_call({record, Measurement}, _From, State=#state{readers=Readers,
                                                        views=Views}) ->
     handle_measurement(Measurement, Readers, Views),
@@ -172,7 +184,7 @@ handle_call({add_view, Name, Criteria, Config}, _From, State=#state{views=Views}
     View = otel_view:new(Name, Criteria, Config),
     {reply, true, State#state{views=[View | Views]}};
 handle_call(force_flush, _From, State=#state{readers=Readers}) ->
-    [otel_metric_reader:collect(ChildId) || #reader{child_id=ChildId} <- Readers],
+    [otel_metric_reader:collect(Pid) || #reader{pid=Pid} <- Readers],
     {reply, ok, State}.
 
 handle_cast({record, Measurement}, State=#state{readers=Readers,
@@ -180,6 +192,8 @@ handle_cast({record, Measurement}, State=#state{readers=Readers,
     handle_measurement(Measurement, Readers, Views),
     {noreply, State}.
 
+handle_info({'DOWN_READER', Ref, process, _Pid, _} , State=#state{readers=Readers}) ->
+    {noreply, State#state{readers=lists:keydelete(Ref, #reader.monitor_ref, Readers)}};
 handle_info(_, State) ->
     {noreply, State}.
 
@@ -215,28 +229,17 @@ register_callback_(Instruments, Callback, CallbackArgs, Views, Readers) ->
                                 end, Readers)
               end, Instruments).
 
-add_metric_readers(Config) ->
-    ReaderConfigs = maps:get(readers, Config, []),
-    [metric_reader(ChildId, ReaderModule, ReaderConfig) ||
-        #{id := ChildId, module := ReaderModule, config := ReaderConfig} <- ReaderConfigs].
-
-metric_reader(ChildId, ReaderModule, ReaderConfig) ->
-    CallbacksTableName = callbacks_table_name(ChildId),
-    ViewAggregationTableName = view_aggregation_table_name(ChildId),
-    MetricsTableName = metrics_table_name(ChildId),
-
-    CallbacksTable = ets:new(CallbacksTableName, [bag, protected, named_table, {keypos, 1}]),
-    ViewAggregationTable = ets:new(ViewAggregationTableName, [set, protected, named_table, {keypos, 1}]),
-    MetricsTable = ets:new(MetricsTableName, [set, public, named_table, {keypos, 2}]),
+metric_reader(ReaderPid, DefaultAggregationMapping, Temporality,
+              ViewAggregationTable, CallbacksTable, MetricsTable) ->
+    Ref = erlang:monitor(process, ReaderPid, [{tag, 'DOWN_READER'}]),
 
     ReaderAggregationMapping = maps:merge(otel_aggregation:default_mapping(),
-                                          maps:get(default_aggregation_mapping, ReaderConfig, #{})),
+                                          DefaultAggregationMapping),
     ReaderTemporalityMapping = maps:merge(otel_aggregation:temporality_mapping(),
-                                          maps:get(default_temporality_mapping, ReaderConfig, #{})),
+                                          Temporality),
 
-    #reader{child_id=ChildId,
-            module=ReaderModule,
-            config=ReaderConfig,
+    #reader{pid=ReaderPid,
+            monitor_ref=Ref,
             callbacks_tab=CallbacksTable,
             view_aggregation_tab=ViewAggregationTable,
             metrics_tab=MetricsTable,
@@ -254,7 +257,7 @@ handle_measurement(Measurement=#measurement{instrument=Instrument},
                    Views) ->
     ViewMatches = otel_view:match_instrument_to_views(Instrument, Views),
     lists:map(fun(Reader=#reader{view_aggregation_tab=ViewAggregationTab}) ->
-                      case ets:lookup(ViewAggregationTab, Instrument) of
+                      try ets:lookup(ViewAggregationTab, Instrument) of
                           [] ->
                               %% this instrument hasn't been seen before
                               Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
@@ -263,6 +266,11 @@ handle_measurement(Measurement=#measurement{instrument=Instrument},
                           [{_, Matches}] ->
                               %% TODO: matches need to be  updated when a new view is added
                               update_aggregations(Measurement, Reader, Matches)
+                      catch
+                          %% table doesn't exist, Reader may have crashed and be still
+                          %% waiting on the DOWN message from the monitor
+                          exit:badarg ->
+                              Reader
                       end
               end, Readers).
 

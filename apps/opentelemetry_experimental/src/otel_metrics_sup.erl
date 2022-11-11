@@ -19,35 +19,30 @@
 
 -behaviour(supervisor).
 
--export([start_link/1]).
+-export([start_link/0,
+         start_child/1]).
 
 -export([init/1]).
 
 -define(SERVER, ?MODULE).
 
-start_link(Opts) ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, [Opts]).
+start_link() ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
-init([Opts]) ->
+start_child(Opts) ->
+    supervisor:start_child(?SERVER, [Opts]).
+
+init([]) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 1,
                  period => 5},
 
-    ProviderShutdownTimeout = maps:get(meter_provider_shutdown_timeout, Opts, 5000),
-
-    MetricReaderSup = #{id => otel_metric_reader_sup,
-                        start => {otel_metric_reader_sup, start_link, [Opts]},
-                        restart => permanent,
-                        shutdown => infinity,
-                        type => supervisor,
-                        modules => [otel_metric_reader_sup]},
-
-    MeterServer = #{id => otel_meter_server,
-                    start => {otel_meter_server, start_link, [Opts]},
+    MeterServer = #{id => otel_meter_provider_sup,
+                    start => {otel_meter_provider_sup, start_link, []},
                     restart => permanent,
-                    shutdown => ProviderShutdownTimeout,
-                    type => worker,
-                    modules => [otel_meter_provider, otel_meter_server]},
+                    shutdown => infinity,
+                    type => supervisor,
+                    modules => [otel_meter_provider_sup]},
 
-    ChildSpecs = [MeterServer, MetricReaderSup],
+    ChildSpecs = [MeterServer],
     {ok, {SupFlags, ChildSpecs}}.

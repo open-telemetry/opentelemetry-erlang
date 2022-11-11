@@ -15,31 +15,32 @@
 %% @doc
 %% @end
 %%%-------------------------------------------------------------------------
--module(otel_metric_reader_sup).
+-module(otel_meter_provider_sup).
 
 -behaviour(supervisor).
 
--export([start_link/2]).
+-export([start_link/0,
+         start_child/2]).
 
 -export([init/1]).
 
 -define(SERVER, ?MODULE).
 
-start_link(ProviderSup, Opts) ->
-    supervisor:start_link(?MODULE, [ProviderSup, Opts]).
+start_link() ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
-init([ProviderSup, Opts]) ->
-    Readers = maps:get(readers, Opts, []),
+start_child(Name, Opts) ->
+    supervisor:start_child(?SERVER, [Name, Opts]).
 
-    SupFlags = #{strategy => one_for_one,
-                 intensity => 5,
-                 period => 10},
-    ChildSpecs = [#{id => lists:concat([Module, "_", erlang:ref_to_list(erlang:make_ref())]),
-                    start => {Module, start_link, [ProviderSup, ReaderConfig]},
-                    type => worker,
-                    restart => permanent,
-                    shutdown => 1000} || #{module := Module,
-                                           config := ReaderConfig} <- Readers
-                 ],
+init([]) ->
+    SupFlags = #{strategy => simple_one_for_one,
+                 intensity => 1,
+                 period => 5},
 
-    {ok, {SupFlags, ChildSpecs}}.
+    MeterServerSup = #{id => otel_meter_server_sup,
+                       start => {otel_meter_server_sup, start_link, []},
+                       restart => permanent,
+                       type => supervisor,
+                       modules => [otel_meter_server_sup]},
+
+    {ok, {SupFlags, [MeterServerSup]}}.

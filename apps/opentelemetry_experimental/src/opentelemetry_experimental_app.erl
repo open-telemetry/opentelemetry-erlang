@@ -15,7 +15,11 @@ start(_StartType, _StartArgs) ->
     Opts = otel_configuration:merge_with_os(
              application:get_all_env(opentelemetry_experimental)),
 
-    opentelemetry_experimental_sup:start_link(Opts).
+    {ok, Pid} = opentelemetry_experimental_sup:start_link(Opts),
+
+    {ok, _} = otel_meter_provider_sup:start_child(default, Opts),
+
+    {ok, Pid}.
 
 %% called before the supervision tree is shutdown.
 prep_stop(_State) ->
