@@ -21,7 +21,8 @@
 %%%-------------------------------------------------------------------------
 -module(otel_meter_provider).
 
--export([get_meter/3,
+-export([start/2,
+         get_meter/3,
          get_meter/4,
          resource/0,
          resource/1,
@@ -29,6 +30,12 @@
          force_flush/1]).
 
 -type meter() :: term().
+
+start(Name, Config) ->
+    %% SDK must register a simple one for one supervisor of tracer providers
+    %% under the name `otel_meter_provider_sup'
+    %% {ok, _} = otel_meter_provider_sup:start_child(default, Config),
+    supervisor:start_child(otel_meter_provider_sup, [Name, Config]).
 
 -spec get_meter(Name, Vsn, SchemaUrl) -> Meter when
       Name :: atom(),

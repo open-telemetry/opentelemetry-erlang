@@ -58,7 +58,8 @@
          events/1,
          status/1,
          status/2,
-         verify_and_set_term/3]).
+         verify_and_set_term/3,
+         vsn_to_binary/1]).
 
 -include("opentelemetry.hrl").
 -include_lib("kernel/include/logger.hrl").

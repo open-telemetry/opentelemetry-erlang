@@ -55,8 +55,7 @@ init([Name, Opts]) ->
 
     ProviderShutdownTimeout = maps:get(meter_provider_shutdown_timeout, Opts, 5000),
     MeterServer = #{id => otel_meter_server,
-                    start => {otel_meter_server, start_link, [MeterServerRegName,
-                                                              Opts]},
+                    start => {otel_meter_server, start_link, [Name, MeterServerRegName, Opts]},
                     restart => permanent,
                     shutdown => ProviderShutdownTimeout,
                     type => worker,

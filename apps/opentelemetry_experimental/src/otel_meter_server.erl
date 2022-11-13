@@ -34,12 +34,8 @@
 
 -behaviour(gen_server).
 
--export([start_link/1,
-         start_link/2,
+-export([start_link/3,
          add_metric_reader/7,
-         callbacks_table_name/1,
-         view_aggregation_table_name/1,
-         metrics_table_name/1,
          add_instrument/2,
          register_callback/4,
          add_view/3,
@@ -92,13 +88,9 @@
          resource :: otel_resource:t()
         }).
 
--spec start_link(otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
-start_link(Config) ->
-    start_link(?DEFAULT_METER_PROVIDER, Config).
-
--spec start_link(atom(), otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
-start_link(Provider, Config) ->
-    gen_server:start_link({local, Provider}, ?MODULE, [Provider, Config], []).
+-spec start_link(atom(), atom(), otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
+start_link(Name, RegName, Config) ->
+    gen_server:start_link({local, RegName}, ?MODULE, [Name, RegName, Config], []).
 
 -spec add_instrument(atom(), otel_instrument:t()) -> boolean().
 add_instrument(Provider, Instrument) ->
@@ -127,25 +119,16 @@ record(Provider, Instrument, Number, Attributes) ->
                                                      value=Number,
                                                      attributes=Attributes}}).
 
-callbacks_table_name(ChildId) ->
-    list_to_atom(atom_to_list(ChildId) ++ "_callbacks_tab").
-
-view_aggregation_table_name(ChildId) ->
-    list_to_atom(atom_to_list(ChildId) ++ "_view_aggregation_tab").
-
-metrics_table_name(ChildId) ->
-    list_to_atom(atom_to_list(ChildId) ++ "_metrics_tab").
-
 force_flush(Provider) ->
     gen_server:call(Provider, force_flush).
 
-init([Name, _Config]) ->
+init([Name, RegName, _Config]) ->
     Resource = otel_resource_detector:get_resource(),
 
     Meter = #meter{module=otel_meter_default,
-                   provider=Name},
+                   provider=RegName},
 
-    opentelemetry_experimental:set_default_meter({otel_meter_default, Meter}),
+    opentelemetry_experimental:set_default_meter(Name, {otel_meter_default, Meter}),
 
     {ok, #state{shared_meter=Meter,
                 views=[],

@@ -11,13 +11,15 @@
          prep_stop/1,
          stop/1]).
 
+-include_lib("opentelemetry_api_experimental/include/otel_meter.hrl").
+
 start(_StartType, _StartArgs) ->
-    Opts = otel_configuration:merge_with_os(
-             application:get_all_env(opentelemetry_experimental)),
+    Config = otel_configuration:merge_with_os(
+               application:get_all_env(opentelemetry_experimental)),
 
-    {ok, Pid} = opentelemetry_experimental_sup:start_link(Opts),
+    {ok, Pid} = opentelemetry_experimental_sup:start_link(Config),
 
-    {ok, _} = otel_meter_provider_sup:start_child(default, Opts),
+    {ok, _} = opentelemetry_experimental:start_meter_provider(?GLOBAL_METER_PROVIDER_NAME, Config),
 
     {ok, Pid}.
 

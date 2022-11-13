@@ -7,6 +7,7 @@
 
 -include("otel_test_utils.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
+-include_lib("opentelemetry_api_experimental/include/otel_meter.hrl").
 -include("otel_view.hrl").
 -include("otel_metrics.hrl").
 
@@ -472,7 +473,7 @@ cumulative_counter(_Config) ->
                              value_type = ValueType,
                              unit = CounterUnit}, Counter),
 
-    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER,
+    otel_meter_server:add_view(?GLOBAL_METER_PROVIDER_REG_NAME,
                                #{instrument_name => a_counter},
                                #{aggregation => otel_aggregation_sum}),
 
@@ -480,7 +481,7 @@ cumulative_counter(_Config) ->
     ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(?GLOBAL_METER_PROVIDER_REG_NAME),
 
     ?assertSumReceive(a_counter, <<"counter description">>, kb, [{6, #{<<"c">> => <<"b">>}}]),
 
@@ -489,7 +490,7 @@ cumulative_counter(_Config) ->
     ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 7, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(?GLOBAL_METER_PROVIDER_REG_NAME),
 
     ?assertSumReceive(a_counter, <<"counter description">>, kb, [{18, #{<<"c">> => <<"b">>}}]),
 
