@@ -13,6 +13,7 @@ sdk_version=1.1.2
 api_version=1.1.1
 otlp_version=1.2.1
 zipkin_version=1.1.0
+semconv_version=0.1.0
 
 ex_doc "opentelemetry" $sdk_version "_build/default/lib/opentelemetry/ebin" \
   --source-ref v${sdk_version} \
@@ -37,3 +38,12 @@ ex_doc "opentelemetry_api" $api_version "apps/opentelemetry_api/_build/dev/lib/o
   --source-ref v${api_version} \
   --config apps/opentelemetry_api/docs.config $@ \
   --output "apps/opentelemetry_api/doc"
+
+pushd apps/opentelemetry_semantic_conventions/
+mix deps.get
+mix compile
+popd
+ex_doc "opentelemetry_semantic_conventions" $semconv_version "apps/opentelemetry_semantic_conventions/_build/dev/lib/opentelemetry_semantic_conventions/ebin" \
+  --source-ref v${semconv_version} \
+  --config apps/opentelemetry_semantic_conventions/docs.config $@ \
+  --output "apps/opentelemetry_semantic_conventions/doc"
