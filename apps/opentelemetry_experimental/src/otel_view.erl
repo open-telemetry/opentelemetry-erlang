@@ -33,7 +33,8 @@
                       meter_schema_url => unicode:unicode_binary() | undefined}.
 -type config() :: #{description => unicode:unicode_binary(),
                     attribute_keys => [atom()],
-                    aggregation => module() | default
+                    aggregation_module => module() | default,
+                    aggregation_options => map()
                     %% exemplar_reservoir
                    }.
 
@@ -59,10 +60,12 @@ new(Criteria, Config) ->
           selection=Selection,
           description=maps:get(description, Config, undefined),
           attribute_keys=maps:get(attribute_keys, Config, undefined),
-          aggregation_module=maps:get(aggregation, Config, undefined),
-          aggregation_options=#{}}.
+          aggregation_module=maps:get(aggregation_module, Config, undefined),
+          aggregation_options=maps:get(aggregation_options, Config, #{})}.
 
 -spec new(name(), criteria(), config()) -> t().
+new(undefined, Criteria, Config) ->
+    new(Criteria, Config);
 new(Name, Criteria, Config) ->
     View = new(Criteria, Config),
     View#view{name=Name}.
@@ -112,7 +115,7 @@ value_or(undefined, Other) ->
 value_or(Value, _Other) ->
     Value.
 
-criteria_to_selection(Criteria) ->
+criteria_to_selection(Criteria) when is_map(Criteria) ->
     maps:fold(fun(instrument_name, InstrumentName, SelectionAcc) ->
                       SelectionAcc#selection{instrument_name=InstrumentName};
                  (instrument_kind, Kind, SelectionAcc) ->
@@ -123,4 +126,6 @@ criteria_to_selection(Criteria) ->
                       SelectionAcc#selection{meter_version=MeterVersion};
                  (meter_schema_url, SchemaUrl, SelectionAcc) ->
                       SelectionAcc#selection{schema_url=SchemaUrl}
-              end, #selection{}, Criteria).
+              end, #selection{}, Criteria);
+criteria_to_selection(_) ->
+    #selection{}.

@@ -60,8 +60,6 @@
 
 -type meter() :: #meter{}.
 
--export_type([meter/0]).
-
 -record(reader,
         {
          child_id :: atom(),
@@ -77,6 +75,16 @@
         }).
 
 -type reader() :: #reader{}.
+
+-type view_config() :: #{name => otel_instrument:name() | undefined,
+                         description => unicode:unicode_binary() | undefined,
+                         selector => otel_view:criteria(),
+                         attribute_keys => [opentelemetry:attribute_key()] | undefined,
+                         aggregation_module => module() | undefined,
+                         aggregation_options => map()}.
+
+-export_type([meter/0,
+              view_config/0]).
 
 -record(state,
         {
@@ -122,7 +130,7 @@ record(Provider, Instrument, Number, Attributes) ->
 force_flush(Provider) ->
     gen_server:call(Provider, force_flush).
 
-init([Name, RegName, _Config]) ->
+init([Name, RegName, Config]) ->
     Resource = otel_resource_detector:get_resource(),
 
     Meter = #meter{module=otel_meter_default,
@@ -130,10 +138,27 @@ init([Name, RegName, _Config]) ->
 
     opentelemetry_experimental:set_default_meter(Name, {otel_meter_default, Meter}),
 
+    %% TODO: drop View if Criteria is a wildcard instrument name and View
+    %% name is not undefined
+    Views = [new_view(V) || V <- maps:get(views, Config, [])],
+
     {ok, #state{shared_meter=Meter,
-                views=[],
+                views=Views,
                 readers=[],
                 resource=Resource}}.
+
+new_view(ViewConfig) ->
+    Name = maps:get(name, ViewConfig, undefined),
+    Description = maps:get(description, ViewConfig, undefined),
+    Selector = maps:get(selector, ViewConfig, undefined),
+    AttributeKeys = maps:get(attribute_keys, ViewConfig, undefined),
+    AggregationModule = maps:get(aggregation_module, ViewConfig, undefined),
+    AggregationOptions = maps:get(aggregation_options, ViewConfig, undefined),
+    otel_view:new(Name, Selector, #{description => Description,
+                                    attribute_keys => AttributeKeys,
+                                    aggregation_module => AggregationModule,
+                                    aggregation_options => AggregationOptions
+                                   }).
 
 handle_call({add_metric_reader, ReaderPid, DefaultAggregationMapping, Temporality,
              ViewAggregationTable, CallbacksTable, MetricsTable}, _From, State=#state{readers=Readers}) ->
@@ -175,7 +200,9 @@ handle_cast({record, Measurement}, State=#state{readers=Readers,
     handle_measurement(Measurement, Readers, Views),
     {noreply, State}.
 
-handle_info({'DOWN_READER', Ref, process, _Pid, _} , State=#state{readers=Readers}) ->
+%% TODO: Uncomment when we can drop OTP-23 support
+%% handle_info({'DOWN_READER', Ref, process, _Pid, _} , State=#state{readers=Readers}) ->
+handle_info({'DOWN', Ref, process, _Pid, _} , State=#state{readers=Readers}) ->
     {noreply, State#state{readers=lists:keydelete(Ref, #reader.monitor_ref, Readers)}};
 handle_info(_, State) ->
     {noreply, State}.
@@ -214,7 +241,9 @@ register_callback_(Instruments, Callback, CallbackArgs, Views, Readers) ->
 
 metric_reader(ReaderPid, DefaultAggregationMapping, Temporality,
               ViewAggregationTable, CallbacksTable, MetricsTable) ->
-    Ref = erlang:monitor(process, ReaderPid, [{tag, 'DOWN_READER'}]),
+    %% TODO: Uncomment when we can drop OTP-23 support
+    %% Ref = erlang:monitor(process, ReaderPid, [{tag, 'DOWN_READER'}]),
+    Ref = erlang:monitor(process, ReaderPid),
 
     ReaderAggregationMapping = maps:merge(otel_aggregation:default_mapping(),
                                           DefaultAggregationMapping),
