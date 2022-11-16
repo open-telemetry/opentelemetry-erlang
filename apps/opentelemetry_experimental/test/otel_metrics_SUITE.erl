@@ -7,6 +7,7 @@
 
 -include("otel_test_utils.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
+-include_lib("opentelemetry_api_experimental/include/otel_meter.hrl").
 -include("otel_view.hrl").
 -include("otel_metrics.hrl").
 
@@ -85,37 +86,50 @@ init_per_suite(Config) ->
 end_per_suite(_Config) ->
     ok.
 
-init_per_testcase(multiple_readers, Config) ->
-    ReaderId = my_reader_id,
-    DropReaderId = drop_reader_id,
-
+init_per_testcase(provider_test, Config) ->
     application:load(opentelemetry_experimental),
-    ok = application:set_env(opentelemetry_experimental, readers, [#{id => ReaderId,
-                                                                     module => otel_metric_reader,
-                                                                     config => #{}},
-                                                                   #{id => DropReaderId,
-                                                                     module => otel_metric_reader,
-                                                                     config => #{default_aggregation_mapping =>
-                                                                                     #{?KIND_COUNTER => otel_aggregation_drop}}}]),
+    ok = application:set_env(opentelemetry_experimental, readers,
+                             [#{module => otel_metric_reader,
+                                config => #{exporter => {otel_metric_exporter_pid, self()}}}]),
+    ok = application:set_env(opentelemetry_experimental, views,
+                             [#{selector => #{instrument_name => a_counter},
+                                aggregation_module => otel_aggregation_sum},
+                              #{name => view_a,
+                                selector => #{instrument_name => a_counter},
+                                aggregation_module => otel_aggregation_sum},
+                              #{name => view_b,
+                                selector => #{instrument_name => a_counter},
+                                aggregation_module => otel_aggregation_sum}
+                              #{name => view_c,
+                                selector => #{instrument_name => a_counter}}]),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
-    ?assertEqual(ok, otel_metric_reader:set_exporter(ReaderId, otel_metric_exporter_pid, self())),
-    ?assertEqual(ok, otel_metric_reader:set_exporter(DropReaderId, otel_metric_exporter_pid, self())),
+    Config;
+init_per_testcase(multiple_readers, Config) ->
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers,
+                             [#{module => otel_metric_reader,
+                                config => #{exporter => {otel_metric_exporter_pid, self()}}},
+                              #{module => otel_metric_reader,
+                                config => #{exporter => {otel_metric_exporter_pid, self()},
+                                            default_aggregation_mapping =>
+                                                #{?KIND_COUNTER => otel_aggregation_drop}}}]),
 
-    [{reader_id, ReaderId} | Config];
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
 init_per_testcase(cumulative_counter, Config) ->
     ReaderId = my_reader_id,
     CumulativeCounterTemporality = #{?KIND_COUNTER =>?AGGREGATION_TEMPORALITY_CUMULATIVE},
     application:load(opentelemetry_experimental),
     ok = application:set_env(opentelemetry_experimental, readers, [#{id => ReaderId,
                                                                      module => otel_metric_reader,
-                                                                     config => #{default_temporality_mapping =>
-                                                               CumulativeCounterTemporality}}]),
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping =>
+                                                                                     CumulativeCounterTemporality}}]),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
-
-    ?assertEqual(ok, otel_metric_reader:set_exporter(ReaderId, otel_metric_exporter_pid, self())),
 
     [{reader_id, ReaderId} | Config];
 init_per_testcase(delta_explicit_histograms, Config) ->
@@ -124,12 +138,11 @@ init_per_testcase(delta_explicit_histograms, Config) ->
     application:load(opentelemetry_experimental),
     ok = application:set_env(opentelemetry_experimental, readers, [#{id => ReaderId,
                                                                      module => otel_metric_reader,
-                                                                     config => #{default_temporality_mapping =>
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping =>
                                                                                      DeltaHistogramTemporality}}]),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
-
-    ?assertEqual(ok, otel_metric_reader:set_exporter(ReaderId, otel_metric_exporter_pid, self())),
 
     [{reader_id, ReaderId} | Config];
 init_per_testcase(_, Config) ->
@@ -137,16 +150,16 @@ init_per_testcase(_, Config) ->
     application:load(opentelemetry_experimental),
     ok = application:set_env(opentelemetry_experimental, readers, [#{id => ReaderId,
                                                                      module => otel_metric_reader,
-                                                                     config => #{}}]),
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()}}}]),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
-    ?assertEqual(ok, otel_metric_reader:set_exporter(ReaderId, otel_metric_exporter_pid, self())),
 
     [{reader_id, ReaderId} | Config].
 
 end_per_testcase(_, _Config) ->
     ok = application:stop(opentelemetry_experimental),
+    application:unload(opentelemetry_experimental),
     ok.
 
 default_view(_Config) ->
@@ -176,7 +189,7 @@ default_view(_Config) ->
     ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(),
 
     ?assertSumReceive(z_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
 
@@ -204,13 +217,6 @@ provider_test(_Config) ->
                              value_type = ValueType,
                              unit = CounterUnit}, Counter),
 
-    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
-    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, view_a, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
-    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, view_b, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
-
-    %% use the default Reader aggregation
-    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, view_c, #{instrument_name => a_counter}, #{}),
-
     ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
@@ -222,14 +228,14 @@ provider_test(_Config) ->
     %% ignored because only positive measurements are allowed for counters
     ?assertEqual(ok, otel_counter:add(Counter, -10, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(),
 
     ?assertSumReceive(a_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
     ?assertSumReceive(view_c, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
 
     %% sum agg is default delta temporality so counter will reset
     ?assertEqual(ok, otel_counter:add(Counter, 7, #{<<"c">> => <<"b">>})),
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(),
     ?assertSumReceive(a_counter, <<"counter description">>, kb, [{7, #{<<"c">> => <<"b">>}},
                                                               {0, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>}}]),
 
@@ -257,9 +263,9 @@ view_creation_test(_Config) ->
                              value_type = ValueType,
                              unit = CounterUnit}, Counter),
 
-    ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, view_a, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum})),
+    ?assert(otel_meter_server:add_view(view_a, #{instrument_name => a_counter}, #{aggregation_module => otel_aggregation_sum})),
 
-    View = otel_view:new(#{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
+    View = otel_view:new(#{instrument_name => a_counter}, #{aggregation_module => otel_aggregation_sum}),
     %% view name becomes the instrument name
     ?assertEqual(a_counter, View#view.name),
 
@@ -267,15 +273,15 @@ view_creation_test(_Config) ->
     ?assertMatch([_], Matches),
 
     %% views require a unique name
-    ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, view_b, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum})),
-    %% ?assertNot(otel_meter_server:add_view(view_b, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum})),
+    ?assert(otel_meter_server:add_view(view_b, #{instrument_name => a_counter}, #{aggregation_module => otel_aggregation_sum})),
+    %% ?assertNot(otel_meter_server:add_view(view_b, #{instrument_name => a_counter}, #{aggregation_module => otel_aggregation_sum})),
 
     %% only one view that matches all instruments can be allowed
-    ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, view_c, #{}, #{aggregation => otel_aggregation_sum})),
-    %% ?assertNot(otel_meter_server:add_view(view_d, #{}, #{aggregation => otel_aggregation_sum})),
+    ?assert(otel_meter_server:add_view(view_c, #{}, #{aggregation_module => otel_aggregation_sum})),
+    %% ?assertNot(otel_meter_server:add_view(view_d, #{}, #{aggregation_module => otel_aggregation_sum})),
 
-    ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => b_counter}, #{aggregation => otel_aggregation_sum})),
-    ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => c_counter}, #{aggregation => otel_aggregation_sum})),
+    ?assert(otel_meter_server:add_view(#{instrument_name => b_counter}, #{aggregation_module => otel_aggregation_sum})),
+    ?assert(otel_meter_server:add_view(#{instrument_name => c_counter}, #{aggregation_module => otel_aggregation_sum})),
 
     ok.
 
@@ -308,8 +314,8 @@ multiple_readers(_Config) ->
                                   #{description => CounterDesc,
                                     unit => CounterUnit}),
 
-    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => a_counter}, #{aggregation => otel_aggregation_sum}),
-    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => b_counter}, #{}),
+    otel_meter_server:add_view(#{instrument_name => a_counter}, #{aggregation_module => otel_aggregation_sum}),
+    otel_meter_server:add_view(#{instrument_name => b_counter}, #{}),
 
     ?assertEqual(ok, otel_counter:add(CounterA, 2, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(CounterA, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
@@ -318,7 +324,7 @@ multiple_readers(_Config) ->
 
     ?assertEqual(ok, otel_counter:add(CounterB, 2, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(),
 
     %% 2nd reader has counter set to drop so only 1 of b_counter is expected bc it does
     %% not set an aggregation in the view definition
@@ -351,7 +357,7 @@ explicit_histograms(_Config) ->
                              value_type = ValueType,
                              unit = HistogramUnit}, Histogram),
 
-    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => a_histogram}, #{}),
+    otel_meter_server:add_view(#{instrument_name => a_histogram}, #{}),
 
 
     ?assertEqual(ok, otel_histogram:record(Histogram, 20, #{<<"c">> => <<"b">>})),
@@ -359,7 +365,7 @@ explicit_histograms(_Config) ->
     ?assertEqual(ok, otel_histogram:record(Histogram, 44, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_histogram:record(Histogram, 100, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(),
 
     receive
         {otel_metric, #metric{name=a_histogram,
@@ -402,7 +408,7 @@ delta_explicit_histograms(_Config) ->
                              value_type = ValueType,
                              unit = HistogramUnit}, Histogram),
 
-    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => a_histogram}, #{}),
+    otel_meter_server:add_view(#{instrument_name => a_histogram}, #{}),
 
 
     ?assertEqual(ok, otel_histogram:record(Histogram, 20, #{<<"c">> => <<"b">>})),
@@ -410,7 +416,7 @@ delta_explicit_histograms(_Config) ->
     ?assertEqual(ok, otel_histogram:record(Histogram, 44, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_histogram:record(Histogram, 100, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(),
 
     receive
         {otel_metric, #metric{name=a_histogram,
@@ -431,7 +437,7 @@ delta_explicit_histograms(_Config) ->
 
     ?assertEqual(ok, otel_histogram:record(Histogram, 88, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(),
 
     receive
         {otel_metric, #metric{name=a_histogram,
@@ -477,30 +483,29 @@ cumulative_counter(_Config) ->
                              value_type = ValueType,
                              unit = CounterUnit}, Counter),
 
-    otel_meter_server:add_view(?DEFAULT_METER_PROVIDER,
-                               #{instrument_name => a_counter},
-                               #{aggregation => otel_aggregation_sum}),
+    otel_meter_server:add_view(#{instrument_name => a_counter},
+                               #{aggregation_module => otel_aggregation_sum}),
 
     ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(),
 
     ?assertSumReceive(a_counter, <<"counter description">>, kb, [{6, #{<<"c">> => <<"b">>}}]),
 
     ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
+
     ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 7, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(),
 
     ?assertSumReceive(a_counter, <<"counter description">>, kb, [{18, #{<<"c">> => <<"b">>}}]),
 
     ok.
 
-kill_reader(Config) ->
-    ReaderId = ?config(reader_id, Config),
+kill_reader(_Config) ->
     DefaultMeter = otel_meter_default,
 
     Meter = opentelemetry_experimental:get_meter(),
@@ -522,23 +527,30 @@ kill_reader(Config) ->
                              value_type = ValueType,
                              unit = CounterUnit}, Counter),
 
-    ?assertEqual(ok, otel_metric_reader:set_exporter(ReaderId, otel_metric_exporter_pid, self())),
-
-    ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
 
-    erlang:exit(erlang:whereis(my_reader_id), kill),
+    otel_meter_server:force_flush(),
 
-    %% have to set the exporter again since it wasn't part of the original config
-    %% `my_reader_id' may not be up yet so keep trying until this succeeds
-    ?UNTIL(ok =:= otel_metric_reader:set_exporter(my_reader_id, otel_metric_exporter_pid, self())),
+    ?assertSumReceive(z_counter, <<"counter description">>, kb, [{3, #{<<"c">> => <<"b">>}}]),
+
+    [{_, ProviderSupPid, _, _}] = supervisor:which_children(otel_meter_provider_sup),
+    {_, ReaderSup, _, _} = lists:keyfind(otel_metric_reader_sup, 1, supervisor:which_children(ProviderSupPid)),
+
+    [ReaderPid] = [Pid || {_, Pid, _, _} <- supervisor:which_children(ReaderSup)],
+    erlang:exit(ReaderPid, kill),
+
+    %% loop until a new reader has started
+    ?UNTIL([Pid || {_, Pid, _, _} <- supervisor:which_children(ReaderSup),
+                   Pid =/= ReaderPid] =/= []),
 
     ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(),
 
-    ?assertSumReceive(z_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
+    %% for now the tables are lost when a reader crashes, so the counter resets
+    ?assertSumReceive(z_counter, <<"counter description">>, kb, [{9, #{<<"c">> => <<"b">>}}]),
 
     ok.
 
@@ -571,17 +583,17 @@ kill_server(_Config) ->
     ?assertEqual(ok, otel_counter:add(ACounter, 2, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
 
-    CurrentPid = erlang:whereis(?DEFAULT_METER_PROVIDER),
-    erlang:exit(erlang:whereis(?DEFAULT_METER_PROVIDER), kill),
+    CurrentPid = erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME),
+    erlang:exit(erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME), kill),
 
     %% wait until process has died and born again
-    ?UNTIL(erlang:whereis(?DEFAULT_METER_PROVIDER) =/= CurrentPid),
-    ?UNTIL(erlang:whereis(?DEFAULT_METER_PROVIDER) =/= undefined),
+    ?UNTIL(erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME) =/= CurrentPid),
+    ?UNTIL(erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME) =/= undefined),
 
     ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
 
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(),
 
     %% at this time a crashed meter server will mean losing the recorded metrics up to that point
     ?assertNotReceive(a_counter, <<"counter description">>, kb),
@@ -600,7 +612,7 @@ observable_counter(_Config) ->
     CounterUnit = kb,
     ValueType = integer,
 
-    ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => CounterName}, #{aggregation => otel_aggregation_sum})),
+    ?assert(otel_meter_server:add_view(#{instrument_name => CounterName}, #{aggregation_module => otel_aggregation_sum})),
 
     Counter = otel_meter:observable_counter(Meter, CounterName, ValueType,
                                             fun(_Args) ->
@@ -620,7 +632,7 @@ observable_counter(_Config) ->
                              unit = CounterUnit,
                              callback=_}, Counter),
 
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(),
 
     ?assertSumReceive(CounterName, <<"observable counter description">>, kb, [{4, #{<<"a">> => <<"b">>}}]),
 
@@ -637,7 +649,7 @@ observable_updown_counter(_Config) ->
     CounterUnit = kb,
     ValueType = integer,
 
-    ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => CounterName}, #{aggregation => otel_aggregation_sum})),
+    ?assert(otel_meter_server:add_view(#{instrument_name => CounterName}, #{aggregation_module => otel_aggregation_sum})),
 
     Counter = otel_meter:observable_updowncounter(Meter, CounterName, ValueType,
                                                   fun(_) ->
@@ -657,7 +669,7 @@ observable_updown_counter(_Config) ->
                              unit = CounterUnit,
                              callback=_}, Counter),
 
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(),
 
     ?assertSumReceive(CounterName, <<"observable updown counter description">>, kb, [{5, #{<<"a">> => <<"b">>}}]),
 
@@ -674,7 +686,7 @@ observable_gauge(_Config) ->
     CounterUnit = kb,
     ValueType = integer,
 
-    ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => CounterName}, #{aggregation => otel_aggregation_last_value})),
+    ?assert(otel_meter_server:add_view(#{instrument_name => CounterName}, #{aggregation_module => otel_aggregation_last_value})),
 
     Counter = otel_meter:observable_gauge(Meter, CounterName, ValueType,
                                           fun(_) ->
@@ -693,7 +705,7 @@ observable_gauge(_Config) ->
                              unit = CounterUnit,
                              callback=_}, Counter),
 
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(),
 
     ?assertLastValueReceive(CounterName, CounterDesc, CounterUnit, [{5, #{<<"a">> => <<"b">>}}]),
 
@@ -714,7 +726,7 @@ multi_instrument_callback(_Config) ->
     Unit = kb,
     ValueType = integer,
 
-    ?assert(otel_meter_server:add_view(?DEFAULT_METER_PROVIDER, #{instrument_name => CounterName}, #{aggregation => otel_aggregation_sum})),
+    ?assert(otel_meter_server:add_view(#{instrument_name => CounterName}, #{aggregation_module => otel_aggregation_sum})),
 
     Counter = otel_meter:observable_counter(Meter, CounterName, ValueType,
                                             undefined, [],
@@ -732,7 +744,7 @@ multi_instrument_callback(_Config) ->
                                           {GaugeName, 5, #{<<"a">> => <<"b">>}}]
                                  end, []),
 
-    otel_meter_server:force_flush(?DEFAULT_METER_PROVIDER),
+    otel_meter_server:force_flush(),
 
     ?assertSumReceive(CounterName, CounterDesc, Unit, [{4, #{<<"a">> => <<"b">>}}]),
     ?assertLastValueReceive(GaugeName, GaugeDesc, Unit, [{5, #{<<"a">> => <<"b">>}}]),

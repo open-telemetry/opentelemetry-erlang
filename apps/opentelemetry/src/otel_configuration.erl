@@ -47,6 +47,8 @@
                text_map_propagators := [atom()],
                traces_exporter := {atom(), term()} | none | undefined,
                metrics_exporter := {atom(), term()} | none | undefined,
+               views := list(), %% TODO: type should be `[otel_meter_server:view_config]'
+                                %% when Metrics are moved out of the experimental app
                readers := [#{id := atom(), module => module(), config => map()}],
                processors := list(),
                sampler := {atom(), term()},
@@ -83,6 +85,7 @@ new() ->
                    text_map_propagators => [trace_context, baggage],
                    traces_exporter => {opentelemetry_exporter, #{}},
                    metrics_exporter => {opentelemetry_exporter, #{}},
+                   views => [],
                    readers => [],
                    processors => [{otel_batch_processor, ?BATCH_PROCESSOR_DEFAULTS}],
                    sampler => {parent_based, #{root => always_on}},
@@ -303,6 +306,7 @@ config_mappings(general_sdk) ->
      {"OTEL_PROPAGATORS", text_map_propagators, propagators},
      {"OTEL_TRACES_EXPORTER", traces_exporter, exporter},
      {"OTEL_METRICS_EXPORTER", metrics_exporter, exporter},
+     {"OTEL_METRIC_VIEWS", views, views},
      {"OTEL_METRIC_READERS", readers, readers},
      {"OTEL_RESOURCE_DETECTORS", resource_detectors, existing_atom_list},
      {"OTEL_RESOURCE_DETECTOR_TIMEOUT", resource_detector_timeout, integer},
@@ -491,7 +495,9 @@ transform(span_processor, simple) ->
 transform(span_processor, SpanProcessor) ->
     SpanProcessor;
 transform(readers, Readers) ->
-    Readers.
+    Readers;
+transform(views, Views) ->
+    Views.
 
 
 probability_string_to_float(Probability) ->

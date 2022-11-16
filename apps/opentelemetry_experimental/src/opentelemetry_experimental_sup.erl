@@ -16,14 +16,14 @@
 start_link(Opts) ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, [Opts]).
 
-init([Opts]) ->
+init([_Opts]) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 1,
                  period => 5},
 
     %%
     MetricSup = #{id => otel_metrics_sup,
-                  start => {otel_metrics_sup, start_link, [Opts]},
+                  start => {otel_metrics_sup, start_link, []},
                   restart => permanent,
                   shutdown => infinity,
                   type => supervisor,

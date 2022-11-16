@@ -22,15 +22,17 @@
 %%%-------------------------------------------------------------------------
 -module(otel_metric_reader).
 
+-behaviour(gen_server).
+
 -export([start_link/2,
          collect/1,
-         set_exporter/3,
          shutdown/1]).
 
 -export([init/1,
          handle_call/3,
          handle_cast/2,
          handle_info/2,
+         handle_continue/2,
          code_change/1]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
@@ -42,6 +44,7 @@
 -record(state,
         {
          exporter,
+         provider_sup :: supervisor:sup_ref(),
          default_aggregation_mapping :: #{otel_instrument:kind() => module()},
          temporality_mapping :: #{otel_instrument:kind() => otel_aggregation:temporality()},
          export_interval_ms :: integer() | undefined,
@@ -52,29 +55,28 @@
          config :: #{}
         }).
 
--spec start_link(atom(), map()) -> {ok, pid()} | ignore | {error, term()}.
-start_link(ChildId, Config) ->
-    gen_server:start_link({local, ChildId}, ?MODULE, [ChildId, Config], []).
+%% -spec start_link(atom(), map()) -> {ok, pid()} | ignore | {error, term()}.
+%% start_link(ChildId, CallbacksTable, ViewAggregationTable, MetricsTable, Config) ->
+%%     gen_server:start_link({local, ChildId}, ?MODULE, [ChildId, CallbacksTable, ViewAggregationTable, MetricsTable, Config], []).
+ start_link(ProviderSup, Config) ->
+    gen_server:start_link(?MODULE, [ProviderSup, Config], []).
 
 collect(ReaderPid) ->
     ReaderPid ! collect.
 
-set_exporter(ReaderPid, Exporter, Options) ->
-    gen_server:call(ReaderPid, {set_exporter, Exporter, Options}).
-
 shutdown(ReaderPid) ->
     gen_server:call(ReaderPid, shutdown).
 
-init([ChildId, Config]) ->
-    CallbacksTable = otel_meter_server:callbacks_table_name(ChildId),
-    ViewAggregationTable = otel_meter_server:view_aggregation_table_name(ChildId),
-    MetricsTable = otel_meter_server:metrics_table_name(ChildId),
+init([ProviderSup, Config]) ->
+    CallbacksTable = ets:new(callbacks_table, [bag, public, {keypos, 1}]),
+    ViewAggregationTable = ets:new(view_aggregation_table, [set, public, {keypos, 1}]),
+    MetricsTable = ets:new(metrics_table, [set, public, {keypos, 2}]),
 
     ExporterModuleConfig = maps:get(exporter, Config, undefined),
     Exporter = otel_exporter:init(ExporterModuleConfig),
 
     DefaultAggregationMapping = maps:get(default_aggregation_mapping, Config, #{}),
-    Temporality = maps:get(temporality_mapping, Config, #{}),
+    Temporality = maps:get(default_temporality_mapping, Config, #{}),
 
     %% if a periodic reader is needed then this value is set
     %% somehow need to do a default of 10000 millis, but only if this is a periodic reader
@@ -87,6 +89,7 @@ init([ChildId, Config]) ->
                    erlang:send_after(ExporterIntervalMs, self(), collect)
            end,
     {ok, #state{exporter=Exporter,
+                provider_sup=ProviderSup,
                 default_aggregation_mapping=DefaultAggregationMapping,
                 temporality_mapping=Temporality,
                 export_interval_ms=ExporterIntervalMs,
@@ -94,12 +97,19 @@ init([ChildId, Config]) ->
                 callbacks_tab=CallbacksTable,
                 metrics_tab=MetricsTable,
                 tref=TRef,
-                config=Config}}.
+                config=Config}, {continue, register_with_server}}.
 
-handle_call({set_exporter, Module, Config}, _From, State=#state{exporter=OldExporter}) ->
-    otel_exporter:shutdown(OldExporter),
-    Exporter = otel_exporter:init({Module, Config}),
-    {reply, ok, State#state{exporter=Exporter}};
+handle_continue(register_with_server, State=#state{provider_sup=ProviderSup,
+                                                   default_aggregation_mapping=DefaultAggregationMapping,
+                                                   temporality_mapping=Temporality,
+                                                   view_aggregation_tab=ViewAggregationTable,
+                                                   callbacks_tab=CallbacksTable,
+                                                   metrics_tab=MetricsTable}) ->
+    ServerPid = otel_meter_server_sup:provider_pid(ProviderSup),
+    ok = otel_meter_server:add_metric_reader(ServerPid, self(), DefaultAggregationMapping, Temporality,
+                                             ViewAggregationTable, CallbacksTable, MetricsTable),
+    {noreply, State}.
+
 handle_call(shutdown, _From, State) ->
     {reply, ok, State};
 handle_call(_, _From, State) ->

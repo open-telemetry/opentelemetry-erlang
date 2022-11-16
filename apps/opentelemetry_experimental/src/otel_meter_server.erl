@@ -34,15 +34,18 @@
 
 -behaviour(gen_server).
 
--export([start_link/1,
-         callbacks_table_name/1,
-         view_aggregation_table_name/1,
-         metrics_table_name/1,
+-export([start_link/3,
+         add_metric_reader/6,
+         add_metric_reader/7,
+         add_instrument/1,
          add_instrument/2,
+         register_callback/3,
          register_callback/4,
+         add_view/2,
          add_view/3,
          add_view/4,
          record/4,
+         force_flush/0,
          force_flush/1,
          report_cb/1]).
 
@@ -56,17 +59,18 @@
 %% need to move shared records out of otel_span.hrl
 -include_lib("opentelemetry/include/otel_span.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
+-include_lib("opentelemetry_api_experimental/include/otel_meter.hrl").
 -include_lib("kernel/include/logger.hrl").
 -include("otel_metrics.hrl").
 -include("otel_view.hrl").
 
 -type meter() :: #meter{}.
 
--export_type([meter/0]).
-
 -record(reader,
         {
          child_id :: atom(),
+         pid                         :: pid(),
+         monitor_ref                 :: reference(),
          module                      :: module(),
          config                      :: term(),
          callbacks_tab               :: ets:tid() | atom(),
@@ -78,6 +82,16 @@
 
 -type reader() :: #reader{}.
 
+-type view_config() :: #{name => otel_instrument:name() | undefined,
+                         description => unicode:unicode_binary() | undefined,
+                         selector => otel_view:criteria(),
+                         attribute_keys => [opentelemetry:attribute_key()] | undefined,
+                         aggregation_module => module() | undefined,
+                         aggregation_options => map()}.
+
+-export_type([meter/0,
+              view_config/0]).
+
 -record(state,
         {
          shared_meter,
@@ -88,25 +102,44 @@
          resource :: otel_resource:t()
         }).
 
--spec start_link(otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
-start_link(Config) ->
-    start_link(?DEFAULT_METER_PROVIDER, Config).
+-spec start_link(atom(), atom(), otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
+start_link(Name, RegName, Config) ->
+    gen_server:start_link({local, RegName}, ?MODULE, [Name, RegName, Config], []).
 
--spec start_link(atom(), otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
-start_link(Provider, Config) ->
-    gen_server:start_link({local, Provider}, ?MODULE, [Provider, Config], []).
+-spec add_instrument(otel_instrument:t()) -> boolean().
+add_instrument(Instrument) ->
+    add_instrument(?GLOBAL_METER_PROVIDER_REG_NAME, Instrument).
 
 -spec add_instrument(atom(), otel_instrument:t()) -> boolean().
 add_instrument(Provider, Instrument) ->
     gen_server:call(Provider, {add_instrument, Instrument}).
 
+add_metric_reader(ReaderPid, DefaultAggregationMapping, Temporality,
+                  ViewAggregationTable, CallbacksTable, MetricsTable) ->
+    add_metric_reader(?GLOBAL_METER_PROVIDER_REG_NAME, ReaderPid,
+                      DefaultAggregationMapping, Temporality,
+                      ViewAggregationTable, CallbacksTable, MetricsTable).
+
+add_metric_reader(Provider, ReaderPid, DefaultAggregationMapping, Temporality,
+                  ViewAggregationTable, CallbacksTable, MetricsTable) ->
+    gen_server:call(Provider, {add_metric_reader, ReaderPid, DefaultAggregationMapping, Temporality,
+                               ViewAggregationTable, CallbacksTable, MetricsTable}).
+
+-spec register_callback([otel_instrument:t()], otel_instrument:callback(), term()) -> boolean().
+register_callback(Instruments, Callback, CallbackArgs) ->
+    register_callback(?GLOBAL_METER_PROVIDER_REG_NAME, Instruments, Callback, CallbackArgs).
+
 -spec register_callback(atom(), [otel_instrument:t()], otel_instrument:callback(), term()) -> boolean().
 register_callback(Provider, Instruments, Callback, CallbackArgs) ->
     gen_server:call(Provider, {register_callback, Instruments, Callback, CallbackArgs}).
 
--spec add_view(atom(), otel_view:criteria(), otel_view:config()) -> boolean().
-add_view(Provider, Criteria, Config) ->
-    add_view(Provider, undefined, Criteria, Config).
+-spec add_view(otel_view:criteria(), otel_view:config()) -> boolean().
+add_view(Criteria, Config) ->
+    add_view(?GLOBAL_METER_PROVIDER_REG_NAME, undefined, Criteria, Config).
+
+-spec add_view(otel_view:name(), otel_view:criteria(), otel_view:config()) -> boolean().
+add_view(Name, Criteria, Config) ->
+    add_view(?GLOBAL_METER_PROVIDER_REG_NAME, Name, Criteria, Config).
 
 -spec add_view(atom(), otel_view:name(), otel_view:criteria(), otel_view:config()) -> boolean().
 add_view(Provider, Name, Criteria, Config) ->
@@ -118,33 +151,49 @@ record(Provider, Instrument, Number, Attributes) ->
                                                      value=Number,
                                                      attributes=Attributes}}).
 
-callbacks_table_name(ChildId) ->
-    list_to_atom(atom_to_list(ChildId) ++ "_callbacks_tab").
+-spec force_flush() -> ok.
+force_flush() ->
+    force_flush(?GLOBAL_METER_PROVIDER_REG_NAME).
 
-view_aggregation_table_name(ChildId) ->
-    list_to_atom(atom_to_list(ChildId) ++ "_view_aggregation_tab").
-
-metrics_table_name(ChildId) ->
-    list_to_atom(atom_to_list(ChildId) ++ "_metrics_tab").
-
+-spec force_flush(gen_server:server_ref()) -> ok.
 force_flush(Provider) ->
     gen_server:call(Provider, force_flush).
 
-init([Name, Config]) ->
+init([Name, RegName, Config]) ->
     Resource = otel_resource_detector:get_resource(),
 
     Meter = #meter{module=otel_meter_default,
-                   provider=Name},
+                   provider=RegName},
 
-    opentelemetry_experimental:set_default_meter({otel_meter_default, Meter}),
+    opentelemetry_experimental:set_default_meter(Name, {otel_meter_default, Meter}),
 
-    Readers = add_metric_readers(Config),
+    %% TODO: drop View if Criteria is a wildcard instrument name and View
+    %% name is not undefined
+    Views = [new_view(V) || V <- maps:get(views, Config, [])],
 
     {ok, #state{shared_meter=Meter,
-                views=[],
-                readers=Readers,
+                views=Views,
+                readers=[],
                 resource=Resource}}.
 
+new_view(ViewConfig) ->
+    Name = maps:get(name, ViewConfig, undefined),
+    Description = maps:get(description, ViewConfig, undefined),
+    Selector = maps:get(selector, ViewConfig, undefined),
+    AttributeKeys = maps:get(attribute_keys, ViewConfig, undefined),
+    AggregationModule = maps:get(aggregation_module, ViewConfig, undefined),
+    AggregationOptions = maps:get(aggregation_options, ViewConfig, #{}),
+    otel_view:new(Name, Selector, #{description => Description,
+                                    attribute_keys => AttributeKeys,
+                                    aggregation_module => AggregationModule,
+                                    aggregation_options => AggregationOptions
+                                   }).
+
+handle_call({add_metric_reader, ReaderPid, DefaultAggregationMapping, Temporality,
+             ViewAggregationTable, CallbacksTable, MetricsTable}, _From, State=#state{readers=Readers}) ->
+
+    {reply, ok, State#state{readers=[metric_reader(ReaderPid, DefaultAggregationMapping, Temporality,
+                                                   ViewAggregationTable, CallbacksTable, MetricsTable) | Readers]}};
 handle_call({record, Measurement}, _From, State=#state{readers=Readers,
                                                        views=Views}) ->
     handle_measurement(Measurement, Readers, Views),
@@ -172,7 +221,7 @@ handle_call({add_view, Name, Criteria, Config}, _From, State=#state{views=Views}
     View = otel_view:new(Name, Criteria, Config),
     {reply, true, State#state{views=[View | Views]}};
 handle_call(force_flush, _From, State=#state{readers=Readers}) ->
-    [otel_metric_reader:collect(ChildId) || #reader{child_id=ChildId} <- Readers],
+    [otel_metric_reader:collect(Pid) || #reader{pid=Pid} <- Readers],
     {reply, ok, State}.
 
 handle_cast({record, Measurement}, State=#state{readers=Readers,
@@ -180,6 +229,10 @@ handle_cast({record, Measurement}, State=#state{readers=Readers,
     handle_measurement(Measurement, Readers, Views),
     {noreply, State}.
 
+%% TODO: Uncomment when we can drop OTP-23 support
+%% handle_info({'DOWN_READER', Ref, process, _Pid, _} , State=#state{readers=Readers}) ->
+handle_info({'DOWN', Ref, process, _Pid, _} , State=#state{readers=Readers}) ->
+    {noreply, State#state{readers=lists:keydelete(Ref, #reader.monitor_ref, Readers)}};
 handle_info(_, State) ->
     {noreply, State}.
 
@@ -215,28 +268,19 @@ register_callback_(Instruments, Callback, CallbackArgs, Views, Readers) ->
                                 end, Readers)
               end, Instruments).
 
-add_metric_readers(Config) ->
-    ReaderConfigs = maps:get(readers, Config, []),
-    [metric_reader(ChildId, ReaderModule, ReaderConfig) ||
-        #{id := ChildId, module := ReaderModule, config := ReaderConfig} <- ReaderConfigs].
-
-metric_reader(ChildId, ReaderModule, ReaderConfig) ->
-    CallbacksTableName = callbacks_table_name(ChildId),
-    ViewAggregationTableName = view_aggregation_table_name(ChildId),
-    MetricsTableName = metrics_table_name(ChildId),
-
-    CallbacksTable = ets:new(CallbacksTableName, [bag, protected, named_table, {keypos, 1}]),
-    ViewAggregationTable = ets:new(ViewAggregationTableName, [set, protected, named_table, {keypos, 1}]),
-    MetricsTable = ets:new(MetricsTableName, [set, public, named_table, {keypos, 2}]),
+metric_reader(ReaderPid, DefaultAggregationMapping, Temporality,
+              ViewAggregationTable, CallbacksTable, MetricsTable) ->
+    %% TODO: Uncomment when we can drop OTP-23 support
+    %% Ref = erlang:monitor(process, ReaderPid, [{tag, 'DOWN_READER'}]),
+    Ref = erlang:monitor(process, ReaderPid),
 
     ReaderAggregationMapping = maps:merge(otel_aggregation:default_mapping(),
-                                          maps:get(default_aggregation_mapping, ReaderConfig, #{})),
+                                          DefaultAggregationMapping),
     ReaderTemporalityMapping = maps:merge(otel_aggregation:temporality_mapping(),
-                                          maps:get(default_temporality_mapping, ReaderConfig, #{})),
+                                          Temporality),
 
-    #reader{child_id=ChildId,
-            module=ReaderModule,
-            config=ReaderConfig,
+    #reader{pid=ReaderPid,
+            monitor_ref=Ref,
             callbacks_tab=CallbacksTable,
             view_aggregation_tab=ViewAggregationTable,
             metrics_tab=MetricsTable,
@@ -254,7 +298,7 @@ handle_measurement(Measurement=#measurement{instrument=Instrument},
                    Views) ->
     ViewMatches = otel_view:match_instrument_to_views(Instrument, Views),
     lists:map(fun(Reader=#reader{view_aggregation_tab=ViewAggregationTab}) ->
-                      case ets:lookup(ViewAggregationTab, Instrument) of
+                      try ets:lookup(ViewAggregationTab, Instrument) of
                           [] ->
                               %% this instrument hasn't been seen before
                               Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
@@ -263,6 +307,11 @@ handle_measurement(Measurement=#measurement{instrument=Instrument},
                           [{_, Matches}] ->
                               %% TODO: matches need to be  updated when a new view is added
                               update_aggregations(Measurement, Reader, Matches)
+                      catch
+                          %% table doesn't exist, Reader may have crashed and be still
+                          %% waiting on the DOWN message from the monitor
+                          exit:badarg ->
+                              Reader
                       end
               end, Readers).
 

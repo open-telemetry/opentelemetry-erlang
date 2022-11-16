@@ -1,5 +1,5 @@
 %%%------------------------------------------------------------------------
-%% Copyright 2019, OpenTelemetry Authors
+%% Copyright 2022, OpenTelemetry Authors
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
 %% You may obtain a copy of the License at
@@ -12,15 +12,15 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc Supervisor for processes belonging to the Metric SDK.
+%% @doc
 %% @end
 %%%-------------------------------------------------------------------------
--module(otel_metrics_sup).
+-module(otel_meter_provider_sup).
 
 -behaviour(supervisor).
 
 -export([start_link/0,
-         start_child/1]).
+         start_child/2]).
 
 -export([init/1]).
 
@@ -29,20 +29,18 @@
 start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
-start_child(Opts) ->
-    supervisor:start_child(?SERVER, [Opts]).
+start_child(Name, Opts) ->
+    supervisor:start_child(?SERVER, [Name, Opts]).
 
 init([]) ->
-    SupFlags = #{strategy => one_for_one,
+    SupFlags = #{strategy => simple_one_for_one,
                  intensity => 1,
                  period => 5},
 
-    MeterServer = #{id => otel_meter_provider_sup,
-                    start => {otel_meter_provider_sup, start_link, []},
-                    restart => permanent,
-                    shutdown => infinity,
-                    type => supervisor,
-                    modules => [otel_meter_provider_sup]},
+    MeterServerSup = #{id => otel_meter_server_sup,
+                       start => {otel_meter_server_sup, start_link, []},
+                       restart => permanent,
+                       type => supervisor,
+                       modules => [otel_meter_server_sup]},
 
-    ChildSpecs = [MeterServer],
-    {ok, {SupFlags, ChildSpecs}}.
+    {ok, {SupFlags, [MeterServerSup]}}.

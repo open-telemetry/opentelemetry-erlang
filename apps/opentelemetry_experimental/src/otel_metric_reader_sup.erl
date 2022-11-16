@@ -19,38 +19,28 @@
 
 -behaviour(supervisor).
 
--export([start_link/1,
-         start_child/5]).
+-export([start_link/2]).
 
 -export([init/1]).
 
 -define(SERVER, ?MODULE).
 
-start_link(Opts) ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, [Opts]).
+start_link(ProviderSup, Opts) ->
+    supervisor:start_link(?MODULE, [ProviderSup, Opts]).
 
-start_child(SupRef, ChildId, ViewAggregationTable, MetricsTable, ReaderConfig) ->
-    supervisor:start_child(SupRef, #{id => ChildId,
-                                     start => {otel_metric_reader, start_link, [ChildId,
-                                                                                ViewAggregationTable,
-                                                                                MetricsTable,
-                                                                                ReaderConfig]},
-                                     type => worker,
-                                     restart => permanent,
-                                     shutdown => 1000}).
-
-init([Opts]) ->
+init([ProviderSup, Opts]) ->
     Readers = maps:get(readers, Opts, []),
 
     SupFlags = #{strategy => one_for_one,
                  intensity => 5,
                  period => 10},
-    ChildSpecs = [#{id => ChildId,
-                    start => {otel_metric_reader, start_link, [ChildId, ReaderConfig]},
+    ChildSpecs = [#{id => lists:concat([Module, "_", erlang:ref_to_list(erlang:make_ref())]),
+                    start => {Module, start_link, [ProviderSup, ReaderConfig]},
                     type => worker,
                     restart => permanent,
-                    shutdown => 1000} || #{id := ChildId,
-                                           module := otel_metric_reader,
-                                           config := ReaderConfig} <- Readers],
+                    shutdown => 1000}
+                  || #{module := Module,
+                       config := ReaderConfig} <- Readers
+                 ],
 
     {ok, {SupFlags, ChildSpecs}}.
