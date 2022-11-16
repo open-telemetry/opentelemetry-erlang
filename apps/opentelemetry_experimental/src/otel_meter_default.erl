@@ -30,8 +30,11 @@
 -include("otel_metrics.hrl").
 
 instrument(Meter, Name, Kind, ValueType, Opts) ->
-    otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
-                        maps:get(unit, Opts, undefined), ValueType).
+    Instrument=#instrument{meter={_, #meter{provider=_Provider}}} =
+        otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
+                            maps:get(unit, Opts, undefined), ValueType),
+    %% _ = otel_meter_server:add_instrument(Provider, Instrument),
+    Instrument.
 
 instrument(Meter, Name, Kind, ValueType, Callback, CallbackArgs, Opts) ->
     Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
