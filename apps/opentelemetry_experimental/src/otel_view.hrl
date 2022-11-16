@@ -17,7 +17,7 @@
          description      :: unicode:unicode_binary() | undefined,
          attribute_keys   :: [opentelemetry:attribute_key()] | undefined,
          aggregation_module      :: module() | undefined,
-         aggregation_options :: term(),
+         aggregation_options :: map(),
          number=0 :: number()}).
 
 -record(view_aggregation,
@@ -27,7 +27,7 @@
          instrument :: otel_instrument:t(),
 
          aggregation_module :: module(),
-         aggregation_options :: term(),
+         aggregation_options :: map(),
 
          temporality :: otel_aggregation:temporality(),
          is_monotonic :: boolean(),

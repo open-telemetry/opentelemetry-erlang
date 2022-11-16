@@ -102,7 +102,7 @@ match_instrument_to_views(Instrument=#instrument{name=Name,
                                          instrument=Instrument,
                                          temporality=Temporality,
                                          is_monotonic=IsMonotonic,
-                                         aggregation_options=[],
+                                         aggregation_options=#{},
                                          description=Description}}];
         Aggs ->
             Aggs

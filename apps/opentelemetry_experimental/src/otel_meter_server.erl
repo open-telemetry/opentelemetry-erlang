@@ -182,7 +182,7 @@ new_view(ViewConfig) ->
     Selector = maps:get(selector, ViewConfig, undefined),
     AttributeKeys = maps:get(attribute_keys, ViewConfig, undefined),
     AggregationModule = maps:get(aggregation_module, ViewConfig, undefined),
-    AggregationOptions = maps:get(aggregation_options, ViewConfig, undefined),
+    AggregationOptions = maps:get(aggregation_options, ViewConfig, #{}),
     otel_view:new(Name, Selector, #{description => Description,
                                     attribute_keys => AttributeKeys,
                                     aggregation_module => AggregationModule,
