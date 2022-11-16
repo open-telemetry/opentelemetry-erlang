@@ -38,8 +38,9 @@ init([ProviderSup, Opts]) ->
                     start => {Module, start_link, [ProviderSup, ReaderConfig]},
                     type => worker,
                     restart => permanent,
-                    shutdown => 1000} || #{module := Module,
-                                           config := ReaderConfig} <- Readers
+                    shutdown => 1000}
+                  || #{module := Module,
+                       config := ReaderConfig} <- Readers
                  ],
 
     {ok, {SupFlags, ChildSpecs}}.
