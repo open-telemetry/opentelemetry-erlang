@@ -35,12 +35,17 @@
 -behaviour(gen_server).
 
 -export([start_link/3,
+         add_metric_reader/6,
          add_metric_reader/7,
+         add_instrument/1,
          add_instrument/2,
+         register_callback/3,
          register_callback/4,
+         add_view/2,
          add_view/3,
          add_view/4,
          record/4,
+         force_flush/0,
          force_flush/1,
          report_cb/1]).
 
@@ -54,6 +59,7 @@
 %% need to move shared records out of otel_span.hrl
 -include_lib("opentelemetry/include/otel_span.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
+-include_lib("opentelemetry_api_experimental/include/otel_meter.hrl").
 -include_lib("kernel/include/logger.hrl").
 -include("otel_metrics.hrl").
 -include("otel_view.hrl").
@@ -100,22 +106,40 @@
 start_link(Name, RegName, Config) ->
     gen_server:start_link({local, RegName}, ?MODULE, [Name, RegName, Config], []).
 
+-spec add_instrument(otel_instrument:t()) -> boolean().
+add_instrument(Instrument) ->
+    add_instrument(?GLOBAL_METER_PROVIDER_REG_NAME, Instrument).
+
 -spec add_instrument(atom(), otel_instrument:t()) -> boolean().
 add_instrument(Provider, Instrument) ->
     gen_server:call(Provider, {add_instrument, Instrument}).
+
+add_metric_reader(ReaderPid, DefaultAggregationMapping, Temporality,
+                  ViewAggregationTable, CallbacksTable, MetricsTable) ->
+    add_metric_reader(?GLOBAL_METER_PROVIDER_REG_NAME, ReaderPid,
+                      DefaultAggregationMapping, Temporality,
+                      ViewAggregationTable, CallbacksTable, MetricsTable).
 
 add_metric_reader(Provider, ReaderPid, DefaultAggregationMapping, Temporality,
                   ViewAggregationTable, CallbacksTable, MetricsTable) ->
     gen_server:call(Provider, {add_metric_reader, ReaderPid, DefaultAggregationMapping, Temporality,
                                ViewAggregationTable, CallbacksTable, MetricsTable}).
 
+-spec register_callback([otel_instrument:t()], otel_instrument:callback(), term()) -> boolean().
+register_callback(Instruments, Callback, CallbackArgs) ->
+    register_callback(?GLOBAL_METER_PROVIDER_REG_NAME, Instruments, Callback, CallbackArgs).
+
 -spec register_callback(atom(), [otel_instrument:t()], otel_instrument:callback(), term()) -> boolean().
 register_callback(Provider, Instruments, Callback, CallbackArgs) ->
     gen_server:call(Provider, {register_callback, Instruments, Callback, CallbackArgs}).
 
--spec add_view(atom(), otel_view:criteria(), otel_view:config()) -> boolean().
-add_view(Provider, Criteria, Config) ->
-    add_view(Provider, undefined, Criteria, Config).
+-spec add_view(otel_view:criteria(), otel_view:config()) -> boolean().
+add_view(Criteria, Config) ->
+    add_view(?GLOBAL_METER_PROVIDER_REG_NAME, undefined, Criteria, Config).
+
+-spec add_view(otel_view:name(), otel_view:criteria(), otel_view:config()) -> boolean().
+add_view(Name, Criteria, Config) ->
+    add_view(?GLOBAL_METER_PROVIDER_REG_NAME, Name, Criteria, Config).
 
 -spec add_view(atom(), otel_view:name(), otel_view:criteria(), otel_view:config()) -> boolean().
 add_view(Provider, Name, Criteria, Config) ->
@@ -127,6 +151,11 @@ record(Provider, Instrument, Number, Attributes) ->
                                                      value=Number,
                                                      attributes=Attributes}}).
 
+-spec force_flush() -> ok.
+force_flush() ->
+    force_flush(?GLOBAL_METER_PROVIDER_REG_NAME).
+
+-spec force_flush(gen_server:server_ref()) -> ok.
 force_flush(Provider) ->
     gen_server:call(Provider, force_flush).
 
