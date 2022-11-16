@@ -7,18 +7,18 @@
          schema_url = '_'      :: unicode:unicode_binary() | undefined | '_'}).
 
 -record(view,
-        {name             :: otel_instrument:name() | '_' | undefined,
-         selection        :: #selection{} | undefined,
-         %% instrument_kind  :: otel_instrument:kind(),
-         %% instrument_name  :: otel_instrument:name(),
-         %% meter_name       :: otel_meter:name(),
-         %% meter_version    :: otel_meter:version(),
-         %% meter_schema_url :: otel_meter:schema_url(),
-         description      :: unicode:unicode_binary() | undefined,
-         attribute_keys   :: [opentelemetry:attribute_key()] | undefined,
+        {name                    :: otel_instrument:name() | '_' | undefined,
+         selection               :: #selection{} | undefined,
+         %% instrument_kind      :: otel_instrument:kind(),
+         %% instrument_name      :: otel_instrument:name(),
+         %% meter_name           :: otel_meter:name(),
+         %% meter_version        :: otel_meter:version(),
+         %% meter_schema_url     :: otel_meter:schema_url(),
+         description             :: unicode:unicode_binary() | undefined,
+         attribute_keys          :: [opentelemetry:attribute_key()] | undefined,
          aggregation_module      :: module() | undefined,
-         aggregation_options :: map(),
-         number=0 :: number()}).
+         aggregation_options=#{} :: map(),
+         number=0                :: number()}).
 
 -record(view_aggregation,
         {%% name of the view or instrument if the view has no name
