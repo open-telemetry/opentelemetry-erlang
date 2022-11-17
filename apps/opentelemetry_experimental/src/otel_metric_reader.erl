@@ -69,7 +69,9 @@ shutdown(ReaderPid) ->
 
 init([ProviderSup, Config]) ->
     CallbacksTable = ets:new(callbacks_table, [bag, public, {keypos, 1}]),
-    ViewAggregationTable = ets:new(view_aggregation_table, [set, public, {keypos, 1}]),
+
+    %% bag because there can be multiple ViewAggregations per-Instrument (the key)
+    ViewAggregationTable = ets:new(view_aggregation_table, [bag, public, {keypos, 1}]),
     MetricsTable = ets:new(metrics_table, [set, public, {keypos, 2}]),
 
     ExporterModuleConfig = maps:get(exporter, Config, undefined),
@@ -179,11 +181,25 @@ collect_(CallbacksTab, ViewAggregationTab, MetricsTab) ->
     %% use the information (temporality) from the VIEW_AGGREGATIONS_TAB entry to reset the
     %% METRICS_TAB entry value (like setting value back to 0 for DELTA)
 
-    ets:foldl(fun({#instrument{value_type=ValueType,
-                               unit=Unit}, ViewAggregations}, MetricsAcc) ->
-                      checkpoint_metrics(MetricsTab, ValueType, Unit, CollectionStartTime, ViewAggregations)
-                          ++ MetricsAcc
-              end, [], ViewAggregationTab).
+    %% ViewAggregationTab is a `bag' so to iterate over every ViewAggregation for
+    %% each Instrument we use `first'/`next' and lookup the list of ViewAggregations
+    %% by the key (Instrument)
+    Key = ets:first(ViewAggregationTab),
+    collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, [], Key).
+
+collect_(_CallbacksTab, _ViewAggregationTab, _MetricsTab, _CollectionStartTime, MetricsAcc, '$end_of_table') ->
+    MetricsAcc;
+collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, MetricsAcc, Key=#instrument{value_type=ValueType,
+                                                                                                        unit=Unit}) ->
+    ViewAggregations = ets:lookup_element(ViewAggregationTab, Key, 2),
+
+    collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime,
+             checkpoint_metrics(MetricsTab,
+                                ValueType,
+                                Unit,
+                                CollectionStartTime,
+                                ViewAggregations) ++ MetricsAcc,
+             ets:next(ViewAggregationTab, Key)).
 
 %% call each callback and associate the result with the Instruments it observes
 run_callbacks(CallbacksTab) ->
