@@ -6,3 +6,32 @@
 
 -define(current_meter, opentelemetry_experimental:get_meter(?MODULE)).
 
+-define(create_counter(Name, ValueType, Opts),
+        otel_meter:create_counter(?current_meter, Name, ValueType, Opts)).
+
+-define(create_observable_counter(Name, Callback, CallbackArgs, ValueType, Opts),
+        otel_meter:create_observable_counter(?current_meter, Name, Callback, CallbackArgs, ValueType, Opts)).
+
+-define(create_histogram(Name, ValueType, Opts),
+        otel_meter:create_histogram(?current_meter, Name, ValueType, Opts)).
+
+-define(create_observable_gauge(Name, Callback, CallbackArgs, ValueType, Opts),
+        otel_meter:create_observable_gauge(?current_meter, Name, Callback, CallbackArgs, ValueType, Opts)).
+
+-define(create_updown_counter(Name, ValueType, Opts),
+        otel_meter:create_updown_counter(?current_meter, Name, ValueType, Opts)).
+
+-define(create_observable_updowncounter(Name, Callback, CallbackArgs, ValueType, Opts),
+        otel_meter:create_observable_updowncounter(?current_meter, Name, Callback, CallbackArgs, ValueType, Opts)).
+
+-define(counter_add(Name, Number, Attributes),
+        otel_counter:add(?lookup_instrument(Name), Number, Attributes)).
+
+-define(updown_counter_add(Name, Number, Attributes),
+        otel_updown_counter:add(?lookup_instrument(Name), Number, Attributes)).
+
+-define(histogram_record(Name, Number, Attributes),
+        otel_histogram:record(?lookup_instrument(Name), Number, Attributes)).
+
+-define(lookup_instrument(Name),
+        otel_meter:lookup_instrument(?current_meter, Name)).

@@ -19,10 +19,19 @@
 %%%-------------------------------------------------------------------------
 -module(otel_histogram).
 
--export([record/3]).
+-export([create/4,
+         record/3]).
 
 -include("otel_metrics.hrl").
 -include_lib("kernel/include/logger.hrl").
+
+-spec create(Meter, Name, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: otel_meter:t(),
+      Name :: otel_instrument:name(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: otel_meter:opts().
+create(Meter, Name, ValueType, Opts) ->
+    otel_meter:create_histogram(Meter, Name, ValueType, Opts).
 
 -spec record(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
 record(Instrument=#instrument{module=Module,

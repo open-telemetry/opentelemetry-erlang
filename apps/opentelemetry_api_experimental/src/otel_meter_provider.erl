@@ -29,6 +29,8 @@
          force_flush/0,
          force_flush/1]).
 
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
+
 -type meter() :: term().
 
 start(Name, Config) ->
@@ -53,10 +55,10 @@ get_meter(Name, Vsn, SchemaUrl) ->
       Meter:: meter().
 get_meter(ServerRef, Name, Vsn, SchemaUrl) ->
     try
-        gen_server:call(ServerRef, {get_meter, Name, Vsn, SchemaUrl})
+        gen_server:call(maybe_to_reg_name(ServerRef), {get_meter, Name, Vsn, SchemaUrl})
     catch exit:{noproc, _} ->
             %% ignore get_meter because no SDK has been included and started
-            false
+            {otel_meter_noop, []}
     end.
 
 -spec resource() -> term() | undefined.
@@ -66,7 +68,7 @@ resource() ->
 -spec resource(atom() | pid()) -> term() | undefined.
 resource(ServerRef) ->
     try
-        gen_server:call(ServerRef, resource)
+        gen_server:call(maybe_to_reg_name(ServerRef), resource)
     catch exit:{noproc, _} ->
             %% ignore because no SDK has been included and started
             undefined
@@ -84,3 +86,12 @@ force_flush(ServerRef) ->
             %% ignore because likely no SDK has been included and started
             ok
     end.
+
+%%
+
+maybe_to_reg_name(Name) when is_atom(Name) ->
+    ?REG_NAME(Name);
+maybe_to_reg_name(Pid) when is_pid(Pid) ->
+    Pid;
+maybe_to_reg_name(Other) ->
+    Other.

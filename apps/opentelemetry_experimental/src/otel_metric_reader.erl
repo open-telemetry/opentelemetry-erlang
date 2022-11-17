@@ -185,18 +185,16 @@ collect_(CallbacksTab, ViewAggregationTab, MetricsTab) ->
     %% each Instrument we use `first'/`next' and lookup the list of ViewAggregations
     %% by the key (Instrument)
     Key = ets:first(ViewAggregationTab),
+
     collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, [], Key).
 
 collect_(_CallbacksTab, _ViewAggregationTab, _MetricsTab, _CollectionStartTime, MetricsAcc, '$end_of_table') ->
     MetricsAcc;
-collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, MetricsAcc, Key=#instrument{value_type=ValueType,
-                                                                                                        unit=Unit}) ->
+collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, MetricsAcc, Key) ->
     ViewAggregations = ets:lookup_element(ViewAggregationTab, Key, 2),
 
     collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime,
              checkpoint_metrics(MetricsTab,
-                                ValueType,
-                                Unit,
                                 CollectionStartTime,
                                 ViewAggregations) ++ MetricsAcc,
              ets:next(ViewAggregationTab, Key)).
@@ -222,10 +220,11 @@ handle_callback_results(Results, ViewAggregationTab, MetricsTab) ->
                 end, [], Results).
 
 %% single instrument callbacks return a 2-tuple of {number(), opentelemetry:attributes_map()}
-handle_instrument_observation({Number, Attributes}, [Instrument],
+handle_instrument_observation({Number, Attributes}, [Instrument=#instrument{meter=Meter,
+                                                                            name=Name}],
                               ViewAggregationTab, MetricsTab)
   when is_number(Number) ->
-    try ets:lookup_element(ViewAggregationTab, Instrument, 2) of
+    try ets:lookup_element(ViewAggregationTab, {Meter, Name}, 2) of
         ViewAggregations ->
             [AggregationModule:aggregate(MetricsTab, {Name, Attributes}, Number) || #view_aggregation{name=Name, aggregation_module=AggregationModule} <- ViewAggregations]
     catch
@@ -240,8 +239,8 @@ handle_instrument_observation({InstrumentName, Number, Attributes}, Instruments,
         false ->
             ?LOG_DEBUG("Unknown Instrument ~p used in metric callback", [InstrumentName]),
             [];
-        Instrument ->
-            try ets:lookup_element(ViewAggregationTab, Instrument, 2) of
+        Instrument=#instrument{meter=Meter} ->
+            try ets:lookup_element(ViewAggregationTab, {Meter, InstrumentName}, 2) of
                 ViewAggregations ->
                     [AggregationModule:aggregate(MetricsTab, {Name, Attributes}, Number) ||
                         #view_aggregation{name=Name, aggregation_module=AggregationModule} <- ViewAggregations]
@@ -255,11 +254,12 @@ handle_instrument_observation(_, _, _, _) ->
     ?LOG_DEBUG("Metric callback return must be of type {number(), map()} or {atom(), number(), map()}", []),
     [].
 
-checkpoint_metrics(MetricsTab, ValueType, Unit, CollectionStartTime, ViewAggregations) ->
+checkpoint_metrics(MetricsTab, CollectionStartTime, ViewAggregations) ->
     lists:foldl(fun(#view_aggregation{aggregation_module=otel_aggregation_drop}, Acc) ->
                         Acc;
                    (#view_aggregation{name=Name,
-                                      instrument=Instrument,
+                                      instrument=Instrument=#instrument{value_type=ValueType,
+                                                                        unit=Unit},
                                       aggregation_module=AggregationModule,
                                       description=Description,
                                       temporality=Temporality,

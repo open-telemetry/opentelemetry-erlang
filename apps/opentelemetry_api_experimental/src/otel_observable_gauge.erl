@@ -25,4 +25,7 @@
 %%%-------------------------------------------------------------------------
 -module(otel_observable_gauge).
 
--export([]).
+-export([create/6]).
+
+create(Meter, Name, Callback, CallbackArgs, ValueType, Opts) ->
+    otel_meter:create_observable_gauge(Meter, Name, Callback, CallbackArgs, ValueType, Opts).

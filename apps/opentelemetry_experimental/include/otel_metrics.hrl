@@ -6,7 +6,8 @@
 
 -record(meter, {module                  :: module(),
                 instrumentation_scope   :: opentelemetry:instrumentation_scope() | undefined,
-                provider                :: atom()}).
+                provider                :: atom(),
+                instruments_table       :: ets:tid()}).
 
 -record(measurement,
         {

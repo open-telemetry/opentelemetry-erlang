@@ -162,11 +162,12 @@ force_flush(Provider) ->
     gen_server:call(Provider, force_flush).
 
 init([Name, RegName, Config]) ->
-    InstrumentsTid = instruments_table(),
+    InstrumentsTid = instruments_table(RegName),
 
     Resource = otel_resource_detector:get_resource(),
 
     Meter = #meter{module=otel_meter_default,
+                   instruments_table=InstrumentsTid,
                    provider=RegName},
 
     opentelemetry_experimental:set_default_meter(Name, {otel_meter_default, Meter}),
@@ -235,8 +236,8 @@ code_change(State) ->
 
 %%
 
-instruments_table() ->
-    ets:new(instruments, [set, {keypos, 1}, protected]).
+instruments_table(Name) ->
+    ets:new(list_to_atom(lists:concat([instruments, "_", Name])), [set, named_table, {keypos, 1}, protected]).
 
 new_view(ViewConfig) ->
     Name = maps:get(name, ViewConfig, undefined),
@@ -253,14 +254,14 @@ new_view(ViewConfig) ->
 
 %% Match the Instrument to views and then store a per-Reader aggregation for the View
 add_instrument_(InstrumentsTid, Instrument=#instrument{meter=Meter,
-                                                       name=Name,
-                                                       kind=Kind}, Views, Readers) ->
-    _ = ets:insert(InstrumentsTid, {{Meter, Name, Kind}, Instrument}),
+                                                       name=Name}, Views, Readers) ->
+    Key = {Meter, Name},
+    _ = ets:insert(InstrumentsTid, {Key, Instrument}),
     ViewMatches = otel_view:match_instrument_to_views(Instrument, Views),
     lists:map(fun(Reader=#reader{callbacks_tab=CallbackTab,
                                  view_aggregation_tab=ViewAggregationTab}) ->
                       Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
-                      [_ = ets:insert(ViewAggregationTab, {Instrument, M}) || M <- Matches],
+                      [_ = ets:insert(ViewAggregationTab, {Key, M}) || M <- Matches],
                       case {Instrument#instrument.callback, Instrument#instrument.callback_args} of
                           {undefined, _} ->
                               ok;
@@ -276,12 +277,14 @@ update_view_aggregations(InstrumentsTid, Views, Readers) ->
                       Acc
               end, ok, InstrumentsTid).
 
-update_view_aggregations_(Instrument, Views, Readers) ->
+update_view_aggregations_(Instrument=#instrument{meter=Meter,
+                                                 name=Name}, Views, Readers) ->
+    Key = {Meter, Name},
     ViewMatches = otel_view:match_instrument_to_views(Instrument, Views),
     lists:map(fun(Reader=#reader{callbacks_tab=CallbackTab,
                                  view_aggregation_tab=ViewAggregationTab}) ->
                       Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
-                      [true = ets:insert(ViewAggregationTab, {Instrument, M}) || M <- Matches],
+                      [true = ets:insert(ViewAggregationTab, {Key, M}) || M <- Matches],
                       case {Instrument#instrument.callback, Instrument#instrument.callback_args} of
                           {undefined, _} ->
                               ok;
@@ -327,11 +330,11 @@ metric_reader(ReaderPid, DefaultAggregationMapping, Temporality,
 %% for each ViewAggregation a Measurement updates a Metric (`#metric')
 %% active metrics are indexed by the ViewAggregation name + the Measurement's Attributes
 
-handle_measurement(Measurement=#measurement{instrument=Instrument}, Readers) ->
+handle_measurement(Measurement=#measurement{instrument=#instrument{meter=Meter,
+                                                                   name=Name}}, Readers) ->
     lists:map(fun(Reader=#reader{view_aggregation_tab=ViewAggregationTab}) ->
-                      try ets:lookup_element(ViewAggregationTab, Instrument, 2) of
+                      try ets:lookup_element(ViewAggregationTab, {Meter, Name}, 2) of
                           Matches ->
-                              %% TODO: matches need to be updated when a new view is added
                               update_aggregations(Measurement, Reader, Matches)
                       catch
                           %% table doesn't exist, Reader may have crashed and be still
@@ -347,14 +350,14 @@ update_aggregations(#measurement{attributes=Attributes,
                                     aggregation_module=AggregationModule,
                                     aggregation_options=Options}) ->
                       case AggregationModule:aggregate(MetricsTab, {Name, Attributes}, Value) of
-                              true ->
-                                  ok;
-                              false ->
-                                  %% entry doesn't exist, create it and rerun the aggregate function
-                                  Metric = AggregationModule:init({Name, Attributes}, Options),
-                                  _ = ets:insert(MetricsTab, Metric),
-                                  AggregationModule:aggregate(MetricsTab, {Name, Attributes}, Value)
-                          end
+                          true ->
+                              ok;
+                          false ->
+                              %% entry doesn't exist, create it and rerun the aggregate function
+                              Metric = AggregationModule:init({Name, Attributes}, Options),
+                              _ = ets:insert(MetricsTab, Metric),
+                              AggregationModule:aggregate(MetricsTab, {Name, Attributes}, Value)
+                      end
               end, ViewAggregations).
 
 %% create an aggregation for each Reader and its possibly unique aggregation/temporality

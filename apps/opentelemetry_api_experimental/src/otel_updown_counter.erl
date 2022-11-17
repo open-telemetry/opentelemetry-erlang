@@ -18,10 +18,19 @@
 %%%-------------------------------------------------------------------------
 -module(otel_updown_counter).
 
--export([add/3]).
+-export([create/4,
+         add/3]).
 
 -include("otel_metrics.hrl").
 -include_lib("kernel/include/logger.hrl").
+
+-spec create(Meter, Name, ValueType, Opts) -> otel_instrument:t() when
+      Meter :: otel_meter:t(),
+      Name :: otel_instrument:name(),
+      ValueType :: otel_instrument:value_type(),
+      Opts :: otel_meter:opts().
+create(Meter, Name, ValueType, Opts) ->
+    otel_meter:create_updown_counter(Meter, Name, ValueType, Opts).
 
 -spec add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
 add(Instrument=#instrument{module=Module,
