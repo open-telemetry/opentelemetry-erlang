@@ -12,8 +12,7 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc `otel_meter' is responsible for creating Instruments. An Instrument
-%% is just a record so calling the creation function has no side effects.
+%% @doc `otel_meter' is responsible for creating Instruments.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_meter).
