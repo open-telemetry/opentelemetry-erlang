@@ -544,6 +544,12 @@ kill_reader(_Config) ->
     ?UNTIL([Pid || {_, Pid, _, _} <- supervisor:which_children(ReaderSup),
                    Pid =/= ReaderPid] =/= []),
 
+    %% TODO: agh! need to supervise ETS tables so readers can crash and not then
+    %% lose all existing Instrument/View matches
+    Counter = otel_meter:counter(Meter, CounterName, ValueType,
+                                 #{description => CounterDesc,
+                                   unit => CounterUnit}),
+
     ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
 
@@ -589,6 +595,15 @@ kill_server(_Config) ->
     %% wait until process has died and born again
     ?UNTIL(erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME) =/= CurrentPid),
     ?UNTIL(erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME) =/= undefined),
+
+    %% TODO: Agh! need to supervise ETS tables so readers can crash and not then
+    %% lose all existing Instrument/View matches
+    ACounter = otel_meter:counter(Meter, ACounterName, ValueType,
+                                  #{description => CounterDesc,
+                                    unit => CounterUnit}),
+    Counter = otel_meter:counter(Meter, CounterName, ValueType,
+                                 #{description => CounterDesc,
+                                   unit => CounterUnit}),
 
     ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
