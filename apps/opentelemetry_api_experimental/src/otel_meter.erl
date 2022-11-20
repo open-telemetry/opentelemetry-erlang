@@ -148,7 +148,7 @@ lookup_instrument(Meter={Module, _}, Name) ->
       ValueType :: otel_instrument:value_type(),
       Opts :: opts().
 instrument(Meter={Module, _}, Name, Kind, ValueType, Callback, CallbackArgs, Opts) ->
-    Module:instrument(Meter, Name, Kind, ValueType, Callback, CallbackArgs, Opts).
+    Module:create_instrument(Meter, Name, Kind, ValueType, Callback, CallbackArgs, Opts).
 
 -spec register_callback(Meter, Instruments, Callback, CallbackArgs) -> ok when
       Meter :: t(),
