@@ -88,7 +88,8 @@ defmodule OpenTelemetryExperimental.MixProject do
   end
 
   defp load_app do
-    {:ok, [{:application, name, desc}]} = :file.consult('src/opentelemetry_api_experimental.app.src')
+    {:ok, [{:application, name, desc}]} =
+      :file.consult('src/opentelemetry_api_experimental.app.src')
 
     {name, desc}
   end
