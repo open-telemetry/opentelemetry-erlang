@@ -13,7 +13,7 @@ sdk_version=1.1.2
 api_version=1.1.1
 otlp_version=1.2.1
 zipkin_version=1.1.0
-semconv_version=0.1.0
+semconv_version=0.2.0
 
 ex_doc "opentelemetry" $sdk_version "_build/default/lib/opentelemetry/ebin" \
   --source-ref v${sdk_version} \
