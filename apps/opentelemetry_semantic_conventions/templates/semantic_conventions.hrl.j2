@@ -9,6 +9,6 @@
 {%- if attribute.deprecated %}
 %% @deprecated {{ attribute.deprecated | to_doc_brief | regex_replace(pattern="\n", replace="\n %%  ") }}
 {%- endif %}
--define({{ attribute.fqn | to_const_name }}, '{{ attribute.fqn }}'),
+-define({{ attribute.fqn | to_const_name }}, '{{ attribute.fqn }}').
 {# blank line #}
 {%- endfor %}
