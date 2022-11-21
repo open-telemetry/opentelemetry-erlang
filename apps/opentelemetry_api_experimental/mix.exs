@@ -12,7 +12,7 @@ defmodule OpenTelemetryExperimental.MixProject do
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       # We should never have dependencies
-      deps: deps(Keyword.fetch!(config, :deps)),
+      deps: deps(),  # deps(Keyword.fetch!(config, :deps)),
       # Docs
       name: "OpenTelemetry Experimental API",
       # source_url: "https://github.com/USER/PROJECT",
@@ -45,13 +45,12 @@ defmodule OpenTelemetryExperimental.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application, do: []
 
-  defp deps(_rebar) do
-    [{:opentelemetry_api, path: "../opentelemetry_api/"}]
-    # rebar
-    # |> Enum.map(fn
-    #   {dep, version} -> {dep, to_string(version)}
-    #   dep when is_atom(dep) -> {dep, ">= 0.0.0"}
-    # end)
+  defp deps(rebar) do
+    rebar
+    |> Enum.map(fn
+      {dep, version} -> {dep, to_string(version)}
+      dep when is_atom(dep) -> {dep, ">= 0.0.0"}
+    end)
     |> Enum.concat([
       {:cmark, "~> 0.7", only: :dev, runtime: false},
       {:ex_doc, "0.21.0", only: :dev, runtime: false},

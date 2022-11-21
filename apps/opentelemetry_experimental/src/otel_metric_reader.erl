@@ -70,10 +70,6 @@ shutdown(ReaderPid) ->
 init([ProviderSup, Config]) ->
     CallbacksTable = ets:new(callbacks_table, [bag, public, {keypos, 1}]),
 
-    %% bag because there can be multiple ViewAggregations per-Instrument (the key)
-    ViewAggregationTable = ets:new(view_aggregation_table, [bag, public, {keypos, 1}]),
-    MetricsTable = ets:new(metrics_table, [set, public, {keypos, 2}]),
-
     ExporterModuleConfig = maps:get(exporter, Config, undefined),
     Exporter = otel_exporter:init(ExporterModuleConfig),
 
@@ -95,22 +91,20 @@ init([ProviderSup, Config]) ->
                 default_aggregation_mapping=DefaultAggregationMapping,
                 temporality_mapping=Temporality,
                 export_interval_ms=ExporterIntervalMs,
-                view_aggregation_tab=ViewAggregationTable,
                 callbacks_tab=CallbacksTable,
-                metrics_tab=MetricsTable,
                 tref=TRef,
                 config=Config}, {continue, register_with_server}}.
 
 handle_continue(register_with_server, State=#state{provider_sup=ProviderSup,
                                                    default_aggregation_mapping=DefaultAggregationMapping,
                                                    temporality_mapping=Temporality,
-                                                   view_aggregation_tab=ViewAggregationTable,
-                                                   callbacks_tab=CallbacksTable,
-                                                   metrics_tab=MetricsTable}) ->
+                                                   callbacks_tab=CallbacksTable}) ->
     ServerPid = otel_meter_server_sup:provider_pid(ProviderSup),
-    ok = otel_meter_server:add_metric_reader(ServerPid, self(), DefaultAggregationMapping, Temporality,
-                                             ViewAggregationTable, CallbacksTable, MetricsTable),
-    {noreply, State}.
+    {ViewAggregationTable, MetricsTable} =
+        otel_meter_server:add_metric_reader(ServerPid, self(), DefaultAggregationMapping,
+                                            Temporality, CallbacksTable),
+    {noreply, State#state{view_aggregation_tab=ViewAggregationTable,
+                          metrics_tab=MetricsTable}}.
 
 handle_call(shutdown, _From, State) ->
     {reply, ok, State};
@@ -131,8 +125,10 @@ handle_info(collect, State=#state{exporter={ExporterModule, Config},
                                   tref=undefined,
                                   callbacks_tab=CallbacksTab,
                                   view_aggregation_tab=ViewAggregationTable,
-                                  metrics_tab=MetricsTable}) ->
+                                  metrics_tab=MetricsTable
+                                 }) ->
     Resource = [],
+
     %% collect from view aggregations table and then export
     Metrics = collect_(CallbacksTab, ViewAggregationTable, MetricsTable),
 
@@ -144,13 +140,15 @@ handle_info(collect, State=#state{exporter={ExporterModule, Config},
                                   tref=TRef,
                                   callbacks_tab=CallbacksTab,
                                   view_aggregation_tab=ViewAggregationTable,
-                                  metrics_tab=MetricsTable}) ->
+                                  metrics_tab=MetricsTable
+                                 }) ->
     Resource = [],
     erlang:cancel_timer(TRef, [{async, true}]),
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
-
+    
     %% collect from view aggregations table and then export
     Metrics = collect_(CallbacksTab, ViewAggregationTable, MetricsTable),
+
 
     otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
 
@@ -185,14 +183,12 @@ collect_(CallbacksTab, ViewAggregationTab, MetricsTab) ->
     %% each Instrument we use `first'/`next' and lookup the list of ViewAggregations
     %% by the key (Instrument)
     Key = ets:first(ViewAggregationTab),
-
     collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, [], Key).
 
 collect_(_CallbacksTab, _ViewAggregationTab, _MetricsTab, _CollectionStartTime, MetricsAcc, '$end_of_table') ->
     MetricsAcc;
 collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, MetricsAcc, Key) ->
     ViewAggregations = ets:lookup_element(ViewAggregationTab, Key, 2),
-
     collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime,
              checkpoint_metrics(MetricsTab,
                                 CollectionStartTime,
@@ -220,13 +216,14 @@ handle_callback_results(Results, ViewAggregationTab, MetricsTab) ->
                 end, [], Results).
 
 %% single instrument callbacks return a 2-tuple of {number(), opentelemetry:attributes_map()}
-handle_instrument_observation({Number, Attributes}, [Instrument=#instrument{meter=Meter,
-                                                                            name=Name}],
+handle_instrument_observation({Number, Attributes}, [#instrument{meter=Meter,
+                                                                 name=Name}],
                               ViewAggregationTab, MetricsTab)
   when is_number(Number) ->
+    Self = self(),
     try ets:lookup_element(ViewAggregationTab, {Meter, Name}, 2) of
         ViewAggregations ->
-            [AggregationModule:aggregate(MetricsTab, {Name, Attributes}, Number) || #view_aggregation{name=Name, aggregation_module=AggregationModule} <- ViewAggregations]
+            [AggregationModule:aggregate(MetricsTab, {Name, Attributes, Self}, Number) || #view_aggregation{aggregation_module=AggregationModule} <- ViewAggregations]
     catch
         exit:badarg ->
             %% no Views for this Instrument, so nothing to do
@@ -239,11 +236,14 @@ handle_instrument_observation({InstrumentName, Number, Attributes}, Instruments,
         false ->
             ?LOG_DEBUG("Unknown Instrument ~p used in metric callback", [InstrumentName]),
             [];
-        Instrument=#instrument{meter=Meter} ->
+        #instrument{meter=Meter} ->
             try ets:lookup_element(ViewAggregationTab, {Meter, InstrumentName}, 2) of
                 ViewAggregations ->
-                    [AggregationModule:aggregate(MetricsTab, {Name, Attributes}, Number) ||
-                        #view_aggregation{name=Name, aggregation_module=AggregationModule} <- ViewAggregations]
+                    Self = self(),
+                    [AggregationModule:aggregate(MetricsTab, {Name, Attributes, Self}, Number) ||
+                        #view_aggregation{name=Name,
+                                          reader=Pid,
+                                          aggregation_module=AggregationModule} <- ViewAggregations, Pid =:= Self]
             catch
                 exit:badarg ->
                     %% no Views for this Instrument, so nothing to do
@@ -255,22 +255,27 @@ handle_instrument_observation(_, _, _, _) ->
     [].
 
 checkpoint_metrics(MetricsTab, CollectionStartTime, ViewAggregations) ->
-    lists:foldl(fun(#view_aggregation{aggregation_module=otel_aggregation_drop}, Acc) ->
+    Self = self(),
+    lists:foldl(fun(#view_aggregation{reader=Pid,
+                                      aggregation_module=otel_aggregation_drop}, Acc) ->
                         Acc;
                    (#view_aggregation{name=Name,
+                                      reader=Pid,
                                       instrument=Instrument=#instrument{value_type=ValueType,
                                                                         unit=Unit},
                                       aggregation_module=AggregationModule,
                                       description=Description,
                                       temporality=Temporality,
                                       is_monotonic=IsMonotonic
-                                     }, Acc) ->
-                        AggregationModule:checkpoint(MetricsTab, Name, Temporality,
+                                     }, Acc) when Pid =:= Self ->
+                        AggregationModule:checkpoint(MetricsTab, Name, Self, Temporality,
                                                      ValueType, CollectionStartTime),
-                        Data = data(AggregationModule, Name, Temporality, IsMonotonic,
+                        Data = data(AggregationModule, Name, Self, Temporality, IsMonotonic,
                                     CollectionStartTime, MetricsTab),
 
-                        [metric(Instrument, Name, Description, Unit, Data) | Acc]
+                        [metric(Instrument, Name, Description, Unit, Data) | Acc];
+                   (_, Acc) ->
+                        Acc
                 end, [], ViewAggregations).
 
 metric(#instrument{meter=Meter}, Name, Description, Unit, Data) ->
@@ -280,17 +285,17 @@ metric(#instrument{meter=Meter}, Name, Description, Unit, Data) ->
             unit=Unit,
             data=Data}.
 
-data(otel_aggregation_sum, Name, Temporality, IsMonotonic, CollectionStartTime, MetricTab) ->
-    Datapoints = otel_aggregation_sum:collect(MetricTab, Name, Temporality, CollectionStartTime),
+data(otel_aggregation_sum, Name, Self, Temporality, IsMonotonic, CollectionStartTime, MetricTab) ->
+    Datapoints = otel_aggregation_sum:collect(MetricTab, Name, Self, Temporality, CollectionStartTime),
     #sum{
        aggregation_temporality=Temporality,
        is_monotonic=IsMonotonic,
        datapoints=Datapoints};
-data(otel_aggregation_last_value, Name, Temporality, _IsMonotonic, CollectionStartTime, MetricTab) ->
-    Datapoints = otel_aggregation_last_value:collect(MetricTab, Name, Temporality, CollectionStartTime),
+data(otel_aggregation_last_value, Name, Self, Temporality, _IsMonotonic, CollectionStartTime, MetricTab) ->
+    Datapoints = otel_aggregation_last_value:collect(MetricTab, Name, Self, Temporality, CollectionStartTime),
     #gauge{datapoints=Datapoints};
-data(otel_aggregation_histogram_explicit, Name, Temporality, _IsMonotonic, CollectionStartTime, MetricTab) ->
-    Datapoints = otel_aggregation_histogram_explicit:collect(MetricTab, Name, Temporality, CollectionStartTime),
+data(otel_aggregation_histogram_explicit, Name, Self, Temporality, _IsMonotonic, CollectionStartTime, MetricTab) ->
+    Datapoints = otel_aggregation_histogram_explicit:collect(MetricTab, Name, Self, Temporality, CollectionStartTime),
     #histogram{datapoints=Datapoints,
                aggregation_temporality=Temporality
               }.

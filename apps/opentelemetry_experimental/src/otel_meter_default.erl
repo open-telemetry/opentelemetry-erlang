@@ -63,6 +63,6 @@ scope({_, #meter{instrumentation_scope=Scope}}) ->
 
 %%
 
-record(Instrument=#instrument{meter={_, #meter{provider=Provider}}}, Number, Attributes) ->
-    otel_meter_server:record(Provider, Instrument, Number, Attributes).
-
+record(Instrument=#instrument{meter={_, #meter{view_aggregations_table=ViewAggregationTable,
+                                               metrics_table=MetricsTable}}}, Number, Attributes) ->
+    otel_meter_server:record(ViewAggregationTable, MetricsTable, Instrument, Number, Attributes).

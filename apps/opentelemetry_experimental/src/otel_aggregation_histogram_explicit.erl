@@ -19,8 +19,8 @@
 
 -export([init/2,
          aggregate/3,
-         checkpoint/5,
-         collect/4]).
+         checkpoint/6,
+         collect/5]).
 
 -include("otel_metrics.hrl").
 
@@ -80,9 +80,9 @@ aggregate(MeasurementValue,
     Aggregation#explicit_histogram_aggregation{bucket_counts=Buckets1,
                                                sum=Sum+MeasurementValue}.
 
--dialyzer({nowarn_function, checkpoint/5}).
+-dialyzer({nowarn_function, checkpoint/6}).
 %% TODO: handle delta temporary checkpoints
-checkpoint(Tab, Name, ?AGGREGATION_TEMPORALITY_DELTA, _, CollectionStartNano) ->
+checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, _, CollectionStartNano) ->
     MS = [{#explicit_histogram_aggregation{key='$1',
                                            start_time_unix_nano='_',
                                            boundaries='$2',
@@ -94,7 +94,8 @@ checkpoint(Tab, Name, ?AGGREGATION_TEMPORALITY_DELTA, _, CollectionStartNano) ->
                                            max='$7',
                                            sum='$8'
                                           },
-           [{'=:=', {element, 1, '$1'}, {const, Name}}],
+           [{'=:=', {element, 1, '$1'}, {const, Name}},
+            {'=:=', {element, 3, '$1'}, {const, ReaderPid}}],
            [{#explicit_histogram_aggregation{key='$1',
                                              start_time_unix_nano={const, CollectionStartNano},
                                              boundaries='$2',
@@ -111,7 +112,7 @@ checkpoint(Tab, Name, ?AGGREGATION_TEMPORALITY_DELTA, _, CollectionStartNano) ->
     _ = ets:select_replace(Tab, MS),
 
     ok;
-checkpoint(Tab, Name, _, _, _CollectionStartNano) ->
+checkpoint(Tab, Name, ReaderPid, _, _, _CollectionStartNano) ->
     MS = [{#explicit_histogram_aggregation{key='$1',
                                            start_time_unix_nano='$2',
                                            boundaries='$3',
@@ -123,7 +124,8 @@ checkpoint(Tab, Name, _, _, _CollectionStartNano) ->
                                            max='$7',
                                            sum='$8'
                                           },
-           [{'=:=', {element, 1, '$1'}, {const, Name}}],
+           [{'=:=', {element, 1, '$1'}, {const, Name}},
+            {'=:=', {element, 3, '$1'}, {const, ReaderPid}}],
            [{#explicit_histogram_aggregation{key='$1',
                                              start_time_unix_nano='$2',
                                              boundaries='$3',
@@ -141,9 +143,10 @@ checkpoint(Tab, Name, _, _, _CollectionStartNano) ->
 
     ok.
 
-collect(Tab, Name, _, CollectionStartTime) ->
+collect(Tab, Name, ReaderPid, _, CollectionStartTime) ->
     Select = [{'$1',
-               [{'==', Name, {element, 1, {element, 2, '$1'}}}],
+               [{'==', Name, {element, 1, {element, 2, '$1'}}},
+                {'==', ReaderPid, {element, 3, {element, 2, '$1'}}}],
                ['$1']}],
     AttributesAggregation = ets:select(Tab, Select),
     [datapoint(CollectionStartTime, SumAgg) || SumAgg <- AttributesAggregation].
@@ -151,7 +154,7 @@ collect(Tab, Name, _, CollectionStartTime) ->
 %%
 
 datapoint(CollectionStartNano, #explicit_histogram_aggregation{
-                                  key={_, Attributes},
+                                  key={_, Attributes, _},
                                   start_time_unix_nano=StartTimeUnixNano,
                                   boundaries=Boundaries,
                                   checkpoint=#explicit_histogram_checkpoint{bucket_counts=Buckets,
