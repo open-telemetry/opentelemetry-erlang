@@ -20,7 +20,7 @@
 -behaviour(otel_meter).
 
 -export([create_instrument/5,
-         instrument/7,
+         create_instrument/7,
          lookup_instrument/2,
          register_callback/4,
          scope/1]).
@@ -46,7 +46,7 @@ lookup_instrument(Meter={_, #meter{instruments_table=Tid}}, Name) ->
             undefined
     end.
 
-instrument(Meter, Name, Kind, ValueType, Callback, CallbackArgs, Opts) ->
+create_instrument(Meter, Name, Kind, ValueType, Callback, CallbackArgs, Opts) ->
     Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
         otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
                             maps:get(unit, Opts, undefined), ValueType, Callback, CallbackArgs),
