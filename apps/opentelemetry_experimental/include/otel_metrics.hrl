@@ -4,9 +4,10 @@
 -define(AGGREGATION_TEMPORALITY_CUMULATIVE, aggregation_temporality_cumulative).
 -define(AGGREGATION_TEMPORALITY_UNSPECIFIED, aggregation_temporality_unspecified).
 
--record(meter, {module                  :: module(),
+-record(meter, {module                  :: module() | '_',
                 instrumentation_scope   :: opentelemetry:instrumentation_scope() | undefined,
-                provider                :: atom()}).
+                provider                :: atom() | '_',
+                instruments_table       :: ets:tid() | '_'}).
 
 -record(measurement,
         {

@@ -23,4 +23,7 @@
 %%%-------------------------------------------------------------------------
 -module(otel_observable_updowncounter).
 
--export([]).
+-export([create/6]).
+
+create(Meter, Name, Callback, CallbackArgs, ValueType, Opts) ->
+    otel_meter:create_observable_updowncounter(Meter, Name, Callback, CallbackArgs, ValueType, Opts).

@@ -455,7 +455,7 @@ verify_and_set_term(Module, TermKey, Behaviour) ->
             true;
         false ->
             ?LOG_WARNING("Module ~p does not exist. "
-                         "A noop ~p will be used until a module is configured.",
+                         "A noop ~p will be used.",
                          [Module, Behaviour]),
             false
     end.

@@ -45,12 +45,13 @@ defmodule OpenTelemetryExperimental.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application, do: []
 
-  defp deps(rebar) do
-    rebar
-    |> Enum.map(fn
-      {dep, version} -> {dep, to_string(version)}
-      dep when is_atom(dep) -> {dep, ">= 0.0.0"}
-    end)
+  defp deps(_rebar) do
+    [{:opentelemetry_api, path: "../opentelemetry_api/"}]
+    # rebar
+    # |> Enum.map(fn
+    #   {dep, version} -> {dep, to_string(version)}
+    #   dep when is_atom(dep) -> {dep, ">= 0.0.0"}
+    # end)
     |> Enum.concat([
       {:cmark, "~> 0.7", only: :dev, runtime: false},
       {:ex_doc, "0.21.0", only: :dev, runtime: false},
@@ -88,7 +89,8 @@ defmodule OpenTelemetryExperimental.MixProject do
   end
 
   defp load_app do
-    {:ok, [{:application, name, desc}]} = :file.consult('src/opentelemetry_api_experimental.app.src')
+    {:ok, [{:application, name, desc}]} =
+      :file.consult('src/opentelemetry_api_experimental.app.src')
 
     {name, desc}
   end
