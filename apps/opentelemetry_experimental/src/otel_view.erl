@@ -143,7 +143,8 @@ criteria_to_instrument_matchspec(_) ->
     ets:match_spec_compile([{#instrument{_='_'}, [], [true]}]).
 
 maybe_init_meter(#instrument{meter='_'}) ->
-    {'_', #meter{instrumentation_scope=#instrumentation_scope{_='_'}}}.
+    {'_', #meter{instrumentation_scope=#instrumentation_scope{_='_'},
+                 _='_'}}.
 
 update_meter_name(MeterName, {_, Meter=#meter{instrumentation_scope=Scope}}) ->
     {'_', Meter#meter{instrumentation_scope=Scope#instrumentation_scope{name=MeterName}}}.
