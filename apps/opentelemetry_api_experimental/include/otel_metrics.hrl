@@ -1,12 +1,12 @@
--record(instrument, {module        :: module(),
-                     meter         :: otel_meter:t(),
-                     name          :: otel_instrument:name(),
-                     description   :: otel_instrument:description() | undefined,
-                     kind          :: otel_instrument:kind(),
-                     value_type    :: otel_instrument:value_type(),
-                     unit          :: otel_instrument:unit() | undefined,
-                     callback      :: otel_instrument:callback() | undefined,
-                     callback_args :: term() | undefined}).
+-record(instrument, {module        :: module() | '_',
+                     meter         :: otel_meter:t() | '_',
+                     name          :: otel_instrument:name() | '_',
+                     description   :: otel_instrument:description() | undefined | '_',
+                     kind          :: otel_instrument:kind() | '_',
+                     value_type    :: otel_instrument:value_type() | '_',
+                     unit          :: otel_instrument:unit() | undefined | '_',
+                     callback      :: otel_instrument:callback() | undefined | '_',
+                     callback_args :: term() | undefined | '_'}).
 
 -define(VALUE_TYPE_INTEGER, integer).
 -define(VALUE_TYPE_FLOAT, float).

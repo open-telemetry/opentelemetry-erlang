@@ -1,19 +1,6 @@
-
--record(selection,
-        {instrument_name = '_' :: otel_instrument:name() | '_' | undefined,
-         instrument_kind = '_' :: otel_instrument:kind() | '_',
-         meter_name = '_'      :: unicode:unicode_binary() | undefined | '_',
-         meter_version = '_'   :: unicode:unicode_binary() | undefined | '_',
-         schema_url = '_'      :: unicode:unicode_binary() | undefined | '_'}).
-
 -record(view,
         {name                    :: otel_instrument:name() | '_' | undefined,
-         selection               :: #selection{} | undefined,
-         %% instrument_kind      :: otel_instrument:kind(),
-         %% instrument_name      :: otel_instrument:name(),
-         %% meter_name           :: otel_meter:name(),
-         %% meter_version        :: otel_meter:version(),
-         %% meter_schema_url     :: otel_meter:schema_url(),
+         instrument_matchspec    :: ets:compiled_match_spec() | undefined,
          description             :: unicode:unicode_binary() | undefined,
          attribute_keys          :: [opentelemetry:attribute_key()] | undefined,
          aggregation_module      :: module() | undefined,
