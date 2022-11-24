@@ -22,6 +22,8 @@
          match_instrument_to_views/2]).
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include_lib("opentelemetry_experimental/include/otel_metrics.hrl").
 -include("otel_view.hrl").
 
 -type name() :: atom().
@@ -39,11 +41,9 @@
                    }.
 
 -type t() :: #view{}.
--type selection() :: #selection{}.
 
 -export_type([t/0,
               name/0,
-              selection/0,
               criteria/0,
               config/0]).
 
@@ -51,19 +51,20 @@
 
 %% no name means Instrument name is used
 %% must reject wildcard Criteria  in this case
--spec new(criteria(), config()) -> t().
+-spec new(criteria() | undefined, config()) -> t().
 new(Criteria, Config) ->
-    Selection = criteria_to_selection(Criteria),
+    CriteriaInstrumentName = view_name_from_criteria(Criteria),
+    Matchspec = criteria_to_instrument_matchspec(Criteria),
     %% no name given so use the name of the instrument in the selection
     %% if no instrument name is given then it'll stay `undefined'
-    #view{name=?assert_type(case Selection#selection.instrument_name of '_' -> undefined; N -> N end, undefined | unicode:latin1_binary() | unicode:latin1_charlist()),
-          selection=Selection,
+    #view{name=CriteriaInstrumentName,
+          instrument_matchspec=Matchspec,
           description=maps:get(description, Config, undefined),
           attribute_keys=maps:get(attribute_keys, Config, undefined),
           aggregation_module=maps:get(aggregation_module, Config, undefined),
           aggregation_options=maps:get(aggregation_options, Config, #{})}.
 
--spec new(name(), criteria(), config()) -> t().
+-spec new(name(), criteria() | undefined, config()) -> t().
 new(undefined, Criteria, Config) ->
     new(Criteria, Config);
 new(Name, Criteria, Config) ->
@@ -72,7 +73,7 @@ new(Name, Criteria, Config) ->
 
 -spec match_instrument_to_views(otel_instrument:t(), [otel_view:t()]) ->
           [{otel_view:t(), #view_aggregation{}}].
-match_instrument_to_views(Instrument=#instrument{name=Name,
+match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                                  meter=Meter,
                                                  description=Description}, Views) ->
     IsMonotonic = otel_instrument:is_monotonic(Instrument),
@@ -81,32 +82,34 @@ match_instrument_to_views(Instrument=#instrument{name=Name,
     case lists:filtermap(fun(View=#view{name=ViewName,
                                         description=ViewDescription,
                                         aggregation_options=AggregationOptions,
-                                        selection=#selection{instrument_name=InstrumentName}})
-                               when Name =:= InstrumentName ->
-                                 {true, {View, #view_aggregation{name=value_or(ViewName,
-                                                                               InstrumentName),
-                                                                 scope=Scope,
-                                                                 instrument=Instrument,
-                                                                 temporality=Temporality,
-                                                                 is_monotonic=IsMonotonic,
-                                                                 aggregation_options=AggregationOptions,
-                                                                 description=value_or(ViewDescription,
-                                                                                      Description)
-                                                                }}};
-                            (_) ->
-                                 false
-                         end, Views) of
-        [] ->
-            [{#view{}, #view_aggregation{name=Name,
-                                         scope=Scope,
-                                         instrument=Instrument,
-                                         temporality=Temporality,
-                                         is_monotonic=IsMonotonic,
-                                         aggregation_options=#{},
-                                         description=Description}}];
-        Aggs ->
-            Aggs
-    end.
+                                        instrument_matchspec=Matchspec}) ->
+                                    case ets:match_spec_run([Instrument], Matchspec) of
+                                        [] ->
+                                            false;
+                                        _ ->
+                                            {true, {View, #view_aggregation{name=value_or(ViewName,
+                                                                                          InstrumentName),
+                                                                            scope=Scope,
+                                                                            instrument=Instrument,
+                                                                            temporality=Temporality,
+                                                                            is_monotonic=IsMonotonic,
+                                                                            aggregation_options=AggregationOptions,
+                                                                            description=value_or(ViewDescription,
+                                                                                                 Description)
+                                                                           }}}
+                                    end
+                            end, Views) of
+                            [] ->
+                                 [{#view{}, #view_aggregation{name=InstrumentName,
+                                                              scope=Scope,
+                                                              instrument=Instrument,
+                                                              temporality=Temporality,
+                                                              is_monotonic=IsMonotonic,
+                                                              aggregation_options=#{},
+                                                              description=Description}}];
+                            Aggs ->
+                                 Aggs
+                         end.
 
 %%
 
@@ -115,17 +118,43 @@ value_or(undefined, Other) ->
 value_or(Value, _Other) ->
     Value.
 
-criteria_to_selection(Criteria) when is_map(Criteria) ->
-    maps:fold(fun(instrument_name, InstrumentName, SelectionAcc) ->
-                      SelectionAcc#selection{instrument_name=InstrumentName};
-                 (instrument_kind, Kind, SelectionAcc) ->
-                      SelectionAcc#selection{instrument_kind=Kind};
-                 (meter_name, MeterName, SelectionAcc) ->
-                      SelectionAcc#selection{meter_name=MeterName};
-                 (meter_version, MeterVersion, SelectionAcc) ->
-                      SelectionAcc#selection{meter_version=MeterVersion};
-                 (meter_schema_url, SchemaUrl, SelectionAcc) ->
-                      SelectionAcc#selection{schema_url=SchemaUrl}
-              end, #selection{}, Criteria);
-criteria_to_selection(_) ->
-    #selection{}.
+-spec criteria_to_instrument_matchspec(map() | undefined) -> ets:compiled_match_spec().
+criteria_to_instrument_matchspec(Criteria) when is_map(Criteria) ->
+    Instrument =
+      maps:fold(fun(instrument_name, InstrumentName, InstrumentAcc) ->
+                        InstrumentAcc#instrument{name=InstrumentName};
+                   (instrument_kind, Kind, InstrumentAcc) ->
+                        InstrumentAcc#instrument{kind=Kind};
+                   (meter_name, MeterName, InstrumentAcc) ->
+                        Meter = maybe_init_meter(InstrumentAcc),
+                        Meter1 = update_meter_name(MeterName, Meter),
+                        InstrumentAcc#instrument{meter=Meter1};
+                   (meter_version, MeterVersion, InstrumentAcc) ->
+                        Meter = maybe_init_meter(InstrumentAcc),
+                        Meter1 = update_meter_version(MeterVersion, Meter),
+                        InstrumentAcc#instrument{meter=Meter1};
+                   (meter_schema_url, SchemaUrl, InstrumentAcc) ->
+                        Meter = maybe_init_meter(InstrumentAcc),
+                        Meter1 = update_meter_schema_url(SchemaUrl, Meter),
+                        InstrumentAcc#instrument{meter=Meter1}
+                end, #instrument{_='_'}, Criteria),
+    ets:match_spec_compile([{Instrument, [], [true]}]);
+criteria_to_instrument_matchspec(_) ->
+    ets:match_spec_compile([{#instrument{_='_'}, [], [true]}]).
+
+maybe_init_meter(#instrument{meter='_'}) ->
+    {'_', #meter{instrumentation_scope=#instrumentation_scope{_='_'}}}.
+
+update_meter_name(MeterName, {_, Meter=#meter{instrumentation_scope=Scope}}) ->
+    {'_', Meter#meter{instrumentation_scope=Scope#instrumentation_scope{name=MeterName}}}.
+
+update_meter_version(MeterVersion, {_, Meter=#meter{instrumentation_scope=Scope}}) ->
+    {'_', Meter#meter{instrumentation_scope=Scope#instrumentation_scope{version=MeterVersion}}}.
+
+update_meter_schema_url(SchemaUrl, {_, Meter=#meter{instrumentation_scope=Scope}}) ->
+    {'_', Meter#meter{instrumentation_scope=Scope#instrumentation_scope{schema_url=SchemaUrl}}}.
+
+view_name_from_criteria(Criteria) when is_map(Criteria) ->
+    maps:get(instrument_name, Criteria, undefined);
+view_name_from_criteria(_) ->
+    undefined.
