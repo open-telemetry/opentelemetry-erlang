@@ -256,8 +256,7 @@ handle_instrument_observation(_, _, _, _) ->
 
 checkpoint_metrics(MetricsTab, CollectionStartTime, ViewAggregations) ->
     Self = self(),
-    lists:foldl(fun(#view_aggregation{reader=Pid,
-                                      aggregation_module=otel_aggregation_drop}, Acc) ->
+    lists:foldl(fun(#view_aggregation{aggregation_module=otel_aggregation_drop}, Acc) ->
                         Acc;
                    (#view_aggregation{name=Name,
                                       reader=Pid,

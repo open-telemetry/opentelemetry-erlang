@@ -579,8 +579,8 @@ kill_reader(_Config) ->
     ?UNTIL([Pid || {_, Pid, _, _} <- supervisor:which_children(ReaderSup),
                    Pid =/= ReaderPid] =/= []),
 
-    %% TODO: agh! need to supervise ETS tables so readers can crash and not then
-    %% lose all existing Instrument/View matches
+    %% This will create an ignored duplicate Counter since the Instruments table
+    %% is owned by the `otel_metrics_server' process
     Counter = otel_meter:create_counter(Meter, CounterName, ValueType,
                                         #{description => CounterDesc,
                                           unit => CounterUnit}),
@@ -590,7 +590,7 @@ kill_reader(_Config) ->
 
     otel_meter_server:force_flush(),
 
-    %% for now the tables are lost when a reader crashes, so the counter resets
+    %% Metrics entries are lost when a Reader crashes because its PID changes
     ?assertSumReceive(z_counter, <<"counter description">>, kb, [{9, #{<<"c">> => <<"b">>}}]),
 
     ok.
