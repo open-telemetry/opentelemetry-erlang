@@ -42,7 +42,7 @@ start_span(Ctx, {_, #tracer{on_start_processors=Processors,
 with_span(Ctx, Tracer, SpanName, Opts, Fun) ->
     SpanCtx = start_span(Ctx, Tracer, SpanName, Opts),
     Ctx1 = otel_tracer:set_current_span(Ctx, SpanCtx),
-    otel_ctx:attach(Ctx1),
+    Token = otel_ctx:attach(Ctx1),
     try
         Fun(SpanCtx)
     after
@@ -50,5 +50,5 @@ with_span(Ctx, Tracer, SpanName, Opts, Fun) ->
         %% in this function. If spans in `Fun()' were started and not finished properly
         %% they will be abandoned and it be up to the `otel_span_sweeper' to eventually remove them.
         _ = otel_span_ets:end_span(SpanCtx),
-        otel_ctx:detach(Ctx)
+        otel_ctx:detach(Token)
     end.
