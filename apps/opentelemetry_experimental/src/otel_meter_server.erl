@@ -35,8 +35,8 @@
 -behaviour(gen_server).
 
 -export([start_link/3,
-         add_metric_reader/4,
          add_metric_reader/5,
+         add_metric_reader/6,
          add_instrument/1,
          add_instrument/2,
          register_callback/3,
@@ -68,7 +68,7 @@
 
 -record(reader,
         {
-         child_id :: atom(),
+         id                          :: reference(),
          pid                         :: pid(),
          monitor_ref                 :: reference(),
          module                      :: module(),
@@ -118,12 +118,12 @@ add_instrument(Instrument) ->
 add_instrument(Provider, Instrument) ->
     gen_server:call(Provider, {add_instrument, Instrument}).
 
-add_metric_reader(ReaderPid, DefaultAggregationMapping, Temporality, CallbacksTable) ->
-    add_metric_reader(?GLOBAL_METER_PROVIDER_REG_NAME, ReaderPid,
+add_metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality, CallbacksTable) ->
+    add_metric_reader(?GLOBAL_METER_PROVIDER_REG_NAME, ReaderId, ReaderPid,
                       DefaultAggregationMapping, Temporality, CallbacksTable).
 
-add_metric_reader(Provider, ReaderPid, DefaultAggregationMapping, Temporality, CallbacksTable) ->
-    gen_server:call(Provider, {add_metric_reader, ReaderPid, DefaultAggregationMapping, Temporality, CallbacksTable}).
+add_metric_reader(Provider, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality, CallbacksTable) ->
+    gen_server:call(Provider, {add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality, CallbacksTable}).
 
 -spec register_callback([otel_instrument:t()], otel_instrument:callback(), term()) -> boolean().
 register_callback(Instruments, Callback, CallbackArgs) ->
@@ -186,13 +186,14 @@ init([Name, RegName, Config]) ->
                 readers=[],
                 resource=Resource}}.
 
-handle_call({add_metric_reader, ReaderPid, DefaultAggregationMapping, Temporality,
+handle_call({add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality,
              CallbacksTable}, _From, State=#state{readers=Readers,
                                                   views=Views,
                                                   instruments_tid=InstrumentsTid,
                                                   view_aggregations_tid=ViewAggregationsTid,
                                                   metrics_tid=MetricsTid}) ->
-    Reader = metric_reader(ReaderPid,
+    Reader = metric_reader(ReaderId,
+                           ReaderPid,
                            DefaultAggregationMapping,
                            Temporality,
                            CallbacksTable),
@@ -339,7 +340,7 @@ register_callback_(ViewAggregationsTid, Instruments, Callback, CallbackArgs, Vie
                                     end, Readers)
                   end, Instruments).
 
-metric_reader(ReaderPid, DefaultAggregationMapping, Temporality, CallbacksTable) ->
+metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality, CallbacksTable) ->
     %% TODO: Uncomment when we can drop OTP-23 support
     %% Ref = erlang:monitor(process, ReaderPid, [{tag, 'DOWN_READER'}]),
     Ref = erlang:monitor(process, ReaderPid),
@@ -349,7 +350,8 @@ metric_reader(ReaderPid, DefaultAggregationMapping, Temporality, CallbacksTable)
     ReaderTemporalityMapping = maps:merge(otel_aggregation:temporality_mapping(),
                                           Temporality),
 
-    #reader{pid=ReaderPid,
+    #reader{id=ReaderId,
+            pid=ReaderPid,
             monitor_ref=Ref,
             callbacks_tab=CallbacksTable,
             default_aggregation_mapping=ReaderAggregationMapping,
@@ -370,17 +372,17 @@ handle_measurement(Measurement=#measurement{instrument=#instrument{meter=Meter,
 update_aggregations(#measurement{attributes=Attributes,
                                  value=Value}, ViewAggregations, MetricsTab) ->
     lists:foreach(fun(#view_aggregation{name=Name,
-                                        reader=Pid,
+                                        reader=ReaderId,
                                         aggregation_module=AggregationModule,
                                         aggregation_options=Options}) ->
-                          case AggregationModule:aggregate(MetricsTab, {Name, Attributes, Pid}, Value) of
+                          case AggregationModule:aggregate(MetricsTab, {Name, Attributes, ReaderId}, Value) of
                               true ->
                                   ok;
                               false ->
                                   %% entry doesn't exist, create it and rerun the aggregate function
-                                  Metric = AggregationModule:init({Name, Attributes, Pid}, Options),
+                                  Metric = AggregationModule:init({Name, Attributes, ReaderId}, Options),
                                   _ = ets:insert(MetricsTab, Metric),
-                                  AggregationModule:aggregate(MetricsTab, {Name, Attributes, Pid}, Value)
+                                  AggregationModule:aggregate(MetricsTab, {Name, Attributes, ReaderId}, Value)
                           end;
                      (_) ->
                           ok
@@ -392,13 +394,13 @@ per_reader_aggregations(Reader, Instrument, ViewAggregations) ->
      || {View, ViewAggregation} <- ViewAggregations].
 
 view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, View,
-                            Reader=#reader{pid=Pid,
+                            Reader=#reader{id=Id,
                                            default_temporality_mapping=ReaderTemporalityMapping}) ->
     AggregationModule = aggregation_module(Instrument, View, Reader),
     Temporality = maps:get(Kind, ReaderTemporalityMapping, ?AGGREGATION_TEMPORALITY_UNSPECIFIED),
 
     ViewAggregation#view_aggregation{
-      reader=Pid,
+      reader=Id,
       aggregation_module=AggregationModule,
       temporality=Temporality}.
 
