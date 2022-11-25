@@ -146,20 +146,21 @@ inject_from(Context, Module, Carrier, CarrierSetFun) when is_atom(Module) ->
 inject_from(Context, {Module, Options}, Carrier, CarrierSetFun) ->
      Module:inject(Context, Carrier, CarrierSetFun, Options).
 
--spec extract(otel_propagator:carrier()) -> otel_ctx:token().
+-spec extract(otel_propagator:carrier()) -> otel_ctx:t().
 extract(Carrier) ->
     Propagator = opentelemetry:get_text_map_extractor(),
     extract(Propagator, Carrier, fun default_carrier_keys/1, fun default_carrier_get/2).
 
--spec extract(otel_propagator:t(), otel_propagator:carrier()) -> otel_ctx:token().
+-spec extract(otel_propagator:t(), otel_propagator:carrier()) -> otel_ctx:t().
 extract(Propagator, Carrier) ->
     extract(Propagator, Carrier, fun default_carrier_keys/1, fun default_carrier_get/2).
 
--spec extract(otel_propagator:t(), otel_propagator:carrier(), fun(), fun()) -> otel_ctx:token().
+-spec extract(otel_propagator:t(), otel_propagator:carrier(), fun(), fun()) -> otel_ctx:t().
 extract(Propagator, Carrier, CarrierKeysFun, CarrierGetFun) ->
     Context = otel_ctx:get_current(),
     Context1 = extract_to(Context, Propagator, Carrier, CarrierKeysFun, CarrierGetFun),
-    otel_ctx:attach(Context1).
+    otel_ctx:attach(Context1),
+    Context1.
 
 -spec extract_to(otel_ctx:t(), otel_propagator:carrier()) -> otel_ctx:t().
 extract_to(Context, Carrier) ->
