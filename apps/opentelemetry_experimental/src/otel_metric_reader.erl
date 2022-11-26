@@ -69,8 +69,6 @@ shutdown(ReaderPid) ->
     gen_server:call(ReaderPid, shutdown).
 
 init([ReaderId, ProviderSup, Config]) ->
-    CallbacksTable = ets:new(callbacks_table, [bag, public, {keypos, 1}]),
-
     ExporterModuleConfig = maps:get(exporter, Config, undefined),
     Exporter = otel_exporter:init(ExporterModuleConfig),
 
@@ -93,21 +91,20 @@ init([ReaderId, ProviderSup, Config]) ->
                 default_aggregation_mapping=DefaultAggregationMapping,
                 temporality_mapping=Temporality,
                 export_interval_ms=ExporterIntervalMs,
-                callbacks_tab=CallbacksTable,
                 tref=TRef,
                 config=Config}, {continue, register_with_server}}.
 
 handle_continue(register_with_server, State=#state{provider_sup=ProviderSup,
                                                    id=ReaderId,
                                                    default_aggregation_mapping=DefaultAggregationMapping,
-                                                   temporality_mapping=Temporality,
-                                                   callbacks_tab=CallbacksTable}) ->
+                                                   temporality_mapping=Temporality}) ->
     ServerPid = otel_meter_server_sup:provider_pid(ProviderSup),
-    {ViewAggregationTable, MetricsTable} =
+    {CallbacksTable, ViewAggregationTable, MetricsTable} =
         otel_meter_server:add_metric_reader(ServerPid, ReaderId, self(),
                                             DefaultAggregationMapping,
-                                            Temporality, CallbacksTable),
-    {noreply, State#state{view_aggregation_tab=ViewAggregationTable,
+                                            Temporality),
+    {noreply, State#state{callbacks_tab=CallbacksTable,
+                          view_aggregation_tab=ViewAggregationTable,
                           metrics_tab=MetricsTable}}.
 
 handle_call(shutdown, _From, State) ->
@@ -172,7 +169,7 @@ code_change(State) ->
 collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId) ->
     CollectionStartTime = erlang:system_time(nanosecond),
 
-    Results = run_callbacks(CallbacksTab),
+    Results = run_callbacks(ReaderId, CallbacksTab),
     %% take the results of running each callback and aggregate the values
     _ = handle_callback_results(Results, ViewAggregationTab, MetricsTab, ReaderId),
 
@@ -203,10 +200,16 @@ collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, Read
              ets:next(ViewAggregationTab, Key)).
 
 %% call each callback and associate the result with the Instruments it observes
-run_callbacks(CallbacksTab) ->
-    ets:foldl(fun({Callback, CallbackArgs, Instruments}, Acc) ->
-                      [{Instruments, Callback(CallbackArgs)} | Acc]
-              end, [], CallbacksTab).
+run_callbacks(ReaderId, CallbacksTab) ->
+    try ets:lookup_element(CallbacksTab, ReaderId, 2) of
+        Callbacks ->
+            lists:map(fun({Callback, CallbackArgs, Instruments}) ->
+                              {Instruments, Callback(CallbackArgs)}
+                      end, Callbacks)
+    catch
+        error:badarg ->
+            []
+    end.
 
 handle_callback_results(Results, ViewAggregationTab, MetricsTab, ReaderId) ->
     lists:foldl(fun({Instruments, Result}, Acc) when is_tuple(Result) ->
@@ -237,7 +240,7 @@ handle_instrument_observation({Number, Attributes}, [#instrument{meter=Meter,
         ViewAggregations ->
             [AggregationModule:aggregate(MetricsTab, {Name, Attributes, ReaderId}, Number) || #view_aggregation{aggregation_module=AggregationModule} <- ViewAggregations]
     catch
-        exit:badarg ->
+        error:badarg ->
             %% no Views for this Instrument, so nothing to do
             []
     end;
@@ -256,7 +259,7 @@ handle_instrument_observation({InstrumentName, Number, Attributes}, Instruments,
                                           reader=Id,
                                           aggregation_module=AggregationModule} <- ViewAggregations, Id =:= ReaderId]
             catch
-                exit:badarg ->
+                error:badarg ->
                     %% no Views for this Instrument, so nothing to do
                     []
             end
