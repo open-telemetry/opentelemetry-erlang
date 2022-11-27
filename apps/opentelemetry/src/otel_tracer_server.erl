@@ -73,6 +73,8 @@ init([Name, SpanProcessorSup, #{id_generator := IdGeneratorModule,
                      on_start_processors=on_start(Processors1),
                      on_end_processors=on_end(Processors1),
                      id_generator=IdGeneratorModule},
+
+    %% TODO: don't do this if its already set?
     opentelemetry:set_default_tracer(Name, {otel_tracer_default, Tracer}),
 
     {ok, #state{id_generator=IdGeneratorModule,

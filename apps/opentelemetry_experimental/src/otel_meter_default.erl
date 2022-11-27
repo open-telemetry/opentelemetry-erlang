@@ -37,8 +37,8 @@ create_instrument(Meter, Name, Kind, ValueType, Opts) ->
     _ = otel_meter_server:add_instrument(Provider, Instrument),
     Instrument.
 
-lookup_instrument(Meter={_, #meter{instruments_table=Tid}}, Name) ->
-    try ets:lookup_element(Tid, {Meter, Name}, 2) of
+lookup_instrument(Meter={_, #meter{instruments_tab=Tab}}, Name) ->
+    try ets:lookup_element(Tab, {Meter, Name}, 2) of
         Instrument ->
             Instrument
     catch
@@ -63,6 +63,6 @@ scope({_, #meter{instrumentation_scope=Scope}}) ->
 
 %%
 
-record(Instrument=#instrument{meter={_, #meter{view_aggregations_table=ViewAggregationTable,
-                                               metrics_table=MetricsTable}}}, Number, Attributes) ->
-    otel_meter_server:record(ViewAggregationTable, MetricsTable, Instrument, Number, Attributes).
+record(Instrument=#instrument{meter={_, #meter{view_aggregations_tab=ViewAggregationTab,
+                                               metrics_tab=MetricsTab}}}, Number, Attributes) ->
+    otel_meter_server:record(ViewAggregationTab, MetricsTab, Instrument, Number, Attributes).

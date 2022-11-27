@@ -50,16 +50,16 @@
          temporality_mapping :: #{otel_instrument:kind() => otel_aggregation:temporality()},
          export_interval_ms :: integer() | undefined,
          tref :: reference() | undefined,
-         callbacks_tab :: atom(),
-         view_aggregation_tab :: atom(),
-         metrics_tab :: atom(),
+         callbacks_tab :: ets:table(),
+         view_aggregation_tab :: ets:table(),
+         metrics_tab :: ets:table(),
          config :: #{}
         }).
 
 %% -spec start_link(atom(), map()) -> {ok, pid()} | ignore | {error, term()}.
 %% start_link(ChildId, CallbacksTable, ViewAggregationTable, MetricsTable, Config) ->
 %%     gen_server:start_link({local, ChildId}, ?MODULE, [ChildId, CallbacksTable, ViewAggregationTable, MetricsTable, Config], []).
- start_link(ReaderId, ProviderSup, Config) ->
+start_link(ReaderId, ProviderSup, Config) ->
     gen_server:start_link(?MODULE, [ReaderId, ProviderSup, Config], []).
 
 collect(ReaderPid) ->
@@ -99,13 +99,13 @@ handle_continue(register_with_server, State=#state{provider_sup=ProviderSup,
                                                    default_aggregation_mapping=DefaultAggregationMapping,
                                                    temporality_mapping=Temporality}) ->
     ServerPid = otel_meter_server_sup:provider_pid(ProviderSup),
-    {CallbacksTable, ViewAggregationTable, MetricsTable} =
+    {CallbacksTab, ViewAggregationTab, MetricsTab} =
         otel_meter_server:add_metric_reader(ServerPid, ReaderId, self(),
                                             DefaultAggregationMapping,
                                             Temporality),
-    {noreply, State#state{callbacks_tab=CallbacksTable,
-                          view_aggregation_tab=ViewAggregationTable,
-                          metrics_tab=MetricsTable}}.
+    {noreply, State#state{callbacks_tab=CallbacksTab,
+                          view_aggregation_tab=ViewAggregationTab,
+                          metrics_tab=MetricsTab}}.
 
 handle_call(shutdown, _From, State) ->
     {reply, ok, State};
@@ -126,13 +126,13 @@ handle_info(collect, State=#state{id=ReaderId,
                                   export_interval_ms=undefined,
                                   tref=undefined,
                                   callbacks_tab=CallbacksTab,
-                                  view_aggregation_tab=ViewAggregationTable,
-                                  metrics_tab=MetricsTable
+                                  view_aggregation_tab=ViewAggregationTab,
+                                  metrics_tab=MetricsTab
                                  }) ->
     Resource = [],
 
     %% collect from view aggregations table and then export
-    Metrics = collect_(CallbacksTab, ViewAggregationTable, MetricsTable, ReaderId),
+    Metrics = collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId),
 
     otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
 
@@ -142,15 +142,15 @@ handle_info(collect, State=#state{id=ReaderId,
                                   export_interval_ms=ExporterIntervalMs,
                                   tref=TRef,
                                   callbacks_tab=CallbacksTab,
-                                  view_aggregation_tab=ViewAggregationTable,
-                                  metrics_tab=MetricsTable
+                                  view_aggregation_tab=ViewAggregationTab,
+                                  metrics_tab=MetricsTab
                                  }) ->
     Resource = [],
     erlang:cancel_timer(TRef, [{async, true}]),
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
-    
+
     %% collect from view aggregations table and then export
-    Metrics = collect_(CallbacksTab, ViewAggregationTable, MetricsTable, ReaderId),
+    Metrics = collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId),
 
 
     otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
