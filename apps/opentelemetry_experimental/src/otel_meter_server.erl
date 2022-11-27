@@ -247,8 +247,6 @@ handle_cast(_, State) ->
 %% TODO: Uncomment when we can drop OTP-23 support
 %% handle_info({'DOWN_READER', Ref, process, _Pid, _} , State=#state{readers=Readers}) ->
 handle_info({'DOWN', Ref, process, _Pid, _} , State=#state{readers=Readers}) ->
-    %% TODO: remove ViewAggregation and Metrics tab entries
-    %% Or better, re-use them if/when the Reader restarts.
     {noreply, State#state{readers=lists:keydelete(Ref, #reader.monitor_ref, Readers)}};
 handle_info(_, State) ->
     {noreply, State}.
