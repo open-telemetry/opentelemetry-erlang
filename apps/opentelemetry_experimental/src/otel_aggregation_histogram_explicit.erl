@@ -30,6 +30,8 @@
 
 -define(DEFAULT_BOUNDARIES, [0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0]).
 
+-include_lib("stdlib/include/ms_transform.hrl").
+
 -define(MIN_DOUBLE, -9223372036854775807.0). %% the proto representation of size `fixed64'
 
 init(Key, Options) ->
@@ -38,8 +40,7 @@ init(Key, Options) ->
     #explicit_histogram_aggregation{key=Key,
                                     start_time_unix_nano=erlang:system_time(nanosecond),
                                     boundaries=Boundaries,
-                                    zeroed_counts=zero_buckets(length(Boundaries)),
-                                    bucket_counts=zero_buckets(length(Boundaries)),
+                                    bucket_counts=new_bucket_counts(?DEFAULT_BOUNDARIES),
                                     record_min_max=RecordMinMax,
                                     min=infinity, %% works because any atom is > any integer
                                     max=?MIN_DOUBLE,
@@ -47,48 +48,61 @@ init(Key, Options) ->
                                    }.
 
 aggregate(Table, Key, Value) ->
-    case ets:lookup(Table, Key) of
-        [Current] ->
-            %% TODO: needs to be changed to work with concurrent updates
-            %% at this time there are no concurrent updates, so nothing is lost
-            %% a basic compare and swap could fail
-            %% consider making each bucket its own record
-            ets:insert(Table, aggregate(Value, Current));
-        _ ->
+    try ets:lookup_element(Table, Key, #explicit_histogram_aggregation.bucket_counts) of
+        BucketCounts0 ->
+            BucketCounts = case BucketCounts0 of
+                               undefined ->
+                                   new_bucket_counts(?DEFAULT_BOUNDARIES);
+                               _ ->
+                                   BucketCounts0
+                           end,
+
+            BucketIdx = find_bucket(?DEFAULT_BOUNDARIES, Value),
+            counters:add(BucketCounts, BucketIdx, 1),
+            MS = ets:fun2ms(fun(H=#explicit_histogram_aggregation{key=K,
+                                                                  min=Min,
+                                                                  max=Max,
+                                                                  sum=Sum}) when K =:= Key,
+                                                                                 Max < Value,
+                                                                                 Min > Value ->
+                                    H#explicit_histogram_aggregation{min=Value,
+                                                                     max=Value,
+                                                                     bucket_counts=BucketCounts,
+                                                                     sum=Sum+Value};
+                               (H=#explicit_histogram_aggregation{key=K,
+                                                                  max=Max,
+                                                                  sum=Sum}) when K =:= Key,
+                                                                                 Max < Value ->
+                                    H#explicit_histogram_aggregation{bucket_counts=BucketCounts,
+                                                                     max=Value,
+                                                                     sum=Sum+Value};
+                               (H=#explicit_histogram_aggregation{key=K,
+                                                                  min=Min,
+                                                                  sum=Sum}) when K =:= Key,
+                                                                                 Min > Value ->
+                                    H#explicit_histogram_aggregation{bucket_counts=BucketCounts,
+                                                                     min=Value,
+                                                                     sum=Sum+Value};
+                               (H=#explicit_histogram_aggregation{key=K,
+                                                                  sum=Sum}) when K =:= Key ->
+                                    H#explicit_histogram_aggregation{bucket_counts=BucketCounts,
+                                                                     sum=Sum+Value}
+                            end),
+            1 =:= ets:select_replace(Table, MS)
+    catch
+        error:badarg->
             %% since we need the options to initialize a histogram `false' is
             %% returned and `otel_metric_server' will initialize the histogram
             false
     end.
 
-aggregate(MeasurementValue,
-          Aggregation=#explicit_histogram_aggregation{record_min_max=true,
-                                                      boundaries=Boundaries,
-                                                      bucket_counts=Buckets,
-                                                      min=Min,
-                                                      max=Max,
-                                                      sum=Sum}) ->
-    Buckets1 = bump_bucket_counts(MeasurementValue, Boundaries, Buckets),
-    Aggregation#explicit_histogram_aggregation{bucket_counts=Buckets1,
-                                               min=min(Min, MeasurementValue),
-                                               max=max(Max, MeasurementValue),
-                                               sum=Sum+MeasurementValue};
-aggregate(MeasurementValue,
-          Aggregation=#explicit_histogram_aggregation{boundaries=Boundaries,
-                                                      bucket_counts=Buckets,
-                                                      sum=Sum}) ->
-    Buckets1 = bump_bucket_counts(MeasurementValue, Boundaries, Buckets),
-    Aggregation#explicit_histogram_aggregation{bucket_counts=Buckets1,
-                                               sum=Sum+MeasurementValue}.
-
 -dialyzer({nowarn_function, checkpoint/6}).
-%% TODO: handle delta temporary checkpoints
 checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, _, CollectionStartNano) ->
     MS = [{#explicit_histogram_aggregation{key='$1',
                                            start_time_unix_nano='_',
                                            boundaries='$2',
                                            record_min_max='$3',
                                            checkpoint='_',
-                                           zeroed_counts='$4',
                                            bucket_counts='$5',
                                            min='$6',
                                            max='$7',
@@ -104,8 +118,7 @@ checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, _, CollectionSt
                                                                                         min='$6',
                                                                                         max='$7',
                                                                                         sum='$8'}},
-                                             zeroed_counts='$4',
-                                             bucket_counts='$4',
+                                             bucket_counts={const, undefined},
                                              min=infinity,
                                              max=?MIN_DOUBLE,
                                              sum=0}}]}],
@@ -118,7 +131,6 @@ checkpoint(Tab, Name, ReaderPid, _, _, _CollectionStartNano) ->
                                            boundaries='$3',
                                            record_min_max='$4',
                                            checkpoint='_',
-                                           zeroed_counts='$9',
                                            bucket_counts='$5',
                                            min='$6',
                                            max='$7',
@@ -134,7 +146,6 @@ checkpoint(Tab, Name, ReaderPid, _, _, _CollectionStartNano) ->
                                                                                         min='$6',
                                                                                         max='$7',
                                                                                         sum='$8'}},
-                                             zeroed_counts='$9',
                                              bucket_counts='$5',
                                              min='$6',
                                              max='$7',
@@ -156,12 +167,14 @@ collect(Tab, Name, ReaderPid, _, CollectionStartTime) ->
 datapoint(CollectionStartNano, #explicit_histogram_aggregation{
                                   key={_, Attributes, _},
                                   start_time_unix_nano=StartTimeUnixNano,
-                                  boundaries=Boundaries,
-                                  checkpoint=#explicit_histogram_checkpoint{bucket_counts=Buckets,
+                                  checkpoint=#explicit_histogram_checkpoint{bucket_counts=BucketCounts,
                                                                             min=Min,
                                                                             max=Max,
                                                                             sum=Sum}
                                  }) ->
+    Buckets = list_to_tuple(lists:foldl(fun(Idx, Acc) ->
+                                                Acc ++ [counters_get(BucketCounts, Idx)]
+                                        end, [], lists:seq(1, length(?DEFAULT_BOUNDARIES)))),
     #histogram_datapoint{
        attributes=Attributes,
        start_time_unix_nano=StartTimeUnixNano,
@@ -169,15 +182,12 @@ datapoint(CollectionStartNano, #explicit_histogram_aggregation{
        count=lists:sum(erlang:tuple_to_list(Buckets)),
        sum=Sum,
        bucket_counts=Buckets,
-       explicit_bounds=Boundaries,
+       explicit_bounds=?DEFAULT_BOUNDARIES,
        exemplars=[],
        flags=0,
        min=Min,
        max=Max
       }.
-
-zero_buckets(Size) ->
-    erlang:list_to_tuple(lists:duplicate(Size, 0)).
 
 find_bucket(Boundaries, Value) ->
     find_bucket(Boundaries, Value, 1).
@@ -191,6 +201,10 @@ find_bucket([_X | Rest], Value, Pos) ->
 find_bucket(_, _, Pos) ->
     Pos.
 
-bump_bucket_counts(MeasurementValue, Boundaries, Buckets) ->
-    Pos = find_bucket(Boundaries, MeasurementValue),
-    setelement(Pos, Buckets, element(Pos, Buckets) + 1).
+counters_get(undefined, _) ->
+    0;
+counters_get(Counter, Idx) ->
+    counters:get(Counter, Idx).
+
+new_bucket_counts(Boundaries) ->
+    counters:new(length(Boundaries), [write_concurrency]).
