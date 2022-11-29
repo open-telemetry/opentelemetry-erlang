@@ -12,6 +12,7 @@
          name ::  atom() | unicode:latin1_chardata(),
          scope :: opentelemetry:instrumentation_scope(),
          instrument :: otel_instrument:t(),
+         reader :: reference() | undefined,
 
          aggregation_module :: module(),
          aggregation_options :: map(),

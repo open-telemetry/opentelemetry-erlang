@@ -2,7 +2,7 @@
 
 -export([init/2,
          aggregate/3,
-         collect/5]).
+         collect/6]).
 
 -include("otel_metrics.hrl").
 
@@ -16,5 +16,5 @@ init(_, _) ->
 aggregate(_, _, _) ->
     true.
 
-collect(_, _, _, _, _) ->
+collect(_, _, _, _, _, _) ->
     [].

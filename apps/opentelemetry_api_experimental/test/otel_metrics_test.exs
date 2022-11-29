@@ -1,7 +1,6 @@
 defmodule OpenTelemetryTest do
   use ExUnit.Case, async: true
 
-  require OpenTelemetryAPIExperimental.Meter, as: Meter
   require OpenTelemetryAPIExperimental.Counter, as: Counter
   require OpenTelemetryAPIExperimental.UpDownCounter, as: UpDownCounter
   require OpenTelemetryAPIExperimental.ObservableCounter, as: ObservableCounter
