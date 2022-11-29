@@ -47,6 +47,7 @@ init(Key, Options) ->
                                     sum=0
                                    }.
 
+-dialyzer({nowarn_function, aggregate/3}).
 aggregate(Table, Key, Value) ->
     try ets:lookup_element(Table, Key, #explicit_histogram_aggregation.bucket_counts) of
         BucketCounts0 ->

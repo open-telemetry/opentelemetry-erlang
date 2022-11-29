@@ -43,7 +43,7 @@
 
 -record(explicit_histogram_checkpoint,
         {
-         bucket_counts :: tuple() | '$5',
+         bucket_counts :: counters:counters_ref() | undefined | '$5',
          min :: number() | '$6',
          max :: number() | '$7',
          sum :: number() | '$8'
@@ -59,7 +59,7 @@
          boundaries :: [float()] | '$3',
          record_min_max :: boolean() | '$4',
          checkpoint :: #explicit_histogram_checkpoint{} | undefined | '_' | {#explicit_histogram_checkpoint{}},
-         bucket_counts :: tuple() | '$5',
+         bucket_counts :: counters:counters_ref() | undefined | '$5',
          min :: number() | infinity | '$6',
          max :: number() | '$7',
          sum :: number() | '$8'

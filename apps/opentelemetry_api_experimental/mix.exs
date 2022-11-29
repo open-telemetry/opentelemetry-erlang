@@ -12,7 +12,7 @@ defmodule OpenTelemetryExperimental.MixProject do
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       # We should never have dependencies
-      deps: deps(),  # deps(Keyword.fetch!(config, :deps)),
+      deps: deps(Keyword.fetch!(config, :deps)),
       # Docs
       name: "OpenTelemetry Experimental API",
       # source_url: "https://github.com/USER/PROJECT",
@@ -44,6 +44,10 @@ defmodule OpenTelemetryExperimental.MixProject do
 
   # Run "mix help compile.app" to learn about applications.
   def application, do: []
+
+  defp deps() do
+    [{:opentelemetry_api, path: "../opentelemetry_api/"}]
+  end
 
   defp deps(rebar) do
     rebar
