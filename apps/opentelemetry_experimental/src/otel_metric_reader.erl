@@ -238,7 +238,8 @@ handle_instrument_observation({Number, Attributes}, [#instrument{meter=Meter,
   when is_number(Number) ->
     try ets:lookup_element(ViewAggregationTab, {Meter, Name}, 2) of
         ViewAggregations ->
-            [AggregationModule:aggregate(MetricsTab, {Name, Attributes, ReaderId}, Number) || #view_aggregation{aggregation_module=AggregationModule} <- ViewAggregations]
+            [AggregationModule:aggregate(MetricsTab, {Name, Attributes, ReaderId}, Number, AggregationOptions) || #view_aggregation{aggregation_module=AggregationModule,
+                                                                                                                                    aggregation_options=AggregationOptions} <- ViewAggregations]
     catch
         error:badarg ->
             %% no Views for this Instrument, so nothing to do
@@ -254,10 +255,11 @@ handle_instrument_observation({InstrumentName, Number, Attributes}, Instruments,
         #instrument{meter=Meter} ->
             try ets:lookup_element(ViewAggregationTab, {Meter, InstrumentName}, 2) of
                 ViewAggregations ->
-                    [AggregationModule:aggregate(MetricsTab, {Name, Attributes, ReaderId}, Number) ||
+                    [AggregationModule:aggregate(MetricsTab, {Name, Attributes, ReaderId}, Number, AggregationOptions) ||
                         #view_aggregation{name=Name,
                                           reader=Id,
-                                          aggregation_module=AggregationModule} <- ViewAggregations, Id =:= ReaderId]
+                                          aggregation_module=AggregationModule,
+                                          aggregation_options=AggregationOptions} <- ViewAggregations, Id =:= ReaderId]
             catch
                 error:badarg ->
                     %% no Views for this Instrument, so nothing to do

@@ -18,7 +18,7 @@
 -module(otel_aggregation_sum).
 
 -export([init/2,
-         aggregate/3,
+         aggregate/4,
          checkpoint/6,
          collect/5]).
 
@@ -34,7 +34,7 @@ init(Key, _Options) ->
                      start_time_unix_nano=erlang:system_time(nanosecond),
                      value=0}.
 
-aggregate(Tab, Key, Value) ->
+aggregate(Tab, Key, Value, _Options) ->
     try
         _ = ets:update_counter(Tab, Key, {#sum_aggregation.value, Value}),
         true

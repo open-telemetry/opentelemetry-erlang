@@ -382,14 +382,14 @@ update_aggregations(#measurement{attributes=Attributes,
                                         reader=ReaderId,
                                         aggregation_module=AggregationModule,
                                         aggregation_options=Options}) ->
-                          case AggregationModule:aggregate(MetricsTab, {Name, Attributes, ReaderId}, Value) of
+                          case AggregationModule:aggregate(MetricsTab, {Name, Attributes, ReaderId}, Value, Options) of
                               true ->
                                   ok;
                               false ->
                                   %% entry doesn't exist, create it and rerun the aggregate function
                                   Metric = AggregationModule:init({Name, Attributes, ReaderId}, Options),
                                   _ = ets:insert(MetricsTab, Metric),
-                                  AggregationModule:aggregate(MetricsTab, {Name, Attributes, ReaderId}, Value)
+                                  AggregationModule:aggregate(MetricsTab, {Name, Attributes, ReaderId}, Value, Options)
                           end;
                      (_) ->
                           ok
