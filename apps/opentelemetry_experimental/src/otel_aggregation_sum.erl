@@ -17,6 +17,8 @@
 %%%-------------------------------------------------------------------------
 -module(otel_aggregation_sum).
 
+-behaviour(otel_aggregation).
+
 -export([init/2,
          aggregate/4,
          checkpoint/6,
