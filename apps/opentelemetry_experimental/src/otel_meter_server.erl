@@ -388,7 +388,8 @@ update_aggregations(#measurement{attributes=Attributes,
                               false ->
                                   %% entry doesn't exist, create it and rerun the aggregate function
                                   Metric = AggregationModule:init({Name, Attributes, ReaderId}, Options),
-                                  _ = ets:insert(MetricsTab, Metric),
+                                  %% don't overwrite a possible concurrent measurement doing the same
+                                  _ = ets:insert_new(MetricsTab, Metric),
                                   AggregationModule:aggregate(MetricsTab, {Name, Attributes, ReaderId}, Value, Options)
                           end;
                      (_) ->

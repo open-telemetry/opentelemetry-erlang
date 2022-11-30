@@ -41,7 +41,7 @@ aggregate(Tab, Key, Value, _Options) ->
     catch
         error:badarg ->
             %% the use of `update_counter' guards against conflicting with another process
-            %% doing the update at the same time -- if we ever support that
+            %% doing the update at the same time
 
             %% the default isn't just given in the first `update_counter' because then
             %% we'd have to call `system_time' for every single measurement taken
