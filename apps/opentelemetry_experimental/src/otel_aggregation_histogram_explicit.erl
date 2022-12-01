@@ -17,8 +17,10 @@
 %%%-------------------------------------------------------------------------
 -module(otel_aggregation_histogram_explicit).
 
+-behaviour(otel_aggregation).
+
 -export([init/2,
-         aggregate/3,
+         aggregate/4,
          checkpoint/6,
          collect/5]).
 
@@ -40,25 +42,25 @@ init(Key, Options) ->
     #explicit_histogram_aggregation{key=Key,
                                     start_time_unix_nano=erlang:system_time(nanosecond),
                                     boundaries=Boundaries,
-                                    bucket_counts=new_bucket_counts(?DEFAULT_BOUNDARIES),
+                                    bucket_counts=new_bucket_counts(Boundaries),
                                     record_min_max=RecordMinMax,
                                     min=infinity, %% works because any atom is > any integer
                                     max=?MIN_DOUBLE,
                                     sum=0
                                    }.
 
--dialyzer({nowarn_function, aggregate/3}).
-aggregate(Table, Key, Value) ->
+aggregate(Table, Key, Value, Options) ->
+    Boundaries = maps:get(boundaries, Options, ?DEFAULT_BOUNDARIES),
     try ets:lookup_element(Table, Key, #explicit_histogram_aggregation.bucket_counts) of
         BucketCounts0 ->
             BucketCounts = case BucketCounts0 of
                                undefined ->
-                                   new_bucket_counts(?DEFAULT_BOUNDARIES);
+                                   new_bucket_counts(Boundaries);
                                _ ->
                                    BucketCounts0
                            end,
 
-            BucketIdx = find_bucket(?DEFAULT_BOUNDARIES, Value),
+            BucketIdx = find_bucket(Boundaries, Value),
             counters:add(BucketCounts, BucketIdx, 1),
 
             %% since we need the Key in the MatchHead for the index to be used we
@@ -189,6 +191,7 @@ collect(Tab, Name, ReaderPid, _, CollectionStartTime) ->
 
 datapoint(CollectionStartNano, #explicit_histogram_aggregation{
                                   key={_, Attributes, _},
+                                  boundaries=Boundaries,
                                   start_time_unix_nano=StartTimeUnixNano,
                                   checkpoint=#explicit_histogram_checkpoint{bucket_counts=BucketCounts,
                                                                             min=Min,
@@ -197,7 +200,7 @@ datapoint(CollectionStartNano, #explicit_histogram_aggregation{
                                  }) ->
     Buckets = list_to_tuple(lists:foldl(fun(Idx, Acc) ->
                                                 Acc ++ [counters_get(BucketCounts, Idx)]
-                                        end, [], lists:seq(1, length(?DEFAULT_BOUNDARIES)))),
+                                        end, [], lists:seq(1, length(Boundaries)))),
     #histogram_datapoint{
        attributes=Attributes,
        start_time_unix_nano=StartTimeUnixNano,
@@ -205,7 +208,7 @@ datapoint(CollectionStartNano, #explicit_histogram_aggregation{
        count=lists:sum(erlang:tuple_to_list(Buckets)),
        sum=Sum,
        bucket_counts=Buckets,
-       explicit_bounds=?DEFAULT_BOUNDARIES,
+       explicit_bounds=Boundaries,
        exemplars=[],
        flags=0,
        min=Min,

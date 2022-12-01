@@ -17,8 +17,10 @@
 %%%-------------------------------------------------------------------------
 -module(otel_aggregation_sum).
 
+-behaviour(otel_aggregation).
+
 -export([init/2,
-         aggregate/3,
+         aggregate/4,
          checkpoint/6,
          collect/5]).
 
@@ -34,14 +36,14 @@ init(Key, _Options) ->
                      start_time_unix_nano=erlang:system_time(nanosecond),
                      value=0}.
 
-aggregate(Tab, Key, Value) ->
+aggregate(Tab, Key, Value, _Options) ->
     try
         _ = ets:update_counter(Tab, Key, {#sum_aggregation.value, Value}),
         true
     catch
         error:badarg ->
             %% the use of `update_counter' guards against conflicting with another process
-            %% doing the update at the same time -- if we ever support that
+            %% doing the update at the same time
 
             %% the default isn't just given in the first `update_counter' because then
             %% we'd have to call `system_time' for every single measurement taken

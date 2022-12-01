@@ -17,8 +17,10 @@
 %%%-------------------------------------------------------------------------
 -module(otel_aggregation_last_value).
 
+-behaviour(otel_aggregation).
+
 -export([init/2,
-         aggregate/3,
+         aggregate/4,
          checkpoint/6,
          collect/5]).
 
@@ -34,7 +36,7 @@ init(Key, _Options) ->
     #last_value_aggregation{key=Key,
                             value=undefined}.
 
-aggregate(Tab, Key, Value) ->
+aggregate(Tab, Key, Value, _Options) ->
     case ets:update_element(Tab, Key, {#last_value_aggregation.value, Value}) of
         true ->
             true;

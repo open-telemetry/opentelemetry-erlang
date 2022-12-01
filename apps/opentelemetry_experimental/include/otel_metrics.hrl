@@ -26,7 +26,7 @@
 -record(sum_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-         key :: {term(),  opentelemetry:attributes_map(), pid()} | '$1',
+         key :: {term(),  opentelemetry:attributes_map(), reference()} | '$1',
          start_time_unix_nano :: integer() | '_' | '$2' | {const, integer()},
          checkpoint :: number() | undefined | '_' | '$2' | '$3',
          value :: number() | undefined | '$2' | '$3'
@@ -35,7 +35,7 @@
 -record(last_value_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-         key :: {term(),  opentelemetry:attributes_map(), pid()} | '$1',
+         key :: {term(),  opentelemetry:attributes_map(), reference()} | '$1',
          checkpoint :: number() | undefined | '_' | '$2',
          value :: number() | undefined | '$2'
         }).
@@ -52,7 +52,7 @@
 -record(explicit_histogram_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-         key :: {term(),  opentelemetry:attributes_map(), pid()} | '$1',
+         key :: {term(),  opentelemetry:attributes_map(), reference()} | '$1',
          start_time_unix_nano :: integer() | '$2',
          %% instrument_temporality :: otel_aggregation:temporality(),
          %% default: [0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0]
