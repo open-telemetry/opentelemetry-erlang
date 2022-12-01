@@ -9,9 +9,10 @@
 
 -record(view_aggregation,
         {%% name of the view or instrument if the view has no name
-         name ::  atom() | unicode:latin1_chardata(),
+         name ::  atom(),
          scope :: opentelemetry:instrumentation_scope(),
          instrument :: otel_instrument:t(),
+         reader :: reference() | undefined,
 
          aggregation_module :: module(),
          aggregation_options :: map(),

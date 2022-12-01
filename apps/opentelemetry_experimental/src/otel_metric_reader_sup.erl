@@ -34,13 +34,15 @@ init([ProviderSup, Opts]) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 5,
                  period => 10},
-    ChildSpecs = [#{id => lists:concat([Module, "_", erlang:ref_to_list(erlang:make_ref())]),
-                    start => {Module, start_link, [ProviderSup, ReaderConfig]},
-                    type => worker,
-                    restart => permanent,
-                    shutdown => 1000}
-                  || #{module := Module,
-                       config := ReaderConfig} <- Readers
+    ChildSpecs = [begin
+                      ReaderId = make_ref(),
+                      #{id => ReaderId,
+                        start => {Module, start_link, [ReaderId, ProviderSup, ReaderConfig]},
+                        type => worker,
+                        restart => permanent,
+                        shutdown => 1000}
+                  end || #{module := Module,
+                           config := ReaderConfig} <- Readers
                  ],
 
     {ok, {SupFlags, ChildSpecs}}.

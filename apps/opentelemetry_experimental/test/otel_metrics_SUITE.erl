@@ -569,6 +569,10 @@ kill_reader(_Config) ->
 
     ?assertSumReceive(z_counter, <<"counter description">>, kb, [{3, #{<<"c">> => <<"b">>}}]),
 
+    %% counter is delta, so is reset to 0. take a measurement here before
+    %% killer the reader to test that it isn't lost when the reader restarts
+    ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
+
     [{_, ProviderSupPid, _, _}] = supervisor:which_children(otel_meter_provider_sup),
     {_, ReaderSup, _, _} = lists:keyfind(otel_metric_reader_sup, 1, supervisor:which_children(ProviderSupPid)),
 
@@ -579,8 +583,8 @@ kill_reader(_Config) ->
     ?UNTIL([Pid || {_, Pid, _, _} <- supervisor:which_children(ReaderSup),
                    Pid =/= ReaderPid] =/= []),
 
-    %% TODO: agh! need to supervise ETS tables so readers can crash and not then
-    %% lose all existing Instrument/View matches
+    %% This will create an ignored duplicate Counter since the Instruments table
+    %% is owned by the `otel_metrics_server' process
     Counter = otel_meter:create_counter(Meter, CounterName, ValueType,
                                         #{description => CounterDesc,
                                           unit => CounterUnit}),
@@ -590,8 +594,8 @@ kill_reader(_Config) ->
 
     otel_meter_server:force_flush(),
 
-    %% for now the tables are lost when a reader crashes, so the counter resets
-    ?assertSumReceive(z_counter, <<"counter description">>, kb, [{9, #{<<"c">> => <<"b">>}}]),
+    %% 13 because we don't lose previous metrics for a reader after it crashes
+    ?assertSumReceive(z_counter, <<"counter description">>, kb, [{13, #{<<"c">> => <<"b">>}}]),
 
     ok.
 
