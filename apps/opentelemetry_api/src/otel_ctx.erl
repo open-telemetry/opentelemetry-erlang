@@ -45,9 +45,10 @@
 -type value() :: term().
 
 %% at this time the "token" is actually the context map itself
--type token() :: term().
+-opaque token() :: t().
 
 -export_type([t/0,
+              token/0,
               key/0,
               value/0
             ]).
