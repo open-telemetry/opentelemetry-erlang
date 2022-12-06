@@ -73,6 +73,7 @@ new_span(Ctx, Name, Sampler, IdGeneratorModule, StartTime, Kind, Attributes, Eve
                  is_recording=IsRecording},
 
     {NewSpanCtx#span_ctx{trace_flags=TraceFlags,
+                         tracestate=TraceState,
                          is_valid=true,
                          is_recording=IsRecording}, Span}.
 
