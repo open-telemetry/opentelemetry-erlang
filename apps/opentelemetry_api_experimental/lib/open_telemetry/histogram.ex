@@ -17,7 +17,8 @@ defmodule OpenTelemetryAPIExperimental.Histogram do
   defmacro record(name, number, attributes) do
     quote bind_quoted: [name: name, number: number, attributes: attributes] do
       :otel_histogram.record(
-        :otel_meter.lookup_instrument(:opentelemetry_experimental.get_meter(__MODULE__), name),
+        :opentelemetry_experimental.get_meter(__MODULE__),
+        name,
         number,
         attributes
       )

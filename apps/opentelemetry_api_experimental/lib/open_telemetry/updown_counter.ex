@@ -18,7 +18,8 @@ defmodule OpenTelemetryAPIExperimental.UpDownCounter do
   defmacro add(name, number, attributes) do
     quote bind_quoted: [name: name, number: number, attributes: attributes] do
       :otel_updown_counter.add(
-        :otel_meter.lookup_instrument(:opentelemetry_experimental.get_meter(__MODULE__), name),
+        :opentelemetry_experimental.get_meter(__MODULE__),
+        name,
         number,
         attributes
       )

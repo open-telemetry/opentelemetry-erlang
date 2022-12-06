@@ -45,6 +45,7 @@
          add_view/3,
          add_view/4,
          record/5,
+         record/6,
          force_flush/0,
          force_flush/1,
          report_cb/1]).
@@ -143,11 +144,15 @@ add_view(Name, Criteria, Config) ->
 add_view(Provider, Name, Criteria, Config) ->
     gen_server:call(Provider, {add_view, Name, Criteria, Config}).
 
--spec record(atom(), atom(), otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-record(ViewAggregationTab, MetricsTab, Instrument, Number, Attributes) ->
+-spec record(atom(), atom(), otel_instrument:t() | otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok.
+record(ViewAggregationsTab, MetricsTab, Instrument, Number, Attributes) ->
     handle_measurement(#measurement{instrument=Instrument,
                                     value=Number,
-                                    attributes=Attributes}, ViewAggregationTab, MetricsTab).
+                                    attributes=Attributes}, ViewAggregationsTab, MetricsTab).
+
+-spec record(otel_meter:t(), atom(), atom(), otel_instrument:t() | otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok.
+record(Meter, ViewAggregationTab, MetricsTab, Name, Number, Attributes) ->
+    handle_measurement(Meter, Name, Number, Attributes, ViewAggregationTab, MetricsTab).
 
 -spec force_flush() -> ok.
 force_flush() ->
@@ -370,14 +375,19 @@ metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) ->
 %% for each ViewAggregation a Measurement updates a Metric (`#metric')
 %% active metrics are indexed by the ViewAggregation name + the Measurement's Attributes
 
-handle_measurement(Measurement=#measurement{instrument=#instrument{meter=Meter,
-                                                                   name=Name}},
+handle_measurement(#measurement{instrument=#instrument{meter=Meter,
+                                                       name=Name},
+                                value=Value,
+                                attributes=Attributes},
                    ViewAggregationsTab, MetricsTab) ->
     Matches = ets:lookup_element(ViewAggregationsTab, {Meter, Name}, 2),
-    update_aggregations(Measurement, Matches, MetricsTab).
+    update_aggregations(Value, Attributes, Matches, MetricsTab).
 
-update_aggregations(#measurement{attributes=Attributes,
-                                 value=Value}, ViewAggregations, MetricsTab) ->
+handle_measurement(Meter, Name, Number, Attributes, ViewAggregationsTab, MetricsTab) ->
+    Matches = ets:lookup_element(ViewAggregationsTab, {Meter, Name}, 2),
+    update_aggregations(Number, Attributes, Matches, MetricsTab).
+
+update_aggregations(Value, Attributes, ViewAggregations, MetricsTab) ->
     lists:foreach(fun(#view_aggregation{name=Name,
                                         reader=ReaderId,
                                         aggregation_module=AggregationModule,

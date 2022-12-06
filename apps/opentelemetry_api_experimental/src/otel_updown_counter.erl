@@ -19,7 +19,8 @@
 -module(otel_updown_counter).
 
 -export([create/4,
-         add/3]).
+         add/3,
+         add/4]).
 
 -include("otel_metrics.hrl").
 -include_lib("kernel/include/logger.hrl").
@@ -31,6 +32,9 @@
       Opts :: otel_meter:opts().
 create(Meter, Name, ValueType, Opts) ->
     otel_meter:create_updown_counter(Meter, Name, ValueType, Opts).
+
+add(Meter, Name, Number, Attributes) ->
+    otel_meter:record(Meter, Name, Number, Attributes).
 
 -spec add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
 add(Instrument=#instrument{module=Module,
