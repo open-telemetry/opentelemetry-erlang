@@ -43,7 +43,7 @@ config :opentelemetry_exporter,
   otlp_headers: [{"x-honeycomb-dataset", "experiments"}]
 ```
 
-Furthermore, you need to configure Elixir apps to load `opentelemetry_exporter` before `opentelemtry`
+Furthermore, you need to configure Elixir apps to load `opentelemetry_exporter` before `opentelemetry`
 itself, for more information see https://github.com/open-telemetry/opentelemetry-erlang#design.
 
 ### SSL options
