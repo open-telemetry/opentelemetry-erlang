@@ -411,7 +411,8 @@ per_reader_aggregations(Reader, Instrument, ViewAggregations) ->
     [view_aggregation_for_reader(Instrument, ViewAggregation, View, Reader)
      || {View, ViewAggregation} <- ViewAggregations].
 
-view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, View,
+view_aggregation_for_reader(Instrument=#instrument{kind=Kind,
+                                                   value_type=ValueType}, ViewAggregation, View,
                             Reader=#reader{id=Id,
                                            default_temporality_mapping=ReaderTemporalityMapping}) ->
     AggregationModule = aggregation_module(Instrument, View, Reader),
@@ -420,6 +421,7 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, 
     ViewAggregation#view_aggregation{
       reader=Id,
       aggregation_module=AggregationModule,
+      aggregation_options=#{value_type => ValueType},
       temporality=Temporality}.
 
 %% no aggregation defined for the View, so get the aggregation from the Reader

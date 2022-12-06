@@ -33,6 +33,7 @@
 create(Meter, Name, ValueType, Opts) ->
     otel_meter:create_updown_counter(Meter, Name, ValueType, Opts).
 
+-spec add(otel_meter:t(), otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok.
 add(Meter, Name, Number, Attributes) ->
     otel_meter:record(Meter, Name, Number, Attributes).
 

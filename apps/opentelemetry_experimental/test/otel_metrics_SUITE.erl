@@ -77,7 +77,7 @@ all() ->
     [default_view, provider_test, view_creation_test, counter_add, multiple_readers,
      explicit_histograms, delta_explicit_histograms, cumulative_counter, kill_reader, kill_server,
      observable_counter, observable_updown_counter, observable_gauge,
-     multi_instrument_callback, using_macros].
+     multi_instrument_callback, using_macros, float_counter, float_updown_counter, float_histogram].
 
 init_per_suite(Config) ->
     application:load(opentelemetry_experimental),
@@ -186,6 +186,9 @@ using_macros(_Config) ->
                              value_type = ValueType,
                              unit = CounterUnit}, Counter),
 
+    %% a float on an integer type counter just gets ignored
+    ?assertEqual(ok, otel_counter:add(Counter, 10.0, #{<<"c">> => <<"b">>})),
+
     ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?counter_add(CounterName, 5, #{<<"c">> => <<"b">>})),
@@ -194,6 +197,105 @@ using_macros(_Config) ->
 
     ?assertSumReceive(m_counter, <<"macro made counter description">>, kb,
                       [{12, #{<<"c">> => <<"b">>}}]),
+
+    ok.
+
+float_counter(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = f_counter,
+    CounterDesc = <<"macro made counter description">>,
+    CounterUnit = kb,
+    ValueType = float,
+
+    Counter = ?create_counter(CounterName, ValueType, #{description => CounterDesc,
+                                                        unit => CounterUnit}),
+
+    ?assertEqual(ok, otel_counter:add(Counter, 10.3, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, ?counter_add(CounterName, 5.5, #{<<"c">> => <<"b">>})),
+
+    %% float type accepts integers since it just uses `select_replace' and
+    %% not the integer only `ets:update_counter'
+    ?assertEqual(ok, ?counter_add(CounterName, 5, #{<<"c">> => <<"b">>})),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(f_counter, <<"macro made counter description">>, kb,
+                      [{20.8, #{<<"c">> => <<"b">>}}]),
+
+    ok.
+
+float_updown_counter(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = f_counter,
+    CounterDesc = <<"macro made updown counter description">>,
+    CounterUnit = kb,
+    ValueType = float,
+
+    Counter = ?create_updown_counter(CounterName, ValueType, #{description => CounterDesc,
+                                                               unit => CounterUnit}),
+
+    ?assertEqual(ok, otel_updown_counter:add(Counter, 10.5, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, ?updown_counter_add(CounterName, -5.5, #{<<"c">> => <<"b">>})),
+
+    %% float type accepts integers since it just uses `select_replace' and
+    %% not the integer only `ets:update_counter'
+    ?assertEqual(ok, ?updown_counter_add(CounterName, 5, #{<<"c">> => <<"b">>})),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(f_counter, <<"macro made updown counter description">>, kb,
+                      [{10.0, #{<<"c">> => <<"b">>}}]),
+
+    ok.
+
+float_histogram(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = f_histogram,
+    CounterDesc = <<"macro made histogram description">>,
+    CounterUnit = kb,
+    ValueType = float,
+
+    Counter = ?create_histogram(CounterName, ValueType, #{description => CounterDesc,
+                                                          unit => CounterUnit}),
+
+    ?assertEqual(ok, otel_histogram:record(Counter, 10.3, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Counter, 10.3, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, ?histogram_record(CounterName, 5.5, #{<<"c">> => <<"b">>})),
+
+    %% float type accepts integers
+    ?assertEqual(ok, ?histogram_record(CounterName, 5, #{<<"c">> => <<"b">>})),
+
+    otel_meter_server:force_flush(),
+
+    receive
+        {otel_metric, #metric{name=f_histogram,
+                              data=#histogram{datapoints=Datapoints}}} ->
+            AttributeBuckets =
+                [{Attributes, Buckets, Min, Max, Sum}
+                 || #histogram_datapoint{bucket_counts=Buckets,
+                                         attributes=Attributes,
+                                         min=Min,
+                                         max=Max,
+                                         sum=Sum}  <- Datapoints],
+            ?assertEqual([], [{#{<<"c">> => <<"b">>}, {0,1,1,2,0,0,0,0,0,0}, 5, 10.3, 31.1}]
+                         -- AttributeBuckets, AttributeBuckets)
+    after
+        5000 ->
+            ct:fail(histogram_receive_timeout)
+    end,
+
 
     ok.
 

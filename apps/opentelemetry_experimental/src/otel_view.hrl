@@ -15,7 +15,7 @@
          reader :: reference() | undefined,
 
          aggregation_module :: module(),
-         aggregation_options :: map(),
+         aggregation_options :: #{value_type := integer | float},
 
          temporality :: otel_aggregation:temporality(),
          is_monotonic :: boolean(),

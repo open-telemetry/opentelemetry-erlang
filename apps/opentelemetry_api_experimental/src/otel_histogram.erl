@@ -34,6 +34,7 @@
 create(Meter, Name, ValueType, Opts) ->
     otel_meter:create_histogram(Meter, Name, ValueType, Opts).
 
+-spec record(otel_meter:t(), otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok.
 record(Meter, Name, Number, Attributes) ->
     otel_meter:record(Meter, Name, Number, Attributes).
 

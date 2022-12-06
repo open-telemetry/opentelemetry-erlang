@@ -25,6 +25,7 @@
          collect/5]).
 
 -include("otel_metrics.hrl").
+-include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 
 -type t() :: #explicit_histogram_aggregation{}.
 
@@ -36,7 +37,7 @@
 
 -define(MIN_DOUBLE, -9223372036854775807.0). %% the proto representation of size `fixed64'
 
-init(Key, Options) ->
+init(Key, Options=#{value_type := ValueType}) ->
     Boundaries = maps:get(boundaries, Options, ?DEFAULT_BOUNDARIES),
     RecordMinMax = maps:get(record_min_max, Options, true),
     #explicit_histogram_aggregation{key=Key,
@@ -46,7 +47,7 @@ init(Key, Options) ->
                                     record_min_max=RecordMinMax,
                                     min=infinity, %% works because any atom is > any integer
                                     max=?MIN_DOUBLE,
-                                    sum=0
+                                    sum=case ValueType of ?VALUE_TYPE_INTEGER -> 0; _ -> 0.0 end
                                    }.
 
 aggregate(Table, Key, Value, Options) ->
@@ -122,7 +123,8 @@ aggregate(Table, Key, Value, Options) ->
     end.
 
 -dialyzer({nowarn_function, checkpoint/6}).
-checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, _, CollectionStartNano) ->
+checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, ValueType, CollectionStartNano) ->
+    SumReset = case ValueType of ?VALUE_TYPE_INTEGER -> 0; _ -> 0.0 end,
     MS = [{#explicit_histogram_aggregation{key='$1',
                                            start_time_unix_nano='_',
                                            boundaries='$2',
@@ -146,7 +148,7 @@ checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, _, CollectionSt
                                              bucket_counts={const, undefined},
                                              min=infinity,
                                              max=?MIN_DOUBLE,
-                                             sum=0}}]}],
+                                             sum={const, SumReset}}}]}],
     _ = ets:select_replace(Tab, MS),
 
     ok;

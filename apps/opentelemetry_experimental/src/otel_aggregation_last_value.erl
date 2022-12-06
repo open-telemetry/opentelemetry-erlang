@@ -36,12 +36,12 @@ init(Key, _Options) ->
     #last_value_aggregation{key=Key,
                             value=undefined}.
 
-aggregate(Tab, Key, Value, _Options) ->
+aggregate(Tab, Key, Value, Options) ->
     case ets:update_element(Tab, Key, {#last_value_aggregation.value, Value}) of
         true ->
             true;
         false ->
-            Metric = init(Key, []),
+            Metric = init(Key, Options),
             ets:insert(Tab, ?assert_type((?assert_type(Metric, #last_value_aggregation{}))#last_value_aggregation{value=Value}, tuple()))
     end.
 
