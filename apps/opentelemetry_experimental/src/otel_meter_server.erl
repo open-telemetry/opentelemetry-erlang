@@ -392,16 +392,7 @@ update_aggregations(Value, Attributes, ViewAggregations, MetricsTab) ->
                                         reader=ReaderId,
                                         aggregation_module=AggregationModule,
                                         aggregation_options=Options}) ->
-                          case AggregationModule:aggregate(MetricsTab, {Name, Attributes, ReaderId}, Value, Options) of
-                              true ->
-                                  ok;
-                              false ->
-                                  %% entry doesn't exist, create it and rerun the aggregate function
-                                  Metric = AggregationModule:init({Name, Attributes, ReaderId}, Options),
-                                  %% don't overwrite a possible concurrent measurement doing the same
-                                  _ = ets:insert_new(MetricsTab, Metric),
-                                  AggregationModule:aggregate(MetricsTab, {Name, Attributes, ReaderId}, Value, Options)
-                          end;
+                          otel_aggregation:maybe_init_aggregate(MetricsTab, AggregationModule, {Name, Attributes, ReaderId}, Value, Options);
                      (_) ->
                           ok
                   end, ViewAggregations).
@@ -411,8 +402,7 @@ per_reader_aggregations(Reader, Instrument, ViewAggregations) ->
     [view_aggregation_for_reader(Instrument, ViewAggregation, View, Reader)
      || {View, ViewAggregation} <- ViewAggregations].
 
-view_aggregation_for_reader(Instrument=#instrument{kind=Kind,
-                                                   value_type=ValueType}, ViewAggregation, View,
+view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, View,
                             Reader=#reader{id=Id,
                                            default_temporality_mapping=ReaderTemporalityMapping}) ->
     AggregationModule = aggregation_module(Instrument, View, Reader),
@@ -421,7 +411,7 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind,
     ViewAggregation#view_aggregation{
       reader=Id,
       aggregation_module=AggregationModule,
-      aggregation_options=#{value_type => ValueType},
+      aggregation_options=#{},
       temporality=Temporality}.
 
 %% no aggregation defined for the View, so get the aggregation from the Reader

@@ -21,7 +21,7 @@
 
 -export([init/2,
          aggregate/4,
-         checkpoint/6,
+         checkpoint/5,
          collect/5]).
 
 -include("otel_metrics.hrl").
@@ -31,16 +31,12 @@
 
 -export_type([t/0]).
 
-init(Key, #{value_type := integer}) ->
+init(Key, _) ->
     #sum_aggregation{key=Key,
                      start_time_unix_nano=erlang:system_time(nanosecond),
-                     value=0};
-init(Key, #{value_type := float}) ->
-    #sum_aggregation{key=Key,
-                     start_time_unix_nano=erlang:system_time(nanosecond),
-                     value=0.0}.
+                     value=0}.
 
-aggregate(Tab, Key, Value, Options=#{value_type := ?VALUE_TYPE_INTEGER}) ->
+aggregate(Tab, Key, Value, _Options) when is_integer(Value) ->
     try
         _ = ets:update_counter(Tab, Key, {#sum_aggregation.value, Value}),
         true
@@ -51,9 +47,10 @@ aggregate(Tab, Key, Value, Options=#{value_type := ?VALUE_TYPE_INTEGER}) ->
 
             %% the default isn't just given in the first `update_counter' because then
             %% we'd have to call `system_time' for every single measurement taken
-            _ = ets:update_counter(Tab, Key, {#sum_aggregation.value, Value},
-                                   init(Key, Options)),
-            true
+            %% _ = ets:update_counter(Tab, Key, {#sum_aggregation.value, Value},
+            %%                        init(Key, Options)),
+            %% true
+            false
     end;
 aggregate(Tab, Key, Value, _) ->
     MS = [{#sum_aggregation{key=Key,
@@ -67,8 +64,8 @@ aggregate(Tab, Key, Value, _) ->
                               value={'+', '$3', {const, Value}}}}]}],
     1 =:= ets:select_replace(Tab, MS).
 
--dialyzer({nowarn_function, checkpoint/6}).
-checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, ValueType, CollectionStartNano) ->
+-dialyzer({nowarn_function, checkpoint/5}).
+checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, CollectionStartNano) ->
     MS = [{#sum_aggregation{key='$1',
                             start_time_unix_nano='_',
                             checkpoint='_',
@@ -78,10 +75,10 @@ checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, ValueType, Coll
            [{#sum_aggregation{key='$1',
                               start_time_unix_nano={const, CollectionStartNano},
                               checkpoint='$2',
-                              value=case ValueType of ?VALUE_TYPE_INTEGER -> 0; _ -> 0.0 end}}]}],
+                              value=0}}]}],
     _ = ets:select_replace(Tab, MS),
     ok;
-checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_CUMULATIVE, _, _CollectionStartNano) ->
+checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_CUMULATIVE, _CollectionStartNano) ->
     MS = [{#sum_aggregation{key='$1',
                             start_time_unix_nano='$2',
                             checkpoint='_',

@@ -21,7 +21,7 @@
 
 -export([init/2,
          aggregate/4,
-         checkpoint/6,
+         checkpoint/5,
          collect/5]).
 
 -include("otel_metrics.hrl").
@@ -37,7 +37,7 @@
 
 -define(MIN_DOUBLE, -9223372036854775807.0). %% the proto representation of size `fixed64'
 
-init(Key, Options=#{value_type := ValueType}) ->
+init(Key, Options) ->
     Boundaries = maps:get(boundaries, Options, ?DEFAULT_BOUNDARIES),
     RecordMinMax = maps:get(record_min_max, Options, true),
     #explicit_histogram_aggregation{key=Key,
@@ -47,7 +47,7 @@ init(Key, Options=#{value_type := ValueType}) ->
                                     record_min_max=RecordMinMax,
                                     min=infinity, %% works because any atom is > any integer
                                     max=?MIN_DOUBLE,
-                                    sum=case ValueType of ?VALUE_TYPE_INTEGER -> 0; _ -> 0.0 end
+                                    sum=0
                                    }.
 
 aggregate(Table, Key, Value, Options) ->
@@ -122,9 +122,8 @@ aggregate(Table, Key, Value, Options) ->
             false
     end.
 
--dialyzer({nowarn_function, checkpoint/6}).
-checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, ValueType, CollectionStartNano) ->
-    SumReset = case ValueType of ?VALUE_TYPE_INTEGER -> 0; _ -> 0.0 end,
+-dialyzer({nowarn_function, checkpoint/5}).
+checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, CollectionStartNano) ->
     MS = [{#explicit_histogram_aggregation{key='$1',
                                            start_time_unix_nano='_',
                                            boundaries='$2',
@@ -148,11 +147,11 @@ checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, ValueType, Coll
                                              bucket_counts={const, undefined},
                                              min=infinity,
                                              max=?MIN_DOUBLE,
-                                             sum={const, SumReset}}}]}],
+                                             sum=0}}]}],
     _ = ets:select_replace(Tab, MS),
 
     ok;
-checkpoint(Tab, Name, ReaderPid, _, _, _CollectionStartNano) ->
+checkpoint(Tab, Name, ReaderPid, _, _CollectionStartNano) ->
     MS = [{#explicit_histogram_aggregation{key='$1',
                                            start_time_unix_nano='$2',
                                            boundaries='$3',

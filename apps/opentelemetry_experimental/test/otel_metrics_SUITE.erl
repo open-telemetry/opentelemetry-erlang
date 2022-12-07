@@ -165,17 +165,15 @@ using_macros(_Config) ->
     CounterName = m_counter,
     CounterDesc = <<"macro made counter description">>,
     CounterUnit = kb,
-    ValueType = integer,
 
-    Counter = ?create_counter(CounterName, ValueType, #{description => CounterDesc,
-                                                        unit => CounterUnit}),
+    Counter = ?create_counter(CounterName, #{description => CounterDesc,
+                                             unit => CounterUnit}),
 
     ?assertMatch(#instrument{meter = {DefaultMeter,_},
                              module = DefaultMeter,
                              name = CounterName,
                              description = CounterDesc,
                              kind = counter,
-                             value_type = ValueType,
                              unit = CounterUnit}, ?lookup_instrument(CounterName)),
 
     ?assertMatch(#instrument{meter = {DefaultMeter,_},
@@ -183,11 +181,7 @@ using_macros(_Config) ->
                              name = CounterName,
                              description = CounterDesc,
                              kind = counter,
-                             value_type = ValueType,
                              unit = CounterUnit}, Counter),
-
-    %% a float on an integer type counter just gets ignored
-    ?assertEqual(ok, otel_counter:add(Counter, 10.0, #{<<"c">> => <<"b">>})),
 
     ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
@@ -209,22 +203,21 @@ float_counter(_Config) ->
     CounterName = f_counter,
     CounterDesc = <<"macro made counter description">>,
     CounterUnit = kb,
-    ValueType = float,
 
-    Counter = ?create_counter(CounterName, ValueType, #{description => CounterDesc,
-                                                        unit => CounterUnit}),
+    Counter = ?create_counter(CounterName, #{description => CounterDesc,
+                                             unit => CounterUnit}),
 
     ?assertEqual(ok, otel_counter:add(Counter, 10.3, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?counter_add(CounterName, 5.5, #{<<"c">> => <<"b">>})),
 
-    %% float type accepts integers since it just uses `select_replace' and
-    %% not the integer only `ets:update_counter'
+    %% measurement is dropped because `ets:update_counter' will fail with
+    %% the value already being a float
     ?assertEqual(ok, ?counter_add(CounterName, 5, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
     ?assertSumReceive(f_counter, <<"macro made counter description">>, kb,
-                      [{20.8, #{<<"c">> => <<"b">>}}]),
+                      [{15.8, #{<<"c">> => <<"b">>}}]),
 
     ok.
 
@@ -237,10 +230,9 @@ float_updown_counter(_Config) ->
     CounterName = f_counter,
     CounterDesc = <<"macro made updown counter description">>,
     CounterUnit = kb,
-    ValueType = float,
 
-    Counter = ?create_updown_counter(CounterName, ValueType, #{description => CounterDesc,
-                                                               unit => CounterUnit}),
+    Counter = ?create_updown_counter(CounterName, #{description => CounterDesc,
+                                                    unit => CounterUnit}),
 
     ?assertEqual(ok, otel_updown_counter:add(Counter, 10.5, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?updown_counter_add(CounterName, -5.5, #{<<"c">> => <<"b">>})),
@@ -252,7 +244,7 @@ float_updown_counter(_Config) ->
     otel_meter_server:force_flush(),
 
     ?assertSumReceive(f_counter, <<"macro made updown counter description">>, kb,
-                      [{10.0, #{<<"c">> => <<"b">>}}]),
+                      [{5.0, #{<<"c">> => <<"b">>}}]),
 
     ok.
 
@@ -265,10 +257,9 @@ float_histogram(_Config) ->
     CounterName = f_histogram,
     CounterDesc = <<"macro made histogram description">>,
     CounterUnit = kb,
-    ValueType = float,
 
-    Counter = ?create_histogram(CounterName, ValueType, #{description => CounterDesc,
-                                                          unit => CounterUnit}),
+    Counter = ?create_histogram(CounterName, #{description => CounterDesc,
+                                               unit => CounterUnit}),
 
     ?assertEqual(ok, otel_histogram:record(Counter, 10.3, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_histogram:record(Counter, 10.3, #{<<"c">> => <<"b">>})),
@@ -308,9 +299,8 @@ default_view(_Config) ->
     CounterName = z_counter,
     CounterDesc = <<"counter description">>,
     CounterUnit = kb,
-    ValueType = integer,
 
-    Counter = otel_meter:create_counter(Meter, CounterName, ValueType,
+    Counter = otel_meter:create_counter(Meter, CounterName,
                                         #{description => CounterDesc,
                                           unit => CounterUnit}),
     ?assertMatch(#instrument{meter = {DefaultMeter,_},
@@ -318,7 +308,6 @@ default_view(_Config) ->
                              name = CounterName,
                              description = CounterDesc,
                              kind = counter,
-                             value_type = ValueType,
                              unit = CounterUnit}, Counter),
 
     ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
@@ -341,9 +330,8 @@ provider_test(_Config) ->
     CounterName = a_counter,
     CounterDesc = <<"counter description">>,
     CounterUnit = kb,
-    ValueType = integer,
 
-    Counter = otel_meter:create_counter(Meter, CounterName, ValueType,
+    Counter = otel_meter:create_counter(Meter, CounterName,
                                         #{description => CounterDesc,
                                           unit => CounterUnit}),
     ?assertMatch(#instrument{meter = {DefaultMeter,_},
@@ -351,7 +339,6 @@ provider_test(_Config) ->
                              name = CounterName,
                              description = CounterDesc,
                              kind = counter,
-                             value_type = ValueType,
                              unit = CounterUnit}, Counter),
 
     ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
@@ -359,7 +346,7 @@ provider_test(_Config) ->
     ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
 
-    %% this measurement will be ignored because counter is of type integer
+    %% converts counter to a float valuer
     ?assertEqual(ok, otel_counter:add(Counter, 5.0, #{<<"c">> => <<"b">>})),
 
     %% ignored because only positive measurements are allowed for counters
@@ -367,8 +354,8 @@ provider_test(_Config) ->
 
     otel_meter_server:force_flush(),
 
-    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
-    ?assertSumReceive(view_c, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{16.0, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(view_c, <<"counter description">>, kb, [{16.0, #{<<"c">> => <<"b">>}}]),
 
     %% sum agg is default delta temporality so counter will reset
     ?assertEqual(ok, otel_counter:add(Counter, 7, #{<<"c">> => <<"b">>})),
@@ -387,17 +374,15 @@ view_creation_test(_Config) ->
     CounterName = a_counter,
     CounterDesc = <<"counter description">>,
     CounterUnit = kb,
-    ValueType = integer,
 
-    Counter = otel_counter:create(Meter, CounterName, ValueType,
-                                         #{description => CounterDesc,
-                                           unit => CounterUnit}),
+    Counter = otel_counter:create(Meter, CounterName,
+                                  #{description => CounterDesc,
+                                    unit => CounterUnit}),
     ?assertMatch(#instrument{meter = {DefaultMeter,_},
                              module = DefaultMeter,
                              name = CounterName,
                              description = CounterDesc,
                              kind = counter,
-                             value_type = ValueType,
                              unit = CounterUnit}, Counter),
 
     ?assert(otel_meter_server:add_view(view_a, #{instrument_name => a_counter}, #{aggregation_module => otel_aggregation_sum})),
@@ -428,9 +413,8 @@ counter_add(_Config) ->
     CounterName = a_counter,
     CounterDesc = <<"counter description">>,
     CounterUnit = kb,
-    ValueType = integer,
 
-    Counter = otel_counter:create(Meter, CounterName, ValueType,
+    Counter = otel_counter:create(Meter, CounterName,
                                   #{description => CounterDesc,
                                     unit => CounterUnit}),
 
@@ -442,12 +426,11 @@ multiple_readers(_Config) ->
 
     CounterDesc = <<"counter description">>,
     CounterUnit = kb,
-    ValueType = integer,
 
-    CounterA = otel_meter:create_counter(Meter, a_counter, ValueType,
+    CounterA = otel_meter:create_counter(Meter, a_counter,
                                          #{description => CounterDesc,
                                            unit => CounterUnit}),
-    CounterB = otel_meter:create_counter(Meter, b_counter, ValueType,
+    CounterB = otel_meter:create_counter(Meter, b_counter,
                                          #{description => CounterDesc,
                                            unit => CounterUnit}),
 
@@ -481,9 +464,8 @@ explicit_histograms(_Config) ->
     HistogramName = a_histogram,
     HistogramDesc = <<"histogram description">>,
     HistogramUnit = ms,
-    ValueType = integer,
 
-    Histogram = otel_meter:create_histogram(Meter, HistogramName, ValueType,
+    Histogram = otel_meter:create_histogram(Meter, HistogramName,
                                             #{description => HistogramDesc,
                                               unit => HistogramUnit}),
     ?assertMatch(#instrument{meter = {DefaultMeter,_},
@@ -491,7 +473,6 @@ explicit_histograms(_Config) ->
                              name = HistogramName,
                              description = HistogramDesc,
                              kind = histogram,
-                             value_type = ValueType,
                              unit = HistogramUnit}, Histogram),
 
     otel_meter_server:add_view(#{instrument_name => a_histogram}, #{}),
@@ -532,9 +513,8 @@ delta_explicit_histograms(_Config) ->
     HistogramName = a_histogram,
     HistogramDesc = <<"histogram description">>,
     HistogramUnit = ms,
-    ValueType = integer,
 
-    Histogram = otel_meter:create_histogram(Meter, HistogramName, ValueType,
+    Histogram = otel_meter:create_histogram(Meter, HistogramName,
                                             #{description => HistogramDesc,
                                               unit => HistogramUnit}),
     ?assertMatch(#instrument{meter = {DefaultMeter,_},
@@ -542,7 +522,6 @@ delta_explicit_histograms(_Config) ->
                              name = HistogramName,
                              description = HistogramDesc,
                              kind = histogram,
-                             value_type = ValueType,
                              unit = HistogramUnit}, Histogram),
 
     otel_meter_server:add_view(#{instrument_name => a_histogram}, #{}),
@@ -607,9 +586,8 @@ cumulative_counter(_Config) ->
     CounterName = a_counter,
     CounterDesc = <<"counter description">>,
     CounterUnit = kb,
-    ValueType = integer,
 
-    Counter = otel_counter:create(Meter, CounterName, ValueType,
+    Counter = otel_counter:create(Meter, CounterName,
                                   #{description => CounterDesc,
                                     unit => CounterUnit}),
     ?assertMatch(#instrument{meter = {DefaultMeter,_},
@@ -617,7 +595,6 @@ cumulative_counter(_Config) ->
                              name = CounterName,
                              description = CounterDesc,
                              kind = counter,
-                             value_type = ValueType,
                              unit = CounterUnit}, Counter),
 
     otel_meter_server:add_view(#{instrument_name => a_counter},
@@ -651,9 +628,8 @@ kill_reader(_Config) ->
     CounterName = z_counter,
     CounterDesc = <<"counter description">>,
     CounterUnit = kb,
-    ValueType = integer,
 
-    Counter = otel_meter:create_counter(Meter, CounterName, ValueType,
+    Counter = otel_meter:create_counter(Meter, CounterName,
                                         #{description => CounterDesc,
                                           unit => CounterUnit}),
     ?assertMatch(#instrument{meter = {DefaultMeter,_},
@@ -661,7 +637,6 @@ kill_reader(_Config) ->
                              name = CounterName,
                              description = CounterDesc,
                              kind = counter,
-                             value_type = ValueType,
                              unit = CounterUnit}, Counter),
 
     ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"c">> => <<"b">>})),
@@ -687,7 +662,7 @@ kill_reader(_Config) ->
 
     %% This will create an ignored duplicate Counter since the Instruments table
     %% is owned by the `otel_metrics_server' process
-    Counter = otel_meter:create_counter(Meter, CounterName, ValueType,
+    Counter = otel_meter:create_counter(Meter, CounterName,
                                         #{description => CounterDesc,
                                           unit => CounterUnit}),
 
@@ -711,12 +686,11 @@ kill_server(_Config) ->
     CounterName = z_counter,
     CounterDesc = <<"counter description">>,
     CounterUnit = kb,
-    ValueType = integer,
 
-    ACounter = otel_meter:create_counter(Meter, ACounterName, ValueType,
+    ACounter = otel_meter:create_counter(Meter, ACounterName,
                                          #{description => CounterDesc,
                                            unit => CounterUnit}),
-    Counter = otel_meter:create_counter(Meter, CounterName, ValueType,
+    Counter = otel_meter:create_counter(Meter, CounterName,
                                         #{description => CounterDesc,
                                           unit => CounterUnit}),
     ?assertMatch(#instrument{meter = {DefaultMeter,_},
@@ -724,7 +698,6 @@ kill_server(_Config) ->
                              name = CounterName,
                              description = CounterDesc,
                              kind = counter,
-                             value_type = ValueType,
                              unit = CounterUnit}, Counter),
 
     ?assertEqual(ok, otel_counter:add(ACounter, 2, #{<<"c">> => <<"b">>})),
@@ -739,10 +712,10 @@ kill_server(_Config) ->
 
     %% TODO: Agh! need to supervise ETS tables so readers can crash and not then
     %% lose all existing Instrument/View matches
-    ACounter = otel_meter:create_counter(Meter, ACounterName, ValueType,
+    ACounter = otel_meter:create_counter(Meter, ACounterName,
                                          #{description => CounterDesc,
                                            unit => CounterUnit}),
-    Counter = otel_meter:create_counter(Meter, CounterName, ValueType,
+    Counter = otel_meter:create_counter(Meter, CounterName,
                                         #{description => CounterDesc,
                                           unit => CounterUnit}),
 
@@ -766,11 +739,10 @@ observable_counter(_Config) ->
     CounterName = a_observable_counter,
     CounterDesc = <<"observable counter description">>,
     CounterUnit = kb,
-    ValueType = integer,
 
     ?assert(otel_meter_server:add_view(#{instrument_name => CounterName}, #{aggregation_module => otel_aggregation_sum})),
 
-    Counter = otel_meter:create_observable_counter(Meter, CounterName, ValueType,
+    Counter = otel_meter:create_observable_counter(Meter, CounterName,
                                                    fun(_Args) ->
                                                            MeasurementAttributes = #{<<"a">> => <<"b">>},
                                                            {4, MeasurementAttributes}
@@ -784,7 +756,6 @@ observable_counter(_Config) ->
                              name = CounterName,
                              description = CounterDesc,
                              kind = observable_counter,
-                             value_type = ValueType,
                              unit = CounterUnit,
                              callback=_}, Counter),
 
@@ -803,11 +774,10 @@ observable_updown_counter(_Config) ->
     CounterName = a_observable_updown_counter,
     CounterDesc = <<"observable updown counter description">>,
     CounterUnit = kb,
-    ValueType = integer,
 
     ?assert(otel_meter_server:add_view(#{instrument_name => CounterName}, #{aggregation_module => otel_aggregation_sum})),
 
-    Counter = otel_meter:create_observable_updowncounter(Meter, CounterName, ValueType,
+    Counter = otel_meter:create_observable_updowncounter(Meter, CounterName,
                                                          fun(_) ->
                                                                  MeasurementAttributes = #{<<"a">> => <<"b">>},
                                                                  {5, MeasurementAttributes}
@@ -821,7 +791,6 @@ observable_updown_counter(_Config) ->
                              name = CounterName,
                              description = CounterDesc,
                              kind = observable_updowncounter,
-                             value_type = ValueType,
                              unit = CounterUnit,
                              callback=_}, Counter),
 
@@ -840,11 +809,10 @@ observable_gauge(_Config) ->
     CounterName = a_observable_gauge,
     CounterDesc = <<"observable gauge description">>,
     CounterUnit = kb,
-    ValueType = integer,
 
     ?assert(otel_meter_server:add_view(#{instrument_name => CounterName}, #{aggregation_module => otel_aggregation_last_value})),
 
-    Counter = otel_meter:create_observable_gauge(Meter, CounterName, ValueType,
+    Counter = otel_meter:create_observable_gauge(Meter, CounterName,
                                                  fun(_) ->
                                                          {5, #{<<"a">> => <<"b">>}}
                                                  end,
@@ -857,7 +825,6 @@ observable_gauge(_Config) ->
                              name = CounterName,
                              description = CounterDesc,
                              kind = observable_gauge,
-                             value_type = ValueType,
                              unit = CounterUnit,
                              callback=_}, Counter),
 
@@ -880,16 +847,15 @@ multi_instrument_callback(_Config) ->
     GaugeDesc = <<"observable gauge description">>,
 
     Unit = kb,
-    ValueType = integer,
 
     ?assert(otel_meter_server:add_view(#{instrument_name => CounterName}, #{aggregation_module => otel_aggregation_sum})),
 
-    Counter = otel_meter:create_observable_counter(Meter, CounterName, ValueType,
+    Counter = otel_meter:create_observable_counter(Meter, CounterName,
                                                    undefined, [],
                                                    #{description => CounterDesc,
                                                      unit => Unit}),
 
-    Gauge = otel_meter:create_observable_gauge(Meter, GaugeName, ValueType,
+    Gauge = otel_meter:create_observable_gauge(Meter, GaugeName,
                                                undefined, [],
                                                #{description => GaugeDesc,
                                                  unit => Unit}),

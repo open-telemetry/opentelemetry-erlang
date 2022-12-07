@@ -1,6 +1,7 @@
 -module(otel_aggregation).
 
--export([default_mapping/0,
+-export([maybe_init_aggregate/5,
+         default_mapping/0,
          temporality_mapping/0,
          instrument_temporality/1]).
 
@@ -35,12 +36,11 @@
       Value :: number(),
       Options :: options().
 
--callback checkpoint(Table, Name, ReaderId, Temporality, ValueType, CollectionStartTime) -> ok when
+-callback checkpoint(Table, Name, ReaderId, Temporality, CollectionStartTime) -> ok when
       Table :: ets:table(),
       Name :: atom(),
       ReaderId :: reference(),
       Temporality :: temporality(),
-      ValueType :: otel_instrument:value_type(),
       CollectionStartTime :: integer().
 
 -callback collect(Table, Name, ReaderId, Temporality, CollectionStartTime) -> [tuple()] when
@@ -49,6 +49,18 @@
       ReaderId :: reference(),
       Temporality :: temporality(),
       CollectionStartTime :: integer().
+
+maybe_init_aggregate(MetricsTab, AggregationModule, Key, Value, Options) ->
+    case AggregationModule:aggregate(MetricsTab, Key, Value, Options) of
+        true ->
+            ok;
+        false ->
+            %% entry doesn't exist, create it and rerun the aggregate function
+            Metric = AggregationModule:init(Key, Options),
+            %% don't overwrite a possible concurrent measurement doing the same
+            _ = ets:insert_new(MetricsTab, Metric),
+            AggregationModule:aggregate(MetricsTab, Key, Value, Options)
+    end.
 
 -spec default_mapping() -> #{otel_instrument:kind() => module()}.
 default_mapping() ->

@@ -18,41 +18,24 @@
 %%%-------------------------------------------------------------------------
 -module(otel_updown_counter).
 
--export([create/4,
+-export([create/3,
          add/3,
          add/4]).
 
 -include("otel_metrics.hrl").
 -include_lib("kernel/include/logger.hrl").
 
--spec create(Meter, Name, ValueType, Opts) -> otel_instrument:t() when
+-spec create(Meter, Name, Opts) -> otel_instrument:t() when
       Meter :: otel_meter:t(),
       Name :: otel_instrument:name(),
-      ValueType :: otel_instrument:value_type(),
       Opts :: otel_meter:opts().
-create(Meter, Name, ValueType, Opts) ->
-    otel_meter:create_updown_counter(Meter, Name, ValueType, Opts).
+create(Meter, Name, Opts) ->
+    otel_meter:create_updown_counter(Meter, Name, Opts).
 
 -spec add(otel_meter:t(), otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok.
 add(Meter, Name, Number, Attributes) ->
     otel_meter:record(Meter, Name, Number, Attributes).
 
 -spec add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-add(Instrument=#instrument{module=Module,
-                           value_type=?VALUE_TYPE_INTEGER}, Number, Attributes)
-  when is_integer(Number) ->
-    Module:record(Instrument, Number, Attributes);
-add(Instrument=#instrument{module=Module,
-                           value_type=?VALUE_TYPE_FLOAT}, Number, Attributes)
-  when is_float(Number) ->
-    Module:record(Instrument, Number, Attributes);
-add(#instrument{name=Name,
-                value_type=?VALUE_TYPE_INTEGER}, Number, _) ->
-    ?LOG_DEBUG("UpDownCounter instrument ~p does not support adding value ~p. "
-               "The value must be an integer.", [Name, Number]),
-    ok;
-add(#instrument{name=Name,
-                value_type=?VALUE_TYPE_FLOAT}, Number, _) ->
-    ?LOG_DEBUG("UpDownCounter instrument ~p does not support adding value ~p. "
-               "The value must be a float.", [Name, Number]),
-    ok.
+add(Instrument=#instrument{module=Module}, Number, Attributes) ->
+    Module:record(Instrument, Number, Attributes).
