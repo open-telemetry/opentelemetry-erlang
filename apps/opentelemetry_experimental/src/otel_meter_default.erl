@@ -25,7 +25,8 @@
          register_callback/4,
          scope/1]).
 
--export([record/3]).
+-export([record/3,
+         record/4]).
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_metrics.hrl").
@@ -66,3 +67,7 @@ scope({_, #meter{instrumentation_scope=Scope}}) ->
 record(Instrument=#instrument{meter={_, #meter{view_aggregations_tab=ViewAggregationTab,
                                                metrics_tab=MetricsTab}}}, Number, Attributes) ->
     otel_meter_server:record(ViewAggregationTab, MetricsTab, Instrument, Number, Attributes).
+
+record(Meter={_, #meter{view_aggregations_tab=ViewAggregationTab,
+                        metrics_tab=MetricsTab}}, Name, Number, Attributes) ->
+    otel_meter_server:record(Meter, ViewAggregationTab, MetricsTab, Name, Number, Attributes).
