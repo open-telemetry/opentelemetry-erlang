@@ -131,7 +131,7 @@ process_attribute(Key, Value, Map) when is_tuple(Value) ->
     List = tuple_to_list(Value),
     case is_valid_attribute(Key, List) of
         true ->
-            maps:put(Key, List, Map);
+            maps:put(Key, Value, Map);
         false ->
             Map
     end;
