@@ -209,15 +209,12 @@ float_counter(_Config) ->
 
     ?assertEqual(ok, otel_counter:add(Counter, 10.3, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?counter_add(CounterName, 5.5, #{<<"c">> => <<"b">>})),
-
-    %% measurement is dropped because `ets:update_counter' will fail with
-    %% the value already being a float
     ?assertEqual(ok, ?counter_add(CounterName, 5, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
     ?assertSumReceive(f_counter, <<"macro made counter description">>, kb,
-                      [{15.8, #{<<"c">> => <<"b">>}}]),
+                      [{20.8, #{<<"c">> => <<"b">>}}]),
 
     ok.
 
@@ -236,15 +233,12 @@ float_updown_counter(_Config) ->
 
     ?assertEqual(ok, otel_updown_counter:add(Counter, 10.5, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?updown_counter_add(CounterName, -5.5, #{<<"c">> => <<"b">>})),
-
-    %% float type accepts integers since it just uses `select_replace' and
-    %% not the integer only `ets:update_counter'
     ?assertEqual(ok, ?updown_counter_add(CounterName, 5, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
     ?assertSumReceive(f_counter, <<"macro made updown counter description">>, kb,
-                      [{5.0, #{<<"c">> => <<"b">>}}]),
+                      [{10.0, #{<<"c">> => <<"b">>}}]),
 
     ok.
 

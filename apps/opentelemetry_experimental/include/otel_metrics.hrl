@@ -29,7 +29,8 @@
          key :: {term(),  opentelemetry:attributes_map(), reference()} | '$1' | {element, 2, '$_'},
          start_time_unix_nano :: integer() | '_' | '$1' | {const, integer()},
          checkpoint :: number() | undefined | '_' | '$2' | '$3',
-         value :: number() | undefined | '$3' | {'+', '$3', {const, number()}}
+         int_value :: number() | undefined | '$3' | {'+', '$3', {const, number()}},
+         float_value :: number() | undefined | '$4' | {'+', '$4', {const, number()}}
         }).
 
 -record(last_value_aggregation,

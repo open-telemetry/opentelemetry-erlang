@@ -4,8 +4,7 @@
          description             :: unicode:unicode_binary() | undefined,
          attribute_keys          :: [opentelemetry:attribute_key()] | undefined,
          aggregation_module      :: module() | undefined,
-         aggregation_options=#{} :: map(),
-         number=0                :: number()}).
+         aggregation_options=#{} :: map()}).
 
 -record(view_aggregation,
         {%% name of the view or instrument if the view has no name
