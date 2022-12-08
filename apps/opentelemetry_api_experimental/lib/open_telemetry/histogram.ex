@@ -3,12 +3,11 @@ defmodule OpenTelemetryAPIExperimental.Histogram do
 
   """
 
-  defmacro create(name, value_type, opts) do
-    quote bind_quoted: [name: name, value_type: value_type, opts: opts] do
+  defmacro create(name, opts) do
+    quote bind_quoted: [name: name, opts: opts] do
       :otel_meter.create_histogram(
         :opentelemetry_experimental.get_meter(__MODULE__),
         name,
-        value_type,
         opts
       )
     end
