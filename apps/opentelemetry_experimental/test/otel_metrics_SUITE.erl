@@ -340,7 +340,7 @@ provider_test(_Config) ->
     ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
 
-    %% converts counter to a float valuer
+    %% converts counter to a float value
     ?assertEqual(ok, otel_counter:add(Counter, 5.0, #{<<"c">> => <<"b">>})),
 
     %% ignored because only positive measurements are allowed for counters
