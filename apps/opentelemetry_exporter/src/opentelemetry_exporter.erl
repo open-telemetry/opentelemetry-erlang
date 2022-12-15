@@ -222,46 +222,56 @@ export(traces, Tab, Resource, #state{protocol=http_protobuf,
                                                   path := Path,
                                                   port := Port,
                                                   ssl_options := SSLOptions} | _]}) ->
-    Proto = opentelemetry_exporter_trace_service_pb:encode_msg(otel_otlp_traces:to_proto(Tab, Resource),
-                                                               export_trace_service_request),
-    {NewHeaders, NewProto} = case Compression of
-                                 gzip -> {[{"content-encoding", "gzip"} | Headers], zlib:gzip(Proto)};
-                                 _ -> {Headers, Proto}
-                             end,
-    Address = uri_string:normalize(#{scheme => Scheme,
-                                     host => Host,
-                                     port => Port,
-                                     path => Path}),
-
-    case httpc:request(post, {Address, NewHeaders, "application/x-protobuf", NewProto},
-                       [{ssl, SSLOptions}], []) of
-        {ok, {{_, Code, _}, _, _}} when Code >= 200 andalso Code =< 202 ->
+    case otel_otlp_traces:to_proto(Tab, Resource) of
+        empty ->
             ok;
-        {ok, {{_, Code, _}, _, Message}} ->
-            ?LOG_INFO("error response from service exported to status=~p ~s",
-                      [Code, Message]),
-            error;
-        {error, Reason} ->
-            ?LOG_INFO("client error exporting spans ~p", [Reason]),
-            error
+        ProtoMap ->
+            Proto = opentelemetry_exporter_trace_service_pb:encode_msg(ProtoMap,
+                                                                       export_trace_service_request),
+            {NewHeaders, NewProto} =
+                case Compression of
+                    gzip -> {[{"content-encoding", "gzip"} | Headers], zlib:gzip(Proto)};
+                    _ -> {Headers, Proto}
+                end,
+            Address = uri_string:normalize(#{scheme => Scheme,
+                                             host => Host,
+                                             port => Port,
+                                             path => Path}),
+
+            case httpc:request(post, {Address, NewHeaders, "application/x-protobuf", NewProto},
+                               [{ssl, SSLOptions}], []) of
+                {ok, {{_, Code, _}, _, _}} when Code >= 200 andalso Code =< 202 ->
+                    ok;
+                {ok, {{_, Code, _}, _, Message}} ->
+                    ?LOG_INFO("error response from service exported to status=~p ~s",
+                              [Code, Message]),
+                    error;
+                {error, Reason} ->
+                    ?LOG_INFO("client error exporting spans ~p", [Reason]),
+                    error
+            end
     end;
 export(traces, Tab, Resource, #state{protocol=grpc,
                                      grpc_metadata=Metadata,
                                      channel=Channel}) ->
-    ExportRequest = otel_otlp_traces:to_proto(Tab, Resource),
-    Ctx = grpcbox_metadata:append_to_outgoing_ctx(ctx:new(), Metadata),
-    case opentelemetry_trace_service:export(Ctx, ExportRequest, #{channel => Channel}) of
-        {ok, _Response, _ResponseMetadata} ->
+    case otel_otlp_traces:to_proto(Tab, Resource) of
+        empty ->
             ok;
-        {error, {Status, Message}, _} ->
-            ?LOG_INFO("OTLP grpc export failed with GRPC status ~s : ~s", [Status, Message]),
-            error;
-        {http_error, {Status, _}, _} ->
-            ?LOG_INFO("OTLP grpc export failed with HTTP status code ~s", [Status]),
-            error;
-        {error, Reason} ->
-            ?LOG_INFO("OTLP grpc export failed with error: ~p", [Reason]),
-            error
+        ExportRequest ->
+            Ctx = grpcbox_metadata:append_to_outgoing_ctx(ctx:new(), Metadata),
+            case opentelemetry_trace_service:export(Ctx, ExportRequest, #{channel => Channel}) of
+                {ok, _Response, _ResponseMetadata} ->
+                    ok;
+                {error, {Status, Message}, _} ->
+                    ?LOG_INFO("OTLP grpc export failed with GRPC status ~s : ~s", [Status, Message]),
+                    error;
+                {http_error, {Status, _}, _} ->
+                    ?LOG_INFO("OTLP grpc export failed with HTTP status code ~s", [Status]),
+                    error;
+                {error, Reason} ->
+                    ?LOG_INFO("OTLP grpc export failed with error: ~p", [Reason]),
+                    error
+            end
     end;
 export(metrics, Tab, Resource, #state{protocol=grpc,
                                       grpc_metadata=Metadata,
