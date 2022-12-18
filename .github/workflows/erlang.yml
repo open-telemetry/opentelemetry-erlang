@@ -17,7 +17,7 @@ jobs:
       matrix:
         otp_version: ['25.0.3', '24.1.2', '23.3.4.16']
         rebar3_version: ['3.19.0']
-        os: [ubuntu-18.04]
+        os: [ubuntu-20.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
     steps:
@@ -88,7 +88,7 @@ jobs:
       matrix:
         otp_version: ['25.0.3']
         rebar3_version: ['3.19.0']
-        os: [ubuntu-18.04]
+        os: [ubuntu-20.04]
     steps:
     - uses: actions/checkout@v2
     - uses: erlef/setup-beam@v1
