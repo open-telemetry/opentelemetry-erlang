@@ -406,13 +406,13 @@ explicit_histograms(_Config) ->
         {otel_metric, #metric{name=a_histogram,
                               data=#histogram{datapoints=Datapoints}}} ->
             AttributeBuckets =
-                [{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
-                                                                              attributes=Attributes,
-                                                                              min=Min,
-                                                                              max=Max,
-                                                                              sum=Sum}  <- Datapoints],
-            ?assertEqual([], [{#{<<"c">> => <<"b">>}, {0,0,0,1,1,0,1,0,0,0}, 20, 100, 164},
-                              {#{<<"a">> => <<"b">>, <<"d">> => <<"e">>}, {0,0,0,0,1,0,0,0,0,0}, 30, 30, 30}]
+                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                         attributes=Attributes,
+                                                                                         min=Min,
+                                                                                         max=Max,
+                                                                                         sum=Sum}  <- Datapoints]),
+            ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,0,0,1,1,0,1,0,0,0], 20, 100, 164},
+                              {#{<<"a">> => <<"b">>, <<"d">> => <<"e">>}, [0,0,0,0,1,0,0,0,0,0], 30, 30, 30}]
                          -- AttributeBuckets, AttributeBuckets)
     after
         5000 ->
@@ -457,13 +457,13 @@ delta_explicit_histograms(_Config) ->
         {otel_metric, #metric{name=a_histogram,
                               data=#histogram{datapoints=Datapoints}}} ->
             AttributeBuckets =
-                [{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
-                                                                              attributes=Attributes,
-                                                                              min=Min,
-                                                                              max=Max,
-                                                                              sum=Sum}  <- Datapoints],
-            ?assertEqual([], [{#{<<"c">> => <<"b">>}, {0,0,0,1,1,0,1,0,0,0}, 20, 100, 164},
-                              {#{<<"a">> => <<"b">>, <<"d">> => <<"e">>}, {0,0,0,0,1,0,0,0,0,0}, 30, 30, 30}]
+                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                         attributes=Attributes,
+                                                                                         min=Min,
+                                                                                         max=Max,
+                                                                                         sum=Sum}  <- Datapoints]),
+            ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,0,0,1,1,0,1,0,0,0], 20, 100, 164},
+                              {#{<<"a">> => <<"b">>, <<"d">> => <<"e">>}, [0,0,0,0,1,0,0,0,0,0], 30, 30, 30}]
                          -- AttributeBuckets, AttributeBuckets)
     after
         5000 ->
@@ -483,9 +483,9 @@ delta_explicit_histograms(_Config) ->
                                                                               min=Min,
                                                                               max=Max,
                                                                               sum=Sum}  <- Datapoints1],
-            ?assertEqual([], [{#{<<"c">> => <<"b">>}, {0,0,0,0,0,0,1,0,0,0}, 88, 88, 88},
+            ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,0,0,0,0,0,1,0,0,0], 88, 88, 88},
                               {#{<<"a">> => <<"b">>,<<"d">> => <<"e">>},
-                               {0,0,0,0,0,0,0,0,0,0},
+                               [0,0,0,0,0,0,0,0,0,0],
                                infinity,-9.223372036854776e18,0}
                              ]
                          -- AttributeBuckets1, AttributeBuckets1)
