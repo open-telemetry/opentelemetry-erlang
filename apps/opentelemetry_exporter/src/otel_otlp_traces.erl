@@ -29,17 +29,22 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
 
+-spec to_proto(ets:table(), otel_resource:t()) -> opentelemetry_exporter_trace_service_pb:export_trace_service_request() | empty.
 to_proto(Tab, Resource) ->
-    InstrumentationScopeSpans = to_proto_by_instrumentation_scope(Tab),
-    Attributes = otel_resource:attributes(Resource),
-    ResourceSpans = #{resource => #{attributes => otel_otlp_common:to_attributes(Attributes),
-                                    dropped_attributes_count => otel_attributes:dropped(Attributes)},
-                      scope_spans => InstrumentationScopeSpans},
-    case otel_resource:schema_url(Resource) of
-        undefined ->
-            #{resource_spans => [ResourceSpans]};
-        SchemaUrl ->
-            #{resource_spans => [ResourceSpans#{schema_url => SchemaUrl}]}
+    case to_proto_by_instrumentation_scope(Tab) of
+        [] ->
+            empty;
+        InstrumentationScopeSpans ->
+            Attributes = otel_resource:attributes(Resource),
+            ResourceSpans = #{resource => #{attributes => otel_otlp_common:to_attributes(Attributes),
+                                            dropped_attributes_count => otel_attributes:dropped(Attributes)},
+                              scope_spans => InstrumentationScopeSpans},
+            case otel_resource:schema_url(Resource) of
+                undefined ->
+                    #{resource_spans => [ResourceSpans]};
+                SchemaUrl ->
+                    #{resource_spans => [ResourceSpans#{schema_url => SchemaUrl}]}
+            end
     end.
 
 to_proto_by_instrumentation_scope(Tab) ->
