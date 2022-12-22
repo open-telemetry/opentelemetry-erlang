@@ -10,13 +10,14 @@ on:
 
 jobs:
   format:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: erlef/setup-beam@v1
         with:
           otp-version: '25.0.3'
           elixir-version: '1.13.4'
+          version-type: 'strict'
       - uses: actions/cache@v2
         name: Cache
         with:
@@ -36,7 +37,7 @@ jobs:
         otp_version: ['25.0.3', '24.1.2', '23.3.4.2']
         elixir_version: ['1.14', '1.13.4']
         rebar3_version: ['3.17.0']
-        os: [ubuntu-18.04]
+        os: [ubuntu-20.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir_version }}
@@ -47,6 +48,7 @@ jobs:
           otp-version: ${{ matrix.otp_version }}
           elixir-version: ${{ matrix.elixir_version }}
           rebar3-version: ${{ matrix.rebar3_version }}
+          version-type: 'strict'
       - run: mix local.rebar --force rebar3 /home/runner/work/_temp/.setup-beam/rebar3/bin/rebar3
       - name: Compile
         run: rebar3 as test compile
@@ -61,7 +63,8 @@ jobs:
         otp_version: ['25.0.3', '24.1.2', '23.3.4.2']
         elixir_version: ['1.14', '1.13.4']
         rebar3_version: ['3.17.0']
-        os: [ubuntu-18.04]
+        os: [ubuntu-20.04]
+        version-type: 'strict'
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir_version }}
@@ -75,6 +78,7 @@ jobs:
           otp-version: ${{ matrix.otp_version }}
           elixir-version: ${{ matrix.elixir_version }}
           rebar3-version: ${{ matrix.rebar3_version }}
+          version-type: 'strict'
       - uses: actions/cache@v2
         name: Cache
         with:
@@ -103,7 +107,7 @@ jobs:
       matrix:
         otp_version: ['25.0.3']
         elixir_version: ['1.14']
-        os: [ubuntu-18.04]
+        os: [ubuntu-20.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir_version }}
@@ -116,6 +120,7 @@ jobs:
         with:
           otp-version: ${{ matrix.otp_version }}
           elixir-version: ${{ matrix.elixir_version }}
+          version-type: 'strict'
       - uses: actions/cache@v2
         name: Cache
         with:

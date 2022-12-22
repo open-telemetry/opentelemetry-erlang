@@ -288,16 +288,18 @@ record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) when is_
 record_exception(_, _, _, _, _, _) ->
     false.
 
--spec set_status(SpanCtx, Status) -> boolean() when
-      Status :: opentelemetry:status() | undefined,
+-spec set_status(SpanCtx, StatusOrCode) -> boolean() when
+      StatusOrCode :: opentelemetry:status() | undefined | opentelemetry:status_code(),
       SpanCtx :: opentelemetry:span_ctx().
-set_status(SpanCtx=#span_ctx{span_sdk={Module, _}}, Status) when ?is_recording(SpanCtx) ->
-    Module:set_status(SpanCtx, Status);
 set_status(SpanCtx=#span_ctx{span_sdk={Module, _}}, Code) when ?is_recording(SpanCtx) andalso
                                                                (Code =:= ?OTEL_STATUS_UNSET orelse
                                                                 Code =:= ?OTEL_STATUS_OK orelse
                                                                 Code =:= ?OTEL_STATUS_ERROR)->
     Module:set_status(SpanCtx, opentelemetry:status(Code));
+set_status(SpanCtx=#span_ctx{span_sdk={Module, _}}, undefined) ->
+    Module:set_status(SpanCtx, opentelemetry:status(?OTEL_STATUS_UNSET));
+set_status(SpanCtx=#span_ctx{span_sdk={Module, _}}, Status) when ?is_recording(SpanCtx) ->
+    Module:set_status(SpanCtx, Status);
 set_status(_, _) ->
     false.
 
