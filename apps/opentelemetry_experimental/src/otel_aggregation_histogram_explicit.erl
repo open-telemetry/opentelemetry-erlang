@@ -44,6 +44,7 @@ init(Key, Options) ->
                                     start_time_unix_nano=erlang:system_time(nanosecond),
                                     boundaries=Boundaries,
                                     bucket_counts=new_bucket_counts(Boundaries),
+                                    checkpoint=undefined,
                                     record_min_max=RecordMinMax,
                                     min=infinity, %% works because any atom is > any integer
                                     max=?MIN_DOUBLE,
@@ -151,33 +152,11 @@ checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, CollectionStart
     _ = ets:select_replace(Tab, MS),
 
     ok;
-checkpoint(Tab, Name, ReaderPid, _, _CollectionStartNano) ->
-    MS = [{#explicit_histogram_aggregation{key='$1',
-                                           start_time_unix_nano='$2',
-                                           boundaries='$3',
-                                           record_min_max='$4',
-                                           checkpoint='_',
-                                           bucket_counts='$5',
-                                           min='$6',
-                                           max='$7',
-                                           sum='$8'
-                                          },
-           [{'=:=', {element, 1, '$1'}, {const, Name}},
-            {'=:=', {element, 3, '$1'}, {const, ReaderPid}}],
-           [{#explicit_histogram_aggregation{key='$1',
-                                             start_time_unix_nano='$2',
-                                             boundaries='$3',
-                                             record_min_max='$4',
-                                             checkpoint={#explicit_histogram_checkpoint{bucket_counts='$5',
-                                                                                        min='$6',
-                                                                                        max='$7',
-                                                                                        sum='$8'}},
-                                             bucket_counts='$5',
-                                             min='$6',
-                                             max='$7',
-                                             sum='$8'}}]}],
-    _ = ets:select_replace(Tab, MS),
-
+checkpoint(_Tab, _Name, _ReaderPid, _, _CollectionStartNano) ->
+    %% no good way to checkpoint the `counters' without being out of sync with
+    %% min/max/sum, so may as well just collect them in `collect', which will
+    %% also be out of sync, but best we can do right now
+    
     ok.
 
 collect(Tab, Name, ReaderPid, _, CollectionStartTime) ->
@@ -194,19 +173,41 @@ datapoint(CollectionStartNano, #explicit_histogram_aggregation{
                                   key={_, Attributes, _},
                                   boundaries=Boundaries,
                                   start_time_unix_nano=StartTimeUnixNano,
+                                  checkpoint=undefined,
+                                  bucket_counts=BucketCounts,
+                                  min=Min,
+                                  max=Max,
+                                  sum=Sum
+                                 }) ->
+    Buckets = get_buckets(BucketCounts, Boundaries),
+    #histogram_datapoint{
+       attributes=Attributes,
+       start_time_unix_nano=StartTimeUnixNano,
+       time_unix_nano=CollectionStartNano,
+       count=lists:sum(Buckets),
+       sum=Sum,
+       bucket_counts=Buckets,
+       explicit_bounds=Boundaries,
+       exemplars=[],
+       flags=0,
+       min=Min,
+       max=Max
+      };
+datapoint(CollectionStartNano, #explicit_histogram_aggregation{
+                                  key={_, Attributes, _},
+                                  boundaries=Boundaries,
+                                  start_time_unix_nano=StartTimeUnixNano,
                                   checkpoint=#explicit_histogram_checkpoint{bucket_counts=BucketCounts,
                                                                             min=Min,
                                                                             max=Max,
                                                                             sum=Sum}
                                  }) ->
-    Buckets = list_to_tuple(lists:foldl(fun(Idx, Acc) ->
-                                                Acc ++ [counters_get(BucketCounts, Idx)]
-                                        end, [], lists:seq(1, length(Boundaries)))),
+    Buckets = get_buckets(BucketCounts, Boundaries),
     #histogram_datapoint{
        attributes=Attributes,
        start_time_unix_nano=StartTimeUnixNano,
        time_unix_nano=CollectionStartNano,
-       count=lists:sum(erlang:tuple_to_list(Buckets)),
+       count=lists:sum(Buckets),
        sum=Sum,
        bucket_counts=Buckets,
        explicit_bounds=Boundaries,
@@ -227,6 +228,11 @@ find_bucket([_X | Rest], Value, Pos) ->
     find_bucket(Rest, Value, Pos+1);
 find_bucket(_, _, Pos) ->
     Pos.
+
+get_buckets(BucketCounts, Boundaries) ->
+    lists:foldl(fun(Idx, Acc) ->
+                        Acc ++ [counters_get(BucketCounts, Idx)]
+                end, [], lists:seq(1, length(Boundaries))).
 
 counters_get(undefined, _) ->
     0;
