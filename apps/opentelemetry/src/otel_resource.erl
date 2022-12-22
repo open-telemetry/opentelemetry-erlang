@@ -24,8 +24,6 @@
          schema_url/1,
          attributes/1]).
 
--include("otel_resource.hrl").
-
 -type key() :: unicode:latin1_binary().
 %% values allowed in attributes of a resource are limited
 -type value() :: unicode:latin1_binary() | integer() | float() | boolean().

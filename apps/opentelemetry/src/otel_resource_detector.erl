@@ -42,7 +42,7 @@
 -dialyzer({nowarn_function, find_release/0}).
 
 -include_lib("kernel/include/logger.hrl").
--include("otel_resource.hrl").
+-include_lib("opentelemetry_semantic_conventions/include/resource.hrl").
 
 -record(data, {resource         :: otel_resource:t(),
                detectors        :: [detector()],
@@ -252,22 +252,22 @@ add_service_instance(Resource) ->
     case os:getenv("OTEL_SERVICE_INSTANCE") of
         false ->
             Attributes = otel_resource:attributes(Resource),
-            case maps:is_key(?SERVICE_INSTANCE, otel_attributes:map(Attributes)) of
+            case maps:is_key(?SERVICE_INSTANCE_ID, otel_attributes:map(Attributes)) of
                 false ->
                     case erlang:node() of
                         nonode@nohost ->
                             ServiceInstanceId = otel_id_generator:generate_trace_id(),
-                            ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE, ServiceInstanceId}]),
+                            ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE_ID, ServiceInstanceId}]),
                             otel_resource:merge(ServiceInstanceResource, Resource);
                         ServiceInstance ->
                             ServiceInstance1 = erlang:atom_to_binary(ServiceInstance, utf8),
                             case binary:match(ServiceInstance1, <<"@localhost">>) of
                                 nomatch ->
-                                    ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE, ServiceInstance1}]),
+                                    ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE_ID, ServiceInstance1}]),
                                     otel_resource:merge(ServiceInstanceResource, Resource);
                                 _Match ->
                                     ServiceInstanceId = otel_id_generator:generate_trace_id(),
-                                    ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE, ServiceInstanceId}]),
+                                    ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE_ID, ServiceInstanceId}]),
                                     otel_resource:merge(ServiceInstanceResource, Resource)
                             end
                     end;
@@ -275,7 +275,7 @@ add_service_instance(Resource) ->
                     Resource
             end;
         ServiceInstance ->
-            ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE,
+            ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE_ID,
                                                              otel_utils:assert_to_binary(ServiceInstance)}]),
             otel_resource:merge(ServiceInstanceResource, Resource)
     end.
@@ -296,8 +296,8 @@ add_telemetry_info(Resource) ->
     {ok, LibraryVsn} = application:get_key(opentelemetry, vsn),
     LibraryName = <<"opentelemetry">>,
     LibraryLanguage = <<"erlang">>,
-    ResourceAttributes = [{?LIBRARY_NAME, LibraryName},
-                          {?LIBRARY_LANGUAGE, LibraryLanguage},
-                          {?LIBRARY_VERSION, LibraryVsn}],
+    ResourceAttributes = [{?TELEMETRY_SDK_NAME, LibraryName},
+                          {?TELEMETRY_SDK_LANGUAGE, LibraryLanguage},
+                          {?TELEMETRY_SDK_VERSION, LibraryVsn}],
     TelemetryInfoResource = otel_resource:create(ResourceAttributes),
     otel_resource:merge(TelemetryInfoResource, Resource).
