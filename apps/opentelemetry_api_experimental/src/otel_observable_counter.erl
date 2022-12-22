@@ -18,7 +18,7 @@
 %%%-------------------------------------------------------------------------
 -module(otel_observable_counter).
 
--export([create/6]).
+-export([create/5]).
 
-create(Meter, Name, Callback, CallbackArgs, ValueType, Opts) ->
-    otel_meter:create_observable_counter(Meter, Name, Callback, CallbackArgs, ValueType, Opts).
+create(Meter, Name, Callback, CallbackArgs, Opts) ->
+    otel_meter:create_observable_counter(Meter, Name, Callback, CallbackArgs, Opts).

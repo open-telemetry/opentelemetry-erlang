@@ -21,10 +21,11 @@
 
 -export([init/2,
          aggregate/4,
-         checkpoint/6,
+         checkpoint/5,
          collect/5]).
 
 -include("otel_metrics.hrl").
+-include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 
 -type t() :: #explicit_histogram_aggregation{}.
 
@@ -121,8 +122,8 @@ aggregate(Table, Key, Value, Options) ->
             false
     end.
 
--dialyzer({nowarn_function, checkpoint/6}).
-checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, _, CollectionStartNano) ->
+-dialyzer({nowarn_function, checkpoint/5}).
+checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, CollectionStartNano) ->
     MS = [{#explicit_histogram_aggregation{key='$1',
                                            start_time_unix_nano='_',
                                            boundaries='$2',
@@ -150,7 +151,7 @@ checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, _, CollectionSt
     _ = ets:select_replace(Tab, MS),
 
     ok;
-checkpoint(Tab, Name, ReaderPid, _, _, _CollectionStartNano) ->
+checkpoint(Tab, Name, ReaderPid, _, _CollectionStartNano) ->
     MS = [{#explicit_histogram_aggregation{key='$1',
                                            start_time_unix_nano='$2',
                                            boundaries='$3',

@@ -3,10 +3,9 @@ defmodule OpenTelemetryAPIExperimental.ObservableGauge do
 
   """
 
-  defmacro create(name, callback, callback_args, value_type, opts) do
+  defmacro create(name, callback, callback_args, opts) do
     quote bind_quoted: [
             name: name,
-            value_type: value_type,
             callback: callback,
             callback_args: callback_args,
             opts: opts
@@ -16,7 +15,6 @@ defmodule OpenTelemetryAPIExperimental.ObservableGauge do
         name,
         callback,
         callback_args,
-        value_type,
         opts
       )
     end

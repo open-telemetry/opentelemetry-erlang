@@ -83,7 +83,7 @@ verify_metrics_export(Config) ->
                                                                                  128, 128),
                                                   start_time_unix_nano=opentelemetry:timestamp(),
                                                   time_unix_nano=opentelemetry:timestamp(),
-                                                  value={as_int, 5},
+                                                  value=5,
                                                   exemplars=[],
                                                   flags=0
                                                  },
@@ -92,7 +92,7 @@ verify_metrics_export(Config) ->
                                                                                  128, 128),
                                                   start_time_unix_nano=opentelemetry:timestamp(),
                                                   time_unix_nano=opentelemetry:timestamp(),
-                                                  value={as_int, 8},
+                                                  value=8,
                                                   exemplars=[],
                                                   flags=0
                                                  }]}},
@@ -107,7 +107,7 @@ verify_metrics_export(Config) ->
                                                                                    128, 128),
                                                     start_time_unix_nano=opentelemetry:timestamp(),
                                                     time_unix_nano=opentelemetry:timestamp(),
-                                                    value={as_int, 8},
+                                                    value=8,
                                                     exemplars=[],
                                                     flags=0
                                                    },
@@ -116,7 +116,7 @@ verify_metrics_export(Config) ->
                                                                                    128, 128),
                                                     start_time_unix_nano=opentelemetry:timestamp(),
                                                     time_unix_nano=opentelemetry:timestamp(),
-                                                    value={as_int, 9},
+                                                    value=9,
                                                     exemplars=[],
                                                     flags=0
                                                    }]}},

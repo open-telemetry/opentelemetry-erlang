@@ -26,10 +26,11 @@
 -record(sum_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-         key :: {term(),  opentelemetry:attributes_map(), reference()} | '$1',
-         start_time_unix_nano :: integer() | '_' | '$2' | {const, integer()},
+         key :: {term(),  opentelemetry:attributes_map(), reference()} | '$1' | {element, 2, '$_'},
+         start_time_unix_nano :: integer() | '_' | '$1' | {const, integer()},
          checkpoint :: number() | undefined | '_' | '$2' | '$3',
-         value :: number() | undefined | '$2' | '$3'
+         int_value :: number() | undefined | '$3' | {'+', '$3', {const, number()}},
+         float_value :: number() | undefined | '$4' | {'+', '$4', {const, number()}}
         }).
 
 -record(last_value_aggregation,

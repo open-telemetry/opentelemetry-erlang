@@ -19,8 +19,8 @@
 
 -behaviour(otel_meter).
 
--export([create_instrument/5,
-         create_instrument/7,
+-export([create_instrument/4,
+         create_instrument/6,
          lookup_instrument/2,
          register_callback/4,
          scope/1]).
@@ -31,10 +31,10 @@
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_metrics.hrl").
 
-create_instrument(Meter, Name, Kind, ValueType, Opts) ->
+create_instrument(Meter, Name, Kind, Opts) ->
     Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
         otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
-                            maps:get(unit, Opts, undefined), ValueType),
+                            maps:get(unit, Opts, undefined)),
     _ = otel_meter_server:add_instrument(Provider, Instrument),
     Instrument.
 
@@ -47,10 +47,10 @@ lookup_instrument(Meter={_, #meter{instruments_tab=Tab}}, Name) ->
             undefined
     end.
 
-create_instrument(Meter, Name, Kind, ValueType, Callback, CallbackArgs, Opts) ->
+create_instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts) ->
     Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
         otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
-                            maps:get(unit, Opts, undefined), ValueType, Callback, CallbackArgs),
+                            maps:get(unit, Opts, undefined), Callback, CallbackArgs),
     _ = otel_meter_server:add_instrument(Provider, Instrument),
     Instrument.
 

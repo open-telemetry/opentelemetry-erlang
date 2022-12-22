@@ -87,7 +87,7 @@ to_data_points(#datapoint{attributes=Attributes,
     #{attributes => otel_otlp_common:to_attributes(Attributes),
       start_time_unix_nano => opentelemetry:timestamp_to_nano(StartTimeUnixNano),
       time_unix_nano => opentelemetry:timestamp_to_nano(CollectionStartNano),
-      value => Value,
+      value => to_datapoint_value(Value),
       exemplars => Exemplars,
       flags => Flags
      }.
@@ -117,3 +117,10 @@ to_histogram_data_points(#histogram_datapoint{
       min => Min,
       max => Max
      }.
+
+%%
+
+to_datapoint_value(Value) when is_integer(Value) ->
+    {as_int, Value};
+to_datapoint_value(Value) when is_float(Value) ->
+    {as_double, Value}.

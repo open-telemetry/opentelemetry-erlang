@@ -238,7 +238,7 @@ handle_instrument_observation({Number, Attributes}, [#instrument{meter=Meter,
   when is_number(Number) ->
     try ets:lookup_element(ViewAggregationTab, {Meter, Name}, 2) of
         ViewAggregations ->
-            [AggregationModule:aggregate(MetricsTab, {Name, Attributes, ReaderId}, Number, AggregationOptions) || #view_aggregation{aggregation_module=AggregationModule,
+            [otel_aggregation:maybe_init_aggregate(MetricsTab, AggregationModule, {Name, Attributes, ReaderId}, Number, AggregationOptions) || #view_aggregation{aggregation_module=AggregationModule,
                                                                                                                                     aggregation_options=AggregationOptions} <- ViewAggregations]
     catch
         error:badarg ->
@@ -255,7 +255,7 @@ handle_instrument_observation({InstrumentName, Number, Attributes}, Instruments,
         #instrument{meter=Meter} ->
             try ets:lookup_element(ViewAggregationTab, {Meter, InstrumentName}, 2) of
                 ViewAggregations ->
-                    [AggregationModule:aggregate(MetricsTab, {Name, Attributes, ReaderId}, Number, AggregationOptions) ||
+                    [otel_aggregation:maybe_init_aggregate(MetricsTab, AggregationModule, {Name, Attributes, ReaderId}, Number, AggregationOptions) ||
                         #view_aggregation{name=Name,
                                           reader=Id,
                                           aggregation_module=AggregationModule,
@@ -275,15 +275,17 @@ checkpoint_metrics(MetricsTab, CollectionStartTime, Id, ViewAggregations) ->
                         Acc;
                    (#view_aggregation{name=Name,
                                       reader=ReaderId,
-                                      instrument=Instrument=#instrument{value_type=ValueType,
-                                                                        unit=Unit},
+                                      instrument=Instrument=#instrument{unit=Unit},
                                       aggregation_module=AggregationModule,
                                       description=Description,
                                       temporality=Temporality,
                                       is_monotonic=IsMonotonic
                                      }, Acc) when Id =:= ReaderId ->
-                        AggregationModule:checkpoint(MetricsTab, Name, ReaderId, Temporality,
-                                                     ValueType, CollectionStartTime),
+                        AggregationModule:checkpoint(MetricsTab,
+                                                     Name,
+                                                     ReaderId,
+                                                     Temporality,
+                                                     CollectionStartTime),
                         Data = data(AggregationModule, Name, ReaderId, Temporality, IsMonotonic,
                                     CollectionStartTime, MetricsTab),
 
