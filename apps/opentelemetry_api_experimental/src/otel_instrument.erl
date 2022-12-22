@@ -17,8 +17,8 @@
 %%%-------------------------------------------------------------------------
 -module(otel_instrument).
 
--export([new/7,
-         new/9,
+-export([new/6,
+         new/8,
          is_monotonic/1]).
 
 -include("otel_metrics.hrl").
@@ -28,7 +28,6 @@
 -type kind() :: ?KIND_COUNTER | ?KIND_OBSERVABLE_COUNTER | ?KIND_HISTOGRAM |
                 ?KIND_OBSERVABLE_GAUGE | ?KIND_UPDOWN_COUNTER | ?KIND_OBSERVABLE_UPDOWNCOUNTER.
 -type unit() :: atom(). %% latin1, maximum length of 63 characters
--type value_type() :: ?VALUE_TYPE_INTEGER | ?VALUE_TYPE_FLOAT.
 -type observation() :: {number(), opentelemetry:attributes_map()}.
 -type named_observation() :: {name(), number(), opentelemetry:attributes_map()}.
 -type callback_args() :: term().
@@ -41,29 +40,26 @@
               name/0,
               description/0,
               kind/0,
-              value_type/0,
               unit/0,
               callback/0,
               callback_args/0]).
 
--spec new(module(), otel_meter:t(), kind(), name(), description(), unit(), value_type()) -> t().
-new(Module, Meter, Kind, Name, Description, Unit, ValueType) ->
+-spec new(module(), otel_meter:t(), kind(), name(), description(), unit()) -> t().
+new(Module, Meter, Kind, Name, Description, Unit) ->
     #instrument{module      = Module,
                 meter       = Meter,
                 name        = Name,
                 description = Description,
                 kind        = Kind,
-                value_type  = ValueType,
                 unit        = Unit}.
 
--spec new(module(), otel_meter:t(), kind(), name(), description(), unit(), value_type(), callback(), term()) -> t().
-new(Module, Meter, Kind, Name, Description, Unit, ValueType, Callback, CallbackArgs) ->
+-spec new(module(), otel_meter:t(), kind(), name(), description(), unit(), callback(), term()) -> t().
+new(Module, Meter, Kind, Name, Description, Unit, Callback, CallbackArgs) ->
     #instrument{module        = Module,
                 meter         = Meter,
                 name          = Name,
                 description   = Description,
                 kind          = Kind,
-                value_type    = ValueType,
                 unit          = Unit,
                 callback      = Callback,
                 callback_args = CallbackArgs}.

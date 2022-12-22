@@ -21,7 +21,7 @@
 
 -export([init/2,
          aggregate/4,
-         checkpoint/6,
+         checkpoint/5,
          collect/5]).
 
 -include("otel_metrics.hrl").
@@ -36,17 +36,17 @@ init(Key, _Options) ->
     #last_value_aggregation{key=Key,
                             value=undefined}.
 
-aggregate(Tab, Key, Value, _Options) ->
+aggregate(Tab, Key, Value, Options) ->
     case ets:update_element(Tab, Key, {#last_value_aggregation.value, Value}) of
         true ->
             true;
         false ->
-            Metric = init(Key, []),
+            Metric = init(Key, Options),
             ets:insert(Tab, ?assert_type((?assert_type(Metric, #last_value_aggregation{}))#last_value_aggregation{value=Value}, tuple()))
     end.
 
--dialyzer({nowarn_function, checkpoint/6}).
-checkpoint(Tab, Name, ReaderPid, _, _, _CollectionStartNano) ->
+-dialyzer({nowarn_function, checkpoint/5}).
+checkpoint(Tab, Name, ReaderPid, _, _CollectionStartNano) ->
     MS = [{#last_value_aggregation{key='$1',
                                    checkpoint='_',
                                    value='$2'},
