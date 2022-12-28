@@ -223,8 +223,7 @@ release_name() ->
 add_service_name(Resource, ProgName) ->
     case os:getenv("OTEL_SERVICE_NAME") of
         false ->
-            Attributes = otel_resource:attributes(Resource),
-            case maps:is_key(?SERVICE_NAME, otel_attributes:map(Attributes)) of
+            case otel_resource:is_key(?SERVICE_NAME, Resource) of
                 false ->
                     ServiceResource = service_release_name(ProgName),
                     otel_resource:merge(ServiceResource, Resource);
@@ -251,8 +250,7 @@ add_service_name(Resource, ProgName) ->
 add_service_instance(Resource) ->
     case os:getenv("OTEL_SERVICE_INSTANCE") of
         false ->
-            Attributes = otel_resource:attributes(Resource),
-            case maps:is_key(?SERVICE_INSTANCE_ID, otel_attributes:map(Attributes)) of
+            case otel_resource:is_key(?SERVICE_INSTANCE_ID, Resource) of
                 false ->
                     case erlang:node() of
                         nonode@nohost ->

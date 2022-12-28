@@ -22,9 +22,10 @@
          create/2,
          merge/2,
          schema_url/1,
-         attributes/1]).
+         attributes/1,
+         is_key/2]).
 
--type key() :: unicode:latin1_binary().
+-type key() :: unicode:latin1_binary() | atom().
 %% values allowed in attributes of a resource are limited
 -type value() :: unicode:latin1_binary() | integer() | float() | boolean().
 -type schema_url() :: uri_string:uri_string().
@@ -48,9 +49,14 @@ create(Map, SchemaUrl) when is_map(Map) ->
 create(List, SchemaUrl) when is_list(List) ->
     List1 = lists:filtermap(fun({K, V}) ->
                                     %% TODO: log an info or debug message when dropping?
-                                    case check_key(K) andalso check_value(V) of
-                                        {true, Value} ->
-                                            {true, {to_binary(K), Value}};
+                                    case try_check_key(K, true) of
+                                        {true, Key} ->
+                                            case check_value(V) of
+                                                {true, Value} ->
+                                                    {true, {Key, Value}};
+                                                _ ->
+                                                    false
+                                            end;
                                         _ ->
                                             false
                                     end
@@ -69,6 +75,17 @@ attributes(#resource{attributes=Attributes}) ->
     Attributes;
 attributes(_) ->
     undefined.
+
+-spec is_key(key(), t()) -> boolean().
+is_key(K, #resource{attributes=Attributes}) ->
+    case try_check_key(K, false) of
+        {true, Key} ->
+            maps:is_key(Key, otel_attributes:map(Attributes));
+        _ ->
+            false
+    end;
+is_key(_, _) ->
+    false.
 
 %% in case of collision the updating, first argument, resource takes precedence.
 -spec merge(t(), t()) -> t().
@@ -96,14 +113,31 @@ merge_schema_url_(SchemaUrl, SchemaUrl) ->
 merge_schema_url_(_, _) ->
     undefined.
 
-%% all resource strings, key or value, must be latin1 with length less than 255
-check_string(S) ->
-    string:length(S) =< ?MAX_LENGTH.
+%% a resource key must be a non-empty latin1 string or atom, stored as atom
+try_check_key(K, UnconditionalBinaryToAtom) ->
+    try check_key(K, UnconditionalBinaryToAtom)
+    catch error:badarg -> false
+    end.
 
-%% a resource key must be a non-empty latin1 string
-check_key(K) when is_binary(K) ; is_list(K) ->
-    check_string(K);
-check_key(_) ->
+check_key(<<>>, _) ->
+    false;
+check_key(K, UnconditionalBinaryToAtom) when is_binary(K) ->
+    case check_string_value(K) of
+        {true, Key} when UnconditionalBinaryToAtom ->
+            {true, binary_to_atom(Key, latin1)};
+        {true, Key} ->
+            {true, binary_to_existing_atom(Key, latin1)};
+        false ->
+            false
+    end;
+check_key(K, UnconditionalBinaryToAtom) when is_list(K) ->
+    check_key(list_to_binary(K), UnconditionalBinaryToAtom);
+check_key(K, _) when is_atom(K) ->
+    % Atoms have an length upper limit of 255 utf8 codepoints, so the
+    % latin1 representation, if it exists, shares that limit
+    _ = atom_to_binary(K, latin1),
+    {true, K};
+check_key(_, _) ->
     false.
 
 %% a resource value can be a latin1 string, integer, float or boolean
@@ -126,14 +160,10 @@ check_value(_) ->
     false.
 
 check_string_value(V) ->
-    case check_string(V) of
+    %% all resource strings, key or value, must be latin1 with length less than 255
+    case string:length(V) =< ?MAX_LENGTH of
         true ->
             {true, V};
         false ->
             false
     end.
-
-to_binary(K) when is_binary(K) ->
-    K;
-to_binary(K) when is_list(K) ->
-    list_to_binary(K).

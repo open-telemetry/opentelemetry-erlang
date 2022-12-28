@@ -6,6 +6,7 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include_lib("opentelemetry_semantic_conventions/include/resource.hrl").
 -include("otel_span.hrl").
 -include("otel_test_utils.hrl").
 -include("otel_tracer.hrl").
@@ -16,7 +17,8 @@ all() ->
     [startup, startup_env_service_name, os_env_resource, app_env_resource, combining,
      combining_conflicting_schemas, crash_detector, timeout_detector, release_service_name,
      unknown_service_name, release_service_name_no_version, service_instance_id_env,
-     service_instance_id_env_attributes, {group, net_kernel_node_name}, service_instance_id_node_id2].
+     service_instance_id_env_attributes, {group, net_kernel_node_name}, service_instance_id_node_id2,
+     validate_keys, do_not_create_unneeded_atoms].
 
 groups() ->
     [{net_kernel_node_name, [], [service_instance_id_node_id1,
@@ -65,8 +67,8 @@ startup(_Config) ->
         Resource = otel_tracer_provider:resource(),
         _ = application:stop(opentelemetry),
 
-        ?assertMatch(#{<<"service.name">> := <<"cttest">>,
-                       <<"service.version">> := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+        ?assertMatch(#{?SERVICE_NAME := <<"cttest">>,
+                       ?SERVICE_VERSION := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Resource))),
         ok
     after
         os:unsetenv("OTEL_RESOURCE_ATTRIBUTES"),
@@ -83,8 +85,8 @@ startup_env_service_name(_Config) ->
         Resource = otel_tracer_provider:resource(),
         _ = application:stop(opentelemetry),
 
-        ?assertMatch(#{<<"service.name">> := <<"env-service-name">>,
-                       <<"service.version">> := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+        ?assertMatch(#{?SERVICE_NAME := <<"env-service-name">>,
+                       ?SERVICE_VERSION := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Resource))),
         ok
     after
         os:unsetenv("OTEL_SERVICE_NAME"),
@@ -108,10 +110,10 @@ crash_detector(_Config) ->
 
         Resource = otel_resource_detector:get_resource(),
 
-        ?assertMatch(#{<<"service.name">> := <<"cttest">>,
-                       <<"service.version">> := <<"2.1.1">>,
-                       <<"c">> := <<"d">>,
-                       <<"sk">> := <<"sv">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+        ?assertMatch(#{?SERVICE_NAME := <<"cttest">>,
+                       ?SERVICE_VERSION := <<"2.1.1">>,
+                       c := <<"d">>,
+                       sk := <<"sv">>}, otel_attributes:map(otel_resource:attributes(Resource))),
 
         ok
     after
@@ -132,9 +134,9 @@ timeout_detector(_Config) ->
 
         Resource = otel_resource_detector:get_resource(),
 
-        ?assertMatch(#{<<"service.name">> := <<"cttest">>,
-                       <<"service.version">> := <<"3.1.1">>,
-                       <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+        ?assertMatch(#{?SERVICE_NAME := <<"cttest">>,
+                       ?SERVICE_VERSION := <<"3.1.1">>,
+                       e := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
 
         ?assertEqual(otel_resource:create([]), otel_resource_detector:get_resource(0)),
 
@@ -168,8 +170,8 @@ combining(_Config) ->
 
     Merged = otel_resource:merge(Resource1, Resource2),
 
-    Expected = otel_attributes:new([{<<"service.name">>, <<"other-name">>},
-                                    {<<"service.version">>, <<"1.1.1">>}], 128, 255),
+    Expected = otel_attributes:new([{?SERVICE_NAME, <<"other-name">>},
+                                    {?SERVICE_VERSION, <<"1.1.1">>}], 128, 255),
     ?assertEqual(Expected, otel_resource:attributes(Merged)),
     ?assertEqual(<<"https://opentelemetry.io/schemas/1.8.0">>, otel_resource:schema_url(Merged)),
     ok.
@@ -182,8 +184,8 @@ combining_conflicting_schemas(_Config) ->
 
     Merged = otel_resource:merge(Resource1, Resource2),
 
-    Expected = otel_attributes:new([{<<"service.name">>, <<"other-name">>},
-                                    {<<"service.version">>, <<"1.1.1">>}], 128, 255),
+    Expected = otel_attributes:new([{?SERVICE_NAME, <<"other-name">>},
+                                    {?SERVICE_VERSION, <<"1.1.1">>}], 128, 255),
     ?assertEqual(Expected, otel_resource:attributes(Merged)),
     ?assertEqual(undefined, otel_resource:schema_url(Merged)),
     ok.
@@ -201,10 +203,10 @@ unknown_service_name(_Config) ->
                                             resource_detector_timeout => 100}),
 
         Resource = otel_resource_detector:get_resource(),
-        ?assertMatch(#{<<"service.name">> := <<"unknown_service:erl">>,
-                       <<"process.runtime.name">> := <<"BEAM">>,
-                       <<"process.executable.name">> := <<"erl">>,
-                       <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+        ?assertMatch(#{?SERVICE_NAME := <<"unknown_service:erl">>,
+                       ?PROCESS_RUNTIME_NAME := <<"BEAM">>,
+                       ?PROCESS_EXECUTABLE_NAME := <<"erl">>,
+                       e := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
 
         ok
     after
@@ -224,9 +226,9 @@ release_service_name(_Config) ->
                                             resource_detector_timeout => 100}),
 
         Resource = otel_resource_detector:get_resource(),
-        ?assertMatch(#{<<"service.name">> := <<"rel-cttest">>,
-                       <<"service.version">> := <<"0.1.0">>,
-                       <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+        ?assertMatch(#{?SERVICE_NAME := <<"rel-cttest">>,
+                       ?SERVICE_VERSION := <<"0.1.0">>,
+                       e := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
 
         ok
     after
@@ -246,8 +248,8 @@ service_instance_id_env(_Config) ->
                                             resource_detector_timeout => 100}),
 
         Resource = otel_resource_detector:get_resource(),
-        ?assertMatch(#{<<"service.instance.id">> := <<"test@instance">>,
-                       <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+        ?assertMatch(#{?SERVICE_INSTANCE_ID := <<"test@instance">>,
+                       e := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
 
         ok
     after
@@ -266,8 +268,8 @@ service_instance_id_env_attributes(_Config) ->
                                             resource_detector_timeout => 100}),
 
         Resource = otel_resource_detector:get_resource(),
-        ?assertMatch(#{<<"service.instance.id">> := <<"test@instance">>,
-                       <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+        ?assertMatch(#{?SERVICE_INSTANCE_ID := <<"test@instance">>,
+                       e := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
 
         ok
     after
@@ -276,16 +278,16 @@ service_instance_id_env_attributes(_Config) ->
 
 service_instance_id_node_name(_Config) ->
     Resource = otel_resource_detector:get_resource(),
-    ?assertMatch(#{<<"service.instance.id">> := <<"test@instance">>,
-                   <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+    ?assertMatch(#{?SERVICE_INSTANCE_ID := <<"test@instance">>,
+                   e := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
 
     ok.
 
 service_instance_id_node_id1(_Config) ->
     Resource = otel_resource_detector:get_resource(),
     ResourceMap = otel_attributes:map(otel_resource:attributes(Resource)),
-    ?assertNotMatch(#{<<"service.instance.id">> := <<"test@localhost">>}, ResourceMap),
-    ?assert(maps:is_key(<<"service.instance.id">>, ResourceMap)),
+    ?assertNotMatch(#{?SERVICE_INSTANCE_ID := <<"test@localhost">>}, ResourceMap),
+    ?assert(maps:is_key(?SERVICE_INSTANCE_ID, ResourceMap)),
 
     ok.
 
@@ -300,8 +302,8 @@ service_instance_id_node_id2(_Config) ->
 
     Resource = otel_resource_detector:get_resource(),
     ResourceMap = otel_attributes:map(otel_resource:attributes(Resource)),
-    ?assertNotMatch(#{<<"service.instance.id">> := <<"nonode@nohost">>}, ResourceMap),
-    ?assert(maps:is_key(<<"service.instance.id">>, ResourceMap)),
+    ?assertNotMatch(#{?SERVICE_INSTANCE_ID := <<"nonode@nohost">>}, ResourceMap),
+    ?assert(maps:is_key(?SERVICE_INSTANCE_ID, ResourceMap)),
     ok.
 
 release_service_name_no_version(_Config) ->
@@ -316,14 +318,60 @@ release_service_name_no_version(_Config) ->
                                             resource_detector_timeout => 100}),
 
         Resource = otel_resource_detector:get_resource(),
-        ?assertMatch(#{<<"service.name">> := <<"rel-cttest">>,
-                       <<"e">> := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
-        ?assertNot(maps:is_key(<<"service.version">>, otel_attributes:map(otel_resource:attributes(Resource)))),
+        ?assertMatch(#{?SERVICE_NAME := <<"rel-cttest">>,
+                       e := <<"f">>}, otel_attributes:map(otel_resource:attributes(Resource))),
+        ?assertNot(maps:is_key(?SERVICE_VERSION, otel_attributes:map(otel_resource:attributes(Resource)))),
 
         ok
     after
         os:unsetenv("RELEASE_NAME")
     end.
+
+validate_keys(_Config) ->
+    application:unload(opentelemetry),
+    application:load(opentelemetry),
+    application:set_env(opentelemetry, resource, #{
+                                                   <<"e">> => <<"f">>,
+                                                   service => #{
+                                                                <<"name">> => <<"name">>,
+                                                                alias => <<"alias">>
+                                                               },
+                                                   g => <<"h">>,
+                                                   '' => <<"i">>,
+                                                   'ə' => <<"j">>
+                                                  }),
+
+    otel_resource_detector:start_link(#{resource_detectors => [otel_resource_app_env],
+                                        resource_detector_timeout => 100}),
+
+    Resource = otel_resource_detector:get_resource(),
+    ?assert(otel_resource:is_key(e, Resource)),
+    ?assert(otel_resource:is_key(?SERVICE_NAME, Resource)),
+    ?assert(otel_resource:is_key(<<"service.alias">>, Resource)),
+    ?assert(otel_resource:is_key("service.alias", Resource)),
+    ?assert(otel_resource:is_key('service.alias', Resource)),
+    ?assert(otel_resource:is_key(g, Resource)),
+    ?assertNot(otel_resource:is_key('ə', Resource)),
+    ?assertNot(otel_resource:is_key('', Resource)),
+
+    ok.
+
+do_not_create_unneeded_atoms(_Config) ->
+    NonAtomBinary = fun NonAtomBinaryF(0) ->
+                            error(max_iterations);
+                        NonAtomBinaryF(N) ->
+                            Candidate = << <<($a + rand:uniform(6) - 1)>> || _ <- lists:seq(1,8) >>,
+                            try binary_to_existing_atom(Candidate, latin1) of
+                                _ -> NonAtomBinaryF(N - 1)
+                            catch error:badarg -> Candidate
+                            end
+                    end(100),
+    otel_resource_detector:start_link(#{resource_detectors => [otel_resource_app_env],
+                                        resource_detector_timeout => 100}),
+    Resource = otel_resource_detector:get_resource(),
+    ?assertNot(otel_resource:is_key(NonAtomBinary, Resource)),
+    ?assertError(badarg, binary_to_existing_atom(NonAtomBinary, latin1)),
+    ok.
 
 %%
 
