@@ -11,6 +11,7 @@ defmodule OpenTelemetry.MixProject do
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: [
+        {:opentelemetry_semantic_conventions, "~> 0.2"},
         {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
         {:covertool, ">= 0.0.0", only: :test}
       ],
