@@ -297,7 +297,7 @@ set_status(SpanCtx=#span_ctx{span_sdk={Module, _}}, Code) when ?is_recording(Spa
                                                                 Code =:= ?OTEL_STATUS_OK orelse
                                                                 Code =:= ?OTEL_STATUS_ERROR)->
     Module:set_status(SpanCtx, opentelemetry:status(Code));
-set_status(SpanCtx=#span_ctx{span_sdk={Module, _}}, undefined) ->
+set_status(SpanCtx=#span_ctx{span_sdk={Module, _}}, undefined) when ?is_recording(SpanCtx) ->
     Module:set_status(SpanCtx, opentelemetry:status(?OTEL_STATUS_UNSET));
 set_status(SpanCtx=#span_ctx{span_sdk={Module, _}}, Status) when ?is_recording(SpanCtx) ->
     Module:set_status(SpanCtx, Status);
