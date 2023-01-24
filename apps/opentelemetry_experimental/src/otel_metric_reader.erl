@@ -117,7 +117,8 @@ handle_cast(_, State) ->
 
 handle_info(collect, State=#state{exporter=undefined,
                                   export_interval_ms=ExporterIntervalMs,
-                                  tref=TRef}) when TRef =/= undefined ->
+                                  tref=TRef}) when TRef =/= undefined andalso
+                                                   ExporterIntervalMs =/= undefined ->
     erlang:cancel_timer(TRef, [{async, true}]),
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
     {noreply, State#state{tref=NewTRef}};
@@ -144,7 +145,8 @@ handle_info(collect, State=#state{id=ReaderId,
                                   callbacks_tab=CallbacksTab,
                                   view_aggregation_tab=ViewAggregationTab,
                                   metrics_tab=MetricsTab
-                                 }) ->
+                                 }) when TRef =/= undefined andalso
+                                         ExporterIntervalMs =/= undefined  ->
     Resource = [],
     erlang:cancel_timer(TRef, [{async, true}]),
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
