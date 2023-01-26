@@ -96,8 +96,8 @@
 %% for example: with the jaeger propagation format this would be
 %% all keys found with prefix "uberctx-"
 -type carrier_keys() :: fun((otel_propagator:carrier()) -> [unicode:latin1_binary()]).
--type carrier_get() :: fun((otel_propagator:carrier(), unicode:latin1_binary()) -> unicode:latin1_binary() | undefined).
--type carrier_set() :: fun((otel_propagator:carrier(), unicode:latin1_binary(), unicode:latin1_binary()) -> otel_propagator:carrier()).
+-type carrier_get() :: fun((unicode:latin1_binary(), otel_propagator:carrier()) -> unicode:latin1_binary() | undefined).
+-type carrier_set() :: fun((unicode:latin1_binary(), unicode:latin1_binary(), otel_propagator:carrier()) -> otel_propagator:carrier()).
 
 -type default_text_map_carrier() :: [{unicode:latin1_binary(), unicode:latin1_binary()}].
 
