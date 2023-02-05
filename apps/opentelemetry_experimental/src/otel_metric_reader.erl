@@ -269,22 +269,18 @@ handle_instrument_observation(_, _, _, _, _) ->
 checkpoint_metrics(MetricsTab, CollectionStartTime, Id, ViewAggregations) ->
     lists:foldl(fun(#view_aggregation{aggregation_module=otel_aggregation_drop}, Acc) ->
                         Acc;
-                   (#view_aggregation{name=Name,
-                                      reader=ReaderId,
-                                      instrument=Instrument=#instrument{unit=Unit},
-                                      aggregation_module=AggregationModule,
-                                      description=Description,
-                                      temporality=Temporality,
-                                      is_monotonic=IsMonotonic
-                                     }, Acc) when Id =:= ReaderId ->
+                   (ViewAggregation=#view_aggregation{name=Name,
+                                                      reader=ReaderId,
+                                                      instrument=Instrument=#instrument{unit=Unit},
+                                                      aggregation_module=AggregationModule,
+                                                      description=Description
+                                                     }, Acc) when Id =:= ReaderId ->
                         AggregationModule:checkpoint(MetricsTab,
-                                                     Name,
-                                                     ReaderId,
-                                                     Temporality,
+                                                     ViewAggregation,
                                                      CollectionStartTime),
-                        Data = data(AggregationModule, Name, ReaderId, Temporality, IsMonotonic,
-                                    CollectionStartTime, MetricsTab),
-
+                        Data = AggregationModule:collect(MetricsTab,
+                                                         ViewAggregation,
+                                                         CollectionStartTime),
                         [metric(Instrument, Name, Description, Unit, Data) | Acc];
                    (_, Acc) ->
                         Acc
@@ -296,18 +292,3 @@ metric(#instrument{meter=Meter}, Name, Description, Unit, Data) ->
             description=Description,
             unit=Unit,
             data=Data}.
-
-data(otel_aggregation_sum, Name, Self, Temporality, IsMonotonic, CollectionStartTime, MetricTab) ->
-    Datapoints = otel_aggregation_sum:collect(MetricTab, Name, Self, Temporality, CollectionStartTime),
-    #sum{
-       aggregation_temporality=Temporality,
-       is_monotonic=IsMonotonic,
-       datapoints=Datapoints};
-data(otel_aggregation_last_value, Name, Self, Temporality, _IsMonotonic, CollectionStartTime, MetricTab) ->
-    Datapoints = otel_aggregation_last_value:collect(MetricTab, Name, Self, Temporality, CollectionStartTime),
-    #gauge{datapoints=Datapoints};
-data(otel_aggregation_histogram_explicit, Name, Self, Temporality, _IsMonotonic, CollectionStartTime, MetricTab) ->
-    Datapoints = otel_aggregation_histogram_explicit:collect(MetricTab, Name, Self, Temporality, CollectionStartTime),
-    #histogram{datapoints=Datapoints,
-               aggregation_temporality=Temporality
-              }.

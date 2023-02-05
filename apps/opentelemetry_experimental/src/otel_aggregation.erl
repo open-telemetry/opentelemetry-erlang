@@ -26,9 +26,11 @@
               options/0,
               temporality/0]).
 
--callback init(Key, Options) -> Aggregation when
-      Key :: key(),
-      Options :: options(),
+%% Returns the aggregation's record as it is seen and updated by
+%% the aggregation module in the metrics table.
+-callback init(ViewAggregation, Attributes) -> Aggregation when
+      ViewAggregation :: #view_aggregation{},
+      Attributes :: opentelemetry:attributes_map(),
       Aggregation :: t().
 
 -callback aggregate(Table, ViewAggregation, Value, Attributes) -> boolean() when
@@ -37,18 +39,14 @@
       Value :: number(),
       Attributes :: opentelemetry:attributes_map().
 
--callback checkpoint(Table, Name, ReaderId, Temporality, CollectionStartTime) -> ok when
+-callback checkpoint(Table, ViewAggregation, CollectionStartTime) -> ok when
       Table :: ets:table(),
-      Name :: atom(),
-      ReaderId :: reference(),
-      Temporality :: temporality(),
+      ViewAggregation :: #view_aggregation{},
       CollectionStartTime :: integer().
 
--callback collect(Table, Name, ReaderId, Temporality, CollectionStartTime) -> [tuple()] when
+-callback collect(Table, ViewAggregation, CollectionStartTime) -> [tuple()] when
       Table :: ets:table(),
-      Name :: atom(),
-      ReaderId :: reference(),
-      Temporality :: temporality(),
+      ViewAggregation :: #view_aggregation{},
       CollectionStartTime :: integer().
 
 maybe_init_aggregate(MetricsTab, ViewAggregation=#view_aggregation{aggregation_module=AggregationModule},
