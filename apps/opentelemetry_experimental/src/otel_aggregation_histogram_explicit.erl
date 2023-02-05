@@ -26,6 +26,7 @@
 
 -include("otel_metrics.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
+-include("otel_view.hrl").
 
 -type t() :: #explicit_histogram_aggregation{}.
 
@@ -37,7 +38,10 @@
 
 -define(MIN_DOUBLE, -9223372036854775807.0). %% the proto representation of size `fixed64'
 
-init(Key, Options) ->
+init(#view_aggregation{name=Name,
+                       reader=ReaderId,
+                       aggregation_options=Options}, Attributes) ->
+    Key = {Name, Attributes, ReaderId},
     Boundaries = maps:get(boundaries, Options, ?DEFAULT_BOUNDARIES),
     RecordMinMax = maps:get(record_min_max, Options, true),
     #explicit_histogram_aggregation{key=Key,
@@ -51,7 +55,10 @@ init(Key, Options) ->
                                     sum=0
                                    }.
 
-aggregate(Table, Key, Value, Options) ->
+aggregate(Table, #view_aggregation{name=Name,
+                                   reader=ReaderId,
+                                   aggregation_options=Options}, Value, Attributes) ->
+    Key = {Name, Attributes, ReaderId},
     Boundaries = maps:get(boundaries, Options, ?DEFAULT_BOUNDARIES),
     try ets:lookup_element(Table, Key, #explicit_histogram_aggregation.bucket_counts) of
         BucketCounts0 ->

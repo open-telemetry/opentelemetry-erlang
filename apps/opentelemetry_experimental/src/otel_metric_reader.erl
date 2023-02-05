@@ -234,12 +234,11 @@ handle_callback_results(Results, ViewAggregationTab, MetricsTab, ReaderId) ->
 %% single instrument callbacks return a 2-tuple of {number(), opentelemetry:attributes_map()}
 handle_instrument_observation({Number, Attributes}, [#instrument{meter=Meter,
                                                                  name=Name}],
-                              ViewAggregationTab, MetricsTab, ReaderId)
+                              ViewAggregationTab, MetricsTab, _ReaderId)
   when is_number(Number) ->
     try ets:lookup_element(ViewAggregationTab, {Meter, Name}, 2) of
         ViewAggregations ->
-            [otel_aggregation:maybe_init_aggregate(MetricsTab, AggregationModule, {Name, Attributes, ReaderId}, Number, AggregationOptions) || #view_aggregation{aggregation_module=AggregationModule,
-                                                                                                                                    aggregation_options=AggregationOptions} <- ViewAggregations]
+            [otel_aggregation:maybe_init_aggregate(MetricsTab, ViewAggregation, Number, Attributes) || #view_aggregation{}=ViewAggregation <- ViewAggregations]
     catch
         error:badarg ->
             %% no Views for this Instrument, so nothing to do
@@ -255,11 +254,8 @@ handle_instrument_observation({InstrumentName, Number, Attributes}, Instruments,
         #instrument{meter=Meter} ->
             try ets:lookup_element(ViewAggregationTab, {Meter, InstrumentName}, 2) of
                 ViewAggregations ->
-                    [otel_aggregation:maybe_init_aggregate(MetricsTab, AggregationModule, {Name, Attributes, ReaderId}, Number, AggregationOptions) ||
-                        #view_aggregation{name=Name,
-                                          reader=Id,
-                                          aggregation_module=AggregationModule,
-                                          aggregation_options=AggregationOptions} <- ViewAggregations, Id =:= ReaderId]
+                    [otel_aggregation:maybe_init_aggregate(MetricsTab, ViewAggregation, Number, Attributes) ||
+                        #view_aggregation{reader=Id}=ViewAggregation <- ViewAggregations, Id =:= ReaderId]
             catch
                 error:badarg ->
                     %% no Views for this Instrument, so nothing to do
@@ -315,4 +311,3 @@ data(otel_aggregation_histogram_explicit, Name, Self, Temporality, _IsMonotonic,
     #histogram{datapoints=Datapoints,
                aggregation_temporality=Temporality
               }.
-

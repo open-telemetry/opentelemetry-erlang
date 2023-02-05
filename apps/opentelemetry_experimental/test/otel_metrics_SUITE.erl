@@ -274,7 +274,7 @@ float_histogram(_Config) ->
                                          min=Min,
                                          max=Max,
                                          sum=Sum}  <- Datapoints],
-            ?assertEqual([], [{#{<<"c">> => <<"b">>}, {0,1,1,2,0,0,0,0,0,0}, 5, 10.3, 31.1}]
+            ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,1,1,2,0,0,0,0,0,0], 5, 10.3, 31.1}]
                          -- AttributeBuckets, AttributeBuckets)
     after
         5000 ->
@@ -348,8 +348,8 @@ provider_test(_Config) ->
 
     otel_meter_server:force_flush(),
 
-    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{6.0, #{<<"c">> => <<"b">>}}]),
-    ?assertSumReceive(view_c, <<"counter description">>, kb, [{6.0, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{16.0, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(view_c, <<"counter description">>, kb, [{16.0, #{<<"c">> => <<"b">>}}]),
 
     %% sum agg is default delta temporality so counter will reset
     ?assertEqual(ok, otel_counter:add(Counter, 7, #{<<"c">> => <<"b">>})),

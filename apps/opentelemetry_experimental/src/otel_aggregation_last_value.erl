@@ -31,17 +31,23 @@
 -export_type([t/0]).
 
 -include_lib("opentelemetry_api/include/gradualizer.hrl").
+-include("otel_view.hrl").
 
-init(Key, _Options) ->
+init(#view_aggregation{name=Name,
+                       reader=ReaderId,
+                       aggregation_options=_Options}, Attributes) ->
+    Key = {Name, Attributes, ReaderId},
     #last_value_aggregation{key=Key,
                             value=undefined}.
 
-aggregate(Tab, Key, Value, Options) ->
+aggregate(Tab, ViewAggregation=#view_aggregation{name=Name,
+                                                 reader=ReaderId}, Value, Attributes) ->
+    Key = {Name, Attributes, ReaderId},
     case ets:update_element(Tab, Key, {#last_value_aggregation.value, Value}) of
         true ->
             true;
         false ->
-            Metric = init(Key, Options),
+            Metric = init(ViewAggregation, Attributes),
             ets:insert(Tab, ?assert_type((?assert_type(Metric, #last_value_aggregation{}))#last_value_aggregation{value=Value}, tuple()))
     end.
 

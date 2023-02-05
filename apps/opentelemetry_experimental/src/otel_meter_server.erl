@@ -388,11 +388,8 @@ handle_measurement(Meter, Name, Number, Attributes, ViewAggregationsTab, Metrics
     update_aggregations(Number, Attributes, Matches, MetricsTab).
 
 update_aggregations(Value, Attributes, ViewAggregations, MetricsTab) ->
-    lists:foreach(fun(#view_aggregation{name=Name,
-                                        reader=ReaderId,
-                                        aggregation_module=AggregationModule,
-                                        aggregation_options=Options}) ->
-                          otel_aggregation:maybe_init_aggregate(MetricsTab, AggregationModule, {Name, Attributes, ReaderId}, Value, Options);
+    lists:foreach(fun(ViewAggregation=#view_aggregation{}) ->
+                          otel_aggregation:maybe_init_aggregate(MetricsTab, ViewAggregation, Value, Attributes);
                      (_) ->
                           ok
                   end, ViewAggregations).

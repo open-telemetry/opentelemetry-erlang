@@ -1,12 +1,13 @@
 -module(otel_aggregation).
 
--export([maybe_init_aggregate/5,
+-export([maybe_init_aggregate/4,
          default_mapping/0,
          temporality_mapping/0,
          instrument_temporality/1]).
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_metrics.hrl").
+-include("otel_view.hrl").
 
 -type temporality() :: ?AGGREGATION_TEMPORALITY_UNSPECIFIED |
                        ?AGGREGATION_TEMPORALITY_DELTA |
@@ -30,11 +31,11 @@
       Options :: options(),
       Aggregation :: t().
 
--callback aggregate(Table, Key, Value, Options) -> boolean() when
+-callback aggregate(Table, ViewAggregation, Value, Attributes) -> boolean() when
       Table :: ets:table(),
-      Key :: key(),
+      ViewAggregation :: #view_aggregation{},
       Value :: number(),
-      Options :: options().
+      Attributes :: opentelemetry:attributes_map().
 
 -callback checkpoint(Table, Name, ReaderId, Temporality, CollectionStartTime) -> ok when
       Table :: ets:table(),
@@ -50,16 +51,17 @@
       Temporality :: temporality(),
       CollectionStartTime :: integer().
 
-maybe_init_aggregate(MetricsTab, AggregationModule, Key, Value, Options) ->
-    case AggregationModule:aggregate(MetricsTab, Key, Value, Options) of
+maybe_init_aggregate(MetricsTab, ViewAggregation=#view_aggregation{aggregation_module=AggregationModule},
+                     Value, Attributes) ->
+    case AggregationModule:aggregate(MetricsTab, ViewAggregation, Value, Attributes) of
         true ->
             ok;
         false ->
             %% entry doesn't exist, create it and rerun the aggregate function
-            Metric = AggregationModule:init(Key, Options),
+            Metric = AggregationModule:init(ViewAggregation, Attributes),
             %% don't overwrite a possible concurrent measurement doing the same
             _ = ets:insert_new(MetricsTab, Metric),
-            AggregationModule:aggregate(MetricsTab, Key, Value, Options)
+            AggregationModule:aggregate(MetricsTab, ViewAggregation, Value, Attributes)
     end.
 
 -spec default_mapping() -> #{otel_instrument:kind() => module()}.
