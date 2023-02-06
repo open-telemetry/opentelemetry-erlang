@@ -509,8 +509,8 @@ verify_export(Config) ->
     ?assertMatch([#{spans := [_, _]}],
                  otel_otlp_traces:to_proto_by_instrumentation_scope(Tid)),
     Resource = otel_resource_env_var:get_resource([]),
-    ?assertEqual(otel_attributes:new([{<<"service.name">>,<<"my-test-service">>},
-                                      {<<"service.version">>,<<"98da75ea6d38724743bf42b45565049238d86b3f">>}], 128, 255), otel_resource:attributes(Resource)),
+    ?assertEqual(otel_attributes:new([{'service.name',<<"my-test-service">>},
+                                      {'service.version',<<"98da75ea6d38724743bf42b45565049238d86b3f">>}], 128, 255), otel_resource:attributes(Resource)),
     ?assertMatch(ok, opentelemetry_exporter:export(traces, Tid, Resource, State)),
 
     ok.
