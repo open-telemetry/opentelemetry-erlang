@@ -75,8 +75,8 @@
 
 all() ->
     [default_view, provider_test, view_creation_test, counter_add, multiple_readers,
-     explicit_histograms, delta_explicit_histograms, cumulative_counter, kill_reader, kill_server,
-     observable_counter, observable_updown_counter, observable_gauge,
+     explicit_histograms, delta_explicit_histograms, delta_counter, cumulative_counter,
+     kill_reader, kill_server, observable_counter, observable_updown_counter, observable_gauge,
      multi_instrument_callback, using_macros, float_counter, float_updown_counter, float_histogram].
 
 init_per_suite(Config) ->
@@ -115,6 +115,17 @@ init_per_testcase(multiple_readers, Config) ->
                                 config => #{exporter => {otel_metric_exporter_pid, self()},
                                             default_aggregation_mapping =>
                                                 #{?KIND_COUNTER => otel_aggregation_drop}}}]),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
+init_per_testcase(delta_counter, Config) ->
+    application:load(opentelemetry_experimental),
+
+    %% delta is the default for a counter with sum aggregation
+    %% so no need to set any temporality mapping in the reader
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()}}}]),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
@@ -568,6 +579,47 @@ delta_explicit_histograms(_Config) ->
         5000 ->
             ct:fail(histogram_receive_timeout)
     end,
+
+    ok.
+
+delta_counter(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = a_counter,
+    CounterDesc = <<"counter description">>,
+    CounterUnit = kb,
+
+    Counter = otel_counter:create(Meter, CounterName,
+                                  #{description => CounterDesc,
+                                    unit => CounterUnit}),
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = CounterName,
+                             description = CounterDesc,
+                             kind = counter,
+                             unit = CounterUnit}, Counter),
+
+    otel_meter_server:add_view(#{instrument_name => a_counter}, #{}),
+
+    ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{6, #{<<"c">> => <<"b">>}}]),
+
+    ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
+
+    ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    ?assertEqual(ok, otel_counter:add(Counter, 7, #{<<"c">> => <<"b">>})),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{12, #{<<"c">> => <<"b">>}}]),
 
     ok.
 

@@ -23,4 +23,4 @@ checkpoint(_, _, _) ->
     ok.
 
 collect(_, _, _) ->
-    [].
+    {}.

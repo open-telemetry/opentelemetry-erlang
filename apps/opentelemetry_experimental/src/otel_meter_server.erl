@@ -285,6 +285,7 @@ metrics_tab(Name) ->
                                                                {keypos, 2},
                                                                public]).
 
+-dialyzer({nowarn_function,new_view/1}).
 new_view(ViewConfig) ->
     Name = maps:get(name, ViewConfig, undefined),
     Description = maps:get(description, ViewConfig, undefined),
@@ -416,6 +417,9 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, 
 %% global default, so any missing Kind entries are filled in from the global
 %% mapping in `otel_aggregation'
 -spec aggregation_module(otel_instrument:t(), otel_view:t(), reader()) -> module().
+aggregation_module(#instrument{kind=Kind}, undefined,
+                   #reader{default_aggregation_mapping=ReaderAggregationMapping}) ->
+    maps:get(Kind, ReaderAggregationMapping);
 aggregation_module(#instrument{kind=Kind}, #view{aggregation_module=undefined},
                    #reader{default_aggregation_mapping=ReaderAggregationMapping}) ->
     maps:get(Kind, ReaderAggregationMapping);

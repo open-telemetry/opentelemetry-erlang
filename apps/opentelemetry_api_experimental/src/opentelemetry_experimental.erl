@@ -61,7 +61,7 @@ get_meter_(MeterProvider) ->
       Name :: atom() | {atom(), Vsn, SchemaUrl},
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
-      Meter:: opentelemetry:meter().
+      Meter:: meter().
 get_meter('$__default_meter') ->
     get_meter();
 get_meter({Name, Vsn, SchemaUrl}) ->
@@ -73,7 +73,7 @@ get_meter(Name) ->
       Name :: atom(),
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
-      Meter:: opentelemetry:meter().
+      Meter:: meter().
 get_meter(Name, Vsn, SchemaUrl) ->
     get_meter(?GLOBAL_METER_PROVIDER_NAME, Name, Vsn, SchemaUrl).
 
@@ -82,7 +82,7 @@ get_meter(Name, Vsn, SchemaUrl) ->
       Name :: atom(),
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
-      Meter:: opentelemetry:meter().
+      Meter:: meter().
 get_meter(MeterProvider, Name, Vsn, SchemaUrl) ->
     %% check cache and then use provider to get the meter if it isn't cached yet
     case persistent_term:get(?METER_KEY(MeterProvider, {Name, Vsn, SchemaUrl}), undefined) of
@@ -106,7 +106,7 @@ set_meter(Name, Meter) ->
       Name :: atom(),
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
-      Meter:: opentelemetry:meter().
+      Meter:: meter().
 set_meter(Name, Vsn, SchemaUrl, Meter) ->
     set_meter(?GLOBAL_METER_PROVIDER_NAME, Name, Vsn, SchemaUrl, Meter).
 
@@ -115,6 +115,6 @@ set_meter(Name, Vsn, SchemaUrl, Meter) ->
       Name :: atom(),
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
-      Meter:: opentelemetry:meter().
+      Meter:: meter().
 set_meter(MeterProvider, Name, Vsn, SchemaUrl, Meter) ->
     opentelemetry:verify_and_set_term(Meter, ?METER_KEY(MeterProvider, {Name, Vsn, SchemaUrl}), otel_meter).

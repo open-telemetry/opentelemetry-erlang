@@ -1,11 +1,11 @@
--record(instrument, {module        :: module() | '_',
-                     meter         :: otel_meter:t() | '_',
-                     name          :: otel_instrument:name() | '_',
-                     description   :: otel_instrument:description() | undefined | '_',
-                     kind          :: otel_instrument:kind() | '_',
-                     unit          :: otel_instrument:unit() | undefined | '_',
-                     callback      :: otel_instrument:callback() | undefined | '_',
-                     callback_args :: term() | undefined | '_'}).
+-record(instrument, {module        :: module(),
+                     meter         :: otel_meter:t(),
+                     name          :: otel_instrument:name(),
+                     description   :: otel_instrument:description(),
+                     kind          :: otel_instrument:kind(),
+                     unit          :: otel_instrument:unit() | undefined,
+                     callback      :: otel_instrument:callback() | undefined,
+                     callback_args :: term() | undefined}).
 
 -define(KIND_COUNTER, counter).
 -define(KIND_OBSERVABLE_COUNTER, observable_counter).

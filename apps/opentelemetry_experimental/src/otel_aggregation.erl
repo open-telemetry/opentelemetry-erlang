@@ -17,7 +17,7 @@
 -type t() :: otel_aggregation_drop:t() | otel_aggregation_sum:t() |
              otel_aggregation_last_value:t() | otel_aggregation_histogram_explicit:t().
 
--type key() :: {atom(), opentelemetry:attributes_maps(), reference()}.
+-type key() :: {atom(), opentelemetry:attributes_map(), reference()}.
 
 -type options() :: map().
 
@@ -44,7 +44,7 @@
       ViewAggregation :: #view_aggregation{},
       CollectionStartTime :: integer().
 
--callback collect(Table, ViewAggregation, CollectionStartTime) -> [tuple()] when
+-callback collect(Table, ViewAggregation, CollectionStartTime) -> tuple() when
       Table :: ets:table(),
       ViewAggregation :: #view_aggregation{},
       CollectionStartTime :: integer().

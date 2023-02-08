@@ -95,7 +95,7 @@
          time_unix_nano :: integer(),
          count :: number(),
          sum :: float(),
-         bucket_counts :: tuple(),
+         bucket_counts :: list(),
          explicit_bounds :: [float()],
          exemplars :: list(),
          flags :: integer(),

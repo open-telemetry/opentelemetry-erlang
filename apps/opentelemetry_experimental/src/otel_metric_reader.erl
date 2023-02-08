@@ -72,7 +72,7 @@ init([ReaderId, ProviderSup, Config]) ->
     ExporterModuleConfig = maps:get(exporter, Config, undefined),
     Exporter = otel_exporter:init(ExporterModuleConfig),
 
-    DefaultAggregationMapping = maps:get(default_aggregation_mapping, Config, #{}),
+    DefaultAggregationMapping = maps:get(default_aggregation_mapping, Config, otel_aggregation:default_mapping()),
     Temporality = maps:get(default_temporality_mapping, Config, #{}),
 
     %% if a periodic reader is needed then this value is set
