@@ -26,7 +26,9 @@
                          SortedDatapoints =
                              lists:sort([{MetricValue, MetricAttributes} ||
                                             #datapoint{value=MetricValue,
-                                                       attributes=MetricAttributes} <- MetricDatapoints]),
+                                                       attributes=MetricAttributes,
+                                                       start_time_unix_nano=StartTimeUnixNano,
+                                                       time_unix_nano=TimeUnixNano} <- MetricDatapoints, StartTimeUnixNano =< TimeUnixNano]),
                          ?assertMatch([], lists:sort(Datapoints) -- SortedDatapoints, SortedDatapoints)
                  after
                      5000 ->
@@ -49,7 +51,9 @@
                          SortedDatapoints =
                              lists:sort([{MetricValue, MetricAttributes} ||
                                             #datapoint{value=MetricValue,
-                                                       attributes=MetricAttributes} <- MetricDatapoints]),
+                                                       attributes=MetricAttributes,
+                                                       start_time_unix_nano=StartTimeUnixNano,
+                                                       time_unix_nano=TimeUnixNano} <- MetricDatapoints, StartTimeUnixNano =< TimeUnixNano]),
                          ?assertMatch([], lists:sort(Datapoints) -- SortedDatapoints, SortedDatapoints)
                  after
                      5000 ->

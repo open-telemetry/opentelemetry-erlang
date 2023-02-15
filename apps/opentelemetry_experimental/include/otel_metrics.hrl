@@ -28,6 +28,7 @@
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
          key :: {term(),  opentelemetry:attributes_map(), reference()} | '$1' | {element, 2, '$_'},
          start_time_unix_nano :: integer() | '_' | '$1' | {const, integer()},
+         last_start_time_unix_nano :: integer() | '$4',
          checkpoint :: number() | undefined | '_' | '$2' | '$3',
          int_value :: number() | undefined | '$3' | {'+', '$3', {const, number()}},
          float_value :: number() | undefined | '$4' | {'+', '$4', {const, number()}}
@@ -38,7 +39,9 @@
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
          key :: {term(),  opentelemetry:attributes_map(), reference()} | '$1',
          checkpoint :: number() | undefined | '_' | '$2',
-         value :: number() | undefined | '$2'
+         value :: number() | undefined | '$2',
+         start_time_unix_nano :: integer() | '_' | '$3' | {const, integer()},
+         last_start_time_unix_nano :: integer() | '$4'
         }).
 
 
@@ -47,7 +50,8 @@
          bucket_counts :: counters:counters_ref() | undefined | '$5',
          min :: number() | '$6',
          max :: number() | '$7',
-         sum :: number() | '$8'
+         sum :: number() | '$8',
+         start_time_unix_nano :: integer() | '$9'
         }).
 
 -record(explicit_histogram_aggregation,

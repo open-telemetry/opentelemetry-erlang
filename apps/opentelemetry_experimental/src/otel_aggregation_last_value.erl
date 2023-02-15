@@ -38,6 +38,7 @@ init(#view_aggregation{name=Name,
                        aggregation_options=_Options}, Attributes) ->
     Key = {Name, Attributes, ReaderId},
     #last_value_aggregation{key=Key,
+                            start_time_unix_nano=erlang:system_time(nanosecond),
                             value=undefined}.
 
 aggregate(Tab, ViewAggregation=#view_aggregation{name=Name,
@@ -53,18 +54,41 @@ aggregate(Tab, ViewAggregation=#view_aggregation{name=Name,
 
 -dialyzer({nowarn_function, checkpoint/3}).
 checkpoint(Tab, #view_aggregation{name=Name,
-                                  reader=ReaderId}, _CollectionStartNano) ->
+                                  reader=ReaderId,
+                                  temporality=?AGGREGATION_TEMPORALITY_DELTA}, CollectionStartNano) ->
     MS = [{#last_value_aggregation{key='$1',
+                                   start_time_unix_nano='$3',
+                                   last_start_time_unix_nano='_',
                                    checkpoint='_',
                                    value='$2'},
            [{'=:=', {element, 1, '$1'}, {const, Name}},
             {'=:=', {element, 3, '$1'}, {const, ReaderId}}],
            [{#last_value_aggregation{key='$1',
+                                     start_time_unix_nano={const, CollectionStartNano},
+                                     last_start_time_unix_nano='$3',
+                                     checkpoint='$2',
+                                     value='$2'}}]}],
+    _ = ets:select_replace(Tab, MS),
+
+    ok;
+checkpoint(Tab, #view_aggregation{name=Name,
+                                  reader=ReaderId}, _CollectionStartNano) ->
+    MS = [{#last_value_aggregation{key='$1',
+                                   start_time_unix_nano='$3',
+                                   last_start_time_unix_nano='_',
+                                   checkpoint='_',
+                                   value='$2'},
+           [{'=:=', {element, 1, '$1'}, {const, Name}},
+            {'=:=', {element, 3, '$1'}, {const, ReaderId}}],
+           [{#last_value_aggregation{key='$1',
+                                     start_time_unix_nano='$3',
+                                     last_start_time_unix_nano='$3',
                                      checkpoint='$2',
                                      value='$2'}}]}],
     _ = ets:select_replace(Tab, MS),
 
     ok.
+
 
 collect(Tab, #view_aggregation{name=Name,
                                reader=ReaderPid}, CollectionStartTime) ->
@@ -79,8 +103,10 @@ collect(Tab, #view_aggregation{name=Name,
 %%
 
 datapoint(CollectionStartNano, #last_value_aggregation{key={_, Attributes, _},
+                                                       last_start_time_unix_nano=StartTimeUnixNano,
                                                        checkpoint=Checkpoint}) ->
     #datapoint{attributes=Attributes,
+               start_time_unix_nano=StartTimeUnixNano,
                time_unix_nano=CollectionStartNano,
                value=Checkpoint,
                exemplars=[],
