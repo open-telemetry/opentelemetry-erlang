@@ -21,11 +21,12 @@
 
 -export([init/2,
          aggregate/4,
-         checkpoint/5,
-         collect/5]).
+         checkpoint/3,
+         collect/3]).
 
 -include("otel_metrics.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
+-include("otel_view.hrl").
 
 -type t() :: #explicit_histogram_aggregation{}.
 
@@ -37,7 +38,10 @@
 
 -define(MIN_DOUBLE, -9223372036854775807.0). %% the proto representation of size `fixed64'
 
-init(Key, Options) ->
+init(#view_aggregation{name=Name,
+                       reader=ReaderId,
+                       aggregation_options=Options}, Attributes) ->
+    Key = {Name, Attributes, ReaderId},
     Boundaries = maps:get(boundaries, Options, ?DEFAULT_BOUNDARIES),
     RecordMinMax = maps:get(record_min_max, Options, true),
     #explicit_histogram_aggregation{key=Key,
@@ -51,7 +55,10 @@ init(Key, Options) ->
                                     sum=0
                                    }.
 
-aggregate(Table, Key, Value, Options) ->
+aggregate(Table, #view_aggregation{name=Name,
+                                   reader=ReaderId,
+                                   aggregation_options=Options}, Value, Attributes) ->
+    Key = {Name, Attributes, ReaderId},
     Boundaries = maps:get(boundaries, Options, ?DEFAULT_BOUNDARIES),
     try ets:lookup_element(Table, Key, #explicit_histogram_aggregation.bucket_counts) of
         BucketCounts0 ->
@@ -123,8 +130,10 @@ aggregate(Table, Key, Value, Options) ->
             false
     end.
 
--dialyzer({nowarn_function, checkpoint/5}).
-checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, CollectionStartNano) ->
+-dialyzer({nowarn_function, checkpoint/3}).
+checkpoint(Tab, #view_aggregation{name=Name,
+                                  reader=ReaderId,
+                                  temporality=?AGGREGATION_TEMPORALITY_DELTA}, CollectionStartNano) ->
     MS = [{#explicit_histogram_aggregation{key='$1',
                                            start_time_unix_nano='_',
                                            boundaries='$2',
@@ -136,7 +145,7 @@ checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, CollectionStart
                                            sum='$8'
                                           },
            [{'=:=', {element, 1, '$1'}, {const, Name}},
-            {'=:=', {element, 3, '$1'}, {const, ReaderPid}}],
+            {'=:=', {element, 3, '$1'}, {const, ReaderId}}],
            [{#explicit_histogram_aggregation{key='$1',
                                              start_time_unix_nano={const, CollectionStartNano},
                                              boundaries='$2',
@@ -152,20 +161,23 @@ checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, CollectionStart
     _ = ets:select_replace(Tab, MS),
 
     ok;
-checkpoint(_Tab, _Name, _ReaderPid, _, _CollectionStartNano) ->
+checkpoint(_Tab, _, _CollectionStartNano) ->
     %% no good way to checkpoint the `counters' without being out of sync with
     %% min/max/sum, so may as well just collect them in `collect', which will
     %% also be out of sync, but best we can do right now
     
     ok.
 
-collect(Tab, Name, ReaderPid, _, CollectionStartTime) ->
+collect(Tab, #view_aggregation{name=Name,
+                               reader=ReaderPid,
+                               temporality=Temporality}, CollectionStartTime) ->
     Select = [{'$1',
                [{'==', Name, {element, 1, {element, 2, '$1'}}},
                 {'==', ReaderPid, {element, 3, {element, 2, '$1'}}}],
                ['$1']}],
     AttributesAggregation = ets:select(Tab, Select),
-    [datapoint(CollectionStartTime, SumAgg) || SumAgg <- AttributesAggregation].
+    #histogram{datapoints=[datapoint(CollectionStartTime, SumAgg) || SumAgg <- AttributesAggregation],
+               aggregation_temporality=Temporality}.
 
 %%
 

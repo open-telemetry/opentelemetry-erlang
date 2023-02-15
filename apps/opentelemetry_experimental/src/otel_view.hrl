@@ -1,9 +1,9 @@
 -record(view,
-        {name                    :: otel_instrument:name() | '_' | undefined,
-         instrument_matchspec    :: ets:compiled_match_spec() | undefined,
+        {name                    :: otel_instrument:name(),
+         instrument_matchspec    :: ets:compiled_match_spec(),
          description             :: unicode:unicode_binary() | undefined,
-         attribute_keys          :: [opentelemetry:attribute_key()] | undefined,
-         aggregation_module      :: module() | undefined,
+         attribute_keys          :: [opentelemetry:attribute_key()],
+         aggregation_module      :: module(),
          aggregation_options=#{} :: map()}).
 
 -record(view_aggregation,

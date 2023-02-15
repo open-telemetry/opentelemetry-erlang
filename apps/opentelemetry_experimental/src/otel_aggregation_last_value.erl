@@ -21,8 +21,8 @@
 
 -export([init/2,
          aggregate/4,
-         checkpoint/5,
-         collect/5]).
+         checkpoint/3,
+         collect/3]).
 
 -include("otel_metrics.hrl").
 
@@ -31,27 +31,34 @@
 -export_type([t/0]).
 
 -include_lib("opentelemetry_api/include/gradualizer.hrl").
+-include("otel_view.hrl").
 
-init(Key, _Options) ->
+init(#view_aggregation{name=Name,
+                       reader=ReaderId,
+                       aggregation_options=_Options}, Attributes) ->
+    Key = {Name, Attributes, ReaderId},
     #last_value_aggregation{key=Key,
                             value=undefined}.
 
-aggregate(Tab, Key, Value, Options) ->
+aggregate(Tab, ViewAggregation=#view_aggregation{name=Name,
+                                                 reader=ReaderId}, Value, Attributes) ->
+    Key = {Name, Attributes, ReaderId},
     case ets:update_element(Tab, Key, {#last_value_aggregation.value, Value}) of
         true ->
             true;
         false ->
-            Metric = init(Key, Options),
+            Metric = init(ViewAggregation, Attributes),
             ets:insert(Tab, ?assert_type((?assert_type(Metric, #last_value_aggregation{}))#last_value_aggregation{value=Value}, tuple()))
     end.
 
--dialyzer({nowarn_function, checkpoint/5}).
-checkpoint(Tab, Name, ReaderPid, _, _CollectionStartNano) ->
+-dialyzer({nowarn_function, checkpoint/3}).
+checkpoint(Tab, #view_aggregation{name=Name,
+                                  reader=ReaderId}, _CollectionStartNano) ->
     MS = [{#last_value_aggregation{key='$1',
                                    checkpoint='_',
                                    value='$2'},
            [{'=:=', {element, 1, '$1'}, {const, Name}},
-            {'=:=', {element, 3, '$1'}, {const, ReaderPid}}],
+            {'=:=', {element, 3, '$1'}, {const, ReaderId}}],
            [{#last_value_aggregation{key='$1',
                                      checkpoint='$2',
                                      value='$2'}}]}],
@@ -59,13 +66,15 @@ checkpoint(Tab, Name, ReaderPid, _, _CollectionStartNano) ->
 
     ok.
 
-collect(Tab, Name, ReaderPid, _, CollectionStartTime) ->
+collect(Tab, #view_aggregation{name=Name,
+                               reader=ReaderPid}, CollectionStartTime) ->
     Select = [{'$1',
                [{'=:=', Name, {element, 1, {element, 2, '$1'}}},
                 {'=:=', ReaderPid, {element, 3, {element, 2, '$1'}}}],
                ['$1']}],
     AttributesAggregation = ets:select(Tab, Select),
-    [datapoint(CollectionStartTime, LastValueAgg) || LastValueAgg <- AttributesAggregation].
+    #gauge{datapoints=[datapoint(CollectionStartTime, LastValueAgg) ||
+                          LastValueAgg <- AttributesAggregation]}.
 
 %%
 

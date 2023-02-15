@@ -266,7 +266,7 @@ record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) when is_map(Attri
     {ok, StacktraceString} = otel_utils:format_binary_string("~0tP", [Stacktrace, 10], [{chars_limit, 50}]),
     ExceptionAttributes = #{?EXCEPTION_TYPE => ExceptionType,
                             ?EXCEPTION_STACKTRACE => StacktraceString},
-    add_event(SpanCtx, <<"exception">>, maps:merge(ExceptionAttributes, Attributes));
+    add_event(SpanCtx, 'exception', maps:merge(ExceptionAttributes, Attributes));
 record_exception(_, _, _, _, _) ->
     false.
 
@@ -285,7 +285,7 @@ record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) when is_
     ExceptionAttributes = #{?EXCEPTION_TYPE => ExceptionType,
                             ?EXCEPTION_STACKTRACE => StacktraceString,
                             ?EXCEPTION_MESSAGE => Message},
-    add_event(SpanCtx, <<"exception">>, maps:merge(ExceptionAttributes, Attributes));
+    add_event(SpanCtx, 'exception', maps:merge(ExceptionAttributes, Attributes));
 record_exception(_, _, _, _, _, _) ->
     false.
 

@@ -868,9 +868,9 @@ record_exception_works(Config) ->
             otel_span:end_span(SpanCtx),
             [Span] = assert_exported(Tid, SpanCtx),
             [Event] = otel_events:list(Span#span.events),
-            ?assertEqual(<<"exception">>, Event#event.name),
-            ?assertEqual(#{<<"exception.type">> => <<"throw:my_error">>,
-                           <<"exception.stacktrace">> => list_to_binary(io_lib:format("~p", [Stacktrace], [{chars_limit, 50}])),
+            ?assertEqual(exception, Event#event.name),
+            ?assertEqual(#{'exception.type' => <<"throw:my_error">>,
+                           'exception.stacktrace' => list_to_binary(io_lib:format("~p", [Stacktrace], [{chars_limit, 50}])),
                            <<"some-attribute">> => <<"value">>},
                          otel_attributes:map(Event#event.attributes)),
             ok
@@ -888,10 +888,10 @@ record_exception_with_message_works(Config) ->
             otel_span:end_span(SpanCtx),
             [Span] = assert_exported(Tid, SpanCtx),
             [Event] = otel_events:list(Span#span.events),
-            ?assertEqual(<<"exception">>, Event#event.name),
-            ?assertEqual(#{<<"exception.type">> => <<"throw:my_error">>,
-                           <<"exception.stacktrace">> => list_to_binary(io_lib:format("~p", [Stacktrace], [{chars_limit, 50}])),
-                           <<"exception.message">> => <<"My message">>,
+            ?assertEqual(exception, Event#event.name),
+            ?assertEqual(#{'exception.type' => <<"throw:my_error">>,
+                           'exception.stacktrace' => list_to_binary(io_lib:format("~p", [Stacktrace], [{chars_limit, 50}])),
+                           'exception.message' => <<"My message">>,
                            <<"some-attribute">> => <<"value">>},
                          otel_attributes:map(Event#event.attributes)
                         ),
@@ -916,7 +916,7 @@ dropped_attributes(Config) ->
 
 truncated_binary_attributes(_Config) ->
     InfinityLengthAttributes = otel_attributes:new(#{<<"attr-1">> => <<"abcde">>,
-                                                   <<"attr-2">> => [<<"a">>, <<"abcde">>, <<"abcde">>]},
+                                                     <<"attr-2">> => [<<"a">>, <<"abcde">>, <<"abcde">>]},
                                                  128, infinity),
 
     %% when length limit is inifinity

@@ -1,12 +1,13 @@
 -module(otel_aggregation).
 
--export([maybe_init_aggregate/5,
+-export([maybe_init_aggregate/4,
          default_mapping/0,
          temporality_mapping/0,
          instrument_temporality/1]).
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_metrics.hrl").
+-include("otel_view.hrl").
 
 -type temporality() :: ?AGGREGATION_TEMPORALITY_UNSPECIFIED |
                        ?AGGREGATION_TEMPORALITY_DELTA |
@@ -16,7 +17,7 @@
 -type t() :: otel_aggregation_drop:t() | otel_aggregation_sum:t() |
              otel_aggregation_last_value:t() | otel_aggregation_histogram_explicit:t().
 
--type key() :: {atom(), opentelemetry:attributes_maps(), reference()}.
+-type key() :: {atom(), opentelemetry:attributes_map(), reference()}.
 
 -type options() :: map().
 
@@ -25,41 +26,40 @@
               options/0,
               temporality/0]).
 
--callback init(Key, Options) -> Aggregation when
-      Key :: key(),
-      Options :: options(),
+%% Returns the aggregation's record as it is seen and updated by
+%% the aggregation module in the metrics table.
+-callback init(ViewAggregation, Attributes) -> Aggregation when
+      ViewAggregation :: #view_aggregation{},
+      Attributes :: opentelemetry:attributes_map(),
       Aggregation :: t().
 
--callback aggregate(Table, Key, Value, Options) -> boolean() when
+-callback aggregate(Table, ViewAggregation, Value, Attributes) -> boolean() when
       Table :: ets:table(),
-      Key :: key(),
+      ViewAggregation :: #view_aggregation{},
       Value :: number(),
-      Options :: options().
+      Attributes :: opentelemetry:attributes_map().
 
--callback checkpoint(Table, Name, ReaderId, Temporality, CollectionStartTime) -> ok when
+-callback checkpoint(Table, ViewAggregation, CollectionStartTime) -> ok when
       Table :: ets:table(),
-      Name :: atom(),
-      ReaderId :: reference(),
-      Temporality :: temporality(),
+      ViewAggregation :: #view_aggregation{},
       CollectionStartTime :: integer().
 
--callback collect(Table, Name, ReaderId, Temporality, CollectionStartTime) -> [tuple()] when
+-callback collect(Table, ViewAggregation, CollectionStartTime) -> tuple() when
       Table :: ets:table(),
-      Name :: atom(),
-      ReaderId :: reference(),
-      Temporality :: temporality(),
+      ViewAggregation :: #view_aggregation{},
       CollectionStartTime :: integer().
 
-maybe_init_aggregate(MetricsTab, AggregationModule, Key, Value, Options) ->
-    case AggregationModule:aggregate(MetricsTab, Key, Value, Options) of
+maybe_init_aggregate(MetricsTab, ViewAggregation=#view_aggregation{aggregation_module=AggregationModule},
+                     Value, Attributes) ->
+    case AggregationModule:aggregate(MetricsTab, ViewAggregation, Value, Attributes) of
         true ->
             ok;
         false ->
             %% entry doesn't exist, create it and rerun the aggregate function
-            Metric = AggregationModule:init(Key, Options),
+            Metric = AggregationModule:init(ViewAggregation, Attributes),
             %% don't overwrite a possible concurrent measurement doing the same
             _ = ets:insert_new(MetricsTab, Metric),
-            AggregationModule:aggregate(MetricsTab, Key, Value, Options)
+            AggregationModule:aggregate(MetricsTab, ViewAggregation, Value, Attributes)
     end.
 
 -spec default_mapping() -> #{otel_instrument:kind() => module()}.

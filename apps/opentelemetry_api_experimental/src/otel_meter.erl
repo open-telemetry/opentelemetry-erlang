@@ -40,7 +40,7 @@
       Meter :: t(),
       Name :: otel_instrument:name(),
       Kind :: otel_instrument:kind(),
-      Opts :: otel_meter:opts().
+      Opts :: opts().
 
 -callback create_instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts) -> otel_instrument:t() when
       Meter :: t(),
@@ -48,7 +48,7 @@
       Kind :: otel_instrument:kind(),
       Callback :: otel_instrument:callback(),
       CallbackArgs :: term(),
-      Opts :: otel_meter:opts().
+      Opts :: opts().
 
 -callback register_callback(Meter, Instruments, Callback, CallbackArgs) -> ok when
       Meter :: t(),

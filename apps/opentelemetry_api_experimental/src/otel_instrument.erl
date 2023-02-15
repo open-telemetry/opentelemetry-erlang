@@ -68,5 +68,7 @@ is_monotonic(#instrument{kind=?KIND_COUNTER}) ->
     true;
 is_monotonic(#instrument{kind=?KIND_OBSERVABLE_COUNTER}) ->
     true;
+is_monotonic(#instrument{kind=?KIND_HISTOGRAM}) ->
+    true;
 is_monotonic(_) ->
     false.

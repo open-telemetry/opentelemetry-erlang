@@ -33,16 +33,9 @@ create(Meter, Name, Opts) ->
     otel_meter:create_counter(Meter, Name, Opts).
 
 -spec add(otel_meter:t(), otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok.
-add(Meter, Name, Number, Attributes) when Number >= 0 ->
-    otel_meter:record(Meter, Name, Number, Attributes);
-add(_, Name, _, _) ->
-    ?LOG_INFO("Counter instrument ~p does not support negative values.", [Name]),
-    ok.
+add(Meter, Name, Number, Attributes) ->
+    otel_meter:record(Meter, Name, Number, Attributes).
 
 -spec add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-add(Instrument=#instrument{module=Module}, Number, Attributes)
-  when Number >= 0 ->
-    Module:record(Instrument, Number, Attributes);
-add(#instrument{name=Name},  _, _) ->
-    ?LOG_INFO("Counter instrument ~p does not support negative values.", [Name]),
-    ok.
+add(Instrument=#instrument{module=Module}, Number, Attributes) ->
+    Module:record(Instrument, Number, Attributes).

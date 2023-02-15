@@ -285,6 +285,7 @@ metrics_tab(Name) ->
                                                                {keypos, 2},
                                                                public]).
 
+-dialyzer({nowarn_function,new_view/1}).
 new_view(ViewConfig) ->
     Name = maps:get(name, ViewConfig, undefined),
     Description = maps:get(description, ViewConfig, undefined),
@@ -388,11 +389,8 @@ handle_measurement(Meter, Name, Number, Attributes, ViewAggregationsTab, Metrics
     update_aggregations(Number, Attributes, Matches, MetricsTab).
 
 update_aggregations(Value, Attributes, ViewAggregations, MetricsTab) ->
-    lists:foreach(fun(#view_aggregation{name=Name,
-                                        reader=ReaderId,
-                                        aggregation_module=AggregationModule,
-                                        aggregation_options=Options}) ->
-                          otel_aggregation:maybe_init_aggregate(MetricsTab, AggregationModule, {Name, Attributes, ReaderId}, Value, Options);
+    lists:foreach(fun(ViewAggregation=#view_aggregation{}) ->
+                          otel_aggregation:maybe_init_aggregate(MetricsTab, ViewAggregation, Value, Attributes);
                      (_) ->
                           ok
                   end, ViewAggregations).
@@ -419,6 +417,9 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, 
 %% global default, so any missing Kind entries are filled in from the global
 %% mapping in `otel_aggregation'
 -spec aggregation_module(otel_instrument:t(), otel_view:t(), reader()) -> module().
+aggregation_module(#instrument{kind=Kind}, undefined,
+                   #reader{default_aggregation_mapping=ReaderAggregationMapping}) ->
+    maps:get(Kind, ReaderAggregationMapping);
 aggregation_module(#instrument{kind=Kind}, #view{aggregation_module=undefined},
                    #reader{default_aggregation_mapping=ReaderAggregationMapping}) ->
     maps:get(Kind, ReaderAggregationMapping);

@@ -21,23 +21,31 @@
 
 -export([init/2,
          aggregate/4,
-         checkpoint/5,
-         collect/5]).
+         checkpoint/3,
+         collect/3]).
 
 -include("otel_metrics.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
+-include("otel_view.hrl").
 
 -type t() :: #sum_aggregation{}.
 
 -export_type([t/0]).
 
-init(Key, _) ->
+init(#view_aggregation{name=Name,
+                       reader=ReaderId}, Attributes) ->
+    Key = {Name, Attributes, ReaderId},
     #sum_aggregation{key=Key,
                      start_time_unix_nano=erlang:system_time(nanosecond),
                      int_value=0,
                      float_value=0.0}.
 
-aggregate(Tab, Key, Value, _Options) when is_integer(Value) ->
+aggregate(Tab, #view_aggregation{name=Name,
+                                 reader=ReaderId,
+                                 is_monotonic=IsMonotonic}, Value, Attributes)
+  when is_integer(Value) andalso
+       ((IsMonotonic andalso Value >= 0) orelse not IsMonotonic) ->
+    Key = {Name, Attributes, ReaderId},
     try
         _ = ets:update_counter(Tab, Key, {#sum_aggregation.int_value, Value}),
         true
@@ -53,7 +61,11 @@ aggregate(Tab, Key, Value, _Options) when is_integer(Value) ->
             %% true
             false
     end;
-aggregate(Tab, Key, Value, _) ->
+aggregate(Tab, #view_aggregation{name=Name,
+                                 reader=ReaderId,
+                                 is_monotonic=IsMonotonic}, Value, Attributes)
+  when (IsMonotonic andalso Value >= 0.0) orelse not IsMonotonic ->
+    Key = {Name, Attributes, ReaderId},
     MS = [{#sum_aggregation{key=Key,
                             start_time_unix_nano='$1',
                             checkpoint='$2',
@@ -65,10 +77,15 @@ aggregate(Tab, Key, Value, _) ->
                               checkpoint='$2',
                               int_value='$3',
                               float_value={'+', '$4', {const, Value}}}}]}],
-    1 =:= ets:select_replace(Tab, MS).
+    1 =:= ets:select_replace(Tab, MS);
+aggregate(_Tab, #view_aggregation{name=_Name,
+                                  is_monotonic=_IsMonotonic}, _Value, _) ->
+    false.
 
--dialyzer({nowarn_function, checkpoint/5}).
-checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, CollectionStartNano) ->
+-dialyzer({nowarn_function, checkpoint/3}).
+checkpoint(Tab, #view_aggregation{name=Name,
+                                  reader=ReaderPid,
+                                  temporality=?AGGREGATION_TEMPORALITY_DELTA}, CollectionStartNano) ->
     MS = [{#sum_aggregation{key='$1',
                             start_time_unix_nano='_',
                             checkpoint='_',
@@ -96,7 +113,9 @@ checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_DELTA, CollectionStart
                               float_value=0.0}}]}],
     _ = ets:select_replace(Tab, MS),
     ok;
-checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_CUMULATIVE, _CollectionStartNano) ->
+checkpoint(Tab, #view_aggregation{name=Name,
+                                  reader=ReaderPid,
+                                  temporality=?AGGREGATION_TEMPORALITY_CUMULATIVE}, _CollectionStartNano) ->
     MS = [{#sum_aggregation{key='$1',
                             start_time_unix_nano='$2',
                             checkpoint='_',
@@ -125,13 +144,20 @@ checkpoint(Tab, Name, ReaderPid, ?AGGREGATION_TEMPORALITY_CUMULATIVE, _Collectio
     _ = ets:select_replace(Tab, MS),
     ok.
 
-collect(Tab, Name, ReaderPid, _, CollectionStartTime) ->
+collect(Tab, #view_aggregation{name=Name,
+                               reader=ReaderId,
+                               temporality=Temporality,
+                               is_monotonic=IsMonotonic}, CollectionStartTime) ->
     Select = [{'$1',
                [{'=:=', Name, {element, 1, {element, 2, '$1'}}},
-                {'=:=', ReaderPid, {element, 3, {element, 2, '$1'}}}],
+                {'=:=', ReaderId, {element, 3, {element, 2, '$1'}}}],
                ['$1']}],
     AttributesAggregation = ets:select(Tab, Select),
-    [datapoint(CollectionStartTime, SumAgg) || SumAgg <- AttributesAggregation].
+    #sum{aggregation_temporality=Temporality,
+         is_monotonic=IsMonotonic,
+         datapoints=[datapoint(CollectionStartTime, SumAgg) || SumAgg <- AttributesAggregation]}.
+
+
 
 datapoint(CollectionStartNano, #sum_aggregation{key={_, Attributes, _},
                                                 start_time_unix_nano=StartTimeUnixNano,
