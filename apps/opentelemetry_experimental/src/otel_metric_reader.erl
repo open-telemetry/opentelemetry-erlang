@@ -169,8 +169,6 @@ code_change(State) ->
 
 -spec collect_(any(), any(), any(), reference()) -> [any()].
 collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId) ->
-    CollectionStartTime = erlang:system_time(nanosecond),
-
     Results = run_callbacks(ReaderId, CallbacksTab),
     %% take the results of running each callback and aggregate the values
     _ = handle_callback_results(Results, ViewAggregationTab, MetricsTab, ReaderId),
@@ -188,6 +186,10 @@ collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId) ->
     %% each Instrument we use `first'/`next' and lookup the list of ViewAggregations
     %% by the key (Instrument)
     Key = ets:first(ViewAggregationTab),
+
+    %% get the collection start time after running callbacks so any initialized
+    %% metrics have a start time before the collection start time.
+    CollectionStartTime = erlang:system_time(nanosecond),
     collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, ReaderId, [], Key).
 
 collect_(_CallbacksTab, _ViewAggregationTab, _MetricsTab, _CollectionStartTime, _ReaderId, MetricsAcc, '$end_of_table') ->

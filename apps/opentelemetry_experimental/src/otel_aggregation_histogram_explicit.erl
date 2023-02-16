@@ -135,7 +135,7 @@ checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
                                   temporality=?AGGREGATION_TEMPORALITY_DELTA}, CollectionStartNano) ->
     MS = [{#explicit_histogram_aggregation{key='$1',
-                                           start_time_unix_nano='_',
+                                           start_time_unix_nano='$9',
                                            boundaries='$2',
                                            record_min_max='$3',
                                            checkpoint='_',
@@ -153,7 +153,8 @@ checkpoint(Tab, #view_aggregation{name=Name,
                                              checkpoint={#explicit_histogram_checkpoint{bucket_counts='$5',
                                                                                         min='$6',
                                                                                         max='$7',
-                                                                                        sum='$8'}},
+                                                                                        sum='$8',
+                                                                                        start_time_unix_nano='$9'}},
                                              bucket_counts={const, undefined},
                                              min=infinity,
                                              max=?MIN_DOUBLE,
@@ -208,11 +209,11 @@ datapoint(CollectionStartNano, #explicit_histogram_aggregation{
 datapoint(CollectionStartNano, #explicit_histogram_aggregation{
                                   key={_, Attributes, _},
                                   boundaries=Boundaries,
-                                  start_time_unix_nano=StartTimeUnixNano,
                                   checkpoint=#explicit_histogram_checkpoint{bucket_counts=BucketCounts,
                                                                             min=Min,
                                                                             max=Max,
-                                                                            sum=Sum}
+                                                                            sum=Sum,
+                                                                            start_time_unix_nano=StartTimeUnixNano}
                                  }) ->
     Buckets = get_buckets(BucketCounts, Boundaries),
     #histogram_datapoint{
