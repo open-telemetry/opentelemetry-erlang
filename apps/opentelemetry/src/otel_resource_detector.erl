@@ -39,8 +39,6 @@
 
 -type detector() :: module() | {module(), term()}.
 
--dialyzer({nowarn_function, find_release/0}).
-
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_semantic_conventions/include/resource.hrl").
 
@@ -197,6 +195,7 @@ os_or_default(EnvVar, Default) ->
             Value
     end.
 
+-dialyzer({nowarn_function, find_release/0}).
 find_release() ->
     try release_handler:which_releases(permanent) of
         [{RelName, RelVsn, _Apps, permanent} | _] ->
