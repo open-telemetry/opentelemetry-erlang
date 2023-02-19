@@ -28,7 +28,7 @@
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
          key :: {term(),  opentelemetry:attributes_map(), reference()} | '$1' | {element, 2, '$_'},
          start_time_unix_nano :: integer() | '_' | '$1' | {const, integer()},
-         last_start_time_unix_nano :: integer() | '$4',
+         last_start_time_unix_nano :: integer() | undefined | '$5',
          checkpoint :: number() | undefined | '_' | '$2' | '$3',
          int_value :: number() | undefined | '$3' | {'+', '$3', {const, number()}},
          float_value :: number() | undefined | '$4' | {'+', '$4', {const, number()}}
@@ -41,7 +41,7 @@
          checkpoint :: number() | undefined | '_' | '$2',
          value :: number() | undefined | '$2',
          start_time_unix_nano :: integer() | '_' | '$3' | {const, integer()},
-         last_start_time_unix_nano :: integer() | '$4'
+         last_start_time_unix_nano :: integer() | undefined | '$4'
         }).
 
 
