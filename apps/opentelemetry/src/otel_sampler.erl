@@ -21,14 +21,13 @@
 
 -export([description/1, new/1, should_sample/7]).
 
--export_type([
-    description/0,
-    sampler_config/0,
-    sampler_opts/0,
-    sampling_decision/0,
-    sampling_result/0,
-    t/0
-]).
+-export_type([description/0,
+              sampler_spec/0,
+              sampler_config/0,
+              sampler_opts/0,
+              sampling_decision/0,
+              sampling_result/0,
+              t/0]).
 
 -callback setup(sampler_opts()) -> sampler_config().
 

@@ -6,6 +6,7 @@
    [kernel,
     stdlib,
     inets,
+    ctx,
     grpcbox,
     tls_certificate_check,
     opentelemetry_api
