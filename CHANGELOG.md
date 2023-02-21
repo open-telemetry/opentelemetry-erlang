@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Exporter 1.4.0 - 2023-02-21
+
+### Fixes
+
+- [bump tls_certificate_check to fix crash on OTP-25](https://github.com/open-telemetry/opentelemetry-erlang/pull/547)
+
+## API v1.2.1 - 2023-02-21
+
+### Fixes
+
+- [Have set_status check is_recording in all cases](https://github.com/open-telemetry/opentelemetry-erlang/pull/540)
+- [Using opentelemetry_semantic_conventions for record_exception](https://github.com/open-telemetry/opentelemetry-erlang/pull/537)
+
+## Experimental SDK 0.3.0 - 2023-02-21
+
+### Fixes
+
+- [metrics: fix updating delta timestamps in aggregations](https://github.com/open-telemetry/opentelemetry-erlang/pull/546)
+- [Move is_monotonic check to the SDK](https://github.com/open-telemetry/opentelemetry-erlang/pull/544)
+
+## Experimental API 0.3.0 - 2023-02-21
+
+### Fixes
+
+- [Move is_monotonic check to the SDK](https://github.com/open-telemetry/opentelemetry-erlang/pull/544)
+
 ## Exporter 1.2.2 - 2022-10-21
 
 ### Fixes
