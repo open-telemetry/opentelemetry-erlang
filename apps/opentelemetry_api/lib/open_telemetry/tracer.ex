@@ -16,12 +16,39 @@ defmodule OpenTelemetry.Tracer do
       end
   """
 
+  require OpenTelemetry.SemanticConventions.Trace
+  alias OpenTelemetry.SemanticConventions.Trace, as: Conventions
+
+  defmacrop insert_code_attributes(opts) do
+    quote bind_quoted: [opts: opts] do
+      code_function =
+        case __CALLER__.function do
+          {func_name, func_arity} -> "#{func_name}/#{func_arity}"
+          nil -> nil
+        end
+
+      source_attrs = %{
+        Conventions.thread_id() => :erlang.system_info(:scheduler_id),
+        Conventions.code_function() => code_function,
+        Conventions.code_namespace() => __CALLER__.module,
+        Conventions.code_filepath() => __CALLER__.file,
+        Conventions.code_lineno() => __CALLER__.line
+      }
+
+      Map.new()
+      |> Map.update(:attributes, source_attrs, &Map.merge(&1, source_attrs))
+      |> Macro.escape()
+    end
+  end
+
   @doc """
   Starts a new span and does not make it the current active span of the current process.
 
   The current active Span is used as the parent of the created Span.
   """
   defmacro start_span(name, opts \\ quote(do: %{})) do
+    opts = insert_code_attributes(Macro.escape(opts))
+
     quote bind_quoted: [name: name, start_opts: opts] do
       :otel_tracer.start_span(
         :opentelemetry.get_application_tracer(__MODULE__),
@@ -37,6 +64,8 @@ defmodule OpenTelemetry.Tracer do
   The current active Span is used as the parent of the created Span.
   """
   defmacro start_span(ctx, name, opts) do
+    opts = insert_code_attributes(Macro.escape(opts))
+
     quote bind_quoted: [ctx: ctx, name: name, start_opts: opts] do
       :otel_tracer.start_span(
         ctx,
@@ -70,6 +99,8 @@ defmodule OpenTelemetry.Tracer do
   See `start_span/2` and `end_span/0`.
   """
   defmacro with_span(name, start_opts \\ quote(do: %{}), do: block) do
+    start_opts = insert_code_attributes(Macro.escape(start_opts))
+
     quote do
       :otel_tracer.with_span(
         :opentelemetry.get_application_tracer(__MODULE__),
@@ -88,6 +119,8 @@ defmodule OpenTelemetry.Tracer do
   See `start_span/2` and `end_span/0`.
   """
   defmacro with_span(ctx, name, start_opts, do: block) do
+    start_opts = insert_code_attributes(Macro.escape(start_opts))
+
     quote do
       :otel_tracer.with_span(
         unquote(ctx),
