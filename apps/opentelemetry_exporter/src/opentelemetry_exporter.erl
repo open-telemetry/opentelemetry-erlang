@@ -147,6 +147,7 @@
               protocol/0]).
 
 -record(state, {channel :: term(),
+                httpc_profile :: pid() | undefined,
                 protocol :: protocol(),
                 channel_pid :: pid() | undefined,
                 headers :: headers(),
@@ -198,23 +199,37 @@ init(Opts) ->
                                 protocol=http_protobuf}}
             end;
         http_protobuf ->
+            HttpcProfilePid = start_httpc(Opts1),
             Endpoints = endpoints(maps:get(endpoints, Opts1, ?DEFAULT_HTTP_ENDPOINTS), SSLOptions),
-            {ok, #state{endpoints=Endpoints,
+            {ok, #state{httpc_profile=HttpcProfilePid,
+                        endpoints=Endpoints,
                         headers=Headers,
                         compression=Compression,
                         protocol=http_protobuf}};
         http_json ->
+            HttpcProfilePid = start_httpc(Opts1),
             Endpoints = endpoints(maps:get(endpoints, Opts1, ?DEFAULT_HTTP_ENDPOINTS), SSLOptions),
-            {ok, #state{endpoints=Endpoints,
+            {ok, #state{httpc_profile=HttpcProfilePid,
+                        endpoints=Endpoints,
                         headers=Headers,
                         compression=Compression,
                         protocol=http_json}}
     end.
 
+%% use a unique httpc profile per exporter
+start_httpc(Opts) ->
+    HttpcProfile = list_to_atom(lists:concat([?MODULE, "_", erlang:pid_to_list(self())])),
+    %% by default use inet6fb4 which will try ipv6 and then fallback to ipv4 if it fails
+    HttpcOptions = lists:ukeymerge(1, maps:get(httpc_options, Opts, []), [{ipfamily, inet6fb4}]),
+    {ok, Pid} = inets:start(httpc, [{profile, HttpcProfile}], stand_alone),
+    ok = httpc:set_options(HttpcOptions, Pid),
+    Pid.
+
 %% @doc Export OTLP protocol telemery data to the configured endpoints.
 export(traces, _Tab, _Resource, #state{protocol=http_json}) ->
     {error, unimplemented};
 export(traces, Tab, Resource, #state{protocol=http_protobuf,
+                                     httpc_profile=HttpcProfile,
                                      headers=Headers,
                                      compression=Compression,
                                      endpoints=[#{scheme := Scheme,
@@ -239,7 +254,7 @@ export(traces, Tab, Resource, #state{protocol=http_protobuf,
                                              path => Path}),
 
             case httpc:request(post, {Address, NewHeaders, "application/x-protobuf", NewProto},
-                               [{ssl, SSLOptions}], []) of
+                               [{ssl, SSLOptions}], [], HttpcProfile) of
                 {ok, {{_, Code, _}, _, _}} when Code >= 200 andalso Code =< 202 ->
                     ok;
                 {ok, {{_, Code, _}, _, Message}} ->
