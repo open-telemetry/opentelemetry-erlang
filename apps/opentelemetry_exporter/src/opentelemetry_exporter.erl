@@ -220,7 +220,10 @@ init(Opts) ->
 start_httpc(Opts) ->
     HttpcProfile = list_to_atom(lists:concat([?MODULE, "_", erlang:pid_to_list(self())])),
     %% by default use inet6fb4 which will try ipv6 and then fallback to ipv4 if it fails
-    HttpcOptions = lists:ukeymerge(1, maps:get(httpc_options, Opts, []), [{ipfamily, inet6fb4}]),
+    HttpcOptions = lists:ukeymerge(1, 
+        lists:usort(maps:get(httpc_options, Opts, [])),
+        [{ipfamily, inet6fb4}]
+    ),
     {ok, Pid} = inets:start(httpc, [{profile, HttpcProfile}], stand_alone),
     ok = httpc:set_options(HttpcOptions, Pid),
     Pid.
