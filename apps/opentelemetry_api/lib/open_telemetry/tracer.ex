@@ -28,7 +28,6 @@ defmodule OpenTelemetry.Tracer do
         end
 
       source_attrs = %{
-        Conventions.thread_id() => :erlang.system_info(:scheduler_id),
         Conventions.code_function() => code_function,
         Conventions.code_namespace() => __CALLER__.module,
         Conventions.code_filepath() => __CALLER__.file,
@@ -44,10 +43,12 @@ defmodule OpenTelemetry.Tracer do
   """
   defmacro start_span(name, opts \\ quote(do: %{})) do
     code_attrs = code_attributes() |> Macro.escape()
+    thread_id_key = Conventions.thread_id()
 
-    quote bind_quoted: [name: name, start_opts: opts, code_attrs: code_attrs] do
+    quote bind_quoted: [name: name, start_opts: opts, code_attrs: code_attrs, thread_id_key: thread_id_key] do
       start_opts =
         Map.new(start_opts)
+        |> Map.put(thread_id_key, :erlang.system_info(:scheduler_id))
         |> Map.update(:attributes, code_attrs, &Map.merge(&1, code_attrs))
 
       :otel_tracer.start_span(
@@ -65,10 +66,12 @@ defmodule OpenTelemetry.Tracer do
   """
   defmacro start_span(ctx, name, opts) do
     code_attrs = code_attributes() |> Macro.escape()
+    thread_id_key = Conventions.thread_id()
 
-    quote bind_quoted: [ctx: ctx, name: name, start_opts: opts, code_attrs: code_attrs] do
+    quote bind_quoted: [ctx: ctx, name: name, start_opts: opts, code_attrs: code_attrs, thread_id_key: thread_id_key] do
       start_opts =
         Map.new(start_opts)
+        |> Map.put(thread_id_key, :erlang.system_info(:scheduler_id))
         |> Map.update(:attributes, code_attrs, &Map.merge(&1, code_attrs))
 
       :otel_tracer.start_span(
@@ -104,11 +107,13 @@ defmodule OpenTelemetry.Tracer do
   """
   defmacro with_span(name, start_opts \\ quote(do: %{}), do: block) do
     code_attrs = code_attributes() |> Macro.escape()
+    thread_id_key = Conventions.thread_id()
 
     quote do
       code_attrs = unquote(code_attrs)
       start_opts =
         Map.new(unquote(start_opts))
+        |> Map.put(unquote(thread_id_key), :erlang.system_info(:scheduler_id))
         |> Map.update(:attributes, code_attrs, &Map.merge(&1, code_attrs))
 
       :otel_tracer.with_span(
@@ -129,11 +134,13 @@ defmodule OpenTelemetry.Tracer do
   """
   defmacro with_span(ctx, name, start_opts, do: block) do
     code_attrs = code_attributes() |> Macro.escape()
+    thread_id_key = Conventions.thread_id()
 
     quote do
       code_attrs = unquote(code_attrs)
       start_opts =
         Map.new(unquote(start_opts))
+        |> Map.put(unquote(thread_id_key), :erlang.system_info(:scheduler_id))
         |> Map.update(:attributes, code_attrs, &Map.merge(&1, code_attrs))
 
       :otel_tracer.with_span(
