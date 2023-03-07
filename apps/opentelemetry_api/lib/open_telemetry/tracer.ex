@@ -45,9 +45,13 @@ defmodule OpenTelemetry.Tracer do
     code_attrs = code_attributes() |> Macro.escape()
     thread_id_key = Conventions.thread_id()
 
-    quote bind_quoted: [name: name, start_opts: opts, code_attrs: code_attrs, thread_id_key: thread_id_key] do
-      code_attrs =
-        Map.put(code_attrs, thread_id_key, :erlang.system_info(:scheduler_id))
+    quote bind_quoted: [
+            name: name,
+            start_opts: opts,
+            code_attrs: code_attrs,
+            thread_id_key: thread_id_key
+          ] do
+      code_attrs = Map.put(code_attrs, thread_id_key, :erlang.system_info(:scheduler_id))
 
       start_opts =
         Map.new(start_opts)
@@ -70,9 +74,14 @@ defmodule OpenTelemetry.Tracer do
     code_attrs = code_attributes() |> Macro.escape()
     thread_id_key = Conventions.thread_id()
 
-    quote bind_quoted: [ctx: ctx, name: name, start_opts: opts, code_attrs: code_attrs, thread_id_key: thread_id_key] do
-      code_attrs =
-        Map.put(code_attrs, thread_id_key, :erlang.system_info(:scheduler_id))
+    quote bind_quoted: [
+            ctx: ctx,
+            name: name,
+            start_opts: opts,
+            code_attrs: code_attrs,
+            thread_id_key: thread_id_key
+          ] do
+      code_attrs = Map.put(code_attrs, thread_id_key, :erlang.system_info(:scheduler_id))
 
       start_opts =
         Map.new(start_opts)
