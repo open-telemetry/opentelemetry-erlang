@@ -46,9 +46,11 @@ defmodule OpenTelemetry.Tracer do
     thread_id_key = Conventions.thread_id()
 
     quote bind_quoted: [name: name, start_opts: opts, code_attrs: code_attrs, thread_id_key: thread_id_key] do
+      code_attrs =
+        Map.put(code_attrs, thread_id_key, :erlang.system_info(:scheduler_id))
+
       start_opts =
         Map.new(start_opts)
-        |> Map.put(thread_id_key, :erlang.system_info(:scheduler_id))
         |> Map.update(:attributes, code_attrs, &Map.merge(&1, code_attrs))
 
       :otel_tracer.start_span(
@@ -69,9 +71,11 @@ defmodule OpenTelemetry.Tracer do
     thread_id_key = Conventions.thread_id()
 
     quote bind_quoted: [ctx: ctx, name: name, start_opts: opts, code_attrs: code_attrs, thread_id_key: thread_id_key] do
+      code_attrs =
+        Map.put(code_attrs, thread_id_key, :erlang.system_info(:scheduler_id))
+
       start_opts =
         Map.new(start_opts)
-        |> Map.put(thread_id_key, :erlang.system_info(:scheduler_id))
         |> Map.update(:attributes, code_attrs, &Map.merge(&1, code_attrs))
 
       :otel_tracer.start_span(
@@ -110,10 +114,11 @@ defmodule OpenTelemetry.Tracer do
     thread_id_key = Conventions.thread_id()
 
     quote do
-      code_attrs = unquote(code_attrs)
+      code_attrs =
+        Map.put(unquote(code_attrs), unquote(thread_id_key), :erlang.system_info(:scheduler_id))
+
       start_opts =
         Map.new(unquote(start_opts))
-        |> Map.put(unquote(thread_id_key), :erlang.system_info(:scheduler_id))
         |> Map.update(:attributes, code_attrs, &Map.merge(&1, code_attrs))
 
       :otel_tracer.with_span(
@@ -137,10 +142,11 @@ defmodule OpenTelemetry.Tracer do
     thread_id_key = Conventions.thread_id()
 
     quote do
-      code_attrs = unquote(code_attrs)
+      code_attrs =
+        Map.put(unquote(code_attrs), unquote(thread_id_key), :erlang.system_info(:scheduler_id))
+
       start_opts =
         Map.new(unquote(start_opts))
-        |> Map.put(unquote(thread_id_key), :erlang.system_info(:scheduler_id))
         |> Map.update(:attributes, code_attrs, &Map.merge(&1, code_attrs))
 
       :otel_tracer.with_span(
