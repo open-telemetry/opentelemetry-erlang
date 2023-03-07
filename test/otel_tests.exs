@@ -48,7 +48,7 @@ defmodule OtelTests do
     assert Map.get(attrs, :"code.function") |> String.starts_with?("test ")
     assert Map.get(attrs, :"code.lineno") |> is_integer()
     assert Map.get(attrs, :"code.namespace") == __MODULE__
-    assert Map.get(attrs, :"thread.id") |> is_integer()
+    assert Map.get(attrs, :"thread.id") == :erlang.system_info(:scheduler_id)
     assert Map.get(attrs, "attr-1") == "value-1"
     assert Map.get(attrs, "attr-2") == "value-2"
   end
@@ -76,7 +76,7 @@ defmodule OtelTests do
     assert Map.get(attrs, :"code.function") |> String.starts_with?("test ")
     assert Map.get(attrs, :"code.lineno") |> is_integer()
     assert Map.get(attrs, :"code.namespace") == __MODULE__
-    assert Map.get(attrs, :"thread.id") |> is_integer()
+    assert Map.get(attrs, :"thread.id") == :erlang.system_info(:scheduler_id)
     assert Map.get(attrs, "attr-1") == "value-1"
     assert Map.get(attrs, "attr-2") == "value-2"
   end
@@ -98,7 +98,7 @@ defmodule OtelTests do
     assert Map.get(attrs, :"code.function") |> String.starts_with?("test ")
     assert Map.get(attrs, :"code.lineno") |> is_integer()
     assert Map.get(attrs, :"code.namespace") == __MODULE__
-    assert Map.get(attrs, :"thread.id") |> is_integer()
+    assert Map.get(attrs, :"thread.id") == :erlang.system_info(:scheduler_id)
     assert Map.get(attrs, "attr-1") == "value-1"
     assert Map.get(attrs, "attr-2") == "value-2"
   end
@@ -220,7 +220,7 @@ defmodule OtelTests do
     assert Map.get(attrs, :"code.function") |> String.starts_with?("test ")
     assert Map.get(attrs, :"code.lineno") |> is_integer()
     assert Map.get(attrs, :"code.namespace") == __MODULE__
-    assert Map.get(attrs, :"thread.id") |> is_integer()
+    assert Map.get(attrs, :"thread.id") == :erlang.system_info(:scheduler_id)
     assert Map.get(attrs, "attr-1") == "value-1"
     assert Map.get(attrs, "attr-2") == "value-2"
 
