@@ -24,6 +24,5 @@ You can then use the macros for the attribute keys:
 You could also use `OpenTelemetry.SemanticConventions.Logs`, `OpenTelemetry.SemanticConventions.Resource` or
 `OpenTelemetry.SemanticConventions.Trace` modules.
 
-    iex> require OpenTelemetry.SemanticConventions.Logs
-    ...> OpenTelemetry.SemanticConventions.Logs.event_name()
+    iex> OpenTelemetry.SemanticConventions.Logs.event_name()
     :"event.name"
