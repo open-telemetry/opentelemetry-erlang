@@ -15,6 +15,9 @@ defmodule OtelTests do
   @fields Record.extract(:span_ctx, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
   Record.defrecordp(:span_ctx, @fields)
 
+  @fields Record.extract(:attributes, from_lib: "opentelemetry/src/otel_attributes.erl")
+  Record.defrecordp(:attributes, @fields)
+
   setup do
     Application.load(:opentelemetry)
 
@@ -36,14 +39,18 @@ defmodule OtelTests do
       Tracer.set_attributes([{"attr-2", "value-2"}])
     end
 
-    attributes =
-      :otel_attributes.new([{"attr-1", "value-1"}, {"attr-2", "value-2"}], 128, :infinity)
+    assert_receive {:span, span_record}
 
-    assert_receive {:span,
-                    span(
-                      name: "span-1",
-                      attributes: ^attributes
-                    )}
+    span(name: "span-1", attributes: attribute_record) = span_record
+    attrs = attributes(attribute_record, :map)
+
+    assert Map.get(attrs, :"code.filepath") |> String.ends_with?("otel_tests.exs")
+    assert Map.get(attrs, :"code.function") |> String.starts_with?("test ")
+    assert Map.get(attrs, :"code.lineno") |> is_integer()
+    assert Map.get(attrs, :"code.namespace") == __MODULE__
+    assert Map.get(attrs, :"thread.id") |> is_integer()
+    assert Map.get(attrs, "attr-1") == "value-1"
+    assert Map.get(attrs, "attr-2") == "value-2"
   end
 
   test "use Tracer to start a Span as currently active with an explicit parent" do
@@ -57,23 +64,21 @@ defmodule OtelTests do
 
     span_ctx(span_id: parent_span_id) = Span.end_span(s1)
 
-    attributes = :otel_attributes.new([], 128, :infinity)
+    assert_receive {:span, span(name: "span-1")}
+    assert_receive {:span, span2}
 
-    assert_receive {:span,
-                    span(
-                      name: "span-1",
-                      attributes: ^attributes
-                    )}
+    assert span(span2, :name) == "span-2"
+    assert span(span2, :parent_span_id) == parent_span_id
 
-    attributes =
-      :otel_attributes.new([{"attr-1", "value-1"}, {"attr-2", "value-2"}], 128, :infinity)
+    attributes(map: attrs) = span(span2, :attributes)
 
-    assert_receive {:span,
-                    span(
-                      name: "span-2",
-                      parent_span_id: ^parent_span_id,
-                      attributes: ^attributes
-                    )}
+    assert Map.get(attrs, :"code.filepath") |> String.ends_with?("otel_tests.exs")
+    assert Map.get(attrs, :"code.function") |> String.starts_with?("test ")
+    assert Map.get(attrs, :"code.lineno") |> is_integer()
+    assert Map.get(attrs, :"code.namespace") == __MODULE__
+    assert Map.get(attrs, :"thread.id") |> is_integer()
+    assert Map.get(attrs, "attr-1") == "value-1"
+    assert Map.get(attrs, "attr-2") == "value-2"
   end
 
   test "use Span to set attributes" do
@@ -83,14 +88,19 @@ defmodule OtelTests do
 
     assert span_ctx() = Span.end_span(s)
 
-    attributes =
-      :otel_attributes.new([{"attr-1", "value-1"}, {"attr-2", "value-2"}], 128, :infinity)
+    assert_receive {:span, span2}
 
-    assert_receive {:span,
-                    span(
-                      name: "span-2",
-                      attributes: ^attributes
-                    )}
+    assert span(span2, :name) == "span-2"
+
+    attributes(map: attrs) = span(span2, :attributes)
+
+    assert Map.get(attrs, :"code.filepath") |> String.ends_with?("otel_tests.exs")
+    assert Map.get(attrs, :"code.function") |> String.starts_with?("test ")
+    assert Map.get(attrs, :"code.lineno") |> is_integer()
+    assert Map.get(attrs, :"code.namespace") == __MODULE__
+    assert Map.get(attrs, :"thread.id") |> is_integer()
+    assert Map.get(attrs, "attr-1") == "value-1"
+    assert Map.get(attrs, "attr-2") == "value-2"
   end
 
   test "create child Span in Task" do
@@ -197,15 +207,22 @@ defmodule OtelTests do
     assert span_ctx() = Span.end_span(s2)
     assert span_ctx() = Span.end_span(s3)
 
-    attributes =
-      :otel_attributes.new([{"attr-1", "value-1"}, {"attr-2", "value-2"}], 128, :infinity)
-
     assert_receive {:span,
                     span(
                       name: "span-1",
                       parent_span_id: :undefined,
-                      attributes: ^attributes
+                      attributes: attribute_record
                     )}
+
+    attrs = attributes(attribute_record, :map)
+
+    assert Map.get(attrs, :"code.filepath") |> String.ends_with?("otel_tests.exs")
+    assert Map.get(attrs, :"code.function") |> String.starts_with?("test ")
+    assert Map.get(attrs, :"code.lineno") |> is_integer()
+    assert Map.get(attrs, :"code.namespace") == __MODULE__
+    assert Map.get(attrs, :"thread.id") |> is_integer()
+    assert Map.get(attrs, "attr-1") == "value-1"
+    assert Map.get(attrs, "attr-2") == "value-2"
 
     assert_receive {:span,
                     span(
@@ -241,9 +258,9 @@ defmodule OtelTests do
         attributes =
           :otel_attributes.new(
             [
-              {"exception.type", "Elixir.RuntimeError"},
-              {"exception.message", "my error message"},
-              {"exception.stacktrace", stacktrace}
+              {:"exception.type", "Elixir.RuntimeError"},
+              {:"exception.message", "my error message"},
+              {:"exception.stacktrace", stacktrace}
             ],
             128,
             :infinity
