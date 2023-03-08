@@ -390,7 +390,10 @@ handle_measurement(Meter, Name, Number, Attributes, ViewAggregationsTab, Metrics
 
 update_aggregations(Value, Attributes, ViewAggregations, MetricsTab) ->
     lists:foreach(fun(ViewAggregation=#view_aggregation{}) ->
-                          otel_aggregation:maybe_init_aggregate(MetricsTab, ViewAggregation, Value, Attributes);
+                          otel_aggregation:maybe_init_aggregate(MetricsTab,
+                                                                ViewAggregation,
+                                                                Value,
+                                                                Attributes);
                      (_) ->
                           ok
                   end, ViewAggregations).
@@ -400,6 +403,18 @@ per_reader_aggregations(Reader, Instrument, ViewAggregations) ->
     [view_aggregation_for_reader(Instrument, ViewAggregation, View, Reader)
      || {View, ViewAggregation} <- ViewAggregations].
 
+view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, View=#view{attribute_keys=AttributeKeys},
+                            Reader=#reader{id=Id,
+                                           default_temporality_mapping=ReaderTemporalityMapping}) ->
+    AggregationModule = aggregation_module(Instrument, View, Reader),
+    Temporality = maps:get(Kind, ReaderTemporalityMapping, ?AGGREGATION_TEMPORALITY_UNSPECIFIED),
+
+    ViewAggregation#view_aggregation{
+      reader=Id,
+      attribute_keys=AttributeKeys,
+      aggregation_module=AggregationModule,
+      aggregation_options=#{},
+      temporality=Temporality};
 view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, View,
                             Reader=#reader{id=Id,
                                            default_temporality_mapping=ReaderTemporalityMapping}) ->
@@ -408,9 +423,11 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, 
 
     ViewAggregation#view_aggregation{
       reader=Id,
+      attribute_keys=undefined,
       aggregation_module=AggregationModule,
       aggregation_options=#{},
       temporality=Temporality}.
+
 
 %% no aggregation defined for the View, so get the aggregation from the Reader
 %% the Reader's mapping of Instrument Kind to Aggregation was merged with the
