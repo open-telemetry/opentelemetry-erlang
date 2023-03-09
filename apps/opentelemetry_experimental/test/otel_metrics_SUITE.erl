@@ -81,7 +81,8 @@ all() ->
     [default_view, provider_test, view_creation_test, counter_add, multiple_readers,
      explicit_histograms, delta_explicit_histograms, delta_counter, cumulative_counter,
      kill_reader, kill_server, observable_counter, observable_updown_counter, observable_gauge,
-     multi_instrument_callback, using_macros, float_counter, float_updown_counter, float_histogram].
+     multi_instrument_callback, using_macros, float_counter, float_updown_counter, float_histogram,
+     sync_filtered_attributes, async_filtered_attributes].
 
 init_per_suite(Config) ->
     application:load(opentelemetry_experimental),
@@ -920,5 +921,78 @@ multi_instrument_callback(_Config) ->
 
     ?assertSumReceive(CounterName, CounterDesc, Unit, [{4, #{<<"a">> => <<"b">>}}]),
     ?assertLastValueReceive(GaugeName, GaugeDesc, Unit, [{5, #{<<"a">> => <<"b">>}}]),
+
+    ok.
+
+sync_filtered_attributes(_Config) ->
+    Meter = opentelemetry_experimental:get_meter(?MODULE),
+
+    CounterName = a_counter,
+    CounterDesc = <<"counter description">>,
+    CounterUnit = kb,
+
+    Counter = otel_counter:create(Meter, CounterName,
+                                  #{description => CounterDesc,
+                                    unit => CounterUnit}),
+    ?assertMatch(#instrument{meter = {otel_meter_default, _},
+                             module = otel_meter_default,
+                             name = CounterName,
+                             description = CounterDesc,
+                             kind = counter,
+                             unit = CounterUnit}, Counter),
+
+    ?assert(otel_meter_server:add_view(view_a, #{instrument_name => CounterName},
+                                       #{aggregation_module => otel_aggregation_sum,
+                                         attribute_keys => [a, b]})),
+
+    ?assertEqual(ok, otel_counter:add(Counter, 2, #{a => 1, b => 2, c => 3})),
+    ?assertEqual(ok, otel_counter:add(Counter, 5, #{a => 1, b => 2})),
+    ?assertEqual(ok, ?counter_add(CounterName, 5, #{a => 1, b => 2, c => 3})),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(CounterName, CounterDesc, kb,
+                      [{7, #{a => 1, b => 2, c => 3}}, {5, #{a => 1, b => 2}}]),
+    ?assertSumReceive(view_a, CounterDesc, kb,
+                      [{12, #{a => 1, b => 2}}]),
+
+
+    ok.
+
+async_filtered_attributes(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = a_observable_counter,
+    CounterDesc = <<"observable counter description">>,
+    CounterUnit = kb,
+
+    ?assert(otel_meter_server:add_view(#{instrument_name => CounterName},
+                                       #{aggregation_module => otel_aggregation_sum,
+                                         attribute_keys => [a]})),
+
+    Counter = otel_meter:create_observable_counter(Meter, CounterName,
+                                                   fun(_Args) ->
+                                                           MeasurementAttributes = #{a => b,
+                                                                                     c => d},
+                                                           {4, MeasurementAttributes}
+                                                   end,
+                                                   [],
+                                                   #{description => CounterDesc,
+                                                     unit => CounterUnit}),
+
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = CounterName,
+                             description = CounterDesc,
+                             kind = observable_counter,
+                             unit = CounterUnit,
+                             callback=_}, Counter),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(CounterName, <<"observable counter description">>, kb, [{4, #{a => b}}]),
 
     ok.

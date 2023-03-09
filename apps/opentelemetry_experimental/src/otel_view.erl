@@ -61,7 +61,7 @@ new(Criteria, Config) ->
     #view{name=CriteriaInstrumentName,
           instrument_matchspec=Matchspec,
           description=maps:get(description, Config, undefined),
-          attribute_keys=maps:get(attribute_keys, Config, []),
+          attribute_keys=maps:get(attribute_keys, Config, undefined),
           aggregation_module=maps:get(aggregation_module, Config, undefined),
           aggregation_options=maps:get(aggregation_options, Config, #{})}.
 
@@ -84,6 +84,7 @@ match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
     Scope = otel_meter:scope(Meter),
     case lists:filtermap(fun(View=#view{name=ViewName,
                                         description=ViewDescription,
+                                        attribute_keys=AttributeKeys,
                                         aggregation_options=AggregationOptions,
                                         instrument_matchspec=Matchspec}) ->
                                  case ets:match_spec_run([Instrument], Matchspec) of
@@ -96,6 +97,7 @@ match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                                                          instrument=Instrument,
                                                                          temporality=Temporality,
                                                                          is_monotonic=IsMonotonic,
+                                                                         attribute_keys=AttributeKeys,
                                                                          aggregation_options=AggregationOptions,
                                                                          description=value_or(ViewDescription,
                                                                                               Description)
@@ -108,6 +110,7 @@ match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                            instrument=Instrument,
                                            temporality=Temporality,
                                            is_monotonic=IsMonotonic,
+                                           attribute_keys=undefined,
                                            aggregation_options=#{},
                                            description=Description}}];
         Aggs ->

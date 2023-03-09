@@ -2,7 +2,7 @@
         {name                    :: otel_instrument:name(),
          instrument_matchspec    :: ets:compiled_match_spec(),
          description             :: unicode:unicode_binary() | undefined,
-         attribute_keys          :: [opentelemetry:attribute_key()],
+         attribute_keys          :: [opentelemetry:attribute_key()] | undefined,
          aggregation_module      :: module(),
          aggregation_options=#{} :: map()}).
 
@@ -12,6 +12,8 @@
          scope :: opentelemetry:instrumentation_scope(),
          instrument :: otel_instrument:t(),
          reader :: reference() | undefined,
+
+         attribute_keys :: [opentelemetry:attribute_key()] | undefined,
 
          aggregation_module :: module(),
          aggregation_options :: map(),

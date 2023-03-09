@@ -49,18 +49,25 @@
       ViewAggregation :: #view_aggregation{},
       CollectionStartTime :: integer().
 
-maybe_init_aggregate(MetricsTab, ViewAggregation=#view_aggregation{aggregation_module=AggregationModule},
+maybe_init_aggregate(MetricsTab, ViewAggregation=#view_aggregation{aggregation_module=AggregationModule,
+                                                                   attribute_keys=AttributeKeys},
                      Value, Attributes) ->
-    case AggregationModule:aggregate(MetricsTab, ViewAggregation, Value, Attributes) of
+    FilteredAttributes = filter_attributes(AttributeKeys, Attributes),
+    case AggregationModule:aggregate(MetricsTab, ViewAggregation, Value, FilteredAttributes) of
         true ->
             ok;
         false ->
             %% entry doesn't exist, create it and rerun the aggregate function
-            Metric = AggregationModule:init(ViewAggregation, Attributes),
+            Metric = AggregationModule:init(ViewAggregation, FilteredAttributes),
             %% don't overwrite a possible concurrent measurement doing the same
             _ = ets:insert_new(MetricsTab, Metric),
-            AggregationModule:aggregate(MetricsTab, ViewAggregation, Value, Attributes)
+            AggregationModule:aggregate(MetricsTab, ViewAggregation, Value, FilteredAttributes)
     end.
+
+filter_attributes(undefined, Attributes) ->
+    Attributes;
+filter_attributes(Keys, Attributes) ->
+    maps:with(Keys, Attributes).
 
 -spec default_mapping() -> #{otel_instrument:kind() => module()}.
 default_mapping() ->
