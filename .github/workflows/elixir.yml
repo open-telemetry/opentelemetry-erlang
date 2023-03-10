@@ -64,7 +64,6 @@ jobs:
         elixir_version: ['1.14', '1.13.4']
         rebar3_version: ['3.17.0']
         os: [ubuntu-20.04]
-        version-type: 'strict'
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir_version }}
