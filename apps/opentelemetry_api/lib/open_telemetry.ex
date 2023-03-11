@@ -98,10 +98,11 @@ defmodule OpenTelemetry do
 
   @typedoc """
   An optional final status for this span. Semantically when Status
-  wasn't set it means span ended without errors and assume `unset`.
+  wasn't set it means span ended without errors and assume `:unset`.
 
-  Application developers may set the status as `ok` when the operation
-  has been validated to have completed successfully.
+  Application developers may set the status as `:ok` when the operation
+  has been validated to have completed successfully, or `:error` when
+  the operation contains an error.
   """
   @type status() :: :opentelemetry.status()
 
