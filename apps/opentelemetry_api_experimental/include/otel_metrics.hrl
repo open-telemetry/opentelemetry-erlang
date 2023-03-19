@@ -4,8 +4,13 @@
                      description   :: otel_instrument:description(),
                      kind          :: otel_instrument:kind(),
                      unit          :: otel_instrument:unit() | undefined,
+                     temporality   :: otel_instrument:temporality(),
                      callback      :: otel_instrument:callback() | undefined,
                      callback_args :: term() | undefined}).
+
+-define(TEMPORALITY_DELTA, temporality_delta).
+-define(TEMPORALITY_CUMULATIVE, temporality_cumulative).
+-define(TEMPORALITY_UNSPECIFIED, temporality_unspecified).
 
 -define(KIND_COUNTER, counter).
 -define(KIND_OBSERVABLE_COUNTER, observable_counter).

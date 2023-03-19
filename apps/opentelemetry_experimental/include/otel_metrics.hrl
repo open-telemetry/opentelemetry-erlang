@@ -1,9 +1,5 @@
 -define(DEFAULT_METER_PROVIDER, otel_meter_provider_default).
 
--define(AGGREGATION_TEMPORALITY_DELTA, aggregation_temporality_delta).
--define(AGGREGATION_TEMPORALITY_CUMULATIVE, aggregation_temporality_cumulative).
--define(AGGREGATION_TEMPORALITY_UNSPECIFIED, aggregation_temporality_unspecified).
-
 -record(meter,
         {
          module                  :: module() | '_',
@@ -30,6 +26,7 @@
          start_time_unix_nano :: integer() | '_' | '$1' | {const, integer()},
          last_start_time_unix_nano :: integer() | undefined | '$5',
          checkpoint :: number() | undefined | '_' | '$2' | '$3',
+         previous_checkpoint :: number() | undefined | '_' | '$5',
          int_value :: number() | undefined | '$3' | {'+', '$3', {const, number()}},
          float_value :: number() | undefined | '$4' | {'+', '$4', {const, number()}}
         }).
@@ -83,7 +80,7 @@
 -record(sum,
         {
          datapoints :: [#datapoint{}],
-         aggregation_temporality :: otel_aggregation:temporality(),
+         aggregation_temporality :: otel_instrument:temporality(),
          is_monotonic :: boolean()
         }).
 
@@ -110,7 +107,7 @@
 -record(histogram,
        {
         datapoints :: [#histogram_datapoint{}],
-        aggregation_temporality :: otel_aggregation:temporality()
+        aggregation_temporality :: otel_instrument:temporality()
        }).
 
 -record(metric,
