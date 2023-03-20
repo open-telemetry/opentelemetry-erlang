@@ -392,7 +392,7 @@ export_spans(#data{exporter=Exporter,
                                   Table1 ->
                                       Table2;
                                   Table2 ->
-                                      Table2
+                                      Table1
                               end,
 
             %% an atom is a single word so this does not trigger a global GC
