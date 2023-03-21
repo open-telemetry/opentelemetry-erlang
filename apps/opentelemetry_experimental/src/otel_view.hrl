@@ -8,7 +8,7 @@
 
 -record(view_aggregation,
         {%% name of the view or instrument if the view has no name
-         name ::  atom(),
+         name :: atom(),
          scope :: opentelemetry:instrumentation_scope(),
          instrument :: otel_instrument:t(),
          reader :: reference() | undefined,
@@ -18,7 +18,7 @@
          aggregation_module :: module(),
          aggregation_options :: map(),
 
-         temporality :: otel_aggregation:temporality(),
+         temporality :: otel_instrument:temporality(),
          is_monotonic :: boolean(),
 
          %% description from the view or the instrument if the view has no name

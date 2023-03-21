@@ -82,7 +82,8 @@ all() ->
      explicit_histograms, delta_explicit_histograms, delta_counter, cumulative_counter,
      kill_reader, kill_server, observable_counter, observable_updown_counter, observable_gauge,
      multi_instrument_callback, using_macros, float_counter, float_updown_counter, float_histogram,
-     sync_filtered_attributes, async_filtered_attributes].
+     sync_filtered_attributes, async_filtered_attributes, delta_observable_counter
+    ].
 
 init_per_suite(Config) ->
     application:load(opentelemetry_experimental),
@@ -136,7 +137,7 @@ init_per_testcase(delta_counter, Config) ->
 
     Config;
 init_per_testcase(cumulative_counter, Config) ->
-    CumulativeCounterTemporality = #{?KIND_COUNTER =>?AGGREGATION_TEMPORALITY_CUMULATIVE},
+    CumulativeCounterTemporality = #{?KIND_COUNTER =>?TEMPORALITY_CUMULATIVE},
     application:load(opentelemetry_experimental),
     ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
                                                                      config => #{exporter => {otel_metric_exporter_pid, self()},
@@ -147,12 +148,23 @@ init_per_testcase(cumulative_counter, Config) ->
 
     Config;
 init_per_testcase(delta_explicit_histograms, Config) ->
-    DeltaHistogramTemporality = #{?KIND_HISTOGRAM =>?AGGREGATION_TEMPORALITY_DELTA},
+    DeltaHistogramTemporality = #{?KIND_HISTOGRAM =>?TEMPORALITY_DELTA},
     application:load(opentelemetry_experimental),
     ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
                                                                      config => #{exporter => {otel_metric_exporter_pid, self()},
                                                                                  default_temporality_mapping =>
                                                                                      DeltaHistogramTemporality}}]),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
+init_per_testcase(delta_observable_counter, Config) ->
+    DeltaObservableCounterTemporality = #{?KIND_OBSERVABLE_COUNTER =>?TEMPORALITY_DELTA},
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping =>
+                                                                                     DeltaObservableCounterTemporality}}]),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
@@ -620,11 +632,11 @@ delta_counter(_Config) ->
     ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
 
     ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 7, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Counter, 8, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
-    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{12, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{13, #{<<"c">> => <<"b">>}}]),
 
     ok.
 
@@ -814,6 +826,10 @@ observable_counter(_Config) ->
 
     ?assertSumReceive(CounterName, <<"observable counter description">>, kb, [{4, #{<<"a">> => <<"b">>}}]),
 
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(CounterName, <<"observable counter description">>, kb, [{4, #{<<"a">> => <<"b">>}}]),
+
     ok.
 
 observable_updown_counter(_Config) ->
@@ -994,5 +1010,44 @@ async_filtered_attributes(_Config) ->
     otel_meter_server:force_flush(),
 
     ?assertSumReceive(CounterName, <<"observable counter description">>, kb, [{4, #{a => b}}]),
+
+    ok.
+
+delta_observable_counter(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = a_observable_counter,
+    CounterDesc = <<"observable counter description">>,
+    CounterUnit = kb,
+
+    ?assert(otel_meter_server:add_view(#{instrument_name => CounterName}, #{aggregation_module => otel_aggregation_sum})),
+
+    Counter = otel_meter:create_observable_counter(Meter, CounterName,
+                                                   fun(_Args) ->
+                                                           MeasurementAttributes = #{<<"a">> => <<"b">>},
+                                                           {4, MeasurementAttributes}
+                                                   end,
+                                                   [],
+                                                   #{description => CounterDesc,
+                                                     unit => CounterUnit}),
+
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = CounterName,
+                             description = CounterDesc,
+                             kind = observable_counter,
+                             unit = CounterUnit,
+                             callback=_}, Counter),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(CounterName, <<"observable counter description">>, kb, [{4, #{<<"a">> => <<"b">>}}]),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(CounterName, <<"observable counter description">>, kb, [{0, #{<<"a">> => <<"b">>}}]),
 
     ok.
