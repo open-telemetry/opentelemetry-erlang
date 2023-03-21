@@ -220,10 +220,8 @@ handle_call({add_instrument, Instrument}, _From, State=#state{readers=Readers,
     _ = add_instrument_(InstrumentsTab, CallbacksTab, ViewAggregationsTab, Instrument, Views, Readers),
     {reply, ok, State};
 handle_call({register_callback, Instruments, Callback, CallbackArgs}, _From, State=#state{readers=Readers,
-                                                                                          views=Views,
-                                                                                          callbacks_tab=CallbacksTab,
-                                                                                          view_aggregations_tab=ViewAggregationsTab}) ->
-    _ = register_callback_(CallbacksTab, ViewAggregationsTab, Instruments, Callback, CallbackArgs, Views, Readers),
+                                                                                          callbacks_tab=CallbacksTab}) ->
+    _ = register_callback_(CallbacksTab, Instruments, Callback, CallbackArgs, Readers),
     {reply, ok, State};
 handle_call({get_meter, Name, Vsn, SchemaUrl}, _From, State=#state{shared_meter=Meter}) ->
     Scope = opentelemetry:instrumentation_scope(Name, Vsn, SchemaUrl),
@@ -313,7 +311,7 @@ add_instrument_(InstrumentsTab, CallbacksTab, ViewAggregationsTab, Instrument=#i
                                       {undefined, _} ->
                                           ok;
                                       {Callback, CallbackArgs} ->
-                                          ets:insert(CallbacksTab, {ReaderId, {Callback, CallbackArgs, [Instrument]}})
+                                          ets:insert(CallbacksTab, {ReaderId, {Callback, CallbackArgs, Instrument}})
                                   end
                           end, Readers);
         false ->
@@ -339,20 +337,15 @@ update_view_aggregations_(Instrument=#instrument{meter=Meter,
                               {undefined, _} ->
                                   ok;
                               {Callback, CallbackArgs} ->
-                                  ets:insert(CallbacksTab, {ReaderId, {Callback, CallbackArgs, [Instrument]}})
+                                  ets:insert(CallbacksTab, {ReaderId, {Callback, CallbackArgs, Instrument}})
                           end
                   end, Readers).
 
 %% Match the Instrument to views and then store a per-Reader aggregation for the View
-register_callback_(CallbacksTab, ViewAggregationsTab, Instruments, Callback, CallbackArgs, Views, Readers) ->
-    lists:foreach(fun(Instrument) ->
-                          ViewMatches = otel_view:match_instrument_to_views(Instrument, Views),
-                          lists:map(fun(Reader=#reader{id=ReaderId}) ->
-                                            Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
-                                            [true = ets:insert(ViewAggregationsTab, {Instrument, M}) || M <- Matches],
-                                            ets:insert(CallbacksTab, {ReaderId, {Callback, CallbackArgs, Instruments}})
-                                    end, Readers)
-                  end, Instruments).
+register_callback_(CallbacksTab, Instruments, Callback, CallbackArgs, Readers) ->
+    lists:map(fun(#reader{id=ReaderId}) ->
+                      ets:insert(CallbacksTab, {ReaderId, {Callback, CallbackArgs, Instruments}})
+              end, Readers).
 
 metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) ->
     %% TODO: Uncomment when we can drop OTP-23 support
@@ -407,7 +400,7 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, 
                             Reader=#reader{id=Id,
                                            default_temporality_mapping=ReaderTemporalityMapping}) ->
     AggregationModule = aggregation_module(Instrument, View, Reader),
-    Temporality = maps:get(Kind, ReaderTemporalityMapping, ?AGGREGATION_TEMPORALITY_UNSPECIFIED),
+    Temporality = maps:get(Kind, ReaderTemporalityMapping, ?TEMPORALITY_UNSPECIFIED),
 
     ViewAggregation#view_aggregation{
       reader=Id,
@@ -419,7 +412,7 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, 
                             Reader=#reader{id=Id,
                                            default_temporality_mapping=ReaderTemporalityMapping}) ->
     AggregationModule = aggregation_module(Instrument, View, Reader),
-    Temporality = maps:get(Kind, ReaderTemporalityMapping, ?AGGREGATION_TEMPORALITY_UNSPECIFIED),
+    Temporality = maps:get(Kind, ReaderTemporalityMapping, ?TEMPORALITY_UNSPECIFIED),
 
     ViewAggregation#view_aggregation{
       reader=Id,
