@@ -169,9 +169,7 @@ code_change(State) ->
 
 -spec collect_(any(), any(), any(), reference()) -> [any()].
 collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId) ->
-    Results = run_callbacks(ReaderId, CallbacksTab),
-    %% take the results of running each callback and aggregate the values
-    _ = handle_callback_results(Results, ViewAggregationTab, MetricsTab, ReaderId),
+    _ = run_callbacks(ReaderId, CallbacksTab, ViewAggregationTab, MetricsTab),
 
     %% Need to be able to efficiently get all from VIEW_AGGREGATIONS_TAB that apply to this reader
 
@@ -192,6 +190,15 @@ collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId) ->
     CollectionStartTime = erlang:system_time(nanosecond),
     collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, ReaderId, [], Key).
 
+run_callbacks(ReaderId, CallbacksTab, ViewAggregationTab, MetricsTab) ->
+    try ets:lookup_element(CallbacksTab, ReaderId, 2) of
+        Callbacks ->
+            otel_observables:run_callbacks(Callbacks, ReaderId, ViewAggregationTab, MetricsTab)
+    catch
+        error:badarg ->
+            []
+    end.
+
 collect_(_CallbacksTab, _ViewAggregationTab, _MetricsTab, _CollectionStartTime, _ReaderId, MetricsAcc, '$end_of_table') ->
     MetricsAcc;
 collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, ReaderId, MetricsAcc, Key) ->
@@ -202,73 +209,6 @@ collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, Read
                                 ReaderId,
                                 ViewAggregations) ++ MetricsAcc,
              ets:next(ViewAggregationTab, Key)).
-
-%% call each callback and associate the result with the Instruments it observes
-run_callbacks(ReaderId, CallbacksTab) ->
-    try ets:lookup_element(CallbacksTab, ReaderId, 2) of
-        Callbacks ->
-            lists:map(fun({Callback, CallbackArgs, Instruments}) ->
-                              {Instruments, Callback(CallbackArgs)}
-                      end, Callbacks)
-    catch
-        error:badarg ->
-            []
-    end.
-
-handle_callback_results(Results, ViewAggregationTab, MetricsTab, ReaderId) ->
-    lists:foldl(fun({Instruments, Result}, Acc) when is_tuple(Result) ->
-                        handle_instrument_observation(Result,
-                                                      Instruments,
-                                                      ViewAggregationTab,
-                                                      MetricsTab,
-                                                      ReaderId)
-                            ++ Acc;
-                   ({Instruments, Result}, Acc) when is_list(Result) ->
-                        [handle_instrument_observation(R,
-                                                       Instruments,
-                                                       ViewAggregationTab,
-                                                       MetricsTab,
-                                                       ReaderId)
-                         || R <- Result] ++ Acc;
-                   (_, Acc) ->
-                        ?LOG_DEBUG("Return of metric callback must be a tuple or a list"),
-                        Acc
-                end, [], Results).
-
-%% single instrument callbacks return a 2-tuple of {number(), opentelemetry:attributes_map()}
-handle_instrument_observation({Number, Attributes}, [#instrument{meter=Meter,
-                                                                 name=Name}],
-                              ViewAggregationTab, MetricsTab, _ReaderId)
-  when is_number(Number) ->
-    try ets:lookup_element(ViewAggregationTab, {Meter, Name}, 2) of
-        ViewAggregations ->
-            [otel_aggregation:maybe_init_aggregate(MetricsTab, ViewAggregation, Number, Attributes) || #view_aggregation{}=ViewAggregation <- ViewAggregations]
-    catch
-        error:badarg ->
-            %% no Views for this Instrument, so nothing to do
-            []
-    end;
-%% multi-instrument callbacks return a 3-tuple of {otel_instrument:name(), number(), opentelemetry:attributes_map()}
-handle_instrument_observation({InstrumentName, Number, Attributes}, Instruments, ViewAggregationTab, MetricsTab, ReaderId)
-  when is_atom(InstrumentName), is_number(Number) ->
-    case lists:keyfind(InstrumentName, #instrument.name, Instruments) of
-        false ->
-            ?LOG_DEBUG("Unknown Instrument ~p used in metric callback", [InstrumentName]),
-            [];
-        #instrument{meter=Meter} ->
-            try ets:lookup_element(ViewAggregationTab, {Meter, InstrumentName}, 2) of
-                ViewAggregations ->
-                    [otel_aggregation:maybe_init_aggregate(MetricsTab, ViewAggregation, Number, Attributes) ||
-                        #view_aggregation{reader=Id}=ViewAggregation <- ViewAggregations, Id =:= ReaderId]
-            catch
-                error:badarg ->
-                    %% no Views for this Instrument, so nothing to do
-                    []
-            end
-    end;
-handle_instrument_observation(_, _, _, _, _) ->
-    ?LOG_DEBUG("Metric callback return must be of type {number(), map()} or {atom(), number(), map()}", []),
-    [].
 
 checkpoint_metrics(MetricsTab, CollectionStartTime, Id, ViewAggregations) ->
     lists:foldl(fun(#view_aggregation{aggregation_module=otel_aggregation_drop}, Acc) ->
