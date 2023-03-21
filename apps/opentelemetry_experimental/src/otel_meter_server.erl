@@ -311,7 +311,7 @@ add_instrument_(InstrumentsTab, CallbacksTab, ViewAggregationsTab, Instrument=#i
                                       {undefined, _} ->
                                           ok;
                                       {Callback, CallbackArgs} ->
-                                          ets:insert(CallbacksTab, {ReaderId, {Callback, CallbackArgs, [Instrument]}})
+                                          ets:insert(CallbacksTab, {ReaderId, {Callback, CallbackArgs, Instrument}})
                                   end
                           end, Readers);
         false ->
@@ -337,7 +337,7 @@ update_view_aggregations_(Instrument=#instrument{meter=Meter,
                               {undefined, _} ->
                                   ok;
                               {Callback, CallbackArgs} ->
-                                  ets:insert(CallbacksTab, {ReaderId, {Callback, CallbackArgs, [Instrument]}})
+                                  ets:insert(CallbacksTab, {ReaderId, {Callback, CallbackArgs, Instrument}})
                           end
                   end, Readers).
 
