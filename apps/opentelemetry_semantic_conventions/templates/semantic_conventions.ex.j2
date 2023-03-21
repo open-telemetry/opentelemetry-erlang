@@ -8,12 +8,11 @@ defmodule OpenTelemetry.SemanticConventions.{{ upFirst(module) }} do
   @doc """
   The schema url for telemetry resources.
 
-      iex> require OpenTelemetry.SemanticConventions.{{ upFirst(module) }}
-      ...> OpenTelemetry.SemanticConventions.{{ upFirst(module) }}.{{ module }}_schema_url()
+      iex> OpenTelemetry.SemanticConventions.{{ upFirst(module) }}.{{ module }}_schema_url()
       "{{ schema_uri }}"
   """
   @spec {{ module }}_schema_url :: String.t()
-  defmacro {{ module }}_schema_url do
+  def {{ module }}_schema_url do
     "{{ schema_uri }}"
   end
 
@@ -27,8 +26,7 @@ defmodule OpenTelemetry.SemanticConventions.{{ upFirst(module) }} do
   {{attribute.note | to_doc_brief | regex_replace(pattern="\n", replace="\n  ") }}
   {%- endif %}
 
-      iex> require OpenTelemetry.SemanticConventions.{{ upFirst(module) }}
-      ...> OpenTelemetry.SemanticConventions.{{ upFirst(module) }}.{{ funcName(attribute.fqn) }}()
+      iex> OpenTelemetry.SemanticConventions.{{ upFirst(module) }}.{{ funcName(attribute.fqn) }}()
       :"{{ attribute.fqn }}"
   """
   {%- if attribute.deprecated %}
@@ -37,7 +35,7 @@ defmodule OpenTelemetry.SemanticConventions.{{ upFirst(module) }} do
   """
   {%- endif %}
   @spec {{ funcName(attribute.fqn) }} :: :"{{ attribute.fqn }}"
-  defmacro {{ funcName(attribute.fqn) }} do
+  def {{ funcName(attribute.fqn) }} do
     :"{{ attribute.fqn }}"
   end
 
