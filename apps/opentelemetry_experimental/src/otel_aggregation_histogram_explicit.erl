@@ -133,7 +133,7 @@ aggregate(Table, #view_aggregation{name=Name,
 -dialyzer({nowarn_function, checkpoint/3}).
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
-                                  temporality=?AGGREGATION_TEMPORALITY_DELTA}, CollectionStartNano) ->
+                                  temporality=?TEMPORALITY_DELTA}, CollectionStartNano) ->
     MS = [{#explicit_histogram_aggregation{key='$1',
                                            start_time_unix_nano='$9',
                                            boundaries='$2',

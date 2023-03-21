@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## SDK 1.3.0 - 2023-03-21
+
+### Fixes
+
+- [Fix swapping exporter
+  tables](https://github.com/open-telemetry/opentelemetry-erlang/pull/550)
+
 ## Exporter 1.4.0 - 2023-02-21
 
 ### Fixes

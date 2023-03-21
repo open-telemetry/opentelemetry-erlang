@@ -34,6 +34,10 @@
 -type callback() :: fun((callback_args()) -> observation() |
                                              [named_observation()]).
 
+-type temporality() :: ?TEMPORALITY_UNSPECIFIED |
+                       ?TEMPORALITY_DELTA |
+                       ?TEMPORALITY_CUMULATIVE.
+
 -type t() :: #instrument{}.
 
 -export_type([t/0,
@@ -41,6 +45,7 @@
               description/0,
               kind/0,
               unit/0,
+              temporality/0,
               callback/0,
               callback_args/0]).
 
@@ -50,6 +55,7 @@ new(Module, Meter, Kind, Name, Description, Unit) ->
                 meter       = Meter,
                 name        = Name,
                 description = Description,
+                temporality = ?TEMPORALITY_DELTA,
                 kind        = Kind,
                 unit        = Unit}.
 
@@ -61,6 +67,7 @@ new(Module, Meter, Kind, Name, Description, Unit, Callback, CallbackArgs) ->
                 description   = Description,
                 kind          = Kind,
                 unit          = Unit,
+                temporality   = ?TEMPORALITY_CUMULATIVE,
                 callback      = Callback,
                 callback_args = CallbackArgs}.
 
