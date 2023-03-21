@@ -29,10 +29,11 @@
                 ?KIND_OBSERVABLE_GAUGE | ?KIND_UPDOWN_COUNTER | ?KIND_OBSERVABLE_UPDOWNCOUNTER.
 -type unit() :: atom(). %% latin1, maximum length of 63 characters
 -type observation() :: {number(), opentelemetry:attributes_map()}.
--type named_observation() :: {name(), number(), opentelemetry:attributes_map()}.
+-type named_observations() :: {name(), [observation()]}.
 -type callback_args() :: term().
--type callback() :: fun((callback_args()) -> observation() |
-                                             [named_observation()]).
+-type callback_result() :: [observation()] |
+                           [named_observations()].
+-type callback() :: fun((callback_args()) -> callback_result()).
 
 -type temporality() :: ?TEMPORALITY_UNSPECIFIED |
                        ?TEMPORALITY_DELTA |
@@ -47,7 +48,8 @@
               unit/0,
               temporality/0,
               callback/0,
-              callback_args/0]).
+              callback_args/0,
+              callback_result/0]).
 
 -spec new(module(), otel_meter:t(), kind(), name(), description(), unit()) -> t().
 new(Module, Meter, Kind, Name, Description, Unit) ->
