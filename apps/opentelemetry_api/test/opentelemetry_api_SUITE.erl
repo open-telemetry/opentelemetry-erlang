@@ -121,7 +121,7 @@ validations(_Config) ->
                   <<"float-list">>,
                   <<"int-list">>,
                   <<"key-1">>,
-                  <<"key-4">>], maps:keys(ProcessedAttributes)),
+                  <<"key-4">>], lists:sort(maps:keys(ProcessedAttributes))),
 
     ?assertMatch([#{name := <<"timed-event-name">>,
                    attributes := ProcessedAttributes},
