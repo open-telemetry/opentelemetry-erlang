@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- [Add source code attributes to Elixir tracer macros](https://github.com/open-telemetry/opentelemetry-erlang/pull/550)
+
 ## SDK 1.3.0 - 2023-03-21
 
 ### Fixes
@@ -57,7 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [Old experimental metrics
   api](https://github.com/open-telemetry/opentelemetry-erlang/pull/479)
-  
+
 ## Experimental SDK 0.1.0 - 2022-10-19
 
 ### Added
@@ -70,12 +72,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Handler](https://github.com/open-telemetry/opentelemetry-erlang/pull/468)
 - [OTLP Metrics
   exporting](https://github.com/open-telemetry/opentelemetry-erlang/pull/456)
-  
+
 ### Fixed
 
 - [Fix OTLP Protocol allowed
-  values](https://github.com/open-telemetry/opentelemetry-erlang/pull/420)  
-  
+  values](https://github.com/open-telemetry/opentelemetry-erlang/pull/420)
+
 ## API 1.1.1 - 2022-10-19
 
 ### Fixed
@@ -88,22 +90,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [Replaced telemetry_library record with library info as resource
   attributes](https://github.com/open-telemetry/opentelemetry-erlang/pull/457)
-  
+
 ## Exporter 1.2.1 - 2022-09-08
 
 ### Fixes
 
 - Gradualizer cleanup
-  
+
 ## Exporter 1.2.0 - 2022-09-08
 
 ### Fixes
 
 - [Fix InstrumentationScope encoding in OTLP
   protobufs](https://github.com/open-telemetry/opentelemetry-erlang/pull/451)
-  
+
 ### Added
-  
+
 - [Exporter now respects top-level `ssl_options` application environment value
   and handles endpoint parse errors](https://github.com/open-telemetry/opentelemetry-erlang/pull/442)
 
@@ -141,7 +143,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   If you were using the record directly, please use the function
   `opentelemetry:instrumentation_scope/3` or
   `opentelemetry:instrumentation_library/3` to create an `instrumentation_scope`
-  record. 
+  record.
 
 ## SDK 1.1.0 - 2022-8-31
 
@@ -273,7 +275,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ordering issues](https://github.com/open-telemetry/opentelemetry-erlang/pull/338)
 - [elixir span docs: fix reference to attributes
   type](https://github.com/open-telemetry/opentelemetry-erlang/pull/336)
-  
+
 ### [API]
 
 #### Fixed
@@ -302,7 +304,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `add_event` function and macros fixed to accept both a map of attributes or a
   list.
-  
+
 ## [API 1.0.0-rc.4] - 2021-12-25
 
 ### Added
@@ -314,9 +316,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configurable limits for the number of Attributes, Events and Links allowed in
   a Span, an Event or a Link -- defaults to 128. The length of each Attribute's
   value can also be limited but has a default of infinity.
-  
+
   Environment variables added to configure the limits:
-  
+
   - `OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT`: Limit on number of Attributes on a Span.
   - `OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT`: Limit length of Attribute values.
   - `OTEL_SPAN_EVENT_COUNT_LIMIT`: Limit number of Events on a Span.
@@ -358,7 +360,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `otel_propagator_trace_context:extract/1` no longer crashes on `undefined`
   header values
-  
+
 ## [API 1.0.0-rc.3.1] - 2021-10-12
 
 ##### Fixed
@@ -380,16 +382,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   application vsn `0.1.0` and also manually register a Tracer named `mod_a` with
   version `1.1.1` then use of macros like `?with_span` will use the `app_a`
   version `0.1.0` Named Tracer and manual use of a Named Tracer like:
-  
+
   ```
   Tracer = opentelemetry:get_tracer(mod_a),
   otel_tracer:with_span(Tracer, span_name, #{}, fun() -> ... end),
   ```
-  
+
   will use Named Tracer `mod_a` with version `1.1.1`. In previous versions after
   registering a Tracer named `mod_a` it would override the `mod_a` pointing to
   the `app_a` Tracer.
-  
+
   Additionally, manual registration of a Named Tracer with the name `app_a` will
   not override the application registered Tracer of `app_a`.
 
@@ -421,7 +423,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     {text_map_injectors, [trace_context, baggage]},
     {text_map_extractors, [b3multi, trace_context, baggage]}
     ```
-    
+
 ##### Fixed
 
 - `b3` propagator renamed `b3multi` to properly convey it is the version of the
