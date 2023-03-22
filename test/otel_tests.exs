@@ -241,9 +241,9 @@ defmodule OtelTests do
         attributes =
           :otel_attributes.new(
             [
-              {"exception.type", "Elixir.RuntimeError"},
-              {"exception.message", "my error message"},
-              {"exception.stacktrace", stacktrace}
+              {:"exception.type", "Elixir.RuntimeError"},
+              {:"exception.message", "my error message"},
+              {:"exception.stacktrace", stacktrace}
             ],
             128,
             :infinity
