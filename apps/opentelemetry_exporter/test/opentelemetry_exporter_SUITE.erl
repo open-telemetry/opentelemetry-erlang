@@ -76,7 +76,7 @@ verify_metrics_export(Config) ->
                        name = <<"sum name">>,
                        description = <<"some sum description">>,
                        unit = kb,
-                       data = #sum{aggregation_temporality = 'TEMPORALITY_CUMULATIVE',
+                       data = #sum{aggregation_temporality = 'AGGREGATION_TEMPORALITY_CUMULATIVE',
                                    is_monotonic=true,
                                    datapoints=[#datapoint{
                                                   attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
@@ -126,7 +126,7 @@ verify_metrics_export(Config) ->
                        name = <<"histogram name">>,
                        description = <<"some histogram description">>,
                        unit = kb,
-                       data = #histogram{aggregation_temporality = 'TEMPORALITY_CUMULATIVE',
+                       data = #histogram{aggregation_temporality = 'AGGREGATION_TEMPORALITY_CUMULATIVE',
                                          datapoints=[#histogram_datapoint{
                                                         attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
                                                                                        128, 128),
