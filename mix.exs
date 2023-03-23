@@ -13,7 +13,8 @@ defmodule OtelElixirTests.MixProject do
     [
       {:opentelemetry, path: "apps/opentelemetry", only: :test, override: true},
       {:opentelemetry_api, path: "apps/opentelemetry_api", only: :test, override: true},
-      {:opentelemetry_semantic_conventions, path: "apps/opentelemetry_semantic_conventions", only: :test, override: true},
+      {:opentelemetry_semantic_conventions,
+       path: "apps/opentelemetry_semantic_conventions", only: :test, override: true}
     ]
   end
 end

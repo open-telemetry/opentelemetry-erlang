@@ -90,13 +90,13 @@ jobs:
         otp_version: ['25.0.3']
         rebar3_version: ['3.19.0']
         os: [ubuntu-20.04]
-        version-type: 'strict'
     steps:
     - uses: actions/checkout@v2
     - uses: erlef/setup-beam@v1
       with:
         otp-version: ${{ matrix.otp_version }}
         rebar3-version: ${{ matrix.rebar3_version }}
+        version-type: 'strict'
     - uses: actions/cache@v2
       name: Cache
       with:
