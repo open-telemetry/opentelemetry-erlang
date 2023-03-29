@@ -5,7 +5,8 @@ defmodule OtelElixirTests.MixProject do
     [
       app: :otel_elixir_tests,
       version: "0.1.0",
-      deps: deps()
+      deps: deps(),
+      elixirc_paths: elixirc_paths(Mix.env())
     ]
   end
 
@@ -17,4 +18,7 @@ defmodule OtelElixirTests.MixProject do
        path: "apps/opentelemetry_semantic_conventions", only: :test, override: true}
     ]
   end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 end

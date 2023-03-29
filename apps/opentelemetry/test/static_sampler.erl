@@ -6,7 +6,7 @@
 
 -include("otel_sampler.hrl").
 
-%% sampler returns the value from the Opts map based on the SpanName or `NOT_RECORD'
+%% sampler returns the value from the Opts map based on the SpanName or `DROP'
 setup(Opts) -> Opts.
 
 description(_) -> <<"StaticSampler">>.

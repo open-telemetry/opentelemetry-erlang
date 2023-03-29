@@ -9,7 +9,8 @@
 -include("otel_sampler.hrl").
 
 all() ->
-    [trace_id_ratio_based, parent_based, get_description, custom_sampler_module].
+    [trace_id_ratio_based, parent_based, get_description, custom_sampler_module,
+     custom_attributes_sampler].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
@@ -276,6 +277,50 @@ custom_sampler_module(_Config) ->
             SpanName,
             undefined,
             [],
+            Opts
+        )
+    ),
+    ok.
+
+custom_attributes_sampler(_Config) ->
+    SpanName = <<"span-name">>,
+    {Sampler, _, Opts} = otel_sampler:new({attributes_sampler, #{'http.target' => <<"/healthcheck">>}}),
+    ?assertMatch(
+        {?DROP, [], []},
+        Sampler:should_sample(
+            otel_ctx:new(),
+            otel_id_generator:generate_trace_id(),
+            [],
+            SpanName,
+            undefined,
+            #{'http.target' => <<"/healthcheck">>,
+              a => b},
+            Opts
+        )
+    ),
+
+    ?assertMatch(
+       {?RECORD_AND_SAMPLE, [], []},
+       Sampler:should_sample(
+         otel_ctx:new(),
+         otel_id_generator:generate_trace_id(),
+         [],
+         SpanName,
+         undefined,
+         #{a => 1},
+         Opts
+        )
+      ),
+
+    ?assertMatch(
+       {?RECORD_AND_SAMPLE, [], []},
+       Sampler:should_sample(
+            otel_ctx:new(),
+            otel_id_generator:generate_trace_id(),
+            [],
+            SpanName,
+            undefined,
+            #{},
             Opts
         )
     ),
