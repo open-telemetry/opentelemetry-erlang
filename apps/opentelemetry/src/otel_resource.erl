@@ -12,8 +12,13 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc A Resource is attributes representing the entity producing
+%% telemetry. For example, by default the language (Erlang), name of this
+%% library (opentelemetry) and version of this library are included in
+%% the Resource.
 %%
+%% This module provides the functional interface for working with the
+%% resource record.
 %% @end
 %%%-----------------------------------------------------------------------
 -module(otel_resource).
