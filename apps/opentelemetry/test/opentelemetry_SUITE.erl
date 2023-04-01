@@ -23,6 +23,7 @@ all() ->
      %% force flush is a test of flushing the batch processor's table
      force_flush,
      shutdown_force_flush,
+     shutdown_sdk_noop_spans,
 
      multiple_processors,
      multiple_tracer_providers,
@@ -98,6 +99,9 @@ init_per_testcase(shutdown_force_flush, Config) ->
     Config1 = set_batch_tab_processor(1000000, Config),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config1;
+init_per_testcase(shutdown_sdk_noop_spans, Config) ->
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
 init_per_testcase(dropped_attributes, Config) ->
     Config1 = set_batch_tab_processor(Config),
 
@@ -379,6 +383,22 @@ shutdown_force_flush(Config) ->
     [Span1] = assert_exported(Tid, SpanCtx1),
 
     ?assertEqual(#{Attr1 => AttrValue1}, otel_attributes:map(Span1#span.attributes)),
+
+    ok.
+
+shutdown_sdk_noop_spans(_Config) ->
+    SpanCtx1 = ?start_span(<<"span-1">>),
+
+    ?assertMatch({otel_tracer_default, _}, opentelemetry:get_tracer()),
+
+    application:stop(opentelemetry),
+
+    SpanCtx2 = ?start_span(<<"span-2">>),
+
+    ?assertMatch(#span_ctx{trace_id=0,
+                           span_id=0}, SpanCtx2),
+
+    ?assertEqual(false, otel_span:set_attribute(SpanCtx1, a, 1)),
 
     ok.
 
