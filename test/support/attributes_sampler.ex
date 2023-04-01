@@ -11,10 +11,19 @@ defmodule AttributesSampler do
     "AttributesSampler"
   end
 
-  def should_sample(_ctx, _trace_id, _links, _span_name, _span_kind, attributes, config_attributes) do
+  def should_sample(
+        _ctx,
+        _trace_id,
+        _links,
+        _span_name,
+        _span_kind,
+        attributes,
+        config_attributes
+      ) do
     case :maps.intersect(attributes, config_attributes) do
       map when map_size(map) > 0 ->
         {:drop, [], []}
+
       _ ->
         {:record_and_sample, [], []}
     end

@@ -268,42 +268,44 @@ defmodule OtelTests do
 
   test "Custom Sampler that checks attributes" do
     name = "span-prob-sampled"
-    trace_id = 120647249294066572380176333851662846319
+    trace_id = 120_647_249_294_066_572_380_176_333_851_662_846_319
 
     ctx = :otel_tracer.set_current_span(:otel_ctx.new(), :undefined)
 
     {sampler, _description, opts} =
       :otel_sampler.new({AttributesSampler, %{"http.target": "/healthcheck"}})
 
-    assert {:drop, [], []} = sampler.should_sample(
-      ctx,
-      trace_id,
-      [],
-      name,
-      :undefined,
-      %{"http.target": "/healthcheck",
-        other_attr: :other_attr_value},
-      opts
-    )
+    assert {:drop, [], []} =
+             sampler.should_sample(
+               ctx,
+               trace_id,
+               [],
+               name,
+               :undefined,
+               %{"http.target": "/healthcheck", other_attr: :other_attr_value},
+               opts
+             )
 
-    assert {:record_and_sample, [], []} = sampler.should_sample(
-      ctx,
-      trace_id,
-      [],
-      name,
-      :undefined,
-      %{other_attr: :other_attr_value},
-      opts
-    )
+    assert {:record_and_sample, [], []} =
+             sampler.should_sample(
+               ctx,
+               trace_id,
+               [],
+               name,
+               :undefined,
+               %{other_attr: :other_attr_value},
+               opts
+             )
 
-    assert {:record_and_sample, [], []} = sampler.should_sample(
-      ctx,
-      trace_id,
-      [],
-      name,
-      :undefined,
-      %{},
-      opts
-    )
+    assert {:record_and_sample, [], []} =
+             sampler.should_sample(
+               ctx,
+               trace_id,
+               [],
+               name,
+               :undefined,
+               %{},
+               opts
+             )
   end
 end
