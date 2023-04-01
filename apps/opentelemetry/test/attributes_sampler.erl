@@ -28,9 +28,20 @@ description(_) ->
                    Config :: otel_sampler:sampler_config(),
                    Result :: otel_sampler:sampling_result().
 should_sample(_Ctx, _TraceId, _Links, _SpanName, _SpanKind, Attributes, ConfigAttributes) ->
-    case maps:intersect(Attributes, ConfigAttributes) of
-        Map when map_size(Map) > 0 ->
+    case has_match(Attributes, ConfigAttributes) of
+        true ->
             {?DROP, [], []};
         _ ->
             {?RECORD_AND_SAMPLE, [], []}
     end.
+
+has_match(A, B) ->
+    I = maps:iterator(A),
+    has_match_(maps:next(I), B).
+
+has_match_(none, _) ->
+    false;
+has_match_({K, V, _I}, B) when map_get(K, B) =:= V ->
+    true;
+has_match_({_K, _V, I}, B) ->
+    has_match_(maps:next(I), B).
