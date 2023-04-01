@@ -611,13 +611,22 @@ multiple_processors(_Config) ->
     ok.
 
 multiple_tracer_providers(_Config) ->
+    Resource = otel_resource:create([{<<"a">>, <<"b">>}]),
     ?assertMatch({ok, _}, opentelemetry:start_tracer_provider(test_provider,
+                                                              Resource,
                                                               #{id_generator => otel_id_generator,
                                                                 sampler => {otel_sampler_always_on, []},
                                                                 processors => [{otel_batch_processor, #{name => test_batch,
                                                                                                         scheduled_delay_ms => 1,
                                                                                                         exporter => {otel_exporter_pid, self()}}}],
                                                                 deny_list => []})),
+
+
+    ?assertEqual(Resource, otel_tracer_provider:resource(test_provider)),
+
+    GlobalResource = otel_tracer_provider:resource(),
+    GlobalResourceAttributes = otel_attributes:map(otel_resource:attributes(GlobalResource)),
+    ?assertMatch(#{'process.executable.name' := <<"erl">>}, GlobalResourceAttributes),
 
     Tracer1 = otel_tracer_provider:get_tracer(test_provider, <<"tracer-name">>, <<>>, <<>>),
 

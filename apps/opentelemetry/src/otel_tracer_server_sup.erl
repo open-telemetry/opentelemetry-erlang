@@ -19,16 +19,16 @@
 
 -behaviour(supervisor).
 
--export([start_link/2]).
+-export([start_link/3]).
 
 -export([init/1]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
-start_link(Name, Opts) ->
-    supervisor:start_link(?MODULE, [Name, Opts]).
+start_link(Name, Resource, Opts) ->
+    supervisor:start_link(?MODULE, [Name, Resource, Opts]).
 
-init([Name, Opts]) ->
+init([Name, Resource, Opts]) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 1,
                  period => 5},
@@ -50,6 +50,7 @@ init([Name, Opts]) ->
                      start => {otel_tracer_server, start_link, [Name,
                                                                 TracerServeRegName,
                                                                 SpanProcessorSupRegName,
+                                                                Resource,
                                                                 Opts]},
                      restart => permanent,
                      shutdown => 5000,

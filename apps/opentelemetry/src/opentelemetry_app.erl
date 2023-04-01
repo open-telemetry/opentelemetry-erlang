@@ -36,7 +36,8 @@ start(_StartType, _StartArgs) ->
 
     SupResult = opentelemetry_sup:start_link(Config),
 
-    _ = opentelemetry:start_tracer_provider(?GLOBAL_TRACER_PROVIDER_NAME, Config),
+    Resource = otel_resource_detector:get_resource(),
+    _ = opentelemetry:start_tracer_provider(?GLOBAL_TRACER_PROVIDER_NAME, Resource, Config),
 
     %% must be done after the supervisor starts so that otel_tracer_server is running
     %% TODO: make this work with release upgrades. Currently if an application's version
