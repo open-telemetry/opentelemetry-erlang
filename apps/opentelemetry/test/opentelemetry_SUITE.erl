@@ -22,6 +22,7 @@ all() ->
      logger_metadata,
      %% force flush is a test of flushing the batch processor's table
      force_flush,
+     shutdown_force_flush,
 
      multiple_processors,
      multiple_tracer_providers,
@@ -90,6 +91,10 @@ init_per_testcase(propagator_configuration_with_os_env, Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(force_flush, Config) ->
+    Config1 = set_batch_tab_processor(1000000, Config),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config1;
+init_per_testcase(shutdown_force_flush, Config) ->
     Config1 = set_batch_tab_processor(1000000, Config),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config1;
@@ -344,6 +349,38 @@ force_flush(Config) ->
 
     ok.
 
+shutdown_force_flush(Config) ->
+    Tid = ?config(tid, Config),
+    SpanCtx1 = ?start_span(<<"span-1">>),
+
+    %% start_span does not modify the context
+    ?assertMatch(undefined, ?current_span_ctx),
+    ?set_current_span(SpanCtx1),
+
+    %% since SpanCtx1 was set to the current span it will be the parent
+    SpanCtx2 = ?start_span(<<"span-2">>),
+    ?set_current_span(SpanCtx2),
+
+    ?assertMatch(SpanCtx2, ?current_span_ctx),
+    otel_span:end_span(SpanCtx2),
+
+    ?set_current_span(SpanCtx1),
+    ?assertMatch(SpanCtx1, ?current_span_ctx),
+
+    Attr1 = <<"attr-1">>,
+    AttrValue1 = <<"attr-value-1">>,
+    ?set_attribute(Attr1, AttrValue1),
+
+    otel_span:end_span(SpanCtx1),
+
+    application:stop(opentelemetry),
+
+    %% wouldn't be exported at this point unless force flush on shutdown worked
+    [Span1] = assert_exported(Tid, SpanCtx1),
+
+    ?assertEqual(#{Attr1 => AttrValue1}, otel_attributes:map(Span1#span.attributes)),
+
+    ok.
 
 macros(Config) ->
     Tid = ?config(tid, Config),
