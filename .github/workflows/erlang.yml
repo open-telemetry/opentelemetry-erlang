@@ -9,6 +9,9 @@ on:
     branches:
       - 'main'
 
+permissions:
+  checks: write
+
 jobs:
   build:
     name: Test on OTP ${{ matrix.otp_version }} and ${{ matrix.os }}
