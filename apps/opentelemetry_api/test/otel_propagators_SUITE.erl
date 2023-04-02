@@ -26,6 +26,10 @@ groups() ->
 
 init_per_suite(Config) ->
     application:load(opentelemetry_api),
+
+    %% this used to be done in the SDK `stop'
+    %% need it here in case SDK tests were run before these
+    opentelemetry:set_default_tracer({otel_tracer_noop, []}),
     CompositePropagator = otel_propagator_text_map_composite:create([custom_propagator,
                                                                      otel_propagator_trace_context]),
     opentelemetry:set_text_map_propagator(CompositePropagator),
