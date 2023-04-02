@@ -36,8 +36,14 @@ should_sample(_Ctx, _TraceId, _Links, _SpanName, _SpanKind, Attributes, ConfigAt
     end.
 
 has_match(A, B) ->
-    I = maps:iterator(A),
-    has_match_(maps:next(I), B).
+    {Min, Max} = if
+                     map_size(A) < map_size(B) ->
+                         {A, B};
+                     true ->
+                         {B, A}
+                 end,
+    I = maps:iterator(Min),
+    has_match_(maps:next(I), Max).
 
 has_match_(none, _) ->
     false;

@@ -30,8 +30,15 @@ defmodule AttributesSampler do
   end
 
   def has_match(a, b) do
-    i = :maps.iterator(a)
-    has_match_(:maps.next(i), b)
+    {min, max} =
+      if map_size(a) < map_size(b) do
+        {a, b}
+      else
+        {b, a}
+      end
+
+    i = :maps.iterator(min)
+    has_match_(:maps.next(i), max)
   end
 
   def has_match_(:none, _), do: false
