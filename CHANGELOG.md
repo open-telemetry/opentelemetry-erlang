@@ -7,12 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## SDK
+
+### Changes
+
+- [Resource is now an argument to TracerProvider start, but still set
+  automatically by SDK startup of the global
+  Provider](https://github.com/open-telemetry/opentelemetry-erlang/pull/568)
+- [Global Tracer no longer set to no-op on SDK
+  shutdown](https://github.com/open-telemetry/opentelemetry-erlang/pull/568)
+
 ## SDK 1.3.0 - 2023-03-21
 
 ### Fixes
 
 - [Fix swapping exporter
-  tables](https://github.com/open-telemetry/opentelemetry-erlang/pull/550)
+  tables](https://github.com/open-telemetry/opentelemetry-erlang/pull/559)
 
 ## Exporter 1.4.0 - 2023-02-21
 
