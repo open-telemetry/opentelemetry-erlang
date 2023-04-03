@@ -28,7 +28,7 @@
 %%%-------------------------------------------------------------------------
 -module(opentelemetry).
 
--export([start_tracer_provider/3,
+-export([start_tracer_provider/2,
          set_default_tracer/1,
          set_default_tracer/2,
          create_application_tracers/1,
@@ -152,11 +152,13 @@
 -define(TEXT_MAP_EXTRACTOR_KEY, {?MODULE, text_map_extractor}).
 -define(TEXT_MAP_INJECTOR_KEY, {?MODULE, text_map_injector}).
 
+-deprecated({start_tracer_provider, 2, "start the TracerProvider through the SDK"}).
+
 -include("gradualizer.hrl").
 
--spec start_tracer_provider(atom(), otel_resource:t(), map()) -> {ok, pid() | undefined} | {error, term()}.
-start_tracer_provider(Name, Resource, Config) ->
-    otel_tracer_provider:start(Name, Resource, Config).
+-spec start_tracer_provider(atom(), map()) -> {ok, pid() | undefined} | {error, term()}.
+start_tracer_provider(Name, Config) ->
+    otel_tracer_provider:start(Name, Config).
 
 -spec set_default_tracer(tracer()) -> boolean().
 set_default_tracer(Tracer) ->

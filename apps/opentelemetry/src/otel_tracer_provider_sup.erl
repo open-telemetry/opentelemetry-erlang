@@ -19,7 +19,9 @@
 
 -behaviour(supervisor).
 
--export([start_link/0]).
+-export([start_link/0,
+         start/2,
+         start/3]).
 
 -export([init/1]).
 
@@ -27,6 +29,13 @@
 
 start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+
+%% here to support deprecated function `opentelemetry:start_tracer_provider/2'
+start(Name, Config) ->
+    supervisor:start_child(?MODULE, [Name, otel_resource:create([]), Config]).
+
+start(Name, Resource, Config) ->
+    supervisor:start_child(?MODULE, [Name, Resource, Config]).
 
 init([]) ->
     SupFlags = #{strategy => simple_one_for_one,

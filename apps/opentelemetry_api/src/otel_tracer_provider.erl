@@ -21,7 +21,7 @@
 %%%-------------------------------------------------------------------------
 -module(otel_tracer_provider).
 
--export([start/3,
+-export([start/2,
          get_tracer/3,
          get_tracer/4,
          resource/0,
@@ -31,10 +31,10 @@
 
 -include("opentelemetry.hrl").
 
-start(Name, Resource, Config) ->
-    %% SDK must register a simple one for one supervisor of tracer providers
-    %% under the name `otel_tracer_provider_sup'
-    supervisor:start_child(otel_tracer_provider_sup, [Name, Resource, Config]).
+-deprecated({start, 2, "start the TracerProvider through the SDK"}).
+
+start(Name, Config) ->
+    supervisor:start_child(otel_tracer_provider_sup, [Name, Config]).
 
 -spec get_tracer(Name, Vsn, SchemaUrl) -> Tracer when
       Name :: atom(),
