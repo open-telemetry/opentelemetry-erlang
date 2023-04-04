@@ -34,7 +34,7 @@
 
 -behaviour(gen_server).
 
--export([start_link/3,
+-export([start_link/4,
          add_metric_reader/4,
          add_metric_reader/5,
          add_instrument/1,
@@ -105,9 +105,9 @@
          resource :: otel_resource:t()
         }).
 
--spec start_link(atom(), atom(), otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
-start_link(Name, RegName, Config) ->
-    gen_server:start_link({local, RegName}, ?MODULE, [Name, RegName, Config], []).
+-spec start_link(atom(), atom(), otel_resource:t(), otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
+start_link(Name, RegName, Resource, Config) ->
+    gen_server:start_link({local, RegName}, ?MODULE, [Name, RegName, Resource, Config], []).
 
 -spec add_instrument(otel_instrument:t()) -> boolean().
 add_instrument(Instrument) ->
@@ -162,13 +162,11 @@ force_flush() ->
 force_flush(Provider) ->
     gen_server:call(Provider, force_flush).
 
-init([Name, RegName, Config]) ->
+init([Name, RegName, Resource, Config]) ->
     InstrumentsTab = instruments_tab(RegName),
     CallbacksTab = callbacks_tab(RegName),
     ViewAggregationsTab = view_aggregations_tab(RegName),
     MetricsTab = metrics_tab(RegName),
-
-    Resource = otel_resource_detector:get_resource(),
 
     Meter = #meter{module=otel_meter_default,
                    instruments_tab=InstrumentsTab,

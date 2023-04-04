@@ -21,8 +21,7 @@
 %%%-------------------------------------------------------------------------
 -module(otel_meter_provider).
 
--export([start/2,
-         get_meter/3,
+-export([get_meter/3,
          get_meter/4,
          resource/0,
          resource/1,
@@ -30,14 +29,9 @@
          force_flush/1]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include_lib("otel_meter.hrl").
 
 -type meter() :: term().
-
-start(Name, Config) ->
-    %% SDK must register a simple one for one supervisor of tracer providers
-    %% under the name `otel_meter_provider_sup'
-    %% {ok, _} = otel_meter_provider_sup:start_child(default, Config),
-    supervisor:start_child(otel_meter_provider_sup, [Name, Config]).
 
 -spec get_meter(Name, Vsn, SchemaUrl) -> Meter when
       Name :: atom(),
@@ -45,7 +39,7 @@ start(Name, Config) ->
       SchemaUrl :: uri_string:uri_string() | undefined,
       Meter:: meter().
 get_meter(Name, Vsn, SchemaUrl) ->
-    get_meter(?MODULE, Name, Vsn, SchemaUrl).
+    get_meter(?GLOBAL_METER_PROVIDER_NAME, Name, Vsn, SchemaUrl).
 
 -spec get_meter(ServerRef, Name, Vsn, SchemaUrl) -> Meter when
       ServerRef :: atom() | pid(),
@@ -63,7 +57,7 @@ get_meter(ServerRef, Name, Vsn, SchemaUrl) ->
 
 -spec resource() -> term() | undefined.
 resource() ->
-    resource(?MODULE).
+    resource(?GLOBAL_METER_PROVIDER_NAME).
 
 -spec resource(atom() | pid()) -> term() | undefined.
 resource(ServerRef) ->
@@ -76,12 +70,12 @@ resource(ServerRef) ->
 
 -spec force_flush() -> ok | {error, term()} | timeout.
 force_flush() ->
-    force_flush(?MODULE).
+    force_flush(?GLOBAL_METER_PROVIDER_NAME).
 
 -spec force_flush(atom() | pid()) -> ok | {error, term()} | timeout.
 force_flush(ServerRef) ->
     try
-        gen_server:call(ServerRef, force_flush)
+        gen_server:call(maybe_to_reg_name(ServerRef), force_flush)
     catch exit:{noproc, _} ->
             %% ignore because likely no SDK has been included and started
             ok
