@@ -32,7 +32,7 @@ start_link() ->
 
 %% here to support deprecated function `opentelemetry:start_tracer_provider/2'
 start(Name, Config) ->
-    supervisor:start_child(?MODULE, [Name, otel_resource:create([]), Config]).
+    start(Name, otel_resource:create([]), Config).
 
 start(Name, Resource, Config) ->
     supervisor:start_child(?MODULE, [Name, Resource, Config]).

@@ -640,9 +640,18 @@ multiple_tracer_providers(_Config) ->
                                                                                                    scheduled_delay_ms => 1,
                                                                                                    exporter => {otel_exporter_pid, self()}}}],
                                                            deny_list => []})),
-
-
     ?assertEqual(Resource, otel_tracer_provider:resource(test_provider)),
+
+    %% keep around a test of the deprecated API function for starting a tracer provider
+    ?assertMatch({ok, _}, opentelemetry:start_tracer_provider(deprecated_test_provider_start,
+                                                              #{id_generator => otel_id_generator,
+                                                                sampler => {otel_sampler_always_on, []},
+                                                                processors => [{otel_batch_processor, #{name => test_batch_2,
+                                                                                                        scheduled_delay_ms => 1000,
+                                                                                                        exporter => {otel_exporter_pid, self()}}}],
+                                                                deny_list => []})),
+
+    ?assertEqual(otel_resource:create([]), otel_tracer_provider:resource(deprecated_test_provider_start)),
 
     GlobalResource = otel_tracer_provider:resource(),
     GlobalResourceAttributes = otel_attributes:map(otel_resource:attributes(GlobalResource)),
