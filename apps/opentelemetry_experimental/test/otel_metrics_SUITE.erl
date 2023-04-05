@@ -83,7 +83,7 @@ all() ->
      kill_reader, kill_server, observable_counter, observable_updown_counter, observable_gauge,
      multi_instrument_callback, using_macros, float_counter, float_updown_counter, float_histogram,
      sync_filtered_attributes, async_filtered_attributes, delta_observable_counter,
-     bad_observable_return
+     bad_observable_return, default_resource
     ].
 
 init_per_suite(Config) ->
@@ -183,6 +183,14 @@ init_per_testcase(_, Config) ->
 end_per_testcase(_, _Config) ->
     ok = application:stop(opentelemetry_experimental),
     application:unload(opentelemetry_experimental),
+    ok.
+
+default_resource(_Config) ->
+    Resource = otel_meter_provider:resource(),
+
+    ?assertMatch(#{'process.executable.name' := <<"erl">>},
+                 otel_attributes:map(otel_resource:attributes(Resource))),
+
     ok.
 
 using_macros(_Config) ->

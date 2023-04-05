@@ -20,6 +20,9 @@ all() ->
 
 init_per_suite(Config) ->
     application:load(opentelemetry_api),
+    %% this used to be done in the SDK `stop'
+    %% need it here in case SDK tests were run before these
+    opentelemetry:set_default_tracer({otel_tracer_noop, []}),
     Config.
 
 end_per_suite(_Config) ->

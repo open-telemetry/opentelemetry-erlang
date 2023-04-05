@@ -23,7 +23,7 @@
 
 -behaviour(gen_server).
 
--export([start_link/4]).
+-export([start_link/5]).
 
 -export([init/1,
          handle_call/3,
@@ -54,16 +54,14 @@
          deny_list :: [atom() | {atom(), string()}]
         }).
 
--spec start_link(atom(), atom(), atom(), otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
-start_link(Name, RegName, SpanProcessorSupRegName, Config) ->
-    gen_server:start_link({local, RegName}, ?MODULE, [Name, SpanProcessorSupRegName, Config], []).
+-spec start_link(atom(), atom(), atom(), otel_resource:t(), otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
+start_link(Name, RegName, SpanProcessorSupRegName, Resource, Config) ->
+    gen_server:start_link({local, RegName}, ?MODULE, [Name, SpanProcessorSupRegName, Resource, Config], []).
 
-init([Name, SpanProcessorSup, #{id_generator := IdGeneratorModule,
-                                sampler := SamplerSpec,
-                                processors := Processors,
-                                deny_list := DenyList}]) ->
-    Resource = otel_resource_detector:get_resource(),
-
+init([Name, SpanProcessorSup, Resource, #{id_generator := IdGeneratorModule,
+                                          sampler := SamplerSpec,
+                                          processors := Processors,
+                                          deny_list := DenyList}]) ->
     Sampler = otel_sampler:new(SamplerSpec),
 
     Processors1 = init_processors(SpanProcessorSup, Processors),

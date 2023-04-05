@@ -20,7 +20,7 @@
 -behaviour(supervisor).
 
 -export([start_link/0,
-         start_child/2]).
+         start/3]).
 
 -export([init/1]).
 
@@ -29,8 +29,8 @@
 start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
-start_child(Name, Opts) ->
-    supervisor:start_child(?SERVER, [Name, Opts]).
+start(Name, Resource, Opts) ->
+    supervisor:start_child(?SERVER, [Name, Resource, Opts]).
 
 init([]) ->
     SupFlags = #{strategy => simple_one_for_one,

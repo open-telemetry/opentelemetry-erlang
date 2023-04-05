@@ -19,15 +19,15 @@
 
 -behaviour(supervisor).
 
--export([start_link/2,
+-export([start_link/3,
          provider_pid/1]).
 
 -export([init/1]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
-start_link(Name, Opts) ->
-    supervisor:start_link(?MODULE, [Name, Opts]).
+start_link(Name, Resource, Opts) ->
+    supervisor:start_link(?MODULE, [Name, Resource, Opts]).
 
 -dialyzer({nowarn_function, provider_pid/1}).
 -spec provider_pid(supervisor:sup_ref()) -> pid() | restarting | undefined.
@@ -40,7 +40,7 @@ provider_pid(SupPid) ->
             undefined
     end.
 
-init([Name, Opts]) ->
+init([Name, Resource, Opts]) ->
     SupFlags = #{strategy => rest_for_one, %% restart the readers if the server dies
                  intensity => 1,
                  period => 5},
@@ -56,7 +56,7 @@ init([Name, Opts]) ->
 
     ProviderShutdownTimeout = maps:get(meter_provider_shutdown_timeout, Opts, 5000),
     MeterServer = #{id => otel_meter_server,
-                    start => {otel_meter_server, start_link, [Name, MeterServerRegName, Opts]},
+                    start => {otel_meter_server, start_link, [Name, MeterServerRegName, Resource, Opts]},
                     restart => permanent,
                     shutdown => ProviderShutdownTimeout,
                     type => worker,

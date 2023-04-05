@@ -18,7 +18,8 @@ defmodule OpenTelemetry.MixProject do
       name: "OpenTelemetry API",
       test_coverage: [tool: :covertool],
       package: package(),
-      aliases: [docs: & &1]
+      aliases: [docs: & &1],
+      dialyzer: [ignore_warnings: "dialyzer.ignore-warnings"]
     ]
   end
 

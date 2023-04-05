@@ -23,6 +23,7 @@ all() ->
      %% force flush is a test of flushing the batch processor's table
      force_flush,
      shutdown_force_flush,
+     shutdown_sdk_noop_spans,
 
      multiple_processors,
      multiple_tracer_providers,
@@ -98,6 +99,9 @@ init_per_testcase(shutdown_force_flush, Config) ->
     Config1 = set_batch_tab_processor(1000000, Config),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config1;
+init_per_testcase(shutdown_sdk_noop_spans, Config) ->
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
 init_per_testcase(dropped_attributes, Config) ->
     Config1 = set_batch_tab_processor(Config),
 
@@ -382,6 +386,22 @@ shutdown_force_flush(Config) ->
 
     ok.
 
+shutdown_sdk_noop_spans(_Config) ->
+    SpanCtx1 = ?start_span(<<"span-1">>),
+
+    ?assertMatch({otel_tracer_default, _}, opentelemetry:get_tracer()),
+
+    application:stop(opentelemetry),
+
+    SpanCtx2 = ?start_span(<<"span-2">>),
+
+    ?assertMatch(#span_ctx{trace_id=0,
+                           span_id=0}, SpanCtx2),
+
+    ?assertEqual(false, otel_span:set_attribute(SpanCtx1, a, 1)),
+
+    ok.
+
 macros(Config) ->
     Tid = ?config(tid, Config),
 
@@ -611,13 +631,31 @@ multiple_processors(_Config) ->
     ok.
 
 multiple_tracer_providers(_Config) ->
-    ?assertMatch({ok, _}, opentelemetry:start_tracer_provider(test_provider,
+    Resource = otel_resource:create([{<<"a">>, <<"b">>}]),
+    ?assertMatch({ok, _}, otel_tracer_provider_sup:start(test_provider,
+                                                         Resource,
+                                                         #{id_generator => otel_id_generator,
+                                                           sampler => {otel_sampler_always_on, []},
+                                                           processors => [{otel_batch_processor, #{name => test_batch,
+                                                                                                   scheduled_delay_ms => 1,
+                                                                                                   exporter => {otel_exporter_pid, self()}}}],
+                                                           deny_list => []})),
+    ?assertEqual(Resource, otel_tracer_provider:resource(test_provider)),
+
+    %% keep around a test of the deprecated API function for starting a tracer provider
+    ?assertMatch({ok, _}, opentelemetry:start_tracer_provider(deprecated_test_provider_start,
                                                               #{id_generator => otel_id_generator,
                                                                 sampler => {otel_sampler_always_on, []},
-                                                                processors => [{otel_batch_processor, #{name => test_batch,
-                                                                                                        scheduled_delay_ms => 1,
+                                                                processors => [{otel_batch_processor, #{name => test_batch_2,
+                                                                                                        scheduled_delay_ms => 1000,
                                                                                                         exporter => {otel_exporter_pid, self()}}}],
                                                                 deny_list => []})),
+
+    ?assertEqual(otel_resource:create([]), otel_tracer_provider:resource(deprecated_test_provider_start)),
+
+    GlobalResource = otel_tracer_provider:resource(),
+    GlobalResourceAttributes = otel_attributes:map(otel_resource:attributes(GlobalResource)),
+    ?assertMatch(#{'process.executable.name' := <<"erl">>}, GlobalResourceAttributes),
 
     Tracer1 = otel_tracer_provider:get_tracer(test_provider, <<"tracer-name">>, <<>>, <<>>),
 

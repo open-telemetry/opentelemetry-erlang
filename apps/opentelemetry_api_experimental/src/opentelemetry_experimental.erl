@@ -17,8 +17,7 @@
 %%%-------------------------------------------------------------------------
 -module(opentelemetry_experimental).
 
--export([start_meter_provider/2,
-         set_meter/2,
+-export([set_meter/2,
          set_meter/4,
          set_meter/5,
          set_default_meter/1,
@@ -36,10 +35,6 @@
 -define(METER_KEY(Name), {?MODULE, meter, Name}).
 -define(METER_KEY(MeterProvider, Name), {?MODULE, MeterProvider, meter, Name}).
 -define(DEFAULT_METER_KEY(MeterProvider), ?METER_KEY(MeterProvider, '$__default_meter')).
-
--spec start_meter_provider(atom(), map()) -> {ok, pid() | undefined} | {error, term()}.
-start_meter_provider(Name, Config) ->
-    otel_meter_provider:start(Name, Config).
 
 -spec set_default_meter(meter()) -> boolean().
 set_default_meter(Meter) ->

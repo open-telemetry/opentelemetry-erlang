@@ -152,6 +152,8 @@
 -define(TEXT_MAP_EXTRACTOR_KEY, {?MODULE, text_map_extractor}).
 -define(TEXT_MAP_INJECTOR_KEY, {?MODULE, text_map_injector}).
 
+-deprecated({start_tracer_provider, 2, "start the TracerProvider through the SDK"}).
+
 -include("gradualizer.hrl").
 
 -spec start_tracer_provider(atom(), map()) -> {ok, pid() | undefined} | {error, term()}.
