@@ -56,7 +56,7 @@
 -include("otel_span.hrl").
 
 -record(data, {exporter             :: {module(), term()} | undefined,
-               exporter_config      :: {module(), term()} | undefined,
+               exporter_config      :: {module(), term()} | undefined | none,
                resource             :: otel_resource:t() | undefined,
                handed_off_table     :: atom() | undefined,
                runner_pid           :: pid() | undefined,
@@ -112,11 +112,13 @@ set_exporter(Exporter) ->
 %% @deprecated Please use {@link otel_tracer_provider}
 -spec set_exporter(module(), term()) -> ok.
 set_exporter(Exporter, Options) ->
+    %% eqwalizer:ignore doesn't like gen_`statem:call' returns `term()'
     gen_statem:call(?REG_NAME(global), {set_exporter, {Exporter, Options}}).
 
 %% @deprecated Please use {@link otel_tracer_provider}
 -spec set_exporter(atom(), module(), term()) -> ok.
 set_exporter(Name, Exporter, Options) ->
+    %% eqwalizer:ignore doesn't like gen_`statem:call' returns `term()'
     gen_statem:call(?REG_NAME(Name), {set_exporter, {Exporter, Options}}).
 
 -spec on_start(otel_ctx:t(), opentelemetry:span(), otel_span_processor:processor_config())
@@ -133,7 +135,7 @@ on_end(Span=#span{}, #{reg_name := RegName}) ->
 on_end(_Span, _) ->
     {error, invalid_span}.
 
--spec force_flush(otel_span_processor:processor_config()) -> ok.
+-spec force_flush(#{reg_name := gen_statem:server_ref()}) -> ok.
 force_flush(#{reg_name := RegName}) ->
     gen_statem:cast(RegName, force_flush).
 
@@ -360,7 +362,7 @@ complete_exporting(Data) ->
     {next_state, idle, Data#data{runner_pid=undefined,
                                  handed_off_table=undefined}}.
 
-kill_runner(Data=#data{runner_pid=RunnerPid}) ->
+kill_runner(Data=#data{runner_pid=RunnerPid}) when RunnerPid =/= undefined ->
     erlang:unlink(RunnerPid),
     erlang:exit(RunnerPid, kill),
     Data#data{runner_pid=undefined,

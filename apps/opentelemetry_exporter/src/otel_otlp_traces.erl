@@ -77,22 +77,28 @@ to_proto(#span{trace_id=TraceId,
                links=Links,
                status=Status,
                trace_flags=_TraceFlags,
-               is_recording=_IsRecording}) ->
-    ParentSpanId = case MaybeParentSpanId of undefined -> <<>>; _ -> <<MaybeParentSpanId:64>> end,
+               is_recording=_IsRecording}) when is_integer(TraceId),
+                                                is_integer(SpanId) ->
+    ParentSpanId = case MaybeParentSpanId of _ when is_integer(MaybeParentSpanId) -> <<MaybeParentSpanId:64>>; _ -> <<>> end,
     #{name                     => otel_otlp_common:to_binary(Name),
       trace_id                 => <<TraceId:128>>,
       span_id                  => <<SpanId:64>>,
       parent_span_id           => ParentSpanId,
+      %% eqwalizer:ignore have to have tracestate as type '_' for matchspecs
       trace_state              => to_tracestate_string(TraceState),
       kind                     => to_otlp_kind(Kind),
+      %% eqwalizer:ignore have to allow value '$2' for matchspecs
       start_time_unix_nano     => opentelemetry:timestamp_to_nano(StartTime),
+      %% eqwalizer:ignore have to allow value '_' for matchspecs
       end_time_unix_nano       => opentelemetry:timestamp_to_nano(EndTime),
+      %% eqwalizer:ignore have to allow value '_' for matchspecs
       attributes               => otel_otlp_common:to_attributes(Attributes),
       dropped_attributes_count => otel_attributes:dropped(Attributes),
       events                   => to_events(otel_events:list(TimedEvents)),
       dropped_events_count     => otel_events:dropped(TimedEvents),
       links                    => to_links(otel_links:list(Links)),
       dropped_links_count      => otel_links:dropped(Links),
+      %% eqwalizer:ignore have to allow value '_' for matchspecs
       status                   => to_status(Status)}.
 
 -spec to_status(opentelemetry:status() | undefined) -> opentelemetry_exporter_trace_service_pb:status().
@@ -123,7 +129,7 @@ to_links(Links) ->
                                                attributes=Attributes,
                                                tracestate=TraceState} <- Links].
 
--spec to_tracestate_string(opentelemetry:tracestate()) -> string().
+-spec to_tracestate_string(opentelemetry:tracestate()) -> unicode:latin1_chardata().
 to_tracestate_string(List) ->
     lists:join($,, [[Key, $=, Value] || {Key, Value} <- List]).
 

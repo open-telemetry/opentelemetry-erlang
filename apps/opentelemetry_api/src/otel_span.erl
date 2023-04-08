@@ -119,7 +119,7 @@ is_valid_atom_value(nil) ->
 is_valid_atom_value(Value) ->
     is_atom(Value) andalso (is_boolean(Value) == false).
 
--spec process_attributes(any()) -> opentelemetry:attributes_map().
+-spec process_attributes(eqwalizer:dynamic()) -> opentelemetry:attributes_map().
 process_attributes(Attributes) when is_map(Attributes) ->
     maps:fold(fun process_attribute/3, #{}, Attributes);
 process_attributes([]) -> #{};

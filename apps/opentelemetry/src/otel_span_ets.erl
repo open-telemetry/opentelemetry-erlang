@@ -36,6 +36,11 @@
          set_status/2,
          update_name/2]).
 
+%% since `span_ctx' and `span' are in the API the `span_sdk' has to be term()
+-eqwalizer({nowarn_function, end_span/1}).
+-eqwalizer({nowarn_function, end_span/2}).
+-eqwalizer({nowarn_function, get_ctx/1}).
+
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_span.hrl").
 -include("otel_span_ets.hrl").
@@ -50,7 +55,7 @@ start_link(Opts) ->
 
 %% @doc Start a span and insert into the active span ets table.
 -spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_sampler:t(), otel_id_generator:t(),
-                 otel_span:start_opts(), fun(), otel_tracer_server:instrumentation_scope())
+                 otel_span:start_opts(), fun(), otel_tracer_server:instrumentation_scope() | undefined)
                 -> opentelemetry:span_ctx().
 start_span(Ctx, Name, Sampler, IdGeneratorModule, Opts, Processors, InstrumentationScope) ->
     case otel_span_utils:start_span(Ctx, Name, Sampler, IdGeneratorModule, Opts) of

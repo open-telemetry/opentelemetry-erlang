@@ -127,7 +127,8 @@
 -type headers() :: [{unicode:chardata(), unicode:chardata()}].
 -type scheme() :: http | https | string() | binary().
 -type host() :: unicode:chardata().
--type endpoint() :: uri_string:uri_string() | uri_string:uri_map() | endpoint_map().
+-type input_endpoint() :: uri_string:uri_string() | uri_string:uri_map() | endpoint_map().
+-type endpoint() :: uri_string:uri_string() | uri_string:uri_map().
 -type endpoint_map() :: #{scheme := scheme(),
                           host := host(),
                           path => unicode:chardata(),
@@ -137,9 +138,10 @@
 -type protocol() :: grpc | http_protobuf | http_json.
 -type compression() :: gzip.
 
--type opts() :: #{endpoints => [endpoint()],
+-type opts() :: #{endpoints => [input_endpoint()],
                   headers => headers(),
-                  protocol => protocol()}.
+                  protocol => protocol(),
+                  ssl_options => list()}.
 
 -export_type([opts/0,
               headers/0,
@@ -153,7 +155,7 @@
                 headers :: headers(),
                 compression :: compression() | undefined,
                 grpc_metadata :: map() | undefined,
-                endpoints :: [endpoint_map()]}).
+                endpoints :: [endpoint()]}).
 
 -include_lib("opentelemetry_api/include/gradualizer.hrl").
 
@@ -354,7 +356,7 @@ headers(List) when is_list(List) ->
 headers(_) ->
     [].
 
--spec endpoints([endpoint()], list()) -> [endpoint_map()].
+-spec endpoints([endpoint()], list() | undefined) -> [endpoint()].
 endpoints(List, DefaultSSLOpts) when is_list(List) ->
     Endpoints = case io_lib:printable_list(List) of
                     true ->

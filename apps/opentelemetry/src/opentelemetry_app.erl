@@ -29,6 +29,7 @@ start(_StartType, _StartArgs) ->
              application:get_all_env(opentelemetry)),
 
     %% set global span limits record based on configuration
+    %% eqwalizer:ignore not sure why this typing isn't working
     otel_span_limits:set(Config),
 
     %% set the global propagators for HTTP based on the application env

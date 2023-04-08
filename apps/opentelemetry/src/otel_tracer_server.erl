@@ -88,7 +88,8 @@ handle_call(resource, _From, State=#state{resource=Resource}) ->
 handle_call({get_tracer, _Name, _Vsn, _SchemaUrl}, _From, State=#state{shared_tracer=undefined}) ->
     {reply, {otel_tracer_noop, []}, State};
 handle_call({get_tracer, Name, Vsn, SchemaUrl}, _From, State=#state{shared_tracer=Tracer,
-                                                                    deny_list=DenyList}) ->
+                                                                    deny_list=DenyList})
+  when Tracer =/= undefined ->
     %% TODO: support semver constraints in denylist
     case proplists:is_defined(Name, DenyList) of
         true ->
@@ -100,7 +101,8 @@ handle_call({get_tracer, Name, Vsn, SchemaUrl}, _From, State=#state{shared_trace
             {reply, TracerTuple, State}
     end;
 handle_call({get_tracer, InstrumentationScope}, _From, State=#state{shared_tracer=Tracer,
-                                                                    deny_list=_DenyList}) ->
+                                                                    deny_list=_DenyList})
+  when Tracer =/= undefined ->
     {reply, {Tracer#tracer.module,
              Tracer#tracer{instrumentation_scope=InstrumentationScope}}, State};
 handle_call(force_flush, _From, State=#state{processors=Processors}) ->
