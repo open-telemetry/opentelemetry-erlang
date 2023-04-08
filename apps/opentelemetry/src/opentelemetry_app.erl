@@ -24,6 +24,10 @@
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
+-dialyzer({nowarn_function, start/2}).
+-dialyzer({nowarn_function, setup_text_map_propagators/1}).
+-dialyzer({nowarn_function, create_loaded_application_tracers/1}).
+
 start(_StartType, _StartArgs) ->
     Config = otel_configuration:merge_with_os(
              application:get_all_env(opentelemetry)),

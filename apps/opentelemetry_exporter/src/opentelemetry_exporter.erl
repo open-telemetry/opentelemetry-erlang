@@ -155,7 +155,7 @@
                 headers :: headers(),
                 compression :: compression() | undefined,
                 grpc_metadata :: map() | undefined,
-                endpoints :: [endpoint()]}).
+                endpoints :: [endpoint_map()]}).
 
 -include_lib("opentelemetry_api/include/gradualizer.hrl").
 
@@ -602,4 +602,3 @@ config_mapping() ->
 
      {"OTEL_EXPORTER_SSL_OPTIONS", ssl_options, key_value_list}
     ].
-
