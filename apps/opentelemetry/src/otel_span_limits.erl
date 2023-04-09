@@ -35,12 +35,7 @@
 get() ->
     persistent_term:get(?SPAN_LIMITS_KEY).
 
--spec set(#{attribute_count_limit := integer(),
-            attribute_value_length_limit := integer() | infinity,
-            event_count_limit := integer(),
-            link_count_limit := integer(),
-            attribute_per_event_limit := integer(),
-            attribute_per_link_limit := integer()}) -> ok.
+-spec set(otel_configuration:t()) -> ok.
 set(#{attribute_count_limit := AttributeCountLimit,
       attribute_value_length_limit := AttributeValueLengthLimit,
       event_count_limit := EventCountLimit,
