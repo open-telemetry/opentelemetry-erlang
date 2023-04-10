@@ -127,9 +127,16 @@
 -type headers() :: [{unicode:chardata(), unicode:chardata()}].
 -type scheme() :: http | https | string() | binary().
 -type host() :: unicode:chardata().
--type endpoint() :: uri_string:uri_string() | uri_string:uri_map() | endpoint_map().
--type endpoint_map() :: #{scheme := scheme(),
+-type input_endpoint_map() :: #{scheme := scheme(),
                           host := host(),
+                          path => unicode:chardata(),
+                          port => integer(),
+                          ssl_options => []}.
+
+-type input_endpoint() :: uri_string:uri_string() | uri_string:uri_map() | input_endpoint_map().
+-type endpoint() :: uri_string:uri_string() | uri_string:uri_map().
+-type endpoint_map() :: #{scheme := unicode:chardata(),
+                          host := unicode:chardata(), %%host(),
                           path => unicode:chardata(),
                           port => integer(),
                           ssl_options => []}.
@@ -137,9 +144,10 @@
 -type protocol() :: grpc | http_protobuf | http_json.
 -type compression() :: gzip.
 
--type opts() :: #{endpoints => [endpoint()],
+-type opts() :: #{endpoints => [input_endpoint()],
                   headers => headers(),
-                  protocol => protocol()}.
+                  protocol => protocol(),
+                  ssl_options => list()}.
 
 -export_type([opts/0,
               headers/0,
@@ -354,7 +362,7 @@ headers(List) when is_list(List) ->
 headers(_) ->
     [].
 
--spec endpoints([endpoint()], list()) -> [endpoint_map()].
+-spec endpoints([endpoint()], list() | undefined) -> [endpoint_map()].
 endpoints(List, DefaultSSLOpts) when is_list(List) ->
     Endpoints = case io_lib:printable_list(List) of
                     true ->
@@ -600,4 +608,3 @@ config_mapping() ->
 
      {"OTEL_EXPORTER_SSL_OPTIONS", ssl_options, key_value_list}
     ].
-

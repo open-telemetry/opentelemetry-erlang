@@ -70,15 +70,15 @@ set_value(Ctx, Key, Value) when is_map(Ctx) ->
 set_value(_, Key, Value) ->
     #{Key => Value}.
 
--spec get_value(term()) -> term().
+-spec get_value(term()) -> eqwalizer:dynamic().
 get_value(Key) ->
     get_value(erlang:get(?CURRENT_CTX), Key, undefined).
 
--spec get_value(term(), term()) -> term().
+-spec get_value(term(), term()) -> eqwalizer:dynamic().
 get_value(Key, Default) ->
     get_value(erlang:get(?CURRENT_CTX), Key, Default).
 
--spec get_value(t(), term(), term()) -> term().
+-spec get_value(t(), term(), term()) -> eqwalizer:dynamic().
 get_value(undefined, _Key, Default) ->
     Default;
 get_value(Ctx, Key, Default) when is_map(Ctx) ->

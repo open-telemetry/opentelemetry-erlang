@@ -19,7 +19,7 @@ defmodule OpenTelemetry.MixProject do
       test_coverage: [tool: :covertool],
       package: package(),
       aliases: [docs: & &1],
-      dialyzer: [ignore_warnings: "dialyzer.ignore-warnings"]
+      dialyzer: [ignore_warnings: "dialyzer.ignore-warnings", remove_defaults: [:unknown]]
     ]
   end
 

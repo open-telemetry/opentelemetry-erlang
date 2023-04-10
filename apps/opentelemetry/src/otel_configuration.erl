@@ -52,7 +52,7 @@
                readers := [#{id := atom(), module => module(), config => map()}],
                processors := list(),
                sampler := {atom(), term()},
-               sweeper := #{sinterval => integer() | infinity,
+               sweeper := #{interval => integer() | infinity,
                             strategy => atom() | fun(),
                             span_ttl => integer() | infinity,
                             storage_size => integer() | infinity},

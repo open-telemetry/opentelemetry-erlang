@@ -107,7 +107,7 @@ end_span(Span=#span{end_time=undefined,
 end_span(Span) ->
     Span.
 
--spec end_span(opentelemetry:span(), integer() | undefined) -> opentelemetry:span().
+-spec end_span(#span{}, integer() | undefined) -> opentelemetry:span().
 end_span(Span, Timestamp) when is_integer(Timestamp) ->
     Span#span{end_time=Timestamp};
 end_span(Span, _) ->

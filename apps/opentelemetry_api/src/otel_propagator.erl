@@ -38,7 +38,7 @@
 -callback inject(t(), carrier()) -> carrier().
 -callback inject_from(otel_ctx:t(), t(), carrier()) -> carrier().
 %% extracts values from a carrier and sets them in the context
--callback extract(t(), carrier()) -> otel_ctx:t().
+-callback extract(t(), carrier()) -> otel_ctx:t() | otel_ctx:token().
 -callback extract_to(otel_ctx:t(), t(), carrier()) -> otel_ctx:t().
 
 -type t() :: builtin() | module() | {module(), term()}.

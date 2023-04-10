@@ -65,6 +65,7 @@ set(Key, Value) when (is_list(Key) orelse is_binary(Key)) andalso is_binary(Valu
 set(Key, Value) when (is_list(Key) orelse is_binary(Key)) andalso not is_binary(Value) ->
     ok;
 set(Ctx, KeyValues) when is_list(KeyValues) ->
+    %% eqwalizer:ignore I know what I'm doing
     ?assert_type(set(Ctx, maps:from_list(KeyValues)), ok | undefined | #{any() => any()});
 set(Ctx, KeyValues) when is_map(KeyValues) andalso (is_map(Ctx) orelse Ctx =:= undefined)->
     Baggage = otel_ctx:get_value(Ctx, ?BAGGAGE_KEY, #{}),
