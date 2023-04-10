@@ -144,13 +144,13 @@ add_view(Name, Criteria, Config) ->
 add_view(Provider, Name, Criteria, Config) ->
     gen_server:call(Provider, {add_view, Name, Criteria, Config}).
 
--spec record(atom(), atom(), otel_instrument:t() | otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok.
+-spec record(ets:table(), ets:table(), otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
 record(ViewAggregationsTab, MetricsTab, Instrument, Number, Attributes) ->
     handle_measurement(#measurement{instrument=Instrument,
                                     value=Number,
                                     attributes=Attributes}, ViewAggregationsTab, MetricsTab).
 
--spec record(otel_meter:t(), atom(), atom(), otel_instrument:t() | otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok.
+-spec record(otel_meter:t(), ets:table(), ets:table(), otel_instrument:t() | otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok.
 record(Meter, ViewAggregationTab, MetricsTab, Name, Number, Attributes) ->
     handle_measurement(Meter, Name, Number, Attributes, ViewAggregationTab, MetricsTab).
 

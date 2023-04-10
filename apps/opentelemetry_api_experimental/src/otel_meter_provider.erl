@@ -37,7 +37,7 @@
       Name :: atom(),
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
-      Meter:: meter().
+      Meter:: {module(), meter()}.
 get_meter(Name, Vsn, SchemaUrl) ->
     get_meter(?GLOBAL_METER_PROVIDER_NAME, Name, Vsn, SchemaUrl).
 
@@ -46,7 +46,7 @@ get_meter(Name, Vsn, SchemaUrl) ->
       Name :: atom(),
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
-      Meter:: meter().
+      Meter:: {module(), meter()}.
 get_meter(ServerRef, Name, Vsn, SchemaUrl) ->
     try
         gen_server:call(maybe_to_reg_name(ServerRef), {get_meter, Name, Vsn, SchemaUrl})

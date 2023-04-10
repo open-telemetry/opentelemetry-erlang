@@ -107,8 +107,12 @@ datapoint(CollectionStartNano, #last_value_aggregation{key={_, Attributes, _},
                                                        last_start_time_unix_nano=StartTimeUnixNano,
                                                        checkpoint=Checkpoint}) ->
     #datapoint{attributes=Attributes,
+               %% `start_time_unix_nano' being set to `last_start_time_unix_nano' causes complaints
+               %% because `last_start_time_unix_nano' has matchspec values in its typespec
+               %% eqwalizer:ignore see above
                start_time_unix_nano=StartTimeUnixNano,
                time_unix_nano=CollectionStartNano,
+               %% eqwalizer:ignore more matchspec fun
                value=Checkpoint,
                exemplars=[],
                flags=0}.

@@ -39,6 +39,7 @@ run_callbacks(Callbacks, ReaderId, ViewAggregationTab, MetricsTab) ->
                                                           ReaderId);
                      ({Callback, CallbackArgs, Instrument}) ->
                           Results = Callback(CallbackArgs),
+                          %% eqwalizer:ignore we know this is [otel_instrument:observation()] but eqwalizer doesn't
                           handle_instrument_observations(Results,
                                                          Instrument,
                                                          ViewAggregationTab,
@@ -61,7 +62,7 @@ handle_instrument_observations(Results, #instrument{meter=Meter,
     catch
         error:badarg ->
             %% no Views for this Instrument, so nothing to do
-            []
+            ok
     end.
 
 %% handle results for a multi-instrument callback
