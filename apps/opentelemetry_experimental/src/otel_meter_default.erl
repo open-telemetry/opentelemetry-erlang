@@ -31,6 +31,7 @@
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_metrics.hrl").
 
+-spec create_instrument(otel_meter:t(), otel_instrument:name(), otel_instrument:kind(), #{description => unicode:unicode_binary()}) -> otel_instrument:t().
 create_instrument(Meter, Name, Kind, Opts) ->
     Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
         otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
@@ -47,6 +48,7 @@ lookup_instrument(Meter={_, #meter{instruments_tab=Tab}}, Name) ->
             undefined
     end.
 
+-spec create_instrument(otel_meter:t(), otel_instrument:name(), otel_instrument:kind(), otel_instrument:callback(), otel_instrument:callback_args(), #{description => unicode:unicode_binary()}) -> otel_instrument:t().
 create_instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts) ->
     Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
         otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),

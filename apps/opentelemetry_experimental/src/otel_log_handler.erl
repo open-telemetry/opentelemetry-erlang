@@ -103,6 +103,7 @@ adding_handler(#{id := Id,
       Config :: config(),
       Reason :: term().
 changing_config(SetOrUpdate, OldConfig, NewConfig=#{regname := Id}) ->
+    %% eqwalizer:ignore doesn't like gen_`statem:call' returns `term()'
     gen_statem:call(Id, {changing_config, SetOrUpdate, OldConfig, NewConfig}).
 
 %%%-----------------------------------------------------------------
@@ -110,6 +111,7 @@ changing_config(SetOrUpdate, OldConfig, NewConfig=#{regname := Id}) ->
 -spec removing_handler(Config) -> ok when
       Config :: config().
 removing_handler(Config=#{regname := Id}) ->
+    %% eqwalizer:ignore doesn't like gen_`statem:call' returns `term()'
     gen_statem:call(Id, {removing_handler, Config}).
 
 %%%-----------------------------------------------------------------
@@ -134,6 +136,7 @@ log(LogEvent, _Config=#{regname := Id}) ->
 -spec filter_config(Config) -> Config when
       Config :: config().
 filter_config(Config=#{regname := Id}) ->
+    %% eqwalizer:ignore doesn't like gen_`statem:call' returns `term()'
     gen_statem:call(Id, {filter_config, Config}).
 
 init([_RegName, Config]) ->

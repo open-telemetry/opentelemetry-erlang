@@ -33,9 +33,9 @@
                       meter_name => unicode:unicode_binary() | undefined,
                       meter_version => unicode:unicode_binary() | undefined,
                       meter_schema_url => unicode:unicode_binary() | undefined}.
--type config() :: #{description => unicode:unicode_binary(),
-                    attribute_keys => [atom()],
-                    aggregation_module => module() | default,
+-type config() :: #{description => unicode:unicode_binary() | undefined,
+                    attribute_keys => [atom()] | undefined,
+                    aggregation_module => module() | default | undefined,
                     aggregation_options => map()
                     %% exemplar_reservoir
                    }.
@@ -91,6 +91,9 @@ match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                      [] ->
                                          false;
                                      _ ->
+                                         %% `reader' needs to be undefined and is set
+                                         %% for each in `otel_meter_server'
+                                         %% eqwalizer:ignore see above
                                          {true, {View, #view_aggregation{name=value_or(ViewName,
                                                                                        InstrumentName),
                                                                          scope=Scope,

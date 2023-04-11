@@ -47,7 +47,7 @@
          provider_sup :: supervisor:sup_ref(),
          id :: reference(),
          default_aggregation_mapping :: #{otel_instrument:kind() => module()},
-         temporality_mapping :: #{otel_instrument:kind() => otel_aggregation:temporality()},
+         temporality_mapping :: #{otel_instrument:kind() => otel_instrument:temporality()},
          export_interval_ms :: integer() | undefined,
          tref :: reference() | undefined,
          callbacks_tab :: ets:table(),
@@ -167,7 +167,7 @@ code_change(State) ->
 
 %%
 
--spec collect_(any(), any(), any(), reference()) -> [any()].
+-spec collect_(any(), ets:table(), any(), reference()) -> [any()].
 collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId) ->
     _ = run_callbacks(ReaderId, CallbacksTab, ViewAggregationTab, MetricsTab),
 

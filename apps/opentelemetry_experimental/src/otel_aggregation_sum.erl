@@ -182,9 +182,12 @@ datapoint(CollectionStartNano, Temporality, Temporality, #sum_aggregation{key={_
                                                                           last_start_time_unix_nano=StartTimeUnixNano,
                                                                           checkpoint=Value}) ->
     #datapoint{
+       %% eqwalizer:ignore something
        attributes=Attributes,
+       %% eqwalizer:ignore something
        start_time_unix_nano=StartTimeUnixNano,
        time_unix_nano=CollectionStartNano,
+       %% eqwalizer:ignore something
        value=Value,
        exemplars=[],
        flags=0
@@ -194,7 +197,9 @@ datapoint(CollectionStartNano, _, ?TEMPORALITY_CUMULATIVE, #sum_aggregation{key=
                                                                             previous_checkpoint=PreviousCheckpoint,
                                                                             checkpoint=Value}) ->
     #datapoint{
+       %% eqwalizer:ignore something
        attributes=Attributes,
+       %% eqwalizer:ignore something
        start_time_unix_nano=StartTimeUnixNano,
        time_unix_nano=CollectionStartNano,
        value=Value + PreviousCheckpoint,
