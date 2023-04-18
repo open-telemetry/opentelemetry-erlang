@@ -58,7 +58,7 @@ get_resource() ->
 get_resource(Timeout) ->
     try gen_statem:call(?MODULE, get_resource, Timeout)
     catch
-        exit:{timeout, _} ->
+        _:_ ->
             %% TODO: should we return an error instead?
             %% returning an empty resource ensures we continue on and
             %% don't crash anything depending on the returned resource

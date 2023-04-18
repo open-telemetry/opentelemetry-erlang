@@ -28,11 +28,12 @@ start(_StartType, _StartArgs) ->
     Config = otel_configuration:merge_with_os(
              application:get_all_env(opentelemetry)),
 
+    %% set the global propagators for HTTP based on the application env
+    %% these get set even if the SDK is disabled
+    setup_text_map_propagators(Config),
+
     %% set global span limits record based on configuration
     otel_span_limits:set(Config),
-
-    %% set the global propagators for HTTP based on the application env
-    setup_text_map_propagators(Config),
 
     SupResult = opentelemetry_sup:start_link(Config),
 

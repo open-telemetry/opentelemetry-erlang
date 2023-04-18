@@ -35,7 +35,13 @@ start(Name, Config) ->
     start(Name, otel_resource:create([]), Config).
 
 start(Name, Resource, Config) ->
-    supervisor:start_child(?MODULE, [Name, Resource, Config]).
+    try
+        supervisor:start_child(?MODULE, [Name, Resource, Config])
+    catch
+        exit:{noproc, _} ->
+            %% no tracer provider sup is started, the sdk is probably disabled
+            {error, no_tracer_provider_supervisor}
+    end.
 
 init([]) ->
     SupFlags = #{strategy => simple_one_for_one,
