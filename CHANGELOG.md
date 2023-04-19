@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## SDK
 
+### Added
+
+- [Add support for OTEL_SDK_DISABLED environment variable and sdk_disabled
+  application environment
+  variable](https://github.com/open-telemetry/opentelemetry-erlang/pull/574)
+
 ### Changes
 
 - [Resource is now an argument to TracerProvider start, but still set
