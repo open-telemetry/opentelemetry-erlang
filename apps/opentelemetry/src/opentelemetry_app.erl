@@ -26,25 +26,32 @@
 
 start(_StartType, _StartArgs) ->
     Config = otel_configuration:merge_with_os(
-             application:get_all_env(opentelemetry)),
-
-    %% set global span limits record based on configuration
-    otel_span_limits:set(Config),
+               application:get_all_env(opentelemetry)),
 
     %% set the global propagators for HTTP based on the application env
+    %% these get set even if the SDK is disabled
     setup_text_map_propagators(Config),
 
     SupResult = opentelemetry_sup:start_link(Config),
 
-    Resource = otel_resource_detector:get_resource(),
-    _ = otel_tracer_provider_sup:start(?GLOBAL_TRACER_PROVIDER_NAME, Resource, Config),
+    case Config of
+        #{sdk_disabled := true} ->
+            %% skip the rest if the SDK is disabled
+            SupResult;
+        _ ->
+            %% set global span limits record based on configuration
+            otel_span_limits:set(Config),
 
-    %% must be done after the supervisor starts so that otel_tracer_server is running
-    %% TODO: make this work with release upgrades. Currently if an application's version
-    %% changes the version in the tracer will not be updated.
-    create_loaded_application_tracers(Config),
+            Resource = otel_resource_detector:get_resource(),
+            _ = otel_tracer_provider_sup:start(?GLOBAL_TRACER_PROVIDER_NAME, Resource, Config),
 
-    SupResult.
+            %% must be done after the supervisor starts so that otel_tracer_server is running
+            %% TODO: make this work with release upgrades. Currently if an application's version
+            %% changes the version in the tracer will not be updated.
+            create_loaded_application_tracers(Config),
+
+            SupResult
+    end.
 
 stop(_State) ->
     ok.

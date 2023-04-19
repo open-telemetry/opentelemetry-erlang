@@ -32,7 +32,8 @@
 
 %% required configuration
 %% using a map instead of a record because there can be more values
--type t() :: #{log_level := atom(),
+-type t() :: #{sdk_disabled := boolean(),
+               log_level := atom(),
                register_loaded_applications := boolean() | undefined,
                create_application_tracers := boolean() | undefined,
                id_generator := module(),
@@ -70,7 +71,8 @@
 
 -spec new() -> t().
 new() ->
-    ?assert_type(#{log_level => info,
+    ?assert_type(#{sdk_disabled => false,
+                   log_level => info,
                    register_loaded_applications => undefined,
                    create_application_tracers => undefined,
                    id_generator => otel_id_generator,
@@ -295,7 +297,8 @@ report_cb(#{source := transform,
      [OSVar, Key, Transform, Value, otel_utils:format_exception(Kind, Reason, StackTrace)]}.
 
 config_mappings(general_sdk) ->
-    [{"OTEL_LOG_LEVEL", log_level, existing_atom},
+    [{"OTEL_SDK_DISABLED", sdk_disabled, boolean},
+     {"OTEL_LOG_LEVEL", log_level, existing_atom},
 
      %% `register_loaded_applications' is kept for backwards compatibility
      {"OTEL_REGISTER_LOADED_APPLICATIONS", register_loaded_applications, boolean},

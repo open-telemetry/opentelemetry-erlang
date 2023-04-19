@@ -33,7 +33,7 @@ all() ->
      {group, otel_batch_processor}].
 
 all_cases() ->
-    [with_span, macros, child_spans,
+    [with_span, macros, child_spans, disabled_sdk,
      update_span_data, tracer_instrumentation_scope, tracer_previous_ctx, stop_temporary_app,
      reset_after, attach_ctx, default_sampler, non_recording_ets_table,
      root_span_sampling_always_on, root_span_sampling_always_off,
@@ -59,6 +59,10 @@ init_per_group(Processor, Config) ->
 end_per_group(_, _Config) ->
     ok.
 
+init_per_testcase(disabled_sdk, Config) ->
+    application:set_env(opentelemetry, sdk_disabled, true),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
 init_per_testcase(no_exporter, Config) ->
     application:set_env(opentelemetry, processors,
                         [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
@@ -139,6 +143,11 @@ init_per_testcase(_, Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry),
     [{tid, Tid} | Config].
 
+end_per_testcase(disabled_sdk, _Config) ->
+    application:set_env(opentelemetry, sdk_disabled, false),
+    _ = application:stop(opentelemetry),
+    _ = application:unload(opentelemetry),
+    ok;
 end_per_testcase(disable_auto_creation, _Config) ->
     _ = application:stop(opentelemetry),
     _ = application:unload(opentelemetry),
@@ -1060,6 +1069,13 @@ too_many_attributes(Config) ->
     %% order isn't guaranteed so just verify the number dropped is right
     ?assertEqual(2, otel_attributes:dropped(Span2#span.attributes)),
 
+    ok.
+
+disabled_sdk(_Config) ->
+    SpanCtx1 = ?start_span(<<"span-1">>),
+
+    ?assertMatch(#span_ctx{trace_id=0,
+                           span_id=0}, SpanCtx1),
     ok.
 
 no_exporter(_Config) ->
