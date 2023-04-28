@@ -23,6 +23,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Global Tracer no longer set to no-op on SDK
   shutdown](https://github.com/open-telemetry/opentelemetry-erlang/pull/568)
 
+## Exporter 1.4.1 - 2023-04-26
+
+### Fixes
+
+- [Relax version constraints on API and
+  SDK](https://github.com/open-telemetry/opentelemetry-erlang/pull/578)
+
 ## SDK 1.3.0 - 2023-03-21
 
 ### Fixes
