@@ -1,5 +1,5 @@
 %% The schema url for telemetry resources
--define(SPAN_SCHEMA_URL, <<"https://opentelemetry.io/schemas/1.20.0">>).
+-define(TRACE_SCHEMA_URL, <<"https://opentelemetry.io/schemas/1.20.0">>).
 
 %% The type of the exception (its fully-qualified class name, if applicable). The dynamic type of the exception should be preferred over the static type in languages that support it
 -define(EXCEPTION_TYPE, 'exception.type').

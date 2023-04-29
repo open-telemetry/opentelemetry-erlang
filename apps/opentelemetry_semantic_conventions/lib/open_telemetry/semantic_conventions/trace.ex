@@ -1,18 +1,18 @@
-defmodule OpenTelemetry.SemanticConventions.Span do
+defmodule OpenTelemetry.SemanticConventions.Trace do
   @doc """
   The schema url for telemetry resources.
 
-      iex> OpenTelemetry.SemanticConventions.Span.span_schema_url()
+      iex> OpenTelemetry.SemanticConventions.Trace.trace_schema_url()
       "https://opentelemetry.io/schemas/1.20.0"
   """
-  @spec span_schema_url :: String.t()
-  def span_schema_url do
+  @spec trace_schema_url :: String.t()
+  def trace_schema_url do
     "https://opentelemetry.io/schemas/1.20.0"
   end
   @doc """
   The type of the exception (its fully-qualified class name, if applicable). The dynamic type of the exception should be preferred over the static type in languages that support it
 
-      iex> OpenTelemetry.SemanticConventions.Span.exception_type()
+      iex> OpenTelemetry.SemanticConventions.Trace.exception_type()
       :"exception.type"
   """
   @spec exception_type :: :"exception.type"
@@ -22,7 +22,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The exception message
 
-      iex> OpenTelemetry.SemanticConventions.Span.exception_message()
+      iex> OpenTelemetry.SemanticConventions.Trace.exception_message()
       :"exception.message"
   """
   @spec exception_message :: :"exception.message"
@@ -32,7 +32,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   A stacktrace as a string in the natural representation for the language runtime. The representation is to be determined and documented by each language SIG
 
-      iex> OpenTelemetry.SemanticConventions.Span.exception_stacktrace()
+      iex> OpenTelemetry.SemanticConventions.Trace.exception_stacktrace()
       :"exception.stacktrace"
   """
   @spec exception_stacktrace :: :"exception.stacktrace"
@@ -47,7 +47,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   If an id is provided, other log records with the same id will be considered duplicates and can be removed safely. This means, that two distinguishable log records MUST have different values.
   The id MAY be an [Universally Unique Lexicographically Sortable Identifier (ULID)](https://github.com/ulid/spec), but other identifiers (e.g. UUID) may be used as needed
 
-      iex> OpenTelemetry.SemanticConventions.Span.log_record_uid()
+      iex> OpenTelemetry.SemanticConventions.Trace.log_record_uid()
       :"log.record.uid"
   """
   @spec log_record_uid :: :"log.record.uid"
@@ -61,7 +61,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   This may be different from `cloud.resource_id` if an alias is involved
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_lambda_invoked_arn()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_lambda_invoked_arn()
       :"aws.lambda.invoked_arn"
   """
   @spec aws_lambda_invoked_arn :: :"aws.lambda.invoked_arn"
@@ -71,7 +71,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The [event_id](https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#id) uniquely identifies the event
 
-      iex> OpenTelemetry.SemanticConventions.Span.cloudevents_event_id()
+      iex> OpenTelemetry.SemanticConventions.Trace.cloudevents_event_id()
       :"cloudevents.event_id"
   """
   @spec cloudevents_event_id :: :"cloudevents.event_id"
@@ -81,7 +81,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The [source](https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#source-1) identifies the context in which an event happened
 
-      iex> OpenTelemetry.SemanticConventions.Span.cloudevents_event_source()
+      iex> OpenTelemetry.SemanticConventions.Trace.cloudevents_event_source()
       :"cloudevents.event_source"
   """
   @spec cloudevents_event_source :: :"cloudevents.event_source"
@@ -91,7 +91,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The [version of the CloudEvents specification](https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#specversion) which the event uses
 
-      iex> OpenTelemetry.SemanticConventions.Span.cloudevents_event_spec_version()
+      iex> OpenTelemetry.SemanticConventions.Trace.cloudevents_event_spec_version()
       :"cloudevents.event_spec_version"
   """
   @spec cloudevents_event_spec_version :: :"cloudevents.event_spec_version"
@@ -101,7 +101,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The [event_type](https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#type) contains a value describing the type of event related to the originating occurrence
 
-      iex> OpenTelemetry.SemanticConventions.Span.cloudevents_event_type()
+      iex> OpenTelemetry.SemanticConventions.Trace.cloudevents_event_type()
       :"cloudevents.event_type"
   """
   @spec cloudevents_event_type :: :"cloudevents.event_type"
@@ -111,7 +111,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The [subject](https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#subject) of the event in the context of the event producer (identified by source)
 
-      iex> OpenTelemetry.SemanticConventions.Span.cloudevents_event_subject()
+      iex> OpenTelemetry.SemanticConventions.Trace.cloudevents_event_subject()
       :"cloudevents.event_subject"
   """
   @spec cloudevents_event_subject :: :"cloudevents.event_subject"
@@ -125,7 +125,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   The causal relationship between a child Span and a parent Span
 
-      iex> OpenTelemetry.SemanticConventions.Span.opentracing_ref_type()
+      iex> OpenTelemetry.SemanticConventions.Trace.opentracing_ref_type()
       :"opentracing.ref_type"
   """
   @spec opentracing_ref_type :: :"opentracing.ref_type"
@@ -135,7 +135,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   An identifier for the database management system (DBMS) product being used. See below for a list of well-known identifiers
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_system()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_system()
       :"db.system"
   """
   @spec db_system :: :"db.system"
@@ -145,7 +145,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The connection string used to connect to the database. It is recommended to remove embedded credentials
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_connection_string()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_connection_string()
       :"db.connection_string"
   """
   @spec db_connection_string :: :"db.connection_string"
@@ -155,7 +155,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Username for accessing the database
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_user()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_user()
       :"db.user"
   """
   @spec db_user :: :"db.user"
@@ -165,7 +165,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The fully-qualified class name of the [Java Database Connectivity (JDBC)](https://docs.oracle.com/javase/8/docs/technotes/guides/jdbc/) driver used to connect
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_jdbc_driver_classname()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_jdbc_driver_classname()
       :"db.jdbc.driver_classname"
   """
   @spec db_jdbc_driver_classname :: :"db.jdbc.driver_classname"
@@ -179,7 +179,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   In some SQL databases, the database name to be used is called "schema name". In case there are multiple layers that could be considered for database name (e.g. Oracle instance name and schema name), the database name to be used is the more specific layer (e.g. Oracle schema name)
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_name()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_name()
       :"db.name"
   """
   @spec db_name :: :"db.name"
@@ -189,7 +189,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The database statement being executed
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_statement()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_statement()
       :"db.statement"
   """
   @spec db_statement :: :"db.statement"
@@ -203,7 +203,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   When setting this to an SQL keyword, it is not recommended to attempt any client-side parsing of `db.statement` just to get this property, but it should be set if the operation name is provided by the library being instrumented. If the SQL statement has an ambiguous operation, or performs more than one operation, this value may be omitted
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_operation()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_operation()
       :"db.operation"
   """
   @spec db_operation :: :"db.operation"
@@ -217,7 +217,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   `net.peer.name` SHOULD NOT be set if capturing it would require an extra DNS lookup
 
-      iex> OpenTelemetry.SemanticConventions.Span.net_peer_name()
+      iex> OpenTelemetry.SemanticConventions.Trace.net_peer_name()
       :"net.peer.name"
   """
   @spec net_peer_name :: :"net.peer.name"
@@ -227,7 +227,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Logical remote port number
 
-      iex> OpenTelemetry.SemanticConventions.Span.net_peer_port()
+      iex> OpenTelemetry.SemanticConventions.Trace.net_peer_port()
       :"net.peer.port"
   """
   @spec net_peer_port :: :"net.peer.port"
@@ -237,7 +237,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Remote socket peer address: IPv4 or IPv6 for internet protocols, path for local communication, [etc](https://man7.org/linux/man-pages/man7/address_families.7.html)
 
-      iex> OpenTelemetry.SemanticConventions.Span.net_sock_peer_addr()
+      iex> OpenTelemetry.SemanticConventions.Trace.net_sock_peer_addr()
       :"net.sock.peer.addr"
   """
   @spec net_sock_peer_addr :: :"net.sock.peer.addr"
@@ -247,7 +247,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Remote socket peer port
 
-      iex> OpenTelemetry.SemanticConventions.Span.net_sock_peer_port()
+      iex> OpenTelemetry.SemanticConventions.Trace.net_sock_peer_port()
       :"net.sock.peer.port"
   """
   @spec net_sock_peer_port :: :"net.sock.peer.port"
@@ -257,7 +257,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Protocol [address family](https://man7.org/linux/man-pages/man7/address_families.7.html) which is used for communication
 
-      iex> OpenTelemetry.SemanticConventions.Span.net_sock_family()
+      iex> OpenTelemetry.SemanticConventions.Trace.net_sock_family()
       :"net.sock.family"
   """
   @spec net_sock_family :: :"net.sock.family"
@@ -267,7 +267,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Remote socket peer name
 
-      iex> OpenTelemetry.SemanticConventions.Span.net_sock_peer_name()
+      iex> OpenTelemetry.SemanticConventions.Trace.net_sock_peer_name()
       :"net.sock.peer.name"
   """
   @spec net_sock_peer_name :: :"net.sock.peer.name"
@@ -277,7 +277,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Transport protocol used. See note below
 
-      iex> OpenTelemetry.SemanticConventions.Span.net_transport()
+      iex> OpenTelemetry.SemanticConventions.Trace.net_transport()
       :"net.transport"
   """
   @spec net_transport :: :"net.transport"
@@ -291,7 +291,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   If setting a `db.mssql.instance_name`, `net.peer.port` is no longer required (but still recommended if non-standard)
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_mssql_instance_name()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_mssql_instance_name()
       :"db.mssql.instance_name"
   """
   @spec db_mssql_instance_name :: :"db.mssql.instance_name"
@@ -301,7 +301,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The fetch size used for paging, i.e. how many rows will be returned at once
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_cassandra_page_size()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_cassandra_page_size()
       :"db.cassandra.page_size"
   """
   @spec db_cassandra_page_size :: :"db.cassandra.page_size"
@@ -311,7 +311,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The consistency level of the query. Based on consistency values from [CQL](https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/dml/dmlConfigConsistency.html)
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_cassandra_consistency_level()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_cassandra_consistency_level()
       :"db.cassandra.consistency_level"
   """
   @spec db_cassandra_consistency_level :: :"db.cassandra.consistency_level"
@@ -325,7 +325,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   This mirrors the db.sql.table attribute but references cassandra rather than sql. It is not recommended to attempt any client-side parsing of `db.statement` just to get this property, but it should be set if it is provided by the library being instrumented. If the operation is acting upon an anonymous table, or more than one table, this value MUST NOT be set
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_cassandra_table()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_cassandra_table()
       :"db.cassandra.table"
   """
   @spec db_cassandra_table :: :"db.cassandra.table"
@@ -335,7 +335,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Whether or not the query is idempotent
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_cassandra_idempotence()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_cassandra_idempotence()
       :"db.cassandra.idempotence"
   """
   @spec db_cassandra_idempotence :: :"db.cassandra.idempotence"
@@ -345,7 +345,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The number of times a query was speculatively executed. Not set or `0` if the query was not executed speculatively
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_cassandra_speculative_execution_count()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_cassandra_speculative_execution_count()
       :"db.cassandra.speculative_execution_count"
   """
   @spec db_cassandra_speculative_execution_count :: :"db.cassandra.speculative_execution_count"
@@ -355,7 +355,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The ID of the coordinating node for a query
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_cassandra_coordinator_id()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_cassandra_coordinator_id()
       :"db.cassandra.coordinator.id"
   """
   @spec db_cassandra_coordinator_id :: :"db.cassandra.coordinator.id"
@@ -365,7 +365,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The data center of the coordinating node for a query
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_cassandra_coordinator_dc()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_cassandra_coordinator_dc()
       :"db.cassandra.coordinator.dc"
   """
   @spec db_cassandra_coordinator_dc :: :"db.cassandra.coordinator.dc"
@@ -375,7 +375,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The index of the database being accessed as used in the [`SELECT` command](https://redis.io/commands/select), provided as an integer. To be used instead of the generic `db.name` attribute
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_redis_database_index()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_redis_database_index()
       :"db.redis.database_index"
   """
   @spec db_redis_database_index :: :"db.redis.database_index"
@@ -385,7 +385,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The collection being accessed within the database stated in `db.name`
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_mongodb_collection()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_mongodb_collection()
       :"db.mongodb.collection"
   """
   @spec db_mongodb_collection :: :"db.mongodb.collection"
@@ -399,7 +399,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   It is not recommended to attempt any client-side parsing of `db.statement` just to get this property, but it should be set if it is provided by the library being instrumented. If the operation is acting upon an anonymous table, or more than one table, this value MUST NOT be set
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_sql_table()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_sql_table()
       :"db.sql.table"
   """
   @spec db_sql_table :: :"db.sql.table"
@@ -409,7 +409,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Unique Cosmos client instance id
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_cosmosdb_client_id()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_cosmosdb_client_id()
       :"db.cosmosdb.client_id"
   """
   @spec db_cosmosdb_client_id :: :"db.cosmosdb.client_id"
@@ -419,7 +419,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   CosmosDB Operation Type
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_cosmosdb_operation_type()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_cosmosdb_operation_type()
       :"db.cosmosdb.operation_type"
   """
   @spec db_cosmosdb_operation_type :: :"db.cosmosdb.operation_type"
@@ -435,7 +435,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
      Format Reg-{D (Disabled discovery)}-S(application region)|L(List of preferred regions)|N(None, user did not configure it).
      Default value is "NS"
 
-      iex> OpenTelemetry.SemanticConventions.Span.user_agent_original()
+      iex> OpenTelemetry.SemanticConventions.Trace.user_agent_original()
       :"user_agent.original"
   """
   @spec user_agent_original :: :"user_agent.original"
@@ -445,7 +445,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Cosmos client connection mode
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_cosmosdb_connection_mode()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_cosmosdb_connection_mode()
       :"db.cosmosdb.connection_mode"
   """
   @spec db_cosmosdb_connection_mode :: :"db.cosmosdb.connection_mode"
@@ -455,7 +455,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Cosmos DB container name
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_cosmosdb_container()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_cosmosdb_container()
       :"db.cosmosdb.container"
   """
   @spec db_cosmosdb_container :: :"db.cosmosdb.container"
@@ -465,7 +465,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Request payload size in bytes
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_cosmosdb_request_content_length()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_cosmosdb_request_content_length()
       :"db.cosmosdb.request_content_length"
   """
   @spec db_cosmosdb_request_content_length :: :"db.cosmosdb.request_content_length"
@@ -475,7 +475,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Cosmos DB status code
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_cosmosdb_status_code()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_cosmosdb_status_code()
       :"db.cosmosdb.status_code"
   """
   @spec db_cosmosdb_status_code :: :"db.cosmosdb.status_code"
@@ -485,7 +485,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Cosmos DB sub status code
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_cosmosdb_sub_status_code()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_cosmosdb_sub_status_code()
       :"db.cosmosdb.sub_status_code"
   """
   @spec db_cosmosdb_sub_status_code :: :"db.cosmosdb.sub_status_code"
@@ -495,7 +495,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   RU consumed for that operation
 
-      iex> OpenTelemetry.SemanticConventions.Span.db_cosmosdb_request_charge()
+      iex> OpenTelemetry.SemanticConventions.Trace.db_cosmosdb_request_charge()
       :"db.cosmosdb.request_charge"
   """
   @spec db_cosmosdb_request_charge :: :"db.cosmosdb.request_charge"
@@ -505,7 +505,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Name of the code, either "OK" or "ERROR". MUST NOT be set if the status code is UNSET
 
-      iex> OpenTelemetry.SemanticConventions.Span.otel_status_code()
+      iex> OpenTelemetry.SemanticConventions.Trace.otel_status_code()
       :"otel.status_code"
   """
   @spec otel_status_code :: :"otel.status_code"
@@ -515,7 +515,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Description of the Status if it has a value, otherwise not set
 
-      iex> OpenTelemetry.SemanticConventions.Span.otel_status_description()
+      iex> OpenTelemetry.SemanticConventions.Trace.otel_status_description()
       :"otel.status_description"
   """
   @spec otel_status_description :: :"otel.status_description"
@@ -537,7 +537,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   nothing to do with the underlying transport used to make the API
   call to invoke the lambda, which is often HTTP)
 
-      iex> OpenTelemetry.SemanticConventions.Span.faas_trigger()
+      iex> OpenTelemetry.SemanticConventions.Trace.faas_trigger()
       :"faas.trigger"
   """
   @spec faas_trigger :: :"faas.trigger"
@@ -547,7 +547,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The invocation ID of the current function invocation
 
-      iex> OpenTelemetry.SemanticConventions.Span.faas_invocation_id()
+      iex> OpenTelemetry.SemanticConventions.Trace.faas_invocation_id()
       :"faas.invocation_id"
   """
   @spec faas_invocation_id :: :"faas.invocation_id"
@@ -577,7 +577,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
     This means that a span attribute MUST be used, as an Azure function app can host multiple functions that would usually share
     a TracerProvider
 
-      iex> OpenTelemetry.SemanticConventions.Span.cloud_resource_id()
+      iex> OpenTelemetry.SemanticConventions.Trace.cloud_resource_id()
       :"cloud.resource_id"
   """
   @spec cloud_resource_id :: :"cloud.resource_id"
@@ -587,7 +587,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The name of the source on which the triggering operation was performed. For example, in Cloud Storage or S3 corresponds to the bucket name, and in Cosmos DB to the database name
 
-      iex> OpenTelemetry.SemanticConventions.Span.faas_document_collection()
+      iex> OpenTelemetry.SemanticConventions.Trace.faas_document_collection()
       :"faas.document.collection"
   """
   @spec faas_document_collection :: :"faas.document.collection"
@@ -597,7 +597,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Describes the type of the operation that was performed on the data
 
-      iex> OpenTelemetry.SemanticConventions.Span.faas_document_operation()
+      iex> OpenTelemetry.SemanticConventions.Trace.faas_document_operation()
       :"faas.document.operation"
   """
   @spec faas_document_operation :: :"faas.document.operation"
@@ -607,7 +607,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   A string containing the time when the data was accessed in the [ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html) format expressed in [UTC](https://www.w3.org/TR/NOTE-datetime)
 
-      iex> OpenTelemetry.SemanticConventions.Span.faas_document_time()
+      iex> OpenTelemetry.SemanticConventions.Trace.faas_document_time()
       :"faas.document.time"
   """
   @spec faas_document_time :: :"faas.document.time"
@@ -617,7 +617,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The document name/table subjected to the operation. For example, in Cloud Storage or S3 is the name of the file, and in Cosmos DB the table name
 
-      iex> OpenTelemetry.SemanticConventions.Span.faas_document_name()
+      iex> OpenTelemetry.SemanticConventions.Trace.faas_document_name()
       :"faas.document.name"
   """
   @spec faas_document_name :: :"faas.document.name"
@@ -627,7 +627,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The URI scheme identifying the used protocol
 
-      iex> OpenTelemetry.SemanticConventions.Span.http_scheme()
+      iex> OpenTelemetry.SemanticConventions.Trace.http_scheme()
       :"http.scheme"
   """
   @spec http_scheme :: :"http.scheme"
@@ -642,7 +642,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   MUST NOT be populated when this is not supported by the HTTP server framework as the route attribute should have low-cardinality and the URI path can NOT substitute it.
   SHOULD include the [application root](/specification/trace/semantic_conventions/http.md#http-server-definitions) if there is one
 
-      iex> OpenTelemetry.SemanticConventions.Span.http_route()
+      iex> OpenTelemetry.SemanticConventions.Trace.http_route()
       :"http.route"
   """
   @spec http_route :: :"http.route"
@@ -664,7 +664,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   
   SHOULD NOT be set if only IP address is available and capturing name would require a reverse DNS lookup
 
-      iex> OpenTelemetry.SemanticConventions.Span.net_host_name()
+      iex> OpenTelemetry.SemanticConventions.Trace.net_host_name()
       :"net.host.name"
   """
   @spec net_host_name :: :"net.host.name"
@@ -683,7 +683,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
     if it's sent in absolute-form.
   - Port identifier of the `Host` header
 
-      iex> OpenTelemetry.SemanticConventions.Span.net_host_port()
+      iex> OpenTelemetry.SemanticConventions.Trace.net_host_port()
       :"net.host.port"
   """
   @spec net_host_port :: :"net.host.port"
@@ -693,7 +693,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The full request target as passed in a HTTP request line or equivalent
 
-      iex> OpenTelemetry.SemanticConventions.Span.http_target()
+      iex> OpenTelemetry.SemanticConventions.Trace.http_target()
       :"http.target"
   """
   @spec http_target :: :"http.target"
@@ -717,7 +717,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   one is at least somewhat confident that the address is not that of
   the closest proxy
 
-      iex> OpenTelemetry.SemanticConventions.Span.http_client_ip()
+      iex> OpenTelemetry.SemanticConventions.Trace.http_client_ip()
       :"http.client_ip"
   """
   @spec http_client_ip :: :"http.client_ip"
@@ -727,7 +727,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Local socket address. Useful in case of a multi-IP host
 
-      iex> OpenTelemetry.SemanticConventions.Span.net_sock_host_addr()
+      iex> OpenTelemetry.SemanticConventions.Trace.net_sock_host_addr()
       :"net.sock.host.addr"
   """
   @spec net_sock_host_addr :: :"net.sock.host.addr"
@@ -737,7 +737,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Local socket port number
 
-      iex> OpenTelemetry.SemanticConventions.Span.net_sock_host_port()
+      iex> OpenTelemetry.SemanticConventions.Trace.net_sock_host_port()
       :"net.sock.host.port"
   """
   @spec net_sock_host_port :: :"net.sock.host.port"
@@ -747,7 +747,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   A string identifying the messaging system
 
-      iex> OpenTelemetry.SemanticConventions.Span.messaging_system()
+      iex> OpenTelemetry.SemanticConventions.Trace.messaging_system()
       :"messaging.system"
   """
   @spec messaging_system :: :"messaging.system"
@@ -761,7 +761,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   If a custom value is used, it MUST be of low cardinality
 
-      iex> OpenTelemetry.SemanticConventions.Span.messaging_operation()
+      iex> OpenTelemetry.SemanticConventions.Trace.messaging_operation()
       :"messaging.operation"
   """
   @spec messaging_operation :: :"messaging.operation"
@@ -775,7 +775,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   Instrumentations SHOULD NOT set `messaging.batch.message_count` on spans that operate with a single message. When a messaging client library supports both batch and single-message API for the same operation, instrumentations SHOULD use `messaging.batch.message_count` for batching APIs and SHOULD NOT use it for single-message APIs
 
-      iex> OpenTelemetry.SemanticConventions.Span.messaging_batch_message_count()
+      iex> OpenTelemetry.SemanticConventions.Trace.messaging_batch_message_count()
       :"messaging.batch.message_count"
   """
   @spec messaging_batch_message_count :: :"messaging.batch.message_count"
@@ -785,7 +785,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   A value used by the messaging system as an identifier for the message, represented as a string
 
-      iex> OpenTelemetry.SemanticConventions.Span.messaging_message_id()
+      iex> OpenTelemetry.SemanticConventions.Trace.messaging_message_id()
       :"messaging.message.id"
   """
   @spec messaging_message_id :: :"messaging.message.id"
@@ -795,7 +795,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The [conversation ID](#conversations) identifying the conversation to which the message belongs, represented as a string. Sometimes called "Correlation ID"
 
-      iex> OpenTelemetry.SemanticConventions.Span.messaging_message_conversation_id()
+      iex> OpenTelemetry.SemanticConventions.Trace.messaging_message_conversation_id()
       :"messaging.message.conversation_id"
   """
   @spec messaging_message_conversation_id :: :"messaging.message.conversation_id"
@@ -805,7 +805,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The (uncompressed) size of the message payload in bytes. Also use this attribute if it is unknown whether the compressed or uncompressed payload size is reported
 
-      iex> OpenTelemetry.SemanticConventions.Span.messaging_message_payload_size_bytes()
+      iex> OpenTelemetry.SemanticConventions.Trace.messaging_message_payload_size_bytes()
       :"messaging.message.payload_size_bytes"
   """
   @spec messaging_message_payload_size_bytes :: :"messaging.message.payload_size_bytes"
@@ -815,7 +815,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The compressed size of the message payload in bytes
 
-      iex> OpenTelemetry.SemanticConventions.Span.messaging_message_payload_compressed_size_bytes()
+      iex> OpenTelemetry.SemanticConventions.Trace.messaging_message_payload_compressed_size_bytes()
       :"messaging.message.payload_compressed_size_bytes"
   """
   @spec messaging_message_payload_compressed_size_bytes :: :"messaging.message.payload_compressed_size_bytes"
@@ -825,7 +825,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Application layer protocol used. The value SHOULD be normalized to lowercase
 
-      iex> OpenTelemetry.SemanticConventions.Span.net_protocol_name()
+      iex> OpenTelemetry.SemanticConventions.Trace.net_protocol_name()
       :"net.protocol.name"
   """
   @spec net_protocol_name :: :"net.protocol.name"
@@ -839,7 +839,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   `net.protocol.version` refers to the version of the protocol used and might be different from the protocol client's version. If the HTTP client used has a version of `0.27.2`, but sends HTTP version `1.1`, this attribute should be set to `1.1`
 
-      iex> OpenTelemetry.SemanticConventions.Span.net_protocol_version()
+      iex> OpenTelemetry.SemanticConventions.Trace.net_protocol_version()
       :"net.protocol.version"
   """
   @spec net_protocol_version :: :"net.protocol.version"
@@ -849,7 +849,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   A string containing the function invocation time in the [ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html) format expressed in [UTC](https://www.w3.org/TR/NOTE-datetime)
 
-      iex> OpenTelemetry.SemanticConventions.Span.faas_time()
+      iex> OpenTelemetry.SemanticConventions.Trace.faas_time()
       :"faas.time"
   """
   @spec faas_time :: :"faas.time"
@@ -859,7 +859,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   A string containing the schedule period as [Cron Expression](https://docs.oracle.com/cd/E12058_01/doc/doc.1014/e12030/cron_expressions.htm)
 
-      iex> OpenTelemetry.SemanticConventions.Span.faas_cron()
+      iex> OpenTelemetry.SemanticConventions.Trace.faas_cron()
       :"faas.cron"
   """
   @spec faas_cron :: :"faas.cron"
@@ -869,7 +869,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   A boolean that is true if the serverless function is executed for the first time (aka cold-start)
 
-      iex> OpenTelemetry.SemanticConventions.Span.faas_coldstart()
+      iex> OpenTelemetry.SemanticConventions.Trace.faas_coldstart()
       :"faas.coldstart"
   """
   @spec faas_coldstart :: :"faas.coldstart"
@@ -883,7 +883,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   SHOULD be equal to the `faas.name` resource attribute of the invoked function
 
-      iex> OpenTelemetry.SemanticConventions.Span.faas_invoked_name()
+      iex> OpenTelemetry.SemanticConventions.Trace.faas_invoked_name()
       :"faas.invoked_name"
   """
   @spec faas_invoked_name :: :"faas.invoked_name"
@@ -897,7 +897,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   SHOULD be equal to the `cloud.provider` resource attribute of the invoked function
 
-      iex> OpenTelemetry.SemanticConventions.Span.faas_invoked_provider()
+      iex> OpenTelemetry.SemanticConventions.Trace.faas_invoked_provider()
       :"faas.invoked_provider"
   """
   @spec faas_invoked_provider :: :"faas.invoked_provider"
@@ -911,7 +911,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   SHOULD be equal to the `cloud.region` resource attribute of the invoked function
 
-      iex> OpenTelemetry.SemanticConventions.Span.faas_invoked_region()
+      iex> OpenTelemetry.SemanticConventions.Trace.faas_invoked_region()
       :"faas.invoked_region"
   """
   @spec faas_invoked_region :: :"faas.invoked_region"
@@ -921,7 +921,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The [`service.name`](../../resource/semantic_conventions/README.md#service) of the remote service. SHOULD be equal to the actual `service.name` resource attribute of the remote service if any
 
-      iex> OpenTelemetry.SemanticConventions.Span.peer_service()
+      iex> OpenTelemetry.SemanticConventions.Trace.peer_service()
       :"peer.service"
   """
   @spec peer_service :: :"peer.service"
@@ -931,7 +931,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Username or client_id extracted from the access token or [Authorization](https://tools.ietf.org/html/rfc7235#section-4.2) header in the inbound request from outside the system
 
-      iex> OpenTelemetry.SemanticConventions.Span.enduser_id()
+      iex> OpenTelemetry.SemanticConventions.Trace.enduser_id()
       :"enduser.id"
   """
   @spec enduser_id :: :"enduser.id"
@@ -941,7 +941,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Actual/assumed role the client is making the request under extracted from token or application security context
 
-      iex> OpenTelemetry.SemanticConventions.Span.enduser_role()
+      iex> OpenTelemetry.SemanticConventions.Trace.enduser_role()
       :"enduser.role"
   """
   @spec enduser_role :: :"enduser.role"
@@ -951,7 +951,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Scopes or granted authorities the client currently possesses extracted from token or application security context. The value would come from the scope associated with an [OAuth 2.0 Access Token](https://tools.ietf.org/html/rfc6749#section-3.3) or an attribute value in a [SAML 2.0 Assertion](http://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-tech-overview-2.0.html)
 
-      iex> OpenTelemetry.SemanticConventions.Span.enduser_scope()
+      iex> OpenTelemetry.SemanticConventions.Trace.enduser_scope()
       :"enduser.scope"
   """
   @spec enduser_scope :: :"enduser.scope"
@@ -961,7 +961,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Current "managed" thread ID (as opposed to OS thread ID)
 
-      iex> OpenTelemetry.SemanticConventions.Span.thread_id()
+      iex> OpenTelemetry.SemanticConventions.Trace.thread_id()
       :"thread.id"
   """
   @spec thread_id :: :"thread.id"
@@ -971,7 +971,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Current thread name
 
-      iex> OpenTelemetry.SemanticConventions.Span.thread_name()
+      iex> OpenTelemetry.SemanticConventions.Trace.thread_name()
       :"thread.name"
   """
   @spec thread_name :: :"thread.name"
@@ -981,7 +981,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The method or function name, or equivalent (usually rightmost part of the code unit's name)
 
-      iex> OpenTelemetry.SemanticConventions.Span.code_function()
+      iex> OpenTelemetry.SemanticConventions.Trace.code_function()
       :"code.function"
   """
   @spec code_function :: :"code.function"
@@ -991,7 +991,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The "namespace" within which `code.function` is defined. Usually the qualified class or module name, such that `code.namespace` + some separator + `code.function` form a unique identifier for the code unit
 
-      iex> OpenTelemetry.SemanticConventions.Span.code_namespace()
+      iex> OpenTelemetry.SemanticConventions.Trace.code_namespace()
       :"code.namespace"
   """
   @spec code_namespace :: :"code.namespace"
@@ -1001,7 +1001,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The source code file name that identifies the code unit as uniquely as possible (preferably an absolute file path)
 
-      iex> OpenTelemetry.SemanticConventions.Span.code_filepath()
+      iex> OpenTelemetry.SemanticConventions.Trace.code_filepath()
       :"code.filepath"
   """
   @spec code_filepath :: :"code.filepath"
@@ -1011,7 +1011,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The line number in `code.filepath` best representing the operation. It SHOULD point within the code unit named in `code.function`
 
-      iex> OpenTelemetry.SemanticConventions.Span.code_lineno()
+      iex> OpenTelemetry.SemanticConventions.Trace.code_lineno()
       :"code.lineno"
   """
   @spec code_lineno :: :"code.lineno"
@@ -1021,7 +1021,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The column number in `code.filepath` best representing the operation. It SHOULD point within the code unit named in `code.function`
 
-      iex> OpenTelemetry.SemanticConventions.Span.code_column()
+      iex> OpenTelemetry.SemanticConventions.Trace.code_column()
       :"code.column"
   """
   @spec code_column :: :"code.column"
@@ -1035,7 +1035,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   `http.url` MUST NOT contain credentials passed via URL in form of `https://username:password@www.example.com/`. In such case the attribute's value should be `https://www.example.com/`
 
-      iex> OpenTelemetry.SemanticConventions.Span.http_url()
+      iex> OpenTelemetry.SemanticConventions.Trace.http_url()
       :"http.url"
   """
   @spec http_url :: :"http.url"
@@ -1049,7 +1049,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   The resend count SHOULD be updated each time an HTTP request gets resent by the client, regardless of what was the cause of the resending (e.g. redirection, authorization failure, 503 Server Unavailable, network issues, or any other)
 
-      iex> OpenTelemetry.SemanticConventions.Span.http_resend_count()
+      iex> OpenTelemetry.SemanticConventions.Trace.http_resend_count()
       :"http.resend_count"
   """
   @spec http_resend_count :: :"http.resend_count"
@@ -1059,7 +1059,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The value `aws-api`
 
-      iex> OpenTelemetry.SemanticConventions.Span.rpc_system()
+      iex> OpenTelemetry.SemanticConventions.Trace.rpc_system()
       :"rpc.system"
   """
   @spec rpc_system :: :"rpc.system"
@@ -1073,7 +1073,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   This is the logical name of the service from the RPC interface perspective, which can be different from the name of any implementing class. The `code.namespace` attribute may be used to store the latter (despite the attribute name, it may include a class name; e.g., class with method actually executing the call on the server side, RPC client stub class on the client side)
 
-      iex> OpenTelemetry.SemanticConventions.Span.rpc_service()
+      iex> OpenTelemetry.SemanticConventions.Trace.rpc_service()
       :"rpc.service"
   """
   @spec rpc_service :: :"rpc.service"
@@ -1087,7 +1087,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   This is the logical name of the method from the RPC interface perspective, which can be different from the name of any implementing method/function. The `code.function` attribute may be used to store the latter (e.g., method actually executing the call on the server side, RPC client stub method on the client side)
 
-      iex> OpenTelemetry.SemanticConventions.Span.rpc_method()
+      iex> OpenTelemetry.SemanticConventions.Trace.rpc_method()
       :"rpc.method"
   """
   @spec rpc_method :: :"rpc.method"
@@ -1097,7 +1097,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The AWS request ID as returned in the response headers `x-amz-request-id` or `x-amz-requestid`
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_request_id()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_request_id()
       :"aws.request_id"
   """
   @spec aws_request_id :: :"aws.request_id"
@@ -1107,7 +1107,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The keys in the `RequestItems` object field
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_table_names()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_table_names()
       :"aws.dynamodb.table_names"
   """
   @spec aws_dynamodb_table_names :: :"aws.dynamodb.table_names"
@@ -1117,7 +1117,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The JSON-serialized value of each item in the `ConsumedCapacity` response field
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_consumed_capacity()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_consumed_capacity()
       :"aws.dynamodb.consumed_capacity"
   """
   @spec aws_dynamodb_consumed_capacity :: :"aws.dynamodb.consumed_capacity"
@@ -1127,7 +1127,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The JSON-serialized value of the `ItemCollectionMetrics` response field
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_item_collection_metrics()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_item_collection_metrics()
       :"aws.dynamodb.item_collection_metrics"
   """
   @spec aws_dynamodb_item_collection_metrics :: :"aws.dynamodb.item_collection_metrics"
@@ -1137,7 +1137,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The value of the `ProvisionedThroughput.ReadCapacityUnits` request parameter
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_provisioned_read_capacity()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_provisioned_read_capacity()
       :"aws.dynamodb.provisioned_read_capacity"
   """
   @spec aws_dynamodb_provisioned_read_capacity :: :"aws.dynamodb.provisioned_read_capacity"
@@ -1147,7 +1147,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The value of the `ProvisionedThroughput.WriteCapacityUnits` request parameter
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_provisioned_write_capacity()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_provisioned_write_capacity()
       :"aws.dynamodb.provisioned_write_capacity"
   """
   @spec aws_dynamodb_provisioned_write_capacity :: :"aws.dynamodb.provisioned_write_capacity"
@@ -1157,7 +1157,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The value of the `ConsistentRead` request parameter
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_consistent_read()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_consistent_read()
       :"aws.dynamodb.consistent_read"
   """
   @spec aws_dynamodb_consistent_read :: :"aws.dynamodb.consistent_read"
@@ -1167,7 +1167,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The value of the `ProjectionExpression` request parameter
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_projection()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_projection()
       :"aws.dynamodb.projection"
   """
   @spec aws_dynamodb_projection :: :"aws.dynamodb.projection"
@@ -1177,7 +1177,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The value of the `Limit` request parameter
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_limit()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_limit()
       :"aws.dynamodb.limit"
   """
   @spec aws_dynamodb_limit :: :"aws.dynamodb.limit"
@@ -1187,7 +1187,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The value of the `AttributesToGet` request parameter
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_attributes_to_get()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_attributes_to_get()
       :"aws.dynamodb.attributes_to_get"
   """
   @spec aws_dynamodb_attributes_to_get :: :"aws.dynamodb.attributes_to_get"
@@ -1197,7 +1197,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The value of the `IndexName` request parameter
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_index_name()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_index_name()
       :"aws.dynamodb.index_name"
   """
   @spec aws_dynamodb_index_name :: :"aws.dynamodb.index_name"
@@ -1207,7 +1207,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The value of the `Select` request parameter
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_select()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_select()
       :"aws.dynamodb.select"
   """
   @spec aws_dynamodb_select :: :"aws.dynamodb.select"
@@ -1217,7 +1217,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The JSON-serialized value of each item of the `GlobalSecondaryIndexes` request field
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_global_secondary_indexes()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_global_secondary_indexes()
       :"aws.dynamodb.global_secondary_indexes"
   """
   @spec aws_dynamodb_global_secondary_indexes :: :"aws.dynamodb.global_secondary_indexes"
@@ -1227,7 +1227,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The JSON-serialized value of each item of the `LocalSecondaryIndexes` request field
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_local_secondary_indexes()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_local_secondary_indexes()
       :"aws.dynamodb.local_secondary_indexes"
   """
   @spec aws_dynamodb_local_secondary_indexes :: :"aws.dynamodb.local_secondary_indexes"
@@ -1237,7 +1237,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The value of the `ExclusiveStartTableName` request parameter
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_exclusive_start_table()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_exclusive_start_table()
       :"aws.dynamodb.exclusive_start_table"
   """
   @spec aws_dynamodb_exclusive_start_table :: :"aws.dynamodb.exclusive_start_table"
@@ -1247,7 +1247,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The the number of items in the `TableNames` response parameter
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_table_count()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_table_count()
       :"aws.dynamodb.table_count"
   """
   @spec aws_dynamodb_table_count :: :"aws.dynamodb.table_count"
@@ -1257,7 +1257,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The value of the `ScanIndexForward` request parameter
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_scan_forward()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_scan_forward()
       :"aws.dynamodb.scan_forward"
   """
   @spec aws_dynamodb_scan_forward :: :"aws.dynamodb.scan_forward"
@@ -1267,7 +1267,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The value of the `Segment` request parameter
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_segment()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_segment()
       :"aws.dynamodb.segment"
   """
   @spec aws_dynamodb_segment :: :"aws.dynamodb.segment"
@@ -1277,7 +1277,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The value of the `TotalSegments` request parameter
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_total_segments()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_total_segments()
       :"aws.dynamodb.total_segments"
   """
   @spec aws_dynamodb_total_segments :: :"aws.dynamodb.total_segments"
@@ -1287,7 +1287,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The value of the `Count` response parameter
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_count()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_count()
       :"aws.dynamodb.count"
   """
   @spec aws_dynamodb_count :: :"aws.dynamodb.count"
@@ -1297,7 +1297,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The value of the `ScannedCount` response parameter
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_scanned_count()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_scanned_count()
       :"aws.dynamodb.scanned_count"
   """
   @spec aws_dynamodb_scanned_count :: :"aws.dynamodb.scanned_count"
@@ -1307,7 +1307,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The JSON-serialized value of each item in the `AttributeDefinitions` request field
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_attribute_definitions()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_attribute_definitions()
       :"aws.dynamodb.attribute_definitions"
   """
   @spec aws_dynamodb_attribute_definitions :: :"aws.dynamodb.attribute_definitions"
@@ -1317,7 +1317,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The JSON-serialized value of each item in the the `GlobalSecondaryIndexUpdates` request field
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_dynamodb_global_secondary_index_updates()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_dynamodb_global_secondary_index_updates()
       :"aws.dynamodb.global_secondary_index_updates"
   """
   @spec aws_dynamodb_global_secondary_index_updates :: :"aws.dynamodb.global_secondary_index_updates"
@@ -1332,7 +1332,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   The `bucket` attribute is applicable to all S3 operations that reference a bucket, i.e. that require the bucket name as a mandatory parameter.
   This applies to almost all S3 operations except `list-buckets`
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_s3_bucket()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_s3_bucket()
       :"aws.s3.bucket"
   """
   @spec aws_s3_bucket :: :"aws.s3.bucket"
@@ -1361,7 +1361,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   - [upload-part](https://docs.aws.amazon.com/cli/latest/reference/s3api/upload-part.html)
   - [upload-part-copy](https://docs.aws.amazon.com/cli/latest/reference/s3api/upload-part-copy.html)
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_s3_key()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_s3_key()
       :"aws.s3.key"
   """
   @spec aws_s3_key :: :"aws.s3.key"
@@ -1380,7 +1380,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   - [copy-object](https://docs.aws.amazon.com/cli/latest/reference/s3api/copy-object.html)
   - [upload-part-copy](https://docs.aws.amazon.com/cli/latest/reference/s3api/upload-part-copy.html)
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_s3_copy_source()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_s3_copy_source()
       :"aws.s3.copy_source"
   """
   @spec aws_s3_copy_source :: :"aws.s3.copy_source"
@@ -1402,7 +1402,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   - [upload-part](https://docs.aws.amazon.com/cli/latest/reference/s3api/upload-part.html)
   - [upload-part-copy](https://docs.aws.amazon.com/cli/latest/reference/s3api/upload-part-copy.html)
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_s3_upload_id()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_s3_upload_id()
       :"aws.s3.upload_id"
   """
   @spec aws_s3_upload_id :: :"aws.s3.upload_id"
@@ -1418,7 +1418,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   The `delete` attribute corresponds to the `--delete` parameter of the
   [delete-objects operation within the S3 API](https://docs.aws.amazon.com/cli/latest/reference/s3api/delete-objects.html)
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_s3_delete()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_s3_delete()
       :"aws.s3.delete"
   """
   @spec aws_s3_delete :: :"aws.s3.delete"
@@ -1435,7 +1435,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   The `part_number` attribute corresponds to the `--part-number` parameter of the
   [upload-part operation within the S3 API](https://docs.aws.amazon.com/cli/latest/reference/s3api/upload-part.html)
 
-      iex> OpenTelemetry.SemanticConventions.Span.aws_s3_part_number()
+      iex> OpenTelemetry.SemanticConventions.Trace.aws_s3_part_number()
       :"aws.s3.part_number"
   """
   @spec aws_s3_part_number :: :"aws.s3.part_number"
@@ -1445,7 +1445,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The name of the operation being executed
 
-      iex> OpenTelemetry.SemanticConventions.Span.graphql_operation_name()
+      iex> OpenTelemetry.SemanticConventions.Trace.graphql_operation_name()
       :"graphql.operation.name"
   """
   @spec graphql_operation_name :: :"graphql.operation.name"
@@ -1455,7 +1455,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The type of the operation being executed
 
-      iex> OpenTelemetry.SemanticConventions.Span.graphql_operation_type()
+      iex> OpenTelemetry.SemanticConventions.Trace.graphql_operation_type()
       :"graphql.operation.type"
   """
   @spec graphql_operation_type :: :"graphql.operation.type"
@@ -1469,7 +1469,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   The value may be sanitized to exclude sensitive information
 
-      iex> OpenTelemetry.SemanticConventions.Span.graphql_document()
+      iex> OpenTelemetry.SemanticConventions.Trace.graphql_document()
       :"graphql.document"
   """
   @spec graphql_document :: :"graphql.document"
@@ -1484,7 +1484,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   Destination name SHOULD uniquely identify a specific queue, topic or other entity within the broker. If
   the broker does not have such notion, the destination name SHOULD uniquely identify the broker
 
-      iex> OpenTelemetry.SemanticConventions.Span.messaging_destination_name()
+      iex> OpenTelemetry.SemanticConventions.Trace.messaging_destination_name()
       :"messaging.destination.name"
   """
   @spec messaging_destination_name :: :"messaging.destination.name"
@@ -1498,7 +1498,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   Destination names could be constructed from templates. An example would be a destination name involving a user name or product id. Although the destination name in this case is of high cardinality, the underlying template is of low cardinality and can be effectively used for grouping and aggregation
 
-      iex> OpenTelemetry.SemanticConventions.Span.messaging_destination_template()
+      iex> OpenTelemetry.SemanticConventions.Trace.messaging_destination_template()
       :"messaging.destination.template"
   """
   @spec messaging_destination_template :: :"messaging.destination.template"
@@ -1508,7 +1508,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   A boolean that is true if the message destination is temporary and might not exist anymore after messages are processed
 
-      iex> OpenTelemetry.SemanticConventions.Span.messaging_destination_temporary()
+      iex> OpenTelemetry.SemanticConventions.Trace.messaging_destination_temporary()
       :"messaging.destination.temporary"
   """
   @spec messaging_destination_temporary :: :"messaging.destination.temporary"
@@ -1518,7 +1518,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   A boolean that is true if the message destination is anonymous (could be unnamed or have auto-generated name)
 
-      iex> OpenTelemetry.SemanticConventions.Span.messaging_destination_anonymous()
+      iex> OpenTelemetry.SemanticConventions.Trace.messaging_destination_anonymous()
       :"messaging.destination.anonymous"
   """
   @spec messaging_destination_anonymous :: :"messaging.destination.anonymous"
@@ -1528,7 +1528,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The identifier for the consumer receiving a message. For Kafka, set it to `{messaging.kafka.consumer.group} - {messaging.kafka.client_id}`, if both are present, or only `messaging.kafka.consumer.group`. For brokers, such as RabbitMQ and Artemis, set it to the `client_id` of the client consuming the message
 
-      iex> OpenTelemetry.SemanticConventions.Span.messaging_consumer_id()
+      iex> OpenTelemetry.SemanticConventions.Trace.messaging_consumer_id()
       :"messaging.consumer.id"
   """
   @spec messaging_consumer_id :: :"messaging.consumer.id"
@@ -1543,7 +1543,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   Source name SHOULD uniquely identify a specific queue, topic, or other entity within the broker. If
   the broker does not have such notion, the source name SHOULD uniquely identify the broker
 
-      iex> OpenTelemetry.SemanticConventions.Span.messaging_source_name()
+      iex> OpenTelemetry.SemanticConventions.Trace.messaging_source_name()
       :"messaging.source.name"
   """
   @spec messaging_source_name :: :"messaging.source.name"
@@ -1557,7 +1557,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
 
   Source names could be constructed from templates. An example would be a source name involving a user name or product id. Although the source name in this case is of high cardinality, the underlying template is of low cardinality and can be effectively used for grouping and aggregation
 
-      iex> OpenTelemetry.SemanticConventions.Span.messaging_source_template()
+      iex> OpenTelemetry.SemanticConventions.Trace.messaging_source_template()
       :"messaging.source.template"
   """
   @spec messaging_source_template :: :"messaging.source.template"
@@ -1567,7 +1567,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   A boolean that is true if the message source is temporary and might not exist anymore after messages are processed
 
-      iex> OpenTelemetry.SemanticConventions.Span.messaging_source_temporary()
+      iex> OpenTelemetry.SemanticConventions.Trace.messaging_source_temporary()
       :"messaging.source.temporary"
   """
   @spec messaging_source_temporary :: :"messaging.source.temporary"
@@ -1577,7 +1577,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   A boolean that is true if the message source is anonymous (could be unnamed or have auto-generated name)
 
-      iex> OpenTelemetry.SemanticConventions.Span.messaging_source_anonymous()
+      iex> OpenTelemetry.SemanticConventions.Trace.messaging_source_anonymous()
       :"messaging.source.anonymous"
   """
   @spec messaging_source_anonymous :: :"messaging.source.anonymous"
@@ -1587,7 +1587,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The [numeric status code](https://github.com/grpc/grpc/blob/v1.33.2/doc/statuscodes.md) of the gRPC request
 
-      iex> OpenTelemetry.SemanticConventions.Span.rpc_grpc_status_code()
+      iex> OpenTelemetry.SemanticConventions.Trace.rpc_grpc_status_code()
       :"rpc.grpc.status_code"
   """
   @spec rpc_grpc_status_code :: :"rpc.grpc.status_code"
@@ -1597,7 +1597,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   Protocol version as in `jsonrpc` property of request/response. Since JSON-RPC 1.0 does not specify this, the value can be omitted
 
-      iex> OpenTelemetry.SemanticConventions.Span.rpc_jsonrpc_version()
+      iex> OpenTelemetry.SemanticConventions.Trace.rpc_jsonrpc_version()
       :"rpc.jsonrpc.version"
   """
   @spec rpc_jsonrpc_version :: :"rpc.jsonrpc.version"
@@ -1607,7 +1607,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   `id` property of request or response. Since protocol allows id to be int, string, `null` or missing (for notifications), value is expected to be cast to string for simplicity. Use empty string in case of `null` value. Omit entirely if this is a notification
 
-      iex> OpenTelemetry.SemanticConventions.Span.rpc_jsonrpc_request_id()
+      iex> OpenTelemetry.SemanticConventions.Trace.rpc_jsonrpc_request_id()
       :"rpc.jsonrpc.request_id"
   """
   @spec rpc_jsonrpc_request_id :: :"rpc.jsonrpc.request_id"
@@ -1617,7 +1617,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   `error.code` property of response if it is an error response
 
-      iex> OpenTelemetry.SemanticConventions.Span.rpc_jsonrpc_error_code()
+      iex> OpenTelemetry.SemanticConventions.Trace.rpc_jsonrpc_error_code()
       :"rpc.jsonrpc.error_code"
   """
   @spec rpc_jsonrpc_error_code :: :"rpc.jsonrpc.error_code"
@@ -1627,7 +1627,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   `error.message` property of response if it is an error response
 
-      iex> OpenTelemetry.SemanticConventions.Span.rpc_jsonrpc_error_message()
+      iex> OpenTelemetry.SemanticConventions.Trace.rpc_jsonrpc_error_message()
       :"rpc.jsonrpc.error_message"
   """
   @spec rpc_jsonrpc_error_message :: :"rpc.jsonrpc.error_message"
@@ -1637,7 +1637,7 @@ defmodule OpenTelemetry.SemanticConventions.Span do
   @doc """
   The [error codes](https://connect.build/docs/protocol/#error-codes) of the Connect request. Error codes are always string values
 
-      iex> OpenTelemetry.SemanticConventions.Span.rpc_connect_rpc_error_code()
+      iex> OpenTelemetry.SemanticConventions.Trace.rpc_connect_rpc_error_code()
       :"rpc.connect_rpc.error_code"
   """
   @spec rpc_connect_rpc_error_code :: :"rpc.connect_rpc.error_code"

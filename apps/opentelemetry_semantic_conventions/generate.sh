@@ -33,7 +33,7 @@ for kind in span attribute_group event resource; do
            -f /source code \
            --template /templates/semantic_conventions.hrl.j2 \
            --output /output/${output}.hrl \
-           -Dmodule=${kind} \
+           -Dmodule=${output} \
            -Dschema_uri=${schema_uri}
 
     docker run --rm \
@@ -45,6 +45,6 @@ for kind in span attribute_group event resource; do
            -f /source code \
            --template /templates/semantic_conventions.ex.j2 \
            --output /output/${output}.ex \
-           -Dmodule=${kind} \
+           -Dmodule=${output} \
            -Dschema_uri=${schema_uri}
 done
