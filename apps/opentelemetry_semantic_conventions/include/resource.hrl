@@ -1,18 +1,26 @@
 %% The schema url for telemetry resources
--define(RESOURCE_SCHEMA_URL, <<"https://opentelemetry.io/schemas/1.13.0">>).
+-define(RESOURCE_SCHEMA_URL, <<"https://opentelemetry.io/schemas/1.20.0">>).
 
 %% Array of brand name and version separated by a space
-%% This value is intended to be taken from the [UA client hints API](https://wicg.github.io/ua-client-hints/#interface) (navigator.userAgentData.brands)
+%% This value is intended to be taken from the [UA client hints API](https://wicg.github.io/ua-client-hints/#interface) (`navigator.userAgentData.brands`)
 -define(BROWSER_BRANDS, 'browser.brands').
 
 %% The platform on which the browser is running
-%% This value is intended to be taken from the [UA client hints API](https://wicg.github.io/ua-client-hints/#interface) (navigator.userAgentData.platform). If unavailable, the legacy `navigator.platform` API SHOULD NOT be used instead and this attribute SHOULD be left unset in order for the values to be consistent.
-%% The list of possible values is defined in the [W3C User-Agent Client Hints specification](https://wicg.github.io/ua-client-hints/#sec-ch-ua-platform). Note that some (but not all) of these values can overlap with values in the [os.type and os.name attributes](./os.md). However, for consistency, the values in the `browser.platform` attribute should capture the exact value that the user agent provides
+%% This value is intended to be taken from the [UA client hints API](https://wicg.github.io/ua-client-hints/#interface) (`navigator.userAgentData.platform`). If unavailable, the legacy `navigator.platform` API SHOULD NOT be used instead and this attribute SHOULD be left unset in order for the values to be consistent.
+%% The list of possible values is defined in the [W3C User-Agent Client Hints specification](https://wicg.github.io/ua-client-hints/#sec-ch-ua-platform). Note that some (but not all) of these values can overlap with values in the [`os.type` and `os.name` attributes](./os.md). However, for consistency, the values in the `browser.platform` attribute should capture the exact value that the user agent provides
 -define(BROWSER_PLATFORM, 'browser.platform').
+
+%% A boolean that is true if the browser is running on a mobile device
+%% This value is intended to be taken from the [UA client hints API](https://wicg.github.io/ua-client-hints/#interface) (`navigator.userAgentData.mobile`). If unavailable, this attribute SHOULD be left unset
+-define(BROWSER_MOBILE, 'browser.mobile').
+
+%% Preferred language of the user using the browser
+%% This value is intended to be taken from the Navigator API `navigator.language`
+-define(BROWSER_LANGUAGE, 'browser.language').
 
 %% Full user-agent string provided by the browser
 %% The user-agent value SHOULD be provided only from browsers that do not have a mechanism to retrieve brands and platform individually from the User-Agent Client Hints API. To retrieve the value, the legacy `navigator.userAgent` API can be used
--define(BROWSER_USER_AGENT, 'browser.user_agent').
+-define(USER_AGENT_ORIGINAL, 'user_agent.original').
 
 %% Name of the cloud provider
 -define(CLOUD_PROVIDER, 'cloud.provider').
@@ -21,8 +29,28 @@
 -define(CLOUD_ACCOUNT_ID, 'cloud.account.id').
 
 %% The geographical region the resource is running
-%% Refer to your provider's docs to see the available regions, for example [Alibaba Cloud regions](https://www.alibabacloud.com/help/doc-detail/40654.htm), [AWS regions](https://aws.amazon.com/about-aws/global-infrastructure/regions_az/), [Azure regions](https://azure.microsoft.com/en-us/global-infrastructure/geographies/), [Google Cloud regions](https://cloud.google.com/about/locations), or [Tencent Cloud regions](https://intl.cloud.tencent.com/document/product/213/6091)
+%% Refer to your provider's docs to see the available regions, for example [Alibaba Cloud regions](https://www.alibabacloud.com/help/doc-detail/40654.htm), [AWS regions](https://aws.amazon.com/about-aws/global-infrastructure/regions_az/), [Azure regions](https://azure.microsoft.com/en-us/global-infrastructure/geographies/), [Google Cloud regions](https://cloud.google.com/about/locations), or [Tencent Cloud regions](https://www.tencentcloud.com/document/product/213/6091)
 -define(CLOUD_REGION, 'cloud.region').
+
+%% Cloud provider-specific native identifier of the monitored cloud resource (e.g. an [ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html) on AWS, a [fully qualified resource ID](https://learn.microsoft.com/en-us/rest/api/resources/resources/get-by-id) on Azure, a [full resource name](https://cloud.google.com/apis/design/resource_names#full_resource_name) on GCP)
+%% On some cloud providers, it may not be possible to determine the full ID at startup,
+%% so it may be necessary to set `cloud.resource_id` as a span attribute instead.
+%% 
+%% The exact value to use for `cloud.resource_id` depends on the cloud provider.
+%% The following well-known definitions MUST be used if you set this attribute and they apply:
+%% 
+%% * **AWS Lambda:** The function [ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html).
+%%   Take care not to use the "invoked ARN" directly but replace any
+%%   [alias suffix](https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html)
+%%   with the resolved function version, as the same runtime instance may be invokable with
+%%   multiple different aliases.
+%% * **GCP:** The [URI of the resource](https://cloud.google.com/iam/docs/full-resource-names)
+%% * **Azure:** The [Fully Qualified Resource ID](https://docs.microsoft.com/en-us/rest/api/resources/resources/get-by-id) of the invoked function,
+%%   *not* the function app, having the form
+%%   `/subscriptions/<SUBSCIPTION_GUID>/resourceGroups/<RG>/providers/Microsoft.Web/sites/<FUNCAPP>/functions/<FUNC>`.
+%%   This means that a span attribute MUST be used, as an Azure function app can host multiple functions that would usually share
+%%   a TracerProvider
+-define(CLOUD_RESOURCE_ID, 'cloud.resource_id').
 
 %% Cloud regions often have multiple, isolated locations known as zones to increase availability. Availability zone represents the zone where the resource is running
 %% Availability zones are called "zones" on Alibaba Cloud and Google Cloud
@@ -67,6 +95,15 @@
 %% The ARN(s) of the AWS log stream(s)
 %% See the [log stream ARN format documentation](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/iam-access-control-overview-cwl.html#CWL_ARN_Format). One log group can contain several log streams, so these ARNs necessarily identify both a log group and a log stream
 -define(AWS_LOG_STREAM_ARNS, 'aws.log.stream.arns').
+
+%% Time and date the release was created
+-define(HEROKU_RELEASE_CREATION_TIMESTAMP, 'heroku.release.creation_timestamp').
+
+%% Commit hash for the current release
+-define(HEROKU_RELEASE_COMMIT, 'heroku.release.commit').
+
+%% Unique identifier for the application
+-define(HEROKU_APP_ID, 'heroku.app.id').
 
 %% Container name used by container runtime
 -define(CONTAINER_NAME, 'container.name').
@@ -118,27 +155,8 @@
 %%   can also be seen in the resource JSON for the function).
 %%   This means that a span attribute MUST be used, as an Azure function
 %%   app can host multiple functions that would usually share
-%%   a TracerProvider (see also the `faas.id` attribute)
+%%   a TracerProvider (see also the `cloud.resource_id` attribute)
 -define(FAAS_NAME, 'faas.name').
-
-%% The unique ID of the single function that this runtime instance executes
-%% On some cloud providers, it may not be possible to determine the full ID at startup,
-%% so consider setting `faas.id` as a span attribute instead.
-%% 
-%% The exact value to use for `faas.id` depends on the cloud provider:
-%% 
-%% * **AWS Lambda:** The function [ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html).
-%%   Take care not to use the "invoked ARN" directly but replace any
-%%   [alias suffix](https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html)
-%%   with the resolved function version, as the same runtime instance may be invokable with
-%%   multiple different aliases.
-%% * **GCP:** The [URI of the resource](https://cloud.google.com/iam/docs/full-resource-names)
-%% * **Azure:** The [Fully Qualified Resource ID](https://docs.microsoft.com/en-us/rest/api/resources/resources/get-by-id) of the invoked function,
-%%   *not* the function app, having the form
-%%   `/subscriptions/<SUBSCIPTION_GUID>/resourceGroups/<RG>/providers/Microsoft.Web/sites/<FUNCAPP>/functions/<FUNC>`.
-%%   This means that a span attribute MUST be used, as an Azure function app can host multiple functions that would usually share
-%%   a TracerProvider
--define(FAAS_ID, 'faas.id').
 
 %% The immutable version of the function being executed
 %% Depending on the cloud provider and platform, use:
@@ -156,11 +174,11 @@
 %% * **AWS Lambda:** Use the (full) log stream name
 -define(FAAS_INSTANCE, 'faas.instance').
 
-%% The amount of memory available to the serverless function in MiB
-%% It's recommended to set this attribute since e.g. too little memory can easily stop a Java AWS Lambda function from working correctly. On AWS Lambda, the environment variable `AWS_LAMBDA_FUNCTION_MEMORY_SIZE` provides this information
+%% The amount of memory available to the serverless function converted to Bytes
+%% It's recommended to set this attribute since e.g. too little memory can easily stop a Java AWS Lambda function from working correctly. On AWS Lambda, the environment variable `AWS_LAMBDA_FUNCTION_MEMORY_SIZE` provides this information (which must be multiplied by 1,048,576)
 -define(FAAS_MAX_MEMORY, 'faas.max_memory').
 
-%% Unique host ID. For Cloud, this must be the instance_id assigned by the cloud provider
+%% Unique host ID. For Cloud, this must be the instance_id assigned by the cloud provider. For non-containerized systems, this should be the `machine-id`. See the table below for the sources to use to determine the `machine-id` based on operating system
 -define(HOST_ID, 'host.id').
 
 %% Name of the host. On Unix systems, it may contain what the hostname command returns, or the fully qualified hostname, or another name specified by the user
@@ -321,3 +339,15 @@
 
 %% Additional description of the web engine (e.g. detailed version and edition information)
 -define(WEBENGINE_DESCRIPTION, 'webengine.description').
+
+%% The name of the instrumentation scope - (`InstrumentationScope.Name` in OTLP)
+-define(OTEL_SCOPE_NAME, 'otel.scope.name').
+
+%% The version of the instrumentation scope - (`InstrumentationScope.Version` in OTLP)
+-define(OTEL_SCOPE_VERSION, 'otel.scope.version').
+
+%% Deprecated, use the `otel.scope.name` attribute
+-define(OTEL_LIBRARY_NAME, 'otel.library.name').
+
+%% Deprecated, use the `otel.scope.version` attribute
+-define(OTEL_LIBRARY_VERSION, 'otel.library.version').
