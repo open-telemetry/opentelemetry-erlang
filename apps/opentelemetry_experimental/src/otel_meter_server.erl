@@ -373,15 +373,15 @@ handle_measurement(#measurement{instrument=#instrument{meter=Meter,
                                 value=Value,
                                 attributes=Attributes},
                    ViewAggregationsTab, MetricsTab) ->
-    Matches = ets:lookup_element(ViewAggregationsTab, {Meter, Name}, 2),
+    Matches = ets:match(ViewAggregationsTab, {{Meter, Name}, '$1'}),
     update_aggregations(Value, Attributes, Matches, MetricsTab).
 
 handle_measurement(Meter, Name, Number, Attributes, ViewAggregationsTab, MetricsTab) ->
-    Matches = ets:lookup_element(ViewAggregationsTab, {Meter, Name}, 2),
+    Matches = ets:match(ViewAggregationsTab, {{Meter, Name}, '$1'}),
     update_aggregations(Number, Attributes, Matches, MetricsTab).
 
 update_aggregations(Value, Attributes, ViewAggregations, MetricsTab) ->
-    lists:foreach(fun(ViewAggregation=#view_aggregation{}) ->
+    lists:foreach(fun([ViewAggregation=#view_aggregation{}]) ->
                           otel_aggregation:maybe_init_aggregate(MetricsTab,
                                                                 ViewAggregation,
                                                                 Value,
