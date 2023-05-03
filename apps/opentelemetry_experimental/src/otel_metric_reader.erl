@@ -53,7 +53,8 @@
          callbacks_tab :: ets:table(),
          view_aggregation_tab :: ets:table(),
          metrics_tab :: ets:table(),
-         config :: #{}
+         config :: #{},
+         resource :: otel_resource:t() | undefined
         }).
 
 %% -spec start_link(atom(), map()) -> {ok, pid()} | ignore | {error, term()}.
@@ -99,13 +100,14 @@ handle_continue(register_with_server, State=#state{provider_sup=ProviderSup,
                                                    default_aggregation_mapping=DefaultAggregationMapping,
                                                    temporality_mapping=Temporality}) ->
     ServerPid = otel_meter_server_sup:provider_pid(ProviderSup),
-    {CallbacksTab, ViewAggregationTab, MetricsTab} =
+    {CallbacksTab, ViewAggregationTab, MetricsTab, Resource} =
         otel_meter_server:add_metric_reader(ServerPid, ReaderId, self(),
                                             DefaultAggregationMapping,
                                             Temporality),
     {noreply, State#state{callbacks_tab=CallbacksTab,
                           view_aggregation_tab=ViewAggregationTab,
-                          metrics_tab=MetricsTab}}.
+                          metrics_tab=MetricsTab,
+                          resource=Resource}}.
 
 handle_call(shutdown, _From, State) ->
     {reply, ok, State};
@@ -128,10 +130,9 @@ handle_info(collect, State=#state{id=ReaderId,
                                   tref=undefined,
                                   callbacks_tab=CallbacksTab,
                                   view_aggregation_tab=ViewAggregationTab,
-                                  metrics_tab=MetricsTab
+                                  metrics_tab=MetricsTab,
+                                  resource=Resource
                                  }) ->
-    Resource = [],
-
     %% collect from view aggregations table and then export
     Metrics = collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId),
 
@@ -144,10 +145,10 @@ handle_info(collect, State=#state{id=ReaderId,
                                   tref=TRef,
                                   callbacks_tab=CallbacksTab,
                                   view_aggregation_tab=ViewAggregationTab,
-                                  metrics_tab=MetricsTab
+                                  metrics_tab=MetricsTab,
+                                  resource=Resource
                                  }) when TRef =/= undefined andalso
                                          ExporterIntervalMs =/= undefined  ->
-    Resource = [],
     erlang:cancel_timer(TRef, [{async, true}]),
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
 

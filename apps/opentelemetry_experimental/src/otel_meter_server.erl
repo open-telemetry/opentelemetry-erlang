@@ -196,7 +196,8 @@ handle_call({add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, 
                                 instruments_tab=InstrumentsTab,
                                 callbacks_tab=CallbacksTab,
                                 view_aggregations_tab=ViewAggregationsTab,
-                                metrics_tab=MetricsTab}) ->
+                                metrics_tab=MetricsTab,
+                                resource=Resource}) ->
     Reader = metric_reader(ReaderId,
                            ReaderPid,
                            DefaultAggregationMapping,
@@ -207,7 +208,7 @@ handle_call({add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, 
     %% matches for the new Reader
     _ = update_view_aggregations(InstrumentsTab, CallbacksTab, ViewAggregationsTab, Views, Readers1),
 
-    {reply, {CallbacksTab, ViewAggregationsTab, MetricsTab}, State#state{readers=Readers1}};
+    {reply, {CallbacksTab, ViewAggregationsTab, MetricsTab, Resource}, State#state{readers=Readers1}};
 handle_call(resource, _From, State=#state{resource=Resource}) ->
     {reply, Resource, State};
 handle_call({add_instrument, Instrument}, _From, State=#state{readers=Readers,
