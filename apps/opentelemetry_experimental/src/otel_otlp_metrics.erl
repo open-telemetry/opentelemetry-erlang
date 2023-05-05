@@ -22,7 +22,7 @@
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
--include_lib("opentelemetry_experimental/include/otel_metrics.hrl").
+-include("otel_metrics.hrl").
 
 to_proto(Metrics, Resource) ->
     InstrumentationScopeMetrics = to_proto_by_scope(Metrics),
