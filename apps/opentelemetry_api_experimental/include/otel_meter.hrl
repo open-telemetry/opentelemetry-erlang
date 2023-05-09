@@ -4,7 +4,8 @@
 %% macros for metrics
 %% Meters for applications are automatically created on boot
 
--define(current_meter, opentelemetry_experimental:get_meter(?MODULE)).
+-define(current_meter, opentelemetry_experimental:get_meter(
+                         opentelemetry:get_application_scope(?MODULE))).
 
 -define(create_counter(Name, Opts),
         otel_meter:create_counter(?current_meter, Name, Opts)).

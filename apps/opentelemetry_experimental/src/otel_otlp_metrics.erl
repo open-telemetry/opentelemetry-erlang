@@ -58,7 +58,7 @@ to_proto(#metric{name=Name,
                  description=Description,
                  unit=Unit,
                  data=Data}) ->
-    #{name => Name,
+    #{name => otel_otlp_common:to_binary(Name),
       description => Description,
       unit => otel_otlp_common:to_binary(Unit),
       data => to_data(Data)}.
@@ -67,7 +67,7 @@ to_data(#sum{aggregation_temporality=Temporality,
              is_monotonic=IsMonotonic,
              datapoints=Datapoints}) ->
     {sum, #{data_points => [to_data_points(Datapoint) || Datapoint <- Datapoints],
-            aggregation_temporality => Temporality,
+            aggregation_temporality => to_otlp_temporality(Temporality),
             is_monotonic => IsMonotonic}};
 to_data(#gauge{datapoints=Datapoints}) ->
     {gauge, #{data_points => [to_data_points(Datapoint) || Datapoint <- Datapoints]}};
@@ -75,7 +75,7 @@ to_data(#histogram{datapoints=Datapoints,
                    aggregation_temporality=Temporality
                   }) ->
     {histogram, #{data_points => [to_histogram_data_points(Datapoint) || Datapoint <- Datapoints],
-                  aggregation_temporality => Temporality}}.
+                  aggregation_temporality => to_otlp_temporality(Temporality)}}.
 
 to_data_points(#datapoint{attributes=Attributes,
                           start_time_unix_nano=StartTimeUnixNano,
@@ -124,3 +124,10 @@ to_datapoint_value(Value) when is_integer(Value) ->
     {as_int, Value};
 to_datapoint_value(Value) when is_float(Value) ->
     {as_double, Value}.
+
+to_otlp_temporality(temporality_delta) ->
+    'AGGREGATION_TEMPORALITY_DELTA';
+to_otlp_temporality(temporality_cumulative) ->
+    'AGGREGATION_TEMPORALITY_CUMULATIVE';
+to_otlp_temporality(_) ->
+    'AGGREGATION_TEMPORALITY_UNSPECIFIED'.

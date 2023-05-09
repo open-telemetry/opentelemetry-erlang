@@ -955,7 +955,8 @@ multi_instrument_callback(_Config) ->
     ok.
 
 sync_filtered_attributes(_Config) ->
-    Meter = opentelemetry_experimental:get_meter(?MODULE),
+    Meter = opentelemetry_experimental:get_meter(
+              opentelemetry:get_application_scope(?MODULE)),
 
     CounterName = a_counter,
     CounterDesc = <<"counter description">>,
