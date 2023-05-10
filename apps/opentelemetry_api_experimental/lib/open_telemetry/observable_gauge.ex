@@ -11,7 +11,7 @@ defmodule OpenTelemetryAPIExperimental.ObservableGauge do
             opts: opts
           ] do
       :otel_meter.create_observable_gauge(
-        :opentelemetry_experimental.get_meter(__MODULE__),
+        :opentelemetry_experimental.get_meter(:opentelemetry.get_application_scope(__MODULE__)),
         name,
         callback,
         callback_args,

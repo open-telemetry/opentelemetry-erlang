@@ -6,7 +6,7 @@ defmodule OpenTelemetryAPIExperimental.UpDownCounter do
   defmacro create(name, opts) do
     quote bind_quoted: [name: name, opts: opts] do
       :otel_meter.create_updown_counter(
-        :opentelemetry_experimental.get_meter(__MODULE__),
+        :opentelemetry_experimental.get_meter(:opentelemetry.get_application_scope(__MODULE__)),
         name,
         opts
       )
@@ -17,7 +17,7 @@ defmodule OpenTelemetryAPIExperimental.UpDownCounter do
   defmacro add(name, number, attributes) do
     quote bind_quoted: [name: name, number: number, attributes: attributes] do
       :otel_updown_counter.add(
-        :opentelemetry_experimental.get_meter(__MODULE__),
+        :opentelemetry_experimental.get_meter(:opentelemetry.get_application_scope(__MODULE__)),
         name,
         number,
         attributes
