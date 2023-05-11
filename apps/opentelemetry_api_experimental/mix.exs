@@ -45,10 +45,6 @@ defmodule OpenTelemetryExperimental.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application, do: []
 
-  defp deps() do
-    [{:opentelemetry_api, path: "../opentelemetry_api/"}]
-  end
-
   defp deps(rebar) do
     rebar
     |> Enum.map(fn
