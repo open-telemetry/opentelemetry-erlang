@@ -8,7 +8,9 @@ defmodule OtelMetricTests do
   @fields Record.extract(:metric, from_lib: "opentelemetry_experimental/include/otel_metrics.hrl")
   Record.defrecordp(:metric, @fields)
 
-  @fields Record.extract(:datapoint, from_lib: "opentelemetry_experimental/include/otel_metrics.hrl")
+  @fields Record.extract(:datapoint,
+            from_lib: "opentelemetry_experimental/include/otel_metrics.hrl"
+          )
   Record.defrecordp(:datapoint, @fields)
 
   @fields Record.extract(:sum, from_lib: "opentelemetry_experimental/include/otel_metrics.hrl")
@@ -40,8 +42,11 @@ defmodule OtelMetricTests do
 
     :otel_meter_server.force_flush()
 
-    assert_receive {:metric, metric(name: :counter_a,
-                                    data: sum(datapoints: [datapoint(value: 1)]))}
+    assert_receive {:metric,
+                    metric(
+                      name: :counter_a,
+                      data: sum(datapoints: [datapoint(value: 1)])
+                    )}
   end
 
   test "create UpDownCounter with macros" do
@@ -50,19 +55,31 @@ defmodule OtelMetricTests do
     UpDownCounter.add(:updown_counter_a, -5, [])
 
     :otel_meter_server.force_flush()
-    assert_receive {:metric, metric(name: :updown_counter_a,
-                                    data: sum(datapoints: [datapoint(value: 0)]))}
+
+    assert_receive {:metric,
+                    metric(
+                      name: :updown_counter_a,
+                      data: sum(datapoints: [datapoint(value: 0)])
+                    )}
 
     UpDownCounter.add(:updown_counter_a, -3, [])
 
     :otel_meter_server.force_flush()
-    assert_receive {:metric, metric(name: :updown_counter_a,
-                                    data: sum(datapoints: [datapoint(value: -3)]))}
+
+    assert_receive {:metric,
+                    metric(
+                      name: :updown_counter_a,
+                      data: sum(datapoints: [datapoint(value: -3)])
+                    )}
 
     UpDownCounter.add(:updown_counter_a, 9, [])
 
     :otel_meter_server.force_flush()
-    assert_receive {:metric, metric(name: :updown_counter_a,
-                                    data: sum(datapoints: [datapoint(value: 9)]))}
+
+    assert_receive {:metric,
+                    metric(
+                      name: :updown_counter_a,
+                      data: sum(datapoints: [datapoint(value: 9)])
+                    )}
   end
 end
