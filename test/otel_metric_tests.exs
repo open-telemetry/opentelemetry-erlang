@@ -18,6 +18,11 @@ defmodule OtelMetricTests do
 
   setup do
     Application.load(:opentelemetry_experimental)
+    Application.load(:opentelemetry)
+
+    Application.put_env(:opentelemetry, :processors, [
+      {:otel_simple_processor, %{exporter: :none}}
+    ])
 
     Application.put_env(:opentelemetry_experimental, :readers, [
       %{
@@ -33,6 +38,8 @@ defmodule OtelMetricTests do
     on_exit(fn ->
       Application.stop(:opentelemetry_experimental)
       Application.unload(:opentelemetry_experimental)
+      Application.stop(:opentelemetry)
+      Application.unload(:opentelemetry)
     end)
   end
 
