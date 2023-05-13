@@ -110,3 +110,35 @@ jobs:
       run: rebar3 compile
     - name: Dialyzer
       run: rebar3 as dialyzer dialyzer
+
+  eqWAlizer:
+    name: EqWAlizer on OTP ${{ matrix.otp_version }} and ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        otp_version: ['25.0.3']
+        rebar3_version: ['3.19.0']
+        os: [ubuntu-20.04]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: erlef/setup-beam@v1
+      with:
+        otp-version: ${{ matrix.otp_version }}
+        rebar3-version: ${{ matrix.rebar3_version }}
+        version-type: 'strict'
+    - uses: actions/cache@v2
+      name: Cache
+      with:
+        path: |
+          _build
+        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}-2
+        restore-keys: |
+          ${{ runner.os }}-eqWAlizer-${{ matrix.otp_version }}-2-
+    - name: Download elp
+      run: |
+        wget https://github.com/WhatsApp/eqwalizer/releases/download/v0.15.13/elp-linux.tar.gz
+        tar xvf elp-linux.tar.gz
+    - name: Compile
+      run: rebar3 compile
+    - name: eqWAlizer
+      run: ./elp eqwalize-all
