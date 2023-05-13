@@ -19,7 +19,7 @@
 -module(otel_metric_exporter_console).
 
 -export([init/1,
-         export/2,
+         export/4,
          force_flush/0,
          shutdown/0]).
 
@@ -30,7 +30,7 @@
 init(_) ->
     {ok, []}.
 
-export(Metrics, _) ->
+export(metrics, Metrics, _Resource, _) ->
     io:format("** METRICS FOR DEBUG **~n"),
     lists:map(fun(#metric{name=Name,
                           data=Data}) ->

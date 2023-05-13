@@ -196,7 +196,8 @@ handle_call({add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, 
                                 instruments_tab=InstrumentsTab,
                                 callbacks_tab=CallbacksTab,
                                 view_aggregations_tab=ViewAggregationsTab,
-                                metrics_tab=MetricsTab}) ->
+                                metrics_tab=MetricsTab,
+                                resource=Resource}) ->
     Reader = metric_reader(ReaderId,
                            ReaderPid,
                            DefaultAggregationMapping,
@@ -207,7 +208,7 @@ handle_call({add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, 
     %% matches for the new Reader
     _ = update_view_aggregations(InstrumentsTab, CallbacksTab, ViewAggregationsTab, Views, Readers1),
 
-    {reply, {CallbacksTab, ViewAggregationsTab, MetricsTab}, State#state{readers=Readers1}};
+    {reply, {CallbacksTab, ViewAggregationsTab, MetricsTab, Resource}, State#state{readers=Readers1}};
 handle_call(resource, _From, State=#state{resource=Resource}) ->
     {reply, Resource, State};
 handle_call({add_instrument, Instrument}, _From, State=#state{readers=Readers,
@@ -372,15 +373,15 @@ handle_measurement(#measurement{instrument=#instrument{meter=Meter,
                                 value=Value,
                                 attributes=Attributes},
                    ViewAggregationsTab, MetricsTab) ->
-    Matches = ets:lookup_element(ViewAggregationsTab, {Meter, Name}, 2),
+    Matches = ets:match(ViewAggregationsTab, {{Meter, Name}, '$1'}),
     update_aggregations(Value, Attributes, Matches, MetricsTab).
 
 handle_measurement(Meter, Name, Number, Attributes, ViewAggregationsTab, MetricsTab) ->
-    Matches = ets:lookup_element(ViewAggregationsTab, {Meter, Name}, 2),
+    Matches = ets:match(ViewAggregationsTab, {{Meter, Name}, '$1'}),
     update_aggregations(Number, Attributes, Matches, MetricsTab).
 
 update_aggregations(Value, Attributes, ViewAggregations, MetricsTab) ->
-    lists:foreach(fun(ViewAggregation=#view_aggregation{}) ->
+    lists:foreach(fun([ViewAggregation=#view_aggregation{}]) ->
                           otel_aggregation:maybe_init_aggregate(MetricsTab,
                                                                 ViewAggregation,
                                                                 Value,

@@ -27,6 +27,7 @@
 
 -include_lib("kernel/include/logger.hrl").
 -include("otel_meter.hrl").
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
 -export_type([meter/0]).
 
@@ -59,6 +60,10 @@ get_meter_(MeterProvider) ->
       Meter:: meter().
 get_meter('$__default_meter') ->
     get_meter();
+get_meter(#instrumentation_scope{name=Name,
+                                 version=Vsn,
+                                 schema_url=SchemaUrl}) ->
+    get_meter(Name, Vsn, SchemaUrl);
 get_meter({Name, Vsn, SchemaUrl}) ->
     get_meter(Name, Vsn, SchemaUrl);
 get_meter(Name) ->
