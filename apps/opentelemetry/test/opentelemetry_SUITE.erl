@@ -404,8 +404,8 @@ shutdown_sdk_noop_spans(_Config) ->
 
     SpanCtx2 = ?start_span(<<"span-2">>),
 
-    ?assertMatch(#span_ctx{trace_id=0,
-                           span_id=0}, SpanCtx2),
+    ?assertMatch(#span_ctx{trace_id = <<0:128>>,
+                           span_id = <<0:64>>}, SpanCtx2),
 
     ?assertEqual(false, otel_span:set_attribute(SpanCtx1, a, 1)),
 
@@ -784,8 +784,8 @@ stop_temporary_app(_Config) ->
     Tracer = opentelemetry:get_tracer(),
 
     SpanCtx1 = ?start_span(<<"span-1">>),
-    ?assertNotMatch(#span_ctx{trace_id=0,
-                              span_id=0}, SpanCtx1),
+    ?assertNotMatch(#span_ctx{trace_id = <<0:128>>,
+                              span_id = <<0:64>>}, SpanCtx1),
 
     ok = application:stop(opentelemetry),
 
@@ -793,8 +793,8 @@ stop_temporary_app(_Config) ->
     %% so eventually newly started spans will be no-ops because
     %% inserting a new span will fail
     ?UNTIL(case ?start_span(<<"span-2">>) of
-               #span_ctx{trace_id=0,
-                         span_id=0} ->
+               #span_ctx{trace_id = <<0:128>>,
+                         span_id = <<0:64>>} ->
                    true;
                _ ->
                    false
@@ -1074,8 +1074,8 @@ too_many_attributes(Config) ->
 disabled_sdk(_Config) ->
     SpanCtx1 = ?start_span(<<"span-1">>),
 
-    ?assertMatch(#span_ctx{trace_id=0,
-                           span_id=0}, SpanCtx1),
+    ?assertMatch(#span_ctx{trace_id = <<0:128>>,
+                           span_id = <<0:64>>}, SpanCtx1),
     ok.
 
 no_exporter(_Config) ->

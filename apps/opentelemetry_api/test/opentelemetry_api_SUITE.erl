@@ -141,7 +141,10 @@ validations(_Config) ->
     StartOpts = #{attributes => Attributes,
                  links => opentelemetry:links(Links)},
     ?assertMatch(#{attributes := ProcessedAttributes,
-                  links := [#{trace_id := <<0:128>>, span_id := <<0:64>>, attributes := ProcessedAttributes, tracestate := []}]},
+                  links := [#{trace_id := <<0:128>>,
+                              span_id := <<0:64>>,
+                              attributes := ProcessedAttributes,
+                              tracestate := []}]},
                 otel_span:validate_start_opts(StartOpts)),
 
     %% names
@@ -248,6 +251,6 @@ noop_with_span(_Config) ->
 hex_trace_ids(_Config) ->
     SpanCtx=#span_ctx{trace_id = <<19,25,104,206,49,198,60,63,69,245,232,137,234,183,74,97>>,
                       span_id = <<161,20,190,33,18,16,115,223>>},
-    ?assertEqual(<<"131968CE31C63C3F45F5E889EAB74A61">>, otel_span:hex_trace_id(SpanCtx)),
-    ?assertEqual(<<"A114BE21121073DF">>, otel_span:hex_span_id(SpanCtx)),
+    ?assertEqual(<<"131968ce31c63c3f45f5e889eab74a61">>, otel_span:hex_trace_id(SpanCtx)),
+    ?assertEqual(<<"a114be21121073df">>, otel_span:hex_span_id(SpanCtx)),
     ok.

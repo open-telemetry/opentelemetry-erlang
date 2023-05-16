@@ -77,8 +77,8 @@ propagation(Config) ->
 
     Headers = otel_propagator_text_map:inject([{<<"existing-header">>, <<"I exist">>}]),
 
-    EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
-    EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
+    EncodedTraceId = string:lowercase(binary:encode_hex(TraceId)),
+    EncodedSpanId = string:lowercase(binary:encode_hex(SpanId)),
 
     ?assertListsEqual([{<<"baggage">>, <<"key-2=value-2;metadata;md-k-1=md-v-1,key-1=value%3D1">>},
                        {<<"existing-header">>, <<"I exist">>} |

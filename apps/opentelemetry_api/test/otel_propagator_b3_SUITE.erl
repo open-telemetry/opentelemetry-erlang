@@ -37,49 +37,49 @@ end_per_group(_, _Config) ->
 extract(_Config) ->
     % Single: Common B3 format
     run_extract([{<<"b3">>, <<"0000008c3defb1edb984fe2ac71c71c7-0007e5196e2ae38e-1">>}]),
-    ?assertMatch(#span_ctx{trace_id=11111111111111111111111111111111,
-                           span_id=2222222222222222,
+    ?assertMatch(#span_ctx{trace_id = <<0,0,0,140,61,239,177,237,185,132,254,42,199,28,113,199>>,
+                           span_id = <<0,7,229,25,110,42,227,142>>,
                            trace_flags=1}, otel_tracer:current_span_ctx()),
 
     % Single: B3 format with 16 character trace ID
     run_extract([{<<"b3">>, <<"0007e5196e2ae38e-0007e5196e2ae38e-1">>}]),
-    ?assertMatch(#span_ctx{trace_id=2222222222222222,
-                           span_id=2222222222222222,
+    ?assertMatch(#span_ctx{trace_id = <<0,7,229,25,110,42,227,142>>,
+                           span_id = <<0,7,229,25,110,42,227,142>>,
                            trace_flags=1}, otel_tracer:current_span_ctx()),
 
     % Single: B3 format with parent span id
     run_extract([{<<"b3">>, <<"0000008c3defb1edb984fe2ac71c71c7-0007e5196e2ae38e-1-0101010101010101">>}]),
-    ?assertMatch(#span_ctx{trace_id=11111111111111111111111111111111,
-                           span_id=2222222222222222,
+    ?assertMatch(#span_ctx{trace_id = <<0,0,0,140,61,239,177,237,185,132,254,42,199,28,113,199>>,
+                           span_id = <<0,7,229,25,110,42,227,142>>,
                            trace_flags=1}, otel_tracer:current_span_ctx()),
 
     % Single: B3 format without trace flags
     run_extract([{<<"b3">>, <<"0000008c3defb1edb984fe2ac71c71c7-0007e5196e2ae38e">>}]),
-    ?assertMatch(#span_ctx{trace_id=11111111111111111111111111111111,
-                           span_id=2222222222222222,
+    ?assertMatch(#span_ctx{trace_id = <<0,0,0,140,61,239,177,237,185,132,254,42,199,28,113,199>>,
+                           span_id = <<0,7,229,25,110,42,227,142>>,
                            trace_flags=0}, otel_tracer:current_span_ctx()),
 
     % Multi: B3 format with 32 character trace ID
     run_extract([{<<"X-B3-TraceId">>, <<"0000008c3defb1edb984fe2ac71c71c7">>},
                  {<<"X-B3-SpanId">>, <<"0007e5196e2ae38e">>},
                  {<<"X-B3-Sampled">>, <<"1">>}]),
-    ?assertMatch(#span_ctx{trace_id=11111111111111111111111111111111,
-                           span_id=2222222222222222,
+    ?assertMatch(#span_ctx{trace_id = <<0,0,0,140,61,239,177,237,185,132,254,42,199,28,113,199>>,
+                           span_id = <<0,7,229,25,110,42,227,142>>,
                            trace_flags=1}, otel_tracer:current_span_ctx()),
 
     % Multi: B3 format with 16 character trace ID
     run_extract([{<<"X-B3-TraceId">>, <<"0007e5196e2ae38e">>},
                  {<<"X-B3-SpanId">>, <<"0007e5196e2ae38e">>},
                  {<<"X-B3-Sampled">>, <<"1">>}]),
-    ?assertMatch(#span_ctx{trace_id=2222222222222222,
-                           span_id=2222222222222222,
+    ?assertMatch(#span_ctx{trace_id = <<0,7,229,25,110,42,227,142>>,
+                           span_id = <<0,7,229,25,110,42,227,142>>,
                            trace_flags=1}, otel_tracer:current_span_ctx()),
 
     % Multi: B3 format without Sampled header
     run_extract([{<<"X-B3-TraceId">>, <<"0000008c3defb1edb984fe2ac71c71c7">>},
                  {<<"X-B3-SpanId">>, <<"0007e5196e2ae38e">>}]),
-    ?assertMatch(#span_ctx{trace_id=11111111111111111111111111111111,
-                           span_id=2222222222222222,
+    ?assertMatch(#span_ctx{trace_id = <<0,0,0,140,61,239,177,237,185,132,254,42,199,28,113,199>>,
+                           span_id = <<0,7,229,25,110,42,227,142>>,
                            trace_flags=0}, otel_tracer:current_span_ctx()),
 
     % Combined: Single header format is preferred when both are present
@@ -87,8 +87,8 @@ extract(_Config) ->
                  {<<"X-B3-TraceId">>, <<"75694700a50b5df51a28412ea368a592">>},
                  {<<"X-B3-SpanId">>, <<"b6431ccfe6d2ea8f">>},
                  {<<"X-B3-Sampled">>, <<"0">>}]),
-    ?assertMatch(#span_ctx{trace_id=11111111111111111111111111111111,
-                           span_id=2222222222222222,
+    ?assertMatch(#span_ctx{trace_id = <<0,0,0,140,61,239,177,237,185,132,254,42,199,28,113,199>>,
+                           span_id = <<0,7,229,25,110,42,227,142>>,
                            trace_flags=1}, otel_tracer:current_span_ctx()),
 
     ok.
@@ -215,8 +215,8 @@ extract_invalid_span_id(_Config) ->
     ok.
 
 inject_single(_Config) ->
-    otel_tracer:set_current_span(#span_ctx{trace_id=11111111111111111111111111111111,
-                                           span_id=2222222222222222,
+    otel_tracer:set_current_span(#span_ctx{trace_id = <<0,0,0,140,61,239,177,237,185,132,254,42,199,28,113,199>>,
+                                           span_id = <<0,7,229,25,110,42,227,142>>,
                                            trace_flags=1}),
     Headers = otel_propagator_text_map:inject([]),
 
@@ -226,8 +226,8 @@ inject_single(_Config) ->
 
 inject_multi(_Config) ->
     % Span with all fields
-    otel_tracer:set_current_span(#span_ctx{trace_id=11111111111111111111111111111111,
-                                           span_id=2222222222222222,
+    otel_tracer:set_current_span(#span_ctx{trace_id = <<0,0,0,140,61,239,177,237,185,132,254,42,199,28,113,199>>,
+                                           span_id = <<0,7,229,25,110,42,227,142>>,
                                            trace_flags=1}),
     Headers = otel_propagator_text_map:inject([]),
     ?assertListsEqual([{<<"X-B3-TraceId">>, <<"0000008c3defb1edb984fe2ac71c71c7">>},
