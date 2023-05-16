@@ -27,8 +27,11 @@
 -include("opentelemetry.hrl").
 -include("otel_tracer.hrl").
 
--define(NOOP_SPAN_CTX, #span_ctx{trace_id=0,
-                                 span_id=0,
+-define(ZERO_TRACE_ID, <<0:128>>).
+-define(ZERO_SPAN_ID, <<0:64>>).
+
+-define(NOOP_SPAN_CTX, #span_ctx{trace_id = ?ZERO_TRACE_ID,
+                                 span_id = ?ZERO_SPAN_ID,
                                  trace_flags=0,
                                  tracestate=[],
                                  is_valid=false,
@@ -41,7 +44,7 @@
 start_span(Ctx, _, _SpanName, _) ->
     %% Spec: Behavior of the API in the absence of an installed SDK
     case otel_tracer:current_span_ctx(Ctx) of
-        Parent=#span_ctx{trace_id=TraceId} when TraceId =/= 0 ->
+        Parent=#span_ctx{trace_id=TraceId} when TraceId =/= ?ZERO_TRACE_ID ->
             Parent;
         _ ->
             %% If the parent Context contains no valid Span,
