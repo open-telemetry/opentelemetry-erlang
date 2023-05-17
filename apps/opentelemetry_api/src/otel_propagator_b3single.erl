@@ -45,8 +45,8 @@ inject(Ctx, Carrier, CarrierSet, _Options) ->
                   span_id=SpanId,
                   trace_flags=TraceOptions} when TraceId =/= <<0:128>>, SpanId =/= <<0:64>> ->
             Options = case TraceOptions band 1 of 1 -> <<"1">>; _ -> <<"0">> end,
-            EncodedTraceId = string:lowercase(binary:encode_hex(TraceId)),
-            EncodedSpanId = string:lowercase(binary:encode_hex(SpanId)),
+            EncodedTraceId = otel_utils:encode_hex(TraceId),
+            EncodedSpanId = otel_utils:encode_hex(SpanId),
             B3Context = otel_utils:assert_to_binary([EncodedTraceId, "-",
                                                      EncodedSpanId, "-", Options]),
             CarrierSet(?B3_CONTEXT_KEY, B3Context, Carrier);
