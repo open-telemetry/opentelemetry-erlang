@@ -75,15 +75,15 @@ zipkin_span(Span, LocalEndpoint) ->
     Timestamp = ?assert_type(opentelemetry:convert_timestamp(StartTime, microsecond), non_neg_integer()),
     Duration = ?assert_type(erlang:convert_time_unit(EndTime - StartTime, native, microsecond), non_neg_integer()),
     #zipkin_span{
-       trace_id = <<(?assert_type(Span#span.trace_id, opentelemetry:trace_id())):128>>,
+       trace_id = Span#span.trace_id,
        name=to_binary_string(Span#span.name),
-       id = <<(?assert_type(Span#span.span_id, opentelemetry:span_id())):64>>,
+       id = Span#span.span_id,
        timestamp=Timestamp,
        duration=Duration,
        %% debug=false, %% TODO: get from attributes?
        %% shared=false, %% TODO: get from attributes?
        kind=to_kind(Span#span.kind),
-       parent_id=to_parent_id(Span#span.parent_span_id),
+       parent_id=Span#span.parent_span_id,
        annotations=to_annotations(otel_events:list(Span#span.events)),
        tags=to_tags(Span),
        local_endpoint=LocalEndpoint
@@ -153,11 +153,6 @@ attributes_to_tags(Attributes) ->
     maps:fold(fun(Name, Value, Acc) ->
                      [{to_binary_string(Name), to_binary_string(Value)} | Acc]
               end, [], otel_attributes:map(Attributes)).
-
-to_parent_id(undefined) ->
-    undefined;
-to_parent_id(ParentId) ->
-    <<ParentId:64>>.
 
 to_kind(undefined) ->
     'SPAN_KIND_UNSPECIFIED';
