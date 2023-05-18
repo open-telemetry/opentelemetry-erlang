@@ -101,26 +101,22 @@ decode_b3_context(_) ->
     throw(invalid).
 
 % Trace ID is a 32 or 16 lower-hex character binary.
-parse_trace_id(TraceId) when is_binary(TraceId) ->
+parse_trace_id(TraceId) ->
      case string:length(TraceId) =:= 32 orelse string:length(TraceId) =:= 16 of
          true ->
              binary:decode_hex(TraceId);
          _ ->
              throw(invalid)
-     end;
-parse_trace_id(_) ->
-    throw(invalid).
+     end.
 
 % Span ID is a 16 lower-hex character binary.
-parse_span_id(SpanId) when is_binary(SpanId) ->
+parse_span_id(SpanId) ->
      case string:length(SpanId) =:= 16 of
          true ->
              binary:decode_hex(SpanId);
          _ ->
              throw(invalid)
-     end;
-parse_span_id(_) ->
-    throw(invalid).
+     end.
 
 % Sampling State is encoded as a single hex character for all states except
 % Defer. Defer is absence of the sampling field.
@@ -132,11 +128,12 @@ parse_span_id(_) ->
 %
 % Before the specification was written, some tracers propagated X-B3-Sampled as
 % true or false.
-parse_is_sampled(Sampled) when is_binary(Sampled) ->
-    case Sampled of
-        S when S =:= <<"1">> orelse S =:= <<"d">> orelse S =:= <<"true">> -> 1;
-        S when S =:= <<"0">> orelse S =:= <<"false">> -> 0;
-        _ -> throw(invalid)
-    end;
+parse_is_sampled(Sampled) when Sampled =:= <<"1">> orelse
+                               Sampled =:= <<"d">> orelse
+                               Sampled =:= <<"true">> ->
+    1;
+parse_is_sampled(Sampled) when Sampled =:= <<"0">> orelse
+                               Sampled =:= <<"false">> ->
+    0;
 parse_is_sampled(_) ->
     throw(invalid).
