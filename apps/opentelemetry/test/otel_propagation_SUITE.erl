@@ -67,6 +67,7 @@ propagation(Config) ->
     ?assertMatch(#span_ctx{trace_flags=1}, ?current_span_ctx),
     ?assertMatch(#span_ctx{is_recording=true}, ?current_span_ctx),
 
+    ?assertMatch([_ | _], otel_propagator_text_map:fields(opentelemetry:get_text_map_injector())),
 
     otel_baggage:set("key-1", <<"value=1">>, []),
     %% TODO: should the whole baggage entry be dropped if metadata is bad?
