@@ -58,82 +58,140 @@ trace_id_ratio_based(_Config) ->
 
     %% checks the trace id is under the upper bound
     ?assertMatch(
-        {?RECORD_AND_SAMPLE, [], []},
-        Sampler:should_sample(
-            otel_tracer:set_current_span(Ctx, undefined),
-            DoSample,
-            [],
-            SpanName,
-            undefined,
-            [],
-            Opts
+       {?RECORD_AND_SAMPLE, [], []},
+       Sampler:should_sample(
+         otel_tracer:set_current_span(Ctx, undefined),
+         DoSample,
+         [],
+         SpanName,
+         undefined,
+         [],
+         Opts
         )
-    ),
+      ),
 
     %% checks the trace id is is over the upper bound
     ?assertMatch(
-        {?DROP, [], []},
-        Sampler:should_sample(
-            otel_tracer:set_current_span(Ctx, undefined),
-            DoNotSample,
-            [],
-            SpanName,
-            undefined,
-            [],
-            Opts
+       {?DROP, [], []},
+       Sampler:should_sample(
+         otel_tracer:set_current_span(Ctx, undefined),
+         DoNotSample,
+         [],
+         SpanName,
+         undefined,
+         [],
+         Opts
         )
-    ),
+      ),
 
     %% ignores the parent span context trace flags
     ?assertMatch(
-        {?DROP, [], []},
-        Sampler:should_sample(
-            otel_tracer:set_current_span(Ctx, #span_ctx{
-                trace_flags = 1,
-                is_remote = true
-            }),
-            DoNotSample,
-            [],
-            SpanName,
-            undefined,
-            [],
-            Opts
+       {?DROP, [], []},
+       Sampler:should_sample(
+         otel_tracer:set_current_span(Ctx, #span_ctx{
+                                              trace_flags = 1,
+                                              is_remote = true
+                                             }),
+         DoNotSample,
+         [],
+         SpanName,
+         undefined,
+         [],
+         Opts
         )
-    ),
+      ),
 
     %% ignores the parent span context trace flags
     ?assertMatch(
-        {?RECORD_AND_SAMPLE, [], []},
-        Sampler:should_sample(
-            otel_tracer:set_current_span(Ctx, #span_ctx{
-                trace_flags = 0,
-                is_remote = false
-            }),
-            DoSample,
-            [],
-            SpanName,
-            undefined,
-            [],
-            Opts
+       {?RECORD_AND_SAMPLE, [], []},
+       Sampler:should_sample(
+         otel_tracer:set_current_span(Ctx, #span_ctx{
+                                              trace_flags = 0,
+                                              is_remote = false
+                                             }),
+         DoSample,
+         [],
+         SpanName,
+         undefined,
+         [],
+         Opts
         )
-    ),
+      ),
 
     %% trace id is under the upper bound
     ?assertMatch(
-        {?RECORD_AND_SAMPLE, [], []},
-        Sampler:should_sample(
-            otel_tracer:set_current_span(Ctx, #span_ctx{
-                trace_flags = 0,
-                is_remote = true
-            }),
-            DoSample,
-            [],
-            SpanName,
-            undefined,
-            [],
-            Opts
+       {?RECORD_AND_SAMPLE, [], []},
+       Sampler:should_sample(
+         otel_tracer:set_current_span(Ctx, #span_ctx{
+                                              trace_flags = 0,
+                                              is_remote = true
+                                             }),
+         DoSample,
+         [],
+         SpanName,
+         undefined,
+         [],
+         Opts
         )
-    ),
+      ),
+
+    %% everything is dropped
+    {ZeroSampler, _, ZeroOpts} = otel_sampler:new({trace_id_ratio_based, 0.0}),
+    ?assertMatch(
+       {?DROP, [], []},
+       ZeroSampler:should_sample(
+         otel_tracer:set_current_span(Ctx, undefined),
+         DoNotSample,
+         [],
+         SpanName,
+         undefined,
+         [],
+         ZeroOpts
+        )
+      ),
+
+    %% everything is sampled
+    {OneSampler, _, OneOpts} = otel_sampler:new({trace_id_ratio_based, 1.0}),
+    ?assertMatch(
+       {?RECORD_AND_SAMPLE, [], []},
+       OneSampler:should_sample(
+         otel_tracer:set_current_span(Ctx, undefined),
+         DoSample,
+         [],
+         SpanName,
+         undefined,
+         [],
+         OneOpts
+        )
+      ),
+
+    %% drop for undefined trace id
+    ?assertMatch(
+       {?DROP, [], []},
+       OneSampler:should_sample(
+         otel_tracer:set_current_span(Ctx, undefined),
+         undefined,
+         [],
+         SpanName,
+         undefined,
+         [],
+         OneOpts
+        )
+      ),
+
+    %% drop for 0 trace id
+    ?assertMatch(
+       {?DROP, [], []},
+       OneSampler:should_sample(
+         otel_tracer:set_current_span(Ctx, undefined),
+         undefined,
+         [],
+         SpanName,
+         undefined,
+         [],
+         OneOpts
+        )
+      ),
 
     ok.
 
