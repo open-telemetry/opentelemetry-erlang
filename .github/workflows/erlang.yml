@@ -18,8 +18,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['25.0.3', '24.1.2', '23.3.4.16']
-        rebar3_version: ['3.19.0']
+        otp_version: ['26.0', '25.0.3', '24.1.2']
+        rebar3_version: ['3.20.0']
         os: [ubuntu-20.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
@@ -31,7 +31,6 @@ jobs:
       with:
         otp-version: ${{ matrix.otp_version }}
         rebar3-version: ${{ matrix.rebar3_version }}
-        elixir-version: '1.13.4'
         version-type: 'strict'
     - uses: actions/cache@v2
       name: Cache
@@ -88,8 +87,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['25.0.3']
-        rebar3_version: ['3.19.0']
+        otp_version: ['26.0']
+        rebar3_version: ['3.20.0']
         os: [ubuntu-20.04]
     steps:
     - uses: actions/checkout@v2
