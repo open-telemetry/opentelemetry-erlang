@@ -44,14 +44,14 @@ defmodule OpenTelemetry do
   the same `trace_id`. The ID is a 16-byte array. An ID with all zeroes
   is considered invalid.
   """
-  @type trace_id() :: non_neg_integer()
+  @type trace_id() :: :opentelemetry.trace_id()
 
   @typedoc """
   SpanId is a unique identifier for a span within a trace, assigned when the span
   is created. The ID is an 8-byte array. An ID with all zeroes is considered
   invalid.
   """
-  @type span_id() :: non_neg_integer()
+  @type span_id() :: :opentelemetry.span_id()
 
   @type attribute_key() :: :opentelemetry.attribute_key()
   @type attribute_value() :: :opentelemetry.attribute_value()
@@ -167,7 +167,7 @@ defmodule OpenTelemetry do
   Creates a list of `t:link/0` from a list of 4-tuples.
   """
   @spec links([
-          {integer(), integer(), attributes_map(), tracestate()}
+          {trace_id(), span_id(), attributes_map(), tracestate()}
           | span_ctx()
           | {span_ctx(), attributes_map()}
         ]) :: [link()]
