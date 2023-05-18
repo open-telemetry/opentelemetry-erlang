@@ -48,8 +48,8 @@ get_description(_Config) ->
 trace_id_ratio_based(_Config) ->
     SpanName = <<"span-prob-sampled">>,
     Probability = 0.5,
-    DoSample = 120647249294066572380176333851662846319,
-    DoNotSample = 53020601517903903921384168845238205400,
+    DoSample = <<120647249294066572380176333851662846319:128>>,
+    DoNotSample = <<53020601517903903921384168845238205400:128>>,
 
     Ctx = otel_ctx:new(),
 
@@ -140,8 +140,8 @@ trace_id_ratio_based(_Config) ->
 parent_based(_Config) ->
     SpanName = <<"span-prob-sampled">>,
     Probability = 0.5,
-    DoSample = 120647249294066572380176333851662846319,
-    DoNotSample = 53020601517903903921384168845238205400,
+    DoSample = <<120647249294066572380176333851662846319:128>>,
+    DoNotSample = <<53020601517903903921384168845238205400:128>>,
 
     Ctx = otel_ctx:new(),
 
