@@ -23,6 +23,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Global Tracer no longer set to no-op on SDK
   shutdown](https://github.com/open-telemetry/opentelemetry-erlang/pull/568)
 
+## Exporter
+
+### Fixes
+
+- [only start inets httpc profile if it doesn't
+  exist](https://github.com/open-telemetry/opentelemetry-erlang/pull/591)
+
 ## Exporter 1.4.1 - 2023-04-26
 
 ### Fixes

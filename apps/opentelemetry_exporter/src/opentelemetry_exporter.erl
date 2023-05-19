@@ -155,7 +155,7 @@
               protocol/0]).
 
 -record(state, {channel :: term(),
-                httpc_profile :: pid() | undefined,
+                httpc_profile :: atom() | undefined,
                 protocol :: protocol(),
                 channel_pid :: pid() | undefined,
                 headers :: headers(),
@@ -207,17 +207,17 @@ init(Opts) ->
                                 protocol=http_protobuf}}
             end;
         http_protobuf ->
-            HttpcProfilePid = start_httpc(Opts1),
+            HttpcProfile = start_httpc(Opts1),
             Endpoints = endpoints(maps:get(endpoints, Opts1, ?DEFAULT_HTTP_ENDPOINTS), SSLOptions),
-            {ok, #state{httpc_profile=HttpcProfilePid,
+            {ok, #state{httpc_profile=HttpcProfile,
                         endpoints=Endpoints,
                         headers=Headers,
                         compression=Compression,
                         protocol=http_protobuf}};
         http_json ->
-            HttpcProfilePid = start_httpc(Opts1),
+            HttpcProfile = start_httpc(Opts1),
             Endpoints = endpoints(maps:get(endpoints, Opts1, ?DEFAULT_HTTP_ENDPOINTS), SSLOptions),
-            {ok, #state{httpc_profile=HttpcProfilePid,
+            {ok, #state{httpc_profile=HttpcProfile,
                         endpoints=Endpoints,
                         headers=Headers,
                         compression=Compression,
@@ -227,14 +227,22 @@ init(Opts) ->
 %% use a unique httpc profile per exporter
 start_httpc(Opts) ->
     HttpcProfile = list_to_atom(lists:concat([?MODULE, "_", erlang:pid_to_list(self())])),
-    %% by default use inet6fb4 which will try ipv6 and then fallback to ipv4 if it fails
-    HttpcOptions = lists:ukeymerge(1, 
-        lists:usort(maps:get(httpc_options, Opts, [])),
-        [{ipfamily, inet6fb4}]
-    ),
-    {ok, Pid} = inets:start(httpc, [{profile, HttpcProfile}], stand_alone),
-    ok = httpc:set_options(HttpcOptions, Pid),
-    Pid.
+
+    case httpc:info(HttpcProfile) of
+        {error, {not_started, _}} ->
+            %% by default use inet6fb4 which will try ipv6 and then fallback to ipv4 if it fails
+            HttpcOptions = lists:ukeymerge(1,
+                                           lists:usort(maps:get(httpc_options, Opts, [])),
+                                           [{ipfamily, inet6fb4}]
+                                          ),
+            %% can't use `stand_alone' because then `httpc:info(Profile)' would fail
+            {ok, Pid} = inets:start(httpc, [{profile, HttpcProfile}]),
+            ok = httpc:set_options(HttpcOptions, Pid);
+        _ ->
+            %% profile already started
+            ok
+    end,
+    HttpcProfile.
 
 %% @doc Export OTLP protocol telemery data to the configured endpoints.
 export(traces, _Tab, _Resource, #state{protocol=http_json}) ->
