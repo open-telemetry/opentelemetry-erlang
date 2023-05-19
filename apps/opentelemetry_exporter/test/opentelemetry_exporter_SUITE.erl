@@ -443,6 +443,12 @@ verify_export(Config) ->
     {ok, State} = opentelemetry_exporter:init(#{protocol => Protocol,
                                                 compression => Compression,
                                                 endpoints => [{http, "localhost", Port, []}]}),
+
+    %% regression test. adding the httpc profile meant that init'ing more than once would crash
+    {ok, _State} = opentelemetry_exporter:init(#{protocol => Protocol,
+                                                compression => Compression,
+                                                endpoints => [{http, "localhost", Port, []}]}),
+
     Tid = ets:new(span_tab, [duplicate_bag, {keypos, #span.instrumentation_scope}]),
 
     %% Tempoararily adding this because without this, we would face
