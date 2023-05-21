@@ -689,6 +689,13 @@ cumulative_counter(_Config) ->
 
     ?assertSumReceive(a_counter, <<"counter description">>, kb, [{18, #{<<"c">> => <<"b">>}}]),
 
+    ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{23, #{<<"c">> => <<"b">>}}]),
+
     ok.
 
 kill_reader(_Config) ->
