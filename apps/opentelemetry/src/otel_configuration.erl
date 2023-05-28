@@ -433,7 +433,7 @@ transform(key_value_list, Value) when is_list(Value) ->
         true ->
             Pairs = string:split(Value, ",", all),
             lists:filtermap(fun(Pair) ->
-                                    case string:split(Pair, "=", all) of
+                                    case string:split(Pair, "=", leading) of
                                         [K, V] ->
                                             V1 = re:replace(string:trim(V), "^\"|\"$", "", [global, {return, list}]),
                                             {true, {string:trim(K), V1}};
