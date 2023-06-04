@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Global Tracer no longer set to no-op on SDK
   shutdown](https://github.com/open-telemetry/opentelemetry-erlang/pull/568)
 
+### Fixes
+
+- [Fixed parsing of key/value list configuration where value has = in
+  it](https://github.com/open-telemetry/opentelemetry-erlang/pull/596)
+
 ## Exporter 1.5.0 - 2023-05-19
 
 ### Fixes
