@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Fixed parsing of key/value list configuration where value has = in
   it](https://github.com/open-telemetry/opentelemetry-erlang/pull/596)
 
-## Exporter 
+## Exporter 1.6.0 - 2023-06-21
 
 ### Changes
 
