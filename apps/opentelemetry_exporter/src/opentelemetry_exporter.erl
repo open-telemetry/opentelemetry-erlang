@@ -267,22 +267,27 @@ export(traces, Tab, Resource, #state{protocol=http_protobuf,
                     gzip -> {[{"content-encoding", "gzip"} | Headers], zlib:gzip(Proto)};
                     _ -> {Headers, Proto}
                 end,
-            Address = uri_string:normalize(#{scheme => Scheme,
-                                             host => Host,
-                                             port => Port,
-                                             path => Path}),
-
-            case httpc:request(post, {Address, NewHeaders, "application/x-protobuf", NewProto},
-                               [{ssl, SSLOptions}], [], HttpcProfile) of
-                {ok, {{_, Code, _}, _, _}} when Code >= 200 andalso Code =< 202 ->
-                    ok;
-                {ok, {{_, Code, _}, _, Message}} ->
-                    ?LOG_INFO("error response from service exported to status=~p ~s",
-                              [Code, Message]),
+            case uri_string:normalize(#{scheme => Scheme,
+                                        host => Host,
+                                        port => Port,
+                                        path => Path}) of
+                {error, Type, Error} ->
+                    ?LOG_INFO("error normalizing OTLP export URI: ~p ~p",
+                              [Type, Error]),
                     error;
-                {error, Reason} ->
-                    ?LOG_INFO("client error exporting spans ~p", [Reason]),
-                    error
+                Address ->
+                    case httpc:request(post, {Address, NewHeaders, "application/x-protobuf", NewProto},
+                                       [{ssl, SSLOptions}], [], HttpcProfile) of
+                        {ok, {{_, Code, _}, _, _}} when Code >= 200 andalso Code =< 202 ->
+                            ok;
+                        {ok, {{_, Code, _}, _, Message}} ->
+                            ?LOG_INFO("error response from service exported to status=~p ~s",
+                                      [Code, Message]),
+                            error;
+                        {error, Reason} ->
+                            ?LOG_INFO("client error exporting spans ~p", [Reason]),
+                            error
+                    end
             end
     end;
 export(traces, Tab, Resource, #state{protocol=grpc,
