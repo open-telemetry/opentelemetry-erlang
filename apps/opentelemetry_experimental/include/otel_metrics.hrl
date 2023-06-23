@@ -30,7 +30,7 @@
          start_time_unix_nano :: integer() | match_spec(integer()),
          last_start_time_unix_nano :: integer() | match_spec(integer()),
          checkpoint :: number() | match_spec(number()) | {'+', '$2', '$3'} | {'+', '$3', '$4'},
-         previous_checkpoint :: number() | match_spec(number()),
+         previous_checkpoint :: number() | match_spec(number()) | {'+', '$5', '$6'},
          int_value :: number() | match_spec(number()) | {'+', '$3', {const, number()}},
          float_value :: number() | match_spec(number()) | {'+', '$4', {const, number()}}
         }).

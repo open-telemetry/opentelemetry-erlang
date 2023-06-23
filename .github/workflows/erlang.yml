@@ -102,7 +102,7 @@ jobs:
       with:
         path: |
           _build
-        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}-2
+        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}-3
         restore-keys: |
           ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-2-
     - name: Compile
