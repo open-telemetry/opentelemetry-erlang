@@ -253,7 +253,7 @@ add_service_instance(Resource) ->
                 false ->
                     case erlang:node() of
                         nonode@nohost ->
-                            ServiceInstanceId = otel_id_generator:generate_trace_id(),
+                            ServiceInstanceId = otel_utils:encode_hex(otel_id_generator:generate_trace_id()),
                             ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE_ID, ServiceInstanceId}]),
                             otel_resource:merge(ServiceInstanceResource, Resource);
                         ServiceInstance ->
@@ -263,7 +263,7 @@ add_service_instance(Resource) ->
                                     ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE_ID, ServiceInstance1}]),
                                     otel_resource:merge(ServiceInstanceResource, Resource);
                                 _Match ->
-                                    ServiceInstanceId = otel_id_generator:generate_trace_id(),
+                                    ServiceInstanceId = otel_utils:encode_hex(otel_id_generator:generate_trace_id()),
                                     ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE_ID, ServiceInstanceId}]),
                                     otel_resource:merge(ServiceInstanceResource, Resource)
                             end

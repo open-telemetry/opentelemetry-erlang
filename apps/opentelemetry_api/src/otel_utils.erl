@@ -21,7 +21,8 @@
          format_binary_string/2,
          format_binary_string/3,
          assert_to_binary/1,
-         unicode_to_binary/1]).
+         unicode_to_binary/1,
+         encode_hex/1]).
 
 -if(?OTP_RELEASE >= 24).
 format_exception(Kind, Reason, StackTrace) ->
@@ -56,3 +57,11 @@ unicode_to_binary(String) ->
         _ ->
             {error, bad_binary_conversion}
     end.
+
+-if(?OTP_RELEASE >= 26).
+encode_hex(Bin) ->
+    binary:encode_hex(Bin, lowercase).
+-else.
+encode_hex(Bin) ->
+    string:lowercase(binary:encode_hex(Bin)).
+-endif.

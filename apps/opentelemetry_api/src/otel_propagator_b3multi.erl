@@ -45,10 +45,10 @@ inject(Ctx, Carrier, CarrierSet, _Options) ->
     case otel_tracer:current_span_ctx(Ctx) of
         #span_ctx{trace_id=TraceId,
                   span_id=SpanId,
-                  trace_flags=TraceOptions} when TraceId =/= 0, SpanId =/= 0 ->
+                  trace_flags=TraceOptions} when TraceId =/= <<0:128>>, SpanId =/= <<0:64>> ->
             Options = case TraceOptions band 1 of 1 -> <<"1">>; _ -> <<"0">> end,
-            EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
-            EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
+            EncodedTraceId = otel_utils:encode_hex(TraceId),
+            EncodedSpanId = otel_utils:encode_hex(SpanId),
             case {unicode:characters_to_binary(EncodedTraceId),
                   unicode:characters_to_binary(EncodedSpanId)} of
                 {BinTraceId, BinSpanId} when is_binary(BinTraceId) , is_binary(BinSpanId) ->
@@ -92,8 +92,10 @@ extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet, _Options) ->
 % Trace ID is a 32 or 16 lower-hex character binary.
 parse_trace_id(TraceId) when is_binary(TraceId) ->
      case string:length(TraceId) =:= 32 orelse string:length(TraceId) =:= 16 of
-         true -> string_to_integer(TraceId, 16);
-         _ -> throw(invalid)
+         true ->
+             binary:decode_hex(TraceId);
+         _ ->
+             throw(invalid)
      end;
 parse_trace_id(_) ->
     throw(invalid).
@@ -101,8 +103,10 @@ parse_trace_id(_) ->
 % Span ID is a 16 lower-hex character binary.
 parse_span_id(SpanId) when is_binary(SpanId) ->
      case string:length(SpanId) =:= 16 of
-         true -> string_to_integer(SpanId, 16);
-         _ -> throw(invalid)
+         true ->
+             binary:decode_hex(SpanId);
+         _ ->
+             throw(invalid)
      end;
 parse_span_id(_) ->
     throw(invalid).
@@ -130,6 +134,3 @@ parse_is_sampled(undefined) ->
     0;
 parse_is_sampled(_) ->
     throw(invalid).
-
-string_to_integer(S, Base) when is_binary(S) ->
-    binary_to_integer(S, Base).

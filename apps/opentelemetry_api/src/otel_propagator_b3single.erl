@@ -43,10 +43,10 @@ inject(Ctx, Carrier, CarrierSet, _Options) ->
     case otel_tracer:current_span_ctx(Ctx) of
         #span_ctx{trace_id=TraceId,
                   span_id=SpanId,
-                  trace_flags=TraceOptions} when TraceId =/= 0, SpanId =/= 0 ->
+                  trace_flags=TraceOptions} when TraceId =/= <<0:128>>, SpanId =/= <<0:64>> ->
             Options = case TraceOptions band 1 of 1 -> <<"1">>; _ -> <<"0">> end,
-            EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
-            EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
+            EncodedTraceId = otel_utils:encode_hex(TraceId),
+            EncodedSpanId = otel_utils:encode_hex(SpanId),
             B3Context = otel_utils:assert_to_binary([EncodedTraceId, "-",
                                                      EncodedSpanId, "-", Options]),
             CarrierSet(?B3_CONTEXT_KEY, B3Context, Carrier);
@@ -101,22 +101,22 @@ decode_b3_context(_) ->
     throw(invalid).
 
 % Trace ID is a 32 or 16 lower-hex character binary.
-parse_trace_id(TraceId) when is_binary(TraceId) ->
+parse_trace_id(TraceId) ->
      case string:length(TraceId) =:= 32 orelse string:length(TraceId) =:= 16 of
-         true -> string_to_integer(TraceId, 16);
-         _ -> throw(invalid)
-     end;
-parse_trace_id(_) ->
-    throw(invalid).
+         true ->
+             binary:decode_hex(TraceId);
+         _ ->
+             throw(invalid)
+     end.
 
 % Span ID is a 16 lower-hex character binary.
-parse_span_id(SpanId) when is_binary(SpanId) ->
+parse_span_id(SpanId) ->
      case string:length(SpanId) =:= 16 of
-         true -> string_to_integer(SpanId, 16);
-         _ -> throw(invalid)
-     end;
-parse_span_id(_) ->
-    throw(invalid).
+         true ->
+             binary:decode_hex(SpanId);
+         _ ->
+             throw(invalid)
+     end.
 
 % Sampling State is encoded as a single hex character for all states except
 % Defer. Defer is absence of the sampling field.
@@ -128,14 +128,12 @@ parse_span_id(_) ->
 %
 % Before the specification was written, some tracers propagated X-B3-Sampled as
 % true or false.
-parse_is_sampled(Sampled) when is_binary(Sampled) ->
-    case Sampled of
-        S when S =:= <<"1">> orelse S =:= <<"d">> orelse S =:= <<"true">> -> 1;
-        S when S =:= <<"0">> orelse S =:= <<"false">> -> 0;
-        _ -> throw(invalid)
-    end;
+parse_is_sampled(Sampled) when Sampled =:= <<"1">> orelse
+                               Sampled =:= <<"d">> orelse
+                               Sampled =:= <<"true">> ->
+    1;
+parse_is_sampled(Sampled) when Sampled =:= <<"0">> orelse
+                               Sampled =:= <<"false">> ->
+    0;
 parse_is_sampled(_) ->
     throw(invalid).
-
-string_to_integer(S, Base) when is_binary(S) ->
-    binary_to_integer(S, Base).

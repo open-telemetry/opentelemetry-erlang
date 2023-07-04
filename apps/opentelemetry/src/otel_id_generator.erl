@@ -48,9 +48,9 @@ generate_span_id(Module) ->
 %% @doc Generates a 128 bit random integer to use as a trace id.
 -spec generate_trace_id() -> opentelemetry:trace_id().
 generate_trace_id() ->
-    rand:uniform(?assert_type(2 bsl 127 - 1, pos_integer())). %% 2 shifted left by 127 == 2 ^ 128
+    rand:bytes(16).
 
 %% @doc Generates a 64 bit random integer to use as a span id.
 -spec generate_span_id() -> opentelemetry:span_id().
 generate_span_id() ->
-    rand:uniform(?assert_type(2 bsl 63 - 1, pos_integer())). %% 2 shifted left by 63 == 2 ^ 64
+    rand:bytes(8).

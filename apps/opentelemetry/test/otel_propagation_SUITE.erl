@@ -67,6 +67,7 @@ propagation(Config) ->
     ?assertMatch(#span_ctx{trace_flags=1}, ?current_span_ctx),
     ?assertMatch(#span_ctx{is_recording=true}, ?current_span_ctx),
 
+    ?assertMatch([_ | _], otel_propagator_text_map:fields(opentelemetry:get_text_map_injector())),
 
     otel_baggage:set("key-1", <<"value=1">>, []),
     %% TODO: should the whole baggage entry be dropped if metadata is bad?
@@ -77,8 +78,8 @@ propagation(Config) ->
 
     Headers = otel_propagator_text_map:inject([{<<"existing-header">>, <<"I exist">>}]),
 
-    EncodedTraceId = io_lib:format("~32.16.0b", [TraceId]),
-    EncodedSpanId = io_lib:format("~16.16.0b", [SpanId]),
+    EncodedTraceId = otel_utils:encode_hex(TraceId),
+    EncodedSpanId = otel_utils:encode_hex(SpanId),
 
     ?assertListsEqual([{<<"baggage">>, <<"key-2=value-2;metadata;md-k-1=md-v-1,key-1=value%3D1">>},
                        {<<"existing-header">>, <<"I exist">>} |

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## API
+
+### Changed
+
+- [`trace_id` and `span_id` now represented as binaries instead of
+  integers](https://github.com/open-telemetry/opentelemetry-erlang/pull/590/)
+
 ## SDK
 
 ### Added

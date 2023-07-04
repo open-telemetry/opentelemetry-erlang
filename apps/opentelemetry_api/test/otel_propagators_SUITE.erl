@@ -41,8 +41,8 @@ end_per_suite(_Config) ->
 rewrite(_Config) ->
     otel_ctx:clear(),
 
-    RecordingSpanCtx = #span_ctx{trace_id=21267647932558653966460912964485513216,
-                                 span_id=1152921504606846976,
+    RecordingSpanCtx = #span_ctx{trace_id = <<21267647932558653966460912964485513216:128>>,
+                                 span_id = <<1152921504606846976:64>>,
                                  is_valid=true,
                                  is_recording=true},
     otel_tracer:set_current_span(RecordingSpanCtx),
@@ -85,8 +85,8 @@ invalid_span_no_sdk_propagation(_Config) ->
                "and no SDK results in the same invalid span as the child"),
     otel_ctx:clear(),
 
-    InvalidSpanCtx = #span_ctx{trace_id=0,
-                               span_id=0,
+    InvalidSpanCtx = #span_ctx{trace_id = <<0:128>>,
+                               span_id = <<0:64>>,
                                trace_flags=0,
                                tracestate=[],
                                is_valid=false,
@@ -111,8 +111,8 @@ nonrecording_no_sdk_propagation(_Config) ->
 
     otel_ctx:clear(),
 
-    NonRecordingSpanCtx = #span_ctx{trace_id=21267647932558653966460912964485513216,
-                                    span_id=1152921504606846976,
+    NonRecordingSpanCtx = #span_ctx{trace_id = <<16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0>>,
+                                    span_id = <<16,0,0,0,0,0,0,0>>,
                                     is_valid=true,
                                     is_recording=false},
     ?set_current_span(NonRecordingSpanCtx),

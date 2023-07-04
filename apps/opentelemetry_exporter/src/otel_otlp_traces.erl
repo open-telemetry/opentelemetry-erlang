@@ -77,12 +77,11 @@ to_proto(#span{trace_id=TraceId,
                links=Links,
                status=Status,
                trace_flags=_TraceFlags,
-               is_recording=_IsRecording}) when is_integer(TraceId),
-                                                is_integer(SpanId) ->
-    ParentSpanId = case MaybeParentSpanId of _ when is_integer(MaybeParentSpanId) -> <<MaybeParentSpanId:64>>; _ -> <<>> end,
+               is_recording=_IsRecording}) ->
+    ParentSpanId = case MaybeParentSpanId of undefined -> <<>>; _ -> MaybeParentSpanId end,
     #{name                     => otel_otlp_common:to_binary(Name),
-      trace_id                 => <<TraceId:128>>,
-      span_id                  => <<SpanId:64>>,
+      trace_id                 => TraceId,
+      span_id                  => SpanId,
       parent_span_id           => ParentSpanId,
       %% eqwalizer:ignore have to have tracestate as type '_' for matchspecs
       trace_state              => to_tracestate_string(TraceState),
@@ -120,8 +119,8 @@ to_events(Events) ->
 
 -spec to_links([#link{}]) -> [opentelemetry_exporter_trace_service_pb:link()].
 to_links(Links) ->
-    [#{trace_id => <<TraceId:128>>,
-       span_id => <<SpanId:64>>,
+    [#{trace_id => TraceId,
+       span_id => SpanId,
        trace_state => to_tracestate_string(TraceState),
        attributes => otel_otlp_common:to_attributes(Attributes),
        dropped_attributes_count => 0} || #link{trace_id=TraceId,

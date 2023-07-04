@@ -96,7 +96,7 @@ validations(_Config) ->
                   {<<"boolean-list-invalid">>, [true, 1.1]},
                   {<<"float-list-invalid">>, [1.1, 2]},
                   {<<"int-list-invalid">>, [1, 2.0]}],
-    Links = [{0, 0, Attributes, []}],
+    Links = [{<<0:128>>, <<0:64>>, Attributes, []}],
     Events = [{opentelemetry:timestamp(), <<"timed-event-name">>, Attributes},
               {untimed_event, Attributes},
               {<<"">>, Attributes},
@@ -132,8 +132,8 @@ validations(_Config) ->
                    attributes := ProcessedAttributes}],
                  opentelemetry:events(Events)),
 
-    ?assertMatch([#{trace_id := 0,
-                   span_id := 0,
+    ?assertMatch([#{trace_id := <<0:128>>,
+                   span_id := <<0:64>>,
                    attributes := ProcessedAttributes,
                    tracestate := []}],
                 opentelemetry:links(Links)),
@@ -141,7 +141,10 @@ validations(_Config) ->
     StartOpts = #{attributes => Attributes,
                  links => opentelemetry:links(Links)},
     ?assertMatch(#{attributes := ProcessedAttributes,
-                  links := [#{trace_id := 0, span_id := 0, attributes := ProcessedAttributes, tracestate := []}]},
+                  links := [#{trace_id := <<0:128>>,
+                              span_id := <<0:64>>,
+                              attributes := ProcessedAttributes,
+                              tracestate := []}]},
                 otel_span:validate_start_opts(StartOpts)),
 
     %% names
@@ -246,7 +249,8 @@ noop_with_span(_Config) ->
     ok.
 
 hex_trace_ids(_Config) ->
-    SpanCtx=#span_ctx{trace_id=41394, span_id=50132},
-    ?assertEqual(<<"0000000000000000000000000000a1b2">>, otel_span:hex_trace_id(SpanCtx)),
-    ?assertEqual(<<"000000000000c3d4">>, otel_span:hex_span_id(SpanCtx)),
+    SpanCtx=#span_ctx{trace_id = <<19,25,104,206,49,198,60,63,69,245,232,137,234,183,74,97>>,
+                      span_id = <<161,20,190,33,18,16,115,223>>},
+    ?assertEqual(<<"131968ce31c63c3f45f5e889eab74a61">>, otel_span:hex_trace_id(SpanCtx)),
+    ?assertEqual(<<"a114be21121073df">>, otel_span:hex_span_id(SpanCtx)),
     ok.

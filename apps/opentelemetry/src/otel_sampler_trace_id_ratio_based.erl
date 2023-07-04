@@ -61,9 +61,8 @@ decide(undefined, _IdUpperBound) ->
     ?DROP;
 decide(0, _IdUpperBound) ->
     ?DROP;
-decide(TraceId, IdUpperBound) ->
-    Lower64Bits = TraceId band ?MAX_VALUE,
-    case erlang:abs(Lower64Bits) < IdUpperBound of
+decide(<<_:65, LowerBits:63>>, IdUpperBound) ->
+    case erlang:abs(LowerBits) < IdUpperBound of
         true -> ?RECORD_AND_SAMPLE;
         false -> ?DROP
     end.

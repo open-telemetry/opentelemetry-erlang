@@ -93,8 +93,8 @@
 
 -type instrumentation_scope() :: #instrumentation_scope{}.
 
--type trace_id()           :: non_neg_integer().
--type span_id()            :: non_neg_integer().
+-type trace_id()           :: binary().
+-type span_id()            :: binary().
 
 -type hex_trace_id()       :: binary().
 -type hex_span_id()        :: binary().
@@ -336,20 +336,20 @@ convert_timestamp(Timestamp, Unit) ->
       Attributes :: attributes_map(),
       TraceState :: tracestate().
 links(List) when is_list(List) ->
-    lists:filtermap(fun({TraceId, SpanId, Attributes, TraceState}) when is_integer(TraceId) ,
-                                                                        is_integer(SpanId) ,
+    lists:filtermap(fun({TraceId, SpanId, Attributes, TraceState}) when is_binary(TraceId) ,
+                                                                        is_binary(SpanId) ,
                                                                         is_list(TraceState) ->
                             link_or_false(TraceId, SpanId, otel_span:process_attributes(Attributes), TraceState);
                        ({#span_ctx{trace_id=TraceId,
                                    span_id=SpanId,
-                                   tracestate=TraceState}, Attributes}) when is_integer(TraceId) ,
-                                                                             is_integer(SpanId) ,
+                                   tracestate=TraceState}, Attributes}) when is_binary(TraceId) ,
+                                                                             is_binary(SpanId) ,
                                                                              is_list(TraceState) ->
                             link_or_false(TraceId, SpanId, otel_span:process_attributes(Attributes), TraceState);
                        (#span_ctx{trace_id=TraceId,
                                   span_id=SpanId,
-                                  tracestate=TraceState}) when is_integer(TraceId) ,
-                                                               is_integer(SpanId) ,
+                                  tracestate=TraceState}) when is_binary(TraceId) ,
+                                                               is_binary(SpanId) ,
                                                                is_list(TraceState) ->
                             link_or_false(TraceId, SpanId, [], TraceState);
                        (_) ->
@@ -375,8 +375,8 @@ link(_, _) ->
       SpanId :: span_id(),
       Attributes :: attributes_map(),
       TraceState :: tracestate().
-link(TraceId, SpanId, Attributes, TraceState) when is_integer(TraceId),
-                                                   is_integer(SpanId),
+link(TraceId, SpanId, Attributes, TraceState) when is_binary(TraceId),
+                                                   is_binary(SpanId),
                                                    (is_list(Attributes) orelse is_map(Attributes)),
                                                    is_list(TraceState) ->
     #{trace_id => TraceId,

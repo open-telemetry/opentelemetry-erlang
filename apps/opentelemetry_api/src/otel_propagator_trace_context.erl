@@ -63,7 +63,7 @@ fields(_) ->
 inject(Ctx, Carrier, CarrierSet, _Options) ->
     case otel_tracer:current_span_ctx(Ctx) of
         SpanCtx=#span_ctx{trace_id=TraceId,
-                          span_id=SpanId} when TraceId =/= 0 andalso SpanId =/= 0 ->
+                          span_id=SpanId} when TraceId =/= <<0:128>> andalso SpanId =/= <<0:64>> ->
             {TraceParent, TraceState} = encode_span_ctx(SpanCtx),
             Carrier1 = CarrierSet(?HEADER_KEY, TraceParent, Carrier),
             case TraceState of
@@ -109,8 +109,8 @@ encode_span_ctx(#span_ctx{trace_id=TraceId,
 
 encode_traceparent(TraceId, SpanId, TraceOptions) ->
     Options = case TraceOptions band 1 of 1 -> <<"01">>; _ -> <<"00">> end,
-    {ok, EncodedTraceId} = otel_utils:format_binary_string("~32.16.0b", [TraceId]),
-    {ok, EncodedSpanId} = otel_utils:format_binary_string("~16.16.0b", [SpanId]),
+    EncodedTraceId = otel_utils:encode_hex(TraceId),
+    EncodedSpanId = otel_utils:encode_hex(SpanId),
     otel_utils:assert_to_binary([?VERSION, "-", EncodedTraceId, "-",
                                  EncodedSpanId, "-", Options]).
 
@@ -148,9 +148,9 @@ decode(_) ->
 to_span_ctx(Version, TraceId, SpanId, Opts) ->
     try
         %% verify version is hexadecimal
-        _ = binary_to_integer(Version, 16),
-        otel_tracer:from_remote_span(?assert_type(binary_to_integer(TraceId, 16), non_neg_integer()),
-                                     ?assert_type(binary_to_integer(SpanId, 16), non_neg_integer()),
+        _ = binary:decode_hex(Version),
+        otel_tracer:from_remote_span(binary:decode_hex(TraceId),
+                                     binary:decode_hex(SpanId),
                                      case Opts of <<"01">> -> 1; <<"00">> -> 0; _ -> error(badarg) end)
     catch
         %% to integer from base 16 string failed

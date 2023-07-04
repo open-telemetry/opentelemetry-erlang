@@ -69,8 +69,8 @@ create_links([L | Rest], Limit, AttributePerLinkLimit, AttributeValueLengthLimit
 %%
 
 new_link({TraceId, SpanId, Attributes, TraceState}, AttributePerLinkLimit, AttributeValueLengthLimit)
-  when is_integer(TraceId),
-       is_integer(SpanId),
+  when is_binary(TraceId),
+       is_binary(SpanId),
        (is_list(Attributes) orelse is_map(Attributes)),
        is_list(TraceState) ->
     #link{trace_id=TraceId,
