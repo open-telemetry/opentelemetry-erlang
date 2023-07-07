@@ -20,7 +20,7 @@ defmodule OpenTelemetryExperimental.MixProject do
       test_coverage: [tool: :covertool],
       docs: [
         markdown_processor: ExDoc.Markdown.Cmark,
-        main: "OpenTelemetry Experimental API",
+        main: "OpenTelemetryAPIExperimental",
         # logo: "path/to/logo.png",
         extras: erlang_docs()
       ],
