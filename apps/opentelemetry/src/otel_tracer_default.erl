@@ -29,12 +29,12 @@
 %% @doc Starts an inactive Span and returns its SpanCtx.
 -spec start_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(),
                  otel_span:start_opts()) -> opentelemetry:span_ctx().
-start_span(Ctx, {_, #tracer{on_start_processors=Processors,
+start_span(Ctx, {_, #tracer{on_start_processors=OnStartProcessors,
                             on_end_processors=OnEndProcessors,
                             sampler=Sampler,
                             id_generator=IdGeneratorModule,
                             instrumentation_scope=InstrumentationScope}}, Name, Opts) ->
-    SpanCtx = otel_span_ets:start_span(Ctx, Name, Sampler, IdGeneratorModule, Opts, Processors, InstrumentationScope),
+    SpanCtx = otel_span_ets:start_span(Ctx, Name, Sampler, IdGeneratorModule, Opts, OnStartProcessors, OnEndProcessors, InstrumentationScope),
     SpanCtx#span_ctx{span_sdk={otel_span_ets, OnEndProcessors}}.
 
 -spec with_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(),

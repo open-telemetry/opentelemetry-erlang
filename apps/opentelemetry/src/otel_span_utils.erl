@@ -18,7 +18,7 @@
 %%%-------------------------------------------------------------------------
 -module(otel_span_utils).
 
--export([start_span/5,
+-export([start_span/6,
          end_span/1,
          end_span/2]).
 
@@ -27,8 +27,8 @@
 -include("otel_span.hrl").
 
 -spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_sampler:t(), otel_id_generator:t(),
-                 otel_span:start_opts()) -> {opentelemetry:span_ctx(), opentelemetry:span() | undefined}.
-start_span(Ctx, Name, Sampler, IdGenerator, Opts) ->
+                 fun(), otel_span:start_opts()) -> {opentelemetry:span_ctx(), opentelemetry:span() | undefined}.
+start_span(Ctx, Name, Sampler, IdGenerator, OnEndProcessors, Opts) ->
     SpanAttributeCountLimit = otel_span_limits:attribute_count_limit(),
     SpanAttributeValueLengthLimit= otel_span_limits:attribute_value_length_limit(),
     EventCountLimit = otel_span_limits:event_count_limit(),
@@ -48,9 +48,9 @@ start_span(Ctx, Name, Sampler, IdGenerator, Opts) ->
 
     Kind = maps:get(kind, Opts, ?SPAN_KIND_INTERNAL),
     StartTime = maps:get(start_time, Opts, opentelemetry:timestamp()),
-    new_span(Ctx, Name, Sampler, IdGenerator, StartTime, Kind, Attributes, Events, Links).
+    new_span(Ctx, Name, Sampler, IdGenerator, StartTime, Kind, Attributes, Events, Links, OnEndProcessors).
 
-new_span(Ctx, Name, Sampler, IdGeneratorModule, StartTime, Kind, Attributes, Events, Links) ->
+new_span(Ctx, Name, Sampler, IdGeneratorModule, StartTime, Kind, Attributes, Events, Links, OnEndProcessors) ->
     {NewSpanCtx, ParentSpanId} = new_span_ctx(Ctx, IdGeneratorModule),
 
     TraceId = NewSpanCtx#span_ctx.trace_id,
@@ -70,7 +70,8 @@ new_span(Ctx, Name, Sampler, IdGeneratorModule, StartTime, Kind, Attributes, Eve
                  events=Events,
                  links=Links,
                  trace_flags=TraceFlags,
-                 is_recording=IsRecording},
+                 is_recording=IsRecording,
+                 on_end_processors=OnEndProcessors},
 
     {NewSpanCtx#span_ctx{trace_flags=TraceFlags,
                          tracestate=TraceState,

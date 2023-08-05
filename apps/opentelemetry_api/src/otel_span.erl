@@ -38,6 +38,7 @@
          set_status/2,
          set_status/3,
          update_name/2,
+         set_pid/2,
          end_span/1,
          end_span/2]).
 
@@ -323,6 +324,12 @@ update_name(SpanCtx=#span_ctx{span_sdk={Module, _}}, SpanName) when ?is_recordin
     end;
 update_name(_, _) ->
     false.
+
+-spec set_pid(SpanCtx, Pid) -> boolean() when
+      Pid :: pid(),
+      SpanCtx :: opentelemetry:span_ctx().
+set_pid(SpanCtx=#span_ctx{span_sdk={Module, _}}, Pid) ->
+    Module:set_pid(SpanCtx, Pid).
 
 -spec end_span(SpanCtx) -> SpanCtx when
       SpanCtx :: opentelemetry:span_ctx().

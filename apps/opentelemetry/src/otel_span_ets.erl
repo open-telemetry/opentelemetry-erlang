@@ -25,7 +25,7 @@
          handle_call/3,
          handle_cast/2]).
 
--export([start_span/7,
+-export([start_span/8,
          end_span/1,
          end_span/2,
          get_ctx/1,
@@ -34,7 +34,8 @@
          add_event/3,
          add_events/2,
          set_status/2,
-         update_name/2]).
+         update_name/2,
+         set_pid/2]).
 
 %% since `span_ctx' and `span' are in the API the `span_sdk' has to be term()
 -eqwalizer({nowarn_function, end_span/1}).
@@ -55,13 +56,13 @@ start_link(Opts) ->
 
 %% @doc Start a span and insert into the active span ets table.
 -spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_sampler:t(), otel_id_generator:t(),
-                 otel_span:start_opts(), fun(), otel_tracer_server:instrumentation_scope() | undefined)
+                 otel_span:start_opts(), fun(), fun(), otel_tracer_server:instrumentation_scope() | undefined)
                 -> opentelemetry:span_ctx().
-start_span(Ctx, Name, Sampler, IdGeneratorModule, Opts, Processors, InstrumentationScope) ->
-    case otel_span_utils:start_span(Ctx, Name, Sampler, IdGeneratorModule, Opts) of
+start_span(Ctx, Name, Sampler, IdGeneratorModule, Opts, OnStartProcessors, OnEndProcessors, InstrumentationScope) ->
+    case otel_span_utils:start_span(Ctx, Name, Sampler, IdGeneratorModule, OnEndProcessors, Opts) of
         {SpanCtx=#span_ctx{is_recording=true}, Span=#span{}} ->
             Span1 = Span#span{instrumentation_scope=InstrumentationScope},
-            Span2 = Processors(Ctx, Span1),
+            Span2 = OnStartProcessors(Ctx, Span1),
             case storage_insert(Span2) of
                 true ->
                     SpanCtx;
@@ -176,6 +177,13 @@ set_status(_, _) ->
 update_name(#span_ctx{span_id=SpanId}, Name) ->
     ets:update_element(?SPAN_TAB, SpanId, {#span.name, Name});
 update_name(_, _) ->
+    false.
+
+-spec set_pid(opentelemetry:span_ctx() | undefined, pid()) -> boolean().
+set_pid(#span_ctx{span_id=SpanId}, Pid) ->
+    ct:pal("SET PID ~p ~p", [SpanId, Pid]),
+    ets:update_element(?SPAN_TAB, SpanId, {#span.pid, Pid});
+set_pid(_, _) ->
     false.
 
 %%

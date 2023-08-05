@@ -59,7 +59,18 @@
           %% trace flags lowest bit is 1 but simply not propagated.
           is_recording            :: boolean() | undefined | '_',
 
-          instrumentation_scope :: opentelemetry:instrumentation_scope() | undefined | '_'
+          instrumentation_scope   :: opentelemetry:instrumentation_scope() | undefined | '_',
+
+
+          %% this is the Erlang process the span is or has was last active in.
+          %% It is used for the optional process monitoring feature where a process
+          %% can be monitored and have all spans
+          %% active in that process be ended if the process exits for any reason.
+          pid                     :: pid() | undefined,
+
+          %% the span processors to run on start and end
+          %% mainly here so the span monitor can end the span
+          on_end_processors       :: fun()
          }).
 
 -record(span_limits, {
