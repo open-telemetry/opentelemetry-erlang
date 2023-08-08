@@ -35,7 +35,7 @@ all() ->
 all_cases() ->
     [with_span, macros, child_spans, disabled_sdk,
      update_span_data, tracer_instrumentation_scope, tracer_previous_ctx, stop_temporary_app,
-     reset_after, attach_ctx, default_sampler, non_recording_ets_table,
+     reset_after, attach_ctx, parent_ctx, default_sampler, non_recording_ets_table,
      root_span_sampling_always_on, root_span_sampling_always_off,
      record_but_not_sample, record_exception_works, record_exception_with_message_works,
      propagator_configuration, propagator_configuration_with_os_env, force_flush,
@@ -756,6 +756,40 @@ attach_ctx(Config) ->
 
     ok.
 
+parent_ctx(Config) ->
+    Tid = ?config(tid, Config),
+
+    Tracer = opentelemetry:get_tracer(),
+
+    SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{}),
+    ?set_current_span(SpanCtx1),
+    ?assertMatch(SpanCtx1, ?current_span_ctx),
+
+    ParentCtx = otel_ctx:get_current(),
+
+    Pid = self(),
+
+    erlang:spawn(fun() ->
+                         SpanCtx2 = otel_tracer:start_span(ParentCtx, Tracer, <<"span-2">>, #{}),
+                         otel_span:end_span(SpanCtx2),
+
+                         [Span2] = assert_all_exported(Tid, [SpanCtx2]),
+
+                         Pid ! {span2, Span2}
+                 end),
+
+    otel_span:end_span(SpanCtx1),
+
+    [Span1] = assert_all_exported(Tid, [SpanCtx1]),
+
+    receive
+        {span2, Span2} ->
+            ?assertEqual(Span1#span.span_id, Span2#span.parent_span_id)
+    after
+        1000 ->
+            ct:fail(timeout)
+    end.
+
 reset_after(Config) ->
     Tid = ?config(tid, Config),
 
@@ -1101,7 +1135,9 @@ no_exporter(_Config) ->
 %%
 
 assert_all_exported(Tid, SpanCtxs) ->
-    [assert_exported(Tid, SpanCtx) || SpanCtx <- SpanCtxs].
+    lists:flatmap(fun(SpanCtx) ->
+                          assert_exported(Tid, SpanCtx)
+                  end, SpanCtxs).
 
 assert_exported(Tid, #span_ctx{trace_id=TraceId,
                                span_id=SpanId}) ->
