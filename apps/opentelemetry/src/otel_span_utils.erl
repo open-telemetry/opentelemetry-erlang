@@ -48,6 +48,9 @@ start_span(Ctx, Name, Sampler, IdGenerator, OnEndProcessors, Opts) ->
 
     Kind = maps:get(kind, Opts, ?SPAN_KIND_INTERNAL),
     StartTime = maps:get(start_time, Opts, opentelemetry:timestamp()),
+
+    case maps:get(monitor, Opts) of true -> otel_span_monitor:add(self()); false -> ok end,
+
     new_span(Ctx, Name, Sampler, IdGenerator, StartTime, Kind, Attributes, Events, Links, OnEndProcessors).
 
 new_span(Ctx, Name, Sampler, IdGeneratorModule, StartTime, Kind, Attributes, Events, Links, OnEndProcessors) ->
@@ -71,6 +74,7 @@ new_span(Ctx, Name, Sampler, IdGeneratorModule, StartTime, Kind, Attributes, Eve
                  links=Links,
                  trace_flags=TraceFlags,
                  is_recording=IsRecording,
+                 pid=self(),
                  on_end_processors=OnEndProcessors},
 
     {NewSpanCtx#span_ctx{trace_flags=TraceFlags,

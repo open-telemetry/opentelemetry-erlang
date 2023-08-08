@@ -38,7 +38,6 @@
          set_status/2,
          set_status/3,
          update_name/2,
-         set_pid/2,
          end_span/1,
          end_span/2]).
 
@@ -57,7 +56,8 @@
                         links => [opentelemetry:link()],
                         is_recording => boolean(),
                         start_time => opentelemetry:timestamp(),
-                        kind => opentelemetry:span_kind()}.
+                        kind => opentelemetry:span_kind(),
+                        monitor => boolean()}.
 
 -export_type([start_opts/0]).
 
@@ -65,12 +65,14 @@
 validate_start_opts(Opts) when is_map(Opts) ->
     Attributes = maps:get(attributes, Opts, #{}),
     Links = maps:get(links, Opts, []),
+    Monitor = maps:get(monitor, Opts, false),
     Kind = maps:get(kind, Opts, ?SPAN_KIND_INTERNAL),
     StartTime = maps:get(start_time, Opts, opentelemetry:timestamp()),
     IsRecording = maps:get(is_recording, Opts, true),
     #{
       attributes => process_attributes(Attributes),
       links => Links,
+      monitor => Monitor,
       kind => Kind,
       start_time => StartTime,
       is_recording => IsRecording
@@ -324,12 +326,6 @@ update_name(SpanCtx=#span_ctx{span_sdk={Module, _}}, SpanName) when ?is_recordin
     end;
 update_name(_, _) ->
     false.
-
--spec set_pid(SpanCtx, Pid) -> boolean() when
-      Pid :: pid(),
-      SpanCtx :: opentelemetry:span_ctx().
-set_pid(SpanCtx=#span_ctx{span_sdk={Module, _}}, Pid) ->
-    Module:set_pid(SpanCtx, Pid).
 
 -spec end_span(SpanCtx) -> SpanCtx when
       SpanCtx :: opentelemetry:span_ctx().

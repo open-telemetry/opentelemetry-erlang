@@ -125,13 +125,10 @@ current_span_ctx(Ctx) ->
     otel_ctx:get_value(Ctx, ?CURRENT_SPAN_CTX, undefined).
 
 update_logger_process_metadata(Ctx) ->
-    SpanCtx = current_span_ctx(Ctx),
-    otel_span:set_pid(SpanCtx, self()),
-    update_logger_process_metadata_from_span_ctx(SpanCtx).
+    update_logger_process_metadata_from_span_ctx(current_span_ctx(Ctx)).
 
 %%
 
 update_logger_process_metadata_from_span_ctx(SpanCtx) ->
-    otel_span:set_pid(SpanCtx, self()),
     Metadata = otel_span:hex_span_ctx(SpanCtx),
     logger:update_process_metadata(Metadata).

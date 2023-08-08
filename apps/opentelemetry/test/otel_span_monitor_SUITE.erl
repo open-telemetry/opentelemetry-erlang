@@ -51,15 +51,14 @@ monitor_pid(Config) ->
     Attr1 = <<"attr-1">>,
     AttrValue1 = <<"attr-value-1">>,
 
-    SpanCtx1 = ?start_span(SpanName1, #{}),
+    SpanCtx1 = ?start_span(SpanName1, #{monitor => true}),
+    ?set_current_span(SpanCtx1),
+    Ctx = otel_ctx:get_current(),
+    ?add_event('some event on span 1', #{a => 1}),
 
-    Pid = erlang:spawn_link(fun() ->
-                                    otel_span_monitor:add(self()),
-
-                                    ?set_current_span(SpanCtx1),
-                                    ?add_event('some event on span 1', #{a => 1}),
-
-                                    SpanCtx2 = ?start_span(SpanName2, #{}),
+    Pid1 = self(),
+    Pid2 = erlang:spawn_link(fun() ->
+                                    SpanCtx2 = ?start_span(Ctx, SpanName2, #{monitor => true}),
                                     ?set_current_span(SpanCtx2),
                                     ?assertMatch(SpanCtx2, ?current_span_ctx),
 
@@ -69,16 +68,20 @@ monitor_pid(Config) ->
                                     erlang:exit(ExitType)
                             end),
 
+    otel_span:end_span(SpanCtx1),
+
     receive
-        {'EXIT', Pid, Reason} when Reason =:= ExitType ->
+        {'EXIT', Pid2, Reason} when Reason =:= ExitType ->
             receive
                 {span, #span{name=SpanName2,
+                             parent_span_id=ParentSpanId2,
                              pid=SpanPid2,
                              attributes=SpanAttributes2,
                              events=Events2}} ->
+                    ?assertEqual(SpanCtx1#span_ctx.span_id, ParentSpanId2),
                     ?assertMatch([#event{name='process died'},
                                   #event{name='some event on span 2'}], otel_events:list(Events2)),
-                    ?assertEqual(Pid, SpanPid2),
+                    ?assertEqual(Pid2, SpanPid2),
                     ?assertEqual(#{Attr1 => AttrValue1,
                                    finished_by_monitor => true}, otel_attributes:map(SpanAttributes2)),
                     receive
@@ -86,17 +89,16 @@ monitor_pid(Config) ->
                                      pid=SpanPid1,
                                      attributes=SpanAttributes1,
                                      events=Events1}} ->
-                            ?assertMatch([#event{name='process died'},
-                                          #event{name='some event on span 1'}], otel_events:list(Events1)),
-                            ?assertEqual(Pid, SpanPid1),
-                            ?assertEqual(#{finished_by_monitor => true}, otel_attributes:map(SpanAttributes1))
+                            ?assertMatch([#event{name='some event on span 1'}], otel_events:list(Events1)),
+                            ?assertEqual(Pid1, SpanPid1),
+                            ?assertEqual(#{}, otel_attributes:map(SpanAttributes1))
                     after
                         1000 ->
-                            ct:fail(span_timeout)
+                            ct:fail(span_1_timeout)
                     end
             after
                 1000 ->
-                    ct:fail(span_timeout)
+                    ct:fail(span_2_timeout)
             end,
             ok
     after

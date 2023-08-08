@@ -34,8 +34,7 @@
          add_event/3,
          add_events/2,
          set_status/2,
-         update_name/2,
-         set_pid/2]).
+         update_name/2]).
 
 %% since `span_ctx' and `span' are in the API the `span_sdk' has to be term()
 -eqwalizer({nowarn_function, end_span/1}).
@@ -177,13 +176,6 @@ set_status(_, _) ->
 update_name(#span_ctx{span_id=SpanId}, Name) ->
     ets:update_element(?SPAN_TAB, SpanId, {#span.name, Name});
 update_name(_, _) ->
-    false.
-
--spec set_pid(opentelemetry:span_ctx() | undefined, pid()) -> boolean().
-set_pid(#span_ctx{span_id=SpanId}, Pid) ->
-    ct:pal("SET PID ~p ~p", [SpanId, Pid]),
-    ets:update_element(?SPAN_TAB, SpanId, {#span.pid, Pid});
-set_pid(_, _) ->
     false.
 
 %%
