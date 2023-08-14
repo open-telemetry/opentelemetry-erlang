@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         otp_version: ['26.0', '25.0.3', '24.1.2', '23.3', '22.3']
-        rebar3_version: ['3.20.0']
+        rebar3_version: ['3.17.0']
         os: [ubuntu-20.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
@@ -37,9 +37,9 @@ jobs:
       with:
         path: |
           _build
-        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles(format('rebar.lock')) }}-2
+        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles(format('rebar.lock')) }}-5
         restore-keys: |
-          ${{ runner.os }}-build-${{ matrix.otp_version }}-2-
+          ${{ runner.os }}-build-${{ matrix.otp_version }}-5-
     - name: Compile
       run: rebar3 compile
     - name: EUnit tests
@@ -88,7 +88,7 @@ jobs:
     strategy:
       matrix:
         otp_version: ['26.0']
-        rebar3_version: ['3.20.0']
+        rebar3_version: ['3.17.0']
         os: [ubuntu-20.04]
     steps:
     - uses: actions/checkout@v2
@@ -102,9 +102,9 @@ jobs:
       with:
         path: |
           _build
-        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}-3
+        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}-5
         restore-keys: |
-          ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-2-
+          ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-5-
     - name: Compile
       run: rebar3 compile
     - name: Dialyzer
@@ -116,7 +116,7 @@ jobs:
     strategy:
       matrix:
         otp_version: ['25.0.3']
-        rebar3_version: ['3.19.0']
+        rebar3_version: ['3.17.0']
         os: [ubuntu-20.04]
     steps:
     - uses: actions/checkout@v2
@@ -130,9 +130,9 @@ jobs:
       with:
         path: |
           _build
-        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}-2
+        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}-5
         restore-keys: |
-          ${{ runner.os }}-eqWAlizer-${{ matrix.otp_version }}-2-
+          ${{ runner.os }}-eqWAlizer-${{ matrix.otp_version }}-5-
     - name: Download elp
       run: |
         wget https://github.com/WhatsApp/eqwalizer/releases/download/v0.15.13/elp-linux.tar.gz
