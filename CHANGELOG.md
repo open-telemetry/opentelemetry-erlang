@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## API
+
+- [Add `otel_tracestate' module for creating and updating
+  tracestate](https://github.com/open-telemetry/opentelemetry-erlang/pull/607)
+
 ## SDK 1.3.1 - 2023-08-15
 
 ### Added

@@ -48,6 +48,7 @@ start_span(Ctx, Name, Sampler, IdGenerator, Opts) ->
 
     Kind = maps:get(kind, Opts, ?SPAN_KIND_INTERNAL),
     StartTime = maps:get(start_time, Opts, opentelemetry:timestamp()),
+
     new_span(Ctx, Name, Sampler, IdGenerator, StartTime, Kind, Attributes, Events, Links).
 
 new_span(Ctx, Name, Sampler, IdGeneratorModule, StartTime, Kind, Attributes, Events, Links) ->
@@ -77,7 +78,8 @@ new_span(Ctx, Name, Sampler, IdGeneratorModule, StartTime, Kind, Attributes, Eve
                          is_valid=true,
                          is_recording=IsRecording}, Span}.
 
--spec new_span_ctx(otel_ctx:t(), otel_id_generator:t()) -> {opentelemetry:span_ctx(), opentelemetry:span_id() | undefined}.
+-spec new_span_ctx(otel_ctx:t(), otel_id_generator:t()) ->
+          {opentelemetry:span_ctx(), opentelemetry:span_id() | undefined}.
 new_span_ctx(Ctx, IdGeneratorModule) ->
     case otel_tracer:current_span_ctx(Ctx) of
         undefined ->

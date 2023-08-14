@@ -30,7 +30,7 @@
 -define(NOOP_SPAN_CTX, #span_ctx{trace_id=0,
                                  span_id=0,
                                  trace_flags=0,
-                                 tracestate=[],
+                                 tracestate=otel_tracestate:new(),
                                  is_valid=false,
                                  is_recording=false,
                                  span_sdk=undefined}).

@@ -52,11 +52,12 @@
                                  is_binary(Value) orelse
                                  is_list(Value)).
 
--type start_opts() :: #{attributes => opentelemetry:attributes_map(),
-                        links => [opentelemetry:link()],
-                        is_recording => boolean(),
-                        start_time => opentelemetry:timestamp(),
-                        kind => opentelemetry:span_kind()}.
+-type start_opts() :: #{attributes := opentelemetry:attributes_map(),
+                        links := [opentelemetry:link()],
+                        is_recording := boolean(),
+                        start_time := opentelemetry:timestamp(),
+                        kind := opentelemetry:span_kind(),
+                        monitor := boolean()}.
 
 -export_type([start_opts/0]).
 
@@ -191,11 +192,11 @@ hex_span_id(#span_ctx{span_id=SpanId}) ->
             <<>>
     end.
 
--spec tracestate(opentelemetry:span_ctx() | undefined) -> opentelemetry:tracestate().
+-spec tracestate(opentelemetry:span_ctx() | undefined) -> otel_tracestate:t().
 tracestate(#span_ctx{tracestate=Tracestate}) ->
     Tracestate;
 tracestate(_) ->
-    [].
+    otel_tracestate:new().
 
 -spec set_attribute(SpanCtx, Key, Value) -> boolean() when
       Key :: opentelemetry:attribute_key(),

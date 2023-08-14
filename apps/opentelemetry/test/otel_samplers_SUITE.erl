@@ -50,6 +50,7 @@ trace_id_ratio_based(_Config) ->
     Probability = 0.5,
     DoSample = 120647249294066572380176333851662846319,
     DoNotSample = 53020601517903903921384168845238205400,
+    EmptyTracestate = otel_tracestate:new(),
 
     Ctx = otel_ctx:new(),
 
@@ -58,7 +59,7 @@ trace_id_ratio_based(_Config) ->
 
     %% checks the trace id is under the upper bound
     ?assertMatch(
-        {?RECORD_AND_SAMPLE, [], []},
+        {?RECORD_AND_SAMPLE, [], EmptyTracestate},
         Sampler:should_sample(
             otel_tracer:set_current_span(Ctx, undefined),
             DoSample,
@@ -72,7 +73,7 @@ trace_id_ratio_based(_Config) ->
 
     %% checks the trace id is is over the upper bound
     ?assertMatch(
-        {?DROP, [], []},
+        {?DROP, [], EmptyTracestate},
         Sampler:should_sample(
             otel_tracer:set_current_span(Ctx, undefined),
             DoNotSample,
@@ -85,8 +86,8 @@ trace_id_ratio_based(_Config) ->
     ),
 
     %% ignores the parent span context trace flags
-    ?assertMatch(
-        {?DROP, [], []},
+    ?assertEqual(
+        {?DROP, [], otel_tracestate:new()},
         Sampler:should_sample(
             otel_tracer:set_current_span(Ctx, #span_ctx{
                 trace_flags = 1,
@@ -102,8 +103,8 @@ trace_id_ratio_based(_Config) ->
     ),
 
     %% ignores the parent span context trace flags
-    ?assertMatch(
-        {?RECORD_AND_SAMPLE, [], []},
+    ?assertEqual(
+        {?RECORD_AND_SAMPLE, [], otel_tracestate:new()},
         Sampler:should_sample(
             otel_tracer:set_current_span(Ctx, #span_ctx{
                 trace_flags = 0,
@@ -119,8 +120,8 @@ trace_id_ratio_based(_Config) ->
     ),
 
     %% trace id is under the upper bound
-    ?assertMatch(
-        {?RECORD_AND_SAMPLE, [], []},
+    ?assertEqual(
+        {?RECORD_AND_SAMPLE, [], otel_tracestate:new()},
         Sampler:should_sample(
             otel_tracer:set_current_span(Ctx, #span_ctx{
                 trace_flags = 0,
@@ -142,6 +143,7 @@ parent_based(_Config) ->
     Probability = 0.5,
     DoSample = 120647249294066572380176333851662846319,
     DoNotSample = 53020601517903903921384168845238205400,
+    EmptyTracestate = otel_tracestate:new(),
 
     Ctx = otel_ctx:new(),
 
@@ -150,8 +152,8 @@ parent_based(_Config) ->
     ),
 
     %% with no parent it will run the probability sampler
-    ?assertMatch(
-        {?RECORD_AND_SAMPLE, [], []},
+    ?assertEqual(
+        {?RECORD_AND_SAMPLE, [], EmptyTracestate},
         Sampler:should_sample(
             otel_tracer:set_current_span(Ctx, undefined),
             DoSample,
@@ -162,8 +164,8 @@ parent_based(_Config) ->
             Opts
         )
     ),
-    ?assertMatch(
-        {?DROP, [], []},
+    ?assertEqual(
+        {?DROP, [], EmptyTracestate},
         Sampler:should_sample(
             otel_tracer:set_current_span(Ctx, undefined),
             DoNotSample,
@@ -176,8 +178,8 @@ parent_based(_Config) ->
     ),
 
     %% with parent it will use the parents value
-    ?assertMatch(
-        {?RECORD_AND_SAMPLE, [], []},
+    ?assertEqual(
+        {?RECORD_AND_SAMPLE, [], EmptyTracestate},
         Sampler:should_sample(
             otel_tracer:set_current_span(Ctx, #span_ctx{
                 trace_flags = 1,
@@ -191,8 +193,8 @@ parent_based(_Config) ->
             Opts
         )
     ),
-    ?assertMatch(
-        {?DROP, [], []},
+    ?assertEqual(
+        {?DROP, [], EmptyTracestate},
         Sampler:should_sample(
             otel_tracer:set_current_span(Ctx, #span_ctx{
                 trace_flags = 0,
@@ -211,7 +213,7 @@ parent_based(_Config) ->
     {DefaultParentOrElse, _, Opts1} = otel_sampler:new({parent_based, #{}}),
 
     ?assertMatch(
-        {?RECORD_AND_SAMPLE, [], []},
+        {?RECORD_AND_SAMPLE, [], EmptyTracestate},
         DefaultParentOrElse:should_sample(
             otel_tracer:set_current_span(Ctx, undefined),
             DoSample,
@@ -223,7 +225,7 @@ parent_based(_Config) ->
         )
     ),
     ?assertMatch(
-        {?RECORD_AND_SAMPLE, [], []},
+        {?RECORD_AND_SAMPLE, [], EmptyTracestate},
         DefaultParentOrElse:should_sample(
             otel_tracer:set_current_span(Ctx, undefined),
             DoNotSample,
@@ -235,8 +237,8 @@ parent_based(_Config) ->
         )
     ),
 
-    ?assertMatch(
-        {?RECORD_AND_SAMPLE, [], []},
+    ?assertEqual(
+        {?RECORD_AND_SAMPLE, [], otel_tracestate:new()},
         DefaultParentOrElse:should_sample(
             otel_tracer:set_current_span(Ctx, #span_ctx{trace_flags = 1}),
             DoNotSample,
@@ -247,8 +249,8 @@ parent_based(_Config) ->
             Opts1
         )
     ),
-    ?assertMatch(
-        {?DROP, [], []},
+    ?assertEqual(
+        {?DROP, [], otel_tracestate:new()},
         DefaultParentOrElse:should_sample(
             otel_tracer:set_current_span(Ctx, #span_ctx{
                 trace_flags = 0,

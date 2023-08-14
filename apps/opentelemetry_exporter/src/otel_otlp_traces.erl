@@ -85,7 +85,7 @@ to_proto(#span{trace_id=TraceId,
       span_id                  => <<SpanId:64>>,
       parent_span_id           => ParentSpanId,
       %% eqwalizer:ignore have to have tracestate as type '_' for matchspecs
-      trace_state              => to_tracestate_string(TraceState),
+      trace_state              => otel_tracestate:encode_header(TraceState),
       kind                     => to_otlp_kind(Kind),
       %% eqwalizer:ignore have to allow value '$2' for matchspecs
       start_time_unix_nano     => opentelemetry:timestamp_to_nano(StartTime),
@@ -122,17 +122,12 @@ to_events(Events) ->
 to_links(Links) ->
     [#{trace_id => <<TraceId:128>>,
        span_id => <<SpanId:64>>,
-       trace_state => to_tracestate_string(TraceState),
+       trace_state => otel_tracestate:encode_header(TraceState),
        attributes => otel_otlp_common:to_attributes(Attributes),
        dropped_attributes_count => 0} || #link{trace_id=TraceId,
                                                span_id=SpanId,
                                                attributes=Attributes,
                                                tracestate=TraceState} <- Links].
-
--spec to_tracestate_string(opentelemetry:tracestate()) -> unicode:latin1_chardata().
-to_tracestate_string(List) ->
-    lists:join($,, [[Key, $=, Value] || {Key, Value} <- List]).
-
 
 -spec to_otlp_kind(atom()) -> opentelemetry_exporter_trace_service_pb:'span.SpanKind'().
 to_otlp_kind(?SPAN_KIND_INTERNAL) ->
