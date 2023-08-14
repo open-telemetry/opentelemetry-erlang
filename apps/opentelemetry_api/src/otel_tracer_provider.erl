@@ -31,8 +31,10 @@
 
 -include("opentelemetry.hrl").
 
--deprecated({start, 2, "start the TracerProvider through the SDK"}).
+%% uncomment when OTP-23 becomes the minimum required version
+%% -deprecated({start, 2, "start the TracerProvider through the SDK"}).
 
+%% @deprecated Start the TracerProvider through the SDK
 start(Name, Config) ->
     otel_tracer_provider_sup:start(Name, Config).
 
