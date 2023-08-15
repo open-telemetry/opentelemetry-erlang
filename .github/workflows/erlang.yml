@@ -22,9 +22,6 @@ jobs:
         rebar3_version: ['3.22.1']
         os: [ubuntu-20.04]
         include:
-          - otp_version: '22.3.4.20'
-            rebar3_version: '3.16.1'
-            os: ubuntu-20.04
           - otp_version: '23.3'
             rebar3_version: '3.17.0'
             os: ubuntu-20.04
