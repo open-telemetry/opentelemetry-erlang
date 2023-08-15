@@ -139,7 +139,7 @@ jobs:
           ${{ runner.os }}-eqWAlizer-${{ matrix.otp_version }}-5-
     - name: Download elp
       run: |
-        wget https://github.com/WhatsApp/eqwalizer/releases/download/v0.15.13/elp-linux.tar.gz
+        wget https://github.com/WhatsApp/eqwalizer/releases/download/v0.17.16/elp-linux.tar.gz
         tar xvf elp-linux.tar.gz
     - name: Compile
       run: rebar3 compile
