@@ -152,10 +152,12 @@
 -define(TEXT_MAP_EXTRACTOR_KEY, {?MODULE, text_map_extractor}).
 -define(TEXT_MAP_INJECTOR_KEY, {?MODULE, text_map_injector}).
 
--deprecated({start_tracer_provider, 2, "start the TracerProvider through the SDK"}).
+%% uncomment when OTP-23 becomes the minimum required version
+%% -deprecated({start_tracer_provider, 2, "start the TracerProvider through the SDK"}).
 
 -include("gradualizer.hrl").
 
+%% @deprecated Start the TracerProvider through the SDK"
 -spec start_tracer_provider(atom(), map()) -> {ok, pid() | undefined} | {error, term()}.
 start_tracer_provider(Name, Config) ->
     otel_tracer_provider:start(Name, Config).

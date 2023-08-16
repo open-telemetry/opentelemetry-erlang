@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## SDK
+## SDK 1.3.1 - 2023-08-15
 
 ### Added
 
@@ -22,11 +22,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Provider](https://github.com/open-telemetry/opentelemetry-erlang/pull/568)
 - [Global Tracer no longer set to no-op on SDK
   shutdown](https://github.com/open-telemetry/opentelemetry-erlang/pull/568)
+- [Remove use of `deprecated` module attribute to support
+  OTP-22](https://github.com/open-telemetry/opentelemetry-erlang/pull/603)
 
 ### Fixes
 
 - [Fixed parsing of key/value list configuration where value has = in
   it](https://github.com/open-telemetry/opentelemetry-erlang/pull/596)
+
+## API 1.2.2 - 2023-08-15
+
+### Changes
+
+- [Remove use of `deprecated` module attribute to support
+  OTP-22](https://github.com/open-telemetry/opentelemetry-erlang/pull/603)
 
 ## Exporter 1.6.0 - 2023-06-21
 

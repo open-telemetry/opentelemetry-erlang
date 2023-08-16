@@ -84,7 +84,7 @@ jobs:
           path: |
             apps/opentelemetry_api/deps
             apps/opentelemetry_api/_build
-          key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir_version }}-v3-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock')) }}
+          key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir_version }}-v4-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock')) }}
           restore-keys: |
             ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir_version }}-
       - run: mix local.rebar --force rebar3 /home/runner/work/_temp/.setup-beam/rebar3/bin/rebar3
