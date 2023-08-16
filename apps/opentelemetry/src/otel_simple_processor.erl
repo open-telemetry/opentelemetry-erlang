@@ -42,9 +42,10 @@
          exporting/3,
          terminate/3]).
 
--deprecated({set_exporter, 1, "set through the otel_tracer_provider instead"}).
--deprecated({set_exporter, 2, "set through the otel_tracer_provider instead"}).
--deprecated({set_exporter, 3, "set through the otel_tracer_provider instead"}).
+%% uncomment when OTP-23 becomes the minimum required version
+%% -deprecated({set_exporter, 1, "set through the otel_tracer_provider instead"}).
+%% -deprecated({set_exporter, 2, "set through the otel_tracer_provider instead"}).
+%% -deprecated({set_exporter, 3, "set through the otel_tracer_provider instead"}).
 
 -eqwalizer({nowarn_function, on_end/2}).
 
