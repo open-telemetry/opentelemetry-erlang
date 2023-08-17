@@ -938,15 +938,8 @@ multi_instrument_callback(_Config) ->
 
     ?assert(otel_meter_server:add_view(#{instrument_name => CounterName}, #{aggregation_module => otel_aggregation_sum})),
 
-    Counter = otel_meter:create_observable_counter(Meter, CounterName,
-                                                   undefined, [],
-                                                   #{description => CounterDesc,
-                                                     unit => Unit}),
-
-    Gauge = otel_meter:create_observable_gauge(Meter, GaugeName,
-                                               undefined, [],
-                                               #{description => GaugeDesc,
-                                                 unit => Unit}),
+    Counter = otel_observable_counter:create(Meter, CounterName, #{description => CounterDesc, unit => Unit}),
+    Gauge = otel_observable_gauge:create(Meter, GaugeName, #{description => GaugeDesc, unit => Unit}),
 
     otel_meter:register_callback(Meter, [Counter, Gauge],
                                  fun(_) ->

@@ -3,6 +3,16 @@ defmodule OpenTelemetryAPIExperimental.ObservableCounter do
 
   """
 
+  defmacro create(name, opts) do
+    quote bind_quoted: [name: name, opts: opts] do
+      :otel_meter.create_observable_counter(
+        :opentelemetry_experimental.get_meter(:opentelemetry.get_application_scope(__MODULE__)),
+        name,
+        opts
+      )
+    end
+  end
+
   defmacro create(name, callback, callback_args, opts) do
     quote bind_quoted: [
             name: name,
