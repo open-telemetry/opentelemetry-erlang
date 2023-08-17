@@ -30,6 +30,7 @@
 
 -type criteria() :: #{instrument_name => otel_instrument:name(),
                       instrument_kind => otel_instrument:kind(),
+                      instrument_unit => otel_instrument:unit(),
                       meter_name => unicode:unicode_binary() | undefined,
                       meter_version => unicode:unicode_binary() | undefined,
                       meter_schema_url => unicode:unicode_binary() | undefined}.
@@ -134,6 +135,8 @@ criteria_to_instrument_matchspec(Criteria) when is_map(Criteria) ->
                         InstrumentAcc#instrument{name=InstrumentName};
                    (instrument_kind, Kind, InstrumentAcc) ->
                         InstrumentAcc#instrument{kind=Kind};
+                   (instrument_unit, Unit, InstrumentAcc) ->
+                        InstrumentAcc#instrument{unit=Unit};
                    (meter_name, MeterName, InstrumentAcc) ->
                         Meter = maybe_init_meter(InstrumentAcc),
                         Meter1 = update_meter_name(MeterName, Meter),
