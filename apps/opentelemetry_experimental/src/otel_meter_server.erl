@@ -124,11 +124,11 @@ add_metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) -
 add_metric_reader(Provider, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) ->
     gen_server:call(Provider, {add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality}).
 
--spec register_callback([otel_instrument:t()], otel_instrument:callback(), term()) -> boolean().
+-spec register_callback([otel_instrument:t()], otel_instrument:callback(), otel_instrument:callback_args()) -> boolean().
 register_callback(Instruments, Callback, CallbackArgs) ->
     register_callback(?GLOBAL_METER_PROVIDER_REG_NAME, Instruments, Callback, CallbackArgs).
 
--spec register_callback(atom(), [otel_instrument:t()], otel_instrument:callback(), term()) -> boolean().
+-spec register_callback(atom(), [otel_instrument:t()], otel_instrument:callback(), otel_instrument:callback_args()) -> boolean().
 register_callback(Provider, Instruments, Callback, CallbackArgs) ->
     gen_server:call(Provider, {register_callback, Instruments, Callback, CallbackArgs}).
 

@@ -6,7 +6,7 @@
                      unit          :: otel_instrument:unit() | undefined,
                      temporality   :: otel_instrument:temporality(),
                      callback      :: otel_instrument:callback() | undefined,
-                     callback_args :: term() | undefined}).
+                     callback_args :: otel_instrument:callback_args() | undefined}).
 
 -define(TEMPORALITY_DELTA, temporality_delta).
 -define(TEMPORALITY_CUMULATIVE, temporality_cumulative).

@@ -74,8 +74,7 @@ new(Name, Criteria, Config) ->
     View#view{name=Name}.
 
 -dialyzer({nowarn_function,match_instrument_to_views/2}).
--spec match_instrument_to_views(otel_instrument:t(), [otel_view:t()]) ->
-          [{otel_view:t() | undefined, #view_aggregation{}}].
+-spec match_instrument_to_views(otel_instrument:t(), [t()]) -> [{t() | undefined, #view_aggregation{}}].
 match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                                  meter=Meter,
                                                  description=Description}, Views) ->
