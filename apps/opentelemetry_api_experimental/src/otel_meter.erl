@@ -32,7 +32,6 @@
 
          register_callback/4,
 
-         instrument/6,
          lookup_instrument/2,
 
          record/4]).
@@ -102,7 +101,7 @@ create_observable_counter(Meter, Name, Opts) ->
       CallbackArgs :: otel_instrument:callback_args(),
       Opts :: opts().
 create_observable_counter(Meter, Name, Callback, CallbackArgs, Opts) ->
-    instrument(Meter, Name, ?KIND_OBSERVABLE_COUNTER, Callback, CallbackArgs, Opts).
+    create_instrument(Meter, Name, ?KIND_OBSERVABLE_COUNTER, Callback, CallbackArgs, Opts).
 
 -spec create_observable_gauge(Meter, Name, Opts) -> otel_instrument:t() when
       Meter :: t(),
@@ -118,7 +117,7 @@ create_observable_gauge(Meter, Name, Opts) ->
       CallbackArgs :: otel_instrument:callback_args(),
       Opts :: opts().
 create_observable_gauge(Meter, Name, Callback, CallbackArgs, Opts) ->
-    instrument(Meter, Name, ?KIND_OBSERVABLE_GAUGE, Callback, CallbackArgs, Opts).
+    create_instrument(Meter, Name, ?KIND_OBSERVABLE_GAUGE, Callback, CallbackArgs, Opts).
 
 -spec create_observable_updowncounter(Meter, Name, Opts) -> otel_instrument:t() when
       Meter :: t(),
@@ -134,7 +133,7 @@ create_observable_updowncounter(Meter, Name, Opts) ->
       CallbackArgs :: otel_instrument:callback_args(),
       Opts :: opts().
 create_observable_updowncounter(Meter, Name, Callback, CallbackArgs, Opts) ->
-    instrument(Meter, Name, ?KIND_OBSERVABLE_UPDOWNCOUNTER, Callback, CallbackArgs, Opts).
+    create_instrument(Meter, Name, ?KIND_OBSERVABLE_UPDOWNCOUNTER, Callback, CallbackArgs, Opts).
 
 -spec scope(Meter) -> Scope when
       Meter :: t(),
@@ -150,21 +149,22 @@ scope(Meter={Module, _}) ->
 create_instrument(Meter={Module, _}, Name, Kind, Opts) ->
     Module:create_instrument(Meter, Name, Kind, Opts).
 
--spec lookup_instrument(Meter, Name) -> otel_instrument:t() when
-      Meter :: t(),
-      Name :: otel_instrument:name().
-lookup_instrument(Meter={Module, _}, Name) ->
-    Module:lookup_instrument(Meter, Name).
-
--spec instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts) -> otel_instrument:t() when
+-spec create_instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts) -> otel_instrument:t() when
       Meter :: t(),
       Name :: otel_instrument:name(),
       Kind :: otel_instrument:kind(),
       Callback :: otel_instrument:callback(),
       CallbackArgs :: otel_instrument:callback_args(),
       Opts :: opts().
-instrument(Meter={Module, _}, Name, Kind, Callback, CallbackArgs, Opts) ->
+create_instrument(Meter={Module, _}, Name, Kind, Callback, CallbackArgs, Opts) ->
     Module:create_instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts).
+
+-spec lookup_instrument(Meter, Name) -> otel_instrument:t() when
+      Meter :: t(),
+      Name :: otel_instrument:name().
+lookup_instrument(Meter={Module, _}, Name) ->
+    Module:lookup_instrument(Meter, Name).
+
 
 -spec register_callback(Meter, Instruments, Callback, CallbackArgs) -> ok when
       Meter :: t(),
