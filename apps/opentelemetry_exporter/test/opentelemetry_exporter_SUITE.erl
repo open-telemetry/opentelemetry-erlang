@@ -18,7 +18,7 @@ groups() ->
     [{functional, [], [configuration, span_round_trip, ets_instrumentation_info]},
      {grpc, [], [verify_export, verify_metrics_export]},
      {grpc_gzip, [], [verify_export]},
-     {http_protobuf, [], [verify_export]},
+     {http_protobuf, [], [verify_export, user_agent]},
      {http_protobuf_gzip, [], [verify_export]}].
 
 init_per_suite(Config) ->
@@ -520,3 +520,45 @@ verify_export(Config) ->
     ?assertMatch(ok, opentelemetry_exporter:export(traces, Tid, Resource, State)),
 
     ok.
+
+user_agent(Config) ->
+    Protocol = ?config(protocol, Config),
+    Compression = ?config(compression, Config),
+    Port = 4318,
+
+    {ok, State} = opentelemetry_exporter:init(#{protocol => Protocol,
+                                                compression => Compression,
+                                                endpoints => [{http, "localhost", Port, []}]}),
+
+    Tid = ets:new(span_tab, [duplicate_bag, {keypos, #span.instrumentation_scope}]),
+
+    TraceId = otel_id_generator:generate_trace_id(),
+    SpanId = otel_id_generator:generate_span_id(),
+
+    ParentSpan =
+        #span{name = <<"span-1">>,
+              trace_id = TraceId,
+              span_id = SpanId,
+              kind = ?SPAN_KIND_CLIENT,
+              start_time = opentelemetry:timestamp(),
+              end_time = opentelemetry:timestamp(),
+              status = #status{code=?OTEL_STATUS_UNSET, message = <<"hello I'm unset">>},
+              links = otel_links:new([], 128, 128, 128),
+              events = otel_events:new(128, 128, 128),
+              instrumentation_scope = #instrumentation_scope{name = <<"tracer-1">>,
+                                                             version = <<"0.0.1">>},
+              attributes = otel_attributes:new([{<<"attr-2">>, <<"value-2">>}], 128, 128)},
+    true = ets:insert(Tid, ParentSpan),
+    Resource = otel_resource_env_var:get_resource([]),
+
+    meck:new(httpc),
+    meck:expect(httpc, request, fun(post, {_, Headers, "application/x-protobuf", _}, _, _, _) ->
+        {_, UserAgent} = lists:keyfind("User-Agent", 1, Headers),
+        {ok, ExporterVsn} = application:get_key(opentelemetry_exporter, vsn),
+        ExpectedUserAgent = lists:flatten(io_lib:format("OTel-OTLP-Exporter-erlang/~s", [ExporterVsn])),
+        ?assertEqual(ExpectedUserAgent, UserAgent),
+        {ok, {{"1.1", 200, ""}, [], <<>>}}
+    end),
+    ?assertMatch(ok, opentelemetry_exporter:export(traces, Tid, Resource, State)),
+    ?assert(meck:validate(httpc)),
+    meck:unload(httpc).
