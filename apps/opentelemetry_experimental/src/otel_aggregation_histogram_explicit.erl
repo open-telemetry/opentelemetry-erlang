@@ -38,6 +38,100 @@
 
 -define(MIN_DOUBLE, -9223372036854775807.0). %% the proto representation of size `fixed64'
 
+%% since we need the Key in the MatchHead for the index to be used we
+%% can't use `ets:fun2ms' as it will shadow `Key' in the `fun' head
+-if(?OTP_RELEASE >= 26).
+-define(AGGREATE_MATCH_SPEC(Key, Value, BucketCounts),
+    [
+        {
+            {explicit_histogram_aggregation,Key,'_','_','_','_','_','$1','$2','$3'},
+            [],
+            [{{
+                explicit_histogram_aggregation,
+                {element,2,'$_'},
+                {element,3,'$_'},
+                {element,4,'$_'},
+                {element,5,'$_'},
+                {element,6,'$_'},
+                {const,BucketCounts},
+                {min,'$1',{const,Value}},
+                {max,'$2',{const,Value}},
+                {'+','$3',{const,Value}}
+            }}]
+        }
+    ]
+).
+-else.
+-define(AGGREATE_MATCH_SPEC(Key, Value, BucketCounts),
+    [
+        {
+            {explicit_histogram_aggregation,Key,'_','_','_','_','_','$1','$2','$3'},
+            [{'<','$2',{const,Value}},{'>','$1',{const,Value}}],
+            [{{
+                explicit_histogram_aggregation,
+                {element,2,'$_'},
+                {element,3,'$_'},
+                {element,4,'$_'},
+                {element,5,'$_'},
+                {element,6,'$_'},
+                {const,BucketCounts},
+                {const,Value},
+                {const,Value},
+                {'+','$3',{const,Value}}
+            }}]
+        },
+        {
+            {explicit_histogram_aggregation,Key,'_','_','_','_','_','_','$1','$2'},
+            [{'<','$1',{const,Value}}],
+            [{{
+                explicit_histogram_aggregation,
+                {element,2,'$_'},
+                {element,3,'$_'},
+                {element,4,'$_'},
+                {element,5,'$_'},
+                {element,6,'$_'},
+                {const,BucketCounts},
+                {element,8,'$_'},
+                {const,Value},
+                {'+','$2',{const,Value}}
+            }}]
+        },
+        {
+            {explicit_histogram_aggregation,Key,'_','_','_','_','_','$1','_','$2'},
+            [{'>','$1',{const,Value}}],
+            [{{
+                explicit_histogram_aggregation,
+                {element,2,'$_'},
+                {element,3,'$_'},
+                {element,4,'$_'},
+                {element,5,'$_'},
+                {element,6,'$_'},
+                {const,BucketCounts},
+                {const,Value},
+                {element,9,'$_'},
+                {'+','$2',{const,Value}}
+            }}]
+        },
+        {
+            {explicit_histogram_aggregation,Key,'_','_','_','_','_','_','_','$1'},
+            [],
+            [{{
+                explicit_histogram_aggregation,
+                {element,2,'$_'},
+                {element,3,'$_'},
+                {element,4,'$_'},
+                {element,5,'$_'},
+                {element,6,'$_'},
+                {const,BucketCounts},
+                {element,8,'$_'},
+                {element,9,'$_'},
+                {'+','$1',{const,Value}}
+            }}]
+        }
+    ]
+).
+-endif.
+
 init(#view_aggregation{name=Name,
                        reader=ReaderId,
                        aggregation_options=Options}, Attributes) ->
@@ -72,56 +166,7 @@ aggregate(Table, #view_aggregation{name=Name,
             BucketIdx = find_bucket(Boundaries, Value),
             counters:add(BucketCounts, BucketIdx, 1),
 
-            %% since we need the Key in the MatchHead for the index to be used we
-            %% can't use `ets:fun2ms' as it will shadow `Key' in the `fun' head
-            MS = [{{explicit_histogram_aggregation,Key,'_','_','_','_','_','$1','$2','$3'},
-                   [{'<','$2',{const,Value}},{'>','$1',{const,Value}}],
-                   [{{explicit_histogram_aggregation,
-                      {element,2,'$_'},
-                      {element,3,'$_'},
-                      {element,4,'$_'},
-                      {element,5,'$_'},
-                      {element,6,'$_'},
-                      {const,BucketCounts},
-                      {const,Value},
-                      {const,Value},
-                      {'+','$3',{const,Value}}}}]},
-                  {{explicit_histogram_aggregation,Key,'_','_','_','_','_','_','$1','$2'},
-                   [{'<','$1',{const,Value}}],
-                   [{{explicit_histogram_aggregation,
-                      {element,2,'$_'},
-                      {element,3,'$_'},
-                      {element,4,'$_'},
-                      {element,5,'$_'},
-                      {element,6,'$_'},
-                      {const,BucketCounts},
-                      {element,8,'$_'},
-                      {const,Value},
-                      {'+','$2',{const,Value}}}}]},
-                  {{explicit_histogram_aggregation,Key,'_','_','_','_','_','$1','_','$2'},
-                   [{'>','$1',{const,Value}}],
-                   [{{explicit_histogram_aggregation,
-                      {element,2,'$_'},
-                      {element,3,'$_'},
-                      {element,4,'$_'},
-                      {element,5,'$_'},
-                      {element,6,'$_'},
-                      {const,BucketCounts},
-                      {const,Value},
-                      {element,9,'$_'},
-                      {'+','$2',{const,Value}}}}]},
-                  {{explicit_histogram_aggregation,Key,'_','_','_','_','_','_','_','$1'},
-                   [],
-                   [{{explicit_histogram_aggregation,
-                      {element,2,'$_'},
-                      {element,3,'$_'},
-                      {element,4,'$_'},
-                      {element,5,'$_'},
-                      {element,6,'$_'},
-                      {const,BucketCounts},
-                      {element,8,'$_'},
-                      {element,9,'$_'},
-                      {'+','$1',{const,Value}}}}]}],
+            MS = ?AGGREATE_MATCH_SPEC(Key, Value, BucketCounts),
             1 =:= ets:select_replace(Table, MS)
     catch
         error:badarg->
