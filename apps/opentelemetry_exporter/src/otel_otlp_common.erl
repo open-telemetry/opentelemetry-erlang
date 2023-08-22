@@ -23,7 +23,12 @@
          to_key_value_list/1,
          to_binary/1]).
 
+-include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+-endif.
 
 to_instrumentation_scope_proto(undefined) ->
     #{};
@@ -42,9 +47,14 @@ to_instrumentation_scope_proto(#instrumentation_scope{name=Name,
 -spec to_attributes(opentelemetry:attributes_map() | otel_attributes:t() | undefined) -> [opentelemetry_exporter_trace_service_pb:key_value()].
 to_attributes(Attributes) when is_map(Attributes) ->
     maps:fold(fun(Key, Value, Acc) ->
-                      [#{key => to_binary(Key),
-                         value => to_any_value(Value)} | Acc]
-              end, [], Attributes);
+        case to_any_value(Value) of
+            invalid ->
+                ?LOG_ERROR("OpenTelemetry exporter: discarded invalid attribute, ~p", [{Key, Value}]),
+                Acc;
+            ParsedValue ->
+                [#{key => to_binary(Key), value => ParsedValue} | Acc]
+        end
+    end, [], Attributes);
 to_attributes(Attributes) when is_list(Attributes) ->
     to_attributes(maps:from_list(Attributes));
 to_attributes(Attributes) when is_tuple(Attributes) ->
@@ -71,28 +81,22 @@ to_any_value(Value) when is_boolean(Value) ->
 to_any_value(Value) when is_map(Value) ->
     #{value => {kvlist_value, to_key_value_list(maps:to_list(Value))}};
 to_any_value(Value) when is_tuple(Value) ->
-    #{value => {array_value, to_array_value(tuple_to_list(Value))}};
-to_any_value(Value) when is_list(Value) ->
-    try unicode:characters_to_binary(Value) of
-        {Failure, _, _} when Failure =:= error ;
-                             Failure =:= incomplete ->
-            to_array_or_kvlist(Value);
-        String ->
-            #{value => {string_value, String}}
-    catch
-        _:_ ->
-            to_array_or_kvlist(Value)
+    case to_array_value(tuple_to_list(Value)) of
+        invalid -> invalid;
+        ArrayValue -> #{value => {array_value, ArrayValue}}
     end;
-to_any_value(Value) ->
-    #{value => {string_value, to_binary(io_lib:format("~p", [Value]))}}.
-
-to_array_or_kvlist(Value) ->
+to_any_value(Value) when is_list(Value) ->
     case is_proplist(Value) of
         true ->
             #{value => {kvlist_value, to_key_value_list(Value)}};
         false ->
-            #{value => {array_value, to_array_value(Value)}}
-    end.
+            case to_array_value(Value) of
+                invalid -> invalid;
+                ArrayValue -> #{value => {array_value, ArrayValue}}
+            end
+    end;
+to_any_value(Value) ->
+    #{value => {string_value, to_binary(io_lib:format("~p", [Value]))}}.
 
 to_key_value_list(List) ->
     #{values => to_key_value_list(List, [])}.
@@ -109,9 +113,20 @@ to_key_value(Key, Value) ->
       value => to_any_value(Value)}.
 
 to_array_value(List) when is_list(List) ->
-    #{values => [to_any_value(V) || V <- List]};
+    case to_array_value(List, []) of
+        invalid -> invalid;
+        Values -> #{values => Values}
+    end;
 to_array_value(_) ->
     #{values => []}.
+
+
+to_array_value([Elem | _List], _Acc) when is_tuple(Elem); is_list(Elem) ->
+    invalid;
+to_array_value([Elem | List], Acc) ->
+    to_array_value(List, [to_any_value(Elem) | Acc]);
+to_array_value([], Acc) ->
+    lists:reverse(Acc).
 
 is_proplist([]) ->
     true;
@@ -124,3 +139,65 @@ to_binary(Term) when is_atom(Term) ->
     erlang:atom_to_binary(Term, unicode);
 to_binary(Term) ->
     unicode:characters_to_binary(Term).
+
+
+-ifdef(TEST).
+
+to_attributes_test_() ->
+    [
+        ?_assertEqual([
+            #{
+                key => <<"bin_list">>,
+                value => #{
+                    value => {array_value, #{
+                        values => [
+                            #{value => {string_value,<<"a">>}},
+                            #{value => {string_value,<<"b">>}}
+                        ]
+                    }}
+                }
+            }
+        ], to_attributes(#{bin_list => [<<"a">>, <<"b">>]})),
+        ?_assertEqual([
+            #{
+                key => <<"int_list">>,
+                value => #{
+                    value => {array_value, #{
+                        values => [
+                            #{value => {int_value,1}},
+                            #{value => {int_value,2}}
+                        ]
+                    }}
+                }
+            }
+        ], to_attributes(#{int_list => [1, 2]})),
+        ?_assertEqual([
+            #{
+                key => <<"float_list">>,
+                value => #{
+                    value => {array_value, #{
+                        values => [
+                            #{value => {double_value,1.2}},
+                            #{value => {double_value,3.4}}
+                        ]
+                    }}
+                }
+            }
+        ], to_attributes(#{float_list => [1.2, 3.4]})),
+        ?_assertEqual([
+            #{
+                key => <<"bool_list">>,
+                value => #{
+                    value => {array_value, #{
+                        values => [
+                            #{value => {string_value,<<"true">>}},
+                            #{value => {string_value,<<"false">>}}
+                        ]
+                    }}
+                }
+            }
+        ], to_attributes(#{bool_list => [true, false]})),
+        ?_assertEqual([], to_attributes(#{attr => [1, [2, 3]]}))
+    ].
+
+-endif.
