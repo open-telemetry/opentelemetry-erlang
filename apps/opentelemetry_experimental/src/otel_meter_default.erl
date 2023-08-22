@@ -28,11 +28,13 @@
 -export([record/3,
          record/4]).
 
+-include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_metrics.hrl").
 
 -spec create_instrument(otel_meter:t(), otel_instrument:name(), otel_instrument:kind(), otel_meter:opts()) -> otel_instrument:t().
 create_instrument(Meter, Name, Kind, Opts) ->
+    validate_name(Name),
     Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
         otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
                             maps:get(unit, Opts, undefined)),
@@ -50,6 +52,7 @@ lookup_instrument(Meter={_, #meter{instruments_tab=Tab}}, Name) ->
 
 -spec create_instrument(otel_meter:t(), otel_instrument:name(), otel_instrument:kind(), otel_instrument:callback(), otel_instrument:callback_args(), otel_meter:opts()) -> otel_instrument:t().
 create_instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts) ->
+    validate_name(Name),
     Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
         otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
                             maps:get(unit, Opts, undefined), Callback, CallbackArgs),
@@ -64,6 +67,19 @@ register_callback(_, _, _, _) ->
 scope({_, #meter{instrumentation_scope=Scope}}) ->
     Scope.
 
+validate_name(Name) when is_atom(Name) ->
+    Re = "^[A-Za-z]+[A-Za-z0-9_.\-]{0,62}$",
+    NameString = atom_to_list(Name),
+    case re:run(NameString, Re) of
+        {match, _} ->
+            ok;
+        nomatch ->
+            ?LOG_ERROR("Invalid instrument name, should be an atom matching '~s', but got '~s'", [NameString]),
+            ok
+    end;
+validate_name(Name) ->
+    ?LOG_ERROR("Invalid instrument name, should be an atom matching '~s', but got ~p", [Name]),
+    ok.
 %%
 
 record(Instrument=#instrument{meter={_, #meter{view_aggregations_tab=ViewAggregationTab,

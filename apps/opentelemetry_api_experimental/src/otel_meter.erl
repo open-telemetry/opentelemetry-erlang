@@ -165,7 +165,6 @@ create_instrument(Meter={Module, _}, Name, Kind, Callback, CallbackArgs, Opts) -
 lookup_instrument(Meter={Module, _}, Name) ->
     Module:lookup_instrument(Meter, Name).
 
-
 -spec register_callback(Meter, Instruments, Callback, CallbackArgs) -> ok when
       Meter :: t(),
       Instruments :: [otel_instrument:t()],
