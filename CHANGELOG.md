@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changes
 
-- [Allow to create observable instruments without paasing callback arguments](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
+- [Allow to create observable instruments without passing callback arguments](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
 
 ## Experimental SDK
 
