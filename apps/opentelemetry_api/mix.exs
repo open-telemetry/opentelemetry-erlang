@@ -12,6 +12,12 @@ defmodule OpenTelemetry.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: [
         {:opentelemetry_semantic_conventions, "~> 0.2"},
+        {:eqwalizer_support,
+         git: "https://github.com/whatsapp/eqwalizer.git",
+         branch: "main",
+         sparse: "eqwalizer_support",
+         only: [:dev],
+         runtime: false},
         {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
         {:covertool, ">= 0.0.0", only: :test}
       ],
@@ -19,7 +25,12 @@ defmodule OpenTelemetry.MixProject do
       test_coverage: [tool: :covertool],
       package: package(),
       aliases: [docs: & &1],
-      dialyzer: [ignore_warnings: "dialyzer.ignore-warnings", remove_defaults: [:unknown]]
+      dialyzer: [
+        ignore_warnings: "dialyzer.ignore-warnings",
+        remove_defaults: [:unknown],
+        plt_add_apps: [:eqwalizer_support],
+        list_unused_filters: true
+      ]
     ]
   end
 

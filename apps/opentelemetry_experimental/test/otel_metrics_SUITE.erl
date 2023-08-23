@@ -425,6 +425,12 @@ view_creation_test(_Config) ->
     Matches = otel_view:match_instrument_to_views(Counter, [View]),
     ?assertMatch([_], Matches),
 
+    ViewUnitMatch = otel_view:new(#{instrument_name => CounterName, instrument_unit => CounterUnit}, #{aggregation_module => otel_aggregation_sum}),
+    ?assertMatch([{#view{}, _}], otel_view:match_instrument_to_views(Counter, [ViewUnitMatch])),
+
+    ViewUnitNotMatch = otel_view:new(#{instrument_name => CounterName, instrument_unit => not_matching}, #{aggregation_module => otel_aggregation_sum}),
+    ?assertMatch([{undefined, _}], otel_view:match_instrument_to_views(Counter, [ViewUnitNotMatch])),
+
     %% views require a unique name
     ?assert(otel_meter_server:add_view(view_b, #{instrument_name => a_counter}, #{aggregation_module => otel_aggregation_sum})),
     %% ?assertNot(otel_meter_server:add_view(view_b, #{instrument_name => a_counter}, #{aggregation_module => otel_aggregation_sum})),
@@ -938,15 +944,8 @@ multi_instrument_callback(_Config) ->
 
     ?assert(otel_meter_server:add_view(#{instrument_name => CounterName}, #{aggregation_module => otel_aggregation_sum})),
 
-    Counter = otel_meter:create_observable_counter(Meter, CounterName,
-                                                   undefined, [],
-                                                   #{description => CounterDesc,
-                                                     unit => Unit}),
-
-    Gauge = otel_meter:create_observable_gauge(Meter, GaugeName,
-                                               undefined, [],
-                                               #{description => GaugeDesc,
-                                                 unit => Unit}),
+    Counter = otel_observable_counter:create(Meter, CounterName, #{description => CounterDesc, unit => Unit}),
+    Gauge = otel_observable_gauge:create(Meter, GaugeName, #{description => GaugeDesc, unit => Unit}),
 
     otel_meter:register_callback(Meter, [Counter, Gauge],
                                  fun(_) ->

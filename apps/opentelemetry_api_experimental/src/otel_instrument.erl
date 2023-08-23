@@ -51,7 +51,7 @@
               callback_args/0,
               callback_result/0]).
 
--spec new(module(), otel_meter:t(), kind(), name(), description() | undefined, unit()) -> t().
+-spec new(module(), otel_meter:t(), kind(), name(), description() | undefined, unit() | undefined) -> t().
 new(Module, Meter, Kind, Name, Description, Unit) ->
     #instrument{module      = Module,
                 meter       = Meter,
@@ -61,7 +61,7 @@ new(Module, Meter, Kind, Name, Description, Unit) ->
                 kind        = Kind,
                 unit        = Unit}.
 
--spec new(module(), otel_meter:t(), kind(), name(), description() | undefined, unit(), callback(), term()) -> t().
+-spec new(module(), otel_meter:t(), kind(), name(), description() | undefined, unit() | undefined, callback(), callback_args()) -> t().
 new(Module, Meter, Kind, Name, Description, Unit, Callback, CallbackArgs) ->
     #instrument{module        = Module,
                 meter         = Meter,

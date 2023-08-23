@@ -30,6 +30,7 @@
 
 -type criteria() :: #{instrument_name => otel_instrument:name(),
                       instrument_kind => otel_instrument:kind(),
+                      instrument_unit => otel_instrument:unit(),
                       meter_name => unicode:unicode_binary() | undefined,
                       meter_version => unicode:unicode_binary() | undefined,
                       meter_schema_url => unicode:unicode_binary() | undefined}.
@@ -74,8 +75,7 @@ new(Name, Criteria, Config) ->
     View#view{name=Name}.
 
 -dialyzer({nowarn_function,match_instrument_to_views/2}).
--spec match_instrument_to_views(otel_instrument:t(), [otel_view:t()]) ->
-          [{otel_view:t() | undefined, #view_aggregation{}}].
+-spec match_instrument_to_views(otel_instrument:t(), [t()]) -> [{t() | undefined, #view_aggregation{}}].
 match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                                  meter=Meter,
                                                  description=Description}, Views) ->
@@ -135,6 +135,8 @@ criteria_to_instrument_matchspec(Criteria) when is_map(Criteria) ->
                         InstrumentAcc#instrument{name=InstrumentName};
                    (instrument_kind, Kind, InstrumentAcc) ->
                         InstrumentAcc#instrument{kind=Kind};
+                   (instrument_unit, Unit, InstrumentAcc) ->
+                        InstrumentAcc#instrument{unit=Unit};
                    (meter_name, MeterName, InstrumentAcc) ->
                         Meter = maybe_init_meter(InstrumentAcc),
                         Meter1 = update_meter_name(MeterName, Meter),
