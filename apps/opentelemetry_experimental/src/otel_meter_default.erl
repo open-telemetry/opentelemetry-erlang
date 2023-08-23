@@ -70,8 +70,8 @@ scope({_, #meter{instrumentation_scope=Scope}}) ->
 validate_name(Name) when is_atom(Name) ->
     Re = "^[A-Za-z]+[A-Za-z0-9_.\-]{0,62}$",
     NameString = atom_to_list(Name),
-    case re:run(NameString, Re) of
-        {match, _} ->
+    case re:run(NameString, Re, [{capture, none}]) of
+        match ->
             ok;
         nomatch ->
             ?LOG_ERROR("Invalid instrument name, should be an atom matching '~s', but got '~s'", [NameString]),
