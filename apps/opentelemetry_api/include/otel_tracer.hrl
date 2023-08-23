@@ -10,11 +10,17 @@
 -define(start_span(SpanName, StartOpts),
         otel_tracer:start_span(?current_tracer, SpanName, StartOpts)).
 
+-define(start_span(Ctx, SpanName, StartOpts),
+        otel_tracer:start_span(Ctx, ?current_tracer, SpanName, StartOpts)).
+
 -define(with_span(SpanName, Fun),
         otel_tracer:with_span(?current_tracer, SpanName, #{}, Fun)).
 
 -define(with_span(SpanName, StartOpts, Fun),
         otel_tracer:with_span(?current_tracer, SpanName, StartOpts, Fun)).
+
+-define(with_span(Ctx, SpanName, StartOpts, Fun),
+        otel_tracer:with_span(Ctx, ?current_tracer, SpanName, StartOpts, Fun)).
 
 -define(set_current_span(SpanCtx),
         otel_tracer:set_current_span(SpanCtx)).

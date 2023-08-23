@@ -38,9 +38,9 @@ new(List, CountLimit, ValueLengthLimit) when is_list(List) ->
     new(maps:from_list(List), CountLimit, ValueLengthLimit);
 new(Map, CountLimit, ValueLengthLimit) when is_map(Map) ->
     update_attributes(Map, #attributes{count_limit=CountLimit,
-                                        value_length_limit=ValueLengthLimit,
-                                        dropped=0,
-                                        map=#{}});
+                                       value_length_limit=ValueLengthLimit,
+                                       dropped=0,
+                                       map=#{}});
 new(_, CountLimit, ValueLengthLimit) ->
     #attributes{count_limit=CountLimit,
                 value_length_limit=ValueLengthLimit,
