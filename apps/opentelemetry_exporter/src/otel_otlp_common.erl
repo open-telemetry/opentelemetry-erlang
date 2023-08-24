@@ -49,7 +49,7 @@ to_attributes(Attributes) when is_map(Attributes) ->
     maps:fold(fun(Key, Value, Acc) ->
         case to_any_value(Value) of
             invalid ->
-                ?LOG_ERROR("OpenTelemetry exporter: discarded invalid attribute, ~p", [{Key, Value}]),
+                ?LOG_DEBUG("OpenTelemetry exporter: discarded invalid attribute, ~p", [{Key, Value}]),
                 Acc;
             ParsedValue ->
                 [#{key => to_binary(Key), value => ParsedValue} | Acc]
