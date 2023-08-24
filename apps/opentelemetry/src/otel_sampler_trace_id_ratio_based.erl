@@ -24,18 +24,12 @@
 
 -export([description/1, setup/1, should_sample/7]).
 
--export_type([config/0, probability/0]).
-
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_sampler.hrl").
-
--type probability() :: float().
--opaque config() :: #{probability := probability(), id_upper_bound := integer()}.
 
 %% 2^63 - 1
 -define(MAX_VALUE, 9223372036854775807).
 
--spec setup(probability()) -> config().
 setup(Probability) ->
     IdUpperBound =
         case Probability of
