@@ -21,6 +21,7 @@
 
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
 -include("otel_metrics.hrl").
 
@@ -125,9 +126,7 @@ to_datapoint_value(Value) when is_integer(Value) ->
 to_datapoint_value(Value) when is_float(Value) ->
     {as_double, Value}.
 
-to_otlp_temporality(temporality_delta) ->
+to_otlp_temporality(?TEMPORALITY_DELTA) ->
     'AGGREGATION_TEMPORALITY_DELTA';
-to_otlp_temporality(temporality_cumulative) ->
-    'AGGREGATION_TEMPORALITY_CUMULATIVE';
-to_otlp_temporality(_) ->
-    'AGGREGATION_TEMPORALITY_UNSPECIFIED'.
+to_otlp_temporality(?TEMPORALITY_CUMULATIVE) ->
+    'AGGREGATION_TEMPORALITY_CUMULATIVE'.

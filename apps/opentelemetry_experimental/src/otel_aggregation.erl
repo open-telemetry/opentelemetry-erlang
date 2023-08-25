@@ -1,9 +1,7 @@
 -module(otel_aggregation).
 
 -export([maybe_init_aggregate/4,
-         default_mapping/0,
-         temporality_mapping/0,
-         instrument_temporality/1]).
+         default_mapping/0]).
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_metrics.hrl").
@@ -72,24 +70,3 @@ default_mapping() ->
       ?KIND_OBSERVABLE_GAUGE => otel_aggregation_last_value,
       ?KIND_UPDOWN_COUNTER => otel_aggregation_sum,
       ?KIND_OBSERVABLE_UPDOWNCOUNTER => otel_aggregation_sum}.
-
-temporality_mapping() ->
-    #{?KIND_COUNTER =>?TEMPORALITY_DELTA,
-      ?KIND_OBSERVABLE_COUNTER => ?TEMPORALITY_CUMULATIVE,
-      ?KIND_UPDOWN_COUNTER => ?TEMPORALITY_DELTA,
-      ?KIND_OBSERVABLE_UPDOWNCOUNTER => ?TEMPORALITY_CUMULATIVE,
-      ?KIND_HISTOGRAM => ?TEMPORALITY_UNSPECIFIED,
-      ?KIND_OBSERVABLE_GAUGE => ?TEMPORALITY_UNSPECIFIED}.
-
-instrument_temporality(#instrument{kind=?KIND_COUNTER}) ->
-    ?TEMPORALITY_DELTA;
-instrument_temporality(#instrument{kind=?KIND_OBSERVABLE_COUNTER}) ->
-    ?TEMPORALITY_CUMULATIVE;
-instrument_temporality(#instrument{kind=?KIND_UPDOWN_COUNTER}) ->
-    ?TEMPORALITY_DELTA;
-instrument_temporality(#instrument{kind=?KIND_OBSERVABLE_UPDOWNCOUNTER}) ->
-    ?TEMPORALITY_CUMULATIVE;
-instrument_temporality(#instrument{kind=?KIND_HISTOGRAM}) ->
-    ?TEMPORALITY_UNSPECIFIED;
-instrument_temporality(#instrument{kind=?KIND_OBSERVABLE_GAUGE}) ->
-    ?TEMPORALITY_UNSPECIFIED.

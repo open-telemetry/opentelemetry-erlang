@@ -80,7 +80,7 @@ match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                                  meter=Meter,
                                                  description=Description}, Views) ->
     IsMonotonic = otel_instrument:is_monotonic(Instrument),
-    Temporality = otel_aggregation:instrument_temporality(Instrument),
+    Temporality = otel_instrument:temporality(Instrument),
     Scope = otel_meter:scope(Meter),
     case lists:filtermap(fun(View=#view{name=ViewName,
                                         description=ViewDescription,

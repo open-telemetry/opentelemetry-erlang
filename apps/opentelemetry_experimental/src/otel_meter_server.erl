@@ -342,14 +342,12 @@ metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) ->
 
     ReaderAggregationMapping = maps:merge(otel_aggregation:default_mapping(),
                                           DefaultAggregationMapping),
-    ReaderTemporalityMapping = maps:merge(otel_aggregation:temporality_mapping(),
-                                          Temporality),
 
     #reader{id=ReaderId,
             pid=ReaderPid,
             monitor_ref=Ref,
             default_aggregation_mapping=ReaderAggregationMapping,
-            default_temporality_mapping=ReaderTemporalityMapping}.
+            default_temporality_mapping=Temporality}.
 
 
 %% a Measurement's Instrument is matched against Views
@@ -388,7 +386,7 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, 
                             Reader=#reader{id=Id,
                                            default_temporality_mapping=ReaderTemporalityMapping}) ->
     AggregationModule = aggregation_module(Instrument, View, Reader),
-    Temporality = maps:get(Kind, ReaderTemporalityMapping, ?TEMPORALITY_UNSPECIFIED),
+    Temporality = maps:get(Kind, ReaderTemporalityMapping, ?TEMPORALITY_CUMULATIVE),
 
     ViewAggregation#view_aggregation{
       reader=Id,
@@ -400,7 +398,7 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, 
                             Reader=#reader{id=Id,
                                            default_temporality_mapping=ReaderTemporalityMapping}) ->
     AggregationModule = aggregation_module(Instrument, View, Reader),
-    Temporality = maps:get(Kind, ReaderTemporalityMapping, ?TEMPORALITY_UNSPECIFIED),
+    Temporality = maps:get(Kind, ReaderTemporalityMapping, ?TEMPORALITY_CUMULATIVE),
 
     ViewAggregation#view_aggregation{
       reader=Id,
