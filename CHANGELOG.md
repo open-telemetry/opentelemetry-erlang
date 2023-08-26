@@ -12,6 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Add `otel_tracestate' module for creating and updating
   tracestate](https://github.com/open-telemetry/opentelemetry-erlang/pull/607)
 
+## Experimental API
+
+### Changes
+
+- [Allow to create observable instruments without passing callback arguments](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
+
+## Experimental SDK
+
+### Added
+
+- [Add `instrument_unit` to view criteria](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
+- [Validate instrument name](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
+
 ## SDK 1.3.1 - 2023-08-15
 
 ### Added

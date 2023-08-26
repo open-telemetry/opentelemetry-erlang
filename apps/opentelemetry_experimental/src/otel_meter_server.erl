@@ -124,11 +124,11 @@ add_metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) -
 add_metric_reader(Provider, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) ->
     gen_server:call(Provider, {add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality}).
 
--spec register_callback([otel_instrument:t()], otel_instrument:callback(), term()) -> boolean().
+-spec register_callback([otel_instrument:t()], otel_instrument:callback(), otel_instrument:callback_args()) -> boolean().
 register_callback(Instruments, Callback, CallbackArgs) ->
     register_callback(?GLOBAL_METER_PROVIDER_REG_NAME, Instruments, Callback, CallbackArgs).
 
--spec register_callback(atom(), [otel_instrument:t()], otel_instrument:callback(), term()) -> boolean().
+-spec register_callback(atom(), [otel_instrument:t()], otel_instrument:callback(), otel_instrument:callback_args()) -> boolean().
 register_callback(Provider, Instruments, Callback, CallbackArgs) ->
     gen_server:call(Provider, {register_callback, Instruments, Callback, CallbackArgs}).
 
@@ -299,20 +299,9 @@ new_view(ViewConfig) ->
 %% Match the Instrument to views and then store a per-Reader aggregation for the View
 add_instrument_(InstrumentsTab, CallbacksTab, ViewAggregationsTab, Instrument=#instrument{meter=Meter,
                                                                                           name=Name}, Views, Readers) ->
-    Key = {Meter, Name},
-    case ets:insert_new(InstrumentsTab, {Key, Instrument}) of
+    case ets:insert_new(InstrumentsTab, {{Meter, Name}, Instrument}) of
         true ->
-            ViewMatches = otel_view:match_instrument_to_views(Instrument, Views),
-            lists:foreach(fun(Reader=#reader{id=ReaderId}) ->
-                                  Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
-                                  [_ = ets:insert(ViewAggregationsTab, {Key, M}) || M <- Matches],
-                                  case {Instrument#instrument.callback, Instrument#instrument.callback_args} of
-                                      {undefined, _} ->
-                                          ok;
-                                      {Callback, CallbackArgs} ->
-                                          ets:insert(CallbacksTab, {ReaderId, {Callback, CallbackArgs, Instrument}})
-                                  end
-                          end, Readers);
+            update_view_aggregations_(Instrument, CallbacksTab, ViewAggregationsTab, Views, Readers);
         false ->
             ?LOG_INFO("Instrument ~p already created. Ignoring attempt to create Instrument with the same name in the same Meter.", [Name]),
             ok
