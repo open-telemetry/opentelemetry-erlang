@@ -71,8 +71,7 @@ create_links([L | Rest], Limit, AttributePerLinkLimit, AttributeValueLengthLimit
 new_link({TraceId, SpanId, Attributes, TraceState}, AttributePerLinkLimit, AttributeValueLengthLimit)
   when is_integer(TraceId),
        is_integer(SpanId),
-       (is_list(Attributes) orelse is_map(Attributes)),
-       is_list(TraceState) ->
+       (is_list(Attributes) orelse is_map(Attributes)) ->
     #link{trace_id=TraceId,
           span_id=SpanId,
           tracestate=TraceState,

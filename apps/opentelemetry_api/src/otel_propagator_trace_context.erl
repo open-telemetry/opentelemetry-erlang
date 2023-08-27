@@ -47,11 +47,6 @@
 -define(HEADER_KEY, <<"traceparent">>).
 -define(STATE_HEADER_KEY, <<"tracestate">>).
 
--define(KEY_MP, element(2, re:compile("^[a-z0-9][a-z0-9_*/-]{0,255}$|^([a-z0-9_*/-]{1,241})(@[a-z0-9_*/-]{1,14})$"))).
--define(VALUE_MP, element(2, re:compile("^[ -~]{0,256}$"))).
-
--define(MAX_TRACESTATE_PAIRS, 32).
-
 fields(_) ->
     [?HEADER_KEY, ?STATE_HEADER_KEY].
 
@@ -93,7 +88,7 @@ extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet, _Options) ->
                     Ctx;
                 SpanCtx ->
                     TraceStateString = CarrierGet(?STATE_HEADER_KEY, Carrier),
-                    Tracestate = tracestate_decode(TraceStateString),
+                    Tracestate = otel_tracestate:decode_header(TraceStateString),
                     otel_tracer:set_current_span(Ctx, SpanCtx#span_ctx{tracestate=Tracestate})
             end
     end.
@@ -105,7 +100,7 @@ encode_span_ctx(#span_ctx{trace_id=TraceId,
                           span_id=SpanId,
                           trace_flags=TraceOptions,
                           tracestate=TraceState}) ->
-    {encode_traceparent(TraceId, SpanId, TraceOptions), encode_tracestate(TraceState)}.
+    {encode_traceparent(TraceId, SpanId, TraceOptions), otel_tracestate:encode_header(TraceState)}.
 
 encode_traceparent(TraceId, SpanId, TraceOptions) ->
     Options = case TraceOptions band 1 of 1 -> <<"01">>; _ -> <<"00">> end,
@@ -113,21 +108,6 @@ encode_traceparent(TraceId, SpanId, TraceOptions) ->
     {ok, EncodedSpanId} = otel_utils:format_binary_string("~16.16.0b", [SpanId]),
     otel_utils:assert_to_binary([?VERSION, "-", EncodedTraceId, "-",
                                  EncodedSpanId, "-", Options]).
-
-encode_tracestate(Entries=[_|_]) ->
-    StateHeaderValue = lists:join($,, [[Key, $=, Value] || {Key, Value} <- Entries]),
-    otel_utils:assert_to_binary(StateHeaderValue);
-encode_tracestate(_) ->
-    <<>>.
-
-split(Pair) ->
-    case string:split(Pair, "=", all) of
-        [Key, Value] when Value =/= [] andalso Value =/= <<>> ->
-            {otel_utils:assert_to_binary(Key),
-             otel_utils:assert_to_binary(Value)};
-        _ ->
-            undefined
-    end.
 
 %% note: version ff (255) not allowed by spec
 decode(TraceContext) when is_list(TraceContext) ->
@@ -158,30 +138,3 @@ to_span_ctx(Version, TraceId, SpanId, Opts) ->
             undefined
     end.
 
-tracestate_decode(undefined) ->
-    [];
-tracestate_decode(Value) ->
-    parse_pairs(string:lexemes(Value, [$,])).
-
-parse_pairs(Pairs) when length(Pairs) =< ?MAX_TRACESTATE_PAIRS ->
-    parse_pairs(Pairs, []);
-parse_pairs(_) ->
-    [].
-
-parse_pairs([], Acc) ->
-    Acc;
-parse_pairs([Pair | Rest], Acc) ->
-    case split(string:trim(Pair)) of
-        {K, V} ->
-            case re:run(K, ?KEY_MP) =/= nomatch
-                andalso re:run(V, ?VALUE_MP) =/= nomatch
-            of
-                false ->
-                    [];
-                true ->
-                    %% replace existing key value or append to the end of the list
-                    parse_pairs(Rest, lists:keystore(K, 1, Acc, {K, V}))
-            end;
-        undefined ->
-            []
-    end.

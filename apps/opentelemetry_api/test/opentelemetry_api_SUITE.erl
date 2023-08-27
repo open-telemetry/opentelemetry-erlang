@@ -36,6 +36,7 @@ can_create_link_from_span(_Config) ->
     TraceId = otel_span:trace_id(SpanCtx),
     SpanId = otel_span:span_id(SpanCtx),
     Tracestate = otel_span:tracestate(SpanCtx),
+    ct:pal("STATE ~p", [Tracestate]),
 
     %% end span, so there's no current span set
     ?end_span(opentelemetry:timestamp()),
@@ -132,16 +133,17 @@ validations(_Config) ->
                    attributes := ProcessedAttributes}],
                  opentelemetry:events(Events)),
 
-    ?assertMatch([#{trace_id := 0,
-                   span_id := 0,
-                   attributes := ProcessedAttributes,
-                   tracestate := []}],
-                opentelemetry:links(Links)),
+    ?assertEqual([#{trace_id => 0,
+                    span_id => 0,
+                    attributes => ProcessedAttributes,
+                    tracestate => otel_tracestate:new()}],
+                 opentelemetry:links(Links)),
 
     StartOpts = #{attributes => Attributes,
                  links => opentelemetry:links(Links)},
+    EmptyTracestate = otel_tracestate:new(),
     ?assertMatch(#{attributes := ProcessedAttributes,
-                  links := [#{trace_id := 0, span_id := 0, attributes := ProcessedAttributes, tracestate := []}]},
+                  links := [#{trace_id := 0, span_id := 0, attributes := ProcessedAttributes, tracestate := EmptyTracestate}]},
                 otel_span:validate_start_opts(StartOpts)),
 
     %% names
