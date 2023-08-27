@@ -92,7 +92,7 @@ add(Key, Value, Tracestate=#tracestate{members=TracestateList}) ->
             Tracestate
     end.
 
--spec get(unicode:latin1_chardata(), t()) -> t().
+-spec get(unicode:latin1_chardata(), t()) -> unicode:latin1_chardata().
 get(Key, #tracestate{members=TracestateList}) ->
     case lists:keyfind(Key, 1, TracestateList) of
         false ->

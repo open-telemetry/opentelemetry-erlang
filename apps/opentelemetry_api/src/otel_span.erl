@@ -56,8 +56,7 @@
                         links := [opentelemetry:link()],
                         is_recording := boolean(),
                         start_time := opentelemetry:timestamp(),
-                        kind := opentelemetry:span_kind(),
-                        monitor := boolean()}.
+                        kind := opentelemetry:span_kind()}.
 
 -export_type([start_opts/0]).
 
