@@ -30,7 +30,7 @@
 -include("otel_sampler.hrl").
 
 -type probability() :: float().
--opaque config() :: #{probability := probability(), id_upper_bound := integer()}.
+-type config() :: #{probability := probability(), id_upper_bound := integer()}.
 
 %% 2^63 - 1
 -define(MAX_VALUE, 9223372036854775807).

@@ -398,7 +398,7 @@ span_round_trip(_Config) ->
               trace_id = TraceId,
               span_id = SpanId,
               kind = ?SPAN_KIND_CLIENT,
-              tracestate = [{<<"ts-attr-1">>, <<"ts-value-1">>}],
+              tracestate = otel_tracestate:new([{"ts-attr-1", "ts-value-1"}]),
               start_time = opentelemetry:timestamp(),
               end_time = opentelemetry:timestamp(),
               links = otel_links:new([], 128, 128, 128),

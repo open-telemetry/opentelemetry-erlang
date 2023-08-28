@@ -24,13 +24,13 @@ defmodule OpenTelemetryTest do
   end
 
   test "link creation" do
-    ctx = span_ctx(trace_id: 1, span_id: 2, tracestate: [])
+    ctx = span_ctx(trace_id: 1, span_id: 2, tracestate: {:tracestate, []})
 
     %{trace_id: t, span_id: s, attributes: a, tracestate: ts} = OpenTelemetry.link(ctx)
 
     assert 1 == t
     assert 2 == s
-    assert [] == ts
+    assert {:tracestate, []} == ts
     assert %{} == a
 
     %{trace_id: t, span_id: s, attributes: a, tracestate: ts} =
@@ -38,7 +38,7 @@ defmodule OpenTelemetryTest do
 
     assert 1 == t
     assert 2 == s
-    assert [] == ts
+    assert {:tracestate, []} == ts
     assert %{"attr-1" => "value-1"} == a
   end
 
@@ -95,7 +95,7 @@ defmodule OpenTelemetryTest do
 
       assert nil != Span.trace_id(span)
       assert nil != Span.span_id(span)
-      assert [] = Span.tracestate(span)
+      assert {:tracestate, []} = Span.tracestate(span)
     end
   end
 

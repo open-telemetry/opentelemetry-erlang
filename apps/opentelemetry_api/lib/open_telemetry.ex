@@ -79,7 +79,7 @@ defmodule OpenTelemetry do
   See also [https://github.com/w3c/distributed-tracing](https://github.com/w3c/distributed-tracing)
   for more details about this field.
   """
-  @type tracestate() :: [{String.t(), String.t()}]
+  @type tracestate() :: :opentelemetry.tracestate()
 
   @typedoc """
   A Link is a pointer from the current span to another span in the same trace or in a

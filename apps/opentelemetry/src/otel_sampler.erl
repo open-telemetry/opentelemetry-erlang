@@ -62,8 +62,10 @@
 -type sampler_spec() :: builtin_sampler() | {module(), sampler_opts()}.
 -type sampling_decision() :: ?DROP | ?RECORD_ONLY | ?RECORD_AND_SAMPLE.
 -type sampling_result() :: {
-    sampling_decision(), opentelemetry:attributes_map(), opentelemetry:tracestate()
-}.
+                            sampling_decision(),
+                            opentelemetry:attributes_map(),
+                            opentelemetry:tracestate() | otel_tracestate:members()
+                           }.
 -opaque t() :: {module(), description(), sampler_opts()}.
 
 -spec new(sampler_spec()) -> t().
@@ -89,7 +91,14 @@ new({Sampler, Opts}) ->
     opentelemetry:attributes_map()
 ) -> sampling_result().
 should_sample({Sampler, _, Config}, Ctx, TraceId, Links, SpanName, Kind, Attributes) ->
-    Sampler:should_sample(Ctx, TraceId, Links, SpanName, Kind, Attributes, Config).
+    case Sampler:should_sample(Ctx, TraceId, Links, SpanName, Kind, Attributes, Config) of
+        %% to support backwards compatibility with when `tracestate' was just a list, not
+        %% a record, we accept a list and create a new `tracestate'
+        {Decision, Attributes, Tracestate} when is_list(Tracestate) ->
+            {Decision, Attributes, otel_tracestate:new(Tracestate)};
+        Result ->
+            Result
+    end.
 
 -spec description(t()) -> description().
 description({_, Description, _}) -> Description.

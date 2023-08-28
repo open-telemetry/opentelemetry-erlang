@@ -16,7 +16,7 @@
                             <<"00-10000000000000000000000000000000-1000000000000000-00">>}]).
 
 all() ->
-    [rewrite, {group, absence_of_an_installed_sdk}, custom_propagator].
+    [tracestate, rewrite, {group, absence_of_an_installed_sdk}, custom_propagator].
 
 groups() ->
     %% Tests of Behavior of the API in the absence of an installed SDK
@@ -36,6 +36,34 @@ init_per_suite(Config) ->
     Config.
 
 end_per_suite(_Config) ->
+    ok.
+
+tracestate(_Config) ->
+    Tracestate = otel_tracestate:new(),
+    Tracestate1 = otel_tracestate:add("a", "b", Tracestate),
+    Tracestate2 = otel_tracestate:add("c", "d", Tracestate1),
+    Tracestate3 = otel_tracestate:add(e, "f", Tracestate2),
+    Tracestate4 = otel_tracestate:add("e", f, Tracestate3),
+
+    ?assertEqual("d", otel_tracestate:get("c", Tracestate4)),
+
+    Tracestate5 = otel_tracestate:update("c", "g", Tracestate4),
+    ?assertEqual("g", otel_tracestate:get("c", Tracestate5)),
+
+    ?assertEqual("", otel_tracestate:get("e", Tracestate5)),
+    Tracestate6 = otel_tracestate:add("e", "f", Tracestate5),
+    Tracestate7 = otel_tracestate:remove("e", Tracestate6),
+    ?assertEqual("", otel_tracestate:get("e", Tracestate7)),
+
+    TracestateEncoded = otel_tracestate:encode_header(Tracestate7),
+    ?assertEqual(<<"c=g,a=b">>, TracestateEncoded),
+
+    Tracestate8 = otel_tracestate:update("a", "h", Tracestate7),
+    ?assertEqual("h", otel_tracestate:get("a", Tracestate8)),
+
+    TracestateEncoded1 = otel_tracestate:encode_header(Tracestate8),
+    ?assertEqual(<<"a=h,c=g">>, TracestateEncoded1),
+
     ok.
 
 rewrite(_Config) ->
@@ -64,12 +92,15 @@ rewrite(_Config) ->
                                                                 <<"00-10000000000000000000000000000000-1000000000000000-00">>},
                                                                {<<"tracestate">>,<<"a=b">>}])),
 
-    otel_propagator_text_map:extract([{<<"tracestate">>,<<"a=j,c=d">>},
+    Tracestate = otel_tracestate:new([{<<"a">>,<<"b">>},{<<"c">>,<<"d">>}]),
+    TracestateEncoded = otel_tracestate:encode_header(Tracestate),
+
+    otel_propagator_text_map:extract([{<<"tracestate">>,<<"a=b,c=d">>},
                                       {<<"traceparent">>,
                                        <<"00-10000000000000000000000000000000-1000000000000000-00">>},
-                                      {<<"tracestate">>,<<"a=b,c=d">>}]),
+                                      {<<"tracestate">>, TracestateEncoded}]),
     ?assertEqual(RecordingSpanCtx#span_ctx{is_recording=false,
-                                           tracestate=[{<<"a">>,<<"b">>},{<<"c">>,<<"d">>}],
+                                           tracestate=Tracestate,
                                            is_remote=true}, otel_tracer:current_span_ctx()),
 
     %% should not fail on empty Carrier
@@ -88,7 +119,6 @@ invalid_span_no_sdk_propagation(_Config) ->
     InvalidSpanCtx = #span_ctx{trace_id=0,
                                span_id=0,
                                trace_flags=0,
-                               tracestate=[],
                                is_valid=false,
                                is_recording=false},
     otel_tracer:set_current_span(InvalidSpanCtx),
