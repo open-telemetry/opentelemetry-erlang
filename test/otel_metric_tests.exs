@@ -28,7 +28,15 @@ defmodule OtelMetricTests do
       %{
         module: :otel_metric_reader,
         config: %{
-          exporter: {:otel_metric_exporter_pid, {:metric, self()}}
+          exporter: {:otel_metric_exporter_pid, {:metric, self()}},
+          default_temporality_mapping: %{
+            counter: :temporality_delta,
+            observable_counter: :temporality_cumulative,
+            updown_counter: :temporality_delta,
+            observable_updowncounter: :temporality_cumulative,
+            histogram: :temporality_delta,
+            observable_gauge: :temporality_cumulative
+          }
         }
       }
     ])

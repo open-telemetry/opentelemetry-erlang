@@ -10,7 +10,6 @@
 
 -define(TEMPORALITY_DELTA, temporality_delta).
 -define(TEMPORALITY_CUMULATIVE, temporality_cumulative).
--define(TEMPORALITY_UNSPECIFIED, temporality_unspecified).
 
 -define(KIND_COUNTER, counter).
 -define(KIND_OBSERVABLE_COUNTER, observable_counter).
