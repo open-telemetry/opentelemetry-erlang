@@ -32,7 +32,7 @@
 
 -export_type([t/0]).
 
--define(DEFAULT_BOUNDARIES, [0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0]).
+-define(DEFAULT_BOUNDARIES, [0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 750.0, 1000.0, 2500.0, 5000.0, 7500.0, 10000.0]).
 
 -include_lib("stdlib/include/ms_transform.hrl").
 
@@ -280,8 +280,6 @@ find_bucket(Boundaries, Value) ->
 
 find_bucket([X | _Rest], Value, Pos) when Value =< X ->
     Pos;
-find_bucket([_X], _Value, Pos) ->
-    Pos;
 find_bucket([_X | Rest], Value, Pos) ->
     find_bucket(Rest, Value, Pos+1);
 find_bucket(_, _, Pos) ->
@@ -290,7 +288,7 @@ find_bucket(_, _, Pos) ->
 get_buckets(BucketCounts, Boundaries) ->
     lists:foldl(fun(Idx, Acc) ->
                         Acc ++ [counters_get(BucketCounts, Idx)]
-                end, [], lists:seq(1, length(Boundaries))).
+                end, [], lists:seq(1, length(Boundaries) + 1)).
 
 counters_get(undefined, _) ->
     0;
@@ -298,4 +296,4 @@ counters_get(Counter, Idx) ->
     counters:get(Counter, Idx).
 
 new_bucket_counts(Boundaries) ->
-    counters:new(length(Boundaries), [write_concurrency]).
+    counters:new(length(Boundaries) + 1, [write_concurrency]).
