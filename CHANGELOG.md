@@ -25,9 +25,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Add `instrument_unit` to view criteria](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
 - [Validate instrument name](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
 
-### Fixed
+### Changes
 
-- [Readers should use a default cumulative temporality if not specified](https://github.com/open-telemetry/opentelemetry-erlang/pull/613)
+- [Align histogram default boundaries with specification](https://github.com/open-telemetry/opentelemetry-erlang/pull/614)
+
+### Fixes
+
+ - [Correctly record histogram values greater than last boundary](https://github.com/open-telemetry/opentelemetry-erlang/pull/614)
+ - [Readers should use a default cumulative temporality if not specified](https://github.com/open-telemetry/opentelemetry-erlang/pull/613)
 
 ## SDK 1.3.1 - 2023-08-15
 

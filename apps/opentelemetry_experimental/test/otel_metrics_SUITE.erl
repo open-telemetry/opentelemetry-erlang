@@ -326,7 +326,7 @@ float_histogram(_Config) ->
                                          min=Min,
                                          max=Max,
                                          sum=Sum}  <- Datapoints],
-            ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,1,1,2,0,0,0,0,0,0], 5, 10.3, 31.1}]
+            ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0], 5, 10.3, 31.1}]
                          -- AttributeBuckets, AttributeBuckets)
     after
         5000 ->
@@ -529,11 +529,11 @@ explicit_histograms(_Config) ->
 
     otel_meter_server:add_view(#{instrument_name => a_histogram}, #{}),
 
-
     ?assertEqual(ok, otel_histogram:record(Histogram, 20, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_histogram:record(Histogram, 30, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
     ?assertEqual(ok, otel_histogram:record(Histogram, 44, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_histogram:record(Histogram, 100, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Histogram, 20000, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
@@ -546,8 +546,8 @@ explicit_histograms(_Config) ->
                                                                                          min=Min,
                                                                                          max=Max,
                                                                                          sum=Sum}  <- Datapoints]),
-            ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,0,0,1,1,0,1,0,0,0], 20, 100, 164},
-                              {#{<<"a">> => <<"b">>, <<"d">> => <<"e">>}, [0,0,0,0,1,0,0,0,0,0], 30, 30, 30}]
+            ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,0,0,1,1,0,1,0,0,0,0,0,0,0,0,1], 20, 20000, 20164},
+                              {#{<<"a">> => <<"b">>, <<"d">> => <<"e">>}, [0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0], 30, 30, 30}]
                          -- AttributeBuckets, AttributeBuckets)
     after
         5000 ->
@@ -595,8 +595,8 @@ delta_explicit_histograms(_Config) ->
                                                                                          min=Min,
                                                                                          max=Max,
                                                                                          sum=Sum}  <- Datapoints]),
-            ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,0,0,1,1,0,1,0,0,0], 20, 100, 164},
-                              {#{<<"a">> => <<"b">>, <<"d">> => <<"e">>}, [0,0,0,0,1,0,0,0,0,0], 30, 30, 30}]
+            ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,0,0,1,1,0,1,0,0,0,0,0,0,0,0,0], 20, 100, 164},
+                              {#{<<"a">> => <<"b">>, <<"d">> => <<"e">>}, [0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0], 30, 30, 30}]
                          -- AttributeBuckets, AttributeBuckets)
     after
         5000 ->
@@ -616,9 +616,9 @@ delta_explicit_histograms(_Config) ->
                                                                               min=Min,
                                                                               max=Max,
                                                                               sum=Sum}  <- Datapoints1],
-            ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,0,0,0,0,0,1,0,0,0], 88, 88, 88},
+            ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0], 88, 88, 88},
                               {#{<<"a">> => <<"b">>,<<"d">> => <<"e">>},
-                               [0,0,0,0,0,0,0,0,0,0],
+                               [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
                                infinity,-9.223372036854776e18,0}
                              ]
                          -- AttributeBuckets1, AttributeBuckets1)
