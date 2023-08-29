@@ -27,7 +27,8 @@
 -export([start_link/3,
          collect/1,
          checkpoint_generation/1,
-         shutdown/1]).
+         shutdown/1,
+         collect_/4]).
 
 -export([init/1,
          handle_call/3,
@@ -67,7 +68,7 @@ start_link(ReaderId, ProviderSup, Config) ->
     gen_server:start_link(?MODULE, [ReaderId, ProviderSup, Config], []).
 
 collect(ReaderPid) ->
-    ReaderPid ! collect.
+    gen_server:call(ReaderPid, collect).
 
 shutdown(ReaderPid) ->
     gen_server:call(ReaderPid, shutdown).
@@ -140,24 +141,9 @@ handle_continue(register_with_server, State=#state{provider_sup=ProviderSup,
 
 handle_call(shutdown, _From, State) ->
     {reply, ok, State};
-handle_call(_, _From, State) ->
-    {noreply, State}.
 
-handle_cast(_, State) ->
-    {noreply, State}.
-
-%% eqwalizer:fixme get an unbound record error until the fixme for state record is resolved
-handle_info(collect, State=#state{exporter=undefined,
-                                  export_interval_ms=ExporterIntervalMs,
-                                  tref=TRef}) when TRef =/= undefined andalso
-                                                   ExporterIntervalMs =/= undefined ->
-    erlang:cancel_timer(TRef, [{async, true}]),
-    NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
-    {noreply, State#state{tref=NewTRef}};
-handle_info(collect, State=#state{id=ReaderId,
-                                  exporter={ExporterModule, Config},
-                                  export_interval_ms=undefined,
-                                  tref=undefined,
+handle_call(collect, _From, State=#state{id=ReaderId,
+                                  exporter=Exporter,
                                   callbacks_tab=CallbacksTab,
                                   streams_tab=StreamsTab,
                                   metrics_tab=MetricsTab,
@@ -165,39 +151,53 @@ handle_info(collect, State=#state{id=ReaderId,
                                   resource=Resource,
                                   producers=Producers
                                  }) ->
-    Metrics = run_collection(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId, Producers),
+    TRef = update_timer(State#state.tref, State#state.export_interval_ms),
+    Reply = collect_and_export(ReaderId, Exporter, CallbacksTab, ViewAggregationTab, MetricsTab, Resource),
+    {reply, Reply, State#state{tref=TRef}};
 
-    otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
-
-    {noreply, State};
-handle_info(collect, State=#state{id=ReaderId,
-                                  exporter={ExporterModule, Config},
-                                  export_interval_ms=ExporterIntervalMs,
-                                  tref=TRef,
-                                  callbacks_tab=CallbacksTab,
-                                  streams_tab=StreamsTab,
-                                  metrics_tab=MetricsTab,
-                                  exemplars_tab=ExemplarsTab,
-                                  resource=Resource,
-                                  producers=Producers
-                                 }) when TRef =/= undefined andalso
-                                         ExporterIntervalMs =/= undefined  ->
-    erlang:cancel_timer(TRef, [{async, true}]),
-    NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
+handle_call(collect, _From, State=#state{id=ReaderId,
+                                          exporter={ExporterModule, Config},
+                                          export_interval_ms=ExporterIntervalMs,
+                                          tref=TRef,
+                                          callbacks_tab=CallbacksTab,
+                                          streams_tab=StreamsTab,
+                                          metrics_tab=MetricsTab,
+                                          exemplars_tab=ExemplarsTab,
+                                          resource=Resource,
+                                          producers=Producers
+                                         }) ->
+    TRef = update_timer(State#state.tref, State#state.export_interval_ms),
 
     Metrics = run_collection(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId, Producers),
 
-    otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
+    Reply = otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
 
-    {noreply, State#state{tref=NewTRef}};
-%% no tref or exporter, do nothing at all
+    {reply, Reply, State#state{tref=TRef}};
+
+%% no exporter, do nothing at all
+handle_call(collect, _From, State) ->
+    {reply, ok, State};
+
+handle_call(_, _From, State) ->
+    {noreply, State}.
+
+handle_info(collect, State) ->
+    {reply, _, NewState} = handle_call(collect, undefined, State),
+    {noreply, NewState};
 handle_info(_, State) ->
+    {noreply, State}.
+
+handle_cast(_, State) ->
     {noreply, State}.
 
 code_change(State) ->
     {ok, State}.
 
-%%
+update_timer(undefined, undefined) ->
+    undefined;
+update_timer(TRef, ExporterIntervalMs) ->
+    erlang:cancel_timer(TRef, [{async, true}]),
+    erlang:send_after(ExporterIntervalMs, self(), collect).
 
 run_collection(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId, Producers) ->
     %% collect from view aggregations table and then export
