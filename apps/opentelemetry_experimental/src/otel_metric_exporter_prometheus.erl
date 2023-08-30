@@ -214,11 +214,12 @@ datapoint(#histogram_datapoint{} = DP, MetricName, AddCreated, ScopeLabels, [Poi
         false -> []
     end,
 
-    Buckets = lists:map(
-        fun({C, Le}) ->
+    {Buckets, _} = lists:mapfoldl(
+        fun({C, Le}, Sum) ->
             HistoLabels = surround_labels(join_labels(Labels, render_label_pair({"le", Le}))),
-            [MetricName, "_bucket", HistoLabels, " ", number_to_binary(C), "\n"]
+            {[MetricName, "_bucket", HistoLabels, " ", number_to_binary(Sum + C), "\n"], Sum + C}
         end,
+        0,
         lists:zip(DP#histogram_datapoint.bucket_counts, DP#histogram_datapoint.explicit_bounds ++ [<<"+Inf">>])
     ),
 
@@ -524,8 +525,8 @@ monotonic_histogram_test() ->
             "# UNIT test_sec sec",
             "# HELP test_sec lorem ipsum",
             "test_sec_bucket{otel_scope_name=\"scope-1\",otel_scope_version=\"version-1\",le=\"2\"} 2",
-            "test_sec_bucket{otel_scope_name=\"scope-1\",otel_scope_version=\"version-1\",le=\"3\"} 0",
-            "test_sec_bucket{otel_scope_name=\"scope-1\",otel_scope_version=\"version-1\",le=\"+Inf\"} 1",
+            "test_sec_bucket{otel_scope_name=\"scope-1\",otel_scope_version=\"version-1\",le=\"3\"} 2",
+            "test_sec_bucket{otel_scope_name=\"scope-1\",otel_scope_version=\"version-1\",le=\"+Inf\"} 3",
             "test_sec_count{otel_scope_name=\"scope-1\",otel_scope_version=\"version-1\"} 3",
             "test_sec_sum{otel_scope_name=\"scope-1\",otel_scope_version=\"version-1\"} 7",
             "test_sec_created{otel_scope_name=\"scope-1\",otel_scope_version=\"version-1\"} 0",
