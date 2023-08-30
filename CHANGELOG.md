@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tracestate](https://github.com/open-telemetry/opentelemetry-erlang/pull/607)
 - [Attributes module `otel_attributes` moved to
   API](https://github.com/open-telemetry/opentelemetry-erlang/pull/618)
+- [Moved attribute processing functions to `otel_attributes` from
+  `otel_span`](https://github.com/open-telemetry/opentelemetry-erlang/pull/620)
 
 ## SDK
 
