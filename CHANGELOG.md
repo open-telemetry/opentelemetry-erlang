@@ -14,14 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Add `otel_tracestate` module for creating and updating
   tracestate](https://github.com/open-telemetry/opentelemetry-erlang/pull/607)
 - [Attributes module `otel_attributes` moved to
-  SDK](https://github.com/open-telemetry/opentelemetry-erlang/pull/618)
+  API](https://github.com/open-telemetry/opentelemetry-erlang/pull/618)
 
 ## SDK
 
 ### Changes
 
 - [Attributes module `otel_attributes` moved to
-  SDK](https://github.com/open-telemetry/opentelemetry-erlang/pull/618)
+  API](https://github.com/open-telemetry/opentelemetry-erlang/pull/618)
 
 ## Experimental API
 
