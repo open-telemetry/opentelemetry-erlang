@@ -76,7 +76,7 @@ can_create_link_from_span(_Config) ->
 
 validations(_Config) ->
     InvalidAttributesArg = undefined,
-    ?assertMatch(#{}, otel_span:process_attributes(InvalidAttributesArg)),
+    ?assertMatch(#{}, otel_attributes:process_attributes(InvalidAttributesArg)),
 
     Attributes = [
                   {<<"key-1">>, <<"value-1">>},
@@ -102,7 +102,7 @@ validations(_Config) ->
               {untimed_event, Attributes},
               {<<"">>, Attributes},
               {123, Attributes}],
-    ProcessedAttributes = otel_span:process_attributes(Attributes),
+    ProcessedAttributes = otel_attributes:process_attributes(Attributes),
 
     ?assertMatch(#{key2 := 1,
                    key3 := true,

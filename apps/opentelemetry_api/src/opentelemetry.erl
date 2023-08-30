@@ -340,12 +340,12 @@ convert_timestamp(Timestamp, Unit) ->
 links(List) when is_list(List) ->
     lists:filtermap(fun({TraceId, SpanId, Attributes, TraceState}) when is_integer(TraceId) ,
                                                                         is_integer(SpanId) ->
-                            link_or_false(TraceId, SpanId, otel_span:process_attributes(Attributes), TraceState);
+                            link_or_false(TraceId, SpanId, otel_attributes:process_attributes(Attributes), TraceState);
                        ({#span_ctx{trace_id=TraceId,
                                    span_id=SpanId,
                                    tracestate=TraceState}, Attributes}) when is_integer(TraceId) ,
                                                                              is_integer(SpanId) ->
-                            link_or_false(TraceId, SpanId, otel_span:process_attributes(Attributes), TraceState);
+                            link_or_false(TraceId, SpanId, otel_attributes:process_attributes(Attributes), TraceState);
                        (#span_ctx{trace_id=TraceId,
                                   span_id=SpanId,
                                   tracestate=TraceState}) when is_integer(TraceId) ,
@@ -365,7 +365,7 @@ link(SpanCtx) ->
 link(#span_ctx{trace_id=TraceId,
                span_id=SpanId,
                tracestate=TraceState}, Attributes) ->
-    ?MODULE:link(TraceId, SpanId, otel_span:process_attributes(Attributes), TraceState);
+    ?MODULE:link(TraceId, SpanId, otel_attributes:process_attributes(Attributes), TraceState);
 link(_, _) ->
     undefined.
 
@@ -379,7 +379,7 @@ link(TraceId, SpanId, Attributes, TraceState) when is_integer(TraceId),
                                                    (is_list(Attributes) orelse is_map(Attributes)) ->
     #{trace_id => TraceId,
       span_id => SpanId,
-      attributes => otel_span:process_attributes(Attributes),
+      attributes => otel_attributes:process_attributes(Attributes),
       tracestate => TraceState};
 link(_, _, _, _) ->
     undefined.
@@ -401,7 +401,7 @@ event(Timestamp, Name, Attributes) when is_integer(Timestamp),
         true ->
             #{system_time_native => Timestamp,
               name => Name,
-              attributes => otel_span:process_attributes(Attributes)};
+              attributes => otel_attributes:process_attributes(Attributes)};
         false ->
             undefined
     end;
