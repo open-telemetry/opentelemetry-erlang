@@ -21,8 +21,16 @@
          set/2,
          set/3,
          dropped/1,
-         map/1]).
+         map/1,
+         is_valid_attribute/2,
+         process_attributes/1]).
 
+-define(is_allowed_key(Key), (is_atom(Key) orelse (is_binary(Key) andalso Key =/= <<"">>))).
+-define(is_allowed_value(Value), (is_atom(Value) orelse
+                                  is_boolean(Value) orelse
+                                  is_number(Value) orelse
+                                  is_binary(Value) orelse
+                                  is_list(Value))).
 -record(attributes, {
                      count_limit :: integer(),
                      value_length_limit :: integer() | infinity,
@@ -105,4 +113,59 @@ maybe_truncate_binary(Value, ValueLengthLimit) ->
             string:slice(Value, 0, ValueLengthLimit);
         false ->
             Value
+    end.
+
+-spec is_valid_attribute(opentelemetry:attribute_key(), opentelemetry:attribute_value()) -> boolean().
+is_valid_attribute(Key, Value) when is_tuple(Value) , ?is_allowed_key(Key) ->
+    is_valid_attribute(Key, tuple_to_list(Value));
+%% lists as attribute values must be primitive types and homogeneous
+is_valid_attribute(Key, [Value1 | _Rest] = Values) when is_binary(Value1) , ?is_allowed_key(Key) ->
+    lists:all(fun is_binary/1, Values);
+is_valid_attribute(Key, [Value1 | _Rest] = Values) when is_boolean(Value1) , ?is_allowed_key(Key) ->
+    lists:all(fun is_boolean/1, Values);
+is_valid_attribute(Key, [Value1 | _Rest] = Values) when is_atom(Value1) , ?is_allowed_key(Key) ->
+    lists:all(fun is_valid_atom_value/1, Values);
+is_valid_attribute(Key, [Value1 | _Rest] = Values) when is_integer(Value1) , ?is_allowed_key(Key) ->
+    lists:all(fun is_integer/1, Values);
+is_valid_attribute(Key, [Value1 | _Rest] = Values) when is_float(Value1) , ?is_allowed_key(Key) ->
+    lists:all(fun is_float/1, Values);
+is_valid_attribute(_Key, Value) when is_list(Value) ->
+    false;
+is_valid_attribute(Key, []) when ?is_allowed_key(Key) ->
+    true;
+is_valid_attribute(Key, Value) when ?is_allowed_key(Key) , ?is_allowed_value(Value) ->
+    true;
+is_valid_attribute(_, _) ->
+    false.
+
+is_valid_atom_value(undefined) ->
+    false;
+is_valid_atom_value(nil) ->
+    false;
+is_valid_atom_value(Value) ->
+    is_atom(Value) andalso (is_boolean(Value) == false).
+
+-spec process_attributes(eqwalizer:dynamic()) -> opentelemetry:attributes_map().
+process_attributes(Attributes) when is_map(Attributes) ->
+    maps:fold(fun process_attribute/3, #{}, Attributes);
+process_attributes([]) -> #{};
+process_attributes(Attributes) when is_list(Attributes) ->
+    process_attributes(maps:from_list(Attributes));
+process_attributes(_) ->
+    #{}.
+
+process_attribute(Key, Value, Map) when is_tuple(Value) ->
+    List = tuple_to_list(Value),
+    case is_valid_attribute(Key, List) of
+        true ->
+            maps:put(Key, Value, Map);
+        false ->
+            Map
+    end;
+process_attribute(Key, Value, Map) ->
+    case is_valid_attribute(Key, Value) of
+        true ->
+            maps:put(Key, Value, Map);
+        false ->
+            Map
     end.
