@@ -9,11 +9,17 @@ defmodule OtelTests do
   @fields Record.extract(:span, from_lib: "opentelemetry/include/otel_span.hrl")
   Record.defrecordp(:span, @fields)
 
+  @fields Record.extract(:event, from_lib: "opentelemetry/include/otel_span.hrl")
+  Record.defrecordp(:event, @fields)
+
   @fields Record.extract(:tracer, from_lib: "opentelemetry/src/otel_tracer.hrl")
   Record.defrecordp(:tracer, @fields)
 
   @fields Record.extract(:span_ctx, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
   Record.defrecordp(:span_ctx, @fields)
+
+  @fields Record.extract(:status, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
+  Record.defrecordp(:status, @fields)
 
   setup do
     Application.load(:opentelemetry)
@@ -307,5 +313,102 @@ defmodule OtelTests do
                %{},
                opts
              )
+  end
+
+  describe "Tracer.with_span record exception" do
+    test "raise" do
+      assert_raise RuntimeError, "my error message", fn ->
+        Tracer.with_span "span-1", record_exception: true, set_status_on_exception: true do
+          raise RuntimeError, "my error message"
+        end
+      end
+
+      assert_receive {:span,
+                      span(
+                        name: "span-1",
+                        events: {:events, _, _, _, _, [event]},
+                        status: status(code: :error)
+                      )}
+
+      assert event(name: :exception, attributes: {:attributes, _, _, _, received_attirbutes}) =
+               event
+
+      assert %{
+               "exception.type": "RuntimeError",
+               "exception.message": "my error message",
+               "exception.stacktrace": _
+             } = received_attirbutes
+    end
+
+    test ":erlang.error()" do
+      assert_raise ArgumentError, fn ->
+        Tracer.with_span "span-1", record_exception: true do
+          :erlang.error(:badarg)
+        end
+      end
+
+      assert_receive {:span,
+                      span(
+                        name: "span-1",
+                        events: {:events, _, _, _, _, [event]},
+                        status: :undefined
+                      )}
+
+      assert event(name: :exception, attributes: {:attributes, _, _, _, received_attirbutes}) =
+               event
+
+      assert %{
+               "exception.type": "error:badarg",
+               "exception.stacktrace": _
+             } = received_attirbutes
+    end
+
+    test "exit" do
+      assert :shutdown ==
+               catch_exit(
+                 Tracer.with_span "span-1", record_exception: true, set_status_on_exception: true do
+                   exit(:shutdown)
+                 end
+               )
+
+      assert_receive {:span,
+                      span(
+                        name: "span-1",
+                        events: {:events, _, _, _, _, [event]},
+                        status: status(code: :error)
+                      )}
+
+      assert event(name: :exception, attributes: {:attributes, _, _, _, received_attirbutes}) =
+               event
+
+      assert %{
+               "exception.type": "exit:shutdown",
+               "exception.stacktrace": _
+             } = received_attirbutes
+    end
+
+    test "throw" do
+      assert :value ==
+               catch_throw(
+                 Tracer.with_span "span-1", record_exception: true do
+                   throw(:value)
+                 end
+               )
+
+      assert_receive {:span,
+                      span(
+                        name: "span-1",
+                        events: {:events, _, _, _, _, [event]},
+                        status: :undefined
+                      )}
+
+      assert event(name: :exception, attributes: {:attributes, _, _, _, received_attirbutes}) =
+               event
+
+      assert %{
+               "exception.type": "throw:value",
+               "exception.stacktrace": _
+             } = received_attirbutes
+    end
   end
 end

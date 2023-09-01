@@ -33,7 +33,7 @@ all() ->
      {group, otel_batch_processor}].
 
 all_cases() ->
-    [with_span, macros, child_spans, disabled_sdk,
+    [with_span, record_exception, macros, child_spans, disabled_sdk,
      update_span_data, tracer_instrumentation_scope, tracer_previous_ctx, stop_temporary_app,
      reset_after, attach_ctx, default_sampler, non_recording_ets_table,
      root_span_sampling_always_on, root_span_sampling_always_off,
@@ -122,7 +122,7 @@ init_per_testcase(tracer_instrumentation_scope, Config) ->
     Config1 = set_batch_tab_processor(Config),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config1;
-init_per_testcase(multiple_tracer_providers, Config) ->
+init_per_testcase(Test, Config) when Test =:= record_exception; Test =:= multiple_tracer_providers->
     application:set_env(opentelemetry, processors, [{otel_batch_processor, #{exporter => {otel_exporter_pid, self()},
                                                                              scheduled_delay_ms => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
@@ -462,6 +462,84 @@ with_span(Config) ->
 
     otel_span:end_span(SpanCtx1),
     [_Span1] = assert_exported(Tid, SpanCtx1),
+
+    ok.
+
+record_exception(_Config) ->
+    Tracer = opentelemetry:get_tracer(),
+
+    %% ERROR
+    ?assertException(error, badarg, otel_tracer:with_span(Tracer, <<"span-error">>, #{record_exception => true},
+                                               fun(_SpanCtx) ->
+                                                erlang:error(badarg)
+                                               end)),
+
+    receive
+        {span, SpanError} ->
+            ?assertEqual(<<"span-error">>, SpanError#span.name),
+            ?assertEqual(undefined, SpanError#span.status),
+            [#event{name=exception, attributes=A}] = otel_events:list(SpanError#span.events),
+            ?assertMatch(#{'exception.type' := <<"error:badarg">>, 'exception.stacktrace' := _}, otel_attributes:map(A))
+
+    after
+        1000 ->
+            ct:fail(timeout)
+    end,
+
+    %% THROW
+    ?assertException(throw, value, otel_tracer:with_span(Tracer, <<"span-throw">>, #{record_exception => true, set_status_on_exception => true},
+                                               fun(_SpanCtx) ->
+                                                erlang:throw(value)
+                                               end)),
+
+    receive
+        {span, SpanThrow} ->
+            ?assertEqual(<<"span-throw">>, SpanThrow#span.name),
+            ?assertMatch(#status{code=?OTEL_STATUS_ERROR}, SpanThrow#span.status),
+            [#event{name=exception, attributes=A1}] = otel_events:list(SpanThrow#span.events),
+            ?assertMatch(#{'exception.type' := <<"throw:value">>, 'exception.stacktrace' := _}, otel_attributes:map(A1))
+
+    after
+        1000 ->
+            ct:fail(timeout)
+    end,
+
+    %% EXIT
+    ?assertException(exit, shutdown, otel_tracer:with_span(Tracer, <<"span-exit">>, #{record_exception => true},
+                                               fun(_SpanCtx) ->
+                                                erlang:exit(shutdown)
+                                               end)),
+
+    receive
+        {span, SpanExit} ->
+            ?assertEqual(<<"span-exit">>, SpanExit#span.name),
+            ?assertEqual(undefined, SpanExit#span.status),
+            [#event{name=exception, attributes=A2}] = otel_events:list(SpanExit#span.events),
+            ?assertMatch(#{'exception.type' := <<"exit:shutdown">>, 'exception.stacktrace' := _}, otel_attributes:map(A2))
+
+    after
+        1000 ->
+            ct:fail(timeout)
+    end,
+
+    %% broken elixir exception
+    Exception = #{'__exception__' => true, '__struct__' => invalid},
+    ?assertException(exit, Exception, otel_tracer:with_span(Tracer, <<"span-elixir">>, #{record_exception => true},
+                                               fun(_SpanCtx) ->
+                                                erlang:exit(Exception)
+                                               end)),
+
+    receive
+        {span, SpanElixir} ->
+            ?assertEqual(<<"span-elixir">>, SpanElixir#span.name),
+            ?assertEqual(undefined, SpanElixir#span.status),
+            [#event{name=exception, attributes=A3}] = otel_events:list(SpanElixir#span.events),
+            ?assertMatch(#{'exception.type' := <<"exit:#{'__exception__' => true,'__struct__' => invalid}">>, 'exception.stacktrace' := _}, otel_attributes:map(A3))
+
+    after
+        1000 ->
+            ct:fail(timeout)
+    end,
 
     ok.
 

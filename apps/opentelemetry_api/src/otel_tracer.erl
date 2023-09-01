@@ -66,20 +66,20 @@ start_span(Ctx, Tracer={Module, _}, SpanName, Opts) ->
             otel_tracer_noop:noop_span_ctx()
     end.
 
--spec with_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts(), traced_fun(T)) -> T.
+-spec with_span(opentelemetry:tracer(), opentelemetry:span_name(), otel_span:with_opts(), traced_fun(T)) -> T.
 with_span(Tracer={Module, _}, SpanName, Opts, Fun) when is_atom(Module) ->
     case otel_span:is_valid_name(SpanName) of
         true ->
-            Module:with_span(otel_ctx:get_current(), Tracer, SpanName, otel_span:validate_start_opts(Opts), Fun);
+            Module:with_span(otel_ctx:get_current(), Tracer, SpanName, otel_span:validate_with_opts(Opts), Fun);
         false ->
             Fun(otel_tracer_noop:noop_span_ctx())
     end.
 
--spec with_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(), otel_span:start_opts(), traced_fun(T)) -> T.
+-spec with_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(), otel_span:with_opts(), traced_fun(T)) -> T.
 with_span(Ctx, Tracer={Module, _}, SpanName, Opts, Fun) when is_atom(Module) ->
     case otel_span:is_valid_name(SpanName) of
         true ->
-            Module:with_span(Ctx, Tracer, SpanName, otel_span:validate_start_opts(Opts), Fun);
+            Module:with_span(Ctx, Tracer, SpanName, otel_span:validate_with_opts(Opts), Fun);
         false ->
             Fun(otel_tracer_noop:noop_span_ctx())
     end.

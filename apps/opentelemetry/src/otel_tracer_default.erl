@@ -38,13 +38,33 @@ start_span(Ctx, {_, #tracer{on_start_processors=Processors,
     SpanCtx#span_ctx{span_sdk={otel_span_ets, OnEndProcessors}}.
 
 -spec with_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(),
-                otel_span:start_opts(), otel_tracer:traced_fun(T)) -> T.
+                otel_span:with_opts(), otel_tracer:traced_fun(T)) -> T.
 with_span(Ctx, Tracer, SpanName, Opts, Fun) ->
+    RecordException = maps:get(record_exception, Opts, false),
+    SetStatusOnException = maps:get(set_status_on_exception, Opts, false),
     SpanCtx = start_span(Ctx, Tracer, SpanName, Opts),
     Ctx1 = otel_tracer:set_current_span(Ctx, SpanCtx),
     Token = otel_ctx:attach(Ctx1),
     try
         Fun(SpanCtx)
+    catch
+        Class:Term:Stacktrace ->
+            if
+                RecordException ->
+                    otel_span:record_exception(SpanCtx, Class, Term, Stacktrace, #{});
+                true ->
+                    ok
+            end,
+
+            if
+                SetStatusOnException ->
+                    Status = opentelemetry:status(?OTEL_STATUS_ERROR, <<"exception">>),
+                    otel_span:set_status(SpanCtx, Status);
+                true ->
+                    ok
+            end,
+
+            erlang:raise(Class, Term, Stacktrace)
     after
         %% passing SpanCtx directly ensures that this `end_span' ends the span started
         %% in this function. If spans in `Fun()' were started and not finished properly
