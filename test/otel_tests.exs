@@ -15,6 +15,12 @@ defmodule OtelTests do
   @fields Record.extract(:span_ctx, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
   Record.defrecordp(:span_ctx, @fields)
 
+  setup_all do
+    :ok = Application.ensure_loaded(:opentelemetry)
+    :ok = Application.stop(:opentelemetry)
+    :ok = Application.unload(:opentelemetry)
+  end
+
   setup do
     Application.load(:opentelemetry)
 
