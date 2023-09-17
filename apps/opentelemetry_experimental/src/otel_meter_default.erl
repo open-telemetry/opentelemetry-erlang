@@ -32,6 +32,8 @@
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_metrics.hrl").
 
+-define(INSTRUMENT_NAME_REGEX, "^[A-Za-z]+[A-Za-z0-9/_.\-]{0,254}$").
+
 -spec create_instrument(otel_meter:t(), otel_instrument:name(), otel_instrument:kind(), otel_meter:opts()) -> otel_instrument:t().
 create_instrument(Meter, Name, Kind, Opts) ->
     validate_name(Name),
@@ -68,17 +70,16 @@ scope({_, #meter{instrumentation_scope=Scope}}) ->
     Scope.
 
 validate_name(Name) when is_atom(Name) ->
-    Re = "^[A-Za-z]+[A-Za-z0-9_.\-]{0,62}$",
     NameString = atom_to_list(Name),
-    case re:run(NameString, Re, [{capture, none}]) of
+    case re:run(NameString, ?INSTRUMENT_NAME_REGEX, [{capture, none}]) of
         match ->
             ok;
         nomatch ->
-            ?LOG_ERROR("Invalid instrument name, should be an atom matching '~s', but got '~s'", [NameString]),
+            ?LOG_ERROR("Invalid instrument name, should be an atom matching '~s', but got '~s'", [?INSTRUMENT_NAME_REGEX, NameString]),
             ok
     end;
 validate_name(Name) ->
-    ?LOG_ERROR("Invalid instrument name, should be an atom matching '~s', but got ~p", [Name]),
+    ?LOG_ERROR("Invalid instrument name, should be an atom matching '~s', but got ~p", [?INSTRUMENT_NAME_REGEX, Name]),
     ok.
 %%
 
