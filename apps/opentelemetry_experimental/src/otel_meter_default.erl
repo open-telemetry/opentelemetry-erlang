@@ -34,12 +34,11 @@
 
 -define(INSTRUMENT_NAME_REGEX, "^[A-Za-z]+[A-Za-z0-9/_.\-]{0,254}$").
 
--spec create_instrument(otel_meter:t(), otel_instrument:name(), otel_instrument:kind(), otel_meter:opts()) -> otel_instrument:t().
+-spec create_instrument(otel_meter:t(), otel_instrument:name(), otel_instrument:kind(), otel_instrument:opts()) -> otel_instrument:t().
 create_instrument(Meter, Name, Kind, Opts) ->
     validate_name(Name),
     Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
-        otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
-                            maps:get(unit, Opts, undefined)),
+        otel_instrument:new(?MODULE, Meter, Kind, Name, Opts),
     _ = otel_meter_server:add_instrument(Provider, Instrument),
     Instrument.
 
@@ -52,12 +51,11 @@ lookup_instrument(Meter={_, #meter{instruments_tab=Tab}}, Name) ->
             undefined
     end.
 
--spec create_instrument(otel_meter:t(), otel_instrument:name(), otel_instrument:kind(), otel_instrument:callback(), otel_instrument:callback_args(), otel_meter:opts()) -> otel_instrument:t().
+-spec create_instrument(otel_meter:t(), otel_instrument:name(), otel_instrument:kind(), otel_instrument:callback(), otel_instrument:callback_args(), otel_instrument:opts()) -> otel_instrument:t().
 create_instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts) ->
     validate_name(Name),
     Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
-        otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
-                            maps:get(unit, Opts, undefined), Callback, CallbackArgs),
+        otel_instrument:new(?MODULE, Meter, Kind, Name, Callback, CallbackArgs, Opts),
     _ = otel_meter_server:add_instrument(Provider, Instrument),
     Instrument.
 
