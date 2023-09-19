@@ -392,7 +392,6 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, 
       reader=Id,
       attribute_keys=AttributeKeys,
       aggregation_module=AggregationModule,
-      aggregation_options=#{},
       temporality=Temporality};
 view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, View,
                             Reader=#reader{id=Id,
@@ -404,7 +403,6 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, 
       reader=Id,
       attribute_keys=undefined,
       aggregation_module=AggregationModule,
-      aggregation_options=#{},
       temporality=Temporality}.
 
 

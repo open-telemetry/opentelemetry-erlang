@@ -83,7 +83,8 @@ validate_name(Name) ->
     ok.
 
 validate_opts(Name, Kind, #{advisory_params := AdvisoryParams} = Opts) ->
-    ValidatedAdvisoryParams = maps:filtermap(fun(Key, Value) -> validate_advisory_param(Name, Kind, Key, Value) end, AdvisoryParams),
+    % switch to maps:filtermap when we support only 24 onwards
+    ValidatedAdvisoryParams = maps:from_list(lists:filtermap(fun({Key, Value}) -> validate_advisory_param(Name, Kind, Key, Value) end,  maps:to_list(AdvisoryParams))),
     maps:put(advisory_params, ValidatedAdvisoryParams, Opts);
 validate_opts(_Name, _Kind, Opts) ->
     Opts.
@@ -100,7 +101,7 @@ validate_advisory_param(Name, _Kind, Opt, _Value) ->
 validate_explicit_bucket_boundaries(Name, [_ | _] = Value) ->
     case lists:all(fun is_number/1, Value) and (lists:sort(Value) == Value) of
         true ->
-            {true, Value};
+            {true, {explicit_bucket_boundaries, Value}};
         false ->
             ?LOG_WARNING("[instrument '~s'] 'explicit_bucket_boundaries' advisory parameter should be a not empty ordered list of numbers, got ~p", [Name, Value]),
             false
