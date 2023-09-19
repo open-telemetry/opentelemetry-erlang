@@ -37,8 +37,9 @@
 -spec create_instrument(otel_meter:t(), otel_instrument:name(), otel_instrument:kind(), otel_instrument:opts()) -> otel_instrument:t().
 create_instrument(Meter, Name, Kind, Opts) ->
     validate_name(Name),
+    ValidatedOpts = validate_opts(Name, Kind, Opts),
     Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
-        otel_instrument:new(?MODULE, Meter, Kind, Name, Opts),
+        otel_instrument:new(?MODULE, Meter, Kind, Name, ValidatedOpts),
     _ = otel_meter_server:add_instrument(Provider, Instrument),
     Instrument.
 
@@ -54,8 +55,9 @@ lookup_instrument(Meter={_, #meter{instruments_tab=Tab}}, Name) ->
 -spec create_instrument(otel_meter:t(), otel_instrument:name(), otel_instrument:kind(), otel_instrument:callback(), otel_instrument:callback_args(), otel_instrument:opts()) -> otel_instrument:t().
 create_instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts) ->
     validate_name(Name),
+    ValidatedOpts = validate_opts(Name, Kind, Opts),
     Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
-        otel_instrument:new(?MODULE, Meter, Kind, Name, Callback, CallbackArgs, Opts),
+        otel_instrument:new(?MODULE, Meter, Kind, Name, Callback, CallbackArgs, ValidatedOpts),
     _ = otel_meter_server:add_instrument(Provider, Instrument),
     Instrument.
 
@@ -79,6 +81,33 @@ validate_name(Name) when is_atom(Name) ->
 validate_name(Name) ->
     ?LOG_ERROR("Invalid instrument name, should be an atom matching '~s', but got ~p", [?INSTRUMENT_NAME_REGEX, Name]),
     ok.
+
+validate_opts(Name, Kind, #{advisory_params := AdvisoryParams} = Opts) ->
+    ValidatedAdvisoryParams = maps:filtermap(fun(Key, Value) -> validate_advisory_param(Name, Kind, Key, Value) end, AdvisoryParams),
+    maps:put(advisory_params, ValidatedAdvisoryParams, Opts);
+validate_opts(_Name, _Kind, Opts) ->
+    Opts.
+
+validate_advisory_param(Name, ?KIND_HISTOGRAM, explicit_bucket_boundaries, Value) ->
+    validate_explicit_bucket_boundaries(Name, Value);
+validate_advisory_param(Name, _Kind, explicit_bucket_boundaries, _Value) ->
+    ?LOG_WARNING("[instrument '~s'] 'explicit_bucket_boundaries' advisory parameter is allowed only for histograms, ignoring", [Name]),
+    false;
+validate_advisory_param(Name, _Kind, Opt, _Value) ->
+    ?LOG_WARNING("[instrument '~s'] '~s' advisory parameter is not supported, ignoring", [Name, Opt]),
+    false.
+
+validate_explicit_bucket_boundaries(Name, [_ | _] = Value) ->
+    case lists:all(fun is_number/1, Value) and (lists:sort(Value) == Value) of
+        true ->
+            {true, Value};
+        false ->
+            ?LOG_WARNING("[instrument '~s'] 'explicit_bucket_boundaries' advisory parameter should be a not empty ordered list of numbers, got ~p", [Name, Value]),
+            false
+    end;
+validate_explicit_bucket_boundaries(Name, Value) ->
+    ?LOG_WARNING("[instrument '~s'] 'explicit_bucket_boundaries' advisory parameter should be a not empty ordered list of numbers, got ~p", [Name, Value]),
+    false.
 %%
 
 record(Instrument=#instrument{meter={_, #meter{view_aggregations_tab=ViewAggregationTab,
