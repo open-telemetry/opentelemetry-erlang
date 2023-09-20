@@ -52,12 +52,10 @@
 -include_lib("opentelemetry_api/include/gradualizer.hrl").
 
 
--dialyzer({nowarn_function,new/2}).
 -spec new(criteria() | undefined, config()) -> {ok, t()} | error.
 new(Criteria, Config) ->
     new(undefined, Criteria, Config).
 
--dialyzer({nowarn_function,new/3}).
 -spec new(name(), criteria() | undefined, config()) -> {ok, t()} | error.
 new(undefined, Criteria, Config) ->
     {ok, do_new(Criteria, Config)};
@@ -70,7 +68,6 @@ new(Name, Criteria, Config) ->
 
 %% no name means Instrument name is used
 %% must reject wildcard Criteria  in this case
--dialyzer({nowarn_function,do_new/2}).
 do_new(Criteria, Config) ->
     CriteriaInstrumentName = view_name_from_criteria(Criteria),
     Matchspec = criteria_to_instrument_matchspec(Criteria),
@@ -83,7 +80,6 @@ do_new(Criteria, Config) ->
           aggregation_module=maps:get(aggregation_module, Config, undefined),
           aggregation_options=maps:get(aggregation_options, Config, #{})}.
 
--dialyzer({nowarn_function,match_instrument_to_views/2}).
 -spec match_instrument_to_views(otel_instrument:t(), [t()]) -> [{t() | undefined, #view_aggregation{}}].
 match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                                  meter=Meter,
@@ -146,7 +142,6 @@ value_or(undefined, Other) ->
 value_or(Value, _Other) ->
     Value.
 
--dialyzer({nowarn_function,criteria_to_instrument_matchspec/1}).
 -spec criteria_to_instrument_matchspec(map() | undefined) -> ets:comp_match_spec().
 criteria_to_instrument_matchspec(Criteria) when is_map(Criteria) ->
     Instrument =
@@ -177,20 +172,16 @@ criteria_to_instrument_matchspec(_) ->
     %% eqwalizer:ignore building a matchspec and don't want '_' polluting the type
     ets:match_spec_compile([{#instrument{_='_'}, [], [true]}]).
 
--dialyzer({nowarn_function,maybe_init_meter/1}).
 maybe_init_meter(#instrument{meter='_'}) ->
     {'_', #meter{instrumentation_scope=#instrumentation_scope{_='_'},
                  _='_'}}.
 
--dialyzer({nowarn_function,update_meter_name/2}).
 update_meter_name(MeterName, {_, Meter=#meter{instrumentation_scope=Scope}}) ->
     {'_', Meter#meter{instrumentation_scope=Scope#instrumentation_scope{name=MeterName}}}.
 
--dialyzer({nowarn_function,update_meter_version/2}).
 update_meter_version(MeterVersion, {_, Meter=#meter{instrumentation_scope=Scope}}) ->
     {'_', Meter#meter{instrumentation_scope=Scope#instrumentation_scope{version=MeterVersion}}}.
 
--dialyzer({nowarn_function,update_meter_schema_url/2}).
 update_meter_schema_url(SchemaUrl, {_, Meter=#meter{instrumentation_scope=Scope}}) ->
     {'_', Meter#meter{instrumentation_scope=Scope#instrumentation_scope{schema_url=SchemaUrl}}}.
 

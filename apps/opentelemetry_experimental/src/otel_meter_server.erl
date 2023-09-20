@@ -253,7 +253,6 @@ code_change(State) ->
 
 %%
 
--dialyzer({nowarn_function,add_view_/9}).
 add_view_(Name, Criteria, Config, InstrumentsTab, CallbacksTab, ViewAggregationsTab, Readers, Views, State) ->
     case otel_view:new(Name, Criteria, Config) of
         {ok, NewView} -> 
@@ -287,7 +286,6 @@ metrics_tab(Name) ->
                                                                {keypos, 2},
                                                                public]).
 
--dialyzer({nowarn_function,new_view/1}).
 new_view(ViewConfig) ->
     Name = maps:get(name, ViewConfig, undefined),
     Description = maps:get(description, ViewConfig, undefined),

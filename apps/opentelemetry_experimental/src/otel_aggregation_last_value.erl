@@ -53,7 +53,6 @@ aggregate(Tab, ViewAggregation=#view_aggregation{name=Name,
             ets:insert(Tab, ?assert_type((?assert_type(Metric, #last_value_aggregation{}))#last_value_aggregation{value=Value}, tuple()))
     end.
 
--dialyzer({nowarn_function, checkpoint/3}).
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
                                   temporality=?TEMPORALITY_DELTA}, CollectionStartNano) ->

@@ -11,7 +11,7 @@
          name :: atom(),
          scope :: opentelemetry:instrumentation_scope(),
          instrument :: otel_instrument:t(),
-         reader :: reference(),
+         reader :: reference() | undefined,
 
          attribute_keys :: [opentelemetry:attribute_key()] | undefined,
 

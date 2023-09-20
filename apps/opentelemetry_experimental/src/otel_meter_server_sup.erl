@@ -29,7 +29,6 @@
 start_link(Name, Resource, Opts) ->
     supervisor:start_link(?MODULE, [Name, Resource, Opts]).
 
--dialyzer({nowarn_function, provider_pid/1}).
 -spec provider_pid(supervisor:sup_ref()) -> pid() | restarting | undefined.
 provider_pid(SupPid) ->
     Children = supervisor:which_children(SupPid),
