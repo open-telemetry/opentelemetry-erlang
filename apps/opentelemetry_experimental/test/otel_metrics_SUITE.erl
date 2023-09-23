@@ -83,7 +83,7 @@ all() ->
      kill_reader, kill_server, observable_counter, observable_updown_counter, observable_gauge,
      multi_instrument_callback, using_macros, float_counter, float_updown_counter, float_histogram,
      sync_filtered_attributes, async_filtered_attributes, delta_observable_counter,
-     bad_observable_return, default_resource, advisory_params
+     bad_observable_return, default_resource, histogram_aggregation_options, advisory_params
     ].
 
 init_per_suite(Config) ->
@@ -1195,6 +1195,41 @@ advisory_params(_Config) ->
     ?assertEqual(ok, otel_histogram:record(HistogramB, 15, #{<<"a">> => <<"1">>})),
     ?assertEqual(ok, otel_histogram:record(HistogramB, 50, #{<<"a">> => <<"1">>})),
     ?assertEqual(ok, otel_histogram:record(HistogramB, 26, #{<<"a">> => <<"2">>})),
+
+    otel_meter_server:force_flush(),
+
+    receive
+        {otel_metric, #metric{name=view,
+                              data=#histogram{datapoints=DatapointsB}}} ->
+            AttributeBucketsB =
+                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                         attributes=Attributes,
+                                                                                         min=Min,
+                                                                                         max=Max,
+                                                                                         sum=Sum} <- DatapointsB]),
+            ?assertEqual([], [{#{<<"a">> => <<"1">>}, [0,2,0], 15, 50, 65},
+                              {#{<<"a">> => <<"2">>}, [0,1,0], 26, 26, 26}]
+                         -- AttributeBucketsB, AttributeBucketsB)
+    after
+        1000 ->
+            ct:fail(histogram_receive_timeout)
+    end.
+
+histogram_aggregation_options(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    ?assert(otel_meter_server:add_view(view, #{instrument_name => histogram}, #{
+        aggregation_module => otel_aggregation_histogram_explicit,
+        aggregation_options => #{boundaries => [10, 100]}})),
+
+    Histogram = otel_histogram:create(Meter, histogram, #{}),
+
+    ?assertEqual(ok, otel_histogram:record(Histogram, 15, #{<<"a">> => <<"1">>})),
+    ?assertEqual(ok, otel_histogram:record(Histogram, 50, #{<<"a">> => <<"1">>})),
+    ?assertEqual(ok, otel_histogram:record(Histogram, 26, #{<<"a">> => <<"2">>})),
 
     otel_meter_server:force_flush(),
 
