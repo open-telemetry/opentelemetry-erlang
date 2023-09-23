@@ -40,9 +40,9 @@
 
 -type advisory_params() :: #{explicit_bucket_boundaries => [number(), ...]}.
 
--type opts() :: #{description => otel_instrument:description(),
-                  unit => otel_instrument:unit(),
-                  advisory_params => otel_instrument:advisory_params()}.
+-type opts() :: #{description => description(),
+                  unit => unit(),
+                  advisory_params => advisory_params()}.
 
 -type t() :: #instrument{}.
 
