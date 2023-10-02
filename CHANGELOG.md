@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changes
 
 - [Allow to create observable instruments without passing callback arguments](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
+- [Allow to give `advisory_params` to instrument creation functions](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
 
 ## Experimental SDK
 
@@ -37,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [Add `instrument_unit` to view criteria](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
 - [Validate instrument name](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
+- [Handle `explict_bucket_boundaries` advisory parameter](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
+- [Rename `boundaries` to `explict_bucket_boundaries` in histogram explicit aggregation options](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
 
 ### Changes
 
