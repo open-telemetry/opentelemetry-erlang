@@ -26,7 +26,7 @@
 -record(sum_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-         key :: otel_aggregation:key() | match_spec(otel_aggregation:key()) | {element, 2, '$_'},
+         key :: otel_aggregation:key() | otel_aggregation:key_match_spec() | {element, 2, '$_'},
          start_time_unix_nano :: integer() | match_spec(integer()),
          last_start_time_unix_nano :: integer() | match_spec(integer()),
          checkpoint :: number() | match_spec(number()) | {'+', '$2', '$3'} | {'+', '$3', '$4'},
@@ -38,7 +38,7 @@
 -record(last_value_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-         key :: otel_aggregation:key() | match_spec(otel_aggregation:key()),
+         key :: otel_aggregation:key() | otel_aggregation:key_match_spec(),
          checkpoint :: number() | match_spec(number()),
          value :: number() | match_spec(number()),
          start_time_unix_nano :: integer() | match_spec(integer()),
@@ -58,7 +58,7 @@
 -record(explicit_histogram_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-         key :: otel_aggregation:key() | match_spec(otel_aggregation:key()),
+         key :: otel_aggregation:key() | otel_aggregation:key_match_spec(),
          start_time_unix_nano :: integer() | {const, eqwalizer:dynamic()} | '$9' | '$2' | undefined,
          %% instrument_temporality :: otel_aggregation:temporality(),
          %% default: [0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0]
