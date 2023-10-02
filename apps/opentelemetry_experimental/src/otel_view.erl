@@ -78,7 +78,8 @@ new(Name, Criteria, Config) ->
 -spec match_instrument_to_views(otel_instrument:t(), [t()]) -> [{t() | undefined, #view_aggregation{}}].
 match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                                  meter=Meter,
-                                                 description=Description}, Views) ->
+                                                 description=Description,
+                                                 advisory_params=AdvisoryParams}, Views) ->
     IsMonotonic = otel_instrument:is_monotonic(Instrument),
     Temporality = otel_instrument:temporality(Instrument),
     Scope = otel_meter:scope(Meter),
@@ -91,6 +92,7 @@ match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                      [] ->
                                          false;
                                      _ ->
+                                         AggregationOptions1 = aggragation_options(AggregationOptions, AdvisoryParams),
                                          %% `reader' needs to be undefined and is set
                                          %% for each in `otel_meter_server'
                                          %% eqwalizer:ignore see above
@@ -101,26 +103,34 @@ match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                                                          temporality=Temporality,
                                                                          is_monotonic=IsMonotonic,
                                                                          attribute_keys=AttributeKeys,
-                                                                         aggregation_options=AggregationOptions,
+                                                                         aggregation_options=AggregationOptions1,
                                                                          description=value_or(ViewDescription,
                                                                                               Description)
                                                                         }}}
                                  end
                          end, Views) of
         [] ->
+            AggregationOptions1 = aggragation_options(#{}, AdvisoryParams),
             [{undefined, #view_aggregation{name=InstrumentName,
                                            scope=Scope,
                                            instrument=Instrument,
                                            temporality=Temporality,
                                            is_monotonic=IsMonotonic,
                                            attribute_keys=undefined,
-                                           aggregation_options=#{},
+                                           aggregation_options=AggregationOptions1,
                                            description=Description}}];
         Aggs ->
             Aggs
     end.
 
 %%
+
+aggragation_options(#{explicit_bucket_boundaries := _} = AggregationOptions, _AdvisoryParams) ->
+    AggregationOptions;
+aggragation_options(AggregationOptions, #{explicit_bucket_boundaries := Boundaries}) ->
+    maps:put(explicit_bucket_boundaries, Boundaries, AggregationOptions);
+aggragation_options(AggregationOptions, _AdvisoryParams) ->
+    AggregationOptions.
 
 value_or(undefined, Other) ->
     Other;

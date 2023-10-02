@@ -41,9 +41,7 @@ register_callback(_Meter, _Instruments, _Callback, _CallbackArgs) ->
     ok.
 
 create_instrument(Meter, Name, Kind, Opts) ->
-    otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
-                        maps:get(unit, Opts, undefined)).
+    otel_instrument:new(?MODULE, Meter, Kind, Name, Opts).
 
 create_instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts) ->
-    otel_instrument:new(?MODULE, Meter, Kind, Name, maps:get(description, Opts, undefined),
-                        maps:get(unit, Opts, undefined), Callback, CallbackArgs).
+    otel_instrument:new(?MODULE, Meter, Kind, Name, Callback, CallbackArgs, Opts).

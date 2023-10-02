@@ -136,12 +136,12 @@ init(#view_aggregation{name=Name,
                        reader=ReaderId,
                        aggregation_options=Options}, Attributes) ->
     Key = {Name, Attributes, ReaderId},
-    Boundaries = maps:get(boundaries, Options, ?DEFAULT_BOUNDARIES),
+    ExplicitBucketBoundaries = maps:get(explicit_bucket_boundaries, Options, ?DEFAULT_BOUNDARIES),
     RecordMinMax = maps:get(record_min_max, Options, true),
     #explicit_histogram_aggregation{key=Key,
                                     start_time_unix_nano=erlang:system_time(nanosecond),
-                                    boundaries=Boundaries,
-                                    bucket_counts=new_bucket_counts(Boundaries),
+                                    explicit_bucket_boundaries=ExplicitBucketBoundaries,
+                                    bucket_counts=new_bucket_counts(ExplicitBucketBoundaries),
                                     checkpoint=undefined,
                                     record_min_max=RecordMinMax,
                                     min=infinity, %% works because any atom is > any integer
@@ -153,17 +153,17 @@ aggregate(Table, #view_aggregation{name=Name,
                                    reader=ReaderId,
                                    aggregation_options=Options}, Value, Attributes) ->
     Key = {Name, Attributes, ReaderId},
-    Boundaries = maps:get(boundaries, Options, ?DEFAULT_BOUNDARIES),
+    ExplicitBucketBoundaries = maps:get(explicit_bucket_boundaries, Options, ?DEFAULT_BOUNDARIES),
     try ets:lookup_element(Table, Key, #explicit_histogram_aggregation.bucket_counts) of
         BucketCounts0 ->
             BucketCounts = case BucketCounts0 of
                                undefined ->
-                                   new_bucket_counts(Boundaries);
+                                   new_bucket_counts(ExplicitBucketBoundaries);
                                _ ->
                                    BucketCounts0
                            end,
 
-            BucketIdx = find_bucket(Boundaries, Value),
+            BucketIdx = find_bucket(ExplicitBucketBoundaries, Value),
             counters:add(BucketCounts, BucketIdx, 1),
 
             MS = ?AGGREATE_MATCH_SPEC(Key, Value, BucketCounts),
@@ -181,7 +181,7 @@ checkpoint(Tab, #view_aggregation{name=Name,
                                   temporality=?TEMPORALITY_DELTA}, CollectionStartNano) ->
     MS = [{#explicit_histogram_aggregation{key='$1',
                                            start_time_unix_nano='$9',
-                                           boundaries='$2',
+                                           explicit_bucket_boundaries='$2',
                                            record_min_max='$3',
                                            checkpoint='_',
                                            bucket_counts='$5',
@@ -193,7 +193,7 @@ checkpoint(Tab, #view_aggregation{name=Name,
             {'=:=', {element, 3, '$1'}, {const, ReaderId}}],
            [{#explicit_histogram_aggregation{key='$1',
                                              start_time_unix_nano={const, CollectionStartNano},
-                                             boundaries='$2',
+                                             explicit_bucket_boundaries='$2',
                                              record_min_max='$3',
                                              checkpoint={#explicit_histogram_checkpoint{bucket_counts='$5',
                                                                                         min='$6',
@@ -229,7 +229,7 @@ collect(Tab, #view_aggregation{name=Name,
 
 datapoint(CollectionStartNano, #explicit_histogram_aggregation{
                                   key={_, Attributes, _},
-                                  boundaries=Boundaries,
+                                  explicit_bucket_boundaries=Boundaries,
                                   start_time_unix_nano=StartTimeUnixNano,
                                   checkpoint=undefined,
                                   bucket_counts=BucketCounts,
@@ -253,7 +253,7 @@ datapoint(CollectionStartNano, #explicit_histogram_aggregation{
       };
 datapoint(CollectionStartNano, #explicit_histogram_aggregation{
                                   key={_, Attributes, _},
-                                  boundaries=Boundaries,
+                                  explicit_bucket_boundaries=Boundaries,
                                   checkpoint=#explicit_histogram_checkpoint{bucket_counts=BucketCounts,
                                                                             min=Min,
                                                                             max=Max,
