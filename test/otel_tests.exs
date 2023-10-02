@@ -1,5 +1,5 @@
 defmodule OtelTests do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   require OpenTelemetry.Tracer, as: Tracer
   require OpenTelemetry.Span, as: Span
