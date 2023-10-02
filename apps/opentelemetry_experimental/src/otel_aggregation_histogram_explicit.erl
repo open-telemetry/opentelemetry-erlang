@@ -218,7 +218,7 @@ collect(Tab, #view_aggregation{name=Name,
                                temporality=Temporality}, CollectionStartTime) ->
     Select = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId},
                                                start_time_unix_nano='$2',
-                                               boundaries='$3',
+                                               explicit_bucket_boundaries='$3',
                                                record_min_max='$4',
                                                checkpoint='$5',
                                                bucket_counts='$6',
