@@ -1,5 +1,5 @@
 defmodule OtelMetricTests do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   require OpenTelemetryAPIExperimental.Counter, as: Counter
   require OpenTelemetryAPIExperimental.UpDownCounter, as: UpDownCounter
