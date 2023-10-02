@@ -62,7 +62,7 @@
          start_time_unix_nano :: integer() | {const, eqwalizer:dynamic()} | '$9' | '$2' | undefined,
          %% instrument_temporality :: otel_aggregation:temporality(),
          %% default: [0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0]
-         boundaries :: [float()] | match_spec([float()]),
+         explicit_bucket_boundaries :: [float()] | match_spec([float()]),
          record_min_max :: boolean() | match_spec(boolean()),
          checkpoint :: #explicit_histogram_checkpoint{} | match_spec(#explicit_histogram_checkpoint{}) | {#explicit_histogram_checkpoint{}},
          bucket_counts :: counters:counters_ref() | match_spec(undefined),

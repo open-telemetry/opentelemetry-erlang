@@ -28,7 +28,7 @@
 -spec create(Meter, Name, Opts) -> otel_instrument:t() when
       Meter :: otel_meter:t(),
       Name :: otel_instrument:name(),
-      Opts :: otel_meter:opts().
+      Opts :: otel_instrument:opts().
 create(Meter, Name, Opts) ->
     otel_meter:create_counter(Meter, Name, Opts).
 
