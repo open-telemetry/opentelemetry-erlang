@@ -1183,10 +1183,10 @@ advisory_params(_Config) ->
             ct:fail(histogram_receive_timeout)
     end,
 
-    % boundaries from view have precedence
+    % explicit_bucket_boundaries from view have precedence
     ?assert(otel_meter_server:add_view(view, #{instrument_name => b_histogram}, #{
         aggregation_module => otel_aggregation_histogram_explicit,
-        aggregation_options => #{boundaries => [10, 100]}})),
+        aggregation_options => #{explicit_bucket_boundaries => [10, 100]}})),
 
     HistogramB = otel_histogram:create(Meter, b_histogram,
                                   #{advisory_params => #{explicit_bucket_boundaries => [10, 20, 30]}}),
@@ -1223,7 +1223,7 @@ histogram_aggregation_options(_Config) ->
 
     ?assert(otel_meter_server:add_view(view, #{instrument_name => histogram}, #{
         aggregation_module => otel_aggregation_histogram_explicit,
-        aggregation_options => #{boundaries => [10, 100]}})),
+        aggregation_options => #{explicit_bucket_boundaries => [10, 100]}})),
 
     Histogram = otel_histogram:create(Meter, histogram, #{}),
 

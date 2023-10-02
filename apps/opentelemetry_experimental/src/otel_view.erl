@@ -125,10 +125,10 @@ match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
 
 %%
 
-aggragation_options(#{boundaries := _} = AggregationOptions, _AdvisoryParams) ->
+aggragation_options(#{explicit_bucket_boundaries := _} = AggregationOptions, _AdvisoryParams) ->
     AggregationOptions;
 aggragation_options(AggregationOptions, #{explicit_bucket_boundaries := Boundaries}) ->
-    maps:put(boundaries, Boundaries, AggregationOptions);
+    maps:put(explicit_bucket_boundaries, Boundaries, AggregationOptions);
 aggragation_options(AggregationOptions, _AdvisoryParams) ->
     AggregationOptions.
 
