@@ -745,7 +745,8 @@ attach_ctx(Config) ->
     Ctx = otel_ctx:get_current(),
 
     erlang:spawn(fun() ->
-                         otel_ctx:attach(Ctx),
+                         ReturnVal = otel_ctx:attach(Ctx),
+                         ?assertEqual(Ctx, ReturnVal),
                          ?set_current_span(SpanCtx2),
                          otel_span:end_span(SpanCtx2)
                  end),

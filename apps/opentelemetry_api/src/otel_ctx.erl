@@ -123,7 +123,8 @@ get_current() ->
 -spec attach(t()) -> token().
 attach(Ctx) ->
     update_logger_process_metadata(Ctx),
-    erlang:put(?CURRENT_CTX, Ctx).
+    erlang:put(?CURRENT_CTX, Ctx),
+    Ctx.
 
 -spec detach(token()) -> ok.
 detach(Token) ->
