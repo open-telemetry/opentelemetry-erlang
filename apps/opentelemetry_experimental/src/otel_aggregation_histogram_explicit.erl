@@ -190,7 +190,7 @@ checkpoint(Tab, #view_aggregation{name=Name,
                                            sum='$8'
                                           },
            [],
-           [{#explicit_histogram_aggregation{key={{Name, '$1', {const, ReaderId}}},
+           [{#explicit_histogram_aggregation{key={{{const, Name}, '$1', {const, ReaderId}}},
                                              start_time_unix_nano={const, CollectionStartNano},
                                              boundaries='$2',
                                              record_min_max='$3',
