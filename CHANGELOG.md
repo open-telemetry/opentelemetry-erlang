@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [Allow to create observable instruments without passing callback arguments](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
 - [Allow to give `advisory_params` to instrument creation functions](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
+- [Attributes are optional in Counter.add(), UpDownCounter.add() and Histo.record()](https://github.com/open-telemetry/opentelemetry-erlang/pull/632)
 
 ## Experimental SDK
 
@@ -50,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
  - [Correctly record histogram values greater than last boundary](https://github.com/open-telemetry/opentelemetry-erlang/pull/614)
  - [Readers should use a default cumulative temporality if not specified](https://github.com/open-telemetry/opentelemetry-erlang/pull/613)
+ - [Counter.add() and Histogram.record() accept only positive numbers](https://github.com/open-telemetry/opentelemetry-erlang/pull/632)
 
 ## SDK 1.3.1 - 2023-08-15
 
