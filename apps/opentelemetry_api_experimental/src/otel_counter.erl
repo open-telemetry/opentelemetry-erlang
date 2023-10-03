@@ -19,6 +19,7 @@
 -module(otel_counter).
 
 -export([create/3,
+         add/2,
          add/3,
          add/4]).
 
@@ -32,10 +33,20 @@
 create(Meter, Name, Opts) ->
     otel_meter:create_counter(Meter, Name, Opts).
 
+-spec add(otel_instrument:t(), pos_integer() | float()) -> ok.
+add(Instrument=#instrument{module=Module}, Number) ->
+    Module:record(Instrument, Number).
+
+-spec add(
+    otel_meter:t() | otel_instrument:t(),
+    otel_instrument:name() | pos_integer() | float(),
+    pos_integer() | float() | opentelemetry:attributes_map()) -> ok.
+add(Instrument=#instrument{module=Module}, Number, Attributes) ->
+    Module:record(Instrument, Number, Attributes);
+
+add(Meter, Name, Number) ->
+    otel_meter:record(Meter, Name, Number).
+
 -spec add(otel_meter:t(), otel_instrument:name(), pos_integer() |float(), opentelemetry:attributes_map()) -> ok.
 add(Meter, Name, Number, Attributes) ->
     otel_meter:record(Meter, Name, Number, Attributes).
-
--spec add(otel_instrument:t(), pos_integer() |float(), opentelemetry:attributes_map()) -> ok.
-add(Instrument=#instrument{module=Module}, Number, Attributes) ->
-    Module:record(Instrument, Number, Attributes).

@@ -263,10 +263,14 @@ float_counter(_Config) ->
     ?assertEqual(ok, ?counter_add(CounterName, 5.5, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?counter_add(CounterName, 5, #{<<"c">> => <<"b">>})),
 
+     %% without attributes
+    ?assertEqual(ok, ?counter_add(CounterName, 1.2)),
+    ?assertEqual(ok, otel_counter:add(Counter, 2.1)),
+
     otel_meter_server:force_flush(),
 
     ?assertSumReceive(f_counter, <<"macro made counter description">>, kb,
-                      [{20.8, #{<<"c">> => <<"b">>}}]),
+                      [{3.3, #{}}, {20.8, #{<<"c">> => <<"b">>}}]),
 
     ok.
 
@@ -287,10 +291,15 @@ float_updown_counter(_Config) ->
     ?assertEqual(ok, ?updown_counter_add(CounterName, -5.5, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?updown_counter_add(CounterName, 5, #{<<"c">> => <<"b">>})),
 
+    %% without attributes
+    ?assertEqual(ok, ?updown_counter_add(CounterName, 1.2)),
+    ?assertEqual(ok, otel_updown_counter:add(Counter, 2.1)),
+
+
     otel_meter_server:force_flush(),
 
     ?assertSumReceive(f_counter, <<"macro made updown counter description">>, kb,
-                      [{10.0, #{<<"c">> => <<"b">>}}]),
+                      [{3.3, #{}}, {10.0, #{<<"c">> => <<"b">>}}]),
 
     ok.
 
@@ -310,6 +319,10 @@ float_histogram(_Config) ->
     ?assertEqual(ok, otel_histogram:record(Counter, 10.3, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_histogram:record(Counter, 10.3, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?histogram_record(CounterName, 5.5, #{<<"c">> => <<"b">>})),
+    
+    %% without attributes
+    ?assertEqual(ok, ?histogram_record(CounterName, 1.2)),
+    ?assertEqual(ok, otel_histogram:record(Counter, 2.1)),
 
     %% float type accepts integers
     ?assertEqual(ok, ?histogram_record(CounterName, 5, #{<<"c">> => <<"b">>})),
@@ -326,7 +339,9 @@ float_histogram(_Config) ->
                                          min=Min,
                                          max=Max,
                                          sum=Sum}  <- Datapoints],
-            ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0], 5, 10.3, 31.1}]
+            ?assertEqual([], [
+                              {#{<<"c">> => <<"b">>}, [0,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0], 5, 10.3, 31.1},
+                              {#{}, [0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 1.2, 2.1, 3.3}]
                          -- AttributeBuckets, AttributeBuckets)
     after
         5000 ->

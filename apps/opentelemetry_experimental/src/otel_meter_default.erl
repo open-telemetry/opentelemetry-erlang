@@ -25,7 +25,8 @@
          register_callback/4,
          scope/1]).
 
--export([record/3,
+-export([record/2,
+         record/3,
          record/4]).
 
 -include_lib("kernel/include/logger.hrl").
@@ -110,6 +111,13 @@ validate_explicit_bucket_boundaries(Name, Value) ->
     ?LOG_WARNING("[instrument '~s'] 'explicit_bucket_boundaries' advisory parameter should be a not empty ordered list of numbers, got ~p", [Name, Value]),
     false.
 %%
+
+
+record(Instrument=#instrument{}, Number) ->
+    record(Instrument, Number, #{}).
+
+record(Meter={_,#meter{}}, Name, Number) ->
+    record(Meter, Name, Number, #{});
 
 record(Instrument=#instrument{meter={_, #meter{view_aggregations_tab=ViewAggregationTab,
                                                metrics_tab=MetricsTab}}}, Number, Attributes) ->

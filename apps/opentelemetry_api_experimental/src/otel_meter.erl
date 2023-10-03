@@ -34,6 +34,7 @@
 
          lookup_instrument/2,
 
+         record/3,
          record/4]).
 
 -include("otel_metrics.hrl").
@@ -168,6 +169,9 @@ lookup_instrument(Meter={Module, _}, Name) ->
       CallbackArgs :: otel_instrument:callback_args().
 register_callback(Meter={Module, _}, Instruments, Callback, CallbackArgs) ->
     Module:register_callback(Meter, Instruments, Callback, CallbackArgs).
+
+record(Meter={Module, _}, Name, Number) ->
+    Module:record(Meter, Name, Number).
 
 record(Meter={Module, _}, Name, Number, Attributes) ->
     Module:record(Meter, Name, Number, Attributes).
