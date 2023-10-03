@@ -374,14 +374,19 @@ handle_measurement(Meter, Name, Number, Attributes, ViewAggregationsTab, Metrics
     update_aggregations(Number, Attributes, Matches, MetricsTab).
 
 update_aggregations(Value, Attributes, ViewAggregations, MetricsTab) ->
-    lists:foreach(fun([ViewAggregation=#view_aggregation{}]) ->
-                          otel_aggregation:maybe_init_aggregate(MetricsTab,
-                                                                ViewAggregation,
-                                                                Value,
-                                                                Attributes);
+    lists:foreach(fun([ViewAggregation=#view_aggregation{instrument=Instrument}]) ->
+                        maybe_init_aggregate(Value, Instrument, MetricsTab, ViewAggregation, Attributes);
                      (_) ->
                           ok
                   end, ViewAggregations).
+
+maybe_init_aggregate(Value, #instrument{kind=Kind} = Instrument, _MetricsTab, _ViewAggregation, _Attributes)
+        when Value < 0, Kind == ?KIND_COUNTER orelse Kind == ?KIND_HISTOGRAM ->
+    ?LOG_INFO("Discarding negative value for instrument ~s of type ~s", [Instrument#instrument.name, Kind]),
+    ok;
+
+maybe_init_aggregate(Value, _Instrument, MetricsTab, ViewAggregation, Attributes) ->
+    otel_aggregation:maybe_init_aggregate(MetricsTab, ViewAggregation, Value, Attributes).
 
 %% create an aggregation for each Reader and its possibly unique aggregation/temporality
 per_reader_aggregations(Reader, Instrument, ViewAggregations) ->
