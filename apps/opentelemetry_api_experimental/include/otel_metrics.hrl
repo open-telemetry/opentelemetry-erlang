@@ -1,6 +1,4 @@
--ifndef(MATCH_SPEC_TYPES_DEFINED).
 -include_lib("match_spec.hrl").
--endif.
 
 -record(instrument, {module          :: match_spec(module()),
                      meter           :: match_spec(otel_meter:t()),

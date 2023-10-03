@@ -258,7 +258,7 @@ add_view_(Name, Criteria, Config, InstrumentsTab, CallbacksTab, ViewAggregations
         {ok, NewView} -> 
             _ = update_view_aggregations(InstrumentsTab, CallbacksTab, ViewAggregationsTab, [NewView], Readers),
             {reply, true, State#state{views=[NewView | Views]}};
-        error ->
+        {error, named_wildcard_view} ->
             {reply, false, State}
     end.
 
@@ -299,7 +299,7 @@ new_view(ViewConfig) ->
                                     aggregation_options => AggregationOptions
                                    }) of
         {ok, View} -> {true, View};
-        error -> false
+        {error, named_wildcard_view} -> false
     end.
 
 %% Match the Instrument to views and then store a per-Reader aggregation for the View

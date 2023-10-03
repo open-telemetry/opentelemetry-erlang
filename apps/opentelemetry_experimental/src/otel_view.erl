@@ -52,16 +52,16 @@
 -include_lib("opentelemetry_api/include/gradualizer.hrl").
 
 
--spec new(criteria() | undefined, config()) -> {ok, t()} | error.
+-spec new(criteria() | undefined, config()) -> {ok, t()} | {error, named_wildcard_view}.
 new(Criteria, Config) ->
     new(undefined, Criteria, Config).
 
--spec new(name(), criteria() | undefined, config()) -> {ok, t()} | error.
+-spec new(name(), criteria() | undefined, config()) -> {ok, t()} | {error, named_wildcard_view}.
 new(undefined, Criteria, Config) ->
     {ok, do_new(Criteria, Config)};
 new(Name, #{instrument_name := '*'}, _Config) ->
     ?LOG_INFO("Wildacrd Views can not have a name, discarding view ~s", [Name]),
-    error;
+    {error, named_wildcard_view};
 new(Name, Criteria, Config) ->
     View = do_new(Criteria, Config),
     {ok, View#view{name=Name}}.

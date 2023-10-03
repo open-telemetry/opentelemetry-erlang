@@ -1,8 +1,9 @@
--ifndef(MATCH_SPEC_TYPES_DEFINED).
 -include_lib("opentelemetry_api_experimental/include/match_spec.hrl").
--endif.
 
 -define(DEFAULT_METER_PROVIDER, otel_meter_provider_default).
+
+-type key_inner_match_spec() :: {match_spec(atom()), match_spec(opentelemetry:attributes_map()), match_spec(reference())}.
+-type key_match_spec() :: match_spec(otel_aggregation:key()) | key_inner_match_spec()  | {key_inner_match_spec()}.
 
 -record(meter,
         {
@@ -26,7 +27,7 @@
 -record(sum_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-         key :: match_spec(otel_aggregation:key()) |  otel_aggregation:key_match_spec() | undefined | {element, 2, '$_'},
+         key :: key_match_spec() | undefined | {element, 2, '$_'},
          start_time_unix_nano :: match_spec(integer()) | undefined,
          last_start_time_unix_nano :: match_spec(integer()) | undefined,
          checkpoint :: match_spec(number()) | undefined | {'+', '$2', '$3'} | {'+', '$3', '$4'},
@@ -38,7 +39,7 @@
 -record(last_value_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-         key :: match_spec(otel_aggregation:key()) | otel_aggregation:key_match_spec() | undefined,
+         key :: key_match_spec() | undefined,
          checkpoint :: match_spec(number()) | undefined,
          value :: match_spec(number()) | undefined,
          start_time_unix_nano :: match_spec(integer()) | undefined,
@@ -58,8 +59,8 @@
 -record(explicit_histogram_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-         key :: match_spec(otel_aggregation:key()) | otel_aggregation:key_match_spec() | undefined,
-         start_time_unix_nano :: integer() | {const, eqwalizer:dynamic()} | '$9' | '$2' | undefined,
+         key :: key_match_spec() | undefined,
+         start_time_unix_nano :: match_spec(integer()) | undefined,
          %% instrument_temporality :: otel_aggregation:temporality(),
          %% default: [0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0]
          explicit_bucket_boundaries :: match_spec([float()]) | undefined,

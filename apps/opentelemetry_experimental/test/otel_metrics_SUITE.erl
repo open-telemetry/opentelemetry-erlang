@@ -485,7 +485,7 @@ wildcard_view(_Config) ->
     ?assertMatch([{#view{}, _}], otel_view:match_instrument_to_views(Counter, [View])),
 
     %% not possible to create wildcard views with a name
-    error = otel_view:new(view_name, ViewCriteria, ViewConfig),
+    {error, named_wildcard_view} = otel_view:new(view_name, ViewCriteria, ViewConfig),
     
     ok.
 
