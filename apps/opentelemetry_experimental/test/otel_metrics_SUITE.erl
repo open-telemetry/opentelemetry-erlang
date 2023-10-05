@@ -64,21 +64,21 @@
 -define(assertNotReceive(Name, Description, Unit),
         (fun() ->
                  receive
-                     M=#metric{name=MetricName,
-                               description=MetricDescription,
-                               unit=MetricUnit}
+                     {otel_metric, M=#metric{name=MetricName,
+                                             description=MetricDescription,
+                                             unit=MetricUnit}}
                        when MetricName =:= Name,
                             MetricDescription =:= Description,
                             MetricUnit =:= Unit ->
                          ct:fail({metric_received, M})
                  after
-                     0 ->
+                     50 ->
                          ok
                  end
          end)()).
 
 all() ->
-    [default_view, provider_test, view_creation_test, counter_add, multiple_readers,
+    [default_view, provider_test, view_creation_test, wildcard_view, counter_add, multiple_readers,
      explicit_histograms, delta_explicit_histograms, delta_counter, cumulative_counter,
      kill_reader, kill_server, observable_counter, observable_updown_counter, observable_gauge,
      multi_instrument_callback, using_macros, float_counter, float_updown_counter, float_histogram,
@@ -433,17 +433,17 @@ view_creation_test(_Config) ->
 
     ?assert(otel_meter_server:add_view(view_a, #{instrument_name => a_counter}, #{aggregation_module => otel_aggregation_sum})),
 
-    View = otel_view:new(#{instrument_name => a_counter}, #{aggregation_module => otel_aggregation_sum}),
+    {ok, View} = otel_view:new(#{instrument_name => a_counter}, #{aggregation_module => otel_aggregation_sum}),
     %% view name becomes the instrument name
     ?assertEqual(a_counter, View#view.name),
 
     Matches = otel_view:match_instrument_to_views(Counter, [View]),
     ?assertMatch([_], Matches),
 
-    ViewUnitMatch = otel_view:new(#{instrument_name => CounterName, instrument_unit => CounterUnit}, #{aggregation_module => otel_aggregation_sum}),
+    {ok, ViewUnitMatch} = otel_view:new(#{instrument_name => CounterName, instrument_unit => CounterUnit}, #{aggregation_module => otel_aggregation_sum}),
     ?assertMatch([{#view{}, _}], otel_view:match_instrument_to_views(Counter, [ViewUnitMatch])),
 
-    ViewUnitNotMatch = otel_view:new(#{instrument_name => CounterName, instrument_unit => not_matching}, #{aggregation_module => otel_aggregation_sum}),
+    {ok, ViewUnitNotMatch} = otel_view:new(#{instrument_name => CounterName, instrument_unit => not_matching}, #{aggregation_module => otel_aggregation_sum}),
     ?assertMatch([{undefined, _}], otel_view:match_instrument_to_views(Counter, [ViewUnitNotMatch])),
 
     %% views require a unique name
@@ -457,6 +457,36 @@ view_creation_test(_Config) ->
     ?assert(otel_meter_server:add_view(#{instrument_name => b_counter}, #{aggregation_module => otel_aggregation_sum})),
     ?assert(otel_meter_server:add_view(#{instrument_name => c_counter}, #{aggregation_module => otel_aggregation_sum})),
 
+    ok.
+
+wildcard_view(_Config) ->
+    Meter = opentelemetry_experimental:get_meter(),
+
+    ViewCriteria = #{instrument_name => '*'},
+    ViewConfig = #{aggregation_module => otel_aggregation_drop},
+
+    ?assert(otel_meter_server:add_view(ViewCriteria, ViewConfig)),
+
+    CounterName = a_counter,
+    CounterDesc = <<"counter description">>,
+    CounterUnit = kb,
+
+    Counter = otel_counter:create(Meter, CounterName,
+                                  #{description => CounterDesc,
+                                    unit => CounterUnit}),
+
+    ?assertEqual(ok, otel_counter:add(Counter, 1, #{})),
+
+    otel_meter_server:force_flush(),
+
+    ?assertNotReceive(CounterName, CounterDesc, CounterUnit),
+
+    {ok, View} = otel_view:new(ViewCriteria, ViewConfig),
+    ?assertMatch([{#view{}, _}], otel_view:match_instrument_to_views(Counter, [View])),
+
+    %% not possible to create wildcard views with a name
+    {error, named_wildcard_view} = otel_view:new(view_name, ViewCriteria, ViewConfig),
+    
     ok.
 
 counter_add(_Config) ->
@@ -825,7 +855,7 @@ kill_server(_Config) ->
     otel_meter_server:force_flush(),
 
     %% at this time a crashed meter server will mean losing the recorded metrics up to that point
-    ?assertNotReceive(a_counter, <<"counter description">>, kb),
+    ?assertSumReceive(a_counter, <<"counter description">>, kb, []),
     ?assertSumReceive(z_counter, <<"counter description">>, kb, [{9, #{<<"c">> => <<"b">>}}]),
 
     ok.

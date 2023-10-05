@@ -1,8 +1,9 @@
+-include_lib("opentelemetry_api_experimental/include/match_spec.hrl").
+
 -define(DEFAULT_METER_PROVIDER, otel_meter_provider_default).
 
--type match_var() :: '_' | '$1' | '$2' | '$3' | '$4' | '$5' | '$6' | '$7' | '$8' | '$9'.
--type match_expr(A) :: undefined | match_var() | {const, A}.
--type match_spec(A) :: match_expr(A).
+-type key_inner_match_spec() :: {match_spec(atom()), match_spec(opentelemetry:attributes_map()), match_spec(reference())}.
+-type key_match_spec() :: match_spec(otel_aggregation:key()) | key_inner_match_spec()  | {key_inner_match_spec()}.
 
 -record(meter,
         {
@@ -26,49 +27,49 @@
 -record(sum_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-         key :: otel_aggregation:key() | otel_aggregation:key_match_spec() | {element, 2, '$_'},
-         start_time_unix_nano :: integer() | match_spec(integer()),
-         last_start_time_unix_nano :: integer() | match_spec(integer()),
-         checkpoint :: number() | match_spec(number()) | {'+', '$2', '$3'} | {'+', '$3', '$4'},
-         previous_checkpoint :: number() | match_spec(number()) | {'+', '$5', '$6'},
-         int_value :: number() | match_spec(number()) | {'+', '$3', {const, number()}},
-         float_value :: number() | match_spec(number()) | {'+', '$4', {const, number()}}
+         key :: key_match_spec() | undefined | {element, 2, '$_'},
+         start_time_unix_nano :: match_spec(integer()) | undefined,
+         last_start_time_unix_nano :: match_spec(integer()) | undefined,
+         checkpoint :: match_spec(number()) | undefined | {'+', '$2', '$3'} | {'+', '$3', '$4'},
+         previous_checkpoint :: match_spec(number()) | undefined | {'+', '$5', '$6'},
+         int_value :: match_spec(number()) | undefined | {'+', '$3', {const, number()}},
+         float_value :: match_spec(number()) | undefined | {'+', '$4', {const, number()}}
         }).
 
 -record(last_value_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-         key :: otel_aggregation:key() | otel_aggregation:key_match_spec(),
-         checkpoint :: number() | match_spec(number()),
-         value :: number() | match_spec(number()),
-         start_time_unix_nano :: integer() | match_spec(integer()),
-         last_start_time_unix_nano :: integer() | match_spec(integer())
+         key :: key_match_spec() | undefined,
+         checkpoint :: match_spec(number()) | undefined,
+         value :: match_spec(number()) | undefined,
+         start_time_unix_nano :: match_spec(integer()) | undefined,
+         last_start_time_unix_nano :: match_spec(integer()) | undefined
         }).
 
 
 -record(explicit_histogram_checkpoint,
         {
-         bucket_counts :: counters:counters_ref() | match_spec(counters:counters_ref()),
-         min :: number() | match_spec(number()),
-         max :: number() | match_spec(number()),
-         sum :: number() | match_spec(number()),
-         start_time_unix_nano :: integer() | match_spec(number())
+         bucket_counts :: match_spec(counters:counters_ref()) | undefined,
+         min :: match_spec(number()) | undefined,
+         max :: match_spec(number()) | undefined,
+         sum :: match_spec(number()) | undefined,
+         start_time_unix_nano :: match_spec(number()) | undefined
         }).
 
 -record(explicit_histogram_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
-         key :: otel_aggregation:key() | otel_aggregation:key_match_spec(),
-         start_time_unix_nano :: integer() | {const, eqwalizer:dynamic()} | '$9' | '$2' | undefined,
+         key :: key_match_spec() | undefined,
+         start_time_unix_nano :: match_spec(integer()) | undefined,
          %% instrument_temporality :: otel_aggregation:temporality(),
          %% default: [0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0]
-         explicit_bucket_boundaries :: [float()] | match_spec([float()]),
-         record_min_max :: boolean() | match_spec(boolean()),
-         checkpoint :: #explicit_histogram_checkpoint{} | match_spec(#explicit_histogram_checkpoint{}) | {#explicit_histogram_checkpoint{}},
+         explicit_bucket_boundaries :: match_spec([float()]) | undefined,
+         record_min_max :: match_spec(boolean()) | undefined,
+         checkpoint :: match_spec(#explicit_histogram_checkpoint{}) | {#explicit_histogram_checkpoint{}} | undefined,
          bucket_counts :: counters:counters_ref() | match_spec(undefined),
-         min :: number() | infinity | match_spec(number()),
-         max :: number() | match_spec(number()),
-         sum :: number() | match_spec(number())
+         min :: infinity | match_spec(number()) | undefined,
+         max :: match_spec(number()) | undefined,
+         sum :: match_spec(number()) | undefined
         }).
 
 -record(datapoint,
@@ -96,16 +97,16 @@
 -record(histogram_datapoint,
         {
          attributes :: opentelemetry:attributes_map(),
-         start_time_unix_nano :: integer() | match_spec(integer()) | {const, eqwalizer:dynamic()},
+         start_time_unix_nano :: match_spec(integer()) | {const, eqwalizer:dynamic()}  | undefined,
          time_unix_nano :: integer(),
          count :: number(),
-         sum :: float() | match_spec(integer()),
+         sum :: float() | match_spec(integer()) | undefined,
          bucket_counts :: list(),
-         explicit_bounds :: [float()] | match_spec([float()]),
+         explicit_bounds :: match_spec([float()]) | undefined,
          exemplars :: list(),
          flags :: integer(),
-         min :: integer() | infinity | match_spec(integer()),
-         max :: integer() | match_spec(integer())
+         min ::  infinity | match_spec(integer()) | undefined,
+         max :: match_spec(integer()) | undefined
         }).
 
 -record(histogram,

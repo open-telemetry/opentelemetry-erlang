@@ -21,6 +21,7 @@
          new/3,
          match_instrument_to_views/2]).
 
+-include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_metrics.hrl").
@@ -50,11 +51,24 @@
 
 -include_lib("opentelemetry_api/include/gradualizer.hrl").
 
+
+-spec new(criteria() | undefined, config()) -> {ok, t()} | {error, named_wildcard_view}.
+new(Criteria, Config) ->
+    new(undefined, Criteria, Config).
+
+-spec new(name(), criteria() | undefined, config()) -> {ok, t()} | {error, named_wildcard_view}.
+new(undefined, Criteria, Config) ->
+    {ok, do_new(Criteria, Config)};
+new(Name, #{instrument_name := '*'}, _Config) ->
+    ?LOG_INFO("Wildacrd Views can not have a name, discarding view ~s", [Name]),
+    {error, named_wildcard_view};
+new(Name, Criteria, Config) ->
+    View = do_new(Criteria, Config),
+    {ok, View#view{name=Name}}.
+
 %% no name means Instrument name is used
 %% must reject wildcard Criteria  in this case
--dialyzer({nowarn_function,new/2}).
--spec new(criteria() | undefined, config()) -> t().
-new(Criteria, Config) ->
+do_new(Criteria, Config) ->
     CriteriaInstrumentName = view_name_from_criteria(Criteria),
     Matchspec = criteria_to_instrument_matchspec(Criteria),
     %% no name given so use the name of the instrument in the selection
@@ -66,15 +80,6 @@ new(Criteria, Config) ->
           aggregation_module=maps:get(aggregation_module, Config, undefined),
           aggregation_options=maps:get(aggregation_options, Config, #{})}.
 
--dialyzer({nowarn_function,new/3}).
--spec new(name(), criteria() | undefined, config()) -> t().
-new(undefined, Criteria, Config) ->
-    new(Criteria, Config);
-new(Name, Criteria, Config) ->
-    View = new(Criteria, Config),
-    View#view{name=Name}.
-
--dialyzer({nowarn_function,match_instrument_to_views/2}).
 -spec match_instrument_to_views(otel_instrument:t(), [t()]) -> [{t() | undefined, #view_aggregation{}}].
 match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                                  meter=Meter,
@@ -137,11 +142,12 @@ value_or(undefined, Other) ->
 value_or(Value, _Other) ->
     Value.
 
--dialyzer({nowarn_function,criteria_to_instrument_matchspec/1}).
--spec criteria_to_instrument_matchspec(map() | undefined) -> ets:compiled_match_spec().
+-spec criteria_to_instrument_matchspec(map() | undefined) -> ets:comp_match_spec().
 criteria_to_instrument_matchspec(Criteria) when is_map(Criteria) ->
     Instrument =
-      maps:fold(fun(instrument_name, InstrumentName, InstrumentAcc) ->
+      maps:fold(fun(instrument_name, '*', InstrumentAcc) ->
+                        InstrumentAcc;
+                   (instrument_name, InstrumentName, InstrumentAcc) ->
                         InstrumentAcc#instrument{name=InstrumentName};
                    (instrument_kind, Kind, InstrumentAcc) ->
                         InstrumentAcc#instrument{kind=Kind};
@@ -166,24 +172,23 @@ criteria_to_instrument_matchspec(_) ->
     %% eqwalizer:ignore building a matchspec and don't want '_' polluting the type
     ets:match_spec_compile([{#instrument{_='_'}, [], [true]}]).
 
--dialyzer({nowarn_function,maybe_init_meter/1}).
 maybe_init_meter(#instrument{meter='_'}) ->
     {'_', #meter{instrumentation_scope=#instrumentation_scope{_='_'},
                  _='_'}}.
 
--dialyzer({nowarn_function,update_meter_name/2}).
 update_meter_name(MeterName, {_, Meter=#meter{instrumentation_scope=Scope}}) ->
     {'_', Meter#meter{instrumentation_scope=Scope#instrumentation_scope{name=MeterName}}}.
 
--dialyzer({nowarn_function,update_meter_version/2}).
 update_meter_version(MeterVersion, {_, Meter=#meter{instrumentation_scope=Scope}}) ->
     {'_', Meter#meter{instrumentation_scope=Scope#instrumentation_scope{version=MeterVersion}}}.
 
--dialyzer({nowarn_function,update_meter_schema_url/2}).
 update_meter_schema_url(SchemaUrl, {_, Meter=#meter{instrumentation_scope=Scope}}) ->
     {'_', Meter#meter{instrumentation_scope=Scope#instrumentation_scope{schema_url=SchemaUrl}}}.
 
 view_name_from_criteria(Criteria) when is_map(Criteria) ->
-    maps:get(instrument_name, Criteria, undefined);
+    case maps:get(instrument_name, Criteria, undefined) of
+        '*' -> undefined;
+        Name -> Name
+    end;
 view_name_from_criteria(_) ->
     undefined.

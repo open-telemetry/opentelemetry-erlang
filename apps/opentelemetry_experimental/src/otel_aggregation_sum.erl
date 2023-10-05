@@ -89,7 +89,6 @@ aggregate(_Tab, #view_aggregation{name=_Name,
                                   is_monotonic=_IsMonotonic}, _Value, _) ->
     false.
 
--dialyzer({nowarn_function, checkpoint/3}).
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
                                   temporality=?TEMPORALITY_DELTA}, CollectionStartNano) ->

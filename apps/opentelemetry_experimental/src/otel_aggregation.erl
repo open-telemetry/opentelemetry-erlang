@@ -12,13 +12,11 @@
              otel_aggregation_last_value:t() | otel_aggregation_histogram_explicit:t().
 
 -type key() :: {atom(), opentelemetry:attributes_map(), reference()}.
--type key_match_spec() :: match_spec(otel_aggregation:key()) | {match_spec(atom()), match_spec(opentelemetry:attributes_map()), match_spec(reference())}.
 
 -type options() :: map().
 
 -export_type([t/0,
               key/0,
-              key_match_spec/0,
               options/0]).
 
 %% Returns the aggregation's record as it is seen and updated by

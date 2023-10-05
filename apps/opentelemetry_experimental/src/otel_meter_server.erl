@@ -177,9 +177,7 @@ init([Name, RegName, Resource, Config]) ->
     %% TODO: don't do this if its already set?
     opentelemetry_experimental:set_default_meter(Name, {otel_meter_default, Meter}),
 
-    %% TODO: drop View if Criteria is a wildcard instrument name and View
-    %% name is not undefined
-    Views = [new_view(V) || V <- maps:get(views, Config, [])],
+    Views = lists:filtermap(fun new_view/1, maps:get(views, Config, [])),
 
     {ok, #state{shared_meter=Meter,
                 instruments_tab=InstrumentsTab,
@@ -235,10 +233,7 @@ handle_call({add_view, Name, Criteria, Config}, _From, State=#state{views=Views,
                                                                     callbacks_tab=CallbacksTab,
                                                                     view_aggregations_tab=ViewAggregationsTab,
                                                                     readers=Readers}) ->
-    %% TODO: drop View if Criteria is a wildcard instrument name and View name is not undefined
-    NewView = otel_view:new(Name, Criteria, Config),
-    _ = update_view_aggregations(InstrumentsTab, CallbacksTab, ViewAggregationsTab, [NewView], Readers),
-    {reply, true, State#state{views=[NewView | Views]}};
+    add_view_(Name, Criteria, Config, InstrumentsTab, CallbacksTab, ViewAggregationsTab, Readers, Views, State);
 handle_call(force_flush, _From, State=#state{readers=Readers}) ->
     [otel_metric_reader:collect(Pid) || #reader{pid=Pid} <- Readers],
     {reply, ok, State}.
@@ -257,6 +252,15 @@ code_change(State) ->
     {ok, State}.
 
 %%
+
+add_view_(Name, Criteria, Config, InstrumentsTab, CallbacksTab, ViewAggregationsTab, Readers, Views, State) ->
+    case otel_view:new(Name, Criteria, Config) of
+        {ok, NewView} -> 
+            _ = update_view_aggregations(InstrumentsTab, CallbacksTab, ViewAggregationsTab, [NewView], Readers),
+            {reply, true, State#state{views=[NewView | Views]}};
+        {error, named_wildcard_view} ->
+            {reply, false, State}
+    end.
 
 instruments_tab(Name) ->
     ets:new(list_to_atom(lists:concat([instruments, "_", Name])), [set,
@@ -282,7 +286,6 @@ metrics_tab(Name) ->
                                                                {keypos, 2},
                                                                public]).
 
--dialyzer({nowarn_function,new_view/1}).
 new_view(ViewConfig) ->
     Name = maps:get(name, ViewConfig, undefined),
     Description = maps:get(description, ViewConfig, undefined),
@@ -290,11 +293,14 @@ new_view(ViewConfig) ->
     AttributeKeys = maps:get(attribute_keys, ViewConfig, undefined),
     AggregationModule = maps:get(aggregation_module, ViewConfig, undefined),
     AggregationOptions = maps:get(aggregation_options, ViewConfig, #{}),
-    otel_view:new(Name, Selector, #{description => Description,
+    case otel_view:new(Name, Selector, #{description => Description,
                                     attribute_keys => AttributeKeys,
                                     aggregation_module => AggregationModule,
                                     aggregation_options => AggregationOptions
-                                   }).
+                                   }) of
+        {ok, View} -> {true, View};
+        {error, named_wildcard_view} -> false
+    end.
 
 %% Match the Instrument to views and then store a per-Reader aggregation for the View
 add_instrument_(InstrumentsTab, CallbacksTab, ViewAggregationsTab, Instrument=#instrument{meter=Meter,

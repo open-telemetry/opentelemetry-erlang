@@ -175,7 +175,6 @@ aggregate(Table, #view_aggregation{name=Name,
             false
     end.
 
--dialyzer({nowarn_function, checkpoint/3}).
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
                                   temporality=?TEMPORALITY_DELTA}, CollectionStartNano) ->
