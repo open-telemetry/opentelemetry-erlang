@@ -24,7 +24,7 @@
                          ?assertEqual(Description, MetricDescription),
 
                          SortedDatapoints =
-                             lists:sort([{MetricValue, MetricAttributes} ||
+                             lists:sort([{MetricValue, otel_attributes:map(MetricAttributes)} ||
                                             #datapoint{value=MetricValue,
                                                        attributes=MetricAttributes,
                                                        start_time_unix_nano=StartTimeUnixNano,
@@ -49,7 +49,7 @@
                          ?assertEqual(Description, MetricDescription),
 
                          SortedDatapoints =
-                             lists:sort([{MetricValue, MetricAttributes} ||
+                             lists:sort([{MetricValue, otel_attributes:map(MetricAttributes)} ||
                                             #datapoint{value=MetricValue,
                                                        attributes=MetricAttributes,
                                                        start_time_unix_nano=StartTimeUnixNano,
@@ -320,7 +320,7 @@ float_histogram(_Config) ->
         {otel_metric, #metric{name=f_histogram,
                               data=#histogram{datapoints=Datapoints}}} ->
             AttributeBuckets =
-                [{Attributes, Buckets, Min, Max, Sum}
+                [{otel_attributes:map(Attributes), Buckets, Min, Max, Sum}
                  || #histogram_datapoint{bucket_counts=Buckets,
                                          attributes=Attributes,
                                          min=Min,
@@ -571,11 +571,11 @@ explicit_histograms(_Config) ->
         {otel_metric, #metric{name=a_histogram,
                               data=#histogram{datapoints=Datapoints}}} ->
             AttributeBuckets =
-                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
-                                                                                         attributes=Attributes,
-                                                                                         min=Min,
-                                                                                         max=Max,
-                                                                                         sum=Sum}  <- Datapoints]),
+                lists:sort([{otel_attributes:map(Attributes), Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                                              attributes=Attributes,
+                                                                                                              min=Min,
+                                                                                                              max=Max,
+                                                                                                              sum=Sum}  <- Datapoints]),
             ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,0,0,1,1,0,1,0,0,0,0,0,0,0,0,1], 20, 20000, 20164},
                               {#{<<"a">> => <<"b">>, <<"d">> => <<"e">>}, [0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0], 30, 30, 30}]
                          -- AttributeBuckets, AttributeBuckets)
@@ -620,11 +620,11 @@ delta_explicit_histograms(_Config) ->
         {otel_metric, #metric{name=a_histogram,
                               data=#histogram{datapoints=Datapoints}}} ->
             AttributeBuckets =
-                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
-                                                                                         attributes=Attributes,
-                                                                                         min=Min,
-                                                                                         max=Max,
-                                                                                         sum=Sum}  <- Datapoints]),
+                lists:sort([{otel_attributes:map(Attributes), Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                                              attributes=Attributes,
+                                                                                                              min=Min,
+                                                                                                              max=Max,
+                                                                                                              sum=Sum}  <- Datapoints]),
             ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,0,0,1,1,0,1,0,0,0,0,0,0,0,0,0], 20, 100, 164},
                               {#{<<"a">> => <<"b">>, <<"d">> => <<"e">>}, [0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0], 30, 30, 30}]
                          -- AttributeBuckets, AttributeBuckets)
@@ -641,11 +641,11 @@ delta_explicit_histograms(_Config) ->
         {otel_metric, #metric{name=a_histogram,
                               data=#histogram{datapoints=Datapoints1}}} ->
             AttributeBuckets1 =
-                [{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
-                                                                              attributes=Attributes,
-                                                                              min=Min,
-                                                                              max=Max,
-                                                                              sum=Sum}  <- Datapoints1],
+                [{otel_attributes:map(Attributes), Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                                   attributes=Attributes,
+                                                                                                   min=Min,
+                                                                                                   max=Max,
+                                                                                                   sum=Sum}  <- Datapoints1],
             ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0], 88, 88, 88},
                               {#{<<"a">> => <<"b">>,<<"d">> => <<"e">>},
                                [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -1200,11 +1200,11 @@ advisory_params(_Config) ->
         {otel_metric, #metric{name=a_histogram,
                               data=#histogram{datapoints=Datapoints}}} ->
             AttributeBuckets =
-                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
-                                                                                         attributes=Attributes,
-                                                                                         min=Min,
-                                                                                         max=Max,
-                                                                                         sum=Sum} <- Datapoints]),
+                lists:sort([{otel_attributes:map(Attributes), Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                                              attributes=Attributes,
+                                                                                                              min=Min,
+                                                                                                              max=Max,
+                                                                                                              sum=Sum} <- Datapoints]),
             ?assertEqual([], [{#{<<"a">> => <<"1">>}, [0,1,0,1], 15, 50, 65},
                               {#{<<"a">> => <<"2">>}, [0,0,1,0], 26, 26, 26}]
                          -- AttributeBuckets, AttributeBuckets)
@@ -1232,11 +1232,11 @@ advisory_params(_Config) ->
         {otel_metric, #metric{name=view,
                               data=#histogram{datapoints=DatapointsB}}} ->
             AttributeBucketsB =
-                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
-                                                                                         attributes=Attributes,
-                                                                                         min=Min,
-                                                                                         max=Max,
-                                                                                         sum=Sum} <- DatapointsB]),
+                lists:sort([{otel_attributes:map(Attributes), Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                                              attributes=Attributes,
+                                                                                                              min=Min,
+                                                                                                              max=Max,
+                                                                                                              sum=Sum} <- DatapointsB]),
             ?assertEqual([], [{#{<<"a">> => <<"1">>}, [0,2,0], 15, 50, 65},
                               {#{<<"a">> => <<"2">>}, [0,1,0], 26, 26, 26}]
                          -- AttributeBucketsB, AttributeBucketsB)
@@ -1267,11 +1267,11 @@ histogram_aggregation_options(_Config) ->
         {otel_metric, #metric{name=view,
                               data=#histogram{datapoints=DatapointsB}}} ->
             AttributeBucketsB =
-                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
-                                                                                         attributes=Attributes,
-                                                                                         min=Min,
-                                                                                         max=Max,
-                                                                                         sum=Sum} <- DatapointsB]),
+                lists:sort([{otel_attributes:map(Attributes), Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                                              attributes=Attributes,
+                                                                                                              min=Min,
+                                                                                                              max=Max,
+                                                                                                              sum=Sum} <- DatapointsB]),
             ?assertEqual([], [{#{<<"a">> => <<"1">>}, [0,2,0], 15, 50, 65},
                               {#{<<"a">> => <<"2">>}, [0,1,0], 26, 26, 26}]
                          -- AttributeBucketsB, AttributeBucketsB)

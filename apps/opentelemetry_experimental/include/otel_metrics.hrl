@@ -2,7 +2,7 @@
 
 -define(DEFAULT_METER_PROVIDER, otel_meter_provider_default).
 
--type key_inner_match_spec() :: {match_spec(atom()), match_spec(opentelemetry:attributes_map()), match_spec(reference())}.
+-type key_inner_match_spec() :: {match_spec(atom()), match_spec(otel_attributes:t()), match_spec(reference())}.
 -type key_match_spec() :: match_spec(otel_aggregation:key()) | key_inner_match_spec()  | {key_inner_match_spec()}.
 
 -record(meter,
@@ -13,13 +13,6 @@
          instruments_tab         :: ets:table() | '_',
          view_aggregations_tab   :: ets:table() | '_',
          metrics_tab             :: ets:table() | '_'
-        }).
-
--record(measurement,
-        {
-         instrument :: otel_instrument:t(),
-         value :: number(),
-         attributes :: opentelemetry:attributes_map()
         }).
 
 -record(drop_aggregation, {}).
@@ -74,7 +67,7 @@
 
 -record(datapoint,
         {
-         attributes :: opentelemetry:attributes_map(),
+         attributes :: otel_attributes:t(),
          start_time_unix_nano :: integer(),
          time_unix_nano :: integer(),
          value :: number(),
@@ -96,7 +89,7 @@
 
 -record(histogram_datapoint,
         {
-         attributes :: opentelemetry:attributes_map(),
+         attributes :: otel_attributes:t(),
          start_time_unix_nano :: match_spec(integer()) | {const, eqwalizer:dynamic()}  | undefined,
          time_unix_nano :: integer(),
          count :: number(),

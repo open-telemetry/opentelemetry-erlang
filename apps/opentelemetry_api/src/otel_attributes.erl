@@ -22,6 +22,7 @@
          set/3,
          dropped/1,
          map/1,
+         filter/2,
          is_valid_attribute/2,
          process_attributes/1]).
 
@@ -72,6 +73,10 @@ map(#attributes{map=Map}) ->
     Map.
 
 %%
+
+filter(Attributes=#attributes{map=Map}, KeysToKeep) ->
+    KeptAttributes = maps:with(KeysToKeep, Map),
+    Attributes#attributes{map=KeptAttributes}.
 
 update_attributes(List, Attributes) ->
     maps:fold(fun update_attribute/3, Attributes, List).

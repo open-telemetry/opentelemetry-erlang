@@ -92,10 +92,9 @@ handle_instruments_observations(Results, _Instruments, _ViewAggregationTab, _Met
 %% update aggregation for each observation
 handle_observations(_MetricsTab, _ViewAggregation, []) ->
     ok;
-handle_observations(MetricsTab, ViewAggregation, [{Number, Attributes} | Rest])
-  when is_number(Number),
-       is_map(Attributes) ->
-    _ = otel_aggregation:maybe_init_aggregate(MetricsTab, ViewAggregation, Number, Attributes),
+handle_observations(MetricsTab, ViewAggregation, [{Number, Attributes} | Rest]) when is_number(Number), is_map(Attributes) ->
+    AttributesRecord = otel_attributes:new(Attributes, 128, infinity),
+    _ = otel_aggregation:maybe_init_aggregate(MetricsTab, ViewAggregation, Number, AttributesRecord),
     handle_observations(MetricsTab, ViewAggregation, Rest);
 handle_observations(MetricsTab, ViewAggregation, [Result | Rest]) ->
     ?LOG_DEBUG("Each metric callback result must be of type {number(), map()} but got ~p", [Result]),
