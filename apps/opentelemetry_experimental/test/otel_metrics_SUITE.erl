@@ -83,7 +83,8 @@ all() ->
      kill_reader, kill_server, observable_counter, observable_updown_counter, observable_gauge,
      multi_instrument_callback, using_macros, float_counter, float_updown_counter, float_histogram,
      sync_filtered_attributes, async_filtered_attributes, delta_observable_counter,
-     bad_observable_return, default_resource, histogram_aggregation_options, advisory_params
+     bad_observable_return, default_resource, histogram_aggregation_options, advisory_params,
+     too_many_attributes
     ].
 
 init_per_suite(Config) ->
@@ -174,6 +175,12 @@ init_per_testcase(delta_observable_counter, Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
     Config;
+init_per_testcase(too_many_attributes, Config) ->
+    application:stop(opentelemetry),
+    application:unload(opentelemetry),
+    application:load(opentelemetry),
+    application:set_env(opentelemetry, attribute_count_limit, 2),
+    init_per_testcase(undefined, Config);
 init_per_testcase(_, Config) ->
     application:load(opentelemetry_experimental),
     ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
@@ -185,6 +192,10 @@ init_per_testcase(_, Config) ->
 
     Config.
 
+end_per_testcase(too_many_attributes, Config) ->
+    ok = application:stop(opentelemetry),
+    application:unload(opentelemetry),
+    end_per_testcase(undefined, Config);
 end_per_testcase(_, _Config) ->
     ok = application:stop(opentelemetry_experimental),
     application:unload(opentelemetry_experimental),
@@ -1278,4 +1289,23 @@ histogram_aggregation_options(_Config) ->
     after
         1000 ->
             ct:fail(histogram_receive_timeout)
+    end.
+
+too_many_attributes(_Config) ->
+    CounterName = counter,
+
+    Counter = ?create_counter(CounterName, #{}),
+
+    ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"a">> => 1, <<"b">> => 2, <<"c">> => 3})),
+    ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"a">> => 4})),
+
+    otel_meter_server:force_flush(),
+
+     receive
+        {otel_metric, #metric{name=counter, data=#sum{datapoints=Datapoints}}} ->
+            Data = lists:sort([{MetricValue, otel_attributes:dropped(MetricAttributes)} || #datapoint{value=MetricValue, attributes=MetricAttributes} <- Datapoints]),
+            ?assertMatch([{2, 1}, {5, 0}], lists:sort(Data), Data)
+    after
+        1000 ->
+            ct:fail(counter_receive_timeout)
     end.

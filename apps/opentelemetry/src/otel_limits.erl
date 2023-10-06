@@ -22,6 +22,8 @@
          set/1,
          attribute_count_limit/0,
          attribute_value_length_limit/0,
+         span_attribute_count_limit/0,
+         span_attribute_value_length_limit/0,
          event_count_limit/0,
          link_count_limit/0,
          attribute_per_event_limit/0,
@@ -38,12 +40,16 @@ get() ->
 -spec set(otel_configuration:t()) -> ok.
 set(#{attribute_count_limit := AttributeCountLimit,
       attribute_value_length_limit := AttributeValueLengthLimit,
+      span_attribute_count_limit := SpanAttributeCountLimit,
+      span_attribute_value_length_limit := SpanAttributeValueLengthLimit,
       event_count_limit := EventCountLimit,
       link_count_limit := LinkCountLimit,
       attribute_per_event_limit := AttributePerEventLimit,
       attribute_per_link_limit := AttributePerLinkLimit}) ->
     Limits = #limits{attribute_count_limit=AttributeCountLimit,
                               attribute_value_length_limit=AttributeValueLengthLimit,
+                              span_attribute_count_limit=SpanAttributeCountLimit,
+                              span_attribute_value_length_limit=SpanAttributeValueLengthLimit,
                               event_count_limit=EventCountLimit,
                               link_count_limit=LinkCountLimit,
                               attribute_per_event_limit=AttributePerEventLimit,
@@ -55,6 +61,12 @@ attribute_count_limit() ->
 
 attribute_value_length_limit() ->
     get_limit(attribute_value_length_limit, ?MODULE:get()).
+
+span_attribute_count_limit() ->
+    get_limit(span_attribute_count_limit, ?MODULE:get()).
+
+span_attribute_value_length_limit() ->
+    get_limit(span_attribute_value_length_limit, ?MODULE:get()).
 
 event_count_limit() ->
     get_limit(event_count_limit, ?MODULE:get()).
@@ -72,6 +84,14 @@ get_limit(attribute_count_limit, #limits{attribute_count_limit=AttributeCountLim
     AttributeCountLimit;
 get_limit(attribute_value_length_limit, #limits{attribute_value_length_limit=AttributeValueLengthLimit}) ->
     AttributeValueLengthLimit;
+get_limit(span_attribute_count_limit, #limits{span_attribute_count_limit=undefined, attribute_count_limit=AttributeCountLimit}) ->
+    AttributeCountLimit;
+get_limit(span_attribute_count_limit, #limits{span_attribute_count_limit=SpanAttributeCountLimit}) ->
+    SpanAttributeCountLimit;
+get_limit(span_attribute_value_length_limit, #limits{span_attribute_value_length_limit=undefined, attribute_value_length_limit=AttributeValueLengthLimit}) ->
+    AttributeValueLengthLimit;
+get_limit(span_attribute_value_length_limit, #limits{span_attribute_value_length_limit=SpanAttributeValueLengthLimit}) ->
+    SpanAttributeValueLengthLimit;
 get_limit(event_count_limit, #limits{event_count_limit=EventCountLimit}) ->
     EventCountLimit;
 get_limit(link_count_limit, #limits{link_count_limit=LinkCountLimit}) ->

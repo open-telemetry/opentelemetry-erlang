@@ -59,6 +59,8 @@
                             storage_size => integer() | infinity},
                attribute_count_limit := integer(),
                attribute_value_length_limit := integer() | infinity,
+               span_attribute_count_limit := integer(),
+               span_attribute_value_length_limit := integer() | infinity,
                event_count_limit := integer(),
                link_count_limit := integer(),
                attribute_per_event_limit := integer(),
@@ -97,6 +99,8 @@ new() ->
                                 storage_size => infinity},
                    attribute_count_limit => 128,
                    attribute_value_length_limit => infinity,
+                   span_attribute_count_limit => undefined,
+                   span_attribute_value_length_limit => undefined,
                    event_count_limit => 128,
                    link_count_limit => 128,
                    attribute_per_event_limit => 128,
@@ -323,14 +327,14 @@ config_mappings(general_sdk) ->
      {"OTEL_SSP_EXPORT_TIMEOUT_MILLIS", ssp_exporting_timeout_ms, integer}
     ];
 config_mappings(limits) ->
-    [{"OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", attribute_count_limit, integer},
-     {"OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT", attribute_value_length_limit, integer_infinity},
+    [{"OTEL_ATTRIBUTE_COUNT_LIMIT", attribute_count_limit, integer},
+     {"OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT", attribute_value_length_limit, integer_infinity},
+     {"OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", span_attribute_count_limit, integer},
+     {"OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT", span_attribute_value_length_limit, integer_infinity},
      {"OTEL_SPAN_EVENT_COUNT_LIMIT", event_count_limit, integer},
      {"OTEL_SPAN_LINK_COUNT_LIMIT", link_count_limit, integer},
      {"OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT", attribute_per_event_limit, integer},
-     {"OTEL_LINK_ATTRIBUTE_COUNT_LIMIT", attribute_per_link_limit, integer}%% ,
-     %% {"OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT", attribute_value_length_limit, integer},
-     %% {"OTEL_ATTRIBUTE_COUNT_LIMIT", attribute_per_link_limit, integer}
+     {"OTEL_LINK_ATTRIBUTE_COUNT_LIMIT", attribute_per_link_limit, integer}
     ];
 config_mappings(sweeper) ->
     [{"OTEL_SPAN_SWEEPER_INTERVAL", interval, integer_infinity},

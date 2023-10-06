@@ -140,7 +140,9 @@ init_per_testcase(resource_detectors, Config) ->
 
     [{os_vars, Vars} | Config];
 init_per_testcase(limits, Config) ->
-    Vars = [{"OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", "111"},
+    Vars = [{"OTEL_ATTRIBUTE_COUNT_LIMIT", "123"},
+            {"OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT", "4"},
+            {"OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", "111"},
             {"OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT", "009"},
             {"OTEL_SPAN_EVENT_COUNT_LIMIT", "200"},
             {"OTEL_SPAN_LINK_COUNT_LIMIT", "1101"},
@@ -149,22 +151,28 @@ init_per_testcase(limits, Config) ->
 
     setup_env(Vars),
 
-    ExpectedOpts = #{attribute_count_limit => 111,
-                     attribute_value_length_limit => 9,
+    ExpectedOpts = #{attribute_count_limit => 123,
+                     attribute_value_length_limit => 4,
+                     span_attribute_count_limit => 111,
+                     span_attribute_value_length_limit => 9,
                      event_count_limit => 200,
                      link_count_limit => 1101,
                      attribute_per_event_limit => 400,
                      attribute_per_link_limit => 500},
-    ExpectedRecord = #limits{attribute_count_limit=111,
-                                  attribute_value_length_limit=9,
-                                  event_count_limit=200,
-                                  link_count_limit=1101,
-                                  attribute_per_event_limit=400,
-                                  attribute_per_link_limit=500},
+    ExpectedRecord = #limits{attribute_count_limit=123,
+                             attribute_value_length_limit=4,
+                             span_attribute_count_limit=111,
+                             span_attribute_value_length_limit=9,
+                             event_count_limit=200,
+                             link_count_limit=1101,
+                             attribute_per_event_limit=400,
+                             attribute_per_link_limit=500},
 
     [{expected_opts, ExpectedOpts}, {expected_record, ExpectedRecord}, {os_vars, Vars} | Config];
 init_per_testcase(bad_limits, Config) ->
-    Vars = [{"OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", "aaa"},
+    Vars = [{"OTEL_ATTRIBUTE_COUNT_LIMIT", "foo"},
+            {"OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT", "4a"},
+            {"OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", "aaa"},
             {"OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT", "bbb"},
             {"OTEL_SPAN_EVENT_COUNT_LIMIT", "1d4"},
             {"OTEL_SPAN_LINK_COUNT_LIMIT", "eee"},
@@ -175,11 +183,13 @@ init_per_testcase(bad_limits, Config) ->
 
     ExpectedOpts = #{},
     ExpectedRecord = #limits{attribute_count_limit=128,
-                                  attribute_value_length_limit=infinity,
-                                  event_count_limit=128,
-                                  link_count_limit=128,
-                                  attribute_per_event_limit=128,
-                                  attribute_per_link_limit=128},
+                             attribute_value_length_limit=infinity,
+                             span_attribute_count_limit=undefined,
+                             span_attribute_value_length_limit=undefined,
+                             event_count_limit=128,
+                             link_count_limit=128,
+                             attribute_per_event_limit=128,
+                             attribute_per_link_limit=128},
 
     [{expected_opts, ExpectedOpts}, {expected_record, ExpectedRecord}, {os_vars, Vars} | Config];
 init_per_testcase(bad_app_config, Config) ->

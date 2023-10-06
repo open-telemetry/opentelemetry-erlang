@@ -29,8 +29,8 @@
 -spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_sampler:t(), otel_id_generator:t(),
                  otel_span:start_opts()) -> {opentelemetry:span_ctx(), opentelemetry:span() | undefined}.
 start_span(Ctx, Name, Sampler, IdGenerator, Opts) ->
-    SpanAttributeCountLimit = otel_limits:attribute_count_limit(),
-    SpanAttributeValueLengthLimit= otel_limits:attribute_value_length_limit(),
+    SpanAttributeCountLimit = otel_limits:span_attribute_count_limit(),
+    SpanAttributeValueLengthLimit = otel_limits:span_attribute_value_length_limit(),
     EventCountLimit = otel_limits:event_count_limit(),
     LinkCountLimit = otel_limits:link_count_limit(),
     AttributePerEventLimit = otel_limits:attribute_per_event_limit(),

@@ -63,12 +63,14 @@
          }).
 
 -record(limits, {
-          attribute_count_limit = 128             :: integer(), %% Maximum allowed attribute count per span;
-          attribute_value_length_limit = infinity :: integer() | infinity,  %% Maximum allowed attribute value length
-          event_count_limit = 128                 :: integer(), %% Maximum allowed span event count
-          link_count_limit = 128                  :: integer(), %% Maximum allowed span link count
-          attribute_per_event_limit = 128         :: integer(), %% Maximum allowed attribute per span event count
-          attribute_per_link_limit = 128          :: integer() %% Maximum allowed attribute per span link count
+          attribute_count_limit = 128                   :: integer(), %% Maximum allowed attribute count;
+          attribute_value_length_limit = infinity       :: integer() | infinity,  %% Maximum allowed attribute value length
+          span_attribute_count_limit = undefined        :: integer() | undefined, %% Maximum allowed attribute count per span;
+          span_attribute_value_length_limit = undefined :: integer() | infinity | undefined,  %% Maximum allowed attribute value length on span attributes
+          event_count_limit = 128                       :: integer(), %% Maximum allowed span event count
+          link_count_limit = 128                        :: integer(), %% Maximum allowed span link count
+          attribute_per_event_limit = 128               :: integer(), %% Maximum allowed attribute per span event count
+          attribute_per_link_limit = 128                :: integer() %% Maximum allowed attribute per span link count
        }).
 
 -record(link, {

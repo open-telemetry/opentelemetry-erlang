@@ -360,7 +360,9 @@ metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) ->
 %% active metrics are indexed by the ViewAggregation name + the Measurement's Attributes
 
 handle_measurement(Meter, Name, Number, Attributes, ViewAggregationsTab, MetricsTab) ->
-    AttributesRecord = otel_attributes:new(Attributes, 128, infinity),
+    AttributeCountLimit = otel_limits:attribute_count_limit(),
+    AttributeValueLengthLimit = otel_limits:attribute_value_length_limit(),
+    AttributesRecord = otel_attributes:new(Attributes, AttributeCountLimit, AttributeValueLengthLimit),
     Matches = ets:match(ViewAggregationsTab, {{Meter, Name}, '$1'}),
     update_aggregations(Number, AttributesRecord, Matches, MetricsTab).
 

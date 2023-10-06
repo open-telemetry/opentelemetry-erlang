@@ -93,7 +93,9 @@ handle_instruments_observations(Results, _Instruments, _ViewAggregationTab, _Met
 handle_observations(_MetricsTab, _ViewAggregation, []) ->
     ok;
 handle_observations(MetricsTab, ViewAggregation, [{Number, Attributes} | Rest]) when is_number(Number), is_map(Attributes) ->
-    AttributesRecord = otel_attributes:new(Attributes, 128, infinity),
+    AttributeCountLimit = otel_limits:attribute_count_limit(),
+    AttributeValueLengthLimit = otel_limits:attribute_value_length_limit(),
+    AttributesRecord = otel_attributes:new(Attributes, AttributeCountLimit, AttributeValueLengthLimit),
     _ = otel_aggregation:maybe_init_aggregate(MetricsTab, ViewAggregation, Number, AttributesRecord),
     handle_observations(MetricsTab, ViewAggregation, Rest);
 handle_observations(MetricsTab, ViewAggregation, [Result | Rest]) ->
