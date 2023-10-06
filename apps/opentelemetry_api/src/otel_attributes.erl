@@ -17,6 +17,8 @@
 %%%-------------------------------------------------------------------------
 -module(otel_attributes).
 
+-include("opentelemetry.hrl").
+
 -export([new/3,
          set/2,
          set/3,
@@ -32,12 +34,6 @@
                                   is_number(Value) orelse
                                   is_binary(Value) orelse
                                   is_list(Value))).
--record(attributes, {
-                     count_limit :: integer(),
-                     value_length_limit :: integer() | infinity,
-                     dropped :: integer(),
-                     map :: map()
-                    }).
 
 -type t() :: #attributes{}.
 

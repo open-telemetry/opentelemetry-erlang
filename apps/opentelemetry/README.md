@@ -199,21 +199,23 @@ in the Resource.
 The default detectors read resource attributes from the OS environment variable
 `OTEL_RESOURCE_ATTRIBUTES` and Application environment variable `resource`.
 
-### Span Limits
+### Limits
 
 The number of Attributes, Events and Links on a Span are limited, as well as the
 length of an Attribute's value. When the limit is reached any additional
 Attributes, Events or Links are dropped and Attribute values larger than the
 length limit are truncated.
 
-| OS                                     | Application                  | Default  | Type                    |
-|:---------------------------------------|:-----------------------------|:---------|:------------------------|
-| OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT        | attribute_count_limit        | 128      | integer                 |
-| OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT | attribute_value_length_limit | infinity | integer &#124; infinity |
-| OTEL_SPAN_EVENT_COUNT_LIMIT            | event_count_limit            | 128      | integer                 |
-| OTEL_SPAN_LINK_COUNT_LIMIT             | link_count_limit             | 128      | integer                 |
-| OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT       | attribute_per_event_limit    | 128      | integer                 |
-| OTEL_LINK_ATTRIBUTE_COUNT_LIMIT        | attribute_per_link_limit     | 128      | integer                 
+| OS                                     | Application                       | Default  | Type                    |
+|:---------------------------------------|:----------------------------------|:---------|:------------------------|
+| OTEL_ATTRIBUTE_COUNT_LIMIT             | attribute_count_limit             | 128      | integer                 |
+| OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT      | attribute_value_length_limit      | infinity | integer &#124; infinity |
+| OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT        | span_attribute_count_limit        | 128      | integer                 |
+| OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT | span_attribute_value_length_limit | infinity | integer &#124; infinity |
+| OTEL_SPAN_EVENT_COUNT_LIMIT            | event_count_limit                 | 128      | integer                 |
+| OTEL_SPAN_LINK_COUNT_LIMIT             | link_count_limit                  | 128      | integer                 |
+| OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT       | attribute_per_event_limit         | 128      | integer                 |
+| OTEL_LINK_ATTRIBUTE_COUNT_LIMIT        | attribute_per_link_limit          | 128      | integer                 
 
 Read more in the specification about [Span
 limits](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#span-limits)

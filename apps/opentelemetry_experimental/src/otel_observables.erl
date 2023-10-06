@@ -21,6 +21,7 @@
 
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_metrics.hrl").
 -include("otel_view.hrl").
 
@@ -96,6 +97,8 @@ handle_observations(MetricsTab, ViewAggregation, [{Number, Attributes} | Rest]) 
     AttributeCountLimit = otel_limits:attribute_count_limit(),
     AttributeValueLengthLimit = otel_limits:attribute_value_length_limit(),
     AttributesRecord = otel_attributes:new(Attributes, AttributeCountLimit, AttributeValueLengthLimit),
+    handle_observations(MetricsTab, ViewAggregation, [{Number, AttributesRecord} | Rest]);
+handle_observations(MetricsTab, ViewAggregation, [{Number, AttributesRecord} | Rest]) when is_number(Number), is_record(AttributesRecord, attributes) ->
     _ = otel_aggregation:maybe_init_aggregate(MetricsTab, ViewAggregation, Number, AttributesRecord),
     handle_observations(MetricsTab, ViewAggregation, Rest);
 handle_observations(MetricsTab, ViewAggregation, [Result | Rest]) ->

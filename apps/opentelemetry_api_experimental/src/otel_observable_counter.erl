@@ -20,8 +20,10 @@
 
 -export([create/3, create/5]).
 
+-spec create(otel_meter:t(), otel_instrument:name(),  otel_instrument:opts()) -> otel_instrument:t().
 create(Meter, Name, Opts) ->
     otel_meter:create_observable_counter(Meter, Name, Opts).
 
+-spec create(otel_meter:t(), otel_instrument:name(), otel_instrument:callback(), otel_instrument:callback_args(), otel_instrument:opts()) -> otel_instrument:t().
 create(Meter, Name, Callback, CallbackArgs, Opts) ->
     otel_meter:create_observable_counter(Meter, Name, Callback, CallbackArgs, Opts).

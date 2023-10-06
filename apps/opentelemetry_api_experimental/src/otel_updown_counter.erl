@@ -32,10 +32,10 @@
 create(Meter, Name, Opts) ->
     otel_meter:create_updown_counter(Meter, Name, Opts).
 
--spec add(otel_meter:t(), otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok.
+-spec add(otel_meter:t(), otel_instrument:name(), number(), opentelemetry:attributes_map() | otel_attributes:t()) -> ok.
 add(Meter, Name, Number, Attributes) ->
     otel_meter:record(Meter, Name, Number, Attributes).
 
--spec add(otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
+-spec add(otel_instrument:t(), number(), opentelemetry:attributes_map() | otel_attributes:t()) -> ok.
 add(Instrument=#instrument{module=Module}, Number, Attributes) ->
     Module:record(Instrument, Number, Attributes).
