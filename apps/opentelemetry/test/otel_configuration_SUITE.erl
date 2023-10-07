@@ -20,7 +20,7 @@ all() ->
      sampler_trace_id, sampler_trace_id_default, sampler_parent_based_one,
      log_level, propagators, propagators_b3, propagators_b3multi, otlp_exporter,
      jaeger_exporter, zipkin_exporter, none_exporter, app_env_exporter,
-     otlp_metrics_exporter, none_metrics_exporter, span_limits, bad_span_limits,
+     otlp_metrics_exporter, none_metrics_exporter, limits, bad_limits,
      bad_app_config, deny_list, resource_detectors, span_processors].
 
 init_per_testcase(empty_os_environment, Config) ->
@@ -139,7 +139,7 @@ init_per_testcase(resource_detectors, Config) ->
     setup_env(Vars),
 
     [{os_vars, Vars} | Config];
-init_per_testcase(span_limits, Config) ->
+init_per_testcase(limits, Config) ->
     Vars = [{"OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", "111"},
             {"OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT", "009"},
             {"OTEL_SPAN_EVENT_COUNT_LIMIT", "200"},
@@ -155,7 +155,7 @@ init_per_testcase(span_limits, Config) ->
                      link_count_limit => 1101,
                      attribute_per_event_limit => 400,
                      attribute_per_link_limit => 500},
-    ExpectedRecord = #span_limits{attribute_count_limit=111,
+    ExpectedRecord = #limits{attribute_count_limit=111,
                                   attribute_value_length_limit=9,
                                   event_count_limit=200,
                                   link_count_limit=1101,
@@ -163,7 +163,7 @@ init_per_testcase(span_limits, Config) ->
                                   attribute_per_link_limit=500},
 
     [{expected_opts, ExpectedOpts}, {expected_record, ExpectedRecord}, {os_vars, Vars} | Config];
-init_per_testcase(bad_span_limits, Config) ->
+init_per_testcase(bad_limits, Config) ->
     Vars = [{"OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", "aaa"},
             {"OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT", "bbb"},
             {"OTEL_SPAN_EVENT_COUNT_LIMIT", "1d4"},
@@ -174,7 +174,7 @@ init_per_testcase(bad_span_limits, Config) ->
     setup_env(Vars),
 
     ExpectedOpts = #{},
-    ExpectedRecord = #span_limits{attribute_count_limit=128,
+    ExpectedRecord = #limits{attribute_count_limit=128,
                                   attribute_value_length_limit=infinity,
                                   event_count_limit=128,
                                   link_count_limit=128,
@@ -344,11 +344,11 @@ resource_detectors(_Config) ->
 
     ok.
 
-span_limits(Config) ->
-    compare_span_limits(Config).
+limits(Config) ->
+    compare_limits(Config).
 
-bad_span_limits(Config) ->
-    compare_span_limits(Config).
+bad_limits(Config) ->
+    compare_limits(Config).
 
 bad_app_config(_Config) ->
     ?assertMatch(#{attribute_value_length_limit := infinity},
@@ -356,16 +356,16 @@ bad_app_config(_Config) ->
 
     ok.
 
-compare_span_limits(Config) ->
+compare_limits(Config) ->
     ExpectedRecord = ?config(expected_record, Config),
     ExpectedOpts = maps:to_list(?config(expected_opts, Config)),
     Opts = maps:to_list(otel_configuration:merge_with_os([])),
 
     ?assertIsSubset(ExpectedOpts, Opts),
 
-    otel_span_limits:set(maps:from_list(Opts)),
+    otel_limits:set(maps:from_list(Opts)),
 
-    SpanLimits = otel_span_limits:get(),
+    SpanLimits = otel_limits:get(),
 
     %% verifies the defaults because the base record has the defaults set as well
     ?assertEqual(ExpectedRecord, SpanLimits),

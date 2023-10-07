@@ -62,7 +62,7 @@
           instrumentation_scope :: opentelemetry:instrumentation_scope() | undefined | '_'
          }).
 
--record(span_limits, {
+-record(limits, {
           attribute_count_limit = 128             :: integer(), %% Maximum allowed attribute count per span;
           attribute_value_length_limit = infinity :: integer() | infinity,  %% Maximum allowed attribute value length
           event_count_limit = 128                 :: integer(), %% Maximum allowed span event count
