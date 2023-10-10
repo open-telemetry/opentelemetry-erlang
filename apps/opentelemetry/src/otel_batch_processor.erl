@@ -176,10 +176,7 @@ init([Args=#{reg_name := RegName}]) ->
                      exporter_config=ExporterConfig,
                      resource = Resource,
                      handed_off_table=undefined,
-                     max_queue_size=case SizeLimit of
-                                        infinity -> infinity;
-                                        _ -> SizeLimit div erlang:system_info(wordsize)
-                                    end,
+                     max_queue_size=SizeLimit,
                      exporting_timeout_ms=ExportingTimeout,
                      check_table_size_ms=CheckTableSize,
                      scheduled_delay_ms=ScheduledDelay,
