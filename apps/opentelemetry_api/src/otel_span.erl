@@ -21,6 +21,7 @@
 -export([trace_id/1,
          span_id/1,
          hex_span_ctx/1,
+         hex_span_ctx_keys/0,
          hex_trace_id/1,
          hex_span_id/1,
          tracestate/1,
@@ -44,6 +45,9 @@
 -include_lib("opentelemetry_semantic_conventions/include/trace.hrl").
 
 -define(is_recording(SpanCtx), SpanCtx =/= undefined andalso SpanCtx#span_ctx.is_recording =:= true).
+-define(OTEL_TRACE_ID, otel_trace_id).
+-define(OTEL_SPAN_ID, otel_span_id).
+-define(OTEL_TRACE_FLAGS, otel_trace_flags).
 
 -type start_opts() :: #{attributes := opentelemetry:attributes_map(),
                         links := [opentelemetry:link()],
@@ -100,17 +104,21 @@ span_id(#span_ctx{span_id=SpanId}) ->
     SpanId.
 
 %% keys are prefixed with `otel_' because the main use of this function is logger metadata
--spec hex_span_ctx(opentelemetry:span_ctx() | undefined) -> #{otel_trace_id := unicode:charlist(),
-                                                              otel_span_id := unicode:charlist(),
-                                                              otel_trace_flags := unicode:charlist()} | #{}.
+-spec hex_span_ctx(opentelemetry:span_ctx() | undefined) -> #{?OTEL_TRACE_ID := unicode:charlist(),
+                                                              ?OTEL_SPAN_ID := unicode:charlist(),
+                                                              ?OTEL_TRACE_FLAGS := unicode:charlist()} | #{}.
 hex_span_ctx(#span_ctx{trace_id=TraceId,
                        span_id=SpanId,
                        trace_flags=TraceFlags}) ->
-    #{otel_trace_id => io_lib:format("~32.16.0b", [TraceId]),
-      otel_span_id => io_lib:format("~16.16.0b", [SpanId]),
-      otel_trace_flags => case TraceFlags band 1 of 1 -> "01"; _ -> "00" end};
+    #{?OTEL_TRACE_ID => io_lib:format("~32.16.0b", [TraceId]),
+      ?OTEL_SPAN_ID => io_lib:format("~16.16.0b", [SpanId]),
+      ?OTEL_TRACE_FLAGS => case TraceFlags band 1 of 1 -> "01"; _ -> "00" end};
 hex_span_ctx(_) ->
     #{}.
+
+-spec hex_span_ctx_keys() -> [atom()].
+hex_span_ctx_keys() ->
+    [?OTEL_TRACE_ID, ?OTEL_SPAN_ID, ?OTEL_TRACE_FLAGS].
 
 -spec hex_trace_id(opentelemetry:span_ctx()) -> opentelemetry:hex_trace_id().
 hex_trace_id(#span_ctx{trace_id=TraceId}) ->
