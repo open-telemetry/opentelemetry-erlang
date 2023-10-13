@@ -189,8 +189,8 @@ exporting(enter, _OldState, _Data) ->
 exporting(internal, export, Data=#data{exporter=Exporter,
                                        resource=Resource,
                                        config=Config,
-                                       batch=Batch}) when map_size(Batch) =/= 0 ->
-    _ = export(Exporter, Resource, Batch, Config),
+                                       batch=Batch}) ->
+    map_size(Batch) =:= 0 orelse export(Exporter, Resource, Batch, Config),
     {next_state, idle, Data#data{batch=#{}}};
 exporting(EventType, EventContent, Data) ->
     handle_event(EventType, EventContent, Data).

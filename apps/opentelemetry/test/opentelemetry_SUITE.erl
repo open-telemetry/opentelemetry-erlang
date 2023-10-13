@@ -269,7 +269,7 @@ logger_metadata(_Config) ->
     ok.
 
 %% logger metadata will either be undefined, or a map without hex_span_ctx_keys:
-%%  [otel_trace_id, otel_span_id, ,otel_trace_flags]
+%%  [otel_trace_id, otel_span_id, otel_trace_flags]
 empty_metadata() ->
     case logger:get_process_metadata() of
         undefined ->
