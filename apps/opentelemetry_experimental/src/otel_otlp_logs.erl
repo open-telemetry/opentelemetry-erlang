@@ -98,8 +98,8 @@ log_record(#{level := Level,
 
 
 
-    LogRecord#{time_unix_nano          => Time,
-               observed_time_unix_nano => ObservedTime,
+    LogRecord#{time_unix_nano          => opentelemetry:timestamp_to_nano(Time),
+               observed_time_unix_nano => erlang:convert_time_unit(ObservedTime, microsecond, nanosecond),
                severity_number         => SeverityNumber,
                severity_text           => SeverityText,
                body                    => otel_otlp_common:to_any_value(Body1),
