@@ -190,11 +190,17 @@ callback_mode() ->
 idle(enter, _OldState, Data=#data{exporter=undefined,
                                   exporter_config=ExporterConfig,
                                   scheduled_delay_ms=SendInterval,
+                                  check_table_size_ms=CheckInterval,
                                   reg_name=RegName}) ->
     Exporter = init_exporter(RegName, ExporterConfig),
-    {keep_state, Data#data{exporter=Exporter}, [{{timeout, export_spans}, SendInterval, export_spans}]};
-idle(enter, _OldState, #data{scheduled_delay_ms=SendInterval}) ->
-    {keep_state_and_data, [{{timeout, export_spans}, SendInterval, export_spans}]};
+    {keep_state, Data#data{exporter=Exporter},
+     [{{timeout, export_spans}, SendInterval, export_spans},
+      {{timeout, check_table_size}, CheckInterval, check_table_size}]};
+idle(enter, _OldState, #data{scheduled_delay_ms=SendInterval,
+                             check_table_size_ms=CheckInterval}) ->
+    {keep_state_and_data,
+     [{{timeout, export_spans}, SendInterval, export_spans},
+      {{timeout, check_table_size}, CheckInterval, check_table_size}]};
 idle(_, export_spans, Data=#data{exporter=undefined,
                                  exporter_config=ExporterConfig,
                                  reg_name=RegName}) ->
@@ -271,15 +277,15 @@ handle_event_(_State, _, force_flush, Data) ->
 handle_event_(_State, {timeout, check_table_size}, check_table_size, #data{max_queue_size=infinity}) ->
     keep_state_and_data;
 handle_event_(_State, {timeout, check_table_size}, check_table_size, #data{max_queue_size=MaxQueueSize,
+                                                                           check_table_size_ms=CheckInterval,
                                                                            reg_name=RegName}) ->
     case ets:info(?CURRENT_TABLE(RegName), size) of
         M when M >= MaxQueueSize ->
-            disable(RegName),
-            keep_state_and_data;
+            disable(RegName);
         _ ->
-            enable(RegName),
-            keep_state_and_data
-    end;
+            enable(RegName)
+    end,
+    {keep_state_and_data, [{{timeout, check_table_size}, CheckInterval, check_table_size}]};
 handle_event_(_, {call, From}, {set_exporter, ExporterConfig}, Data=#data{exporter=OldExporter,
                                                                           reg_name=RegName}) ->
     otel_exporter:shutdown(OldExporter),
