@@ -11,7 +11,7 @@
 -type t() :: otel_aggregation_drop:t() | otel_aggregation_sum:t() |
              otel_aggregation_last_value:t() | otel_aggregation_histogram_explicit:t().
 
--type key() :: {atom(), opentelemetry:attributes_map(), reference()}.
+-type key() :: {atom(), otel_attributes:t(), reference()}.
 
 -type options() :: map().
 
@@ -23,14 +23,14 @@
 %% the aggregation module in the metrics table.
 -callback init(ViewAggregation, Attributes) -> Aggregation when
       ViewAggregation :: #view_aggregation{},
-      Attributes :: opentelemetry:attributes_map(),
+      Attributes :: otel_attributes:t(),
       Aggregation :: t().
 
 -callback aggregate(Table, ViewAggregation, Value, Attributes) -> boolean() when
       Table :: ets:table(),
       ViewAggregation :: #view_aggregation{},
       Value :: number(),
-      Attributes :: opentelemetry:attributes_map().
+      Attributes :: otel_attributes:t().
 
 -callback checkpoint(Table, ViewAggregation, CollectionStartTime) -> ok when
       Table :: ets:table(),
@@ -60,7 +60,7 @@ maybe_init_aggregate(MetricsTab, ViewAggregation=#view_aggregation{aggregation_m
 filter_attributes(undefined, Attributes) ->
     Attributes;
 filter_attributes(Keys, Attributes) ->
-    maps:with(Keys, Attributes).
+   otel_attributes:filter(Attributes, Keys).
 
 -spec default_mapping() -> #{otel_instrument:kind() => module()}.
 default_mapping() ->

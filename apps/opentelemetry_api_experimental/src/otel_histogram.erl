@@ -33,10 +33,10 @@
 create(Meter, Name, Opts) ->
     otel_meter:create_histogram(Meter, Name, Opts).
 
--spec record(otel_meter:t(), otel_instrument:name(), pos_integer() | float(), opentelemetry:attributes_map()) -> ok.
+-spec record(otel_meter:t(), otel_instrument:name(), pos_integer() | float(), opentelemetry:attributes_map() | otel_attributes:t()) -> ok.
 record(Meter, Name, Number, Attributes) ->
     otel_meter:record(Meter, Name, Number, Attributes).
 
--spec record(otel_instrument:t(), pos_integer() | float(), opentelemetry:attributes_map()) -> ok.
+-spec record(otel_instrument:t(), pos_integer() | float(), opentelemetry:attributes_map() | otel_attributes:t()) -> ok.
 record(Instrument=#instrument{module=Module}, Number, Attributes) ->
     Module:record(Instrument, Number, Attributes).

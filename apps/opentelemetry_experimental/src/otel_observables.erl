@@ -21,6 +21,7 @@
 
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_metrics.hrl").
 -include("otel_view.hrl").
 
@@ -92,10 +93,13 @@ handle_instruments_observations(Results, _Instruments, _ViewAggregationTab, _Met
 %% update aggregation for each observation
 handle_observations(_MetricsTab, _ViewAggregation, []) ->
     ok;
-handle_observations(MetricsTab, ViewAggregation, [{Number, Attributes} | Rest])
-  when is_number(Number),
-       is_map(Attributes) ->
-    _ = otel_aggregation:maybe_init_aggregate(MetricsTab, ViewAggregation, Number, Attributes),
+handle_observations(MetricsTab, ViewAggregation, [{Number, Attributes} | Rest]) when is_number(Number), is_map(Attributes) ->
+    AttributeCountLimit = otel_limits:attribute_count_limit(),
+    AttributeValueLengthLimit = otel_limits:attribute_value_length_limit(),
+    AttributesRecord = otel_attributes:new(Attributes, AttributeCountLimit, AttributeValueLengthLimit),
+    handle_observations(MetricsTab, ViewAggregation, [{Number, AttributesRecord} | Rest]);
+handle_observations(MetricsTab, ViewAggregation, [{Number, AttributesRecord} | Rest]) when is_number(Number), is_record(AttributesRecord, attributes) ->
+    _ = otel_aggregation:maybe_init_aggregate(MetricsTab, ViewAggregation, Number, AttributesRecord),
     handle_observations(MetricsTab, ViewAggregation, Rest);
 handle_observations(MetricsTab, ViewAggregation, [Result | Rest]) ->
     ?LOG_DEBUG("Each metric callback result must be of type {number(), map()} but got ~p", [Result]),

@@ -40,7 +40,7 @@ start(_StartType, _StartArgs) ->
             SupResult;
         _ ->
             %% set global span limits record based on configuration
-            otel_span_limits:set(Config),
+            otel_limits:set(Config),
 
             Resource = otel_resource_detector:get_resource(),
             _ = otel_tracer_provider_sup:start(?GLOBAL_TRACER_PROVIDER_NAME, Resource, Config),

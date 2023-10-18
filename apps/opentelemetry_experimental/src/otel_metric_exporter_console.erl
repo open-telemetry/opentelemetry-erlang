@@ -61,7 +61,7 @@ print_datapoint(Name, #datapoint{
                          exemplars=_,
                          flags=_
                         }) ->
-    AttributesString = attributes_string(Attributes),
+    AttributesString = attributes_string(otel_attributes:map(Attributes)),
     io:format("~s{~s} ~p~n", [Name, AttributesString, Value]).
 
 print_histogram_datapoint(Name, #histogram_datapoint{
@@ -77,7 +77,7 @@ print_histogram_datapoint(Name, #histogram_datapoint{
                                    min=_Min,
                                    max=_Max
                                   }) ->
-    AttributesString = attributes_string(Attributes),
+    AttributesString = attributes_string(otel_attributes:map(Attributes)),
     io:format("~s{~s} ~p~n", [Name, AttributesString, Buckets]).
 
 %% need to handle non-string values

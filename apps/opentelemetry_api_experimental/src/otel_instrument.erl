@@ -29,7 +29,7 @@
 -type kind() :: ?KIND_COUNTER | ?KIND_OBSERVABLE_COUNTER | ?KIND_HISTOGRAM |
                 ?KIND_OBSERVABLE_GAUGE | ?KIND_UPDOWN_COUNTER | ?KIND_OBSERVABLE_UPDOWNCOUNTER.
 -type unit() :: atom(). %% latin1, maximum length of 63 characters
--type observation() :: {number(), opentelemetry:attributes_map()}.
+-type observation() :: {number(), opentelemetry:attributes_map() | otel_attributes:t()}.
 -type named_observations() :: {name(), [observation()]}.
 -type callback_args() :: term().
 -type callback_result() :: [observation()] |

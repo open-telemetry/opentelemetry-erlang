@@ -78,3 +78,10 @@
           %% developer-facing error message
           message = <<"">>          :: unicode:unicode_binary()
          }).
+
+-record(attributes, {
+                     count_limit :: integer(),
+                     value_length_limit :: integer() | infinity,
+                     dropped :: integer(),
+                     map :: map()
+                    }).

@@ -13,15 +13,17 @@
 %% limitations under the License.
 %%
 %% @doc Module for setting the global limits for the number of attributes,
-%% events and links on a Span.
+%% events and links.
 %% @end
 %%%-------------------------------------------------------------------------
--module(otel_span_limits).
+-module(otel_limits).
 
 -export([get/0,
          set/1,
          attribute_count_limit/0,
          attribute_value_length_limit/0,
+         span_attribute_count_limit/0,
+         span_attribute_value_length_limit/0,
          event_count_limit/0,
          link_count_limit/0,
          attribute_per_event_limit/0,
@@ -29,32 +31,42 @@
 
 -include("otel_span.hrl").
 
--define(SPAN_LIMITS_KEY, {?MODULE, span_limits}).
+-define(LIMITS_KEY, {?MODULE, limits}).
 
--spec get() -> #span_limits{}.
+-spec get() -> #limits{}.
 get() ->
-    persistent_term:get(?SPAN_LIMITS_KEY).
+    persistent_term:get(?LIMITS_KEY).
 
 -spec set(otel_configuration:t()) -> ok.
 set(#{attribute_count_limit := AttributeCountLimit,
       attribute_value_length_limit := AttributeValueLengthLimit,
+      span_attribute_count_limit := SpanAttributeCountLimit,
+      span_attribute_value_length_limit := SpanAttributeValueLengthLimit,
       event_count_limit := EventCountLimit,
       link_count_limit := LinkCountLimit,
       attribute_per_event_limit := AttributePerEventLimit,
       attribute_per_link_limit := AttributePerLinkLimit}) ->
-    SpanLimits = #span_limits{attribute_count_limit=AttributeCountLimit,
+    Limits = #limits{attribute_count_limit=AttributeCountLimit,
                               attribute_value_length_limit=AttributeValueLengthLimit,
+                              span_attribute_count_limit=SpanAttributeCountLimit,
+                              span_attribute_value_length_limit=SpanAttributeValueLengthLimit,
                               event_count_limit=EventCountLimit,
                               link_count_limit=LinkCountLimit,
                               attribute_per_event_limit=AttributePerEventLimit,
                               attribute_per_link_limit=AttributePerLinkLimit},
-    persistent_term:put(?SPAN_LIMITS_KEY, SpanLimits).
+    persistent_term:put(?LIMITS_KEY, Limits).
 
 attribute_count_limit() ->
     get_limit(attribute_count_limit, ?MODULE:get()).
 
 attribute_value_length_limit() ->
     get_limit(attribute_value_length_limit, ?MODULE:get()).
+
+span_attribute_count_limit() ->
+    get_limit(span_attribute_count_limit, ?MODULE:get()).
+
+span_attribute_value_length_limit() ->
+    get_limit(span_attribute_value_length_limit, ?MODULE:get()).
 
 event_count_limit() ->
     get_limit(event_count_limit, ?MODULE:get()).
@@ -68,15 +80,23 @@ attribute_per_event_limit() ->
 attribute_per_link_limit() ->
     get_limit(attribute_per_link_limit, ?MODULE:get()).
 
-get_limit(attribute_count_limit, #span_limits{attribute_count_limit=AttributeCountLimit}) ->
+get_limit(attribute_count_limit, #limits{attribute_count_limit=AttributeCountLimit}) ->
     AttributeCountLimit;
-get_limit(attribute_value_length_limit, #span_limits{attribute_value_length_limit=AttributeValueLengthLimit}) ->
+get_limit(attribute_value_length_limit, #limits{attribute_value_length_limit=AttributeValueLengthLimit}) ->
     AttributeValueLengthLimit;
-get_limit(event_count_limit, #span_limits{event_count_limit=EventCountLimit}) ->
+get_limit(span_attribute_count_limit, #limits{span_attribute_count_limit=undefined, attribute_count_limit=AttributeCountLimit}) ->
+    AttributeCountLimit;
+get_limit(span_attribute_count_limit, #limits{span_attribute_count_limit=SpanAttributeCountLimit}) ->
+    SpanAttributeCountLimit;
+get_limit(span_attribute_value_length_limit, #limits{span_attribute_value_length_limit=undefined, attribute_value_length_limit=AttributeValueLengthLimit}) ->
+    AttributeValueLengthLimit;
+get_limit(span_attribute_value_length_limit, #limits{span_attribute_value_length_limit=SpanAttributeValueLengthLimit}) ->
+    SpanAttributeValueLengthLimit;
+get_limit(event_count_limit, #limits{event_count_limit=EventCountLimit}) ->
     EventCountLimit;
-get_limit(link_count_limit, #span_limits{link_count_limit=LinkCountLimit}) ->
+get_limit(link_count_limit, #limits{link_count_limit=LinkCountLimit}) ->
     LinkCountLimit;
-get_limit(attribute_per_event_limit, #span_limits{attribute_per_event_limit=AttributePerEventLimit}) ->
+get_limit(attribute_per_event_limit, #limits{attribute_per_event_limit=AttributePerEventLimit}) ->
     AttributePerEventLimit;
-get_limit(attribute_per_link_limit, #span_limits{attribute_per_link_limit=AttributePerLinkLimit}) ->
+get_limit(attribute_per_link_limit, #limits{attribute_per_link_limit=AttributePerLinkLimit}) ->
     AttributePerLinkLimit.

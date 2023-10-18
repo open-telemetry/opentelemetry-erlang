@@ -115,7 +115,9 @@ init_per_testcase(dropped_attributes, Config) ->
     Config1;
 init_per_testcase(too_many_attributes, Config) ->
     Config1 = set_batch_tab_processor(Config),
-    application:set_env(opentelemetry, attribute_count_limit, 2),
+    application:set_env(opentelemetry, attribute_count_limit, 5),
+    %% this will override the previous one
+    application:set_env(opentelemetry, span_attribute_count_limit, 2),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config1;
 init_per_testcase(tracer_instrumentation_scope, Config) ->
