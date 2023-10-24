@@ -81,8 +81,8 @@ verify_metrics_export(Config) ->
                                    datapoints=[#datapoint{
                                                   attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
                                                                                  128, 128),
-                                                  start_time_unix_nano=opentelemetry:timestamp(),
-                                                  time_unix_nano=opentelemetry:timestamp(),
+                                                  start_time=opentelemetry:timestamp(),
+                                                  time=opentelemetry:timestamp(),
                                                   value=5,
                                                   exemplars=[],
                                                   flags=0
@@ -90,8 +90,8 @@ verify_metrics_export(Config) ->
                                                #datapoint{
                                                   attributes=otel_attributes:new(#{<<"key-2">> => <<"value-2">>},
                                                                                  128, 128),
-                                                  start_time_unix_nano=opentelemetry:timestamp(),
-                                                  time_unix_nano=opentelemetry:timestamp(),
+                                                  start_time=opentelemetry:timestamp(),
+                                                  time=opentelemetry:timestamp(),
                                                   value=8,
                                                   exemplars=[],
                                                   flags=0
@@ -105,8 +105,8 @@ verify_metrics_export(Config) ->
                        data = #gauge{datapoints=[#datapoint{
                                                     attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
                                                                                    128, 128),
-                                                    start_time_unix_nano=opentelemetry:timestamp(),
-                                                    time_unix_nano=opentelemetry:timestamp(),
+                                                    start_time=opentelemetry:timestamp(),
+                                                    time=opentelemetry:timestamp(),
                                                     value=8,
                                                     exemplars=[],
                                                     flags=0
@@ -114,8 +114,8 @@ verify_metrics_export(Config) ->
                                                  #datapoint{
                                                     attributes=otel_attributes:new(#{<<"key-2">> => <<"value-2">>},
                                                                                    128, 128),
-                                                    start_time_unix_nano=opentelemetry:timestamp(),
-                                                    time_unix_nano=opentelemetry:timestamp(),
+                                                    start_time=opentelemetry:timestamp(),
+                                                    time=opentelemetry:timestamp(),
                                                     value=9,
                                                     exemplars=[],
                                                     flags=0
@@ -130,8 +130,8 @@ verify_metrics_export(Config) ->
                                          datapoints=[#histogram_datapoint{
                                                         attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
                                                                                        128, 128),
-                                                        start_time_unix_nano=opentelemetry:timestamp(),
-                                                        time_unix_nano=opentelemetry:timestamp(),
+                                                        start_time=opentelemetry:timestamp(),
+                                                        time=opentelemetry:timestamp(),
                                                         count = 3,
                                                         sum = 9,
                                                         bucket_counts = [1,1,1],
@@ -144,8 +144,8 @@ verify_metrics_export(Config) ->
                                                      #histogram_datapoint{
                                                         attributes=otel_attributes:new(#{<<"key-2">> => <<"value-2">>},
                                                                                        128, 128),
-                                                        start_time_unix_nano=opentelemetry:timestamp(),
-                                                        time_unix_nano=opentelemetry:timestamp(),
+                                                        start_time=opentelemetry:timestamp(),
+                                                        time=opentelemetry:timestamp(),
                                                         count = 3,
                                                         sum = 9,
                                                         bucket_counts = [1,1,1],

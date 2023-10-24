@@ -188,7 +188,7 @@ collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId) ->
 
     %% get the collection start time after running callbacks so any initialized
     %% metrics have a start time before the collection start time.
-    CollectionStartTime = erlang:system_time(nanosecond),
+    CollectionStartTime = opentelemetry:timestamp(),
     collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, ReaderId, [], Key).
 
 run_callbacks(ReaderId, CallbacksTab, ViewAggregationTab, MetricsTab) ->

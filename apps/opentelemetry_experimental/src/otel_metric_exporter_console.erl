@@ -55,8 +55,8 @@ print_metric(Name, #histogram{datapoints=Datapoints}) ->
 
 print_datapoint(Name, #datapoint{
                          attributes=Attributes,
-                         start_time_unix_nano=_StartTimeUnixNano,
-                         time_unix_nano=_CollectionStartNano,
+                         start_time=_StartTime,
+                         time=_CollectionStartTime,
                          value=Value,
                          exemplars=_,
                          flags=_
@@ -66,8 +66,8 @@ print_datapoint(Name, #datapoint{
 
 print_histogram_datapoint(Name, #histogram_datapoint{
                                    attributes=Attributes,
-                                   start_time_unix_nano=_StartTimeUnixNano,
-                                   time_unix_nano=_CollectionStartNano,
+                                   start_time=_StartTime,
+                                   time=_CollectionStartTime,
                                    count=_Count,
                                    sum=_Sum,
                                    bucket_counts=Buckets,

@@ -79,15 +79,15 @@ to_data(#histogram{datapoints=Datapoints,
                   aggregation_temporality => to_otlp_temporality(Temporality)}}.
 
 to_data_points(#datapoint{attributes=Attributes,
-                          start_time_unix_nano=StartTimeUnixNano,
-                          time_unix_nano=CollectionStartNano,
+                          start_time=StartTime,
+                          time=CollectionStartTime,
                           value=Value,
                           exemplars=Exemplars,
                           flags=Flags
                          }) ->
     #{attributes => otel_otlp_common:to_attributes(Attributes),
-      start_time_unix_nano => opentelemetry:timestamp_to_nano(StartTimeUnixNano),
-      time_unix_nano => opentelemetry:timestamp_to_nano(CollectionStartNano),
+      start_time => opentelemetry:timestamp_to_nano(StartTime),
+      time => opentelemetry:timestamp_to_nano(CollectionStartTime),
       value => to_datapoint_value(Value),
       exemplars => Exemplars,
       flags => Flags
@@ -95,8 +95,8 @@ to_data_points(#datapoint{attributes=Attributes,
 
 to_histogram_data_points(#histogram_datapoint{
                             attributes=Attributes,
-                            start_time_unix_nano=StartTimeUnixNano,
-                            time_unix_nano=CollectionStartNano,
+                            start_time=StartTime,
+                            time=CollectionStartTime,
                             count=Count,
                             sum=Sum,
                             bucket_counts=Buckets,
@@ -107,8 +107,8 @@ to_histogram_data_points(#histogram_datapoint{
                             max=Max
                            }) ->
     #{attributes => otel_otlp_common:to_attributes(Attributes),
-      start_time_unix_nano => StartTimeUnixNano,
-      time_unix_nano => CollectionStartNano,
+      start_time => StartTime,
+      time => CollectionStartTime,
       count => Count,
       sum => Sum,
       bucket_counts => Buckets,
