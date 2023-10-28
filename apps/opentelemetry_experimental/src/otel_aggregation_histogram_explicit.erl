@@ -139,7 +139,7 @@ init(#view_aggregation{name=Name,
     ExplicitBucketBoundaries = maps:get(explicit_bucket_boundaries, Options, ?DEFAULT_BOUNDARIES),
     RecordMinMax = maps:get(record_min_max, Options, true),
     #explicit_histogram_aggregation{key=Key,
-                                    start_time_unix_nano=erlang:system_time(nanosecond),
+                                    start_time=opentelemetry:timestamp(),
                                     explicit_bucket_boundaries=ExplicitBucketBoundaries,
                                     bucket_counts=new_bucket_counts(ExplicitBucketBoundaries),
                                     checkpoint=undefined,
@@ -177,9 +177,9 @@ aggregate(Table, #view_aggregation{name=Name,
 
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
-                                  temporality=?TEMPORALITY_DELTA}, CollectionStartNano) ->
+                                  temporality=?TEMPORALITY_DELTA}, CollectionStartTime) ->
     MS = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId},
-                                           start_time_unix_nano='$9',
+                                           start_time='$9',
                                            explicit_bucket_boundaries='$2',
                                            record_min_max='$3',
                                            checkpoint='_',
@@ -190,14 +190,14 @@ checkpoint(Tab, #view_aggregation{name=Name,
                                           },
            [],
            [{#explicit_histogram_aggregation{key={{{const, Name}, '$1', {const, ReaderId}}},
-                                             start_time_unix_nano={const, CollectionStartNano},
+                                             start_time={const, CollectionStartTime},
                                              explicit_bucket_boundaries='$2',
                                              record_min_max='$3',
                                              checkpoint={#explicit_histogram_checkpoint{bucket_counts='$5',
                                                                                         min='$6',
                                                                                         max='$7',
                                                                                         sum='$8',
-                                                                                        start_time_unix_nano='$9'}},
+                                                                                        start_time='$9'}},
                                              bucket_counts={const, undefined},
                                              min=infinity,
                                              max=?MIN_DOUBLE,
@@ -205,7 +205,7 @@ checkpoint(Tab, #view_aggregation{name=Name,
     _ = ets:select_replace(Tab, MS),
 
     ok;
-checkpoint(_Tab, _, _CollectionStartNano) ->
+checkpoint(_Tab, _, _CollectionStartTime) ->
     %% no good way to checkpoint the `counters' without being out of sync with
     %% min/max/sum, so may as well just collect them in `collect', which will
     %% also be out of sync, but best we can do right now
@@ -216,7 +216,7 @@ collect(Tab, #view_aggregation{name=Name,
                                reader=ReaderId,
                                temporality=Temporality}, CollectionStartTime) ->
     Select = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId},
-                                               start_time_unix_nano='$2',
+                                               start_time='$2',
                                                explicit_bucket_boundaries='$3',
                                                record_min_max='$4',
                                                checkpoint='$5',
@@ -230,10 +230,10 @@ collect(Tab, #view_aggregation{name=Name,
 
 %%
 
-datapoint(CollectionStartNano, #explicit_histogram_aggregation{
+datapoint(CollectionStartTime, #explicit_histogram_aggregation{
                                   key={_, Attributes, _},
                                   explicit_bucket_boundaries=Boundaries,
-                                  start_time_unix_nano=StartTimeUnixNano,
+                                  start_time=StartTime,
                                   checkpoint=undefined,
                                   bucket_counts=BucketCounts,
                                   min=Min,
@@ -243,8 +243,8 @@ datapoint(CollectionStartNano, #explicit_histogram_aggregation{
     Buckets = get_buckets(BucketCounts, Boundaries),
     #histogram_datapoint{
        attributes=Attributes,
-       start_time_unix_nano=StartTimeUnixNano,
-       time_unix_nano=CollectionStartNano,
+       start_time=StartTime,
+       time=CollectionStartTime,
        count=lists:sum(Buckets),
        sum=Sum,
        bucket_counts=Buckets,
@@ -254,20 +254,20 @@ datapoint(CollectionStartNano, #explicit_histogram_aggregation{
        min=Min,
        max=Max
       };
-datapoint(CollectionStartNano, #explicit_histogram_aggregation{
+datapoint(CollectionStartTime, #explicit_histogram_aggregation{
                                   key={_, Attributes, _},
                                   explicit_bucket_boundaries=Boundaries,
                                   checkpoint=#explicit_histogram_checkpoint{bucket_counts=BucketCounts,
                                                                             min=Min,
                                                                             max=Max,
                                                                             sum=Sum,
-                                                                            start_time_unix_nano=StartTimeUnixNano}
+                                                                            start_time=StartTime}
                                  }) ->
     Buckets = get_buckets(BucketCounts, Boundaries),
     #histogram_datapoint{
        attributes=Attributes,
-       start_time_unix_nano=StartTimeUnixNano,
-       time_unix_nano=CollectionStartNano,
+       start_time=StartTime,
+       time=CollectionStartTime,
        count=lists:sum(Buckets),
        sum=Sum,
        bucket_counts=Buckets,

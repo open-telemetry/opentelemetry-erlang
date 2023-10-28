@@ -39,7 +39,7 @@ init(#view_aggregation{name=Name,
                        aggregation_options=_Options}, Attributes) ->
     Key = {Name, Attributes, ReaderId},
     #last_value_aggregation{key=Key,
-                            start_time_unix_nano=erlang:system_time(nanosecond),
+                            start_time=opentelemetry:timestamp(),
                             value=undefined}.
 
 aggregate(Tab, ViewAggregation=#view_aggregation{name=Name,
@@ -55,32 +55,32 @@ aggregate(Tab, ViewAggregation=#view_aggregation{name=Name,
 
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
-                                  temporality=?TEMPORALITY_DELTA}, CollectionStartNano) ->
+                                  temporality=?TEMPORALITY_DELTA}, CollectionStartTime) ->
     MS = [{#last_value_aggregation{key={Name, '$1', ReaderId},
-                                   start_time_unix_nano='$3',
-                                   last_start_time_unix_nano='_',
+                                   start_time='$3',
+                                   last_start_time='_',
                                    checkpoint='_',
                                    value='$2'},
            [],
            [{#last_value_aggregation{key={{Name, '$1', {const, ReaderId}}},
-                                     start_time_unix_nano={const, CollectionStartNano},
-                                     last_start_time_unix_nano='$3',
+                                     start_time={const, CollectionStartTime},
+                                     last_start_time='$3',
                                      checkpoint='$2',
                                      value='$2'}}]}],
     _ = ets:select_replace(Tab, MS),
 
     ok;
 checkpoint(Tab, #view_aggregation{name=Name,
-                                  reader=ReaderId}, _CollectionStartNano) ->
+                                  reader=ReaderId}, _CollectionStartTime) ->
     MS = [{#last_value_aggregation{key={Name, '$1', ReaderId},
-                                   start_time_unix_nano='$3',
-                                   last_start_time_unix_nano='_',
+                                   start_time='$3',
+                                   last_start_time='_',
                                    checkpoint='_',
                                    value='$2'},
            [],
            [{#last_value_aggregation{key={{{const, Name}, '$1', {const, ReaderId}}},
-                                     start_time_unix_nano='$3',
-                                     last_start_time_unix_nano='$3',
+                                     start_time='$3',
+                                     last_start_time='$3',
                                      checkpoint='$2',
                                      value='$2'}}]}],
     _ = ets:select_replace(Tab, MS),
@@ -93,23 +93,23 @@ collect(Tab, #view_aggregation{name=Name,
     Select = [{#last_value_aggregation{key={Name, '$1', ReaderId},
                                 checkpoint='$2',
                                 value='$3',
-                                start_time_unix_nano='$4',
-                                last_start_time_unix_nano='$5'}, [], ['$_']}],
+                                start_time='$4',
+                                last_start_time='$5'}, [], ['$_']}],
     AttributesAggregation = ets:select(Tab, Select),
     #gauge{datapoints=[datapoint(CollectionStartTime, LastValueAgg) ||
                           LastValueAgg <- AttributesAggregation]}.
 
 %%
 
-datapoint(CollectionStartNano, #last_value_aggregation{key={_, Attributes, _},
-                                                       last_start_time_unix_nano=StartTimeUnixNano,
+datapoint(CollectionStartTime, #last_value_aggregation{key={_, Attributes, _},
+                                                       last_start_time=StartTime,
                                                        checkpoint=Checkpoint}) ->
     #datapoint{attributes=Attributes,
-               %% `start_time_unix_nano' being set to `last_start_time_unix_nano' causes complaints
-               %% because `last_start_time_unix_nano' has matchspec values in its typespec
+               %% `start_time' being set to `last_start_time' causes complaints
+               %% because `last_start_time' has matchspec values in its typespec
                %% eqwalizer:ignore see above
-               start_time_unix_nano=StartTimeUnixNano,
-               time_unix_nano=CollectionStartNano,
+               start_time=StartTime,
+               time=CollectionStartTime,
                %% eqwalizer:ignore more matchspec fun
                value=Checkpoint,
                exemplars=[],

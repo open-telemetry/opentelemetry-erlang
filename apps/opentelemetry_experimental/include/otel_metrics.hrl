@@ -28,8 +28,8 @@
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
          key :: key_match_spec() | undefined | {element, 2, '$_'},
-         start_time_unix_nano :: match_spec(integer()) | undefined,
-         last_start_time_unix_nano :: match_spec(integer()) | undefined,
+         start_time :: match_spec(integer()) | undefined,
+         last_start_time :: match_spec(integer()) | undefined,
          checkpoint :: match_spec(number()) | undefined | {'+', '$2', '$3'} | {'+', '$3', '$4'},
          previous_checkpoint :: match_spec(number()) | undefined | {'+', '$5', '$6'},
          int_value :: match_spec(number()) | undefined | {'+', '$3', {const, number()}},
@@ -42,8 +42,8 @@
          key :: key_match_spec() | undefined,
          checkpoint :: match_spec(number()) | undefined,
          value :: match_spec(number()) | undefined,
-         start_time_unix_nano :: match_spec(integer()) | undefined,
-         last_start_time_unix_nano :: match_spec(integer()) | undefined
+         start_time :: match_spec(integer()) | undefined,
+         last_start_time :: match_spec(integer()) | undefined
         }).
 
 
@@ -53,14 +53,14 @@
          min :: match_spec(number()) | undefined,
          max :: match_spec(number()) | undefined,
          sum :: match_spec(number()) | undefined,
-         start_time_unix_nano :: match_spec(number()) | undefined
+         start_time :: match_spec(number()) | undefined
         }).
 
 -record(explicit_histogram_aggregation,
         {
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
          key :: key_match_spec() | undefined,
-         start_time_unix_nano :: match_spec(integer()) | undefined,
+         start_time :: match_spec(integer()) | undefined,
          %% instrument_temporality :: otel_aggregation:temporality(),
          %% default: [0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 250.0, 500.0, 1000.0]
          explicit_bucket_boundaries :: match_spec([float()]) | undefined,
@@ -75,8 +75,8 @@
 -record(datapoint,
         {
          attributes :: opentelemetry:attributes_map(),
-         start_time_unix_nano :: integer(),
-         time_unix_nano :: integer(),
+         start_time :: integer(),
+         time :: integer(),
          value :: number(),
          exemplars :: list() | undefined,
          flags :: integer() %% uint32
@@ -97,8 +97,8 @@
 -record(histogram_datapoint,
         {
          attributes :: opentelemetry:attributes_map(),
-         start_time_unix_nano :: match_spec(integer()) | {const, eqwalizer:dynamic()}  | undefined,
-         time_unix_nano :: integer(),
+         start_time :: match_spec(integer()) | {const, eqwalizer:dynamic()}  | undefined,
+         time :: integer(),
          count :: number(),
          sum :: float() | match_spec(integer()) | undefined,
          bucket_counts :: list(),
