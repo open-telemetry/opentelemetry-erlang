@@ -367,10 +367,15 @@ complete_exporting(Data) ->
                                  handed_off_table=undefined}}.
 
 kill_runner(Data=#data{runner_pid=RunnerPid}) when RunnerPid =/= undefined ->
+    Mon = erlang:monitor(process, RunnerPid),
     erlang:unlink(RunnerPid),
     erlang:exit(RunnerPid, kill),
-    Data#data{runner_pid=undefined,
-              handed_off_table=undefined}.
+    %% Wait for the runner process termination to be sure that
+    %% the export table is destroyed and can be safely recreated
+    receive
+        {'DOWN', Mon, process, RunnerPid, _} ->
+            Data#data{runner_pid=undefined, handed_off_table=undefined}
+    end.
 
 new_export_table(Name) ->
      ets:new(Name, [public,
