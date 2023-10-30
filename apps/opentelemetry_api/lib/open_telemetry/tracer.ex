@@ -51,8 +51,6 @@ defmodule OpenTelemetry.Tracer do
             code_attrs: code_attrs,
             thread_id_key: thread_id_key
           ] do
-      code_attrs = Map.put(code_attrs, thread_id_key, :erlang.system_info(:scheduler_id))
-
       start_opts =
         Map.new(start_opts)
         |> Map.update(:attributes, code_attrs, &Map.merge(&1, code_attrs))
