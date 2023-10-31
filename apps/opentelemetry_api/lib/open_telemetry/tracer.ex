@@ -48,8 +48,7 @@ defmodule OpenTelemetry.Tracer do
     quote bind_quoted: [
             name: name,
             start_opts: opts,
-            code_attrs: code_attrs,
-            thread_id_key: thread_id_key
+            code_attrs: code_attrs
           ] do
       start_opts =
         Map.new(start_opts)
