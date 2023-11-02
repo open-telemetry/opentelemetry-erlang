@@ -6,12 +6,17 @@ defmodule OtelElixirTests.MixProject do
       app: :otel_elixir_tests,
       version: "0.1.0",
       deps: deps(),
-      elixirc_paths: elixirc_paths(Mix.env())
+      elixirc_paths: elixirc_paths(Mix.env()),
+      test_coverage: [tool: :covertool, include_apps: [:opentelemetry, :opentelemetry_api]]
     ]
   end
 
   def deps do
     [
+      {:covertool,
+       git: "https://github.com/albertored/covertool.git",
+       branch: "add-include-apps-mix",
+       only: :test},
       {:opentelemetry, path: "apps/opentelemetry", only: :test, override: true},
       {:opentelemetry_api, path: "apps/opentelemetry_api", only: :test, override: true},
       {:opentelemetry_semantic_conventions,
