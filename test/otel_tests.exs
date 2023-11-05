@@ -247,7 +247,7 @@ defmodule OtelTests do
         attributes =
           :otel_attributes.new(
             [
-              {:"exception.type", "Elixir.RuntimeError"},
+              {:"exception.type", "RuntimeError"},
               {:"exception.message", "my error message"},
               {:"exception.stacktrace", stacktrace}
             ],
@@ -265,7 +265,7 @@ defmodule OtelTests do
                             :infinity,
                             0,
                             [
-                              {:event, _, "exception", ^attributes}
+                              {:event, _, :exception, ^attributes}
                             ]
                           }
                         )}
@@ -358,7 +358,7 @@ defmodule OtelTests do
                event
 
       assert %{
-               "exception.type": "error:badarg",
+               "exception.type": "ArgumentError",
                "exception.stacktrace": _
              } = received_attirbutes
     end

@@ -136,16 +136,15 @@ defmodule OpenTelemetry.Span do
   def record_exception(span_ctx, exception, trace \\ nil, attributes \\ [])
 
   def record_exception(span_ctx, exception, trace, attributes) when is_exception?(exception) do
-    exception_type = to_string(exception.__struct__)
+    trace =
+      if trace do
+        trace
+      else
+        {:current_stacktrace, t} = Process.info(self(), :current_stacktrace)
+        Enum.drop(t, 3)
+      end
 
-    exception_attributes = [
-      {OpenTelemetry.SemanticConventions.Trace.exception_type(), exception_type},
-      {OpenTelemetry.SemanticConventions.Trace.exception_message(), Exception.message(exception)},
-      {OpenTelemetry.SemanticConventions.Trace.exception_stacktrace(),
-       Exception.format_stacktrace(trace)}
-    ]
-
-    add_event(span_ctx, "exception", exception_attributes ++ attributes)
+    :otel_span.record_exception(span_ctx, :error, exception, trace, attributes)
   end
 
   def record_exception(_, _, _, _), do: false
