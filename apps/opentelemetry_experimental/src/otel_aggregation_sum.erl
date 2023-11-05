@@ -44,10 +44,8 @@ init(#view_aggregation{name=Name,
                      float_value=0.0}.
 
 aggregate(Tab, #view_aggregation{name=Name,
-                                 reader=ReaderId,
-                                 is_monotonic=IsMonotonic}, Value, Attributes)
-  when is_integer(Value) andalso
-       ((IsMonotonic andalso Value >= 0) orelse not IsMonotonic) ->
+                                 reader=ReaderId}, Value, Attributes)
+  when is_integer(Value) ->
     Key = {Name, Attributes, ReaderId},
     try
         _ = ets:update_counter(Tab, Key, {#sum_aggregation.int_value, Value}),
@@ -65,9 +63,7 @@ aggregate(Tab, #view_aggregation{name=Name,
             false
     end;
 aggregate(Tab, #view_aggregation{name=Name,
-                                 reader=ReaderId,
-                                 is_monotonic=IsMonotonic}, Value, Attributes)
-  when (IsMonotonic andalso Value >= 0.0) orelse not IsMonotonic ->
+                                 reader=ReaderId}, Value, Attributes) ->
     Key = {Name, Attributes, ReaderId},
     MS = [{#sum_aggregation{key=Key,
                             start_time='$1',
@@ -84,10 +80,7 @@ aggregate(Tab, #view_aggregation{name=Name,
                               previous_checkpoint='$6',
                               int_value='$3',
                               float_value={'+', '$4', {const, Value}}}}]}],
-    1 =:= ets:select_replace(Tab, MS);
-aggregate(_Tab, #view_aggregation{name=_Name,
-                                  is_monotonic=_IsMonotonic}, _Value, _) ->
-    false.
+    1 =:= ets:select_replace(Tab, MS).
 
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
