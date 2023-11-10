@@ -85,9 +85,10 @@ to_data_points(#datapoint{attributes=Attributes,
                           exemplars=Exemplars,
                           flags=Flags
                          }) ->
+
     #{attributes => otel_otlp_common:to_attributes(Attributes),
-      start_time => opentelemetry:timestamp_to_nano(StartTime),
-      time => opentelemetry:timestamp_to_nano(CollectionStartTime),
+      start_time_unix_nano => opentelemetry:timestamp_to_nano(StartTime),
+      time_unix_nano => opentelemetry:timestamp_to_nano(CollectionStartTime),
       value => to_datapoint_value(Value),
       exemplars => Exemplars,
       flags => Flags
@@ -107,8 +108,8 @@ to_histogram_data_points(#histogram_datapoint{
                             max=Max
                            }) ->
     #{attributes => otel_otlp_common:to_attributes(Attributes),
-      start_time => StartTime,
-      time => CollectionStartTime,
+      start_time_unix_nano => opentelemetry:timestamp_to_nano(StartTime),
+      time_unix_nano => opentelemetry:timestamp_to_nano(CollectionStartTime),
       count => Count,
       sum => Sum,
       bucket_counts => Buckets,
