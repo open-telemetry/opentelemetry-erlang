@@ -36,7 +36,7 @@ jobs:
         otp-version: ${{ matrix.otp_version }}
         rebar3-version: ${{ matrix.rebar3_version }}
         version-type: 'strict'
-    - uses: actions/cache@v2
+    - uses: actions/cache@v3
       name: Cache
       with:
         path: |
@@ -101,7 +101,7 @@ jobs:
         otp-version: ${{ matrix.otp_version }}
         rebar3-version: ${{ matrix.rebar3_version }}
         version-type: 'strict'
-    - uses: actions/cache@v2
+    - uses: actions/cache@v3
       name: Cache
       with:
         path: |
@@ -129,7 +129,7 @@ jobs:
         otp-version: ${{ matrix.otp_version }}
         rebar3-version: ${{ matrix.rebar3_version }}
         version-type: 'strict'
-    - uses: actions/cache@v2
+    - uses: actions/cache@v3
       name: Cache
       with:
         path: |
