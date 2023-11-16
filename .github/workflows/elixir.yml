@@ -12,7 +12,7 @@ jobs:
   format:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: '25.0'
@@ -42,7 +42,7 @@ jobs:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir_version }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp_version }}
@@ -71,7 +71,7 @@ jobs:
       run:
         working-directory: apps/opentelemetry_api/
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp_version }}
@@ -114,7 +114,7 @@ jobs:
       run:
         working-directory: apps/opentelemetry_api/
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp_version }}
