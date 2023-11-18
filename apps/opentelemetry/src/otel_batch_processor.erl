@@ -90,17 +90,11 @@ current_tab_to_list(RegName) ->
     ets:tab2list(?CURRENT_TABLE(RegName)).
 -endif.
 
-start_link(Config) ->
-    Name = case maps:find(name, Config) of
-               {ok, N} ->
-                   N;
-               error ->
-                   %% use a unique reference to distiguish multiple batch processors while
-                   %% still having a single name, instead of a possibly changing pid, to
-                   %% communicate with the processor
-                   erlang:ref_to_list(erlang:make_ref())
-           end,
-
+%% require a unique name to distiguish multiple batch processors while
+%% still having a single name, instead of a possibly changing pid, to
+%% communicate with the processor
+-spec start_link(#{name := atom() | list()}) -> {ok, pid(), map()}.
+start_link(Config=#{name := Name}) ->
     RegisterName = ?REG_NAME(Name),
     Config1 = Config#{reg_name => RegisterName},
     {ok, Pid} = gen_statem:start_link({local, RegisterName}, ?MODULE, [Config1], []),
