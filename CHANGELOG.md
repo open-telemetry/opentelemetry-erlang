@@ -25,11 +25,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Attributes module `otel_attributes` moved to
   API](https://github.com/open-telemetry/opentelemetry-erlang/pull/618)
 
+### Fixes
+
+- [Fix leak of atoms/persistent terms by creating unique processor name in `otel_tracer_server`](https://github.com/open-telemetry/opentelemetry-erlang/pull/646)
+
 ## Experimental API
 
 ### Changes
 
-- [Allow to create observable instruments without passing callback arguments](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
+- [Allow to create observable instruments without passing callback
+  arguments](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
 - [Allow to give `advisory_params` to instrument creation functions](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
 - [Attributes are optional in Counter.add(), UpDownCounter.add() and Histo.record()](https://github.com/open-telemetry/opentelemetry-erlang/pull/632)
 
