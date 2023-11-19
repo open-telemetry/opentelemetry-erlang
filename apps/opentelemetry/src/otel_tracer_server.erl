@@ -159,7 +159,14 @@ init_processor(SpanProcessorSup, ProcessorModule, Config) ->
     %% start_link is an optional callback for processors
     case lists:member({start_link, 1}, ProcessorModule:module_info(exports)) of
         true ->
-            try supervisor:start_child(SpanProcessorSup, [ProcessorModule, Config]) of
+            try supervisor:start_child(SpanProcessorSup,
+                                       [ProcessorModule,
+                                        %% use a unique reference to distiguish multiple processors of the same type while
+                                        %% still having a single name, instead of a possibly changing pid, to
+                                        %% communicate with the processor
+                                        maps:merge(#{name => erlang:ref_to_list(erlang:make_ref())},
+                                                   Config)])
+            of
                 {ok, _Pid, Config1} ->
                     {true, {ProcessorModule, Config1}};
                 {error, Reason} ->

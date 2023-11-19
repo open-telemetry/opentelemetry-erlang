@@ -18,17 +18,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['26.0', '25.0.3', '24.1.2']
+        otp_version: ['26.1.2', '25.3.2.7', '24.3.4.14']
         rebar3_version: ['3.22.1']
         os: [ubuntu-20.04]
         include:
-          - otp_version: '23.3'
+          - otp_version: '23.3.4.19'
             rebar3_version: '3.17.0'
             os: ubuntu-20.04
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Run Collector
       run: docker-compose up -d
     - uses: erlef/setup-beam@v1
@@ -36,7 +36,7 @@ jobs:
         otp-version: ${{ matrix.otp_version }}
         rebar3-version: ${{ matrix.rebar3_version }}
         version-type: 'strict'
-    - uses: actions/cache@v2
+    - uses: actions/cache@v3
       name: Cache
       with:
         path: |
@@ -52,7 +52,7 @@ jobs:
       run: rebar3 ct --cover
 
     - name: Publish Test Report
-      uses: mikepenz/action-junit-report@v3
+      uses: mikepenz/action-junit-report@v4
       if: success() || failure() # always run even if the previous step fails
       with:
         report_paths: '**/_build/test/logs/*/junit_report.xml'
@@ -91,17 +91,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['26.0']
+        otp_version: ['26.1.2']
         rebar3_version: ['3.22.1']
         os: [ubuntu-20.04]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - uses: erlef/setup-beam@v1
       with:
         otp-version: ${{ matrix.otp_version }}
         rebar3-version: ${{ matrix.rebar3_version }}
         version-type: 'strict'
-    - uses: actions/cache@v2
+    - uses: actions/cache@v3
       name: Cache
       with:
         path: |
@@ -119,17 +119,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['26.0']
+        otp_version: ['26.1.2']
         rebar3_version: ['3.22.1']
         os: [ubuntu-20.04]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - uses: erlef/setup-beam@v1
       with:
         otp-version: ${{ matrix.otp_version }}
         rebar3-version: ${{ matrix.rebar3_version }}
         version-type: 'strict'
-    - uses: actions/cache@v2
+    - uses: actions/cache@v3
       name: Cache
       with:
         path: |

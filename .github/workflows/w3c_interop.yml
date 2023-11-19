@@ -11,15 +11,15 @@ on:
 jobs:
   interop_tests:
     name: Run W3C Trace Context Interop Tests
-    runs-on: ubuntu-20.04
-    env:
-      OTP_VERSION:
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - uses: erlef/setup-beam@v1
       with:
-        otp-version: '26.0'
-    - uses: actions/cache@v2
+        otp-version: '26.1.2'
+        version-type: strict
+        rebar3-version: '3.22.1'
+    - uses: actions/cache@v3
       name: Cache
       with:
         path: |
@@ -31,14 +31,14 @@ jobs:
     - name: Compile
       run: rebar3 as interop compile
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         repository: 'w3c/trace-context'
         path: 'trace-context'
     - name: Setup python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.6
+        python-version: 3.12
         architecture: x64
     - run: pip install aiohttp
     - run: |

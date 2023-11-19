@@ -50,7 +50,7 @@ defmodule OpenTelemetry.MixProject do
   end
 
   defp load_app do
-    {:ok, [{:application, name, desc}]} = :file.consult('src/opentelemetry_api.app.src')
+    {:ok, [{:application, name, desc}]} = :file.consult(~c"src/opentelemetry_api.app.src")
 
     {name, desc}
   end
