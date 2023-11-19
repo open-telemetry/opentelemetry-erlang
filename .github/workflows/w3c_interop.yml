@@ -11,7 +11,7 @@ on:
 jobs:
   interop_tests:
     name: Run W3C Trace Context Interop Tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
     - uses: erlef/setup-beam@v1
@@ -38,7 +38,7 @@ jobs:
     - name: Setup python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.6
+        python-version: 3.12
         architecture: x64
     - run: pip install aiohttp
     - run: |
