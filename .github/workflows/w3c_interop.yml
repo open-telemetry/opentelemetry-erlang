@@ -12,13 +12,13 @@ jobs:
   interop_tests:
     name: Run W3C Trace Context Interop Tests
     runs-on: ubuntu-20.04
-    env:
-      OTP_VERSION:
     steps:
     - uses: actions/checkout@v4
     - uses: erlef/setup-beam@v1
       with:
-        otp-version: '26.0'
+        otp-version: '26.1.2'
+        version-type: strict
+        rebar3-version: '3.22.1'
     - uses: actions/cache@v3
       name: Cache
       with:

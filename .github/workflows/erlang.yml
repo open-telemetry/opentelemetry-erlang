@@ -18,11 +18,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['26.0', '25.0.3', '24.1.2']
+        otp_version: ['26.1.2', '25.3.2.7', '24.3.4.14']
         rebar3_version: ['3.22.1']
         os: [ubuntu-20.04]
         include:
-          - otp_version: '23.3'
+          - otp_version: '23.3.4.19'
             rebar3_version: '3.17.0'
             os: ubuntu-20.04
     env:
@@ -91,7 +91,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['26.0']
+        otp_version: ['26.1.2']
         rebar3_version: ['3.22.1']
         os: [ubuntu-20.04]
     steps:
@@ -119,7 +119,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['26.0']
+        otp_version: ['26.1.2']
         rebar3_version: ['3.22.1']
         os: [ubuntu-20.04]
     steps:

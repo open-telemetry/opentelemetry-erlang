@@ -1,7 +1,7 @@
 %{
   "cmark": {:hex, :cmark, "0.10.0", "51217dc90fec459f34a30ea73345e6a7c1d2f3d618cb4a1738a2ebd0697a57a0", [:make, :mix], [{:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm", "00abeadc6f3176e3941853122413082de95d57787777dd0400d64e568acf7c32"},
-  "covertool": {:hex, :covertool, "2.0.3", "5d1ca6958482b9b7e718daf61f398e382426ed0f4689d5c8698a60ae3b5ba521", [:rebar3], [], "hexpm", "5c13170a55dbd6bd9efc722bc7fa32caff6f3c9cde9c692bd4a88bfc9ac4f029"},
-  "dialyxir": {:hex, :dialyxir, "1.3.0", "fd1672f0922b7648ff9ce7b1b26fcf0ef56dda964a459892ad15f6b4410b5284", [:mix], [{:erlex, ">= 0.2.6", [hex: :erlex, repo: "hexpm", optional: false]}], "hexpm", "00b2a4bcd6aa8db9dcb0b38c1225b7277dca9bc370b6438715667071a304696f"},
+  "covertool": {:hex, :covertool, "2.0.6", "4a291b4e3449025b0595d8f44c8d7635d4f48f033be2ce88d22a329f36f94a91", [:rebar3], [], "hexpm", "5db3fcd82180d8ea4ad857d4d1ab21a8d31b5aee0d60d2f6c0f9e25a411d1e21"},
+  "dialyxir": {:hex, :dialyxir, "1.4.2", "764a6e8e7a354f0ba95d58418178d486065ead1f69ad89782817c296d0d746a5", [:mix], [{:erlex, ">= 0.2.6", [hex: :erlex, repo: "hexpm", optional: false]}], "hexpm", "516603d8067b2fd585319e4b13d3674ad4f314a5902ba8130cd97dc902ce6bbd"},
   "earmark": {:hex, :earmark, "1.4.14", "d04572cef64dd92726a97d92d714e38d6e130b024ea1b3f8a56e7de66ec04e50", [:mix], [{:earmark_parser, ">= 1.4.12", [hex: :earmark_parser, repo: "hexpm", optional: false]}], "hexpm", "df338b8b1852ee425180b276c56c6941cb12220e04fe8718fe4acbdd35fd699f"},
   "earmark_parser": {:hex, :earmark_parser, "1.4.19", "de0d033d5ff9fc396a24eadc2fcf2afa3d120841eb3f1004d138cbf9273210e8", [:mix], [], "hexpm", "527ab6630b5c75c3a3960b75844c314ec305c76d9899bb30f71cb85952a9dc45"},
   "elixir_make": {:hex, :elixir_make, "0.6.2", "7dffacd77dec4c37b39af867cedaabb0b59f6a871f89722c25b28fcd4bd70530", [:mix], [], "hexpm", "03e49eadda22526a7e5279d53321d1cced6552f344ba4e03e619063de75348d9"},
