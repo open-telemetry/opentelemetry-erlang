@@ -371,9 +371,20 @@ headers_to_grpc_metadata(Headers) ->
 
 %% make all headers into list strings
 headers(List) when is_list(List) ->
-    [{unicode:characters_to_list(X), unicode:characters_to_list(Y)} || {X, Y} <- List];
+    Headers =[{unicode:characters_to_list(X), unicode:characters_to_list(Y)} || {X, Y} <- List],
+    add_user_agent(Headers);
 headers(_) ->
-    [].
+    add_user_agent([]).
+
+add_user_agent(Headers) ->
+    case lists:search(fun({Header, _}) -> string:to_lower(Header) == "user-agent" end, Headers) of
+        {value, _} -> Headers;
+        false -> [{"User-Agent", user_agent()} | Headers]
+    end.
+
+user_agent() ->
+    {ok, ExporterVsn} = application:get_key(opentelemetry_exporter, vsn),
+    lists:flatten(io_lib:format("OTel-OTLP-Exporter-erlang/~s", [ExporterVsn])).
 
 -spec endpoints([endpoint()], list() | undefined) -> [endpoint_map()].
 endpoints(List, DefaultSSLOpts) when is_list(List) ->
