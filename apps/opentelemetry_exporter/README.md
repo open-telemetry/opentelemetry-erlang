@@ -156,24 +156,28 @@ The second element of the configuration tuple is a configuration map. It can con
 - `compression` - an atom. Setting it to `gzip` enables gzip compression.
 - `ssl_options` - a list of SSL options. See Erlang's [SSL docs](https://www.erlang.org/doc/man/ssl.html#TLS/DTLS%20OPTION%20DESCRIPTIONS%20-%20CLIENT) for what options are available.
 
-## Contributing
-
-This project uses a submodule during development, it is not needed if the application is being used as a dependency, so be sure to clone with the option `recurse-submodules`:
-
-```shell
-$ git clone --recurse-submodules https://github.com/opentelemetry-beam/opentelemetry_exporter
-```
-
 ### Upgrading OpenTelemetry Protos
 
-The protos are in a separate repository, [opentelemetry-proto](https://github.com/open-telemetry/opentelemetry-proto/), and used as a submodule in this repo. To update the Erlang protobuf modules and GRPC client first update the submodule and then use the [rebar3 grpcbox plugin](https://github.com/tsloughter/grpcbox_plugin/) to generate the client:
+The protos are in a separate repository,
+[opentelemetry-proto](https://github.com/open-telemetry/opentelemetry-proto/),
+and used as a submodule in this repo. To update the Erlang protobuf modules and
+GRPC client first update the submodule and then use the [rebar3 grpcbox
+plugin](https://github.com/tsloughter/grpcbox_plugin/) to generate the client:
 
 ```shell
-$ git submodule update --remote opentelemetry-proto
+$ pushd apps/opentelemetry_exporter/opentelemetry-proto
+$ git fetch origin
+$ git checkout <tag>
+$ popd
+
+# bug in grpcbox plugin means we need to delete _pb files first to regenerate them
+$ rm./apps/opentelemetry_exporter/src/opentelemetry_exporter_trace_service_pb.erl  ./apps/opentelemetry_exporter/src/opentelemetry_exporter_metrics_service_pb.erl ./apps/opentelemetry_exporter/src/opentelemetry_exporter_logs_service_pb.erl
+
 $ rebar3 grpc gen -t client
-===> Writing src/trace_service_pb.erl
-===> Writing src/opentelemetry_proto_collector_trace_v_1_trace_service_client.erl (forcibly overwriting)
-$ mv src/opentelemetry_proto_collector_trace_v_1_trace_service_client.erl src/opentelemetry_trace_service.erl
+...
+$ mv apps/opentelemetry_exporter/src/opentelemetry_proto_collector_trace_v_1_trace_service_client.erl apps/opentelemetry_exporter/src/opentelemetry_trace_service.erl
+$ mv apps/opentelemetry_exporter/src/opentelemetry_proto_collector_logs_v_1_logs_service_client.erl apps/opentelemetry_exporter/src/opentelemetry_logs_service.erl
+$ mv apps/opentelemetry_exporter/src/opentelemetry_proto_collector_metrics_v_1_metrics_service_client.erl apps/opentelemetry_exporter/src/opentelemetry_metrics_service.erl
 ```
 
-Then open `src/opentelemetry_trace_service.erl` and fix the module name.
+Then open each moved module and fix the module name.
