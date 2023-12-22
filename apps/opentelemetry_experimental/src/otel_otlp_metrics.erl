@@ -60,10 +60,14 @@ to_proto(#metric{name=Name,
                  description=Description,
                  unit=Unit,
                  data=Data}) ->
-    #{name => otel_otlp_common:to_binary(Name),
-      description => Description,
-      unit => otel_otlp_common:to_binary(Unit),
-      data => to_data(Data)}.
+    Metric =
+        #{name => otel_otlp_common:to_binary(Name),
+          description => Description,
+          data => to_data(Data)},
+    case Unit of
+        undefined -> Metric;
+        _ -> Metric#{unit => otel_otlp_common:to_binary(Unit)}
+    end.
 
 to_data(#sum{aggregation_temporality=Temporality,
              is_monotonic=IsMonotonic,
