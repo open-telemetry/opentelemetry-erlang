@@ -65,7 +65,7 @@ init_per_testcase(disabled_sdk, Config) ->
     Config;
 init_per_testcase(no_exporter, Config) ->
     application:set_env(opentelemetry, processors,
-                        [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
+                        [{otel_batch_processor, #{scheduled_delay_ms => 1, exporter => none}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(disable_auto_creation, Config) ->
@@ -119,6 +119,9 @@ init_per_testcase(too_many_attributes, Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config1;
 init_per_testcase(tracer_instrumentation_scope, Config) ->
+    %% Note: this actually mutes a bug / design drawback, as
+    %% persistent terms are not cleaned / properly refreshed and may keep stale data.
+    cleanup_persistent_terms(opentelemetry),
     Config1 = set_batch_tab_processor(Config),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config1;
@@ -128,7 +131,8 @@ init_per_testcase(multiple_tracer_providers, Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(multiple_processors, Config) ->
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1,
+    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{name => first,
+                                                                             scheduled_delay_ms => 1,
                                                                             exporter => {otel_exporter_pid, self()}}},
                                                     {otel_batch_processor, #{name => second,
                                                                              scheduled_delay_ms => 1,
@@ -269,7 +273,7 @@ logger_metadata(_Config) ->
     ok.
 
 %% logger metadata will either be undefined, or a map without hex_span_ctx_keys:
-%%  [otel_trace_id, otel_span_id, ,otel_trace_flags]
+%%  [otel_trace_id, otel_span_id, otel_trace_flags]
 empty_metadata() ->
     case logger:get_process_metadata() of
         undefined ->
@@ -589,7 +593,6 @@ update_span_data(Config) ->
 
     ok.
 
-
 tracer_instrumentation_scope(Config) ->
     Tid = ?config(tid, Config),
 
@@ -606,7 +609,6 @@ tracer_instrumentation_scope(Config) ->
     otel_span:end_span(SpanCtx1),
 
     [Span1] = assert_exported(Tid, SpanCtx1),
-
     ?assertMatch({instrumentation_scope,<<"tracer1">>,<<"1.0.0">>,<<"http://schema.org/myschema">>},
                  Span1#span.instrumentation_scope).
 
@@ -1080,21 +1082,16 @@ disabled_sdk(_Config) ->
 
 no_exporter(_Config) ->
     SpanCtx1 = ?start_span(<<"span-1">>),
-
-    %% set_exporter will enable the export table even if the exporter ends
-    %% up being undefined to ensure no spans are lost. so briefly spans
-    %% will be captured
-    otel_batch_processor:set_exporter(none),
     otel_span:end_span(SpanCtx1),
 
     %% once the exporter is "initialized" the table is cleared and disabled
     %% future spans are not added
-    ?UNTIL([] =:= otel_batch_processor:current_tab_to_list(otel_batch_processor_global)),
+    ?UNTIL([] =:= otel_batch_olp:current_tab_to_list(otel_batch_processor_global)),
 
     SpanCtx2 = ?start_span(<<"span-2">>),
     otel_span:end_span(SpanCtx2),
 
-    ?assertEqual([], otel_batch_processor:current_tab_to_list(otel_batch_processor_global)),
+    ?assertEqual([], otel_batch_olp:current_tab_to_list(otel_batch_processor_global)),
 
     ok.
 
@@ -1118,3 +1115,12 @@ assert_not_exported(Tid, #span_ctx{trace_id=TraceId,
                                           span_id=SpanId,
                                           _='_'})).
 
+cleanup_persistent_terms(Module) ->
+    lists:foreach(
+      fun({Key, _})  ->
+              case is_tuple(Key) andalso element(1, Key) =:= Module of
+                  true -> persistent_term:erase(Key);
+                  false -> ok
+              end
+      end,
+      persistent_term:get()).

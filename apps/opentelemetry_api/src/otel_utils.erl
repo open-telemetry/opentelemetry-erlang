@@ -21,7 +21,8 @@
          format_binary_string/2,
          format_binary_string/3,
          assert_to_binary/1,
-         unicode_to_binary/1]).
+         unicode_to_binary/1,
+         stack_without_args/1]).
 
 -if(?OTP_RELEASE >= 24).
 format_exception(Kind, Reason, StackTrace) ->
@@ -56,3 +57,11 @@ unicode_to_binary(String) ->
         _ ->
             {error, bad_binary_conversion}
     end.
+
+%% Args may contain sensitive data
+stack_without_args([{M, F, Args, Info} | T]) when is_list(Args) ->
+    [{M, F, length(Args), Info} | stack_without_args(T)];
+stack_without_args([StItem | T] ) ->
+    [StItem | stack_without_args(T)];
+stack_without_args([]) ->
+    [].

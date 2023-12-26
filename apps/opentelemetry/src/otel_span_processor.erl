@@ -29,8 +29,7 @@
 
 -callback on_end(opentelemetry:span(), processor_config()) -> true |
                                                               dropped |
-                                                              {error, invalid_span} |
-                                                              {error, no_export_buffer}.
+                                                              {error, term()}.
 
 -callback force_flush(processor_config()) -> ok |
                                              {error, term()}.
