@@ -59,7 +59,8 @@
          status/1,
          status/2,
          verify_and_set_term/3,
-         vsn_to_binary/1]).
+         vsn_to_binary/1,
+         cleanup_persistent_terms/0]).
 
 -include("opentelemetry.hrl").
 -include_lib("kernel/include/logger.hrl").
@@ -444,6 +445,9 @@ status(?OTEL_STATUS_UNSET, _Message) ->
     #status{code=?OTEL_STATUS_UNSET};
 status(_, _) ->
     undefined.
+
+cleanup_persistent_terms() ->
+    otel_utils:cleanup_persistent_terms(?MODULE).
 
 %% internal functions
 
