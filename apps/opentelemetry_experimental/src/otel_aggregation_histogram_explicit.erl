@@ -21,8 +21,8 @@
 
 -export([init/2,
          aggregate/4,
-         checkpoint/3,
-         collect/3]).
+         checkpoint/4,
+         collect/4]).
 
 -include("otel_metrics.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
@@ -135,7 +135,8 @@
 init(#view_aggregation{name=Name,
                        reader=ReaderId,
                        aggregation_options=Options}, Attributes) ->
-    Key = {Name, Attributes, ReaderId},
+    Generation = otel_metric_reader:checkpoint_generation(ReaderId),
+    Key = {Name, Attributes, ReaderId, Generation},
     ExplicitBucketBoundaries = maps:get(explicit_bucket_boundaries, Options, ?DEFAULT_BOUNDARIES),
     RecordMinMax = maps:get(record_min_max, Options, true),
     #explicit_histogram_aggregation{key=Key,
@@ -152,7 +153,8 @@ init(#view_aggregation{name=Name,
 aggregate(Table, #view_aggregation{name=Name,
                                    reader=ReaderId,
                                    aggregation_options=Options}, Value, Attributes) ->
-    Key = {Name, Attributes, ReaderId},
+    Generation = otel_metric_reader:checkpoint_generation(ReaderId),
+    Key = {Name, Attributes, ReaderId, Generation},
     ExplicitBucketBoundaries = maps:get(explicit_bucket_boundaries, Options, ?DEFAULT_BOUNDARIES),
     try ets:lookup_element(Table, Key, #explicit_histogram_aggregation.bucket_counts) of
         BucketCounts0 ->
@@ -177,8 +179,8 @@ aggregate(Table, #view_aggregation{name=Name,
 
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
-                                  temporality=?TEMPORALITY_DELTA}, CollectionStartTime) ->
-    MS = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId},
+                                  temporality=?TEMPORALITY_DELTA}, CollectionStartTime, Generation) ->
+    MS = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId, Generation},
                                            start_time='$9',
                                            explicit_bucket_boundaries='$2',
                                            record_min_max='$3',
@@ -189,7 +191,7 @@ checkpoint(Tab, #view_aggregation{name=Name,
                                            sum='$8'
                                           },
            [],
-           [{#explicit_histogram_aggregation{key={{{const, Name}, '$1', {const, ReaderId}}},
+           [{#explicit_histogram_aggregation{key={{{const, Name}, '$1', {const, ReaderId}, {const, Generation}}},
                                              start_time={const, CollectionStartTime},
                                              explicit_bucket_boundaries='$2',
                                              record_min_max='$3',
@@ -205,7 +207,7 @@ checkpoint(Tab, #view_aggregation{name=Name,
     _ = ets:select_replace(Tab, MS),
 
     ok;
-checkpoint(_Tab, _, _CollectionStartTime) ->
+checkpoint(_Tab, _, _CollectionStartTime, _) ->
     %% no good way to checkpoint the `counters' without being out of sync with
     %% min/max/sum, so may as well just collect them in `collect', which will
     %% also be out of sync, but best we can do right now
@@ -214,8 +216,8 @@ checkpoint(_Tab, _, _CollectionStartTime) ->
 
 collect(Tab, #view_aggregation{name=Name,
                                reader=ReaderId,
-                               temporality=Temporality}, CollectionStartTime) ->
-    Select = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId},
+                               temporality=Temporality}, CollectionStartTime, Generation) ->
+    Select = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId, Generation},
                                                start_time='$2',
                                                explicit_bucket_boundaries='$3',
                                                record_min_max='$4',
@@ -231,7 +233,7 @@ collect(Tab, #view_aggregation{name=Name,
 %%
 
 datapoint(CollectionStartTime, #explicit_histogram_aggregation{
-                                  key={_, Attributes, _},
+                                  key={_, Attributes, _, _},
                                   explicit_bucket_boundaries=Boundaries,
                                   start_time=StartTime,
                                   checkpoint=undefined,
@@ -255,7 +257,7 @@ datapoint(CollectionStartTime, #explicit_histogram_aggregation{
        max=Max
       };
 datapoint(CollectionStartTime, #explicit_histogram_aggregation{
-                                  key={_, Attributes, _},
+                                  key={_, Attributes, _, _},
                                   explicit_bucket_boundaries=Boundaries,
                                   checkpoint=#explicit_histogram_checkpoint{bucket_counts=BucketCounts,
                                                                             min=Min,

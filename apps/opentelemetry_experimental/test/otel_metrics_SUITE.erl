@@ -83,7 +83,8 @@ all() ->
      kill_reader, kill_server, observable_counter, observable_updown_counter, observable_gauge,
      multi_instrument_callback, using_macros, float_counter, float_updown_counter, float_histogram,
      sync_filtered_attributes, async_filtered_attributes, delta_observable_counter,
-     bad_observable_return, default_resource, histogram_aggregation_options, advisory_params
+     bad_observable_return, default_resource, histogram_aggregation_options, advisory_params,
+     sync_delta_histogram, async_delta_page_faults
     ].
 
 init_per_suite(Config) ->
@@ -159,6 +160,36 @@ init_per_testcase(delta_explicit_histograms, Config) ->
                                                                      config => #{exporter => {otel_metric_exporter_pid, self()},
                                                                                  default_temporality_mapping =>
                                                                                      DeltaHistogramTemporality}}]),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
+init_per_testcase(sync_delta_histogram, Config) ->
+    DeltaHistogramTemporality = maps:put(?KIND_HISTOGRAM, ?TEMPORALITY_DELTA, default_temporality_mapping()),
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping =>
+                                                                                     DeltaHistogramTemporality}}]),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
+init_per_testcase(async_cumulative_page_faults, Config) ->
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()}}}]),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
+init_per_testcase(async_delta_page_faults, Config) ->
+    DeltaCounterTemporality = maps:put(?KIND_OBSERVABLE_COUNTER, ?TEMPORALITY_DELTA, default_temporality_mapping()),
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping =>
+                                                                                     DeltaCounterTemporality}}]),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
@@ -1301,4 +1332,244 @@ histogram_aggregation_options(_Config) ->
     after
         1000 ->
             ct:fail(histogram_receive_timeout)
+    end.
+
+sync_delta_histogram(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    ?assert(otel_meter_server:add_view(http_req_view, #{instrument_name => http_requests}, #{
+                                                         aggregation_module => otel_aggregation_histogram_explicit,
+                                                         aggregation_options => #{explicit_bucket_boundaries => []}})),
+
+    HttpReqHistogram = otel_histogram:create(Meter, http_requests, #{}),
+
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 50, #{verb => <<"GET">>,
+                                                                   status => 200})),
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 100, #{verb => <<"GET">>,
+                                                                   status => 200})),
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 1, #{verb => <<"GET">>,
+                                                                   status => 500})),
+
+
+    otel_meter_server:force_flush(),
+
+    receive
+        {otel_metric, #metric{name=http_req_view,
+                              data=#histogram{datapoints=Datapoints}}} ->
+            AttributeBuckets =
+                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                         attributes=Attributes,
+                                                                                         min=Min,
+                                                                                         max=Max,
+                                                                                         sum=Sum} <- Datapoints]),
+            ?assertEqual([], [{#{status => 200,verb => <<"GET">>},[2],50,100,150},
+                              {#{status => 500,verb => <<"GET">>},[1],1,1,1}]
+                         -- AttributeBuckets, AttributeBuckets)
+    after
+        1000 ->
+            ct:fail(histogram_receive_timeout)
+    end,
+
+    otel_meter_server:force_flush(),
+
+    %% TODO: check for nothing
+
+    receive
+        {otel_metric, #metric{name=http_req_view,
+                              data=#histogram{datapoints=[]}}} ->
+            ok
+    end,
+
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 5, #{verb => <<"GET">>,
+                                                                   status => 500})),
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 2, #{verb => <<"GET">>,
+                                                                   status => 500})),
+
+    otel_meter_server:force_flush(),
+
+    receive
+        {otel_metric, #metric{name=http_req_view,
+                              data=#histogram{datapoints=Datapoints1}}} ->
+            AttributeBuckets1 =
+                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                         attributes=Attributes,
+                                                                                         min=Min,
+                                                                                         max=Max,
+                                                                                         sum=Sum} <- Datapoints1]),
+            ?assertEqual([], [{#{status => 500,verb => <<"GET">>},[2],2,5,7}]
+                         -- AttributeBuckets1, AttributeBuckets1)
+    after
+        1000 ->
+            ct:fail(histogram_receive_timeout)
+    end,
+
+    ok.
+
+async_cumulative_page_faults(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = page_faults,
+    CounterDesc = <<"number of page faults">>,
+    CounterUnit = 1,
+
+    ?assert(otel_meter_server:add_view(#{instrument_name => CounterName},
+                                       #{aggregation_module => otel_aggregation_sum})),
+
+    %% use an atomic to change the returned value of the observable callback on each call
+    IntervalCounter = atomics:new(1, []),
+    Pid1001 = #{pid => 1001},
+    Pid1002 = #{pid => 1002},
+    Pid1003 = #{pid => 1003},
+
+    %% tuple of the measurements to return from the observable callback for each time interval
+    %% and the corresponding expected metrics to get from the exporter.
+    MeasurementsAndExpected = {{[{50, Pid1001}, {30, Pid1002}],
+                                [{50, Pid1001}, {30, Pid1002}]},
+                               {[{53, Pid1001}, {38, Pid1002}],
+                                [{53, Pid1001}, {38, Pid1002}]},
+                               {[{56, Pid1001}, {42, Pid1002}],
+                                [{56, Pid1001}, {42, Pid1002}]},
+                               {[{60, Pid1001}, {47, Pid1002}],
+                                [{60, Pid1001}, {47, Pid1002}]},
+                               {[{53, Pid1002}, {5, Pid1003}],
+                                [{53, Pid1002}, {5, Pid1003}]},
+                               {[{10, Pid1001}, {57, Pid1002}, {8, Pid1003}],
+                                [{10, Pid1001}, {57, Pid1002}, {8, Pid1003}]}},
+
+    Counter = otel_meter:create_observable_counter(Meter, CounterName,
+                                                   fun(_Args) ->
+                                                           Interval = atomics:add_get(IntervalCounter, 1, 1),
+                                                           element(1, element(Interval, MeasurementsAndExpected))
+                                                   end,
+                                                   [],
+                                                   #{description => CounterDesc,
+                                                     unit => CounterUnit}),
+
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = CounterName,
+                             description = CounterDesc,
+                             kind = observable_counter,
+                             unit = CounterUnit,
+                             callback=_}, Counter),
+
+    lists:foreach(fun({_, Expected}) ->
+                        otel_meter_server:force_flush(),
+
+                        %% verify the delta metrics
+                        check_observer_results(CounterName, Expected)
+                end, tuple_to_list(MeasurementsAndExpected)),
+
+    ok.
+
+async_delta_page_faults(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = page_faults,
+    CounterDesc = <<"number of page faults">>,
+    CounterUnit = 1,
+
+    ?assert(otel_meter_server:add_view(#{instrument_name => CounterName},
+                                       #{aggregation_module => otel_aggregation_sum})),
+
+    %% use an atomic to change the returned value of the observable callback on each call
+    IntervalCounter = atomics:new(1, []),
+    Pid1001 = #{pid => 1001},
+    Pid1002 = #{pid => 1002},
+    Pid1003 = #{pid => 1003},
+
+    %% tuple of the measurements to return from the observable callback for each time interval
+    %% and the corresponding expected metrics to get from the exporter.
+    MeasurementsAndExpected = {{[{50, Pid1001}, {30, Pid1002}],
+                                [{50, Pid1001}, {30, Pid1002}]},
+                               {[{53, Pid1001}, {38, Pid1002}],
+                                [{3, Pid1001}, {8, Pid1002}]},
+                               {[{56, Pid1001}, {42, Pid1002}],
+                                [{3, Pid1001}, {4, Pid1002}]},
+                               {[{60, Pid1001}, {47, Pid1002}],
+                                [{4, Pid1001}, {5, Pid1002}]},
+                               {[{53, Pid1002}, {5, Pid1003}],
+                                [{6, Pid1002}, {5, Pid1003}]},
+                               {[{10, Pid1001}, {57, Pid1002}, {8, Pid1003}],
+                                [{10, Pid1001}, {4, Pid1002}, {3, Pid1003}]}},
+
+    Counter = otel_meter:create_observable_counter(Meter, CounterName,
+                                                   fun(_Args) ->
+                                                           Interval = atomics:add_get(IntervalCounter, 1, 1),
+                                                           element(1, element(Interval, MeasurementsAndExpected))
+                                                   end,
+                                                   [],
+                                                   #{description => CounterDesc,
+                                                     unit => CounterUnit}),
+
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = CounterName,
+                             description = CounterDesc,
+                             kind = observable_counter,
+                             unit = CounterUnit,
+                             callback=_}, Counter),
+
+    lists:foldl(fun({_, Expected}, {LastPid1001StartTime, LastPid1002StartTime}) ->
+                        otel_meter_server:force_flush(),
+
+                        %% verify the delta metrics
+                        Results = check_observer_results(CounterName, Expected),
+
+                        %% check that the start times change on each collection
+                        Pid1001StartTime1 =
+                            case lists:keyfind(#{pid => 1001}, 2, Results) of
+                                false ->
+                                    false;
+                                {_, _, Pid1001StartTime, _} ->
+                                    ?assertNotEqual(Pid1001StartTime, LastPid1001StartTime),
+                                    Pid1001StartTime
+                            end,
+
+                        Pid1002StartTime1 =
+                            case lists:keyfind(#{pid => 1001}, 2, Results) of
+                                false ->
+                                    false;
+                                {_, _, Pid1002StartTime, _} ->
+                                    ?assertNotEqual(Pid1002StartTime, LastPid1002StartTime),
+                                    Pid1002StartTime
+                            end,
+
+                        {Pid1001StartTime1, Pid1002StartTime1}
+                end, {0, 0}, tuple_to_list(MeasurementsAndExpected)),
+
+    ok.
+
+%%
+
+check_observer_results(MetricName, Expected) ->
+    receive
+        {otel_metric, #metric{name=Name,
+                              data=#sum{datapoints=MetricDatapoints}}}
+          when MetricName =:= Name ->
+            SortedDatapoints =
+                lists:sort([{MetricValue, MetricAttributes, StartTime, Time} ||
+                               #datapoint{value=MetricValue,
+                                          attributes=MetricAttributes,
+                                          start_time=StartTime,
+                                          time=Time
+                                         } <- MetricDatapoints, StartTime =< Time
+                           ]),
+
+            SortedDatapointsWithoutTime = [{V, A} || {V, A, _, _} <- SortedDatapoints],
+            ?assertMatch([], SortedDatapointsWithoutTime -- Expected,
+                         SortedDatapointsWithoutTime),
+            SortedDatapoints
+    after
+        5000 ->
+            ct:fail({metric_receive_timeout, ?LINE})
     end.

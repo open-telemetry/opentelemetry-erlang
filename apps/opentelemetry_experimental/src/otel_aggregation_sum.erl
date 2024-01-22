@@ -21,8 +21,8 @@
 
 -export([init/2,
          aggregate/4,
-         checkpoint/3,
-         collect/3]).
+         checkpoint/4,
+         collect/4]).
 
 -include("otel_metrics.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
@@ -33,8 +33,15 @@
 -export_type([t/0]).
 
 init(#view_aggregation{name=Name,
-                       reader=ReaderId}, Attributes) ->
-    Key = {Name, Attributes, ReaderId},
+                       reader=ReaderId,
+                       temporality=Temporality}, Attributes) ->
+    Generation = case Temporality of
+                     ?TEMPORALITY_DELTA ->
+                         otel_metric_reader:checkpoint_generation(ReaderId);
+                     _ ->
+                         0
+                 end,
+    Key = {Name, Attributes, ReaderId, Generation},
     #sum_aggregation{key=Key,
                      start_time=opentelemetry:timestamp(),
                      checkpoint=0, %% 0 value is never reported but gets copied to previous_checkpoint
@@ -44,9 +51,16 @@ init(#view_aggregation{name=Name,
                      float_value=0.0}.
 
 aggregate(Tab, #view_aggregation{name=Name,
-                                 reader=ReaderId}, Value, Attributes)
+                                 reader=ReaderId,
+                                 temporality=Temporality}, Value, Attributes)
   when is_integer(Value) ->
-    Key = {Name, Attributes, ReaderId},
+    Generation = case Temporality of
+                     ?TEMPORALITY_DELTA ->
+                         otel_metric_reader:checkpoint_generation(ReaderId);
+                     _ ->
+                         0
+                 end,
+    Key = {Name, Attributes, ReaderId, Generation},
     try
         _ = ets:update_counter(Tab, Key, {#sum_aggregation.int_value, Value}),
         true
@@ -84,8 +98,8 @@ aggregate(Tab, #view_aggregation{name=Name,
 
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
-                                  temporality=?TEMPORALITY_DELTA}, CollectionStartTime) ->
-    MS = [{#sum_aggregation{key={Name, '$1', ReaderId},
+                                  temporality=?TEMPORALITY_DELTA}, CollectionStartTime, Generation) ->
+    MS = [{#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                             start_time='$4',
                             last_start_time='_',
                             checkpoint='$5',
@@ -93,14 +107,14 @@ checkpoint(Tab, #view_aggregation{name=Name,
                             int_value='$2',
                             float_value='$3'},
            [{'=:=', '$3', {const, 0.0}}],
-           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}}},
+           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
                               start_time={const, CollectionStartTime},
                               last_start_time='$4',
                               checkpoint='$2',
                               previous_checkpoint='$5',
                               int_value=0,
                               float_value=0.0}}]},
-          {#sum_aggregation{key={Name, '$1', ReaderId},
+          {#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                             start_time='$4',
                             last_start_time='_',
                             checkpoint='$5',
@@ -108,7 +122,7 @@ checkpoint(Tab, #view_aggregation{name=Name,
                             int_value='$2',
                             float_value='$3'},
            [],
-           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}}},
+           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
                               start_time={const, CollectionStartTime},
                               last_start_time='$4',
                               checkpoint={'+', '$2', '$3'},
@@ -119,8 +133,9 @@ checkpoint(Tab, #view_aggregation{name=Name,
     ok;
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
-                                  temporality=?TEMPORALITY_CUMULATIVE}, _CollectionStartTime) ->
-    MS = [{#sum_aggregation{key={Name, '$1', ReaderId},
+                                  temporality=?TEMPORALITY_CUMULATIVE}, _CollectionStartTime, _Generation) ->
+    Generation = 0,
+    MS = [{#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                             start_time='$2',
                             last_start_time='_',
                             checkpoint='$5',
@@ -128,14 +143,14 @@ checkpoint(Tab, #view_aggregation{name=Name,
                             int_value='$3',
                             float_value='$4'},
            [{'=:=', '$4', {const, 0.0}}],
-           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}}},
+           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
                               start_time='$2',
                               last_start_time='$2',
                               checkpoint='$3',
                               previous_checkpoint={'+', '$5', '$6'},
                               int_value=0,
                               float_value=0.0}}]},
-          {#sum_aggregation{key={Name, '$1', ReaderId},
+          {#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                             start_time='$2',
                             last_start_time='_',
                             checkpoint='$5',
@@ -143,7 +158,7 @@ checkpoint(Tab, #view_aggregation{name=Name,
                             int_value='$3',
                             float_value='$4'},
            [],
-           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}}},
+           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
                               start_time='$2',
                               last_start_time='$2',
                               checkpoint={'+', '$3', '$4'},
@@ -157,9 +172,15 @@ collect(Tab, #view_aggregation{name=Name,
                                reader=ReaderId,
                                instrument=#instrument{temporality=InstrumentTemporality},
                                temporality=Temporality,
-                               is_monotonic=IsMonotonic}, CollectionStartTime) ->
+                               is_monotonic=IsMonotonic}, CollectionStartTime, Generation0) ->
+    Generation = case Temporality of
+                     ?TEMPORALITY_DELTA ->
+                         Generation0;
+                     _ ->
+                         0
+                 end,
 
-    Select = [{#sum_aggregation{key={Name, '$1', ReaderId},
+    Select = [{#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                                 start_time='$2',
                                 last_start_time='$3',
                                 checkpoint='$4',
@@ -169,11 +190,11 @@ collect(Tab, #view_aggregation{name=Name,
     AttributesAggregation = ets:select(Tab, Select),
     #sum{aggregation_temporality=Temporality,
          is_monotonic=IsMonotonic,
-         datapoints=[datapoint(CollectionStartTime, InstrumentTemporality, Temporality, SumAgg) || SumAgg <- AttributesAggregation]}.
+         datapoints=[datapoint(Tab, CollectionStartTime, InstrumentTemporality, Temporality, SumAgg) || SumAgg <- AttributesAggregation]}.
 
-datapoint(CollectionStartTime, Temporality, Temporality, #sum_aggregation{key={_, Attributes, _},
+datapoint(_Tab, CollectionStartTime, Temporality, Temporality, #sum_aggregation{key={_, Attributes, _, _},
                                                                           last_start_time=StartTime,
-                                                                          checkpoint=Value}) ->
+                                                                               checkpoint=Value}) ->
     #datapoint{
        %% eqwalizer:ignore something
        attributes=Attributes,
@@ -185,10 +206,10 @@ datapoint(CollectionStartTime, Temporality, Temporality, #sum_aggregation{key={_
        exemplars=[],
        flags=0
       };
-datapoint(CollectionStartTime, _, ?TEMPORALITY_CUMULATIVE, #sum_aggregation{key={_, Attributes, _},
-                                                                            last_start_time=StartTime,
-                                                                            previous_checkpoint=PreviousCheckpoint,
-                                                                            checkpoint=Value}) ->
+datapoint(_Tab, CollectionStartTime, _, ?TEMPORALITY_CUMULATIVE, #sum_aggregation{key={_Name, Attributes, _ReaderId, _Generation},
+                                                                                 last_start_time=StartTime,
+                                                                                 previous_checkpoint=PreviousCheckpoint,
+                                                                                 checkpoint=Value}) ->
     #datapoint{
        %% eqwalizer:ignore something
        attributes=Attributes,
@@ -199,10 +220,11 @@ datapoint(CollectionStartTime, _, ?TEMPORALITY_CUMULATIVE, #sum_aggregation{key=
        exemplars=[],
        flags=0
       };
-datapoint(CollectionStartTime, _, ?TEMPORALITY_DELTA, #sum_aggregation{key={_, Attributes, _},
+datapoint(Tab, CollectionStartTime, _, ?TEMPORALITY_DELTA, #sum_aggregation{key={Name, Attributes, ReaderId, Generation},
                                                                        last_start_time=StartTime,
-                                                                       previous_checkpoint=PreviousCheckpoint,
+                                                                       previous_checkpoint=_PreviousCheckpoint,
                                                                        checkpoint=Value}) ->
+    PreviousCheckpoint = ets:lookup_element(Tab, {Name, Attributes, ReaderId, Generation-1}, #sum_aggregation.checkpoint, 0),
     #datapoint{
        attributes=Attributes,
        start_time=StartTime,
