@@ -211,6 +211,8 @@ module_to_application(Name, Version, SchemaUrl) ->
                         Acc#{M => {Name, Version, SchemaUrl}}
                 end, #{}, Modules).
 
+%% @doc Returns the default global tracer.
+%% Defaults to `{otel_tracer_noop, []}'.
 -spec get_tracer() -> tracer().
 get_tracer() ->
     get_tracer_(?GLOBAL_TRACER_PROVIDER_NAME).
@@ -219,11 +221,16 @@ get_tracer() ->
 get_tracer_(TracerProvider) ->
     persistent_term:get(?DEFAULT_TRACER_KEY(TracerProvider), {otel_tracer_noop, []}).
 
+%% @doc Returns the tracer for the given name.
+%%
+%% Passing `{Name, Vsn, SchemaUrl}' is the same as calling
+%% `get_tracer(Name, Vsn, SchemaUrl)'.
+%% @see get_tracer/3
 -spec get_tracer(Name) -> Tracer when
       Name :: atom() | {atom(), Vsn, SchemaUrl},
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
-      Tracer:: opentelemetry:tracer().
+      Tracer :: opentelemetry:tracer().
 get_tracer('$__default_tracer') ->
     get_tracer();
 get_tracer({Name, Vsn, SchemaUrl}) ->
@@ -231,11 +238,12 @@ get_tracer({Name, Vsn, SchemaUrl}) ->
 get_tracer(Name) ->
     get_tracer(Name, undefined, undefined).
 
+%% @equiv get_tracer({Name, Vsn, SchemaUrl})
 -spec get_tracer(Name, Vsn, SchemaUrl) -> Tracer when
       Name :: atom(),
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
-      Tracer:: opentelemetry:tracer().
+      Tracer :: opentelemetry:tracer().
 get_tracer(Name, Vsn, SchemaUrl) ->
     get_tracer(?GLOBAL_TRACER_PROVIDER_NAME, Name, Vsn, SchemaUrl).
 
@@ -244,7 +252,7 @@ get_tracer(Name, Vsn, SchemaUrl) ->
       Name :: atom(),
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
-      Tracer:: opentelemetry:tracer().
+      Tracer :: opentelemetry:tracer().
 get_tracer(TracerProvider, Name, Vsn, SchemaUrl) ->
     %% check cache and then use provider to get the tracer if it isn't cached yet
     case persistent_term:get(?TRACER_KEY(TracerProvider, {Name, Vsn, SchemaUrl}), undefined) of
