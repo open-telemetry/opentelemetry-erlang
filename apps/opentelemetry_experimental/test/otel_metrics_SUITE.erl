@@ -84,7 +84,7 @@ all() ->
      multi_instrument_callback, using_macros, float_counter, float_updown_counter, float_histogram,
      sync_filtered_attributes, async_filtered_attributes, delta_observable_counter,
      bad_observable_return, default_resource, histogram_aggregation_options, advisory_params,
-     sync_delta_histogram, async_delta_page_faults
+     sync_delta_histogram, async_delta_page_faults, async_attribute_removal
     ].
 
 init_per_suite(Config) ->
@@ -1549,6 +1549,64 @@ async_delta_page_faults(_Config) ->
 
     ok.
 
+async_attribute_removal(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = page_faults,
+    CounterDesc = <<"number of page faults">>,
+    CounterUnit = 1,
+
+    ?assert(otel_meter_server:add_view(#{instrument_name => CounterName},
+                                       #{aggregation_module => otel_aggregation_sum,
+                                         attribute_keys => []})),
+
+    %% use an atomic to change the returned value of the observable callback on each call
+    IntervalCounter = atomics:new(1, []),
+    Pid1001 = #{pid => 1001},
+    Pid1002 = #{pid => 1002},
+    Pid1003 = #{pid => 1003},
+
+    %% tuple of the measurements to return from the observable callback for each time interval
+    %% and the corresponding expected metrics to get from the exporter.
+    MeasurementsAndExpected = {{[{50, Pid1001}, {30, Pid1002}],
+                                [{80, #{}}]},
+                               {[{53, Pid1001}, {38, Pid1002}],
+                                [{91, #{}}]},
+                               {[{56, Pid1001}, {42, Pid1002}],
+                                [{98, #{}}]},
+                               {[{60, Pid1001}, {47, Pid1002}],
+                                [{107, #{}}]},
+                               {[{53, Pid1002}, {5, Pid1003}],
+                                [{58, #{}}]},
+                               {[{10, Pid1001}, {57, Pid1002}, {8, Pid1003}],
+                                [{75, #{}}]}},
+
+    Counter = otel_meter:create_observable_counter(Meter, CounterName,
+                                                   fun(_Args) ->
+                                                           Interval = atomics:add_get(IntervalCounter, 1, 1),
+                                                           element(1, element(Interval, MeasurementsAndExpected))
+                                                   end,
+                                                   [],
+                                                   #{description => CounterDesc,
+                                                     unit => CounterUnit}),
+
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = CounterName,
+                             description = CounterDesc,
+                             kind = observable_counter,
+                             unit = CounterUnit,
+                             callback=_}, Counter),
+
+    lists:foreach(fun({_, Expected}) ->
+                          otel_meter_server:force_flush(),
+                          check_observer_results(CounterName, Expected)
+                  end, tuple_to_list(MeasurementsAndExpected)),
+
+    ok.
 %%
 
 check_observer_results(MetricName, Expected) ->
