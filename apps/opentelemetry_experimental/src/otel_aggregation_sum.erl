@@ -34,9 +34,12 @@
 
 init(#view_aggregation{name=Name,
                        reader=ReaderId,
+                       instrument=#instrument{kind=Kind},
                        temporality=Temporality}, Attributes) ->
-    Generation = case Temporality of
-                     ?TEMPORALITY_DELTA ->
+    Generation = case {Temporality, Kind} of
+                     {?TEMPORALITY_DELTA, _} ->
+                         otel_metric_reader:checkpoint_generation(ReaderId);
+                     {_, ?KIND_OBSERVABLE_COUNTER} ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
                      _ ->
                          0
@@ -52,10 +55,13 @@ init(#view_aggregation{name=Name,
 
 aggregate(Tab, #view_aggregation{name=Name,
                                  reader=ReaderId,
+                                 instrument=#instrument{kind=Kind},
                                  temporality=Temporality}, Value, Attributes)
   when is_integer(Value) ->
-    Generation = case Temporality of
-                     ?TEMPORALITY_DELTA ->
+    Generation = case {Temporality, Kind} of
+                     {?TEMPORALITY_DELTA, _} ->
+                         otel_metric_reader:checkpoint_generation(ReaderId);
+                     {_, ?KIND_OBSERVABLE_COUNTER} ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
                      _ ->
                          0
@@ -133,8 +139,14 @@ checkpoint(Tab, #view_aggregation{name=Name,
     ok;
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
+                                  instrument=#instrument{kind=Kind},
                                   temporality=?TEMPORALITY_CUMULATIVE}, _CollectionStartTime, _Generation) ->
-    Generation = 0,
+    Generation = case Kind of
+                     ?KIND_OBSERVABLE_COUNTER ->
+                         otel_metric_reader:checkpoint_generation(ReaderId);
+                     _ ->
+                         0
+                 end,
     MS = [{#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                             start_time='$2',
                             last_start_time='_',
@@ -170,16 +182,18 @@ checkpoint(Tab, #view_aggregation{name=Name,
 
 collect(Tab, #view_aggregation{name=Name,
                                reader=ReaderId,
-                               instrument=#instrument{temporality=InstrumentTemporality},
+                               instrument=#instrument{kind=Kind,
+                                                      temporality=InstrumentTemporality},
                                temporality=Temporality,
                                is_monotonic=IsMonotonic}, CollectionStartTime, Generation0) ->
-    Generation = case Temporality of
-                     ?TEMPORALITY_DELTA ->
+    Generation = case {Temporality, Kind} of
+                     {?TEMPORALITY_DELTA, _} ->
+                         Generation0;
+                     {_, ?KIND_OBSERVABLE_COUNTER} ->
                          Generation0;
                      _ ->
                          0
                  end,
-
     Select = [{#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                                 start_time='$2',
                                 last_start_time='$3',

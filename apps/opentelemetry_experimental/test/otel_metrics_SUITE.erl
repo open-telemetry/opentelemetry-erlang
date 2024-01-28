@@ -84,7 +84,8 @@ all() ->
      multi_instrument_callback, using_macros, float_counter, float_updown_counter, float_histogram,
      sync_filtered_attributes, async_filtered_attributes, delta_observable_counter,
      bad_observable_return, default_resource, histogram_aggregation_options, advisory_params,
-     sync_delta_histogram, async_delta_page_faults, async_attribute_removal
+     sync_delta_histogram, async_cumulative_page_faults, async_delta_page_faults,
+     async_attribute_removal
     ].
 
 init_per_suite(Config) ->
