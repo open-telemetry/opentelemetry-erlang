@@ -237,10 +237,10 @@ checkpoint_metrics(MetricsTab, CollectionStartTime, Generation, Id, ViewAggregat
                                                       aggregation_module=AggregationModule,
                                                       description=Description
                                                      }, Acc) when Id =:= ReaderId ->
-                        AggregationModule:checkpoint(MetricsTab,
-                                                     ViewAggregation,
-                                                     CollectionStartTime,
-                                                     Generation),
+                        %% AggregationModule:checkpoint(MetricsTab,
+                        %%                              ViewAggregation,
+                        %%                              CollectionStartTime,
+                        %%                              Generation),
                         Data = AggregationModule:collect(MetricsTab,
                                                          ViewAggregation,
                                                          CollectionStartTime,

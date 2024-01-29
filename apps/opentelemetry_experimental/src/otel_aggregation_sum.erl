@@ -181,18 +181,21 @@ checkpoint(Tab, #view_aggregation{name=Name,
     _ = ets:select_replace(Tab, MS),
     ok.
 
-collect(Tab, #view_aggregation{name=Name,
-                               reader=ReaderId,
-                               instrument=#instrument{temporality=InstrumentTemporality},
-                               temporality=Temporality,
-                               is_monotonic=IsMonotonic,
-                               forget=Forget}, CollectionStartTime, Generation0) ->
+collect(Tab, ViewAggregation=#view_aggregation{name=Name,
+                                               reader=ReaderId,
+                                               instrument=#instrument{temporality=InstrumentTemporality},
+                                               temporality=Temporality,
+                                               is_monotonic=IsMonotonic,
+                                               forget=Forget}, CollectionStartTime, Generation0) ->
     Generation = case Forget of
                      true ->
                          Generation0;
                      _ ->
                          0
                  end,
+
+    checkpoint(Tab, ViewAggregation, CollectionStartTime, Generation0),
+
     Select = [{#sum_aggregation{key={Name, '_', ReaderId, Generation},
                                 _='_'}, [], ['$_']}],
     AttributesAggregation = ets:select(Tab, Select),
@@ -201,8 +204,8 @@ collect(Tab, #view_aggregation{name=Name,
          datapoints=[datapoint(Tab, CollectionStartTime, InstrumentTemporality, Temporality, SumAgg) || SumAgg <- AttributesAggregation]}.
 
 datapoint(_Tab, CollectionStartTime, Temporality, Temporality, #sum_aggregation{key={_, Attributes, _, _},
-                                                                          last_start_time=StartTime,
-                                                                               checkpoint=Value}) ->
+                                                                                last_start_time=StartTime,
+                                                                                checkpoint=Value}) ->
     #datapoint{
        %% eqwalizer:ignore something
        attributes=Attributes,
@@ -229,9 +232,11 @@ datapoint(_Tab, CollectionStartTime, _, ?TEMPORALITY_CUMULATIVE, #sum_aggregatio
        flags=0
       };
 datapoint(Tab, CollectionStartTime, _, ?TEMPORALITY_DELTA, #sum_aggregation{key={Name, Attributes, ReaderId, Generation},
-                                                                       last_start_time=StartTime,
-                                                                       previous_checkpoint=_PreviousCheckpoint,
-                                                                       checkpoint=Value}) ->
+                                                                            last_start_time=StartTime,
+                                                                            previous_checkpoint=_PreviousCheckpoint,
+                                                                            checkpoint=Value}) ->
+    %% converting from cumulative to delta by grabbing the last generation and subtracting it
+    %% can't use `previous_checkpoint' because with delta
     PreviousCheckpoint = ets:lookup_element(Tab, {Name, Attributes, ReaderId, Generation-1}, #sum_aggregation.checkpoint, 0),
     #datapoint{
        attributes=Attributes,
