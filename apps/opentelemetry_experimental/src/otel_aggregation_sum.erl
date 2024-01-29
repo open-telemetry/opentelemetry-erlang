@@ -34,12 +34,9 @@
 
 init(#view_aggregation{name=Name,
                        reader=ReaderId,
-                       instrument=#instrument{kind=Kind},
-                       temporality=Temporality}, Attributes) ->
-    Generation = case {Temporality, Kind} of
-                     {?TEMPORALITY_DELTA, _} ->
-                         otel_metric_reader:checkpoint_generation(ReaderId);
-                     {_, ?KIND_OBSERVABLE_COUNTER} ->
+                       forget=Forget}, Attributes) ->
+    Generation = case Forget of
+                     true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
                      _ ->
                          0
@@ -55,13 +52,10 @@ init(#view_aggregation{name=Name,
 
 aggregate(Tab, #view_aggregation{name=Name,
                                  reader=ReaderId,
-                                 instrument=#instrument{kind=Kind},
-                                 temporality=Temporality}, Value, Attributes)
+                                 forget=Forget}, Value, Attributes)
   when is_integer(Value) ->
-    Generation = case {Temporality, Kind} of
-                     {?TEMPORALITY_DELTA, _} ->
-                         otel_metric_reader:checkpoint_generation(ReaderId);
-                     {_, ?KIND_OBSERVABLE_COUNTER} ->
+    Generation = case Forget of
+                     true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
                      _ ->
                          0
@@ -83,8 +77,15 @@ aggregate(Tab, #view_aggregation{name=Name,
             false
     end;
 aggregate(Tab, #view_aggregation{name=Name,
-                                 reader=ReaderId}, Value, Attributes) ->
-    Key = {Name, Attributes, ReaderId},
+                                 reader=ReaderId,
+                                 forget=Forget}, Value, Attributes) ->
+    Generation = case Forget of
+                     true ->
+                         otel_metric_reader:checkpoint_generation(ReaderId);
+                     _ ->
+                         0
+                 end,
+    Key = {Name, Attributes, ReaderId, Generation},
     MS = [{#sum_aggregation{key=Key,
                             start_time='$1',
                             last_start_time='$5',
@@ -139,11 +140,11 @@ checkpoint(Tab, #view_aggregation{name=Name,
     ok;
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
-                                  instrument=#instrument{kind=Kind},
-                                  temporality=?TEMPORALITY_CUMULATIVE}, _CollectionStartTime, _Generation) ->
-    Generation = case Kind of
-                     ?KIND_OBSERVABLE_COUNTER ->
-                         otel_metric_reader:checkpoint_generation(ReaderId);
+                                  forget=Forget,
+                                  temporality=?TEMPORALITY_CUMULATIVE}, _CollectionStartTime, Generation0) ->
+    Generation = case Forget of
+                     true ->
+                         Generation0;
                      _ ->
                          0
                  end,
@@ -182,14 +183,12 @@ checkpoint(Tab, #view_aggregation{name=Name,
 
 collect(Tab, #view_aggregation{name=Name,
                                reader=ReaderId,
-                               instrument=#instrument{kind=Kind,
-                                                      temporality=InstrumentTemporality},
+                               instrument=#instrument{temporality=InstrumentTemporality},
                                temporality=Temporality,
-                               is_monotonic=IsMonotonic}, CollectionStartTime, Generation0) ->
-    Generation = case {Temporality, Kind} of
-                     {?TEMPORALITY_DELTA, _} ->
-                         Generation0;
-                     {_, ?KIND_OBSERVABLE_COUNTER} ->
+                               is_monotonic=IsMonotonic,
+                               forget=Forget}, CollectionStartTime, Generation0) ->
+    Generation = case Forget of
+                     true ->
                          Generation0;
                      _ ->
                          0

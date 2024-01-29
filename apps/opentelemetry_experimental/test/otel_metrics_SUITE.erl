@@ -29,7 +29,7 @@
                                                        attributes=MetricAttributes,
                                                        start_time=StartTime,
                                                        time=Time} <- MetricDatapoints, StartTime =< Time]),
-                         ?assertMatch([], lists:sort(Datapoints) -- SortedDatapoints, SortedDatapoints)
+                         ?assert(is_subset(Datapoints, SortedDatapoints), SortedDatapoints)
                  after
                      5000 ->
                          ct:fail({metric_receive_timeout, ?LINE})
@@ -54,7 +54,7 @@
                                                        attributes=MetricAttributes,
                                                        start_time=StartTime,
                                                        time=Time} <- MetricDatapoints, StartTime =< Time]),
-                         ?assertMatch([], lists:sort(Datapoints) -- SortedDatapoints, SortedDatapoints)
+                         ?assert(is_subset(Datapoints, SortedDatapoints), SortedDatapoints)
                  after
                      5000 ->
                          ct:fail({metric_receive_timeout, ?LINE})
@@ -1615,20 +1615,22 @@ check_observer_results(MetricName, Expected) ->
         {otel_metric, #metric{name=Name,
                               data=#sum{datapoints=MetricDatapoints}}}
           when MetricName =:= Name ->
-            SortedDatapoints =
-                lists:sort([{MetricValue, MetricAttributes, StartTime, Time} ||
-                               #datapoint{value=MetricValue,
-                                          attributes=MetricAttributes,
-                                          start_time=StartTime,
-                                          time=Time
-                                         } <- MetricDatapoints, StartTime =< Time
-                           ]),
+            Datapoints =
+                [{MetricValue, MetricAttributes, StartTime, Time} ||
+                    #datapoint{value=MetricValue,
+                               attributes=MetricAttributes,
+                               start_time=StartTime,
+                               time=Time
+                              } <- MetricDatapoints, StartTime =< Time
+                ],
 
-            SortedDatapointsWithoutTime = [{V, A} || {V, A, _, _} <- SortedDatapoints],
-            ?assertMatch([], SortedDatapointsWithoutTime -- Expected,
-                         SortedDatapointsWithoutTime),
-            SortedDatapoints
+            DatapointsWithoutTime = [{V, A} || {V, A, _, _} <- Datapoints],
+            ?assert(is_subset(Expected, DatapointsWithoutTime), DatapointsWithoutTime),
+            Datapoints
     after
         5000 ->
             ct:fail({metric_receive_timeout, ?LINE})
     end.
+
+is_subset(List1, List2) ->
+    sets:is_subset(sets:from_list(List1), sets:from_list(List2)).
