@@ -22,7 +22,7 @@
 -export([init/2,
          aggregate/4,
          checkpoint/4,
-         collect/4]).
+         collect/3]).
 
 -include("otel_metrics.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
@@ -41,11 +41,13 @@ init(#view_aggregation{name=Name,
                      _ ->
                          0
                  end,
+    StartTime = opentelemetry:timestamp(),
+    ct:pal("STARTTIME ~p", [StartTime]),
     Key = {Name, Attributes, ReaderId, Generation},
     #sum_aggregation{key=Key,
-                     start_time=opentelemetry:timestamp(),
+                     start_time=StartTime,
                      checkpoint=0, %% 0 value is never reported but gets copied to previous_checkpoint
-                                   %% which is used to add/subtract for conversion of temporality
+                     %% which is used to add/subtract for conversion of temporality
                      previous_checkpoint=0,
                      int_value=0,
                      float_value=0.0}.
@@ -186,7 +188,8 @@ collect(Tab, ViewAggregation=#view_aggregation{name=Name,
                                                instrument=#instrument{temporality=InstrumentTemporality},
                                                temporality=Temporality,
                                                is_monotonic=IsMonotonic,
-                                               forget=Forget}, CollectionStartTime, Generation0) ->
+                                               forget=Forget}, Generation0) ->
+    CollectionStartTime = opentelemetry:timestamp(),
     Generation = case Forget of
                      true ->
                          Generation0;
@@ -203,9 +206,24 @@ collect(Tab, ViewAggregation=#view_aggregation{name=Name,
          is_monotonic=IsMonotonic,
          datapoints=[datapoint(Tab, CollectionStartTime, InstrumentTemporality, Temporality, SumAgg) || SumAgg <- AttributesAggregation]}.
 
-datapoint(_Tab, CollectionStartTime, Temporality, Temporality, #sum_aggregation{key={_, Attributes, _, _},
-                                                                                last_start_time=StartTime,
-                                                                                checkpoint=Value}) ->
+datapoint(_Tab, CollectionStartTime, ?TEMPORALITY_DELTA, ?TEMPORALITY_DELTA, #sum_aggregation{key={_, Attributes, _, _},
+                                                                                                                       last_start_time=LastStartTime,
+                                                                                                                       checkpoint=Value}) ->
+    #datapoint{
+       %% eqwalizer:ignore something
+       attributes=Attributes,
+       %% eqwalizer:ignore something
+       start_time=LastStartTime,
+       time=CollectionStartTime,
+       %% eqwalizer:ignore something
+       value=Value,
+       exemplars=[],
+       flags=0
+      };
+datapoint(_Tab, CollectionStartTime, ?TEMPORALITY_CUMULATIVE, ?TEMPORALITY_CUMULATIVE, #sum_aggregation{key={_, Attributes, _, _},
+                                                                                                                                  start_time=StartTime,
+                                                                                                                                  checkpoint=Value}) ->
+    ct:pal("START COLLECTION ~p ~p", [StartTime, CollectionStartTime]),
     #datapoint{
        %% eqwalizer:ignore something
        attributes=Attributes,
@@ -218,9 +236,9 @@ datapoint(_Tab, CollectionStartTime, Temporality, Temporality, #sum_aggregation{
        flags=0
       };
 datapoint(_Tab, CollectionStartTime, _, ?TEMPORALITY_CUMULATIVE, #sum_aggregation{key={_Name, Attributes, _ReaderId, _Generation},
-                                                                                 last_start_time=StartTime,
-                                                                                 previous_checkpoint=PreviousCheckpoint,
-                                                                                 checkpoint=Value}) ->
+                                                                                                            start_time=StartTime,
+                                                                                                            previous_checkpoint=PreviousCheckpoint,
+                                                                                                            checkpoint=Value}) ->
     #datapoint{
        %% eqwalizer:ignore something
        attributes=Attributes,
@@ -232,15 +250,17 @@ datapoint(_Tab, CollectionStartTime, _, ?TEMPORALITY_CUMULATIVE, #sum_aggregatio
        flags=0
       };
 datapoint(Tab, CollectionStartTime, _, ?TEMPORALITY_DELTA, #sum_aggregation{key={Name, Attributes, ReaderId, Generation},
-                                                                            last_start_time=StartTime,
+                                                                            start_time=_StartTime,
+                                                                            last_start_time=LastCollectionStartTime,
                                                                             previous_checkpoint=_PreviousCheckpoint,
                                                                             checkpoint=Value}) ->
     %% converting from cumulative to delta by grabbing the last generation and subtracting it
-    %% can't use `previous_checkpoint' because with delta
+    %% can't use `previous_checkpoint' because with delta metrics have their generation changed
+    %% at each collection
     PreviousCheckpoint = ets:lookup_element(Tab, {Name, Attributes, ReaderId, Generation-1}, #sum_aggregation.checkpoint, 0),
     #datapoint{
        attributes=Attributes,
-       start_time=StartTime,
+       start_time=LastCollectionStartTime,
        time=CollectionStartTime,
        value=Value - PreviousCheckpoint,
        exemplars=[],

@@ -22,7 +22,7 @@
 -export([init/2,
          aggregate/4,
          checkpoint/4,
-         collect/4]).
+         collect/3]).
 
 -include("otel_metrics.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
@@ -214,9 +214,13 @@ checkpoint(_Tab, _, _CollectionStartTime, _) ->
     
     ok.
 
-collect(Tab, #view_aggregation{name=Name,
-                               reader=ReaderId,
-                               temporality=Temporality}, CollectionStartTime, Generation) ->
+collect(Tab, ViewAggregation=#view_aggregation{name=Name,
+                                               reader=ReaderId,
+                                               temporality=Temporality}, Generation) ->
+    CollectionStartTime = opentelemetry:timestamp(),
+
+    checkpoint(Tab, ViewAggregation, CollectionStartTime, Generation),
+
     Select = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId, Generation},
                                                start_time='$2',
                                                explicit_bucket_boundaries='$3',

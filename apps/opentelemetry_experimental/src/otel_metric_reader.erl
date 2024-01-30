@@ -167,6 +167,8 @@ handle_info(collect, State=#state{id=ReaderId,
     erlang:cancel_timer(TRef, [{async, true}]),
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
 
+    CollectionStartTime = opentelemetry:timestamp(),
+
     %% collect from view aggregations table and then export
     Metrics = collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId),
 
@@ -201,11 +203,8 @@ collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId) ->
     %% by the key (Instrument)
     Key = ets:first(ViewAggregationTab),
 
-    %% get the collection start time after running callbacks so any initialized
-    %% metrics have a start time before the collection start time.
-    CollectionStartTime = opentelemetry:timestamp(),
     Generation = inc_checkpoint_generation(ReaderId),
-    collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, Generation, ReaderId, [], Key).
+    collect_(CallbacksTab, ViewAggregationTab, MetricsTab, Generation, ReaderId, [], Key).
 
 run_callbacks(ReaderId, CallbacksTab, ViewAggregationTab, MetricsTab) ->
     try ets:lookup_element(CallbacksTab, ReaderId, 2) of
@@ -216,19 +215,18 @@ run_callbacks(ReaderId, CallbacksTab, ViewAggregationTab, MetricsTab) ->
             []
     end.
 
-collect_(_CallbacksTab, _ViewAggregationTab, _MetricsTab, _CollectionStartTime, Generation, _ReaderId, MetricsAcc, '$end_of_table') ->
+collect_(_CallbacksTab, _ViewAggregationTab, _MetricsTab, Generation, _ReaderId, MetricsAcc, '$end_of_table') ->
     MetricsAcc;
-collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, Generation, ReaderId, MetricsAcc, Key) ->
+collect_(CallbacksTab, ViewAggregationTab, MetricsTab, Generation, ReaderId, MetricsAcc, Key) ->
     ViewAggregations = ets:lookup_element(ViewAggregationTab, Key, 2),
-    collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, Generation, ReaderId,
+    collect_(CallbacksTab, ViewAggregationTab, MetricsTab, Generation, ReaderId,
              checkpoint_metrics(MetricsTab,
-                                CollectionStartTime,
                                 Generation,
                                 ReaderId,
                                 ViewAggregations) ++ MetricsAcc,
              ets:next(ViewAggregationTab, Key)).
 
-checkpoint_metrics(MetricsTab, CollectionStartTime, Generation, Id, ViewAggregations) ->
+checkpoint_metrics(MetricsTab, Generation, Id, ViewAggregations) ->
     lists:foldl(fun(#view_aggregation{aggregation_module=otel_aggregation_drop}, Acc) ->
                         Acc;
                    (ViewAggregation=#view_aggregation{name=Name,
@@ -243,7 +241,6 @@ checkpoint_metrics(MetricsTab, CollectionStartTime, Generation, Id, ViewAggregat
                         %%                              Generation),
                         Data = AggregationModule:collect(MetricsTab,
                                                          ViewAggregation,
-                                                         CollectionStartTime,
                                                          Generation),
                         [metric(Instrument, Name, Description, Unit, Data) | Acc];
                    (_, Acc) ->

@@ -1625,7 +1625,7 @@ check_observer_results(MetricName, Expected) ->
                 ],
 
             DatapointsWithoutTime = [{V, A} || {V, A, _, _} <- Datapoints],
-            ?assert(is_subset(Expected, DatapointsWithoutTime), DatapointsWithoutTime),
+            ?assert(is_subset(Expected, DatapointsWithoutTime), {Expected, MetricDatapoints}),
             Datapoints
     after
         5000 ->
