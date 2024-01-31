@@ -42,7 +42,6 @@ init(#view_aggregation{name=Name,
                          0
                  end,
     StartTime = opentelemetry:timestamp(),
-    ct:pal("STARTTIME ~p", [StartTime]),
     Key = {Name, Attributes, ReaderId, Generation},
     #sum_aggregation{key=Key,
                      start_time=StartTime,
@@ -90,7 +89,6 @@ aggregate(Tab, #view_aggregation{name=Name,
     Key = {Name, Attributes, ReaderId, Generation},
     MS = [{#sum_aggregation{key=Key,
                             start_time='$1',
-                            last_start_time='$5',
                             checkpoint='$2',
                             previous_checkpoint='$6',
                             int_value='$3',
@@ -98,7 +96,6 @@ aggregate(Tab, #view_aggregation{name=Name,
            [],
            [{#sum_aggregation{key={element, 2, '$_'},
                               start_time='$1',
-                              last_start_time='$5',
                               checkpoint='$2',
                               previous_checkpoint='$6',
                               int_value='$3',
@@ -107,33 +104,29 @@ aggregate(Tab, #view_aggregation{name=Name,
 
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
-                                  temporality=?TEMPORALITY_DELTA}, CollectionStartTime, Generation) ->
+                                  temporality=?TEMPORALITY_DELTA}, _CollectionStartTime, Generation) ->
     MS = [{#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                             start_time='$4',
-                            last_start_time='_',
                             checkpoint='$5',
                             previous_checkpoint='_',
                             int_value='$2',
                             float_value='$3'},
            [{'=:=', '$3', {const, 0.0}}],
            [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
-                              start_time={const, CollectionStartTime},
-                              last_start_time='$4',
+                              start_time='$4',
                               checkpoint='$2',
                               previous_checkpoint='$5',
                               int_value=0,
                               float_value=0.0}}]},
           {#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                             start_time='$4',
-                            last_start_time='_',
                             checkpoint='$5',
                             previous_checkpoint='_',
                             int_value='$2',
                             float_value='$3'},
            [],
            [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
-                              start_time={const, CollectionStartTime},
-                              last_start_time='$4',
+                              start_time='$4',
                               checkpoint={'+', '$2', '$3'},
                               previous_checkpoint='$5',
                               int_value=0,
@@ -143,7 +136,7 @@ checkpoint(Tab, #view_aggregation{name=Name,
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
                                   forget=Forget,
-                                  temporality=?TEMPORALITY_CUMULATIVE}, _CollectionStartTime, Generation0) ->
+                                  temporality=?TEMPORALITY_CUMULATIVE}, CollectionStartTime, Generation0) ->
     Generation = case Forget of
                      true ->
                          Generation0;
@@ -152,7 +145,6 @@ checkpoint(Tab, #view_aggregation{name=Name,
                  end,
     MS = [{#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                             start_time='$2',
-                            last_start_time='_',
                             checkpoint='$5',
                             previous_checkpoint='$6',
                             int_value='$3',
@@ -160,14 +152,12 @@ checkpoint(Tab, #view_aggregation{name=Name,
            [{'=:=', '$4', {const, 0.0}}],
            [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
                               start_time='$2',
-                              last_start_time='$2',
                               checkpoint='$3',
                               previous_checkpoint={'+', '$5', '$6'},
                               int_value=0,
                               float_value=0.0}}]},
           {#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                             start_time='$2',
-                            last_start_time='_',
                             checkpoint='$5',
                             previous_checkpoint='$6',
                             int_value='$3',
@@ -175,7 +165,6 @@ checkpoint(Tab, #view_aggregation{name=Name,
            [],
            [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
                               start_time='$2',
-                              last_start_time='$2',
                               checkpoint={'+', '$3', '$4'},
                               previous_checkpoint={'+', '$5', '$6'},
                               int_value=0,
@@ -206,24 +195,10 @@ collect(Tab, ViewAggregation=#view_aggregation{name=Name,
          is_monotonic=IsMonotonic,
          datapoints=[datapoint(Tab, CollectionStartTime, InstrumentTemporality, Temporality, SumAgg) || SumAgg <- AttributesAggregation]}.
 
-datapoint(_Tab, CollectionStartTime, ?TEMPORALITY_DELTA, ?TEMPORALITY_DELTA, #sum_aggregation{key={_, Attributes, _, _},
-                                                                                                                       last_start_time=LastStartTime,
-                                                                                                                       checkpoint=Value}) ->
-    #datapoint{
-       %% eqwalizer:ignore something
-       attributes=Attributes,
-       %% eqwalizer:ignore something
-       start_time=LastStartTime,
-       time=CollectionStartTime,
-       %% eqwalizer:ignore something
-       value=Value,
-       exemplars=[],
-       flags=0
-      };
-datapoint(_Tab, CollectionStartTime, ?TEMPORALITY_CUMULATIVE, ?TEMPORALITY_CUMULATIVE, #sum_aggregation{key={_, Attributes, _, _},
-                                                                                                                                  start_time=StartTime,
-                                                                                                                                  checkpoint=Value}) ->
-    ct:pal("START COLLECTION ~p ~p", [StartTime, CollectionStartTime]),
+%% nothing special to do if the instrument temporality and view temporality are the same
+datapoint(_Tab, CollectionStartTime, Temporality, Temporality, #sum_aggregation{key={_, Attributes, _, _},
+                                                                                                        start_time=StartTime,
+                                                                                                        checkpoint=Value}) ->
     #datapoint{
        %% eqwalizer:ignore something
        attributes=Attributes,
@@ -235,34 +210,40 @@ datapoint(_Tab, CollectionStartTime, ?TEMPORALITY_CUMULATIVE, ?TEMPORALITY_CUMUL
        exemplars=[],
        flags=0
       };
-datapoint(_Tab, CollectionStartTime, _, ?TEMPORALITY_CUMULATIVE, #sum_aggregation{key={_Name, Attributes, _ReaderId, _Generation},
-                                                                                                            start_time=StartTime,
-                                                                                                            previous_checkpoint=PreviousCheckpoint,
-                                                                                                            checkpoint=Value}) ->
+%% converting an instrument of delta temporality to cumulative means we need to add the
+%% previous value to the current because the actual value is only a delta
+datapoint(_Tab, Time, _, ?TEMPORALITY_CUMULATIVE, #sum_aggregation{key={_Name, Attributes, _ReaderId, _Generation},
+                                                                   start_time=StartTime,
+                                                                   previous_checkpoint=PreviousCheckpoint,
+                                                                   checkpoint=Value}) ->
     #datapoint{
        %% eqwalizer:ignore something
        attributes=Attributes,
        %% eqwalizer:ignore something
        start_time=StartTime,
-       time=CollectionStartTime,
+       time=Time,
        value=Value + PreviousCheckpoint,
        exemplars=[],
        flags=0
       };
-datapoint(Tab, CollectionStartTime, _, ?TEMPORALITY_DELTA, #sum_aggregation{key={Name, Attributes, ReaderId, Generation},
-                                                                            start_time=_StartTime,
-                                                                            last_start_time=LastCollectionStartTime,
-                                                                            previous_checkpoint=_PreviousCheckpoint,
-                                                                            checkpoint=Value}) ->
+%% converting an instrument of cumulative temporality to delta means subtracting the
+%% value of the previous collection, if one exists.
+%% because we use a generation counter to reset delta aggregates the previous value
+%% has to be looked up with an ets lookup of the previous generation
+datapoint(Tab, Time, _, ?TEMPORALITY_DELTA, #sum_aggregation{key={Name, Attributes, ReaderId, Generation},
+                                                             start_time=StartTime,
+                                                             checkpoint=Value}) ->
     %% converting from cumulative to delta by grabbing the last generation and subtracting it
     %% can't use `previous_checkpoint' because with delta metrics have their generation changed
     %% at each collection
-    PreviousCheckpoint = ets:lookup_element(Tab, {Name, Attributes, ReaderId, Generation-1}, #sum_aggregation.checkpoint, 0),
+    PreviousCheckpoint = ets:lookup_element(Tab, {Name, Attributes, ReaderId, Generation-1},
+                                            #sum_aggregation.checkpoint, 0),
     #datapoint{
        attributes=Attributes,
-       start_time=LastCollectionStartTime,
-       time=CollectionStartTime,
+       start_time=StartTime,
+       time=Time,
        value=Value - PreviousCheckpoint,
        exemplars=[],
        flags=0
       }.
+
