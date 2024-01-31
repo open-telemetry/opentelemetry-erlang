@@ -32,11 +32,6 @@
       Value :: number(),
       Attributes :: opentelemetry:attributes_map().
 
--callback checkpoint(Table, ViewAggregation, CollectionStartTime) -> ok when
-      Table :: ets:table(),
-      ViewAggregation :: #view_aggregation{},
-      CollectionStartTime :: integer().
-
 -callback collect(Table, ViewAggregation, CollectionStartTime) -> tuple() when
       Table :: ets:table(),
       ViewAggregation :: #view_aggregation{},

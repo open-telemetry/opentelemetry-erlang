@@ -21,7 +21,6 @@
 
 -export([init/2,
          aggregate/4,
-         checkpoint/4,
          collect/3]).
 
 -include("otel_metrics.hrl").
@@ -179,7 +178,7 @@ aggregate(Table, #view_aggregation{name=Name,
 
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
-                                  temporality=?TEMPORALITY_DELTA}, CollectionStartTime, Generation) ->
+                                  temporality=?TEMPORALITY_DELTA}, Generation) ->
     MS = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId, Generation},
                                            start_time='$9',
                                            explicit_bucket_boundaries='$2',
@@ -192,7 +191,7 @@ checkpoint(Tab, #view_aggregation{name=Name,
                                           },
            [],
            [{#explicit_histogram_aggregation{key={{{const, Name}, '$1', {const, ReaderId}, {const, Generation}}},
-                                             start_time={const, CollectionStartTime},
+                                             start_time='$9',
                                              explicit_bucket_boundaries='$2',
                                              record_min_max='$3',
                                              checkpoint={#explicit_histogram_checkpoint{bucket_counts='$5',
@@ -200,14 +199,14 @@ checkpoint(Tab, #view_aggregation{name=Name,
                                                                                         max='$7',
                                                                                         sum='$8',
                                                                                         start_time='$9'}},
-                                             bucket_counts={const, undefined},
-                                             min=infinity,
-                                             max=?MIN_DOUBLE,
-                                             sum=0}}]}],
+                                             bucket_counts='$5',
+                                             min='$6',
+                                             max='$7',
+                                             sum='$8'}}]}],
     _ = ets:select_replace(Tab, MS),
 
     ok;
-checkpoint(_Tab, _, _CollectionStartTime, _) ->
+checkpoint(_Tab, _, _) ->
     %% no good way to checkpoint the `counters' without being out of sync with
     %% min/max/sum, so may as well just collect them in `collect', which will
     %% also be out of sync, but best we can do right now
@@ -219,7 +218,7 @@ collect(Tab, ViewAggregation=#view_aggregation{name=Name,
                                                temporality=Temporality}, Generation) ->
     CollectionStartTime = opentelemetry:timestamp(),
 
-    checkpoint(Tab, ViewAggregation, CollectionStartTime, Generation),
+    checkpoint(Tab, ViewAggregation, Generation),
 
     Select = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId, Generation},
                                                start_time='$2',

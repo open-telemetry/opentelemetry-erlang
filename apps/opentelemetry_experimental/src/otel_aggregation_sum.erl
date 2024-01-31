@@ -21,7 +21,6 @@
 
 -export([init/2,
          aggregate/4,
-         checkpoint/4,
          collect/3]).
 
 -include("otel_metrics.hrl").
@@ -104,7 +103,7 @@ aggregate(Tab, #view_aggregation{name=Name,
 
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
-                                  temporality=?TEMPORALITY_DELTA}, _CollectionStartTime, Generation) ->
+                                  temporality=?TEMPORALITY_DELTA}, Generation) ->
     MS = [{#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                             start_time='$4',
                             checkpoint='$5',
@@ -136,7 +135,7 @@ checkpoint(Tab, #view_aggregation{name=Name,
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
                                   forget=Forget,
-                                  temporality=?TEMPORALITY_CUMULATIVE}, CollectionStartTime, Generation0) ->
+                                  temporality=?TEMPORALITY_CUMULATIVE}, Generation0) ->
     Generation = case Forget of
                      true ->
                          Generation0;
@@ -186,7 +185,7 @@ collect(Tab, ViewAggregation=#view_aggregation{name=Name,
                          0
                  end,
 
-    checkpoint(Tab, ViewAggregation, CollectionStartTime, Generation0),
+    checkpoint(Tab, ViewAggregation, Generation0),
 
     Select = [{#sum_aggregation{key={Name, '_', ReaderId, Generation},
                                 _='_'}, [], ['$_']}],
@@ -197,8 +196,8 @@ collect(Tab, ViewAggregation=#view_aggregation{name=Name,
 
 %% nothing special to do if the instrument temporality and view temporality are the same
 datapoint(_Tab, CollectionStartTime, Temporality, Temporality, #sum_aggregation{key={_, Attributes, _, _},
-                                                                                                        start_time=StartTime,
-                                                                                                        checkpoint=Value}) ->
+                                                                                start_time=StartTime,
+                                                                                checkpoint=Value}) ->
     #datapoint{
        %% eqwalizer:ignore something
        attributes=Attributes,
