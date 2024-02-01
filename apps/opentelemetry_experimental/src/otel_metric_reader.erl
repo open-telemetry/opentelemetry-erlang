@@ -55,7 +55,8 @@
          view_aggregation_tab :: ets:table(),
          metrics_tab :: ets:table(),
          config :: #{},
-         resource :: otel_resource:t() | undefined
+         resource :: otel_resource:t() | undefined,
+         generation_ref :: atomics:atomics_ref()
         }).
 
 %% -spec start_link(atom(), map()) -> {ok, pid()} | ignore | {error, term()}.
@@ -98,8 +99,14 @@ init([ReaderId, ProviderSup, Config]) ->
                    erlang:send_after(ExporterIntervalMs, self(), collect)
            end,
 
-    GenerationRef = atomics:new(1, []),
-    persistent_term:put({?MODULE, ReaderId}, GenerationRef),
+    GenerationRef =
+        try persistent_term:get({?MODULE, ReaderId})
+        catch
+            error:badarg ->
+                GenerationRef0 = atomics:new(1, []),
+                persistent_term:put({?MODULE, ReaderId}, GenerationRef0),
+                GenerationRef0
+        end,
 
     {ok, #state{exporter=Exporter,
                 provider_sup=ProviderSup,
@@ -108,6 +115,7 @@ init([ReaderId, ProviderSup, Config]) ->
                 temporality_mapping=Temporality,
                 export_interval_ms=ExporterIntervalMs,
                 tref=TRef,
+                generation_ref=GenerationRef,
                 config=Config}, {continue, register_with_server}}.
 
 handle_continue(register_with_server, State=#state{provider_sup=ProviderSup,
@@ -167,8 +175,6 @@ handle_info(collect, State=#state{id=ReaderId,
     erlang:cancel_timer(TRef, [{async, true}]),
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
 
-    CollectionStartTime = opentelemetry:timestamp(),
-
     %% collect from view aggregations table and then export
     Metrics = collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId),
 
@@ -215,7 +221,7 @@ run_callbacks(ReaderId, CallbacksTab, ViewAggregationTab, MetricsTab) ->
             []
     end.
 
-collect_(_CallbacksTab, _ViewAggregationTab, _MetricsTab, Generation, _ReaderId, MetricsAcc, '$end_of_table') ->
+collect_(_CallbacksTab, _ViewAggregationTab, _MetricsTab, _Generation, _ReaderId, MetricsAcc, '$end_of_table') ->
     MetricsAcc;
 collect_(CallbacksTab, ViewAggregationTab, MetricsTab, Generation, ReaderId, MetricsAcc, Key) ->
     ViewAggregations = ets:lookup_element(ViewAggregationTab, Key, 2),
