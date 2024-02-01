@@ -461,8 +461,7 @@ provider_test(_Config) ->
     %% sum agg is default delta temporality so counter will reset
     ?assertEqual(ok, otel_counter:add(Counter, 7, #{<<"c">> => <<"b">>})),
     otel_meter_server:force_flush(),
-    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{7, #{<<"c">> => <<"b">>}},
-                                                                 {0, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>}}]),
+    ?assertSumReceive(a_counter, <<"counter description">>, kb, [{7, #{<<"c">> => <<"b">>}}]),
 
     ok.
 
@@ -701,12 +700,7 @@ delta_explicit_histograms(_Config) ->
                                                                               min=Min,
                                                                               max=Max,
                                                                               sum=Sum}  <- Datapoints1],
-            ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0], 88, 88, 88},
-                              {#{<<"a">> => <<"b">>,<<"d">> => <<"e">>},
-                               [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-                               infinity,-9.223372036854776e18,0}
-                             ]
-                         -- AttributeBuckets1, AttributeBuckets1)
+            ?assertEqual([], [{#{<<"c">> => <<"b">>}, [0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0], 88, 88, 88}]                                                      -- AttributeBuckets1, AttributeBuckets1)
     after
         5000 ->
             ct:fail(histogram_receive_timeout)

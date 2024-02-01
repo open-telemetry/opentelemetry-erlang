@@ -29,7 +29,7 @@
          %% TODO: attributes should be a tuple of just the values, sorted by attribute name
          key :: key_match_spec() | undefined | {element, 2, '$_'},
          start_time :: match_spec(integer()) | undefined,
-          checkpoint :: match_spec(number()) | undefined | {'+', '$2', '$3'} | {'+', '$3', '$4'},
+         checkpoint :: match_spec(number()) | undefined | {'+', '$2', '$3'} | {'+', '$3', '$4'},
          previous_checkpoint :: match_spec(number()) | undefined | {'+', '$5', '$6'},
          int_value :: match_spec(number()) | undefined | {'+', '$3', {const, number()}},
          float_value :: match_spec(number()) | undefined | {'+', '$4', {const, number()}}
@@ -41,8 +41,7 @@
          key :: key_match_spec() | undefined,
          checkpoint :: match_spec(number()) | undefined,
          value :: match_spec(number()) | undefined,
-         start_time :: match_spec(integer()) | undefined,
-         last_start_time :: match_spec(integer()) | undefined
+         start_time :: match_spec(integer()) | undefined
         }).
 
 

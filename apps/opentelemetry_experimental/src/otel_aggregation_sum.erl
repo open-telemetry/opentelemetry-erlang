@@ -185,7 +185,7 @@ collect(Tab, ViewAggregation=#view_aggregation{name=Name,
                          0
                  end,
 
-    checkpoint(Tab, ViewAggregation, Generation0),
+    checkpoint(Tab, ViewAggregation, Generation),
 
     Select = [{#sum_aggregation{key={Name, '_', ReaderId, Generation},
                                 _='_'}, [], ['$_']}],

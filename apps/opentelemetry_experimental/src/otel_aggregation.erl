@@ -32,10 +32,10 @@
       Value :: number(),
       Attributes :: opentelemetry:attributes_map().
 
--callback collect(Table, ViewAggregation, CollectionStartTime) -> tuple() when
+-callback collect(Table, ViewAggregation, Generation) -> tuple() when
       Table :: ets:table(),
       ViewAggregation :: #view_aggregation{},
-      CollectionStartTime :: integer().
+      Generation :: integer().
 
 maybe_init_aggregate(MetricsTab, ViewAggregation=#view_aggregation{aggregation_module=AggregationModule,
                                                                    attribute_keys=AttributeKeys},
