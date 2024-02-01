@@ -21,7 +21,6 @@
 
 -export([init/2,
          aggregate/4,
-         checkpoint/3,
          collect/3]).
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
@@ -36,15 +35,29 @@
 
 init(#view_aggregation{name=Name,
                        reader=ReaderId,
-                       aggregation_options=_Options}, Attributes) ->
-    Key = {Name, Attributes, ReaderId},
+                       aggregation_options=_Options,
+                       forget=Forget}, Attributes) ->
+    Generation = case Forget of
+                     true ->
+                         otel_metric_reader:checkpoint_generation(ReaderId);
+                     _ ->
+                         0
+                 end,
+    Key = {Name, Attributes, ReaderId, Generation},
     #last_value_aggregation{key=Key,
                             start_time=opentelemetry:timestamp(),
                             value=undefined}.
 
 aggregate(Tab, ViewAggregation=#view_aggregation{name=Name,
-                                                 reader=ReaderId}, Value, Attributes) ->
-    Key = {Name, Attributes, ReaderId},
+                                                 reader=ReaderId,
+                                                 forget=Forget}, Value, Attributes) ->
+    Generation = case Forget of
+                     true ->
+                         otel_metric_reader:checkpoint_generation(ReaderId);
+                     _ ->
+                         0
+                 end,
+    Key = {Name, Attributes, ReaderId, Generation},
     case ets:update_element(Tab, Key, {#last_value_aggregation.value, Value}) of
         true ->
             true;
@@ -55,32 +68,28 @@ aggregate(Tab, ViewAggregation=#view_aggregation{name=Name,
 
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
-                                  temporality=?TEMPORALITY_DELTA}, CollectionStartTime) ->
-    MS = [{#last_value_aggregation{key={Name, '$1', ReaderId},
+                                  temporality=?TEMPORALITY_DELTA}, Generation) ->
+    MS = [{#last_value_aggregation{key={Name, '$1', ReaderId, Generation},
                                    start_time='$3',
-                                   last_start_time='_',
                                    checkpoint='_',
                                    value='$2'},
            [],
-           [{#last_value_aggregation{key={{Name, '$1', {const, ReaderId}}},
-                                     start_time={const, CollectionStartTime},
-                                     last_start_time='$3',
+           [{#last_value_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
+                                     start_time='$3',
                                      checkpoint='$2',
                                      value='$2'}}]}],
     _ = ets:select_replace(Tab, MS),
 
     ok;
 checkpoint(Tab, #view_aggregation{name=Name,
-                                  reader=ReaderId}, _CollectionStartTime) ->
-    MS = [{#last_value_aggregation{key={Name, '$1', ReaderId},
+                                  reader=ReaderId}, Generation) ->
+    MS = [{#last_value_aggregation{key={Name, '$1', ReaderId, Generation},
                                    start_time='$3',
-                                   last_start_time='_',
                                    checkpoint='_',
                                    value='$2'},
            [],
-           [{#last_value_aggregation{key={{{const, Name}, '$1', {const, ReaderId}}},
+           [{#last_value_aggregation{key={{{const, Name}, '$1', {const, ReaderId}, {const, Generation}}},
                                      start_time='$3',
-                                     last_start_time='$3',
                                      checkpoint='$2',
                                      value='$2'}}]}],
     _ = ets:select_replace(Tab, MS),
@@ -88,21 +97,29 @@ checkpoint(Tab, #view_aggregation{name=Name,
     ok.
 
 
-collect(Tab, #view_aggregation{name=Name,
-                               reader=ReaderId}, CollectionStartTime) ->
-    Select = [{#last_value_aggregation{key={Name, '$1', ReaderId},
-                                checkpoint='$2',
-                                value='$3',
-                                start_time='$4',
-                                last_start_time='$5'}, [], ['$_']}],
+collect(Tab, ViewAggregation=#view_aggregation{name=Name,
+                                               reader=ReaderId,
+                                               forget=Forget}, Generation0) ->
+    CollectionStartTime = opentelemetry:timestamp(),
+    Generation = case Forget of
+                     true ->
+                         Generation0;
+                     _ ->
+                         0
+                 end,
+
+    checkpoint(Tab, ViewAggregation, Generation),
+
+    Select = [{#last_value_aggregation{key={Name, '_', ReaderId, Generation},
+                                       _='_'}, [], ['$_']}],
     AttributesAggregation = ets:select(Tab, Select),
     #gauge{datapoints=[datapoint(CollectionStartTime, LastValueAgg) ||
                           LastValueAgg <- AttributesAggregation]}.
 
 %%
 
-datapoint(CollectionStartTime, #last_value_aggregation{key={_, Attributes, _},
-                                                       last_start_time=StartTime,
+datapoint(CollectionStartTime, #last_value_aggregation{key={_, Attributes, _, _},
+                                                       start_time=StartTime,
                                                        checkpoint=Checkpoint}) ->
     #datapoint{attributes=Attributes,
                %% `start_time' being set to `last_start_time' causes complaints
