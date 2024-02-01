@@ -36,15 +36,14 @@
          handle_continue/2,
          code_change/1]).
 
--include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
--include_lib("kernel/include/logger.hrl").
 -include("otel_view.hrl").
 -include("otel_metrics.hrl").
 
 -record(state,
         {
          exporter,
+         %% eqwalizer:ignore waiting on sup_ref to be exported https://github.com/erlang/otp/pull/7205
          provider_sup :: supervisor:sup_ref(),
          id :: reference(),
          default_aggregation_mapping :: #{otel_instrument:kind() => module()},
@@ -89,7 +88,7 @@ init([ReaderId, ProviderSup, Config]) ->
     Temporality = maps:get(default_temporality_mapping, Config, #{}),
 
     %% if a periodic reader is needed then this value is set
-    %% somehow need to do a default of 10000 millis, but only if this is a periodic reader
+    %% somehow need to do a default of 10000 MILLIS, but only if this is a periodic reader
     ExporterIntervalMs = maps:get(export_interval_ms, Config, undefined),
 
     TRef = case ExporterIntervalMs of
@@ -108,6 +107,7 @@ init([ReaderId, ProviderSup, Config]) ->
                 GenerationRef0
         end,
 
+    %% eqwalizer:fixme a bug causes it to give an unbound record error for `state' %% so marking this as `fixme' to know we can remove it in the future
     {ok, #state{exporter=Exporter,
                 provider_sup=ProviderSup,
                 id=ReaderId,
@@ -118,6 +118,7 @@ init([ReaderId, ProviderSup, Config]) ->
                 generation_ref=GenerationRef,
                 config=Config}, {continue, register_with_server}}.
 
+%% eqwalizer:fixme a bug causes it to give an unbound record error for `state' %% so marking this as `fixme' to know we can remove it in the future
 handle_continue(register_with_server, State=#state{provider_sup=ProviderSup,
                                                    id=ReaderId,
                                                    default_aggregation_mapping=DefaultAggregationMapping,
@@ -140,6 +141,7 @@ handle_call(_, _From, State) ->
 handle_cast(_, State) ->
     {noreply, State}.
 
+%% eqwalizer:fixme a bug causes it to give an unbound record error for `state' %% so marking this as `fixme' to know we can remove it in the future
 handle_info(collect, State=#state{exporter=undefined,
                                   export_interval_ms=ExporterIntervalMs,
                                   tref=TRef}) when TRef =/= undefined andalso

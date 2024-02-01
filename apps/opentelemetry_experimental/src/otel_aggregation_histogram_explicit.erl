@@ -131,6 +131,10 @@
 ).
 -endif.
 
+%% ignore eqwalizer errors in functions using a lot of matchspecs
+-eqwalizer({nowarn_function, checkpoint/3}).
+-eqwalizer({nowarn_function, collect/3}).
+
 init(#view_aggregation{name=Name,
                        reader=ReaderId,
                        aggregation_options=Options}, Attributes) ->

@@ -165,11 +165,11 @@ criteria_to_instrument_matchspec(Criteria) when is_map(Criteria) ->
                         Meter = maybe_init_meter(InstrumentAcc),
                         Meter1 = update_meter_schema_url(SchemaUrl, Meter),
                         InstrumentAcc#instrument{meter=Meter1}
-                        %% eqwalizer:ignore building a matchspec and don't want '_' polluting the type
+                     %% eqwalizer:ignore using ignore as an ets matchspec workaround
                 end, #instrument{_='_'}, Criteria),
     ets:match_spec_compile([{Instrument, [], [true]}]);
 criteria_to_instrument_matchspec(_) ->
-    %% eqwalizer:ignore building a matchspec and don't want '_' polluting the type
+    %% eqwalizer:ignore using ignore as an ets matchspec workaround
     ets:match_spec_compile([{#instrument{_='_'}, [], [true]}]).
 
 maybe_init_meter(#instrument{meter='_'}) ->

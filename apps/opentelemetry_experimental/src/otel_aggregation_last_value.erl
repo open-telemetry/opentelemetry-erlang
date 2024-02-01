@@ -30,6 +30,10 @@
 
 -export_type([t/0]).
 
+%% ignore eqwalizer errors in functions using a lot of matchspecs
+-eqwalizer({nowarn_function, checkpoint/3}).
+-eqwalizer({nowarn_function, collect/3}).
+
 -include_lib("opentelemetry_api/include/gradualizer.hrl").
 -include("otel_view.hrl").
 
@@ -46,7 +50,9 @@ init(#view_aggregation{name=Name,
     Key = {Name, Attributes, ReaderId, Generation},
     #last_value_aggregation{key=Key,
                             start_time=opentelemetry:timestamp(),
-                            value=undefined}.
+                            value=undefined,
+                            %% not needed or used, but makes eqwalizer happy
+                            checkpoint=0}.
 
 aggregate(Tab, ViewAggregation=#view_aggregation{name=Name,
                                                  reader=ReaderId,
@@ -122,12 +128,8 @@ datapoint(CollectionStartTime, #last_value_aggregation{key={_, Attributes, _, _}
                                                        start_time=StartTime,
                                                        checkpoint=Checkpoint}) ->
     #datapoint{attributes=Attributes,
-               %% `start_time' being set to `last_start_time' causes complaints
-               %% because `last_start_time' has matchspec values in its typespec
-               %% eqwalizer:ignore see above
                start_time=StartTime,
                time=CollectionStartTime,
-               %% eqwalizer:ignore more matchspec fun
                value=Checkpoint,
                exemplars=[],
                flags=0}.

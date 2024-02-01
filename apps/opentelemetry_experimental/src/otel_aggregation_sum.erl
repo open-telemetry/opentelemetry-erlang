@@ -31,6 +31,10 @@
 
 -export_type([t/0]).
 
+%% ignore eqwalizer errors in functions using a lot of matchspecs
+-eqwalizer({nowarn_function, checkpoint/3}).
+-eqwalizer({nowarn_function, aggregate/4}).
+
 init(#view_aggregation{name=Name,
                        reader=ReaderId,
                        forget=Forget}, Attributes) ->
@@ -187,8 +191,8 @@ collect(Tab, ViewAggregation=#view_aggregation{name=Name,
 
     checkpoint(Tab, ViewAggregation, Generation),
 
-    Select = [{#sum_aggregation{key={Name, '_', ReaderId, Generation},
-                                _='_'}, [], ['$_']}],
+    %% eqwalizer:ignore matchspecs mess with the typing
+    Select = [{#sum_aggregation{key={Name, '_', ReaderId, Generation}, _='_'}, [], ['$_']}],
     AttributesAggregation = ets:select(Tab, Select),
     #sum{aggregation_temporality=Temporality,
          is_monotonic=IsMonotonic,
@@ -199,12 +203,9 @@ datapoint(_Tab, CollectionStartTime, Temporality, Temporality, #sum_aggregation{
                                                                                 start_time=StartTime,
                                                                                 checkpoint=Value}) ->
     #datapoint{
-       %% eqwalizer:ignore something
        attributes=Attributes,
-       %% eqwalizer:ignore something
        start_time=StartTime,
        time=CollectionStartTime,
-       %% eqwalizer:ignore something
        value=Value,
        exemplars=[],
        flags=0
@@ -216,9 +217,7 @@ datapoint(_Tab, Time, _, ?TEMPORALITY_CUMULATIVE, #sum_aggregation{key={_Name, A
                                                                    previous_checkpoint=PreviousCheckpoint,
                                                                    checkpoint=Value}) ->
     #datapoint{
-       %% eqwalizer:ignore something
        attributes=Attributes,
-       %% eqwalizer:ignore something
        start_time=StartTime,
        time=Time,
        value=Value + PreviousCheckpoint,
@@ -241,6 +240,7 @@ datapoint(Tab, Time, _, ?TEMPORALITY_DELTA, #sum_aggregation{key={Name, Attribut
        attributes=Attributes,
        start_time=StartTime,
        time=Time,
+       %% eqwalizer:ignore eqwalizer can't tell the ets lookup returns the type of `checkpoint'
        value=Value - PreviousCheckpoint,
        exemplars=[],
        flags=0
