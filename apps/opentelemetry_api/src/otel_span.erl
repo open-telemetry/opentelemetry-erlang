@@ -28,6 +28,7 @@
          is_valid/1,
          is_valid_name/1,
          validate_start_opts/1,
+         validate_with_opts/1,
          set_attribute/3,
          set_attributes/2,
          add_event/3,
@@ -51,7 +52,15 @@
                         start_time := opentelemetry:timestamp(),
                         kind := opentelemetry:span_kind()}.
 
--export_type([start_opts/0]).
+-type with_opts() :: #{attributes => opentelemetry:attributes_map(),
+                       links => [opentelemetry:link()],
+                       is_recording => boolean(),
+                       start_time => opentelemetry:timestamp(),
+                       kind => opentelemetry:span_kind(),
+                       record_exception => boolean(),
+                       set_status_on_exception => boolean()}.
+
+-export_type([start_opts/0, with_opts/0]).
 
 -spec validate_start_opts(start_opts()) -> start_opts().
 validate_start_opts(Opts) when is_map(Opts) ->
@@ -67,6 +76,17 @@ validate_start_opts(Opts) when is_map(Opts) ->
       start_time => StartTime,
       is_recording => IsRecording
      }.
+
+-spec validate_with_opts(with_opts()) -> with_opts().
+validate_with_opts(Opts) when is_map(Opts) ->
+    StartOpts = validate_start_opts(Opts),
+    RecordException = maps:get(record_exception, Opts, false),
+    SetStatusOnException = maps:get(set_status_on_exception, Opts, false),
+    maps:merge(StartOpts, #{
+      record_exception => RecordException,
+      set_status_on_exception => SetStatusOnException
+     }).
+
 
 -spec is_recording(SpanCtx) -> boolean() when
       SpanCtx :: opentelemetry:span_ctx().
@@ -201,11 +221,7 @@ add_events(_, _) ->
 record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) when is_list(Attributes) ->
     record_exception(SpanCtx, Class, Term, Stacktrace, maps:from_list(Attributes));
 record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) when is_map(Attributes) ->
-    {ok, ExceptionType} = otel_utils:format_binary_string("~0tP:~0tP", [Class, 10, Term, 10], [{chars_limit, 50}]),
-    {ok, StacktraceString} = otel_utils:format_binary_string("~0tP", [Stacktrace, 10], [{chars_limit, 50}]),
-    ExceptionAttributes = #{?EXCEPTION_TYPE => ExceptionType,
-                            ?EXCEPTION_STACKTRACE => StacktraceString},
-    add_event(SpanCtx, 'exception', maps:merge(ExceptionAttributes, Attributes));
+    do_record_exception(SpanCtx, Class, Term, undefined, Stacktrace, Attributes);
 record_exception(_, _, _, _, _) ->
     false.
 
@@ -219,14 +235,56 @@ record_exception(_, _, _, _, _) ->
 record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) when is_list(Attributes) ->
     record_exception(SpanCtx, Class, Term, Message, Stacktrace, maps:from_list(Attributes));
 record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) when is_map(Attributes) ->
-    {ok, ExceptionType} = otel_utils:format_binary_string("~0tP:~0tP", [Class, 10, Term, 10], [{chars_limit, 50}]),
-    {ok, StacktraceString} = otel_utils:format_binary_string("~0tP", [Stacktrace, 10], [{chars_limit, 50}]),
-    ExceptionAttributes = #{?EXCEPTION_TYPE => ExceptionType,
-                            ?EXCEPTION_STACKTRACE => StacktraceString,
-                            ?EXCEPTION_MESSAGE => Message},
-    add_event(SpanCtx, 'exception', maps:merge(ExceptionAttributes, Attributes));
+    do_record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes);
 record_exception(_, _, _, _, _, _) ->
     false.
+
+do_record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) ->
+    ExceptionFromElixir = exception_from_elixir(Stacktrace),
+    Term1 = normalize_exception(Class, Term, Stacktrace, ExceptionFromElixir),
+    ExceptionType = exception_type(Class, Term1),
+    StacktraceString = format_stacktrace(Stacktrace, ExceptionFromElixir),
+    ExceptionAttributes = #{?EXCEPTION_TYPE => ExceptionType,
+                            ?EXCEPTION_STACKTRACE => StacktraceString},
+    ExceptionAttributes1 = add_message(ExceptionAttributes, Message, Term1),
+    add_event(SpanCtx, exception, maps:merge(ExceptionAttributes1, Attributes)).
+exception_from_elixir([{Module, _, _, _} | _]) ->
+    ModuleStr = atom_to_list(Module),
+    string:find(ModuleStr, "Elixir.") =:= ModuleStr;
+exception_from_elixir(_) ->
+    false.
+format_stacktrace(Stacktrace, false) ->
+    {ok, StacktraceString} = otel_utils:format_binary_string("~0tP", [Stacktrace, 10], [{chars_limit, 50}]),
+    StacktraceString;
+format_stacktrace(Stacktrace, true) ->
+    'Elixir.Exception':format_stacktrace(Stacktrace).
+normalize_exception(Class, Term, Stacktrace, true) ->
+    'Elixir.Exception':normalize(Class, Term, Stacktrace);
+normalize_exception(_Class, Term, _ExceptionStacktrace, false) ->
+    Term.
+exception_type(error, #{'__exception__' := true, '__struct__' := ElixirErrorStruct} = Term) ->
+    case atom_to_binary(ElixirErrorStruct) of
+        <<"Elixir.", ExceptionType/binary>> -> ExceptionType;
+        _ -> exception_type_erl(error, Term)
+    end;
+exception_type(Class, Term) ->
+    exception_type_erl(Class, Term).
+exception_type_erl(Class, Term) ->
+    {ok, ExceptionType} = otel_utils:format_binary_string("~0tP:~0tP", [Class, 10, Term, 10], [{chars_limit, 50}]),
+    ExceptionType.
+
+add_message(Attributes, Message, _Exception) when Message /= undefined ->
+    maps:put(?EXCEPTION_MESSAGE, Message, Attributes);
+add_message(Attributes, undefined, #{'__exception__' := true} = Exception) ->
+    try
+        Message = 'Elixir.Exception':message(Exception),
+        maps:put(?EXCEPTION_MESSAGE, Message, Attributes)
+    catch
+        _Class:_Exception ->
+            Attributes
+    end;
+add_message(Attributes, _, _) ->
+    Attributes.
 
 -spec set_status(SpanCtx, StatusOrCode) -> boolean() when
       StatusOrCode :: opentelemetry:status() | undefined | opentelemetry:status_code(),
