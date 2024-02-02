@@ -107,7 +107,7 @@ init([ReaderId, ProviderSup, Config]) ->
                 GenerationRef0
         end,
 
-    %% eqwalizer:fixme a bug causes it to give an unbound record error for `state' %% so marking this as `fixme' to know we can remove it in the future
+    %% eqwalizer:fixme get an unbound record error until the fixme for state record is resolved
     {ok, #state{exporter=Exporter,
                 provider_sup=ProviderSup,
                 id=ReaderId,
@@ -118,7 +118,7 @@ init([ReaderId, ProviderSup, Config]) ->
                 generation_ref=GenerationRef,
                 config=Config}, {continue, register_with_server}}.
 
-%% eqwalizer:fixme a bug causes it to give an unbound record error for `state' %% so marking this as `fixme' to know we can remove it in the future
+%% eqwalizer:fixme get an unbound record error until the fixme for state record is resolved
 handle_continue(register_with_server, State=#state{provider_sup=ProviderSup,
                                                    id=ReaderId,
                                                    default_aggregation_mapping=DefaultAggregationMapping,
@@ -141,7 +141,7 @@ handle_call(_, _From, State) ->
 handle_cast(_, State) ->
     {noreply, State}.
 
-%% eqwalizer:fixme a bug causes it to give an unbound record error for `state' %% so marking this as `fixme' to know we can remove it in the future
+%% eqwalizer:fixme get an unbound record error until the fixme for state record is resolved
 handle_info(collect, State=#state{exporter=undefined,
                                   export_interval_ms=ExporterIntervalMs,
                                   tref=TRef}) when TRef =/= undefined andalso
@@ -179,7 +179,6 @@ handle_info(collect, State=#state{id=ReaderId,
 
     %% collect from view aggregations table and then export
     Metrics = collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId),
-
 
     otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
 
