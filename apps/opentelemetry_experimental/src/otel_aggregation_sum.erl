@@ -194,9 +194,27 @@ collect(Tab, ViewAggregation=#view_aggregation{name=Name,
     %% eqwalizer:ignore matchspecs mess with the typing
     Select = [{#sum_aggregation{key={Name, '_', ReaderId, Generation}, _='_'}, [], ['$_']}],
     AttributesAggregation = ets:select(Tab, Select),
-    #sum{aggregation_temporality=Temporality,
+    Result = #sum{aggregation_temporality=Temporality,
          is_monotonic=IsMonotonic,
-         datapoints=[datapoint(Tab, CollectionStartTime, InstrumentTemporality, Temporality, SumAgg) || SumAgg <- AttributesAggregation]}.
+         datapoints=[datapoint(Tab, CollectionStartTime, InstrumentTemporality, Temporality, SumAgg) || SumAgg <- AttributesAggregation]},
+
+    %% would be nice to do this in the reader so its not duplicated in each aggregator
+    maybe_delete_old_generation(Tab, Name, ReaderId, Generation),
+
+    Result.
+
+%% 0 means it is either cumulative or the first generation with nothing older to delete
+maybe_delete_old_generation(_Tab, _Name, _ReaderId, 0) ->
+    ok;
+maybe_delete_old_generation(Tab, Name, ReaderId, Generation) ->
+    %% delete all older than the Generation instead of just the previous in case a
+    %% a crash had happened between incrementing the Generation counter and doing
+    %% the delete in a previous collection cycle
+    %% eqwalizer:ignore matchspecs mess with the typing
+    Select = [{#sum_aggregation{key={Name, '_', ReaderId, '$1'}, _='_'},
+               [{'<', '$1', {const, Generation}}],
+               [true]}],
+    ets:select_delete(Tab, Select).
 
 %% nothing special to do if the instrument temporality and view temporality are the same
 datapoint(_Tab, CollectionStartTime, Temporality, Temporality, #sum_aggregation{key={_, Attributes, _, _},
