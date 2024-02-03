@@ -50,9 +50,11 @@
                         is_recording := boolean(),
                         start_time := opentelemetry:timestamp(),
                         kind := opentelemetry:span_kind()}.
+%% Start options for a span.
 
 -export_type([start_opts/0]).
 
+%% @doc Validates the start options for a span and fills in defaults.
 -spec validate_start_opts(start_opts()) -> start_opts().
 validate_start_opts(Opts) when is_map(Opts) ->
     Attributes = maps:get(attributes, Opts, #{}),
@@ -68,11 +70,15 @@ validate_start_opts(Opts) when is_map(Opts) ->
       is_recording => IsRecording
      }.
 
+%% @doc Returns whether the span is recording.
+%% @end
 -spec is_recording(SpanCtx) -> boolean() when
       SpanCtx :: opentelemetry:span_ctx().
 is_recording(SpanCtx) ->
     ?is_recording(SpanCtx).
 
+%% @doc Returns whether the span context is valid.
+%% @end
 -spec is_valid(SpanCtx) -> boolean() when
       SpanCtx :: opentelemetry:span_ctx().
 is_valid(#span_ctx{trace_id=TraceId,
@@ -82,6 +88,7 @@ is_valid(#span_ctx{trace_id=TraceId,
 is_valid(_) ->
     false.
 
+%% @private
 -spec is_valid_name(any()) -> boolean().
 is_valid_name(undefined) ->
     false;
@@ -91,10 +98,13 @@ is_valid_name(_) ->
     false.
 
 %% accessors
+
+%% @doc Returns the trace ID of the given span context.
 -spec trace_id(opentelemetry:span_ctx()) -> opentelemetry:trace_id().
 trace_id(#span_ctx{trace_id=TraceId}) ->
     TraceId.
 
+%% @doc Returns the span ID of the given span context.
 -spec span_id(opentelemetry:span_ctx()) -> opentelemetry:span_id().
 span_id(#span_ctx{span_id=SpanId}) ->
     SpanId.
@@ -167,6 +177,11 @@ set_attributes(SpanCtx=#span_ctx{span_sdk={Module, _}}, Attributes) when ?is_rec
 set_attributes(_, _) ->
     false.
 
+%% @doc Adds an event to the given span context.
+%%
+%% Returns `false' if the given span context is not recording, or if the event `Name' is
+%% not valid.
+%% @end
 -spec add_event(SpanCtx, Name, Attributes) -> boolean() when
       Name :: opentelemetry:event_name(),
       Attributes :: opentelemetry:attributes_map(),
@@ -183,7 +198,9 @@ add_event(SpanCtx=#span_ctx{span_sdk={Module, _}}, Name, Attributes)
 add_event(_, _, _) ->
     false.
 
-%% todo - validate
+%% @doc Same as {@link add_event/3}, but takes a list of events.
+%%
+%% Returns `false' if the given span context is not recording.
 -spec add_events(SpanCtx, Events) -> boolean() when
       Events :: [opentelemetry:event()],
       SpanCtx :: opentelemetry:span_ctx().
@@ -250,6 +267,9 @@ set_status(_, _) ->
 set_status(SpanCtx, Code, Message) ->
     set_status(SpanCtx, opentelemetry:status(Code, Message)).
 
+%% @doc Updates the name of the given span context to `Name'.
+%%
+%% Returns `false' if the given span context is not recording, or if the name `Name' is not valid.
 -spec update_name(SpanCtx, Name) -> boolean() when
       Name :: opentelemetry:span_name(),
       SpanCtx :: opentelemetry:span_ctx().
@@ -263,6 +283,11 @@ update_name(SpanCtx=#span_ctx{span_sdk={Module, _}}, SpanName) when ?is_recordin
 update_name(_, _) ->
     false.
 
+%% @doc Ends the given span context.
+%%
+%% If `SpanCtx' is not recording, this function doesn't do anything.
+%% Returns the updated span context.
+%% @end
 -spec end_span(SpanCtx) -> SpanCtx when
       SpanCtx :: opentelemetry:span_ctx().
 end_span(SpanCtx=#span_ctx{span_sdk={Module, _}}) when ?is_recording(SpanCtx) ->
@@ -271,6 +296,12 @@ end_span(SpanCtx=#span_ctx{span_sdk={Module, _}}) when ?is_recording(SpanCtx) ->
 end_span(SpanCtx) ->
     SpanCtx.
 
+%% @doc Ends the given span context with the given timestamp.
+%%
+%% If `SpanCtx' is not recording, this function doesn't do anything.
+%% If `Timestamp' is `undefined', this is equivalent to {@link end_span/1}.
+%% Returns the updated span context.
+%% @end
 -spec end_span(SpanCtx, Timestamp) -> SpanCtx when
     SpanCtx :: opentelemetry:span_ctx(),
     Timestamp :: integer() | undefined.
