@@ -159,7 +159,11 @@ aggregate(Table, #view_aggregation{name=Name,
     Generation = otel_metric_reader:checkpoint_generation(ReaderId),
     Key = {Name, Attributes, ReaderId, Generation},
     ExplicitBucketBoundaries = maps:get(explicit_bucket_boundaries, Options, ?DEFAULT_BOUNDARIES),
-    try ets:lookup_element(Table, Key, #explicit_histogram_aggregation.bucket_counts) of
+    case otel_aggregation:ets_lookup_element(Table, Key, #explicit_histogram_aggregation.bucket_counts, false) of
+        false ->
+            %% since we need the options to initialize a histogram `false' is
+            %% returned and `otel_metric_server' will initialize the histogram
+            false;
         BucketCounts0 ->
             BucketCounts = case BucketCounts0 of
                                undefined ->
@@ -173,11 +177,6 @@ aggregate(Table, #view_aggregation{name=Name,
 
             MS = ?AGGREATE_MATCH_SPEC(Key, Value, BucketCounts),
             1 =:= ets:select_replace(Table, MS)
-    catch
-        error:badarg->
-            %% since we need the options to initialize a histogram `false' is
-            %% returned and `otel_metric_server' will initialize the histogram
-            false
     end.
 
 checkpoint(Tab, #view_aggregation{name=Name,

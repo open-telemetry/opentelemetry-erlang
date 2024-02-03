@@ -252,13 +252,13 @@ datapoint(Tab, Time, _, ?TEMPORALITY_DELTA, #sum_aggregation{key={Name, Attribut
     %% converting from cumulative to delta by grabbing the last generation and subtracting it
     %% can't use `previous_checkpoint' because with delta metrics have their generation changed
     %% at each collection
-    PreviousCheckpoint = ets:lookup_element(Tab, {Name, Attributes, ReaderId, Generation-1},
+    PreviousCheckpoint =
+        otel_aggregation:ets_lookup_element(Tab, {Name, Attributes, ReaderId, Generation-1},
                                             #sum_aggregation.checkpoint, 0),
     #datapoint{
        attributes=Attributes,
        start_time=StartTime,
        time=Time,
-       %% eqwalizer:ignore eqwalizer can't tell the ets lookup returns the type of `checkpoint'
        value=Value - PreviousCheckpoint,
        exemplars=[],
        flags=0
