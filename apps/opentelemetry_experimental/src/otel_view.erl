@@ -51,6 +51,13 @@
 
 -include_lib("opentelemetry_api/include/gradualizer.hrl").
 
+%% ignore dialyzer warnings in functions using matchspecs or related to those that do
+-dialyzer({nowarn_function, do_new/2}).
+-dialyzer({nowarn_function, criteria_to_instrument_matchspec/1}).
+-dialyzer({nowarn_function, maybe_init_meter/1}).
+-dialyzer({nowarn_function, update_meter_name/2}).
+-dialyzer({nowarn_function, update_meter_version/2}).
+-dialyzer({nowarn_function, update_meter_schema_url/2}).
 
 -spec new(criteria() | undefined, config()) -> {ok, t()} | {error, named_wildcard_view}.
 new(Criteria, Config) ->
@@ -98,9 +105,6 @@ match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                          false;
                                      _ ->
                                          AggregationOptions1 = aggragation_options(AggregationOptions, AdvisoryParams),
-                                         %% `reader' needs to be undefined and is set
-                                         %% for each in `otel_meter_server'
-                                         %% eqwalizer:ignore see above
                                          {true, {View, #view_aggregation{name=value_or(ViewName,
                                                                                        InstrumentName),
                                                                          scope=Scope,

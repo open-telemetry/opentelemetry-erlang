@@ -134,6 +134,13 @@
 %% ignore eqwalizer errors in functions using a lot of matchspecs
 -eqwalizer({nowarn_function, checkpoint/3}).
 -eqwalizer({nowarn_function, collect/3}).
+-dialyzer({nowarn_function, checkpoint/3}).
+-dialyzer({nowarn_function, aggregate/4}).
+-dialyzer({nowarn_function, collect/3}).
+-dialyzer({nowarn_function, maybe_delete_old_generation/4}).
+-dialyzer({nowarn_function, datapoint/2}).
+-dialyzer({nowarn_function, get_buckets/2}).
+-dialyzer({nowarn_function, counters_get/2}).
 
 init(#view_aggregation{name=Name,
                        reader=ReaderId,

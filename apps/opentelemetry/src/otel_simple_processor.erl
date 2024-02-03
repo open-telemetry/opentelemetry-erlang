@@ -81,13 +81,11 @@ set_exporter(Exporter) ->
 %% @deprecated Please use {@link otel_tracer_provider}
 -spec set_exporter(module(), term()) -> ok.
 set_exporter(Exporter, Options) ->
-    %% eqwalizer:ignore doesn't like gen_`statem:call' returns `term()'
     gen_statem:call(?REG_NAME(global), {set_exporter, {Exporter, Options}}).
 
 %% @deprecated Please use {@link otel_tracer_provider}
 -spec set_exporter(atom(), module(), term()) -> ok.
 set_exporter(Name, Exporter, Options) ->
-    %% eqwalizer:ignore doesn't like `gen_statem:call' returns `term()'
     gen_statem:call(?REG_NAME(Name), {set_exporter, {Exporter, Options}}).
 
 -spec on_start(otel_ctx:t(), opentelemetry:span(), otel_span_processor:processor_config())
