@@ -1401,6 +1401,50 @@ sync_delta_histogram(_Config) ->
             ct:fail(histogram_receive_timeout)
     end,
 
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 100, #{verb => <<"GET">>,
+                                                                   status => 200})),
+
+    otel_meter_server:force_flush(),
+
+    receive
+        {otel_metric, #metric{name=http_req_view,
+                              data=#histogram{datapoints=Datapoints2}}} ->
+            AttributeBuckets2 =
+                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                         attributes=Attributes,
+                                                                                         min=Min,
+                                                                                         max=Max,
+                                                                                         sum=Sum} <- Datapoints2]),
+            ?assertEqual([], [{#{status => 200,verb => <<"GET">>},[1],100,100,100}]
+                         -- AttributeBuckets2, AttributeBuckets2)
+    after
+        1000 ->
+            ct:fail(histogram_receive_timeout)
+    end,
+
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 200, #{verb => <<"GET">>,
+                                                                    status => 200})),
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 30, #{verb => <<"GET">>,
+                                                                   status => 200})),
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 50, #{verb => <<"GET">>,
+                                                                   status => 200})),
+    otel_meter_server:force_flush(),
+
+    receive
+        {otel_metric, #metric{name=http_req_view,
+                              data=#histogram{datapoints=Datapoints3}}} ->
+            AttributeBuckets3 =
+                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                         attributes=Attributes,
+                                                                                         min=Min,
+                                                                                         max=Max,
+                                                                                         sum=Sum} <- Datapoints3]),
+            ?assertEqual([], [{#{status => 200,verb => <<"GET">>},[3],30,200,280}]
+                         -- AttributeBuckets3, AttributeBuckets3)
+    after
+        1000 ->
+            ct:fail(histogram_receive_timeout)
+    end,
     ok.
 
 async_cumulative_page_faults(_Config) ->
