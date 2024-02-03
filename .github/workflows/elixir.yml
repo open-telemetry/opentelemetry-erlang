@@ -52,7 +52,6 @@ jobs:
           elixir-version: ${{ matrix.elixir_version }}
           rebar3-version: ${{ matrix.rebar3_version }}
           version-type: 'strict'
-      - run: mix local.rebar --force rebar3 /home/runner/work/_temp/.setup-beam/rebar3/bin/rebar3
       - name: Compile
         run: rebar3 as test compile
       - name: ExUnit
@@ -93,7 +92,6 @@ jobs:
           key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir_version }}-v4-${{ hashFiles(format('{0}{1}', github.workspace, '/apps/opentelemetry_api/mix.lock')) }}
           restore-keys: |
             ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ matrix.elixir_version }}-
-      - run: mix local.rebar --force rebar3 /home/runner/work/_temp/.setup-beam/rebar3/bin/rebar3
       - run: mix deps.get
         name: Deps
       - run: mix test --cover
