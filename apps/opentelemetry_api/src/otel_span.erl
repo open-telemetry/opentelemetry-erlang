@@ -71,7 +71,6 @@ validate_start_opts(Opts) when is_map(Opts) ->
      }.
 
 %% @doc Returns whether the span is recording.
-%% @end
 -spec is_recording(SpanCtx) -> boolean() when
       SpanCtx :: opentelemetry:span_ctx().
 is_recording(SpanCtx) ->
