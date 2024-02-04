@@ -78,7 +78,6 @@ is_recording(SpanCtx) ->
     ?is_recording(SpanCtx).
 
 %% @doc Returns whether the span context is valid.
-%% @end
 -spec is_valid(SpanCtx) -> boolean() when
       SpanCtx :: opentelemetry:span_ctx().
 is_valid(#span_ctx{trace_id=TraceId,
