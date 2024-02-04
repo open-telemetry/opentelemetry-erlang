@@ -19,20 +19,4 @@ defmodule OpenTelemetry.SemanticConventions.Logs do
   def event_name do
     :"event.name"
   end
-  @doc """
-  The domain identifies the context in which an event happened. An event name is unique only within a domain
-
-  ### Notes
-
-  An `event.name` is supposed to be unique only in the context of an
-  `event.domain`, so this allows for two events in different domains to
-  have same `event.name`, yet be unrelated events
-
-      iex> OpenTelemetry.SemanticConventions.Logs.event_domain()
-      :"event.domain"
-  """
-  @spec event_domain :: :"event.domain"
-  def event_domain do
-    :"event.domain"
-  end
 end

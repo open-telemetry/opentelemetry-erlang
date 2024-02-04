@@ -447,14 +447,14 @@ defmodule OpenTelemetry.SemanticConventions.Trace do
     :"faas.trigger"
   end
   @doc """
-  The execution ID of the current function execution
+  The invocation ID of the current function invocation
 
       iex> OpenTelemetry.SemanticConventions.Trace.faas_execution()
-      :"faas.execution"
+      :"faas.invocation_id"
   """
-  @spec faas_execution :: :"faas.execution"
+  @spec faas_execution :: :"faas.invocation_id"
   def faas_execution do
-    :"faas.execution"
+    :"faas.invocation_id"
   end
   @doc """
   The name of the source on which the triggering operation was performed. For example, in Cloud Storage or S3 corresponds to the bucket name, and in Cosmos DB to the database name
@@ -774,104 +774,74 @@ defmodule OpenTelemetry.SemanticConventions.Trace do
     :"messaging.system"
   end
   @doc """
-  The message destination name. This might be equal to the span name but is required nevertheless
+  The message destination name.
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_destination()
-      :"messaging.destination"
+      :"messaging.destination.name"
   """
-  @spec messaging_destination :: :"messaging.destination"
+  @spec messaging_destination :: :"messaging.destination.name"
   def messaging_destination do
-    :"messaging.destination"
-  end
-  @doc """
-  The kind of message destination
-
-      iex> OpenTelemetry.SemanticConventions.Trace.messaging_destination_kind()
-      :"messaging.destination_kind"
-  """
-  @spec messaging_destination_kind :: :"messaging.destination_kind"
-  def messaging_destination_kind do
-    :"messaging.destination_kind"
+    :"messaging.destination.name"
   end
   @doc """
   A boolean that is true if the message destination is temporary
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_temp_destination()
-      :"messaging.temp_destination"
+      :"messaging.destination.temporary"
   """
-  @spec messaging_temp_destination :: :"messaging.temp_destination"
+  @spec messaging_temp_destination :: :"messaging.destination.temporary"
   def messaging_temp_destination do
-    :"messaging.temp_destination"
+    :"messaging.destination.temporary"
   end
   @doc """
   The name of the transport protocol
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_protocol()
-      :"messaging.protocol"
+      :"network.protocol.name"
   """
-  @spec messaging_protocol :: :"messaging.protocol"
+  @spec messaging_protocol :: :"network.protocol.name"
   def messaging_protocol do
-    :"messaging.protocol"
+    :"network.protocol.name"
   end
   @doc """
   The version of the transport protocol
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_protocol_version()
-      :"messaging.protocol_version"
+      :"network.protocol.version"
   """
-  @spec messaging_protocol_version :: :"messaging.protocol_version"
+  @spec messaging_protocol_version :: :"network.protocol.version"
   def messaging_protocol_version do
-    :"messaging.protocol_version"
-  end
-  @doc """
-  Connection string
-
-      iex> OpenTelemetry.SemanticConventions.Trace.messaging_url()
-      :"messaging.url"
-  """
-  @spec messaging_url :: :"messaging.url"
-  def messaging_url do
-    :"messaging.url"
+    :"network.protocol.version"
   end
   @doc """
   A value used by the messaging system as an identifier for the message, represented as a string
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_message_id()
-      :"messaging.message_id"
+      :"messaging.message.id"
   """
-  @spec messaging_message_id :: :"messaging.message_id"
+  @spec messaging_message_id :: :"messaging.message.id"
   def messaging_message_id do
-    :"messaging.message_id"
+    :"messaging.message.id"
   end
   @doc """
   The [conversation ID](#conversations) identifying the conversation to which the message belongs, represented as a string. Sometimes called "Correlation ID"
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_conversation_id()
-      :"messaging.conversation_id"
+      :"messaging.message.conversation_id"
   """
-  @spec messaging_conversation_id :: :"messaging.conversation_id"
+  @spec messaging_conversation_id :: :"messaging.message.conversation_id"
   def messaging_conversation_id do
-    :"messaging.conversation_id"
+    :"messaging.message.conversation_id"
   end
   @doc """
-  The (uncompressed) size of the message payload in bytes. Also use this attribute if it is unknown whether the compressed or uncompressed payload size is reported
+  The size of the message body in bytes. This can refer to both the compressed or uncompressed body size. If both sizes are known, the uncompressed body size should be used
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_message_payload_size_bytes()
-      :"messaging.message_payload_size_bytes"
+      :"messaging.message.body.size"
   """
-  @spec messaging_message_payload_size_bytes :: :"messaging.message_payload_size_bytes"
+  @spec messaging_message_payload_size_bytes :: :"messaging.message.body.size"
   def messaging_message_payload_size_bytes do
-    :"messaging.message_payload_size_bytes"
-  end
-  @doc """
-  The compressed size of the message payload in bytes
-
-      iex> OpenTelemetry.SemanticConventions.Trace.messaging_message_payload_compressed_size_bytes()
-      :"messaging.message_payload_compressed_size_bytes"
-  """
-  @spec messaging_message_payload_compressed_size_bytes :: :"messaging.message_payload_compressed_size_bytes"
-  def messaging_message_payload_compressed_size_bytes do
-    :"messaging.message_payload_compressed_size_bytes"
+    :"messaging.message.body.size"
   end
   @doc """
   A string containing the function invocation time in the [ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html) format expressed in [UTC](https://www.w3.org/TR/NOTE-datetime)
@@ -1362,7 +1332,7 @@ defmodule OpenTelemetry.SemanticConventions.Trace do
     :"graphql.document"
   end
   @doc """
-  A string identifying the kind of message consumption as defined in the [Operation names](#operation-names) section above. If the operation is "send", this attribute MUST NOT be set, since the operation can be inferred from the span kind in that case
+  A string identifying the kind of message consumption as defined in the [Operation names](#operation-names) section above.
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_operation()
       :"messaging.operation"
@@ -1372,24 +1342,24 @@ defmodule OpenTelemetry.SemanticConventions.Trace do
     :"messaging.operation"
   end
   @doc """
-  The identifier for the consumer receiving a message. For Kafka, set it to `{messaging.kafka.consumer_group} - {messaging.kafka.client_id}`, if both are present, or only `messaging.kafka.consumer_group`. For brokers, such as RabbitMQ and Artemis, set it to the `client_id` of the client consuming the message
+  The identifier for the consumer receiving a message. For Kafka, set it to `{messaging.kafka.consumer.group} - {messaging.kafka.client_id}`, if both are present, or only `messaging.kafka.consumer.group`. For brokers, such as RabbitMQ and Artemis, set it to the `client_id` of the client consuming the message
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_consumer_id()
-      :"messaging.consumer_id"
+      :"messaging.consumer.id"
   """
-  @spec messaging_consumer_id :: :"messaging.consumer_id"
+  @spec messaging_consumer_id :: :"messaging.consumer.id"
   def messaging_consumer_id do
-    :"messaging.consumer_id"
+    :"messaging.consumer.id"
   end
   @doc """
   RabbitMQ message routing key
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_rabbitmq_routing_key()
-      :"messaging.rabbitmq.routing_key"
+      :"messaging.rabbitmq.destination.routing_key"
   """
-  @spec messaging_rabbitmq_routing_key :: :"messaging.rabbitmq.routing_key"
+  @spec messaging_rabbitmq_routing_key :: :"messaging.rabbitmq.destination.routing_key"
   def messaging_rabbitmq_routing_key do
-    :"messaging.rabbitmq.routing_key"
+    :"messaging.rabbitmq.destination.routing_key"
   end
   @doc """
   Message keys in Kafka are used for grouping alike messages to ensure they're processed on the same partition. They differ from `messaging.message_id` in that they're not unique. If the key is `null`, the attribute MUST NOT be set
@@ -1399,21 +1369,21 @@ defmodule OpenTelemetry.SemanticConventions.Trace do
   If the key type is not string, it's string representation has to be supplied for the attribute. If the key has no unambiguous, canonical string form, don't include its value
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_kafka_message_key()
-      :"messaging.kafka.message_key"
+      :"messaging.kafka.message.key"
   """
-  @spec messaging_kafka_message_key :: :"messaging.kafka.message_key"
+  @spec messaging_kafka_message_key :: :"messaging.kafka.message.key"
   def messaging_kafka_message_key do
-    :"messaging.kafka.message_key"
+    :"messaging.kafka.message.key"
   end
   @doc """
   Name of the Kafka Consumer Group that is handling the message. Only applies to consumers, not producers
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_kafka_consumer_group()
-      :"messaging.kafka.consumer_group"
+      :"messaging.kafka.consumer.group"
   """
-  @spec messaging_kafka_consumer_group :: :"messaging.kafka.consumer_group"
+  @spec messaging_kafka_consumer_group :: :"messaging.kafka.consumer.group"
   def messaging_kafka_consumer_group do
-    :"messaging.kafka.consumer_group"
+    :"messaging.kafka.consumer.group"
   end
   @doc """
   Client Id for the Consumer or Producer that is handling the message
@@ -1429,21 +1399,21 @@ defmodule OpenTelemetry.SemanticConventions.Trace do
   Partition the message is sent to
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_kafka_partition()
-      :"messaging.kafka.partition"
+      :"messaging.kafka.destination.partition"
   """
-  @spec messaging_kafka_partition :: :"messaging.kafka.partition"
+  @spec messaging_kafka_partition :: :"messaging.kafka.destination.partition"
   def messaging_kafka_partition do
-    :"messaging.kafka.partition"
+    :"messaging.kafka.destination.partition"
   end
   @doc """
   A boolean that is true if the message is a tombstone
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_kafka_tombstone()
-      :"messaging.kafka.tombstone"
+      :"messaging.kafka.message.tombstone"
   """
-  @spec messaging_kafka_tombstone :: :"messaging.kafka.tombstone"
+  @spec messaging_kafka_tombstone :: :"messaging.kafka.message.tombstone"
   def messaging_kafka_tombstone do
-    :"messaging.kafka.tombstone"
+    :"messaging.kafka.message.tombstone"
   end
   @doc """
   Namespace of RocketMQ resources, resources in different namespaces are individual
@@ -1479,31 +1449,31 @@ defmodule OpenTelemetry.SemanticConventions.Trace do
   Type of message
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_rocketmq_message_type()
-      :"messaging.rocketmq.message_type"
+      :"messaging.rocketmq.message.type"
   """
-  @spec messaging_rocketmq_message_type :: :"messaging.rocketmq.message_type"
+  @spec messaging_rocketmq_message_type :: :"messaging.rocketmq.message.type"
   def messaging_rocketmq_message_type do
-    :"messaging.rocketmq.message_type"
+    :"messaging.rocketmq.message.type"
   end
   @doc """
   The secondary classifier of message besides topic
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_rocketmq_message_tag()
-      :"messaging.rocketmq.message_tag"
+      :"messaging.rocketmq.message.tag"
   """
-  @spec messaging_rocketmq_message_tag :: :"messaging.rocketmq.message_tag"
+  @spec messaging_rocketmq_message_tag :: :"messaging.rocketmq.message.tag"
   def messaging_rocketmq_message_tag do
-    :"messaging.rocketmq.message_tag"
+    :"messaging.rocketmq.message.tag"
   end
   @doc """
   Key(s) of message, another way to mark message besides message id
 
       iex> OpenTelemetry.SemanticConventions.Trace.messaging_rocketmq_message_keys()
-      :"messaging.rocketmq.message_keys"
+      :"messaging.rocketmq.message.keys"
   """
-  @spec messaging_rocketmq_message_keys :: :"messaging.rocketmq.message_keys"
+  @spec messaging_rocketmq_message_keys :: :"messaging.rocketmq.message.keys"
   def messaging_rocketmq_message_keys do
-    :"messaging.rocketmq.message_keys"
+    :"messaging.rocketmq.message.keys"
   end
   @doc """
   Model of message consumption. This only applies to consumer spans
