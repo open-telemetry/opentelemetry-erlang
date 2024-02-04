@@ -85,7 +85,7 @@ all() ->
      sync_filtered_attributes, async_filtered_attributes, delta_observable_counter,
      bad_observable_return, default_resource, histogram_aggregation_options, advisory_params,
      sync_delta_histogram, async_cumulative_page_faults, async_delta_page_faults,
-     async_attribute_removal
+     async_attribute_removal, sync_cumulative_histogram
     ].
 
 init_per_suite(Config) ->
@@ -167,6 +167,17 @@ init_per_testcase(delta_explicit_histograms, Config) ->
     Config;
 init_per_testcase(sync_delta_histogram, Config) ->
     DeltaHistogramTemporality = maps:put(?KIND_HISTOGRAM, ?TEMPORALITY_DELTA, default_temporality_mapping()),
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping =>
+                                                                                     DeltaHistogramTemporality}}]),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
+init_per_testcase(sync_cumulative_histogram, Config) ->
+    DeltaHistogramTemporality = maps:put(?KIND_HISTOGRAM, ?TEMPORALITY_CUMULATIVE, default_temporality_mapping()),
     application:load(opentelemetry_experimental),
     ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
                                                                      config => #{exporter => {otel_metric_exporter_pid, self()},
@@ -355,7 +366,7 @@ float_histogram(_Config) ->
     ?assertEqual(ok, otel_histogram:record(Counter, 10.3, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_histogram:record(Counter, 10.3, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?histogram_record(CounterName, 5.5, #{<<"c">> => <<"b">>})),
-    
+
     %% without attributes
     ?assertEqual(ok, ?histogram_record(CounterName, 1.2)),
     ?assertEqual(ok, otel_histogram:record(Counter, 2.1)),
@@ -540,7 +551,7 @@ wildcard_view(_Config) ->
 
     %% not possible to create wildcard views with a name
     {error, named_wildcard_view} = otel_view:new(view_name, ViewCriteria, ViewConfig),
-    
+
     ok.
 
 counter_add(_Config) ->
@@ -1220,16 +1231,16 @@ advisory_params(_Config) ->
     Counter = otel_counter:create(Meter, invalid_1,
                                   #{advisory_params => #{explicit_bucket_boundaries => [1, 2, 3]}}),
     ?assertEqual(Counter#instrument.advisory_params, #{}),
-    
+
     % advisory parameters different from explicit_bucket_boundaries are not allowed
     Counter1 = otel_counter:create(Meter, invalid_2, #{advisory_params => #{invalid => invalid}}),
     ?assertEqual(Counter1#instrument.advisory_params, #{}),
-    
+
     % explicit_bucket_boundaries should be an ordered list of numbers
     Histo1 = otel_histogram:create(Meter, invalid_3,
                                   #{advisory_params => #{explicit_bucket_boundaries => invalid}}),
     ?assertEqual(Histo1#instrument.advisory_params, #{}),
-    
+
     Histo2 = otel_histogram:create(Meter, invalid_4,
                                   #{advisory_params => #{explicit_bucket_boundaries => [2,1,4]}}),
     ?assertEqual(Histo2#instrument.advisory_params, #{}),
@@ -1440,6 +1451,136 @@ sync_delta_histogram(_Config) ->
                                                                                          max=Max,
                                                                                          sum=Sum} <- Datapoints3]),
             ?assertEqual([], [{#{status => 200,verb => <<"GET">>},[3],30,200,280}]
+                         -- AttributeBuckets3, AttributeBuckets3)
+    after
+        1000 ->
+            ct:fail(histogram_receive_timeout)
+    end,
+    ok.
+
+sync_cumulative_histogram(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    ?assert(otel_meter_server:add_view(http_req_view, #{instrument_name => http_requests}, #{
+                                                         aggregation_module => otel_aggregation_histogram_explicit,
+                                                         aggregation_options => #{explicit_bucket_boundaries => []}})),
+
+    HttpReqHistogram = otel_histogram:create(Meter, http_requests, #{}),
+
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 50, #{verb => <<"GET">>,
+                                                                   status => 200})),
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 100, #{verb => <<"GET">>,
+                                                                   status => 200})),
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 1, #{verb => <<"GET">>,
+                                                                   status => 500})),
+
+
+    otel_meter_server:force_flush(),
+
+    receive
+        {otel_metric, #metric{name=http_req_view,
+                              data=#histogram{datapoints=Datapoints}}} ->
+            AttributeBuckets =
+                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                         attributes=Attributes,
+                                                                                         min=Min,
+                                                                                         max=Max,
+                                                                                         sum=Sum} <- Datapoints]),
+            ?assertEqual([], [{#{status => 200,verb => <<"GET">>},[2],50,100,150},
+                              {#{status => 500,verb => <<"GET">>},[1],1,1,1}]
+                         -- AttributeBuckets, AttributeBuckets)
+    after
+        1000 ->
+            ct:fail(histogram_receive_timeout)
+    end,
+
+    otel_meter_server:force_flush(),
+
+    receive
+        {otel_metric, #metric{name=http_req_view,
+                              data=#histogram{datapoints=Datapoints0}}} ->
+            AttributeBuckets0 =
+                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                         attributes=Attributes,
+                                                                                         min=Min,
+                                                                                         max=Max,
+                                                                                         sum=Sum} <- Datapoints0]),
+            ?assertEqual([], [{#{status => 200,verb => <<"GET">>},[2],50,100,150},
+                              {#{status => 500,verb => <<"GET">>},[1],1,1,1}]
+                         -- AttributeBuckets0, AttributeBuckets0)
+    after
+        1000 ->
+            ct:fail(histogram_receive_timeout)
+    end,
+
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 5, #{verb => <<"GET">>,
+                                                                   status => 500})),
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 2, #{verb => <<"GET">>,
+                                                                   status => 500})),
+
+    otel_meter_server:force_flush(),
+
+    receive
+        {otel_metric, #metric{name=http_req_view,
+                              data=#histogram{datapoints=Datapoints1}}} ->
+            AttributeBuckets1 =
+                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                         attributes=Attributes,
+                                                                                         min=Min,
+                                                                                         max=Max,
+                                                                                         sum=Sum} <- Datapoints1]),
+            ?assertEqual([], [{#{status => 200,verb => <<"GET">>},[2],50,100,150},
+                              {#{status => 500,verb => <<"GET">>},[3],1,5,8}]
+                         -- AttributeBuckets1, AttributeBuckets1)
+    after
+        1000 ->
+            ct:fail(histogram_receive_timeout)
+    end,
+
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 100, #{verb => <<"GET">>,
+                                                                   status => 200})),
+
+    otel_meter_server:force_flush(),
+
+    receive
+        {otel_metric, #metric{name=http_req_view,
+                              data=#histogram{datapoints=Datapoints2}}} ->
+            AttributeBuckets2 =
+                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                         attributes=Attributes,
+                                                                                         min=Min,
+                                                                                         max=Max,
+                                                                                         sum=Sum} <- Datapoints2]),
+            ?assertEqual([], [{#{status => 200,verb => <<"GET">>},[3],50,100,250},
+                              {#{status => 500,verb => <<"GET">>},[3],1,5,8}]
+                         -- AttributeBuckets2, AttributeBuckets2)
+    after
+        1000 ->
+            ct:fail(histogram_receive_timeout)
+    end,
+
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 100, #{verb => <<"GET">>,
+                                                                    status => 200})),
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 30, #{verb => <<"GET">>,
+                                                                   status => 200})),
+    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 50, #{verb => <<"GET">>,
+                                                                   status => 200})),
+    otel_meter_server:force_flush(),
+
+    receive
+        {otel_metric, #metric{name=http_req_view,
+                              data=#histogram{datapoints=Datapoints3}}} ->
+            AttributeBuckets3 =
+                lists:sort([{Attributes, Buckets, Min, Max, Sum} || #histogram_datapoint{bucket_counts=Buckets,
+                                                                                         attributes=Attributes,
+                                                                                         min=Min,
+                                                                                         max=Max,
+                                                                                         sum=Sum} <- Datapoints3]),
+            ?assertEqual([], [{#{status => 200,verb => <<"GET">>},[6],30,100,430},
+                              {#{status => 500,verb => <<"GET">>},[3],1,5,8}]
                          -- AttributeBuckets3, AttributeBuckets3)
     after
         1000 ->

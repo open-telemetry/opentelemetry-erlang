@@ -144,8 +144,14 @@
 
 init(#view_aggregation{name=Name,
                        reader=ReaderId,
-                       aggregation_options=Options}, Attributes) ->
-    Generation = otel_metric_reader:checkpoint_generation(ReaderId),
+                       aggregation_options=Options,
+                       forget=Forget}, Attributes) ->
+    Generation = case Forget of
+                     true ->
+                         otel_metric_reader:checkpoint_generation(ReaderId);
+                     _ ->
+                         0
+                 end,
     Key = {Name, Attributes, ReaderId, Generation},
     ExplicitBucketBoundaries = maps:get(explicit_bucket_boundaries, Options, ?DEFAULT_BOUNDARIES),
     RecordMinMax = maps:get(record_min_max, Options, true),
@@ -162,8 +168,14 @@ init(#view_aggregation{name=Name,
 
 aggregate(Table, #view_aggregation{name=Name,
                                    reader=ReaderId,
-                                   aggregation_options=Options}, Value, Attributes) ->
-    Generation = otel_metric_reader:checkpoint_generation(ReaderId),
+                                   aggregation_options=Options,
+                                   forget=Forget}, Value, Attributes) ->
+    Generation = case Forget of
+                     true ->
+                         otel_metric_reader:checkpoint_generation(ReaderId);
+                     _ ->
+                         0
+                 end,
     Key = {Name, Attributes, ReaderId, Generation},
     ExplicitBucketBoundaries = maps:get(explicit_bucket_boundaries, Options, ?DEFAULT_BOUNDARIES),
     case otel_aggregation:ets_lookup_element(Table, Key, #explicit_histogram_aggregation.bucket_counts, false) of
@@ -225,8 +237,15 @@ checkpoint(_Tab, _, _) ->
 
 collect(Tab, ViewAggregation=#view_aggregation{name=Name,
                                                reader=ReaderId,
-                                               temporality=Temporality}, Generation) ->
+                                               temporality=Temporality,
+                                               forget=Forget}, Generation0) ->
     CollectionStartTime = opentelemetry:timestamp(),
+    Generation = case Forget of
+                     true ->
+                         Generation0;
+                     _ ->
+                         0
+                 end,
 
     checkpoint(Tab, ViewAggregation, Generation),
 
