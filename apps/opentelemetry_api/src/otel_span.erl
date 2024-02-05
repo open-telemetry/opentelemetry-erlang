@@ -179,7 +179,6 @@ set_attributes(_, _) ->
 %%
 %% Returns `false' if the given span context is not recording, or if the event `Name' is
 %% not valid.
-%% @end
 -spec add_event(SpanCtx, Name, Attributes) -> boolean() when
       Name :: opentelemetry:event_name(),
       Attributes :: opentelemetry:attributes_map(),
@@ -285,7 +284,6 @@ update_name(_, _) ->
 %%
 %% If `SpanCtx' is not recording, this function doesn't do anything.
 %% Returns the updated span context.
-%% @end
 -spec end_span(SpanCtx) -> SpanCtx when
       SpanCtx :: opentelemetry:span_ctx().
 end_span(SpanCtx=#span_ctx{span_sdk={Module, _}}) when ?is_recording(SpanCtx) ->
@@ -299,7 +297,6 @@ end_span(SpanCtx) ->
 %% If `SpanCtx' is not recording, this function doesn't do anything.
 %% If `Timestamp' is `undefined', this is equivalent to {@link end_span/1}.
 %% Returns the updated span context.
-%% @end
 -spec end_span(SpanCtx, Timestamp) -> SpanCtx when
     SpanCtx :: opentelemetry:span_ctx(),
     Timestamp :: integer() | undefined.
