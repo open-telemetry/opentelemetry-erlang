@@ -67,6 +67,8 @@
 %% require a unique name to distiguish multiple simple processors while
 %% still having a single name, instead of a possibly changing pid, to
 %% communicate with the processor
+%% @doc Starts a Simple Span Processor.
+%% @end
 -spec start_link(#{name := atom() | list()}) -> {ok, pid(), map()}.
 start_link(Config=#{name := Name}) ->
     RegisterName = ?NAME_TO_ATOM(?MODULE, Name),
@@ -90,11 +92,13 @@ set_exporter(Name, Exporter, Options) ->
     %% eqwalizer:ignore doesn't like `gen_statem:call' returns `term()'
     gen_statem:call(?REG_NAME(Name), {set_exporter, {Exporter, Options}}).
 
+%% @private
 -spec on_start(otel_ctx:t(), opentelemetry:span(), otel_span_processor:processor_config())
               -> opentelemetry:span().
 on_start(_Ctx, Span, _) ->
     Span.
 
+%% @private
 -spec on_end(opentelemetry:span(), otel_span_processor:processor_config())
             -> true | dropped | {error, invalid_span} | {error, no_export_buffer}.
 on_end(#span{trace_flags=TraceFlags}, _) when not(?IS_SAMPLED(TraceFlags)) ->
@@ -104,10 +108,12 @@ on_end(Span=#span{}, #{reg_name := RegName}) ->
 on_end(_Span, _) ->
     {error, invalid_span}.
 
+%% @private
 -spec force_flush(#{reg_name := gen_statem:server_ref()}) -> ok.
 force_flush(#{reg_name := RegName}) ->
     gen_statem:cast(RegName, force_flush).
 
+%% @private
 init([Args]) ->
     process_flag(trap_exit, true),
 
@@ -129,9 +135,11 @@ init([Args]) ->
                      exporting_timeout_ms=ExportingTimeout},
      [{next_event, internal, init_exporter}]}.
 
+%% @private
 callback_mode() ->
     state_functions.
 
+%% @private
 idle({call, From}, {export, _Span}, #data{exporter=undefined}) ->
     {keep_state_and_data, [{reply, From, dropped}]};
 idle({call, From}, {export, Span}, Data) ->
@@ -139,6 +147,7 @@ idle({call, From}, {export, Span}, Data) ->
 idle(EventType, Event, Data) ->
     handle_event_(idle, EventType, Event, Data).
 
+%% @private
 exporting({call, _From}, {export, _}, _) ->
     {keep_state_and_data, [postpone]};
 exporting(internal, {export, From, Span}, Data=#data{exporting_timeout_ms=ExportingTimeout}) ->
@@ -175,6 +184,7 @@ handle_event_(_, {call, From}, {set_exporter, Exporter}, Data=#data{exporter=Old
 handle_event_(_, _, _, _) ->
     keep_state_and_data.
 
+%% @private
 terminate(_, _, _Data) ->
     ok.
 
@@ -250,6 +260,7 @@ export({ExporterModule, Config}, Resource, SpansTid) ->
     end.
 
 %% logger format functions
+%% @private
 report_cb(#{source := exporter,
             during := export,
             kind := Kind,
