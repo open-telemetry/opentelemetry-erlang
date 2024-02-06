@@ -12,7 +12,10 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc Functions to work with Attributes.
+%%
+%% An Attribute is a key-value pair with string keys.
+%% See <a href="https://opentelemetry.io/docs/specs/otel/common/#attribute">the specification</a>.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_attributes).
@@ -42,8 +45,17 @@
 
 -export_type([t/0]).
 
-new(List, CountLimit, ValueLengthLimit) when is_list(List) ->
-    new(maps:from_list(List), CountLimit, ValueLengthLimit);
+%% @doc Creates a new `Attributes' from `Pairs' with the given count and value length limits.
+%%
+%% `Pairs' can be a list of key-value pairs or a map. If `Pairs' is not a list or map, the
+%% function returns an empty `Attributes'.
+-spec new(
+    [opentelemetry:attribute()] | opentelemetry:attributes_map() | term(),
+    integer(),
+    integer() | infinity
+) -> t().
+new(Pairs, CountLimit, ValueLengthLimit) when is_list(Pairs) ->
+    new(maps:from_list(Pairs), CountLimit, ValueLengthLimit);
 new(Map, CountLimit, ValueLengthLimit) when is_map(Map) ->
     update_attributes(Map, #attributes{count_limit=CountLimit,
                                         value_length_limit=ValueLengthLimit,
@@ -55,19 +67,40 @@ new(_, CountLimit, ValueLengthLimit) ->
                 dropped=0,
                 map=#{}}.
 
-set(NewList, Attributes) when is_list(NewList) ->
-    set(maps:from_list(NewList), Attributes);
+%% @doc Sets the given key-value pairs in the given `Attributes'.
+%%
+%% `NewListOrMap' can be a list of key-value pairs or a map. If `NewListOrMap' is not a list
+%% or map, the function returns `Attributes' as is. Returns the updated `Attributes'.
+-spec set([opentelemetry:attribute()] | opentelemetry:attributes_map() | term(), t()) -> t().
+set(NewListOrMap, Attributes) when is_list(NewListOrMap) ->
+    set(maps:from_list(NewListOrMap), Attributes);
 set(NewMap, Attributes) when is_map(NewMap) ->
     update_attributes(NewMap, Attributes);
 set(_, Attributes) ->
     Attributes.
 
+%% @doc Sets the given key-value pair in the given `Attributes'.
+%%
+%% Overrides the existing value under `Key' if `Key' already exists.
+%% Returns the updated `Attributes'.
+-spec set(opentelemetry:attribute_key(), opentelemetry:attribute_value(), t()) -> t().
 set(Key, Value, Attributes) ->
     update_attribute(Key, Value, Attributes).
 
+%% @doc Returns the count of dropped attributes in the given `Attributes'.
 dropped(#attributes{dropped=Dropped}) ->
     Dropped.
 
+%% @doc Returns the Attributes in the form of a map.
+%%
+%% For example:
+%% ```
+%% otel_attributes:new([], 10, 10),
+%% otel_attributes:set(<<"key">>, <<"value">>, Attributes),
+%% otel_attributes:map(Attributes).
+%% %=> #{<<"key">> => <<"value">>}
+%% '''
+-spec map(t()) -> map().
 map(#attributes{map=Map}) ->
     Map.
 
@@ -115,6 +148,19 @@ maybe_truncate_binary(Value, ValueLengthLimit) ->
             Value
     end.
 
+%% @doc Checks whether the given key-value pair makes for a valid attribute.
+%%
+%% For example:
+%% ```
+%% otel_attributes:is_valid_attribute(<<"key">>, <<"value">>).
+%% %=> true
+%%
+%% otel_attributes:is_valid_attribute(atom_key, <<"value">>).
+%% %=> true
+%%
+%% otel_attributes:is_valid_attribute(123, <<"value">>).
+%% %=> false
+%% '''
 -spec is_valid_attribute(opentelemetry:attribute_key(), opentelemetry:attribute_value()) -> boolean().
 is_valid_attribute(Key, Value) when is_tuple(Value) , ?is_allowed_key(Key) ->
     is_valid_attribute(Key, tuple_to_list(Value));
@@ -145,6 +191,7 @@ is_valid_atom_value(nil) ->
 is_valid_atom_value(Value) ->
     is_atom(Value) andalso (is_boolean(Value) == false).
 
+%% @private
 -spec process_attributes(eqwalizer:dynamic()) -> opentelemetry:attributes_map().
 process_attributes(Attributes) when is_map(Attributes) ->
     maps:fold(fun process_attribute/3, #{}, Attributes);
