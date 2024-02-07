@@ -12,14 +12,19 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc The Batch Span Processor implements the `otel_span_processor'
-%% behaviour. It stores finished Spans in a ETS table buffer and exports
+%% @doc The Batch Span Processor implements the {@link otel_span_processor}
+%% behaviour.
+%% 
+%% It stores finished Spans in a ETS table buffer and exports
 %% them on an interval or when the table reaches a maximum size.
 %%
-%% Timeouts:
-%%   exporting_timeout_ms: How long to let the exports run before killing.
-%%   check_table_size_ms: Timeout to check the size of the export table.
-%%   scheduled_delay_ms: How often to trigger running the exporters.
+%% You can configure these timeouts:
+%%
+%% <ul>
+%% <li>`exporting_timeout_ms': how long to let the exports run before killing.</li>
+%% <li>`check_table_size_ms': timeout to check the size of the export table.</li>
+%% <li>`scheduled_delay_ms': how often to trigger running the exporters.</li>
+%% </ul>
 %%
 %% The size limit of the current table where finished spans are stored can
 %% be configured with the `max_queue_size' option.
@@ -93,6 +98,8 @@ current_tab_to_list(RegName) ->
 %% require a unique name to distiguish multiple batch processors while
 %% still having a single name, instead of a possibly changing pid, to
 %% communicate with the processor
+%% @doc Starts a Batch Span Processor.
+%% @end
 -spec start_link(#{name := atom() | list()}) -> {ok, pid(), map()}.
 start_link(Config=#{name := Name}) ->
     RegisterName = ?REG_NAME(Name),
@@ -114,11 +121,13 @@ set_exporter(Exporter, Options) ->
 set_exporter(Name, Exporter, Options) ->
     gen_statem:call(?REG_NAME(Name), {set_exporter, {Exporter, Options}}).
 
+%% @private
 -spec on_start(otel_ctx:t(), opentelemetry:span(), otel_span_processor:processor_config())
               -> opentelemetry:span().
 on_start(_Ctx, Span, _) ->
     Span.
 
+%% @private
 -spec on_end(opentelemetry:span(), otel_span_processor:processor_config())
             -> true | dropped | {error, invalid_span} | {error, no_export_buffer}.
 on_end(#span{trace_flags=TraceFlags}, _) when not(?IS_SAMPLED(TraceFlags)) ->
@@ -128,10 +137,12 @@ on_end(Span=#span{}, #{reg_name := RegName}) ->
 on_end(_Span, _) ->
     {error, invalid_span}.
 
+%% @private
 -spec force_flush(#{reg_name := gen_statem:server_ref()}) -> ok.
 force_flush(#{reg_name := RegName}) ->
     gen_statem:cast(RegName, force_flush).
 
+%% @private
 init([Args=#{reg_name := RegName}]) ->
     process_flag(trap_exit, true),
 
@@ -176,9 +187,11 @@ init([Args=#{reg_name := RegName}]) ->
                      table_2=Table2,
                      reg_name=RegName}}.
 
+%% @private
 callback_mode() ->
     [state_functions, state_enter].
 
+%% @private
 idle(enter, _OldState, Data=#data{exporter=undefined,
                                   exporter_config=ExporterConfig,
                                   scheduled_delay_ms=SendInterval,
@@ -206,6 +219,7 @@ idle(EventType, Event, Data) ->
 %% receiving an `export_spans' timeout while exporting means the `ExportingTimeout'
 %% is shorter than the `SendInterval'. Postponing the event will ensure we export
 %% after
+%% @private
 exporting({timeout, export_spans}, export_spans, _) ->
     {keep_state_and_data, [postpone]};
 exporting(enter, _OldState, #data{exporter=undefined,
@@ -296,6 +310,7 @@ handle_event_(_, internal, init_exporter, Data=#data{exporter=undefined,
 handle_event_(_, _, _, _) ->
     keep_state_and_data.
 
+%% @private
 terminate(_Reason, _State, #data{exporter=Exporter,
                                  resource=Resource,
                                  reg_name=RegName}) ->
@@ -439,6 +454,7 @@ export({ExporterModule, Config}, Resource, SpansTid) ->
     end.
 
 %% logger format functions
+%% @private
 report_cb(#{source := exporter,
             during := export,
             kind := Kind,
