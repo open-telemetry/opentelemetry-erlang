@@ -14,7 +14,7 @@
 %%
 %% @doc Functions to work with Attributes.
 %%
-%% An Attribute is a key-value pair with string keys.
+%% An Attribute is a key-value pair with string or atom keys.
 %% See <a href="https://opentelemetry.io/docs/specs/otel/common/#attribute">the specification</a>.
 %% @end
 %%%-------------------------------------------------------------------------
@@ -67,7 +67,8 @@ new(_, CountLimit, ValueLengthLimit) ->
                 dropped=0,
                 map=#{}}.
 
-%% @doc Sets the given key-value pairs in the given `Attributes'.
+%% @doc Sets the given key-value pairs in the given `Attributes'. Overrides 
+%% the existing value for a given key if it already exists in `Attributes'.
 %%
 %% `NewListOrMap' can be a list of key-value pairs or a map. If `NewListOrMap' is not a list
 %% or map, the function returns `Attributes' as is. Returns the updated `Attributes'.
