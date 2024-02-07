@@ -9,7 +9,8 @@
          provider                :: atom() | '_',
          instruments_tab         :: ets:table() | '_',
          streams_tab             :: ets:table() | '_',
-         metrics_tab             :: ets:table() | '_'
+         metrics_tab             :: ets:table() | '_',
+         exemplars_tab           :: ets:table() | '_'
         }).
 
 -record(measurement,

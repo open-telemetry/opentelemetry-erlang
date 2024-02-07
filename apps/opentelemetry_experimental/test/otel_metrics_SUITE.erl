@@ -85,7 +85,7 @@ all() ->
      sync_filtered_attributes, async_filtered_attributes, delta_observable_counter,
      bad_observable_return, default_resource, histogram_aggregation_options, advisory_params,
      sync_delta_histogram, async_cumulative_page_faults, async_delta_page_faults,
-     async_attribute_removal, sync_cumulative_histogram
+     async_attribute_removal, sync_cumulative_histogram, simple_fixed_exemplars
     ].
 
 init_per_suite(Config) ->
@@ -1787,6 +1787,81 @@ async_attribute_removal(_Config) ->
                   end, tuple_to_list(MeasurementsAndExpected)),
 
     ok.
+
+
+simple_fixed_exemplars(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = test_exemplar_counter,
+    CounterDesc = <<"counter description">>,
+    CounterUnit = kb,
+
+    CBAttributes = #{<<"c">> => <<"b">>},
+    ABDEAttributes = #{<<"a">> => <<"b">>, <<"d">> => <<"e">>},
+
+    Counter = otel_meter:create_counter(Meter, CounterName,
+                                        #{description => CounterDesc,
+                                          unit => CounterUnit}),
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = CounterName,
+                             description = CounterDesc,
+                             kind = counter,
+                             unit = CounterUnit}, Counter),
+
+    Ctx = otel_ctx:get_current(),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2, CBAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 3, ABDEAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 4, CBAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5, CBAttributes)),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(test_exemplar_counter, <<"counter description">>, kb, [{11, CBAttributes}]),
+
+    ExemplarsTab = exemplars_otel_meter_provider_global,
+
+    %% default number of exemplars in SimpleFixedReservoir is the number of schedulers
+    MaxExemplars = erlang:system_info(schedulers_online),
+
+    %% measurements recorded before the first collection so generation is `0'
+    Generation0 = 0,
+    ExemplarReservoir = otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_simple, #{}),
+    %% exemplars for CBAttributes should be the min of 3
+    %% (the number of measurements we made above) and MaxExemplars
+    [[Count]] = ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation0}, '$1'}),
+    ?assertEqual(3, Count),
+    Matches = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {test_exemplar_counter, CBAttributes, '_', Generation0}),
+    %% collection deletes the objects
+    ?assertEqual([], ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation0}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{{test_exemplar_counter, CBAttributes, '_', Generation0}, '_'}, '$1'})),
+    ?assertEqual(min(3, MaxExemplars), length(Matches)),
+
+    %% now do more than `MaxExemplars' measurements to check it still only keeps
+    %% total of `MaxExemplars'
+    TotalMeasurements = MaxExemplars + 20,
+    lists:foreach(fun(N) ->
+                          ?assertEqual(ok, otel_counter:add(Ctx, Counter, N, CBAttributes))
+                  end, lists:seq(1, TotalMeasurements)),
+
+    %% total number of exemplars for `CBAttributes' should be `MaxExemplars'
+    %% (the number of measurements we made above) and `MaxExemplars'
+    Generation1 = 1,
+    [[Count1]] = ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation1}, '$1'}),
+    Matches1 = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {test_exemplar_counter, CBAttributes, '_', Generation1}),
+
+    %% collection deletes the objects
+    ?assertEqual([], ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation0}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{{test_exemplar_counter, CBAttributes, '_', Generation0}, '_'}, '$1'})),
+
+    ?assertEqual(TotalMeasurements, Count1),
+    ?assertEqual(MaxExemplars, length(Matches1)),
+
+    ok.
+
 %%
 
 check_observer_results(MetricName, Expected) ->

@@ -20,7 +20,7 @@
 -behaviour(otel_aggregation).
 
 -export([init/2,
-         aggregate/4,
+         aggregate/7,
          collect/3]).
 
 -include("otel_metrics.hrl").
@@ -33,9 +33,9 @@
 
 %% ignore eqwalizer errors in functions using a lot of matchspecs
 -eqwalizer({nowarn_function, checkpoint/3}).
--eqwalizer({nowarn_function, aggregate/4}).
+-eqwalizer({nowarn_function, aggregate/7}).
 -dialyzer({nowarn_function, checkpoint/3}).
--dialyzer({nowarn_function, aggregate/4}).
+-dialyzer({nowarn_function, aggregate/7}).
 -dialyzer({nowarn_function, collect/3}).
 -dialyzer({nowarn_function, maybe_delete_old_generation/4}).
 -dialyzer({nowarn_function, datapoint/5}).
@@ -59,9 +59,10 @@ init(#stream{name=Name,
                      int_value=0,
                      float_value=0.0}.
 
-aggregate(Tab, #stream{name=Name,
-                       reader=ReaderId,
-                       forget=Forget}, Value, Attributes)
+aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
+                                          reader=ReaderId,
+                                          forget=Forget,
+                                          exemplar_resevoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes)
   when is_integer(Value) ->
     Generation = case Forget of
                      true ->
@@ -70,9 +71,10 @@ aggregate(Tab, #stream{name=Name,
                          0
                  end,
     Key = {Name, Attributes, ReaderId, Generation},
-    try
-        _ = ets:update_counter(Tab, Key, {#sum_aggregation.int_value, Value}),
-        true
+    try ets:update_counter(Tab, Key, {#sum_aggregation.int_value, Value}) of
+        _ ->
+            otel_metric_exemplar_reservoir:offer(Ctx, ExemplarReservoir, ExemplarsTab, Key, Value, DroppedAttributes),
+            true
     catch
         error:badarg ->
             %% the use of `update_counter' guards against conflicting with another process
@@ -85,9 +87,9 @@ aggregate(Tab, #stream{name=Name,
             %% true
             false
     end;
-aggregate(Tab, #stream{name=Name,
-                       reader=ReaderId,
-                       forget=Forget}, Value, Attributes) ->
+aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
+                                          reader=ReaderId,
+                                          forget=Forget}, Value, Attributes, DroppedAttributes) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
