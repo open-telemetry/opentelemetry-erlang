@@ -21,7 +21,6 @@
 
 -export([init/2,
          aggregate/4,
-         checkpoint/3,
          collect/3]).
 
 -include("otel_metrics.hrl").
@@ -32,21 +31,45 @@
 
 -export_type([t/0]).
 
+%% ignore eqwalizer errors in functions using a lot of matchspecs
+-eqwalizer({nowarn_function, checkpoint/3}).
+-eqwalizer({nowarn_function, aggregate/4}).
+-dialyzer({nowarn_function, checkpoint/3}).
+-dialyzer({nowarn_function, aggregate/4}).
+-dialyzer({nowarn_function, collect/3}).
+-dialyzer({nowarn_function, maybe_delete_old_generation/4}).
+-dialyzer({nowarn_function, datapoint/5}).
+
 init(#view_aggregation{name=Name,
-                       reader=ReaderId}, Attributes) ->
-    Key = {Name, Attributes, ReaderId},
+                       reader=ReaderId,
+                       forget=Forget}, Attributes) ->
+    Generation = case Forget of
+                     true ->
+                         otel_metric_reader:checkpoint_generation(ReaderId);
+                     _ ->
+                         0
+                 end,
+    StartTime = opentelemetry:timestamp(),
+    Key = {Name, Attributes, ReaderId, Generation},
     #sum_aggregation{key=Key,
-                     start_time=opentelemetry:timestamp(),
+                     start_time=StartTime,
                      checkpoint=0, %% 0 value is never reported but gets copied to previous_checkpoint
-                                   %% which is used to add/subtract for conversion of temporality
+                     %% which is used to add/subtract for conversion of temporality
                      previous_checkpoint=0,
                      int_value=0,
                      float_value=0.0}.
 
 aggregate(Tab, #view_aggregation{name=Name,
-                                 reader=ReaderId}, Value, Attributes)
+                                 reader=ReaderId,
+                                 forget=Forget}, Value, Attributes)
   when is_integer(Value) ->
-    Key = {Name, Attributes, ReaderId},
+    Generation = case Forget of
+                     true ->
+                         otel_metric_reader:checkpoint_generation(ReaderId);
+                     _ ->
+                         0
+                 end,
+    Key = {Name, Attributes, ReaderId, Generation},
     try
         _ = ets:update_counter(Tab, Key, {#sum_aggregation.int_value, Value}),
         true
@@ -63,11 +86,17 @@ aggregate(Tab, #view_aggregation{name=Name,
             false
     end;
 aggregate(Tab, #view_aggregation{name=Name,
-                                 reader=ReaderId}, Value, Attributes) ->
-    Key = {Name, Attributes, ReaderId},
+                                 reader=ReaderId,
+                                 forget=Forget}, Value, Attributes) ->
+    Generation = case Forget of
+                     true ->
+                         otel_metric_reader:checkpoint_generation(ReaderId);
+                     _ ->
+                         0
+                 end,
+    Key = {Name, Attributes, ReaderId, Generation},
     MS = [{#sum_aggregation{key=Key,
                             start_time='$1',
-                            last_start_time='$5',
                             checkpoint='$2',
                             previous_checkpoint='$6',
                             int_value='$3',
@@ -75,7 +104,6 @@ aggregate(Tab, #view_aggregation{name=Name,
            [],
            [{#sum_aggregation{key={element, 2, '$_'},
                               start_time='$1',
-                              last_start_time='$5',
                               checkpoint='$2',
                               previous_checkpoint='$6',
                               int_value='$3',
@@ -84,33 +112,29 @@ aggregate(Tab, #view_aggregation{name=Name,
 
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
-                                  temporality=?TEMPORALITY_DELTA}, CollectionStartTime) ->
-    MS = [{#sum_aggregation{key={Name, '$1', ReaderId},
+                                  temporality=?TEMPORALITY_DELTA}, Generation) ->
+    MS = [{#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                             start_time='$4',
-                            last_start_time='_',
                             checkpoint='$5',
                             previous_checkpoint='_',
                             int_value='$2',
                             float_value='$3'},
            [{'=:=', '$3', {const, 0.0}}],
-           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}}},
-                              start_time={const, CollectionStartTime},
-                              last_start_time='$4',
+           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
+                              start_time='$4',
                               checkpoint='$2',
                               previous_checkpoint='$5',
                               int_value=0,
                               float_value=0.0}}]},
-          {#sum_aggregation{key={Name, '$1', ReaderId},
+          {#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                             start_time='$4',
-                            last_start_time='_',
                             checkpoint='$5',
                             previous_checkpoint='_',
                             int_value='$2',
                             float_value='$3'},
            [],
-           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}}},
-                              start_time={const, CollectionStartTime},
-                              last_start_time='$4',
+           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
+                              start_time='$4',
                               checkpoint={'+', '$2', '$3'},
                               previous_checkpoint='$5',
                               int_value=0,
@@ -119,33 +143,36 @@ checkpoint(Tab, #view_aggregation{name=Name,
     ok;
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
-                                  temporality=?TEMPORALITY_CUMULATIVE}, _CollectionStartTime) ->
-    MS = [{#sum_aggregation{key={Name, '$1', ReaderId},
+                                  forget=Forget,
+                                  temporality=?TEMPORALITY_CUMULATIVE}, Generation0) ->
+    Generation = case Forget of
+                     true ->
+                         Generation0;
+                     _ ->
+                         0
+                 end,
+    MS = [{#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                             start_time='$2',
-                            last_start_time='_',
                             checkpoint='$5',
                             previous_checkpoint='$6',
                             int_value='$3',
                             float_value='$4'},
            [{'=:=', '$4', {const, 0.0}}],
-           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}}},
+           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
                               start_time='$2',
-                              last_start_time='$2',
                               checkpoint='$3',
                               previous_checkpoint={'+', '$5', '$6'},
                               int_value=0,
                               float_value=0.0}}]},
-          {#sum_aggregation{key={Name, '$1', ReaderId},
+          {#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                             start_time='$2',
-                            last_start_time='_',
                             checkpoint='$5',
                             previous_checkpoint='$6',
                             int_value='$3',
                             float_value='$4'},
            [],
-           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}}},
+           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
                               start_time='$2',
-                              last_start_time='$2',
                               checkpoint={'+', '$3', '$4'},
                               previous_checkpoint={'+', '$5', '$6'},
                               int_value=0,
@@ -153,61 +180,92 @@ checkpoint(Tab, #view_aggregation{name=Name,
     _ = ets:select_replace(Tab, MS),
     ok.
 
-collect(Tab, #view_aggregation{name=Name,
-                               reader=ReaderId,
-                               instrument=#instrument{temporality=InstrumentTemporality},
-                               temporality=Temporality,
-                               is_monotonic=IsMonotonic}, CollectionStartTime) ->
+collect(Tab, ViewAggregation=#view_aggregation{name=Name,
+                                               reader=ReaderId,
+                                               instrument=#instrument{temporality=InstrumentTemporality},
+                                               temporality=Temporality,
+                                               is_monotonic=IsMonotonic,
+                                               forget=Forget}, Generation0) ->
+    CollectionStartTime = opentelemetry:timestamp(),
+    Generation = case Forget of
+                     true ->
+                         Generation0;
+                     _ ->
+                         0
+                 end,
 
-    Select = [{#sum_aggregation{key={Name, '$1', ReaderId},
-                                start_time='$2',
-                                last_start_time='$3',
-                                checkpoint='$4',
-                                previous_checkpoint='$5',
-                                int_value='$6',
-                                float_value='$7'}, [], ['$_']}],
+    checkpoint(Tab, ViewAggregation, Generation),
+
+    %% eqwalizer:ignore matchspecs mess with the typing
+    Select = [{#sum_aggregation{key={Name, '_', ReaderId, Generation}, _='_'}, [], ['$_']}],
     AttributesAggregation = ets:select(Tab, Select),
-    #sum{aggregation_temporality=Temporality,
+    Result = #sum{aggregation_temporality=Temporality,
          is_monotonic=IsMonotonic,
-         datapoints=[datapoint(CollectionStartTime, InstrumentTemporality, Temporality, SumAgg) || SumAgg <- AttributesAggregation]}.
+         datapoints=[datapoint(Tab, CollectionStartTime, InstrumentTemporality, Temporality, SumAgg) || SumAgg <- AttributesAggregation]},
 
-datapoint(CollectionStartTime, Temporality, Temporality, #sum_aggregation{key={_, Attributes, _},
-                                                                          last_start_time=StartTime,
-                                                                          checkpoint=Value}) ->
+    %% would be nice to do this in the reader so its not duplicated in each aggregator
+    maybe_delete_old_generation(Tab, Name, ReaderId, Generation),
+
+    Result.
+
+%% 0 means it is either cumulative or the first generation with nothing older to delete
+maybe_delete_old_generation(_Tab, _Name, _ReaderId, 0) ->
+    ok;
+maybe_delete_old_generation(Tab, Name, ReaderId, Generation) ->
+    %% delete all older than the Generation instead of just the previous in case a
+    %% a crash had happened between incrementing the Generation counter and doing
+    %% the delete in a previous collection cycle
+    %% eqwalizer:ignore matchspecs mess with the typing
+    Select = [{#sum_aggregation{key={Name, '_', ReaderId, '$1'}, _='_'},
+               [{'<', '$1', {const, Generation}}],
+               [true]}],
+    ets:select_delete(Tab, Select).
+
+%% nothing special to do if the instrument temporality and view temporality are the same
+datapoint(_Tab, CollectionStartTime, Temporality, Temporality, #sum_aggregation{key={_, Attributes, _, _},
+                                                                                start_time=StartTime,
+                                                                                checkpoint=Value}) ->
     #datapoint{
-       %% eqwalizer:ignore something
        attributes=Attributes,
-       %% eqwalizer:ignore something
        start_time=StartTime,
        time=CollectionStartTime,
-       %% eqwalizer:ignore something
        value=Value,
        exemplars=[],
        flags=0
       };
-datapoint(CollectionStartTime, _, ?TEMPORALITY_CUMULATIVE, #sum_aggregation{key={_, Attributes, _},
-                                                                            last_start_time=StartTime,
-                                                                            previous_checkpoint=PreviousCheckpoint,
-                                                                            checkpoint=Value}) ->
+%% converting an instrument of delta temporality to cumulative means we need to add the
+%% previous value to the current because the actual value is only a delta
+datapoint(_Tab, Time, _, ?TEMPORALITY_CUMULATIVE, #sum_aggregation{key={_Name, Attributes, _ReaderId, _Generation},
+                                                                   start_time=StartTime,
+                                                                   previous_checkpoint=PreviousCheckpoint,
+                                                                   checkpoint=Value}) ->
     #datapoint{
-       %% eqwalizer:ignore something
        attributes=Attributes,
-       %% eqwalizer:ignore something
        start_time=StartTime,
-       time=CollectionStartTime,
+       time=Time,
        value=Value + PreviousCheckpoint,
        exemplars=[],
        flags=0
       };
-datapoint(CollectionStartTime, _, ?TEMPORALITY_DELTA, #sum_aggregation{key={_, Attributes, _},
-                                                                       last_start_time=StartTime,
-                                                                       previous_checkpoint=PreviousCheckpoint,
-                                                                       checkpoint=Value}) ->
+%% converting an instrument of cumulative temporality to delta means subtracting the
+%% value of the previous collection, if one exists.
+%% because we use a generation counter to reset delta aggregates the previous value
+%% has to be looked up with an ets lookup of the previous generation
+datapoint(Tab, Time, _, ?TEMPORALITY_DELTA, #sum_aggregation{key={Name, Attributes, ReaderId, Generation},
+                                                             start_time=StartTime,
+                                                             checkpoint=Value}) ->
+    %% converting from cumulative to delta by grabbing the last generation and subtracting it
+    %% can't use `previous_checkpoint' because with delta metrics have their generation changed
+    %% at each collection
+    PreviousCheckpoint =
+        otel_aggregation:ets_lookup_element(Tab, {Name, Attributes, ReaderId, Generation-1},
+                                            #sum_aggregation.checkpoint, 0),
     #datapoint{
        attributes=Attributes,
        start_time=StartTime,
-       time=CollectionStartTime,
+       time=Time,
        value=Value - PreviousCheckpoint,
        exemplars=[],
        flags=0
       }.
+

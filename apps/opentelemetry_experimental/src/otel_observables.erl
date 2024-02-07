@@ -21,7 +21,6 @@
 
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
--include("otel_metrics.hrl").
 -include("otel_view.hrl").
 
 -type callbacks() :: [{otel_instrument:callback(), otel_instrument:callback_args(), otel_instrument:t()}].
@@ -39,7 +38,10 @@ run_callbacks(Callbacks, ReaderId, ViewAggregationTab, MetricsTab) ->
                                                           ReaderId);
                      ({Callback, CallbackArgs, Instrument}) ->
                           Results = Callback(CallbackArgs),
-                          %% eqwalizer:ignore we know this is [otel_instrument:observation()] but eqwalizer doesn't
+                          %% when not a list of instruments it isn't expecting named observation
+                          %% results so we use handle_instrument instead of handle_instruments
+                          %% but we can't type that correctly so have to use a `fixme'
+                          %% eqwalizer:fixme can maybe do better typing to not have to ignore this
                           handle_instrument_observations(Results,
                                                          Instrument,
                                                          ViewAggregationTab,

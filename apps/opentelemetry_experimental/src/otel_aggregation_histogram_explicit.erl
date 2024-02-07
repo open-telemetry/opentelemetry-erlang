@@ -21,7 +21,6 @@
 
 -export([init/2,
          aggregate/4,
-         checkpoint/3,
          collect/3]).
 
 -include("otel_metrics.hrl").
@@ -132,10 +131,28 @@
 ).
 -endif.
 
+%% ignore eqwalizer errors in functions using a lot of matchspecs
+-eqwalizer({nowarn_function, checkpoint/3}).
+-eqwalizer({nowarn_function, collect/3}).
+-dialyzer({nowarn_function, checkpoint/3}).
+-dialyzer({nowarn_function, aggregate/4}).
+-dialyzer({nowarn_function, collect/3}).
+-dialyzer({nowarn_function, maybe_delete_old_generation/4}).
+-dialyzer({nowarn_function, datapoint/2}).
+-dialyzer({nowarn_function, get_buckets/2}).
+-dialyzer({nowarn_function, counters_get/2}).
+
 init(#view_aggregation{name=Name,
                        reader=ReaderId,
-                       aggregation_options=Options}, Attributes) ->
-    Key = {Name, Attributes, ReaderId},
+                       aggregation_options=Options,
+                       forget=Forget}, Attributes) ->
+    Generation = case Forget of
+                     true ->
+                         otel_metric_reader:checkpoint_generation(ReaderId);
+                     _ ->
+                         0
+                 end,
+    Key = {Name, Attributes, ReaderId, Generation},
     ExplicitBucketBoundaries = maps:get(explicit_bucket_boundaries, Options, ?DEFAULT_BOUNDARIES),
     RecordMinMax = maps:get(record_min_max, Options, true),
     #explicit_histogram_aggregation{key=Key,
@@ -151,10 +168,21 @@ init(#view_aggregation{name=Name,
 
 aggregate(Table, #view_aggregation{name=Name,
                                    reader=ReaderId,
-                                   aggregation_options=Options}, Value, Attributes) ->
-    Key = {Name, Attributes, ReaderId},
+                                   aggregation_options=Options,
+                                   forget=Forget}, Value, Attributes) ->
+    Generation = case Forget of
+                     true ->
+                         otel_metric_reader:checkpoint_generation(ReaderId);
+                     _ ->
+                         0
+                 end,
+    Key = {Name, Attributes, ReaderId, Generation},
     ExplicitBucketBoundaries = maps:get(explicit_bucket_boundaries, Options, ?DEFAULT_BOUNDARIES),
-    try ets:lookup_element(Table, Key, #explicit_histogram_aggregation.bucket_counts) of
+    case otel_aggregation:ets_lookup_element(Table, Key, #explicit_histogram_aggregation.bucket_counts, false) of
+        false ->
+            %% since we need the options to initialize a histogram `false' is
+            %% returned and `otel_metric_server' will initialize the histogram
+            false;
         BucketCounts0 ->
             BucketCounts = case BucketCounts0 of
                                undefined ->
@@ -168,17 +196,12 @@ aggregate(Table, #view_aggregation{name=Name,
 
             MS = ?AGGREATE_MATCH_SPEC(Key, Value, BucketCounts),
             1 =:= ets:select_replace(Table, MS)
-    catch
-        error:badarg->
-            %% since we need the options to initialize a histogram `false' is
-            %% returned and `otel_metric_server' will initialize the histogram
-            false
     end.
 
 checkpoint(Tab, #view_aggregation{name=Name,
                                   reader=ReaderId,
-                                  temporality=?TEMPORALITY_DELTA}, CollectionStartTime) ->
-    MS = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId},
+                                  temporality=?TEMPORALITY_DELTA}, Generation) ->
+    MS = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId, Generation},
                                            start_time='$9',
                                            explicit_bucket_boundaries='$2',
                                            record_min_max='$3',
@@ -189,8 +212,8 @@ checkpoint(Tab, #view_aggregation{name=Name,
                                            sum='$8'
                                           },
            [],
-           [{#explicit_histogram_aggregation{key={{{const, Name}, '$1', {const, ReaderId}}},
-                                             start_time={const, CollectionStartTime},
+           [{#explicit_histogram_aggregation{key={{{const, Name}, '$1', {const, ReaderId}, {const, Generation}}},
+                                             start_time='$9',
                                              explicit_bucket_boundaries='$2',
                                              record_min_max='$3',
                                              checkpoint={#explicit_histogram_checkpoint{bucket_counts='$5',
@@ -198,24 +221,35 @@ checkpoint(Tab, #view_aggregation{name=Name,
                                                                                         max='$7',
                                                                                         sum='$8',
                                                                                         start_time='$9'}},
-                                             bucket_counts={const, undefined},
-                                             min=infinity,
-                                             max=?MIN_DOUBLE,
-                                             sum=0}}]}],
+                                             bucket_counts='$5',
+                                             min='$6',
+                                             max='$7',
+                                             sum='$8'}}]}],
     _ = ets:select_replace(Tab, MS),
 
     ok;
-checkpoint(_Tab, _, _CollectionStartTime) ->
+checkpoint(_Tab, _, _) ->
     %% no good way to checkpoint the `counters' without being out of sync with
     %% min/max/sum, so may as well just collect them in `collect', which will
     %% also be out of sync, but best we can do right now
     
     ok.
 
-collect(Tab, #view_aggregation{name=Name,
-                               reader=ReaderId,
-                               temporality=Temporality}, CollectionStartTime) ->
-    Select = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId},
+collect(Tab, ViewAggregation=#view_aggregation{name=Name,
+                                               reader=ReaderId,
+                                               temporality=Temporality,
+                                               forget=Forget}, Generation0) ->
+    CollectionStartTime = opentelemetry:timestamp(),
+    Generation = case Forget of
+                     true ->
+                         Generation0;
+                     _ ->
+                         0
+                 end,
+
+    checkpoint(Tab, ViewAggregation, Generation),
+
+    Select = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId, Generation},
                                                start_time='$2',
                                                explicit_bucket_boundaries='$3',
                                                record_min_max='$4',
@@ -225,13 +259,31 @@ collect(Tab, #view_aggregation{name=Name,
                                                max='$8',
                                                sum='$9'}, [], ['$_']}],
     AttributesAggregation = ets:select(Tab, Select),
-    #histogram{datapoints=[datapoint(CollectionStartTime, SumAgg) || SumAgg <- AttributesAggregation],
-               aggregation_temporality=Temporality}.
+    Result = #histogram{datapoints=[datapoint(CollectionStartTime, SumAgg) || SumAgg <- AttributesAggregation],
+                        aggregation_temporality=Temporality},
+
+   %% would be nice to do this in the reader so its not duplicated in each aggregator
+    maybe_delete_old_generation(Tab, Name, ReaderId, Generation),
+
+    Result.
 
 %%
 
+%% 0 means it is either cumulative or the first generation with nothing older to delete
+maybe_delete_old_generation(_Tab, _Name, _ReaderId, 0) ->
+    ok;
+maybe_delete_old_generation(Tab, Name, ReaderId, Generation) ->
+    %% delete all older than the Generation instead of just the previous in case a
+    %% a crash had happened between incrementing the Generation counter and doing
+    %% the delete in a previous collection cycle
+    %% eqwalizer:ignore matchspecs mess with the typing
+    Select = [{#explicit_histogram_aggregation{key={Name, '_', ReaderId, '$1'}, _='_'},
+               [{'<', '$1', {const, Generation}}],
+               [true]}],
+    ets:select_delete(Tab, Select).
+
 datapoint(CollectionStartTime, #explicit_histogram_aggregation{
-                                  key={_, Attributes, _},
+                                  key={_, Attributes, _, _},
                                   explicit_bucket_boundaries=Boundaries,
                                   start_time=StartTime,
                                   checkpoint=undefined,
@@ -255,7 +307,7 @@ datapoint(CollectionStartTime, #explicit_histogram_aggregation{
        max=Max
       };
 datapoint(CollectionStartTime, #explicit_histogram_aggregation{
-                                  key={_, Attributes, _},
+                                  key={_, Attributes, _, _},
                                   explicit_bucket_boundaries=Boundaries,
                                   checkpoint=#explicit_histogram_checkpoint{bucket_counts=BucketCounts,
                                                                             min=Min,

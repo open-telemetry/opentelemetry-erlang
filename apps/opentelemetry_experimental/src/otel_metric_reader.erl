@@ -26,6 +26,7 @@
 
 -export([start_link/3,
          collect/1,
+         checkpoint_generation/1,
          shutdown/1]).
 
 -export([init/1,
@@ -35,15 +36,14 @@
          handle_continue/2,
          code_change/1]).
 
--include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
--include_lib("kernel/include/logger.hrl").
 -include("otel_view.hrl").
 -include("otel_metrics.hrl").
 
 -record(state,
         {
          exporter,
+         %% eqwalizer:ignore waiting on sup_ref to be exported https://github.com/erlang/otp/pull/7205
          provider_sup :: supervisor:sup_ref(),
          id :: reference(),
          default_aggregation_mapping :: #{otel_instrument:kind() => module()},
@@ -54,7 +54,8 @@
          view_aggregation_tab :: ets:table(),
          metrics_tab :: ets:table(),
          config :: #{},
-         resource :: otel_resource:t() | undefined
+         resource :: otel_resource:t() | undefined,
+         generation_ref :: atomics:atomics_ref()
         }).
 
 %% -spec start_link(atom(), map()) -> {ok, pid()} | ignore | {error, term()}.
@@ -69,6 +70,16 @@ collect(ReaderPid) ->
 shutdown(ReaderPid) ->
     gen_server:call(ReaderPid, shutdown).
 
+%% Get the current checkpoint generation.
+checkpoint_generation(ReaderId) ->
+    GenerationRef = persistent_term:get({?MODULE, ReaderId}),
+    atomics:get(GenerationRef, 1).
+
+%% Increment and return the previous checkpoint generation.
+inc_checkpoint_generation(ReaderId) ->
+    GenerationRef = persistent_term:get({?MODULE, ReaderId}),
+    atomics:add_get(GenerationRef, 1, 1) - 1.
+
 init([ReaderId, ProviderSup, Config]) ->
     ExporterModuleConfig = maps:get(exporter, Config, undefined),
     Exporter = otel_exporter:init(ExporterModuleConfig),
@@ -77,7 +88,7 @@ init([ReaderId, ProviderSup, Config]) ->
     Temporality = maps:get(default_temporality_mapping, Config, #{}),
 
     %% if a periodic reader is needed then this value is set
-    %% somehow need to do a default of 10000 millis, but only if this is a periodic reader
+    %% somehow need to do a default of 10000 MILLIS, but only if this is a periodic reader
     ExporterIntervalMs = maps:get(export_interval_ms, Config, undefined),
 
     TRef = case ExporterIntervalMs of
@@ -86,6 +97,17 @@ init([ReaderId, ProviderSup, Config]) ->
                _ ->
                    erlang:send_after(ExporterIntervalMs, self(), collect)
            end,
+
+    GenerationRef =
+        try persistent_term:get({?MODULE, ReaderId})
+        catch
+            error:badarg ->
+                GenerationRef0 = atomics:new(1, []),
+                persistent_term:put({?MODULE, ReaderId}, GenerationRef0),
+                GenerationRef0
+        end,
+
+    %% eqwalizer:fixme get an unbound record error until the fixme for state record is resolved
     {ok, #state{exporter=Exporter,
                 provider_sup=ProviderSup,
                 id=ReaderId,
@@ -93,8 +115,10 @@ init([ReaderId, ProviderSup, Config]) ->
                 temporality_mapping=Temporality,
                 export_interval_ms=ExporterIntervalMs,
                 tref=TRef,
+                generation_ref=GenerationRef,
                 config=Config}, {continue, register_with_server}}.
 
+%% eqwalizer:fixme get an unbound record error until the fixme for state record is resolved
 handle_continue(register_with_server, State=#state{provider_sup=ProviderSup,
                                                    id=ReaderId,
                                                    default_aggregation_mapping=DefaultAggregationMapping,
@@ -117,6 +141,7 @@ handle_call(_, _From, State) ->
 handle_cast(_, State) ->
     {noreply, State}.
 
+%% eqwalizer:fixme get an unbound record error until the fixme for state record is resolved
 handle_info(collect, State=#state{exporter=undefined,
                                   export_interval_ms=ExporterIntervalMs,
                                   tref=TRef}) when TRef =/= undefined andalso
@@ -155,7 +180,6 @@ handle_info(collect, State=#state{id=ReaderId,
     %% collect from view aggregations table and then export
     Metrics = collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId),
 
-
     otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
 
     {noreply, State#state{tref=NewTRef}};
@@ -186,10 +210,8 @@ collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId) ->
     %% by the key (Instrument)
     Key = ets:first(ViewAggregationTab),
 
-    %% get the collection start time after running callbacks so any initialized
-    %% metrics have a start time before the collection start time.
-    CollectionStartTime = opentelemetry:timestamp(),
-    collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, ReaderId, [], Key).
+    Generation = inc_checkpoint_generation(ReaderId),
+    collect_(CallbacksTab, ViewAggregationTab, MetricsTab, Generation, ReaderId, [], Key).
 
 run_callbacks(ReaderId, CallbacksTab, ViewAggregationTab, MetricsTab) ->
     try ets:lookup_element(CallbacksTab, ReaderId, 2) of
@@ -200,18 +222,18 @@ run_callbacks(ReaderId, CallbacksTab, ViewAggregationTab, MetricsTab) ->
             []
     end.
 
-collect_(_CallbacksTab, _ViewAggregationTab, _MetricsTab, _CollectionStartTime, _ReaderId, MetricsAcc, '$end_of_table') ->
+collect_(_CallbacksTab, _ViewAggregationTab, _MetricsTab, _Generation, _ReaderId, MetricsAcc, '$end_of_table') ->
     MetricsAcc;
-collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, ReaderId, MetricsAcc, Key) ->
+collect_(CallbacksTab, ViewAggregationTab, MetricsTab, Generation, ReaderId, MetricsAcc, Key) ->
     ViewAggregations = ets:lookup_element(ViewAggregationTab, Key, 2),
-    collect_(CallbacksTab, ViewAggregationTab, MetricsTab, CollectionStartTime, ReaderId,
+    collect_(CallbacksTab, ViewAggregationTab, MetricsTab, Generation, ReaderId,
              checkpoint_metrics(MetricsTab,
-                                CollectionStartTime,
+                                Generation,
                                 ReaderId,
                                 ViewAggregations) ++ MetricsAcc,
              ets:next(ViewAggregationTab, Key)).
 
-checkpoint_metrics(MetricsTab, CollectionStartTime, Id, ViewAggregations) ->
+checkpoint_metrics(MetricsTab, Generation, Id, ViewAggregations) ->
     lists:foldl(fun(#view_aggregation{aggregation_module=otel_aggregation_drop}, Acc) ->
                         Acc;
                    (ViewAggregation=#view_aggregation{name=Name,
@@ -220,12 +242,9 @@ checkpoint_metrics(MetricsTab, CollectionStartTime, Id, ViewAggregations) ->
                                                       aggregation_module=AggregationModule,
                                                       description=Description
                                                      }, Acc) when Id =:= ReaderId ->
-                        AggregationModule:checkpoint(MetricsTab,
-                                                     ViewAggregation,
-                                                     CollectionStartTime),
                         Data = AggregationModule:collect(MetricsTab,
                                                          ViewAggregation,
-                                                         CollectionStartTime),
+                                                         Generation),
                         [metric(Instrument, Name, Description, Unit, Data) | Acc];
                    (_, Acc) ->
                         Acc

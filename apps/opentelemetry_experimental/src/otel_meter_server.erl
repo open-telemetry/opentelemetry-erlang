@@ -56,9 +56,6 @@
          handle_info/2,
          code_change/1]).
 
--include_lib("opentelemetry_api/include/opentelemetry.hrl").
-%% need to move shared records out of otel_span.hrl
--include_lib("opentelemetry/include/otel_span.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_meter.hrl").
 -include_lib("kernel/include/logger.hrl").
@@ -72,8 +69,6 @@
          id                          :: reference(),
          pid                         :: pid(),
          monitor_ref                 :: reference(),
-         module                      :: module(),
-         config                      :: term(),
          default_aggregation_mapping :: map(),
          default_temporality_mapping :: map()
         }).
@@ -104,6 +99,11 @@
 
          resource :: otel_resource:t()
         }).
+
+%% I think these have warnings because the new view function is ignored
+%% which is because it calls functions that use matchspecs in record defs
+-dialyzer({nowarn_function, add_view_/9}).
+-dialyzer({nowarn_function, new_view/1}).
 
 -spec start_link(atom(), atom(), otel_resource:t(), otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
 start_link(Name, RegName, Resource, Config) ->
@@ -294,10 +294,10 @@ new_view(ViewConfig) ->
     AggregationModule = maps:get(aggregation_module, ViewConfig, undefined),
     AggregationOptions = maps:get(aggregation_options, ViewConfig, #{}),
     case otel_view:new(Name, Selector, #{description => Description,
-                                    attribute_keys => AttributeKeys,
-                                    aggregation_module => AggregationModule,
-                                    aggregation_options => AggregationOptions
-                                   }) of
+                                         attribute_keys => AttributeKeys,
+                                         aggregation_module => AggregationModule,
+                                         aggregation_options => AggregationOptions
+                                        }) of
         {ok, View} -> {true, View};
         {error, named_wildcard_view} -> false
     end.
@@ -399,10 +399,13 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, 
     AggregationModule = aggregation_module(Instrument, View, Reader),
     Temporality = maps:get(Kind, ReaderTemporalityMapping, ?TEMPORALITY_CUMULATIVE),
 
+    Forget = do_forget(Kind, Temporality),
+
     ViewAggregation#view_aggregation{
       reader=Id,
       attribute_keys=AttributeKeys,
       aggregation_module=AggregationModule,
+      forget=Forget,
       temporality=Temporality};
 view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, View,
                             Reader=#reader{id=Id,
@@ -410,10 +413,13 @@ view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, 
     AggregationModule = aggregation_module(Instrument, View, Reader),
     Temporality = maps:get(Kind, ReaderTemporalityMapping, ?TEMPORALITY_CUMULATIVE),
 
+    Forget = do_forget(Kind, Temporality),
+
     ViewAggregation#view_aggregation{
       reader=Id,
       attribute_keys=undefined,
       aggregation_module=AggregationModule,
+      forget=Forget,
       temporality=Temporality}.
 
 
@@ -443,3 +449,15 @@ report_cb(#{view_name := Name,
             stacktrace := StackTrace}) ->
     {"failed to create view: name=~ts exception=~ts",
      [Name, otel_utils:format_exception(Class, Exception, StackTrace)]}.
+
+
+do_forget(_, ?TEMPORALITY_DELTA) ->
+    true;
+do_forget(?KIND_OBSERVABLE_COUNTER, _) ->
+    true;
+do_forget(?KIND_OBSERVABLE_GAUGE, _) ->
+    true;
+do_forget(?KIND_OBSERVABLE_UPDOWNCOUNTER, _) ->
+    true;
+do_forget(_, _) ->
+    false.

@@ -108,6 +108,7 @@ to_histogram_data_points(#histogram_datapoint{
                             max=Max
                            }) ->
     #{attributes => otel_otlp_common:to_attributes(Attributes),
+      %% eqwalizer:ignore start_time in histogram_datapoint has to support matchspec entries
       start_time_unix_nano => opentelemetry:timestamp_to_nano(StartTime),
       time_unix_nano => opentelemetry:timestamp_to_nano(CollectionStartTime),
       count => Count,

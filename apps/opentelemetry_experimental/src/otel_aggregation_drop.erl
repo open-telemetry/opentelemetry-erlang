@@ -4,7 +4,6 @@
 
 -export([init/2,
          aggregate/4,
-         checkpoint/3,
          collect/3]).
 
 -include("otel_metrics.hrl").
@@ -18,9 +17,6 @@ init(_, _) ->
 
 aggregate(_, _, _, _) ->
     true.
-
-checkpoint(_, _, _) ->
-    ok.
 
 collect(_, _, _) ->
     {}.

@@ -52,6 +52,8 @@
               kind/0,
               unit/0,
               temporality/0,
+              observation/0,
+              named_observations/0,
               callback/0,
               callback_args/0,
               callback_result/0,
