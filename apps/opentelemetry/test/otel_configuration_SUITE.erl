@@ -239,7 +239,7 @@ sampler_parent_based_one(_Config) ->
     ok.
 
 sampler_parent_based_zero(_Config) ->
-    ?assertMatch({parent_based, #{root := {trace_id_ratio_based, 0.0}}},
+    ?assertMatch({parent_based, #{root := {trace_id_ratio_based, +0.0}}},
                  maps:get(sampler, otel_configuration:merge_with_os([]))),
 
     ok.
