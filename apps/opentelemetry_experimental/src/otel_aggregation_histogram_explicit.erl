@@ -41,94 +41,94 @@
 %% can't use `ets:fun2ms' as it will shadow `Key' in the `fun' head
 -if(?OTP_RELEASE >= 26).
 -define(AGGREATE_MATCH_SPEC(Key, Value, BucketCounts),
-    [
-        {
-            {explicit_histogram_aggregation,Key,'_','_','_','_','_','$1','$2','$3'},
-            [],
-            [{{
-                explicit_histogram_aggregation,
-                {element,2,'$_'},
-                {element,3,'$_'},
-                {element,4,'$_'},
-                {element,5,'$_'},
-                {element,6,'$_'},
-                {const,BucketCounts},
-                {min,'$1',{const,Value}},
-                {max,'$2',{const,Value}},
-                {'+','$3',{const,Value}}
+        [
+         {
+          {explicit_histogram_aggregation,Key,'_','_','_','_','_','$1','$2','$3'},
+          [],
+          [{{
+             explicit_histogram_aggregation,
+             {element,2,'$_'},
+             {element,3,'$_'},
+             {element,4,'$_'},
+             {element,5,'$_'},
+             {element,6,'$_'},
+             {const,BucketCounts},
+             {min,'$1',{const,Value}},
+             {max,'$2',{const,Value}},
+             {'+','$3',{const,Value}}
             }}]
-        }
-    ]
-).
+         }
+        ]
+       ).
 -else.
 -define(AGGREATE_MATCH_SPEC(Key, Value, BucketCounts),
-    [
-        {
-            {explicit_histogram_aggregation,Key,'_','_','_','_','_','$1','$2','$3'},
-            [{'<','$2',{const,Value}},{'>','$1',{const,Value}}],
-            [{{
-                explicit_histogram_aggregation,
-                {element,2,'$_'},
-                {element,3,'$_'},
-                {element,4,'$_'},
-                {element,5,'$_'},
-                {element,6,'$_'},
-                {const,BucketCounts},
-                {const,Value},
-                {const,Value},
-                {'+','$3',{const,Value}}
+        [
+         {
+          {explicit_histogram_aggregation,Key,'_','_','_','_','_','$1','$2','$3'},
+          [{'<','$2',{const,Value}},{'>','$1',{const,Value}}],
+          [{{
+             explicit_histogram_aggregation,
+             {element,2,'$_'},
+             {element,3,'$_'},
+             {element,4,'$_'},
+             {element,5,'$_'},
+             {element,6,'$_'},
+             {const,BucketCounts},
+             {const,Value},
+             {const,Value},
+             {'+','$3',{const,Value}}
             }}]
-        },
-        {
-            {explicit_histogram_aggregation,Key,'_','_','_','_','_','_','$1','$2'},
-            [{'<','$1',{const,Value}}],
-            [{{
-                explicit_histogram_aggregation,
-                {element,2,'$_'},
-                {element,3,'$_'},
-                {element,4,'$_'},
-                {element,5,'$_'},
-                {element,6,'$_'},
-                {const,BucketCounts},
-                {element,8,'$_'},
-                {const,Value},
-                {'+','$2',{const,Value}}
+         },
+         {
+          {explicit_histogram_aggregation,Key,'_','_','_','_','_','_','$1','$2'},
+          [{'<','$1',{const,Value}}],
+          [{{
+             explicit_histogram_aggregation,
+             {element,2,'$_'},
+             {element,3,'$_'},
+             {element,4,'$_'},
+             {element,5,'$_'},
+             {element,6,'$_'},
+             {const,BucketCounts},
+             {element,8,'$_'},
+             {const,Value},
+             {'+','$2',{const,Value}}
             }}]
-        },
-        {
-            {explicit_histogram_aggregation,Key,'_','_','_','_','_','$1','_','$2'},
-            [{'>','$1',{const,Value}}],
-            [{{
-                explicit_histogram_aggregation,
-                {element,2,'$_'},
-                {element,3,'$_'},
-                {element,4,'$_'},
-                {element,5,'$_'},
-                {element,6,'$_'},
-                {const,BucketCounts},
-                {const,Value},
-                {element,9,'$_'},
-                {'+','$2',{const,Value}}
+         },
+         {
+          {explicit_histogram_aggregation,Key,'_','_','_','_','_','$1','_','$2'},
+          [{'>','$1',{const,Value}}],
+          [{{
+             explicit_histogram_aggregation,
+             {element,2,'$_'},
+             {element,3,'$_'},
+             {element,4,'$_'},
+             {element,5,'$_'},
+             {element,6,'$_'},
+             {const,BucketCounts},
+             {const,Value},
+             {element,9,'$_'},
+             {'+','$2',{const,Value}}
             }}]
-        },
-        {
-            {explicit_histogram_aggregation,Key,'_','_','_','_','_','_','_','$1'},
-            [],
-            [{{
-                explicit_histogram_aggregation,
-                {element,2,'$_'},
-                {element,3,'$_'},
-                {element,4,'$_'},
-                {element,5,'$_'},
-                {element,6,'$_'},
-                {const,BucketCounts},
-                {element,8,'$_'},
-                {element,9,'$_'},
-                {'+','$1',{const,Value}}
+         },
+         {
+          {explicit_histogram_aggregation,Key,'_','_','_','_','_','_','_','$1'},
+          [],
+          [{{
+             explicit_histogram_aggregation,
+             {element,2,'$_'},
+             {element,3,'$_'},
+             {element,4,'$_'},
+             {element,5,'$_'},
+             {element,6,'$_'},
+             {const,BucketCounts},
+             {element,8,'$_'},
+             {element,9,'$_'},
+             {'+','$1',{const,Value}}
             }}]
-        }
-    ]
-).
+         }
+        ]
+       ).
 -endif.
 
 %% ignore eqwalizer errors in functions using a lot of matchspecs
@@ -142,10 +142,10 @@
 -dialyzer({nowarn_function, get_buckets/2}).
 -dialyzer({nowarn_function, counters_get/2}).
 
-init(#view_aggregation{name=Name,
-                       reader=ReaderId,
-                       aggregation_options=Options,
-                       forget=Forget}, Attributes) ->
+init(#stream{name=Name,
+             reader=ReaderId,
+             aggregation_options=Options,
+             forget=Forget}, Attributes) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
@@ -166,10 +166,10 @@ init(#view_aggregation{name=Name,
                                     sum=0
                                    }.
 
-aggregate(Table, #view_aggregation{name=Name,
-                                   reader=ReaderId,
-                                   aggregation_options=Options,
-                                   forget=Forget}, Value, Attributes) ->
+aggregate(Table, #stream{name=Name,
+                         reader=ReaderId,
+                         aggregation_options=Options,
+                         forget=Forget}, Value, Attributes) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
@@ -198,9 +198,9 @@ aggregate(Table, #view_aggregation{name=Name,
             1 =:= ets:select_replace(Table, MS)
     end.
 
-checkpoint(Tab, #view_aggregation{name=Name,
-                                  reader=ReaderId,
-                                  temporality=?TEMPORALITY_DELTA}, Generation) ->
+checkpoint(Tab, #stream{name=Name,
+                        reader=ReaderId,
+                        temporality=?TEMPORALITY_DELTA}, Generation) ->
     MS = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId, Generation},
                                            start_time='$9',
                                            explicit_bucket_boundaries='$2',
@@ -232,13 +232,13 @@ checkpoint(_Tab, _, _) ->
     %% no good way to checkpoint the `counters' without being out of sync with
     %% min/max/sum, so may as well just collect them in `collect', which will
     %% also be out of sync, but best we can do right now
-    
+
     ok.
 
-collect(Tab, ViewAggregation=#view_aggregation{name=Name,
-                                               reader=ReaderId,
-                                               temporality=Temporality,
-                                               forget=Forget}, Generation0) ->
+collect(Tab, Stream=#stream{name=Name,
+                            reader=ReaderId,
+                            temporality=Temporality,
+                            forget=Forget}, Generation0) ->
     CollectionStartTime = opentelemetry:timestamp(),
     Generation = case Forget of
                      true ->
@@ -247,7 +247,7 @@ collect(Tab, ViewAggregation=#view_aggregation{name=Name,
                          0
                  end,
 
-    checkpoint(Tab, ViewAggregation, Generation),
+    checkpoint(Tab, Stream, Generation),
 
     Select = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId, Generation},
                                                start_time='$2',
@@ -262,7 +262,7 @@ collect(Tab, ViewAggregation=#view_aggregation{name=Name,
     Result = #histogram{datapoints=[datapoint(CollectionStartTime, SumAgg) || SumAgg <- AttributesAggregation],
                         aggregation_temporality=Temporality},
 
-   %% would be nice to do this in the reader so its not duplicated in each aggregator
+    %% would be nice to do this in the reader so its not duplicated in each aggregator
     maybe_delete_old_generation(Tab, Name, ReaderId, Generation),
 
     Result.

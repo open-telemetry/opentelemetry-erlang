@@ -119,10 +119,10 @@ record(Instrument=#instrument{}, Number) ->
 record(Meter={_,#meter{}}, Name, Number) ->
     record(Meter, Name, Number, #{});
 
-record(Instrument=#instrument{meter={_, #meter{view_aggregations_tab=ViewAggregationTab,
+record(Instrument=#instrument{meter={_, #meter{streams_tab=StreamTab,
                                                metrics_tab=MetricsTab}}}, Number, Attributes) ->
-    otel_meter_server:record(ViewAggregationTab, MetricsTab, Instrument, Number, Attributes).
+    otel_meter_server:record(StreamTab, MetricsTab, Instrument, Number, Attributes).
 
-record(Meter={_, #meter{view_aggregations_tab=ViewAggregationTab,
+record(Meter={_, #meter{streams_tab=StreamTab,
                         metrics_tab=MetricsTab}}, Name, Number, Attributes) ->
-    otel_meter_server:record(Meter, ViewAggregationTab, MetricsTab, Name, Number, Attributes).
+    otel_meter_server:record(Meter, StreamTab, MetricsTab, Name, Number, Attributes).
