@@ -22,35 +22,35 @@
 
 %% Returns the aggregation's record as it is seen and updated by
 %% the aggregation module in the metrics table.
--callback init(ViewAggregation, Attributes) -> Aggregation when
-      ViewAggregation :: #view_aggregation{},
+-callback init(Stream, Attributes) -> Aggregation when
+      Stream :: #stream{},
       Attributes :: opentelemetry:attributes_map(),
       Aggregation :: t().
 
--callback aggregate(Table, ViewAggregation, Value, Attributes) -> boolean() when
+-callback aggregate(Table, Stream, Value, Attributes) -> boolean() when
       Table :: ets:table(),
-      ViewAggregation :: #view_aggregation{},
+      Stream :: #stream{},
       Value :: number(),
       Attributes :: opentelemetry:attributes_map().
 
--callback collect(Table, ViewAggregation, Generation) -> tuple() when
+-callback collect(Table, Stream, Generation) -> tuple() when
       Table :: ets:table(),
-      ViewAggregation :: #view_aggregation{},
+      Stream :: #stream{},
       Generation :: integer().
 
-maybe_init_aggregate(MetricsTab, ViewAggregation=#view_aggregation{aggregation_module=AggregationModule,
+maybe_init_aggregate(MetricsTab, Stream=#stream{aggregation_module=AggregationModule,
                                                                    attribute_keys=AttributeKeys},
                      Value, Attributes) ->
     FilteredAttributes = filter_attributes(AttributeKeys, Attributes),
-    case AggregationModule:aggregate(MetricsTab, ViewAggregation, Value, FilteredAttributes) of
+    case AggregationModule:aggregate(MetricsTab, Stream, Value, FilteredAttributes) of
         true ->
             ok;
         false ->
             %% entry doesn't exist, create it and rerun the aggregate function
-            Metric = AggregationModule:init(ViewAggregation, FilteredAttributes),
+            Metric = AggregationModule:init(Stream, FilteredAttributes),
             %% don't overwrite a possible concurrent measurement doing the same
             _ = ets:insert_new(MetricsTab, Metric),
-            AggregationModule:aggregate(MetricsTab, ViewAggregation, Value, FilteredAttributes)
+            AggregationModule:aggregate(MetricsTab, Stream, Value, FilteredAttributes)
     end.
 
 filter_attributes(undefined, Attributes) ->

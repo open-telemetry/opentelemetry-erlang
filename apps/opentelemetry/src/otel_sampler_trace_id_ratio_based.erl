@@ -39,7 +39,7 @@
 setup(Probability) ->
     IdUpperBound =
         case Probability of
-            P when P =:= 0.0 ->
+            P when P == 0.0 ->
                 0;
             P when P =:= 1.0 ->
                 ?MAX_VALUE;

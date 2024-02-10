@@ -6,7 +6,7 @@
          aggregation_module      :: module(),
          aggregation_options=#{} :: map()}).
 
--record(view_aggregation,
+-record(stream,
         {%% name of the view or instrument if the view has no name
          name :: atom(),
          scope :: opentelemetry:instrumentation_scope(),

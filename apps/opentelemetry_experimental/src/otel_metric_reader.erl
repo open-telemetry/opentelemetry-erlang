@@ -51,7 +51,7 @@
          export_interval_ms :: integer() | undefined,
          tref :: reference() | undefined,
          callbacks_tab :: ets:table(),
-         view_aggregation_tab :: ets:table(),
+         streams_tab :: ets:table(),
          metrics_tab :: ets:table(),
          config :: #{},
          resource :: otel_resource:t() | undefined,
@@ -59,8 +59,8 @@
         }).
 
 %% -spec start_link(atom(), map()) -> {ok, pid()} | ignore | {error, term()}.
-%% start_link(ChildId, CallbacksTable, ViewAggregationTable, MetricsTable, Config) ->
-%%     gen_server:start_link({local, ChildId}, ?MODULE, [ChildId, CallbacksTable, ViewAggregationTable, MetricsTable, Config], []).
+%% start_link(ChildId, CallbacksTable, StreamsTable, MetricsTable, Config) ->
+%%     gen_server:start_link({local, ChildId}, ?MODULE, [ChildId, CallbacksTable, StreamsTable, MetricsTable, Config], []).
 start_link(ReaderId, ProviderSup, Config) ->
     gen_server:start_link(?MODULE, [ReaderId, ProviderSup, Config], []).
 
@@ -124,12 +124,12 @@ handle_continue(register_with_server, State=#state{provider_sup=ProviderSup,
                                                    default_aggregation_mapping=DefaultAggregationMapping,
                                                    temporality_mapping=Temporality}) ->
     ServerPid = otel_meter_server_sup:provider_pid(ProviderSup),
-    {CallbacksTab, ViewAggregationTab, MetricsTab, Resource} =
+    {CallbacksTab, StreamsTab, MetricsTab, Resource} =
         otel_meter_server:add_metric_reader(ServerPid, ReaderId, self(),
                                             DefaultAggregationMapping,
                                             Temporality),
     {noreply, State#state{callbacks_tab=CallbacksTab,
-                          view_aggregation_tab=ViewAggregationTab,
+                          streams_tab=StreamsTab,
                           metrics_tab=MetricsTab,
                           resource=Resource}}.
 
@@ -154,12 +154,12 @@ handle_info(collect, State=#state{id=ReaderId,
                                   export_interval_ms=undefined,
                                   tref=undefined,
                                   callbacks_tab=CallbacksTab,
-                                  view_aggregation_tab=ViewAggregationTab,
+                                  streams_tab=StreamsTab,
                                   metrics_tab=MetricsTab,
                                   resource=Resource
                                  }) ->
     %% collect from view aggregations table and then export
-    Metrics = collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId),
+    Metrics = collect_(CallbacksTab, StreamsTab, MetricsTab, ReaderId),
 
     otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
 
@@ -169,7 +169,7 @@ handle_info(collect, State=#state{id=ReaderId,
                                   export_interval_ms=ExporterIntervalMs,
                                   tref=TRef,
                                   callbacks_tab=CallbacksTab,
-                                  view_aggregation_tab=ViewAggregationTab,
+                                  streams_tab=StreamsTab,
                                   metrics_tab=MetricsTab,
                                   resource=Resource
                                  }) when TRef =/= undefined andalso
@@ -178,7 +178,7 @@ handle_info(collect, State=#state{id=ReaderId,
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
 
     %% collect from view aggregations table and then export
-    Metrics = collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId),
+    Metrics = collect_(CallbacksTab, StreamsTab, MetricsTab, ReaderId),
 
     otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
 
@@ -193,8 +193,8 @@ code_change(State) ->
 %%
 
 -spec collect_(any(), ets:table(), any(), reference()) -> [any()].
-collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId) ->
-    _ = run_callbacks(ReaderId, CallbacksTab, ViewAggregationTab, MetricsTab),
+collect_(CallbacksTab, StreamsTab, MetricsTab, ReaderId) ->
+    _ = run_callbacks(ReaderId, CallbacksTab, StreamsTab, MetricsTab),
 
     %% Need to be able to efficiently get all from VIEW_AGGREGATIONS_TAB that apply to this reader
 
@@ -205,50 +205,50 @@ collect_(CallbacksTab, ViewAggregationTab, MetricsTab, ReaderId) ->
     %% use the information (temporality) from the VIEW_AGGREGATIONS_TAB entry to reset the
     %% METRICS_TAB entry value (like setting value back to 0 for DELTA)
 
-    %% ViewAggregationTab is a `bag' so to iterate over every ViewAggregation for
-    %% each Instrument we use `first'/`next' and lookup the list of ViewAggregations
+    %% StreamsTab is a `bag' so to iterate over every Stream for
+    %% each Instrument we use `first'/`next' and lookup the list of Streams
     %% by the key (Instrument)
-    Key = ets:first(ViewAggregationTab),
+    Key = ets:first(StreamsTab),
 
     Generation = inc_checkpoint_generation(ReaderId),
-    collect_(CallbacksTab, ViewAggregationTab, MetricsTab, Generation, ReaderId, [], Key).
+    collect_(CallbacksTab, StreamsTab, MetricsTab, Generation, ReaderId, [], Key).
 
-run_callbacks(ReaderId, CallbacksTab, ViewAggregationTab, MetricsTab) ->
+run_callbacks(ReaderId, CallbacksTab, StreamsTab, MetricsTab) ->
     try ets:lookup_element(CallbacksTab, ReaderId, 2) of
         Callbacks ->
-            otel_observables:run_callbacks(Callbacks, ReaderId, ViewAggregationTab, MetricsTab)
+            otel_observables:run_callbacks(Callbacks, ReaderId, StreamsTab, MetricsTab)
     catch
         error:badarg ->
             []
     end.
 
-collect_(_CallbacksTab, _ViewAggregationTab, _MetricsTab, _Generation, _ReaderId, MetricsAcc, '$end_of_table') ->
+collect_(_CallbacksTab, _StreamsTab, _MetricsTab, _Generation, _ReaderId, MetricsAcc, '$end_of_table') ->
     MetricsAcc;
-collect_(CallbacksTab, ViewAggregationTab, MetricsTab, Generation, ReaderId, MetricsAcc, Key) ->
-    ViewAggregations = ets:lookup_element(ViewAggregationTab, Key, 2),
-    collect_(CallbacksTab, ViewAggregationTab, MetricsTab, Generation, ReaderId,
+collect_(CallbacksTab, StreamsTab, MetricsTab, Generation, ReaderId, MetricsAcc, Key) ->
+    Streams = ets:lookup_element(StreamsTab, Key, 2),
+    collect_(CallbacksTab, StreamsTab, MetricsTab, Generation, ReaderId,
              checkpoint_metrics(MetricsTab,
                                 Generation,
                                 ReaderId,
-                                ViewAggregations) ++ MetricsAcc,
-             ets:next(ViewAggregationTab, Key)).
+                                Streams) ++ MetricsAcc,
+             ets:next(StreamsTab, Key)).
 
-checkpoint_metrics(MetricsTab, Generation, Id, ViewAggregations) ->
-    lists:foldl(fun(#view_aggregation{aggregation_module=otel_aggregation_drop}, Acc) ->
+checkpoint_metrics(MetricsTab, Generation, Id, Streams) ->
+    lists:foldl(fun(#stream{aggregation_module=otel_aggregation_drop}, Acc) ->
                         Acc;
-                   (ViewAggregation=#view_aggregation{name=Name,
+                   (Stream=#stream{name=Name,
                                                       reader=ReaderId,
                                                       instrument=Instrument=#instrument{unit=Unit},
                                                       aggregation_module=AggregationModule,
                                                       description=Description
                                                      }, Acc) when Id =:= ReaderId ->
                         Data = AggregationModule:collect(MetricsTab,
-                                                         ViewAggregation,
+                                                         Stream,
                                                          Generation),
                         [metric(Instrument, Name, Description, Unit, Data) | Acc];
                    (_, Acc) ->
                         Acc
-                end, [], ViewAggregations).
+                end, [], Streams).
 
 metric(#instrument{meter=Meter}, Name, Description, Unit, Data) ->
     #metric{scope=otel_meter_default:scope(Meter),

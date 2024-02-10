@@ -8,7 +8,7 @@
          instrumentation_scope   :: opentelemetry:instrumentation_scope() | undefined,
          provider                :: atom() | '_',
          instruments_tab         :: ets:table() | '_',
-         view_aggregations_tab   :: ets:table() | '_',
+         streams_tab             :: ets:table() | '_',
          metrics_tab             :: ets:table() | '_'
         }).
 

@@ -42,10 +42,10 @@
 -include_lib("opentelemetry_api/include/gradualizer.hrl").
 -include("otel_view.hrl").
 
-init(#view_aggregation{name=Name,
-                       reader=ReaderId,
-                       aggregation_options=_Options,
-                       forget=Forget}, Attributes) ->
+init(#stream{name=Name,
+             reader=ReaderId,
+             aggregation_options=_Options,
+             forget=Forget}, Attributes) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
@@ -59,9 +59,9 @@ init(#view_aggregation{name=Name,
                             %% not needed or used, but makes eqwalizer happy
                             checkpoint=0}.
 
-aggregate(Tab, ViewAggregation=#view_aggregation{name=Name,
-                                                 reader=ReaderId,
-                                                 forget=Forget}, Value, Attributes) ->
+aggregate(Tab, Stream=#stream{name=Name,
+                              reader=ReaderId,
+                              forget=Forget}, Value, Attributes) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
@@ -73,13 +73,13 @@ aggregate(Tab, ViewAggregation=#view_aggregation{name=Name,
         true ->
             true;
         false ->
-            Metric = init(ViewAggregation, Attributes),
+            Metric = init(Stream, Attributes),
             ets:insert(Tab, ?assert_type((?assert_type(Metric, #last_value_aggregation{}))#last_value_aggregation{value=Value}, tuple()))
     end.
 
-checkpoint(Tab, #view_aggregation{name=Name,
-                                  reader=ReaderId,
-                                  temporality=?TEMPORALITY_DELTA}, Generation) ->
+checkpoint(Tab, #stream{name=Name,
+                        reader=ReaderId,
+                        temporality=?TEMPORALITY_DELTA}, Generation) ->
     MS = [{#last_value_aggregation{key={Name, '$1', ReaderId, Generation},
                                    start_time='$3',
                                    checkpoint='_',
@@ -92,8 +92,8 @@ checkpoint(Tab, #view_aggregation{name=Name,
     _ = ets:select_replace(Tab, MS),
 
     ok;
-checkpoint(Tab, #view_aggregation{name=Name,
-                                  reader=ReaderId}, Generation) ->
+checkpoint(Tab, #stream{name=Name,
+                        reader=ReaderId}, Generation) ->
     MS = [{#last_value_aggregation{key={Name, '$1', ReaderId, Generation},
                                    start_time='$3',
                                    checkpoint='_',
@@ -108,9 +108,9 @@ checkpoint(Tab, #view_aggregation{name=Name,
     ok.
 
 
-collect(Tab, ViewAggregation=#view_aggregation{name=Name,
-                                               reader=ReaderId,
-                                               forget=Forget}, Generation0) ->
+collect(Tab, Stream=#stream{name=Name,
+                            reader=ReaderId,
+                            forget=Forget}, Generation0) ->
     CollectionStartTime = opentelemetry:timestamp(),
     Generation = case Forget of
                      true ->
@@ -119,7 +119,7 @@ collect(Tab, ViewAggregation=#view_aggregation{name=Name,
                          0
                  end,
 
-    checkpoint(Tab, ViewAggregation, Generation),
+    checkpoint(Tab, Stream, Generation),
 
     Select = [{#last_value_aggregation{key={Name, '_', ReaderId, Generation},
                                        _='_'}, [], ['$_']}],
@@ -127,7 +127,7 @@ collect(Tab, ViewAggregation=#view_aggregation{name=Name,
     Result = #gauge{datapoints=[datapoint(CollectionStartTime, LastValueAgg) ||
                                    LastValueAgg <- AttributesAggregation]},
 
-   %% would be nice to do this in the reader so its not duplicated in each aggregator
+    %% would be nice to do this in the reader so its not duplicated in each aggregator
     maybe_delete_old_generation(Tab, Name, ReaderId, Generation),
 
     Result.

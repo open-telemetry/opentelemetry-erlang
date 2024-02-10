@@ -40,9 +40,9 @@
 -dialyzer({nowarn_function, maybe_delete_old_generation/4}).
 -dialyzer({nowarn_function, datapoint/5}).
 
-init(#view_aggregation{name=Name,
-                       reader=ReaderId,
-                       forget=Forget}, Attributes) ->
+init(#stream{name=Name,
+             reader=ReaderId,
+             forget=Forget}, Attributes) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
@@ -59,9 +59,9 @@ init(#view_aggregation{name=Name,
                      int_value=0,
                      float_value=0.0}.
 
-aggregate(Tab, #view_aggregation{name=Name,
-                                 reader=ReaderId,
-                                 forget=Forget}, Value, Attributes)
+aggregate(Tab, #stream{name=Name,
+                       reader=ReaderId,
+                       forget=Forget}, Value, Attributes)
   when is_integer(Value) ->
     Generation = case Forget of
                      true ->
@@ -85,9 +85,9 @@ aggregate(Tab, #view_aggregation{name=Name,
             %% true
             false
     end;
-aggregate(Tab, #view_aggregation{name=Name,
-                                 reader=ReaderId,
-                                 forget=Forget}, Value, Attributes) ->
+aggregate(Tab, #stream{name=Name,
+                       reader=ReaderId,
+                       forget=Forget}, Value, Attributes) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
@@ -110,9 +110,9 @@ aggregate(Tab, #view_aggregation{name=Name,
                               float_value={'+', '$4', {const, Value}}}}]}],
     1 =:= ets:select_replace(Tab, MS).
 
-checkpoint(Tab, #view_aggregation{name=Name,
-                                  reader=ReaderId,
-                                  temporality=?TEMPORALITY_DELTA}, Generation) ->
+checkpoint(Tab, #stream{name=Name,
+                        reader=ReaderId,
+                        temporality=?TEMPORALITY_DELTA}, Generation) ->
     MS = [{#sum_aggregation{key={Name, '$1', ReaderId, Generation},
                             start_time='$4',
                             checkpoint='$5',
@@ -141,10 +141,10 @@ checkpoint(Tab, #view_aggregation{name=Name,
                               float_value=0.0}}]}],
     _ = ets:select_replace(Tab, MS),
     ok;
-checkpoint(Tab, #view_aggregation{name=Name,
-                                  reader=ReaderId,
-                                  forget=Forget,
-                                  temporality=?TEMPORALITY_CUMULATIVE}, Generation0) ->
+checkpoint(Tab, #stream{name=Name,
+                        reader=ReaderId,
+                        forget=Forget,
+                        temporality=?TEMPORALITY_CUMULATIVE}, Generation0) ->
     Generation = case Forget of
                      true ->
                          Generation0;
@@ -180,12 +180,12 @@ checkpoint(Tab, #view_aggregation{name=Name,
     _ = ets:select_replace(Tab, MS),
     ok.
 
-collect(Tab, ViewAggregation=#view_aggregation{name=Name,
-                                               reader=ReaderId,
-                                               instrument=#instrument{temporality=InstrumentTemporality},
-                                               temporality=Temporality,
-                                               is_monotonic=IsMonotonic,
-                                               forget=Forget}, Generation0) ->
+collect(Tab, Stream=#stream{name=Name,
+                            reader=ReaderId,
+                            instrument=#instrument{temporality=InstrumentTemporality},
+                            temporality=Temporality,
+                            is_monotonic=IsMonotonic,
+                            forget=Forget}, Generation0) ->
     CollectionStartTime = opentelemetry:timestamp(),
     Generation = case Forget of
                      true ->
@@ -194,14 +194,14 @@ collect(Tab, ViewAggregation=#view_aggregation{name=Name,
                          0
                  end,
 
-    checkpoint(Tab, ViewAggregation, Generation),
+    checkpoint(Tab, Stream, Generation),
 
     %% eqwalizer:ignore matchspecs mess with the typing
     Select = [{#sum_aggregation{key={Name, '_', ReaderId, Generation}, _='_'}, [], ['$_']}],
     AttributesAggregation = ets:select(Tab, Select),
     Result = #sum{aggregation_temporality=Temporality,
-         is_monotonic=IsMonotonic,
-         datapoints=[datapoint(Tab, CollectionStartTime, InstrumentTemporality, Temporality, SumAgg) || SumAgg <- AttributesAggregation]},
+                  is_monotonic=IsMonotonic,
+                  datapoints=[datapoint(Tab, CollectionStartTime, InstrumentTemporality, Temporality, SumAgg) || SumAgg <- AttributesAggregation]},
 
     %% would be nice to do this in the reader so its not duplicated in each aggregator
     maybe_delete_old_generation(Tab, Name, ReaderId, Generation),
