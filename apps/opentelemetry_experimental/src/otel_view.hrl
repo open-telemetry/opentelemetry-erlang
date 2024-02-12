@@ -6,7 +6,7 @@
          aggregation_module      :: module(),
          aggregation_options=#{} :: map()}).
 
--record(view_aggregation,
+-record(stream,
         {%% name of the view or instrument if the view has no name
          name :: atom(),
          scope :: opentelemetry:instrumentation_scope(),
@@ -22,5 +22,10 @@
          is_monotonic :: boolean(),
 
          %% description from the view or the instrument if the view has no name
-         description :: unicode:unicode_binary() | undefined
+         description :: unicode:unicode_binary() | undefined,
+
+         %% whether to forget metrics if they aren't recorded to during a
+         %% collection cycle. This is the case for Observables and Delta
+         %% temporality metrics
+         forget :: boolean() | undefined
         }).

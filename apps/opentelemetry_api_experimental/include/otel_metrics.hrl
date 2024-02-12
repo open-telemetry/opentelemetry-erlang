@@ -1,15 +1,15 @@
 -include_lib("match_spec.hrl").
 
--record(instrument, {module          :: match_spec(module()),
-                     meter           :: match_spec(otel_meter:t()),
-                     name            :: match_spec(otel_instrument:name()),
-                     description     :: match_spec(otel_instrument:description()) | undefined,
-                     kind            :: match_spec(otel_instrument:kind()),
-                     unit            :: match_spec(otel_instrument:unit()) | undefined,
-                     temporality     :: match_spec(otel_instrument:temporality()),
-                     callback        :: match_spec(otel_instrument:callback()) | undefined,
-                     callback_args   :: match_spec(otel_instrument:callback_args()) | undefined,
-                     advisory_params :: match_spec(otel_instrument:advisory_params() | undefined)}).
+-record(instrument, {module          :: module(),
+                     meter           :: otel_meter:t(),
+                     name            :: otel_instrument:name(),
+                     description     :: otel_instrument:description() | undefined,
+                     kind            :: otel_instrument:kind(),
+                     unit            :: otel_instrument:unit() | undefined,
+                     temporality     :: otel_instrument:temporality(),
+                     callback        :: otel_instrument:callback() | undefined,
+                     callback_args   :: otel_instrument:callback_args() | undefined,
+                     advisory_params :: otel_instrument:advisory_params() | undefined}).
 
 -define(TEMPORALITY_DELTA, temporality_delta).
 -define(TEMPORALITY_CUMULATIVE, temporality_cumulative).

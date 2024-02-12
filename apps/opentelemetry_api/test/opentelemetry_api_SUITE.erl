@@ -36,7 +36,6 @@ can_create_link_from_span(_Config) ->
     TraceId = otel_span:trace_id(SpanCtx),
     SpanId = otel_span:span_id(SpanCtx),
     Tracestate = otel_span:tracestate(SpanCtx),
-    ct:pal("STATE ~p", [Tracestate]),
 
     %% end span, so there's no current span set
     ?end_span(opentelemetry:timestamp()),

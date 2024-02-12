@@ -51,6 +51,13 @@
 
 -include_lib("opentelemetry_api/include/gradualizer.hrl").
 
+%% ignore dialyzer warnings in functions using matchspecs or related to those that do
+-dialyzer({nowarn_function, do_new/2}).
+-dialyzer({nowarn_function, criteria_to_instrument_matchspec/1}).
+-dialyzer({nowarn_function, maybe_init_meter/1}).
+-dialyzer({nowarn_function, update_meter_name/2}).
+-dialyzer({nowarn_function, update_meter_version/2}).
+-dialyzer({nowarn_function, update_meter_schema_url/2}).
 
 -spec new(criteria() | undefined, config()) -> {ok, t()} | {error, named_wildcard_view}.
 new(Criteria, Config) ->
@@ -80,7 +87,7 @@ do_new(Criteria, Config) ->
           aggregation_module=maps:get(aggregation_module, Config, undefined),
           aggregation_options=maps:get(aggregation_options, Config, #{})}.
 
--spec match_instrument_to_views(otel_instrument:t(), [t()]) -> [{t() | undefined, #view_aggregation{}}].
+-spec match_instrument_to_views(otel_instrument:t(), [t()]) -> [{t() | undefined, #stream{}}].
 match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                                  meter=Meter,
                                                  description=Description,
@@ -98,32 +105,29 @@ match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                          false;
                                      _ ->
                                          AggregationOptions1 = aggragation_options(AggregationOptions, AdvisoryParams),
-                                         %% `reader' needs to be undefined and is set
-                                         %% for each in `otel_meter_server'
-                                         %% eqwalizer:ignore see above
-                                         {true, {View, #view_aggregation{name=value_or(ViewName,
-                                                                                       InstrumentName),
-                                                                         scope=Scope,
-                                                                         instrument=Instrument,
-                                                                         temporality=Temporality,
-                                                                         is_monotonic=IsMonotonic,
-                                                                         attribute_keys=AttributeKeys,
-                                                                         aggregation_options=AggregationOptions1,
-                                                                         description=value_or(ViewDescription,
-                                                                                              Description)
-                                                                        }}}
+                                         {true, {View, #stream{name=value_or(ViewName,
+                                                                             InstrumentName),
+                                                               scope=Scope,
+                                                               instrument=Instrument,
+                                                               temporality=Temporality,
+                                                               is_monotonic=IsMonotonic,
+                                                               attribute_keys=AttributeKeys,
+                                                               aggregation_options=AggregationOptions1,
+                                                               description=value_or(ViewDescription,
+                                                                                    Description)
+                                                              }}}
                                  end
                          end, Views) of
         [] ->
             AggregationOptions1 = aggragation_options(#{}, AdvisoryParams),
-            [{undefined, #view_aggregation{name=InstrumentName,
-                                           scope=Scope,
-                                           instrument=Instrument,
-                                           temporality=Temporality,
-                                           is_monotonic=IsMonotonic,
-                                           attribute_keys=undefined,
-                                           aggregation_options=AggregationOptions1,
-                                           description=Description}}];
+            [{undefined, #stream{name=InstrumentName,
+                                 scope=Scope,
+                                 instrument=Instrument,
+                                 temporality=Temporality,
+                                 is_monotonic=IsMonotonic,
+                                 attribute_keys=undefined,
+                                 aggregation_options=AggregationOptions1,
+                                 description=Description}}];
         Aggs ->
             Aggs
     end.
@@ -145,31 +149,31 @@ value_or(Value, _Other) ->
 -spec criteria_to_instrument_matchspec(map() | undefined) -> ets:comp_match_spec().
 criteria_to_instrument_matchspec(Criteria) when is_map(Criteria) ->
     Instrument =
-      maps:fold(fun(instrument_name, '*', InstrumentAcc) ->
-                        InstrumentAcc;
-                   (instrument_name, InstrumentName, InstrumentAcc) ->
-                        InstrumentAcc#instrument{name=InstrumentName};
-                   (instrument_kind, Kind, InstrumentAcc) ->
-                        InstrumentAcc#instrument{kind=Kind};
-                   (instrument_unit, Unit, InstrumentAcc) ->
-                        InstrumentAcc#instrument{unit=Unit};
-                   (meter_name, MeterName, InstrumentAcc) ->
-                        Meter = maybe_init_meter(InstrumentAcc),
-                        Meter1 = update_meter_name(MeterName, Meter),
-                        InstrumentAcc#instrument{meter=Meter1};
-                   (meter_version, MeterVersion, InstrumentAcc) ->
-                        Meter = maybe_init_meter(InstrumentAcc),
-                        Meter1 = update_meter_version(MeterVersion, Meter),
-                        InstrumentAcc#instrument{meter=Meter1};
-                   (meter_schema_url, SchemaUrl, InstrumentAcc) ->
-                        Meter = maybe_init_meter(InstrumentAcc),
-                        Meter1 = update_meter_schema_url(SchemaUrl, Meter),
-                        InstrumentAcc#instrument{meter=Meter1}
-                        %% eqwalizer:ignore building a matchspec and don't want '_' polluting the type
-                end, #instrument{_='_'}, Criteria),
+        maps:fold(fun(instrument_name, '*', InstrumentAcc) ->
+                          InstrumentAcc;
+                     (instrument_name, InstrumentName, InstrumentAcc) ->
+                          InstrumentAcc#instrument{name=InstrumentName};
+                     (instrument_kind, Kind, InstrumentAcc) ->
+                          InstrumentAcc#instrument{kind=Kind};
+                     (instrument_unit, Unit, InstrumentAcc) ->
+                          InstrumentAcc#instrument{unit=Unit};
+                     (meter_name, MeterName, InstrumentAcc) ->
+                          Meter = maybe_init_meter(InstrumentAcc),
+                          Meter1 = update_meter_name(MeterName, Meter),
+                          InstrumentAcc#instrument{meter=Meter1};
+                     (meter_version, MeterVersion, InstrumentAcc) ->
+                          Meter = maybe_init_meter(InstrumentAcc),
+                          Meter1 = update_meter_version(MeterVersion, Meter),
+                          InstrumentAcc#instrument{meter=Meter1};
+                     (meter_schema_url, SchemaUrl, InstrumentAcc) ->
+                          Meter = maybe_init_meter(InstrumentAcc),
+                          Meter1 = update_meter_schema_url(SchemaUrl, Meter),
+                          InstrumentAcc#instrument{meter=Meter1}
+                          %% eqwalizer:ignore using ignore as an ets matchspec workaround
+                  end, #instrument{_='_'}, Criteria),
     ets:match_spec_compile([{Instrument, [], [true]}]);
 criteria_to_instrument_matchspec(_) ->
-    %% eqwalizer:ignore building a matchspec and don't want '_' polluting the type
+    %% eqwalizer:ignore using ignore as an ets matchspec workaround
     ets:match_spec_compile([{#instrument{_='_'}, [], [true]}]).
 
 maybe_init_meter(#instrument{meter='_'}) ->

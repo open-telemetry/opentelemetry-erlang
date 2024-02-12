@@ -56,9 +56,6 @@
          handle_info/2,
          code_change/1]).
 
--include_lib("opentelemetry_api/include/opentelemetry.hrl").
-%% need to move shared records out of otel_span.hrl
--include_lib("opentelemetry/include/otel_span.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_meter.hrl").
 -include_lib("kernel/include/logger.hrl").
@@ -72,8 +69,6 @@
          id                          :: reference(),
          pid                         :: pid(),
          monitor_ref                 :: reference(),
-         module                      :: module(),
-         config                      :: term(),
          default_aggregation_mapping :: map(),
          default_temporality_mapping :: map()
         }).
@@ -96,7 +91,7 @@
 
          instruments_tab :: ets:table(),
          callbacks_tab :: ets:table(),
-         view_aggregations_tab :: ets:table(),
+         streams_tab :: ets:table(),
          metrics_tab :: ets:table(),
 
          views :: [otel_view:t()],
@@ -104,6 +99,11 @@
 
          resource :: otel_resource:t()
         }).
+
+%% I think these have warnings because the new view function is ignored
+%% which is because it calls functions that use matchspecs in record defs
+-dialyzer({nowarn_function, add_view_/9}).
+-dialyzer({nowarn_function, new_view/1}).
 
 -spec start_link(atom(), atom(), otel_resource:t(), otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
 start_link(Name, RegName, Resource, Config) ->
@@ -145,14 +145,14 @@ add_view(Provider, Name, Criteria, Config) ->
     gen_server:call(Provider, {add_view, Name, Criteria, Config}).
 
 -spec record(ets:table(), ets:table(), otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok.
-record(ViewAggregationsTab, MetricsTab, Instrument, Number, Attributes) ->
+record(StreamsTab, MetricsTab, Instrument, Number, Attributes) ->
     handle_measurement(#measurement{instrument=Instrument,
                                     value=Number,
-                                    attributes=Attributes}, ViewAggregationsTab, MetricsTab).
+                                    attributes=Attributes}, StreamsTab, MetricsTab).
 
 -spec record(otel_meter:t(), ets:table(), ets:table(), otel_instrument:t() | otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok.
-record(Meter, ViewAggregationTab, MetricsTab, Name, Number, Attributes) ->
-    handle_measurement(Meter, Name, Number, Attributes, ViewAggregationTab, MetricsTab).
+record(Meter, StreamTab, MetricsTab, Name, Number, Attributes) ->
+    handle_measurement(Meter, Name, Number, Attributes, StreamTab, MetricsTab).
 
 -spec force_flush() -> ok.
 force_flush() ->
@@ -165,13 +165,13 @@ force_flush(Provider) ->
 init([Name, RegName, Resource, Config]) ->
     InstrumentsTab = instruments_tab(RegName),
     CallbacksTab = callbacks_tab(RegName),
-    ViewAggregationsTab = view_aggregations_tab(RegName),
+    StreamsTab = streams_tab(RegName),
     MetricsTab = metrics_tab(RegName),
 
     Meter = #meter{module=otel_meter_default,
                    instruments_tab=InstrumentsTab,
                    provider=RegName,
-                   view_aggregations_tab=ViewAggregationsTab,
+                   streams_tab=StreamsTab,
                    metrics_tab=MetricsTab},
 
     %% TODO: don't do this if its already set?
@@ -182,7 +182,7 @@ init([Name, RegName, Resource, Config]) ->
     {ok, #state{shared_meter=Meter,
                 instruments_tab=InstrumentsTab,
                 callbacks_tab=CallbacksTab,
-                view_aggregations_tab=ViewAggregationsTab,
+                streams_tab=StreamsTab,
                 metrics_tab=MetricsTab,
                 views=Views,
                 readers=[],
@@ -193,7 +193,7 @@ handle_call({add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, 
                                 views=Views,
                                 instruments_tab=InstrumentsTab,
                                 callbacks_tab=CallbacksTab,
-                                view_aggregations_tab=ViewAggregationsTab,
+                                streams_tab=StreamsTab,
                                 metrics_tab=MetricsTab,
                                 resource=Resource}) ->
     Reader = metric_reader(ReaderId,
@@ -202,19 +202,19 @@ handle_call({add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, 
                            Temporality),
     Readers1 = [Reader | Readers],
 
-    %% create ViewAggregations entries for existing View/Instrument
+    %% create Streams entries for existing View/Instrument
     %% matches for the new Reader
-    _ = update_view_aggregations(InstrumentsTab, CallbacksTab, ViewAggregationsTab, Views, Readers1),
+    _ = update_streams(InstrumentsTab, CallbacksTab, StreamsTab, Views, Readers1),
 
-    {reply, {CallbacksTab, ViewAggregationsTab, MetricsTab, Resource}, State#state{readers=Readers1}};
+    {reply, {CallbacksTab, StreamsTab, MetricsTab, Resource}, State#state{readers=Readers1}};
 handle_call(resource, _From, State=#state{resource=Resource}) ->
     {reply, Resource, State};
 handle_call({add_instrument, Instrument}, _From, State=#state{readers=Readers,
                                                               views=Views,
                                                               instruments_tab=InstrumentsTab,
                                                               callbacks_tab=CallbacksTab,
-                                                              view_aggregations_tab=ViewAggregationsTab}) ->
-    _ = add_instrument_(InstrumentsTab, CallbacksTab, ViewAggregationsTab, Instrument, Views, Readers),
+                                                              streams_tab=StreamsTab}) ->
+    _ = add_instrument_(InstrumentsTab, CallbacksTab, StreamsTab, Instrument, Views, Readers),
     {reply, ok, State};
 handle_call({register_callback, Instruments, Callback, CallbackArgs}, _From, State=#state{readers=Readers,
                                                                                           callbacks_tab=CallbacksTab}) ->
@@ -231,9 +231,9 @@ handle_call({get_meter, Scope}, _From, State=#state{shared_meter=Meter}) ->
 handle_call({add_view, Name, Criteria, Config}, _From, State=#state{views=Views,
                                                                     instruments_tab=InstrumentsTab,
                                                                     callbacks_tab=CallbacksTab,
-                                                                    view_aggregations_tab=ViewAggregationsTab,
+                                                                    streams_tab=StreamsTab,
                                                                     readers=Readers}) ->
-    add_view_(Name, Criteria, Config, InstrumentsTab, CallbacksTab, ViewAggregationsTab, Readers, Views, State);
+    add_view_(Name, Criteria, Config, InstrumentsTab, CallbacksTab, StreamsTab, Readers, Views, State);
 handle_call(force_flush, _From, State=#state{readers=Readers}) ->
     [otel_metric_reader:collect(Pid) || #reader{pid=Pid} <- Readers],
     {reply, ok, State}.
@@ -253,10 +253,10 @@ code_change(State) ->
 
 %%
 
-add_view_(Name, Criteria, Config, InstrumentsTab, CallbacksTab, ViewAggregationsTab, Readers, Views, State) ->
+add_view_(Name, Criteria, Config, InstrumentsTab, CallbacksTab, StreamsTab, Readers, Views, State) ->
     case otel_view:new(Name, Criteria, Config) of
         {ok, NewView} -> 
-            _ = update_view_aggregations(InstrumentsTab, CallbacksTab, ViewAggregationsTab, [NewView], Readers),
+            _ = update_streams(InstrumentsTab, CallbacksTab, StreamsTab, [NewView], Readers),
             {reply, true, State#state{views=[NewView | Views]}};
         {error, named_wildcard_view} ->
             {reply, false, State}
@@ -274,8 +274,8 @@ callbacks_tab(Name) ->
                                                                  {keypos, 1},
                                                                  protected]).
 
-view_aggregations_tab(Name) ->
-    ets:new(list_to_atom(lists:concat([view_aggregations, "_", Name])), [bag,
+streams_tab(Name) ->
+    ets:new(list_to_atom(lists:concat([streams, "_", Name])), [bag,
                                                                          named_table,
                                                                          {keypos, 1},
                                                                          public]).
@@ -294,39 +294,39 @@ new_view(ViewConfig) ->
     AggregationModule = maps:get(aggregation_module, ViewConfig, undefined),
     AggregationOptions = maps:get(aggregation_options, ViewConfig, #{}),
     case otel_view:new(Name, Selector, #{description => Description,
-                                    attribute_keys => AttributeKeys,
-                                    aggregation_module => AggregationModule,
-                                    aggregation_options => AggregationOptions
-                                   }) of
+                                         attribute_keys => AttributeKeys,
+                                         aggregation_module => AggregationModule,
+                                         aggregation_options => AggregationOptions
+                                        }) of
         {ok, View} -> {true, View};
         {error, named_wildcard_view} -> false
     end.
 
 %% Match the Instrument to views and then store a per-Reader aggregation for the View
-add_instrument_(InstrumentsTab, CallbacksTab, ViewAggregationsTab, Instrument=#instrument{meter=Meter,
+add_instrument_(InstrumentsTab, CallbacksTab, StreamsTab, Instrument=#instrument{meter=Meter,
                                                                                           name=Name}, Views, Readers) ->
     case ets:insert_new(InstrumentsTab, {{Meter, Name}, Instrument}) of
         true ->
-            update_view_aggregations_(Instrument, CallbacksTab, ViewAggregationsTab, Views, Readers);
+            update_streams_(Instrument, CallbacksTab, StreamsTab, Views, Readers);
         false ->
             ?LOG_INFO("Instrument ~p already created. Ignoring attempt to create Instrument with the same name in the same Meter.", [Name]),
             ok
     end.
 
 %% used when a new View is added and the Views must be re-matched with each Instrument
-update_view_aggregations(InstrumentsTab, CallbacksTab, ViewAggregationsTab, Views, Readers) ->
+update_streams(InstrumentsTab, CallbacksTab, StreamsTab, Views, Readers) ->
     ets:foldl(fun({_, Instrument}, Acc) ->
-                      update_view_aggregations_(Instrument, CallbacksTab, ViewAggregationsTab, Views, Readers),
+                      update_streams_(Instrument, CallbacksTab, StreamsTab, Views, Readers),
                       Acc
               end, ok, InstrumentsTab).
 
-update_view_aggregations_(Instrument=#instrument{meter=Meter,
-                                                 name=Name}, CallbacksTab, ViewAggregationsTab, Views, Readers) ->
+update_streams_(Instrument=#instrument{meter=Meter,
+                                                 name=Name}, CallbacksTab, StreamsTab, Views, Readers) ->
     Key = {Meter, Name},
     ViewMatches = otel_view:match_instrument_to_views(Instrument, Views),
     lists:foreach(fun(Reader=#reader{id=ReaderId}) ->
                           Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
-                          [true = ets:insert(ViewAggregationsTab, {Key, M}) || M <- Matches],
+                          [true = ets:insert(StreamsTab, {Key, M}) || M <- Matches],
                           case {Instrument#instrument.callback, Instrument#instrument.callback_args} of
                               {undefined, _} ->
                                   ok;
@@ -357,63 +357,69 @@ metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) ->
 
 
 %% a Measurement's Instrument is matched against Views
-%% each matched View+Reader becomes a ViewAggregation
-%% for each ViewAggregation a Measurement updates a Metric (`#metric')
-%% active metrics are indexed by the ViewAggregation name + the Measurement's Attributes
+%% each matched View+Reader becomes a Stream
+%% for each Stream a Measurement updates a Metric (`#metric')
+%% active metrics are indexed by the Stream name + the Measurement's Attributes
 
 handle_measurement(#measurement{instrument=#instrument{meter=Meter,
                                                        name=Name},
                                 value=Value,
                                 attributes=Attributes},
-                   ViewAggregationsTab, MetricsTab) ->
-    Matches = ets:match(ViewAggregationsTab, {{Meter, Name}, '$1'}),
+                   StreamsTab, MetricsTab) ->
+    Matches = ets:match(StreamsTab, {{Meter, Name}, '$1'}),
     update_aggregations(Value, Attributes, Matches, MetricsTab).
 
-handle_measurement(Meter, Name, Number, Attributes, ViewAggregationsTab, MetricsTab) ->
-    Matches = ets:match(ViewAggregationsTab, {{Meter, Name}, '$1'}),
+handle_measurement(Meter, Name, Number, Attributes, StreamsTab, MetricsTab) ->
+    Matches = ets:match(StreamsTab, {{Meter, Name}, '$1'}),
     update_aggregations(Number, Attributes, Matches, MetricsTab).
 
-update_aggregations(Value, Attributes, ViewAggregations, MetricsTab) ->
-    lists:foreach(fun([ViewAggregation=#view_aggregation{instrument=Instrument}]) ->
-                        maybe_init_aggregate(Value, Instrument, MetricsTab, ViewAggregation, Attributes);
+update_aggregations(Value, Attributes, Streams, MetricsTab) ->
+    lists:foreach(fun([Stream=#stream{instrument=Instrument}]) ->
+                        maybe_init_aggregate(Value, Instrument, MetricsTab, Stream, Attributes);
                      (_) ->
                           ok
-                  end, ViewAggregations).
+                  end, Streams).
 
-maybe_init_aggregate(Value, #instrument{kind=Kind} = Instrument, _MetricsTab, _ViewAggregation, _Attributes)
+maybe_init_aggregate(Value, #instrument{kind=Kind} = Instrument, _MetricsTab, _Stream, _Attributes)
         when Value < 0, Kind == ?KIND_COUNTER orelse Kind == ?KIND_HISTOGRAM ->
     ?LOG_INFO("Discarding negative value for instrument ~s of type ~s", [Instrument#instrument.name, Kind]),
     ok;
 
-maybe_init_aggregate(Value, _Instrument, MetricsTab, ViewAggregation, Attributes) ->
-    otel_aggregation:maybe_init_aggregate(MetricsTab, ViewAggregation, Value, Attributes).
+maybe_init_aggregate(Value, _Instrument, MetricsTab, Stream, Attributes) ->
+    otel_aggregation:maybe_init_aggregate(MetricsTab, Stream, Value, Attributes).
 
 %% create an aggregation for each Reader and its possibly unique aggregation/temporality
-per_reader_aggregations(Reader, Instrument, ViewAggregations) ->
-    [view_aggregation_for_reader(Instrument, ViewAggregation, View, Reader)
-     || {View, ViewAggregation} <- ViewAggregations].
+per_reader_aggregations(Reader, Instrument, Streams) ->
+    [stream_for_reader(Instrument, Stream, View, Reader)
+     || {View, Stream} <- Streams].
 
-view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, View=#view{attribute_keys=AttributeKeys},
+stream_for_reader(Instrument=#instrument{kind=Kind}, Stream, View=#view{attribute_keys=AttributeKeys},
                             Reader=#reader{id=Id,
                                            default_temporality_mapping=ReaderTemporalityMapping}) ->
     AggregationModule = aggregation_module(Instrument, View, Reader),
     Temporality = maps:get(Kind, ReaderTemporalityMapping, ?TEMPORALITY_CUMULATIVE),
 
-    ViewAggregation#view_aggregation{
+    Forget = do_forget(Kind, Temporality),
+
+    Stream#stream{
       reader=Id,
       attribute_keys=AttributeKeys,
       aggregation_module=AggregationModule,
+      forget=Forget,
       temporality=Temporality};
-view_aggregation_for_reader(Instrument=#instrument{kind=Kind}, ViewAggregation, View,
+stream_for_reader(Instrument=#instrument{kind=Kind}, Stream, View,
                             Reader=#reader{id=Id,
                                            default_temporality_mapping=ReaderTemporalityMapping}) ->
     AggregationModule = aggregation_module(Instrument, View, Reader),
     Temporality = maps:get(Kind, ReaderTemporalityMapping, ?TEMPORALITY_CUMULATIVE),
 
-    ViewAggregation#view_aggregation{
+    Forget = do_forget(Kind, Temporality),
+
+    Stream#stream{
       reader=Id,
       attribute_keys=undefined,
       aggregation_module=AggregationModule,
+      forget=Forget,
       temporality=Temporality}.
 
 
@@ -443,3 +449,15 @@ report_cb(#{view_name := Name,
             stacktrace := StackTrace}) ->
     {"failed to create view: name=~ts exception=~ts",
      [Name, otel_utils:format_exception(Class, Exception, StackTrace)]}.
+
+
+do_forget(_, ?TEMPORALITY_DELTA) ->
+    true;
+do_forget(?KIND_OBSERVABLE_COUNTER, _) ->
+    true;
+do_forget(?KIND_OBSERVABLE_GAUGE, _) ->
+    true;
+do_forget(?KIND_OBSERVABLE_UPDOWNCOUNTER, _) ->
+    true;
+do_forget(_, _) ->
+    false.
