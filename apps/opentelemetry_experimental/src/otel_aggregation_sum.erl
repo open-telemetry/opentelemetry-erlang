@@ -89,7 +89,8 @@ aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
     end;
 aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
                                           reader=ReaderId,
-                                          forget=Forget}, Value, Attributes, DroppedAttributes) ->
+                                          forget=Forget,
+                                          exemplar_reservoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
@@ -110,7 +111,13 @@ aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
                               previous_checkpoint='$6',
                               int_value='$3',
                               float_value={'+', '$4', {const, Value}}}}]}],
-    1 =:= ets:select_replace(Tab, MS).
+    case ets:select_replace(Tab, MS) of
+        1 ->
+            otel_metric_exemplar_reservoir:offer(Ctx, ExemplarReservoir, ExemplarsTab, Key, Value, DroppedAttributes),
+            true;
+        _ ->
+            false
+    end.
 
 checkpoint(Tab, #stream{name=Name,
                         reader=ReaderId,
