@@ -62,7 +62,7 @@ init(#stream{name=Name,
 aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
                                           reader=ReaderId,
                                           forget=Forget,
-                                          exemplar_resevoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes)
+                                          exemplar_reservoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes)
   when is_integer(Value) ->
     Generation = case Forget of
                      true ->

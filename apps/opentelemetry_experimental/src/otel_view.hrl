@@ -30,5 +30,5 @@
          forget :: boolean() | undefined,
 
          %%
-         exemplar_resevoir :: term()
+         exemplar_reservoir :: term()
         }).

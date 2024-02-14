@@ -217,6 +217,17 @@ init_per_testcase(delta_observable_counter, Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
     Config;
+init_per_testcase(simple_fixed_exemplars, Config) ->
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping => default_temporality_mapping()}}]),
+
+    ok = application:set_env(opentelemetry_experimental, exemplars_enabled, true),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
 init_per_testcase(_, Config) ->
     application:load(opentelemetry_experimental),
     ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
