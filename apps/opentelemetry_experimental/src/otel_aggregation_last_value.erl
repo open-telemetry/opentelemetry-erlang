@@ -20,7 +20,7 @@
 -behaviour(otel_aggregation).
 
 -export([init/2,
-         aggregate/4,
+         aggregate/7,
          collect/3]).
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
@@ -34,7 +34,7 @@
 -eqwalizer({nowarn_function, checkpoint/3}).
 -eqwalizer({nowarn_function, collect/3}).
 -dialyzer({nowarn_function, checkpoint/3}).
--dialyzer({nowarn_function, aggregate/4}).
+-dialyzer({nowarn_function, aggregate/7}).
 -dialyzer({nowarn_function, collect/3}).
 -dialyzer({nowarn_function, maybe_delete_old_generation/4}).
 -dialyzer({nowarn_function, datapoint/2}).
@@ -59,9 +59,9 @@ init(#stream{name=Name,
                             %% not needed or used, but makes eqwalizer happy
                             checkpoint=0}.
 
-aggregate(Tab, Stream=#stream{name=Name,
-                              reader=ReaderId,
-                              forget=Forget}, Value, Attributes) ->
+aggregate(_Ctx, Tab, _ExemplarsTab, Stream=#stream{name=Name,
+                                                   reader=ReaderId,
+                                                   forget=Forget}, Value, Attributes, _DroppedAttributes) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);

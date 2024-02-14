@@ -155,7 +155,7 @@ record(Ctx, StreamsTab, MetricsTab, ExemplarsTab, Instrument, Number, Attributes
 
 -spec record(otel_ctx:t(), otel_meter:t(), ets:table(), ets:table(), ets:table(), otel_instrument:t() | otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok.
 record(Ctx, Meter, StreamTab, MetricsTab, ExemplarsTab, Name, Number, Attributes) ->
-    handle_measurement(Ctx, Meter, Name, ExemplarsTab, Number, Attributes, StreamTab, MetricsTab).
+    handle_measurement(Ctx, Meter, Name, Number, Attributes, StreamTab, MetricsTab, ExemplarsTab).
 
 -spec force_flush() -> ok.
 force_flush() ->

@@ -197,8 +197,8 @@ code_change(State) ->
 %%
 
 -spec collect_(any(), ets:table(), any(), ets:table(), reference()) -> [any()].
-collect_(CallbacksTab, StreamsTab, MetricsTab, _ExemplarTab, ReaderId) ->
-    _ = run_callbacks(ReaderId, CallbacksTab, StreamsTab, MetricsTab),
+collect_(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId) ->
+    _ = run_callbacks(ReaderId, CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab),
 
     %% Need to be able to efficiently get all from VIEW_AGGREGATIONS_TAB that apply to this reader
 
@@ -217,10 +217,10 @@ collect_(CallbacksTab, StreamsTab, MetricsTab, _ExemplarTab, ReaderId) ->
     Generation = inc_checkpoint_generation(ReaderId),
     collect_(CallbacksTab, StreamsTab, MetricsTab, Generation, ReaderId, [], Key).
 
-run_callbacks(ReaderId, CallbacksTab, StreamsTab, MetricsTab) ->
+run_callbacks(ReaderId, CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab) ->
     try ets:lookup_element(CallbacksTab, ReaderId, 2) of
         Callbacks ->
-            otel_observables:run_callbacks(Callbacks, ReaderId, StreamsTab, MetricsTab)
+            otel_observables:run_callbacks(Callbacks, ReaderId, StreamsTab, MetricsTab, ExemplarsTab)
     catch
         error:badarg ->
             []

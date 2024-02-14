@@ -3,7 +3,7 @@
 -behaviour(otel_aggregation).
 
 -export([init/2,
-         aggregate/4,
+         aggregate/7,
          collect/3]).
 
 -include("otel_metrics.hrl").
@@ -15,7 +15,7 @@
 init(_, _) ->
     #drop_aggregation{}.
 
-aggregate(_, _, _, _) ->
+aggregate(_, _, _, _, _, _, _) ->
     true.
 
 collect(_, _, _) ->

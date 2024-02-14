@@ -26,22 +26,22 @@
         otel_meter:create_observable_updowncounter(?current_meter, Name, Callback, CallbackArgs, Opts)).
 
 -define(counter_add(Name, Number),
-        otel_counter:add(?current_meter, Name, Number)).
+        otel_counter:add(otel_ctx:get_current(), ?current_meter, Name, Number)).
 
 -define(counter_add(Name, Number, Attributes),
-        otel_counter:add(?current_meter, Name, Number, Attributes)).
+        otel_counter:add(otel_ctx:get_current(), ?current_meter, Name, Number, Attributes)).
 
 -define(updown_counter_add(Name, Number),
-        otel_updown_counter:add(?current_meter, Name, Number)).
+        otel_updown_counter:add(otel_ctx:get_current(), ?current_meter, Name, Number)).
 
 -define(updown_counter_add(Name, Number, Attributes),
-        otel_updown_counter:add(?current_meter, Name, Number, Attributes)).
+        otel_updown_counter:add(otel_ctx:get_current(), ?current_meter, Name, Number, Attributes)).
 
 -define(histogram_record(Name, Number),
-        otel_histogram:record(?current_meter, Name, Number)).
+        otel_histogram:record(otel_ctx:get_current(), ?current_meter, Name, Number)).
 
 -define(histogram_record(Name, Number, Attributes),
-        otel_histogram:record(?current_meter, Name, Number, Attributes)).
+        otel_histogram:record(otel_ctx:get_current(), ?current_meter, Name, Number, Attributes)).
 
 -define(lookup_instrument(Name),
         otel_meter:lookup_instrument(?current_meter, Name)).
