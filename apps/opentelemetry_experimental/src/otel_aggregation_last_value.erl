@@ -59,9 +59,10 @@ init(#stream{name=Name,
                             %% not needed or used, but makes eqwalizer happy
                             checkpoint=0}.
 
-aggregate(_Ctx, Tab, _ExemplarsTab, Stream=#stream{name=Name,
-                                                   reader=ReaderId,
-                                                   forget=Forget}, Value, Attributes, _DroppedAttributes) ->
+aggregate(Ctx, Tab, ExemplarsTab, Stream=#stream{name=Name,
+                                                 reader=ReaderId,
+                                                 forget=Forget,
+                                                 exemplar_reservoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
@@ -71,10 +72,10 @@ aggregate(_Ctx, Tab, _ExemplarsTab, Stream=#stream{name=Name,
     Key = {Name, Attributes, ReaderId, Generation},
     case ets:update_element(Tab, Key, {#last_value_aggregation.value, Value}) of
         true ->
+            otel_metric_exemplar_reservoir:offer(Ctx, ExemplarReservoir, ExemplarsTab, Key, Value, DroppedAttributes),
             true;
         false ->
-            Metric = init(Stream, Attributes),
-            ets:insert(Tab, ?assert_type((?assert_type(Metric, #last_value_aggregation{}))#last_value_aggregation{value=Value}, tuple()))
+            false
     end.
 
 checkpoint(Tab, #stream{name=Name,
