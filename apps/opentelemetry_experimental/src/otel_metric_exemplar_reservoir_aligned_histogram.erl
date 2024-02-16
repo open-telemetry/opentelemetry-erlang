@@ -12,7 +12,24 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc Exemplar Reservoir used by the Explicit Histogram Aggregation. The
+%% same bucket boundaries as the aggregation. Simple algorithm for adding
+%% each new measurement as an exemplar:
+%%
+%% ```
+%%   bucket = find_histogram_bucket(measurement)
+%%   if bucket < num_buckets then
+%%     reservoir[bucket] = measurement
+%%   end
+
+%%   def find_histogram_bucket(measurement):
+%%     for boundary, idx in bucket_boundaries do
+%%       if value <= boundary then
+%%         return idx
+%%       end
+%%     end
+%%     return boundaries.length
+%%'''
 %%
 %% @end
 %%%-------------------------------------------------------------------------

@@ -21,7 +21,8 @@
 
 -export([init/2,
          aggregate/7,
-         collect/3]).
+         collect/3,
+         default_buckets/0]).
 
 -include("otel_metrics.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
@@ -142,6 +143,9 @@
 -dialyzer({nowarn_function, get_buckets/2}).
 -dialyzer({nowarn_function, counters_get/2}).
 
+default_buckets() ->
+    ?DEFAULT_BOUNDARIES.
+
 init(#stream{name=Name,
              reader=ReaderId,
              aggregation_options=Options,
@@ -166,10 +170,11 @@ init(#stream{name=Name,
                                     sum=0
                                    }.
 
-aggregate(_Ctx, Table, _ExemplarsTab, #stream{name=Name,
-                                              reader=ReaderId,
-                                              aggregation_options=Options,
-                                              forget=Forget}, Value, Attributes, DroppedAttributes) ->
+aggregate(Ctx, Table, ExemplarsTab, #stream{name=Name,
+                                            reader=ReaderId,
+                                            aggregation_options=Options,
+                                            forget=Forget,
+                                            exemplar_reservoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
@@ -195,7 +200,13 @@ aggregate(_Ctx, Table, _ExemplarsTab, #stream{name=Name,
             counters:add(BucketCounts, BucketIdx, 1),
 
             MS = ?AGGREATE_MATCH_SPEC(Key, Value, BucketCounts),
-            1 =:= ets:select_replace(Table, MS)
+            case ets:select_replace(Table, MS) of
+                1 ->
+                    otel_metric_exemplar_reservoir:offer(Ctx, ExemplarReservoir, ExemplarsTab, Key, Value, DroppedAttributes),
+                    true;
+                _ ->
+                    false
+            end
     end.
 
 checkpoint(Tab, #stream{name=Name,

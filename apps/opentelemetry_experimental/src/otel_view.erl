@@ -209,5 +209,7 @@ exemplar_reservoir(Kind, _) when Kind =:= ?KIND_COUNTER
                               ; Kind =:= ?KIND_OBSERVABLE_UPDOWNCOUNTER
                               ; Kind =:= ?KIND_OBSERVABLE_GAUGE ->
     otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_simple, #{});
+exemplar_reservoir(Kind, _) when Kind =:= ?KIND_HISTOGRAM ->
+    otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_aligned_histogram, #{});
 exemplar_reservoir(_Kind, _) ->
     otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_drop, #{}).

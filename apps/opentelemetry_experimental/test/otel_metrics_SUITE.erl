@@ -86,7 +86,7 @@ all() ->
      bad_observable_return, default_resource, histogram_aggregation_options, advisory_params,
      sync_delta_histogram, async_cumulative_page_faults, async_delta_page_faults,
      async_attribute_removal, sync_cumulative_histogram, simple_fixed_exemplars,
-     float_simple_fixed_exemplars
+     float_simple_fixed_exemplars, explicit_histogram_exemplars
     ].
 
 init_per_suite(Config) ->
@@ -230,6 +230,17 @@ init_per_testcase(simple_fixed_exemplars, Config) ->
 
     Config;
 init_per_testcase(float_simple_fixed_exemplars, Config) ->
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping => default_temporality_mapping()}}]),
+
+    ok = application:set_env(opentelemetry_experimental, exemplars_enabled, true),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
+init_per_testcase(explicit_histogram_exemplars, Config) ->
     application:load(opentelemetry_experimental),
     ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
                                                                      config => #{exporter => {otel_metric_exporter_pid, self()},
@@ -1993,6 +2004,72 @@ float_simple_fixed_exemplars(_Config) ->
 
     ?assertEqual(TotalMeasurements, Count1),
     ?assertEqual(MaxExemplars, length(Matches1)),
+
+    ok.
+
+explicit_histogram_exemplars(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = f_histogram,
+    CounterDesc = <<"macro made histogram description">>,
+    CounterUnit = kb,
+    CBAttributes = #{<<"c">> => <<"b">>},
+
+    Counter = ?create_histogram(CounterName, #{description => CounterDesc,
+                                               unit => CounterUnit}),
+    Ctx = otel_ctx:new(),
+
+    ?assertEqual(ok, otel_histogram:record(Ctx, Counter, 10.3, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Counter, 10.3, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, ?histogram_record(CounterName, 5.5, #{<<"c">> => <<"b">>})),
+
+    %% without attributes
+    ?assertEqual(ok, ?histogram_record(CounterName, 1.2)),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Counter, 2.1)),
+
+    %% negative values are discarded
+    ?assertEqual(ok, ?histogram_record(CounterName, -2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Counter, -2)),
+
+    %% float type accepts integers
+    ?assertEqual(ok, ?histogram_record(CounterName, 5, #{<<"c">> => <<"b">>})),
+
+    ExemplarsTab = exemplars_otel_meter_provider_global,
+
+    %% measurements recorded before the first collection so generation is `0'
+    Generation0 = 0,
+    ExemplarReservoir = otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_aligned_histogram, #{}),
+
+    Matches = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {CounterName, CBAttributes, '_', Generation0}),
+
+    ?assertEqual([], ets:match(ExemplarsTab, {{{CounterName, CBAttributes, '_', Generation0}, '_'}, '$1'})),
+    ?assertMatch([[{exemplar,5, _, _ , _, _}],
+                  [{exemplar,5.5, _, _ , _, _}],
+                  [{exemplar,10.3, _, _ , _, _}]], lists:sort(Matches)),
+
+    otel_meter_server:force_flush(),
+
+    receive
+        {otel_metric, #metric{name=f_histogram,
+                              data=#histogram{datapoints=Datapoints}}} ->
+            AttributeBuckets =
+                [{Attributes, Buckets, Min, Max, Sum}
+                 || #histogram_datapoint{bucket_counts=Buckets,
+                                         attributes=Attributes,
+                                         min=Min,
+                                         max=Max,
+                                         sum=Sum}  <- Datapoints],
+            ?assertEqual([], [
+                              {#{<<"c">> => <<"b">>}, [0,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0], 5, 10.3, 31.1},
+                              {#{}, [0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 1.2, 2.1, 3.3}]
+                         -- AttributeBuckets, AttributeBuckets)
+    after
+        5000 ->
+            ct:fail(histogram_receive_timeout)
+    end,
 
     ok.
 
