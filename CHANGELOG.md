@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Handle `explict_bucket_boundaries` advisory parameter](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
 - [Rename `boundaries` to `explict_bucket_boundaries` in histogram explicit aggregation options](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
 - [Allow creating wildcard views](https://github.com/open-telemetry/opentelemetry-erlang/pull/624)
+- [Exemplars support](https://github.com/open-telemetry/opentelemetry-erlang/pull/692)
 
 ### Changes
 
