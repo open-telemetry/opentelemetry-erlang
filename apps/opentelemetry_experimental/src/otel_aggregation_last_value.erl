@@ -59,10 +59,10 @@ init(#stream{name=Name,
                             %% not needed or used, but makes eqwalizer happy
                             checkpoint=0}.
 
-aggregate(Ctx, Tab, ExemplarsTab, Stream=#stream{name=Name,
-                                                 reader=ReaderId,
-                                                 forget=Forget,
-                                                 exemplar_reservoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes) ->
+aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
+                                          reader=ReaderId,
+                                          forget=Forget,
+                                          exemplar_reservoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
@@ -157,5 +157,5 @@ datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime, #last_value_aggr
                start_time=StartTime,
                time=CollectionStartTime,
                value=Checkpoint,
-               exemplars=[],
+               exemplars=Exemplars,
                flags=0}.

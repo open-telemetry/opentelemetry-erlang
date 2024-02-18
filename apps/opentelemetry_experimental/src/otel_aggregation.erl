@@ -27,14 +27,18 @@
       Attributes :: opentelemetry:attributes_map(),
       Aggregation :: t().
 
--callback aggregate(Table, Stream, Value, Attributes) -> boolean() when
+-callback aggregate(Ctx, Table, ExemplarTable, Stream, Value, Attributes, DroppedAttributes) -> boolean() when
+      Ctx :: otel_ctx:t(),
       Table :: ets:table(),
+      ExemplarTable :: ets:table(),
       Stream :: #stream{},
       Value :: number(),
-      Attributes :: opentelemetry:attributes_map().
+      Attributes :: opentelemetry:attributes_map(),
+      DroppedAttributes :: opentelemetry:attributes_map().
 
--callback collect(Table, Stream, Generation) -> tuple() when
+-callback collect(Table, ExemplarTable, Stream, Generation) -> tuple() when
       Table :: ets:table(),
+      ExemplarTable :: ets:table(),
       Stream :: #stream{},
       Generation :: integer().
 
