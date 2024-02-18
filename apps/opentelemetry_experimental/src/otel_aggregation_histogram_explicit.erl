@@ -21,7 +21,7 @@
 
 -export([init/2,
          aggregate/7,
-         collect/3,
+         collect/4,
          default_buckets/0]).
 
 -include("otel_metrics.hrl").
@@ -134,12 +134,12 @@
 
 %% ignore eqwalizer errors in functions using a lot of matchspecs
 -eqwalizer({nowarn_function, checkpoint/3}).
--eqwalizer({nowarn_function, collect/3}).
+-eqwalizer({nowarn_function, collect/4}).
 -dialyzer({nowarn_function, checkpoint/3}).
 -dialyzer({nowarn_function, aggregate/7}).
--dialyzer({nowarn_function, collect/3}).
+-dialyzer({nowarn_function, collect/4}).
 -dialyzer({nowarn_function, maybe_delete_old_generation/4}).
--dialyzer({nowarn_function, datapoint/2}).
+-dialyzer({nowarn_function, datapoint/4}).
 -dialyzer({nowarn_function, get_buckets/2}).
 -dialyzer({nowarn_function, counters_get/2}).
 
@@ -246,10 +246,11 @@ checkpoint(_Tab, _, _) ->
 
     ok.
 
-collect(Tab, Stream=#stream{name=Name,
-                            reader=ReaderId,
-                            temporality=Temporality,
-                            forget=Forget}, Generation0) ->
+collect(Tab, ExemplarsTab, Stream=#stream{name=Name,
+                                          reader=ReaderId,
+                                          temporality=Temporality,
+                                          forget=Forget,
+                                          exemplar_reservoir=ExemplarReservoir}, Generation0) ->
     CollectionStartTime = opentelemetry:timestamp(),
     Generation = case Forget of
                      true ->
@@ -270,7 +271,7 @@ collect(Tab, Stream=#stream{name=Name,
                                                max='$8',
                                                sum='$9'}, [], ['$_']}],
     AttributesAggregation = ets:select(Tab, Select),
-    Result = #histogram{datapoints=[datapoint(CollectionStartTime, SumAgg) || SumAgg <- AttributesAggregation],
+    Result = #histogram{datapoints=[datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime, SumAgg) || SumAgg <- AttributesAggregation],
                         aggregation_temporality=Temporality},
 
     %% would be nice to do this in the reader so its not duplicated in each aggregator
@@ -293,16 +294,17 @@ maybe_delete_old_generation(Tab, Name, ReaderId, Generation) ->
                [true]}],
     ets:select_delete(Tab, Select).
 
-datapoint(CollectionStartTime, #explicit_histogram_aggregation{
-                                  key={_, Attributes, _, _},
-                                  explicit_bucket_boundaries=Boundaries,
-                                  start_time=StartTime,
-                                  checkpoint=undefined,
-                                  bucket_counts=BucketCounts,
-                                  min=Min,
-                                  max=Max,
-                                  sum=Sum
-                                 }) ->
+datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime, #explicit_histogram_aggregation{
+                                                                   key=Key={_, Attributes, _, _},
+                                                                   explicit_bucket_boundaries=Boundaries,
+                                                                   start_time=StartTime,
+                                                                   checkpoint=undefined,
+                                                                   bucket_counts=BucketCounts,
+                                                                   min=Min,
+                                                                   max=Max,
+                                                                   sum=Sum
+                                                                  }) ->
+    Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     Buckets = get_buckets(BucketCounts, Boundaries),
     #histogram_datapoint{
        attributes=Attributes,
@@ -312,20 +314,21 @@ datapoint(CollectionStartTime, #explicit_histogram_aggregation{
        sum=Sum,
        bucket_counts=Buckets,
        explicit_bounds=Boundaries,
-       exemplars=[],
+       exemplars=Exemplars,
        flags=0,
        min=Min,
        max=Max
       };
-datapoint(CollectionStartTime, #explicit_histogram_aggregation{
-                                  key={_, Attributes, _, _},
-                                  explicit_bucket_boundaries=Boundaries,
-                                  checkpoint=#explicit_histogram_checkpoint{bucket_counts=BucketCounts,
-                                                                            min=Min,
-                                                                            max=Max,
-                                                                            sum=Sum,
-                                                                            start_time=StartTime}
-                                 }) ->
+datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime, #explicit_histogram_aggregation{
+                                                                   key=Key={_, Attributes, _, _},
+                                                                   explicit_bucket_boundaries=Boundaries,
+                                                                   checkpoint=#explicit_histogram_checkpoint{bucket_counts=BucketCounts,
+                                                                                                             min=Min,
+                                                                                                             max=Max,
+                                                                                                             sum=Sum,
+                                                                                                             start_time=StartTime}
+                                                                  }) ->
+    Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     Buckets = get_buckets(BucketCounts, Boundaries),
     #histogram_datapoint{
        attributes=Attributes,
@@ -335,7 +338,7 @@ datapoint(CollectionStartTime, #explicit_histogram_aggregation{
        sum=Sum,
        bucket_counts=Buckets,
        explicit_bounds=Boundaries,
-       exemplars=[],
+       exemplars=Exemplars,
        flags=0,
        min=Min,
        max=Max
