@@ -215,7 +215,7 @@ collect_(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId) ->
     Key = ets:first(StreamsTab),
 
     Generation = inc_checkpoint_generation(ReaderId),
-    collect_(CallbacksTab, StreamsTab, MetricsTab, Generation, ReaderId, [], Key).
+    collect_(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, Generation, ReaderId, [], Key).
 
 run_callbacks(ReaderId, CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab) ->
     try ets:lookup_element(CallbacksTab, ReaderId, 2) of
@@ -226,27 +226,29 @@ run_callbacks(ReaderId, CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab) ->
             []
     end.
 
-collect_(_CallbacksTab, _StreamsTab, _MetricsTab, _Generation, _ReaderId, MetricsAcc, '$end_of_table') ->
+collect_(_CallbacksTab, _StreamsTab, _MetricsTab, _ExemplarsTab, _Generation, _ReaderId, MetricsAcc, '$end_of_table') ->
     MetricsAcc;
-collect_(CallbacksTab, StreamsTab, MetricsTab, Generation, ReaderId, MetricsAcc, Key) ->
+collect_(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, Generation, ReaderId, MetricsAcc, Key) ->
     Streams = ets:lookup_element(StreamsTab, Key, 2),
-    collect_(CallbacksTab, StreamsTab, MetricsTab, Generation, ReaderId,
+    collect_(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, Generation, ReaderId,
              checkpoint_metrics(MetricsTab,
+                                ExemplarsTab,
                                 Generation,
                                 ReaderId,
                                 Streams) ++ MetricsAcc,
              ets:next(StreamsTab, Key)).
 
-checkpoint_metrics(MetricsTab, Generation, Id, Streams) ->
+checkpoint_metrics(MetricsTab, ExemplarsTab, Generation, Id, Streams) ->
     lists:foldl(fun(#stream{aggregation_module=otel_aggregation_drop}, Acc) ->
                         Acc;
                    (Stream=#stream{name=Name,
-                                                      reader=ReaderId,
-                                                      instrument=Instrument=#instrument{unit=Unit},
-                                                      aggregation_module=AggregationModule,
-                                                      description=Description
-                                                     }, Acc) when Id =:= ReaderId ->
+                                   reader=ReaderId,
+                                   instrument=Instrument=#instrument{unit=Unit},
+                                   aggregation_module=AggregationModule,
+                                   description=Description
+                                  }, Acc) when Id =:= ReaderId ->
                         Data = AggregationModule:collect(MetricsTab,
+                                                         ExemplarsTab,
                                                          Stream,
                                                          Generation),
                         [metric(Instrument, Name, Description, Unit, Data) | Acc];

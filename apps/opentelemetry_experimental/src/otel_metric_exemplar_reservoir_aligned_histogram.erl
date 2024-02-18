@@ -67,7 +67,6 @@ collect(ExemplarsTab, Key, _State) ->
 %%
 
 add_exemplar(Ctx, ExemplarsTab, Key, Bucket, Value, FilteredAttributes) ->
-    ct:pal("ADD ~p ~p", [Value, Bucket]),
     Time = opentelemetry:timestamp(),
     {TraceId, SpanId} = case otel_tracer:current_span_ctx(Ctx) of
                             #span_ctx{trace_id=TraceId0,

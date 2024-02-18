@@ -1890,10 +1890,6 @@ simple_fixed_exemplars(_Config) ->
     ?assertEqual(ok, otel_counter:add(Ctx, Counter, 4, CBAttributes)),
     ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5, CBAttributes)),
 
-    otel_meter_server:force_flush(),
-
-    ?assertSumReceive(test_exemplar_counter, <<"counter description">>, kb, [{11, CBAttributes}]),
-
     ExemplarsTab = exemplars_otel_meter_provider_global,
 
     %% default number of exemplars in SimpleFixedReservoir is the number of schedulers
@@ -1911,6 +1907,9 @@ simple_fixed_exemplars(_Config) ->
     ?assertEqual([], ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation0}, '$1'})),
     ?assertEqual([], ets:match(ExemplarsTab, {{{test_exemplar_counter, CBAttributes, '_', Generation0}, '_'}, '$1'})),
     ?assertEqual(min(3, MaxExemplars), length(Matches)),
+
+    %% bump generation
+    otel_meter_server:force_flush(),
 
     %% now do more than `MaxExemplars' measurements to check it still only keeps
     %% total of `MaxExemplars'
@@ -1931,6 +1930,10 @@ simple_fixed_exemplars(_Config) ->
 
     ?assertEqual(TotalMeasurements, Count1),
     ?assertEqual(MaxExemplars, length(Matches1)),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(test_exemplar_counter, <<"counter description">>, kb, [{11, CBAttributes}]),
 
     ok.
 
@@ -1963,10 +1966,6 @@ float_simple_fixed_exemplars(_Config) ->
     ?assertEqual(ok, otel_counter:add(Ctx, Counter, 4.1, CBAttributes)),
     ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5.8, CBAttributes)),
 
-    otel_meter_server:force_flush(),
-
-    ?assertSumReceive(CounterName, CounterDesc, CounterUnit, [{12.1, CBAttributes}]),
-
     ExemplarsTab = exemplars_otel_meter_provider_global,
 
     %% default number of exemplars in SimpleFixedReservoir is the number of schedulers
@@ -1984,6 +1983,9 @@ float_simple_fixed_exemplars(_Config) ->
     ?assertEqual([], ets:match(ExemplarsTab, {{CounterName, CBAttributes, '_', Generation0}, '$1'})),
     ?assertEqual([], ets:match(ExemplarsTab, {{{CounterName, CBAttributes, '_', Generation0}, '_'}, '$1'})),
     ?assertEqual(min(3, MaxExemplars), length(Matches)),
+
+    otel_meter_server:force_flush(),
+    ?assertSumReceive(CounterName, CounterDesc, CounterUnit, [{12.1, CBAttributes}]),
 
     %% now do more than `MaxExemplars' measurements to check it still only keeps
     %% total of `MaxExemplars'
