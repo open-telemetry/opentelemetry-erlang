@@ -138,7 +138,7 @@ to_exemplars(Exemplars) ->
     [to_exemplar(Exemplar) || Exemplar <- Exemplars].
 
 to_exemplar(#exemplar{value=Value,
-                      time_unix_nano=Time,
+                      time=Time,
                       filtered_attributes=FilteredAttributes,
                       span_id=SpanId,
                       trace_id=TraceId}) ->

@@ -9,6 +9,7 @@
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
 -include_lib("opentelemetry_experimental/include/otel_metrics.hrl").
+-include_lib("opentelemetry_experimental/src/otel_metric_exemplar.hrl").
 
 all() ->
     [{group, functional}, {group, http_protobuf}, {group, http_protobuf_gzip},
@@ -70,6 +71,13 @@ verify_metrics_export(Config) ->
     {ok, State} = opentelemetry_exporter:init(#{protocol => Protocol,
                                                 compression => Compression,
                                                 endpoints => [{http, "localhost", Port, []}]}),
+
+    Exemplars = [#exemplar{filtered_attributes=#{<<"a">> => <<"b">>},
+                           time=opentelemetry:timestamp(),
+                           value=3,
+                           span_id=otel_id_generator:generate_span_id(),
+                           trace_id=otel_id_generator:generate_trace_id()}],
+
     Metrics = [#metric{scope=#instrumentation_scope{name = <<"scope-1">>,
                                                     version = <<"version-1">>,
                                                     schema_url = <<"https://example.com/schemas/1.8.0">>},
@@ -84,7 +92,7 @@ verify_metrics_export(Config) ->
                                                   start_time=opentelemetry:timestamp(),
                                                   time=opentelemetry:timestamp(),
                                                   value=5,
-                                                  exemplars=[],
+                                                  exemplars=Exemplars,
                                                   flags=0
                                                  },
                                                #datapoint{

@@ -25,10 +25,10 @@
 
 -export_type([exemplar/0]).
 
--spec new(number(), integer(), opentelemetry:attributes_map(), opentelemetry:trace_id() | undefined, opentelemetry:span_id() | undefined) -> exemplar().
+-spec new(number(), opentelemetry:timestamp(), opentelemetry:attributes_map(), opentelemetry:trace_id() | undefined, opentelemetry:span_id() | undefined) -> exemplar().
 new(Value, Time, FilteredAttributes, TraceId, SpanId) ->
     #exemplar{value=Value,
-              time_unix_nano=Time,
+              time=Time,
               filtered_attributes=FilteredAttributes,
               span_id=SpanId,
               trace_id=TraceId}.
