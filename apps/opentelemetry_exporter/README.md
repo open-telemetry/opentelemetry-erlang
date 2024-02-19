@@ -171,7 +171,7 @@ $ git checkout <tag>
 $ popd
 
 # bug in grpcbox plugin means we need to delete _pb files first to regenerate them
-$ rm./apps/opentelemetry_exporter/src/opentelemetry_exporter_trace_service_pb.erl  ./apps/opentelemetry_exporter/src/opentelemetry_exporter_metrics_service_pb.erl ./apps/opentelemetry_exporter/src/opentelemetry_exporter_logs_service_pb.erl
+$ rm ./apps/opentelemetry_exporter/src/opentelemetry_exporter_trace_service_pb.erl  ./apps/opentelemetry_exporter/src/opentelemetry_exporter_metrics_service_pb.erl ./apps/opentelemetry_exporter/src/opentelemetry_exporter_logs_service_pb.erl
 
 $ rebar3 grpc gen -t client
 ...
