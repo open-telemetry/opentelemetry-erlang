@@ -58,7 +58,7 @@ offer(Ctx, ExemplarsTab, Key, Value, FilteredAttributes, #state{bucket_boundarie
 %% @doc Return all exemplars for a `Key' and then delete them.
 -spec collect(ets:table(), term(), #state{}) -> [otel_metric_exemplar:exemplar()].
 collect(ExemplarsTab, Key, _State) ->
-    Exemplars = ets:match(ExemplarsTab, {{Key, '_'}, '$1'}),
+    Exemplars = [E || [E] <- ets:match(ExemplarsTab, {{Key, '_'}, '$1'})],
 
     _ = ets:match_delete(ExemplarsTab, {{Key, '_'}, '_'}),
 

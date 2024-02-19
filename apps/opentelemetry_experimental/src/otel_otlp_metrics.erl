@@ -140,8 +140,18 @@ to_exemplars(Exemplars) ->
 to_exemplar(#exemplar{value=Value,
                       time=Time,
                       filtered_attributes=FilteredAttributes,
+                      span_id=undefined,
+                      trace_id=undefined}) ->
+    #{filtered_attributes => otel_otlp_common:to_attributes(FilteredAttributes),
+      time_unix_nano      => opentelemetry:timestamp_to_nano(Time),
+      value               => value_to_int_or_double(Value)
+     };
+to_exemplar(#exemplar{value=Value,
+                      time=Time,
+                      filtered_attributes=FilteredAttributes,
                       span_id=SpanId,
-                      trace_id=TraceId}) ->
+                      trace_id=TraceId}) when SpanId =/= undefined andalso
+                                              TraceId =/= undefined  ->
     #{filtered_attributes => otel_otlp_common:to_attributes(FilteredAttributes),
       time_unix_nano      => opentelemetry:timestamp_to_nano(Time),
       value               => value_to_int_or_double(Value),

@@ -45,8 +45,8 @@ run_callbacks(Callbacks, ReaderId, StreamTab, MetricsTab, ExemplarsTab) ->
                           %% when not a list of instruments it isn't expecting named observation
                           %% results so we use handle_instrument instead of handle_instruments
                           %% but we can't type that correctly so have to use a `fixme'
-                          %% eqwalizer:fixme can maybe do better typing to not have to ignore this
                           handle_instrument_observations(Ctx,
+                                                         %% eqwalizer:fixme can maybe do better typing
                                                          Results,
                                                          Instrument,
                                                          StreamTab,

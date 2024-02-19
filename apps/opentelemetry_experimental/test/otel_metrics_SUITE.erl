@@ -2048,9 +2048,9 @@ explicit_histogram_exemplars(_Config) ->
     Matches = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {CounterName, CBAttributes, '_', Generation0}),
 
     ?assertEqual([], ets:match(ExemplarsTab, {{{CounterName, CBAttributes, '_', Generation0}, '_'}, '$1'})),
-    ?assertMatch([[{exemplar,5, _, _ , _, _}],
-                  [{exemplar,5.5, _, _ , _, _}],
-                  [{exemplar,10.3, _, _ , _, _}]], lists:sort(Matches)),
+    ?assertMatch([{exemplar,5, _, _ , _, _},
+                  {exemplar,5.5, _, _ , _, _},
+                  {exemplar,10.3, _, _ , _, _}], lists:sort(Matches)),
 
     otel_meter_server:force_flush(),
 
