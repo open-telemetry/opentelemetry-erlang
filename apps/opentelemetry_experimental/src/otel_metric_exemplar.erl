@@ -36,9 +36,9 @@ new(Value, Time, FilteredAttributes, TraceId, SpanId) ->
               trace_id=TraceId}.
 
 
-reservoir(_, ExemplarsEnabled, ExemplarFilter) when ExemplarFilter =:= always_off ;
+reservoir(Kind, ExemplarsEnabled, ExemplarFilter) when ExemplarFilter =:= always_off ;
                                                     ExemplarsEnabled =:= false ->
-    otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_drop, #{}, fun otel_metric_exemplar_filter:always_off/6);
+    reservoir(Kind, fun otel_metric_exemplar_filter:always_off/6);
 reservoir(Kind, _, always_on) ->
     reservoir(Kind, fun otel_metric_exemplar_filter:always_on/6);
 reservoir(Kind, _, trace_based) ->
@@ -54,4 +54,4 @@ reservoir(Kind, Filter) when Kind =:= ?KIND_COUNTER
 reservoir(Kind, Filter) when Kind =:= ?KIND_HISTOGRAM ->
     otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_aligned_histogram, #{}, Filter);
 reservoir(_Kind, Filter) ->
-    otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_drop, #{}, Filter).
+    otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_simple, #{}, Filter).
