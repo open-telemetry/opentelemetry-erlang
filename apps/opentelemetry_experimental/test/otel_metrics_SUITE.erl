@@ -225,6 +225,7 @@ init_per_testcase(simple_fixed_exemplars, Config) ->
                                                                                  default_temporality_mapping => default_temporality_mapping()}}]),
 
     ok = application:set_env(opentelemetry_experimental, exemplars_enabled, true),
+    ok = application:set_env(opentelemetry_experimental, exemplar_filter, always_on),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
@@ -236,6 +237,7 @@ init_per_testcase(float_simple_fixed_exemplars, Config) ->
                                                                                  default_temporality_mapping => default_temporality_mapping()}}]),
 
     ok = application:set_env(opentelemetry_experimental, exemplars_enabled, true),
+    ok = application:set_env(opentelemetry_experimental, exemplar_filter, always_on),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
@@ -247,6 +249,7 @@ init_per_testcase(explicit_histogram_exemplars, Config) ->
                                                                                  default_temporality_mapping => default_temporality_mapping()}}]),
 
     ok = application:set_env(opentelemetry_experimental, exemplars_enabled, true),
+    ok = application:set_env(opentelemetry_experimental, exemplar_filter, always_on),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
@@ -547,14 +550,14 @@ view_creation_test(_Config) ->
     %% view name becomes the instrument name
     ?assertEqual(a_counter, View#view.name),
 
-    Matches = otel_view:match_instrument_to_views(Counter, [View], false),
+    Matches = otel_view:match_instrument_to_views(Counter, [View], false, always_off),
     ?assertMatch([_], Matches),
 
     {ok, ViewUnitMatch} = otel_view:new(#{instrument_name => CounterName, instrument_unit => CounterUnit}, #{aggregation_module => otel_aggregation_sum}),
-    ?assertMatch([{#view{}, _}], otel_view:match_instrument_to_views(Counter, [ViewUnitMatch], false)),
+    ?assertMatch([{#view{}, _}], otel_view:match_instrument_to_views(Counter, [ViewUnitMatch], false, always_off)),
 
     {ok, ViewUnitNotMatch} = otel_view:new(#{instrument_name => CounterName, instrument_unit => not_matching}, #{aggregation_module => otel_aggregation_sum}),
-    ?assertMatch([{undefined, _}], otel_view:match_instrument_to_views(Counter, [ViewUnitNotMatch], false)),
+    ?assertMatch([{undefined, _}], otel_view:match_instrument_to_views(Counter, [ViewUnitNotMatch], false, always_off)),
 
     %% views require a unique name
     ?assert(otel_meter_server:add_view(view_b, #{instrument_name => a_counter}, #{aggregation_module => otel_aggregation_sum})),
@@ -594,7 +597,7 @@ wildcard_view(_Config) ->
     ?assertNotReceive(CounterName, CounterDesc, CounterUnit),
 
     {ok, View} = otel_view:new(ViewCriteria, ViewConfig),
-    ?assertMatch([{#view{}, _}], otel_view:match_instrument_to_views(Counter, [View], false)),
+    ?assertMatch([{#view{}, _}], otel_view:match_instrument_to_views(Counter, [View], false, always_off)),
 
     %% not possible to create wildcard views with a name
     {error, named_wildcard_view} = otel_view:new(view_name, ViewCriteria, ViewConfig),
@@ -1897,7 +1900,7 @@ simple_fixed_exemplars(_Config) ->
 
     %% measurements recorded before the first collection so generation is `0'
     Generation0 = 0,
-    ExemplarReservoir = otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_simple, #{}),
+    ExemplarReservoir = otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_simple, #{}, fun otel_metric_exemplar_filter:always_on/6),
     %% exemplars for CBAttributes should be the min of 3
     %% (the number of measurements we made above) and MaxExemplars
     [[Count]] = ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation0}, '$1'}),
@@ -1973,7 +1976,7 @@ float_simple_fixed_exemplars(_Config) ->
 
     %% measurements recorded before the first collection so generation is `0'
     Generation0 = 0,
-    ExemplarReservoir = otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_simple, #{}),
+    ExemplarReservoir = otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_simple, #{}, fun otel_metric_exemplar_filter:always_on/6),
     %% exemplars for CBAttributes should be the min of 3
     %% (the number of measurements we made above) and MaxExemplars
     [[Count]] = ets:match(ExemplarsTab, {{CounterName, CBAttributes, '_', Generation0}, '$1'}),
@@ -2043,7 +2046,7 @@ explicit_histogram_exemplars(_Config) ->
 
     %% measurements recorded before the first collection so generation is `0'
     Generation0 = 0,
-    ExemplarReservoir = otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_aligned_histogram, #{}),
+    ExemplarReservoir = otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_aligned_histogram, #{}, fun otel_metric_exemplar_filter:always_on/6),
 
     Matches = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {CounterName, CBAttributes, '_', Generation0}),
 

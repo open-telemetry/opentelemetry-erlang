@@ -52,6 +52,8 @@
                                 %% when Metrics are moved out of the experimental app
                readers := [#{id := atom(), module => module(), config => map()}],
                exemplars_enabled := boolean(),
+               exemplar_filter := always_on | always_off | trace_based,
+
                processors := list(),
                sampler := {atom(), term()},
                sweeper := #{interval => integer() | infinity,
@@ -91,6 +93,7 @@ new() ->
                    views => [],
                    readers => [],
                    exemplars_enabled => false,
+                   exemplar_filter => trace_based,
                    processors => [{otel_batch_processor, ?BATCH_PROCESSOR_DEFAULTS}],
                    sampler => {parent_based, #{root => always_on}},
                    sweeper => #{interval => timer:minutes(10),
@@ -314,6 +317,7 @@ config_mappings(general_sdk) ->
      {"OTEL_METRIC_VIEWS", views, views},
      {"OTEL_METRIC_READERS", readers, readers},
      {"OTEL_ERLANG_X_EXEMPLARS_ENABLED", exemplars_enabled, boolean},
+     {"OTEL_METRICS_EXEMPLAR_FILTER", exemplar_filter, exemplar_filter},
      {"OTEL_RESOURCE_DETECTORS", resource_detectors, existing_atom_list},
      {"OTEL_RESOURCE_DETECTOR_TIMEOUT", resource_detector_timeout, integer},
 
@@ -502,6 +506,14 @@ transform(span_processor, SpanProcessor) ->
     SpanProcessor;
 transform(readers, Readers) ->
     Readers;
+transform(exemplar_filter, ExemplarFilter) when ExemplarFilter =:= "always_on" ;
+                                                ExemplarFilter =:= always_on ->
+    always_on;
+transform(exemplar_filter, ExemplarFilter) when ExemplarFilter =:= "always_off" ;
+                                                ExemplarFilter =:= always_off ->
+    always_off;
+transform(exemplar_filter, _) ->
+    trace_based;
 transform(views, Views) ->
     Views.
 

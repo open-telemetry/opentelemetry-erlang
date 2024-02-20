@@ -19,7 +19,7 @@
 
 -export([new/2,
          new/3,
-         match_instrument_to_views/3]).
+         match_instrument_to_views/4]).
 
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
@@ -87,16 +87,16 @@ do_new(Criteria, Config) ->
           aggregation_module=maps:get(aggregation_module, Config, undefined),
           aggregation_options=maps:get(aggregation_options, Config, #{})}.
 
--spec match_instrument_to_views(otel_instrument:t(), [t()], boolean()) -> [{t() | undefined, #stream{}}].
+-spec match_instrument_to_views(otel_instrument:t(), [t()], boolean(), always_on | always_off | trace_based) -> [{t() | undefined, #stream{}}].
 match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                                  meter=Meter,
                                                  kind=Kind,
                                                  description=Description,
-                                                 advisory_params=AdvisoryParams}, Views, ExemplarsEnabled) ->
+                                                 advisory_params=AdvisoryParams}, Views, ExemplarsEnabled, ExemplarFilter) ->
     IsMonotonic = otel_instrument:is_monotonic(Instrument),
     Temporality = otel_instrument:temporality(Instrument),
     Scope = otel_meter:scope(Meter),
-    ExemplarReservoir= exemplar_reservoir(Kind, ExemplarsEnabled),
+    ExemplarReservoir= otel_metric_exemplar:reservoir(Kind, ExemplarsEnabled, ExemplarFilter),
     case lists:filtermap(fun(View=#view{name=ViewName,
                                         description=ViewDescription,
                                         attribute_keys=AttributeKeys,
@@ -201,15 +201,3 @@ view_name_from_criteria(Criteria) when is_map(Criteria) ->
 view_name_from_criteria(_) ->
     undefined.
 
-exemplar_reservoir(_, false) ->
-    otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_drop, #{});
-exemplar_reservoir(Kind, _) when Kind =:= ?KIND_COUNTER
-                              ; Kind =:= ?KIND_OBSERVABLE_COUNTER
-                              ; Kind =:= ?KIND_UPDOWN_COUNTER
-                              ; Kind =:= ?KIND_OBSERVABLE_UPDOWNCOUNTER
-                              ; Kind =:= ?KIND_OBSERVABLE_GAUGE ->
-    otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_simple, #{});
-exemplar_reservoir(Kind, _) when Kind =:= ?KIND_HISTOGRAM ->
-    otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_aligned_histogram, #{});
-exemplar_reservoir(_Kind, _) ->
-    otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_drop, #{}).

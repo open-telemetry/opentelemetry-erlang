@@ -17,21 +17,30 @@
 %%%-------------------------------------------------------------------------
 -module(otel_metric_exemplar_reservoir).
 
--export([new/2,
+-export([new/3,
          offer/6,
          collect/3]).
 
 -record(exemplar_resevoir, {module :: module(),
-                            state :: term()}).
+                            state :: term(),
+                            filter :: fun()}).
 
-new(Module, Config) ->
+new(Module, Config, Filter) ->
     State = Module:new(Config),
     #exemplar_resevoir{module=Module,
-                       state=State}.
+                       state=State,
+                       filter=Filter}.
 
-offer(Ctx, #exemplar_resevoir{module=Module,
-                              state=State}, ExemplarTab, Key, Value, DroppedAttributes) ->
-    Module:offer(Ctx, ExemplarTab, Key, Value, DroppedAttributes, State).
+offer(Ctx, ExemplarReservoir=#exemplar_resevoir{module=Module,
+                                                state=State,
+                                                filter=Filter},
+      ExemplarTab, Key, Value, DroppedAttributes) ->
+    case Filter(Ctx, ExemplarReservoir, ExemplarTab, Key, Value, DroppedAttributes) of
+        true ->
+            Module:offer(Ctx, ExemplarTab, Key, Value, DroppedAttributes, State);
+        _ ->
+            ok
+    end.
 
 collect(#exemplar_resevoir{module=Module,
                            state=State}, ExemplarTab, Key) ->

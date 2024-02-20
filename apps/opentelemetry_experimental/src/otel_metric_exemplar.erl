@@ -17,9 +17,11 @@
 %%%-------------------------------------------------------------------------
 -module(otel_metric_exemplar).
 
--export([new/5]).
+-export([new/5,
+         reservoir/3]).
 
 -include("otel_metric_exemplar.hrl").
+-include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 
 -type exemplar() :: #exemplar{}.
 
@@ -32,3 +34,24 @@ new(Value, Time, FilteredAttributes, TraceId, SpanId) ->
               filtered_attributes=FilteredAttributes,
               span_id=SpanId,
               trace_id=TraceId}.
+
+
+reservoir(_, ExemplarsEnabled, ExemplarFilter) when ExemplarFilter =:= always_off ;
+                                                    ExemplarsEnabled =:= false ->
+    otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_drop, #{}, fun otel_metric_exemplar_filter:always_off/6);
+reservoir(Kind, _, always_on) ->
+    reservoir(Kind, fun otel_metric_exemplar_filter:always_on/6);
+reservoir(Kind, _, trace_based) ->
+    Filter = fun otel_metric_exemplar_filter:sampled/6,
+    reservoir(Kind, Filter).
+
+reservoir(Kind, Filter) when Kind =:= ?KIND_COUNTER
+                             ; Kind =:= ?KIND_OBSERVABLE_COUNTER
+                             ; Kind =:= ?KIND_UPDOWN_COUNTER
+                             ; Kind =:= ?KIND_OBSERVABLE_UPDOWNCOUNTER
+                             ; Kind =:= ?KIND_OBSERVABLE_GAUGE ->
+    otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_simple, #{}, Filter);
+reservoir(Kind, Filter) when Kind =:= ?KIND_HISTOGRAM ->
+    otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_aligned_histogram, #{}, Filter);
+reservoir(_Kind, Filter) ->
+    otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_drop, #{}, Filter).
