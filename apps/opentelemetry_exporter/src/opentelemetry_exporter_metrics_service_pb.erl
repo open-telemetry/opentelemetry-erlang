@@ -49,6 +49,7 @@
 -export([gpb_version_as_string/0, gpb_version_as_list/0]).
 -export([gpb_version_source/0]).
 
+-eqwalizer(ignore).
 
 %% enumerated types
 -type 'opentelemetry.proto.metrics.v1.AggregationTemporality'() :: 'AGGREGATION_TEMPORALITY_UNSPECIFIED' | 'AGGREGATION_TEMPORALITY_DELTA' | 'AGGREGATION_TEMPORALITY_CUMULATIVE'.
