@@ -28,7 +28,7 @@ defmodule OpenTelemetryAPIExperimental.UpDownCounter do
           :otel_updown_counter.add(
             OpenTelemetry.Ctx.get_current(),
             name_or_instrument,
-            number
+            number,
             %{}
           )
       end
@@ -50,7 +50,7 @@ defmodule OpenTelemetryAPIExperimental.UpDownCounter do
           :otel_updown_counter.add(
             OpenTelemetry.Ctx.get_current(),
             name_or_instrument,
-            number
+            number,
             attributes
           )
       end
