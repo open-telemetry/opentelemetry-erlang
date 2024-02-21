@@ -10,6 +10,7 @@
 -include_lib("opentelemetry_api_experimental/include/otel_meter.hrl").
 -include("otel_view.hrl").
 -include("otel_metrics.hrl").
+-include_lib("opentelemetry_api/include/otel_tracer.hrl").
 
 -define(assertSumReceive(Name, Description, Unit, Datapoints),
         (fun() ->
@@ -86,7 +87,7 @@ all() ->
      bad_observable_return, default_resource, histogram_aggregation_options, advisory_params,
      sync_delta_histogram, async_cumulative_page_faults, async_delta_page_faults,
      async_attribute_removal, sync_cumulative_histogram, simple_fixed_exemplars,
-     float_simple_fixed_exemplars, explicit_histogram_exemplars
+     float_simple_fixed_exemplars, explicit_histogram_exemplars, trace_based_exemplars
     ].
 
 init_per_suite(Config) ->
@@ -250,6 +251,18 @@ init_per_testcase(explicit_histogram_exemplars, Config) ->
 
     ok = application:set_env(opentelemetry_experimental, exemplars_enabled, true),
     ok = application:set_env(opentelemetry_experimental, exemplar_filter, always_on),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
+init_per_testcase(trace_based_exemplars, Config) ->
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping => default_temporality_mapping()}}]),
+
+    ok = application:set_env(opentelemetry_experimental, exemplars_enabled, true),
+    ok = application:set_env(opentelemetry_experimental, exemplar_filter, trace_based),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
@@ -2075,6 +2088,79 @@ explicit_histogram_exemplars(_Config) ->
         5000 ->
             ct:fail(histogram_receive_timeout)
     end,
+
+    ok.
+
+%% verify the trace_based filter only creates exemplars for measurements taken
+%% when there is an active sampled span
+trace_based_exemplars(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = test_exemplar_counter,
+    CounterDesc = <<"counter description">>,
+    CounterUnit = kb,
+
+    CBAttributes = #{<<"c">> => <<"b">>},
+    ABDEAttributes = #{<<"a">> => <<"b">>, <<"d">> => <<"e">>},
+
+    Counter = otel_meter:create_counter(Meter, CounterName,
+                                        #{description => CounterDesc,
+                                          unit => CounterUnit}),
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = CounterName,
+                             description = CounterDesc,
+                             kind = counter,
+                             unit = CounterUnit}, Counter),
+
+    Ctx = otel_ctx:get_current(),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2, CBAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 3, ABDEAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 4, CBAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5, CBAttributes)),
+
+    ExemplarsTab = exemplars_otel_meter_provider_global,
+
+    %% measurements recorded before the first collection so generation is `0'
+    Generation0 = 0,
+
+    %% doesn't matter what the last 2 args are we are just creating a fake reservoir
+    %% structure so we can easily call collect on it
+    ExemplarReservoir = otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_simple, #{}, fun otel_metric_exemplar_filter:trace_based/6),
+
+    %% no active span so no sampled exemplars
+    ?assertEqual([], ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation0}, '$1'})),
+
+    %% bump generation
+    otel_meter_server:force_flush(),
+
+    ?with_span(<<"span-1">>, #{}, fun(_) ->
+                                          ?assert(otel_span:is_recording(otel_tracer:current_span_ctx())),
+                                          ?assertEqual(ok, ?counter_add(Counter, 3, CBAttributes)),
+                                          ?assertEqual(ok, ?counter_add(Counter, 5, CBAttributes)),
+                                          ?assertEqual(ok, ?counter_add(Counter, 2, CBAttributes))
+                                  end),
+
+    Generation1 = 1,
+    [[_Count1]] = ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation1}, '$1'}),
+    Matches1 = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {test_exemplar_counter, CBAttributes, '_', Generation1}),
+
+    %% collection deletes the objects
+    ?assertEqual([], ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation0}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{{test_exemplar_counter, CBAttributes, '_', Generation0}, '_'}, '$1'})),
+
+    %% default number of exemplars in SimpleFixedReservoir is the number of schedulers
+    MaxExemplars = erlang:system_info(schedulers_online),
+
+    %% since there was an active span the measurements were sampled
+    ?assertEqual(min(3, MaxExemplars), length(Matches1)),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(test_exemplar_counter, <<"counter description">>, kb, [{11, CBAttributes}]),
 
     ok.
 
