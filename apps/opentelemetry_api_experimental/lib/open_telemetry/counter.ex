@@ -13,26 +13,47 @@ defmodule OpenTelemetryAPIExperimental.Counter do
     end
   end
 
-  defmacro add(name, number) do
-    quote bind_quoted: [name: name, number: number] do
-      :otel_counter.add(
-        OpenTelemetry.Ctx.get_current(),
-        :opentelemetry_experimental.get_meter(:opentelemetry.get_application_scope(__MODULE__)),
-        name,
-        number
-      )
+  defmacro add(name_or_instrument, number) do
+    quote bind_quoted: [name_or_instrument: name_or_instrument, number: number] do
+      case is_atom(name_or_instrument) do
+        true ->
+          :otel_counter.add(
+            OpenTelemetry.Ctx.get_current(),
+            :opentelemetry_experimental.get_meter(:opentelemetry.get_application_scope(__MODULE__)),
+            name_or_instrument,
+            number,
+            %{}
+          )
+        _ ->
+          :otel_counter.add(
+            OpenTelemetry.Ctx.get_current(),
+            name_or_instrument,
+            number,
+            %{}
+          )
+      end
     end
   end
 
-  defmacro add(name, number, attributes) do
-    quote bind_quoted: [name: name, number: number, attributes: attributes] do
-      :otel_counter.add(
-        OpenTelemetry.Ctx.get_current(),
-        :opentelemetry_experimental.get_meter(:opentelemetry.get_application_scope(__MODULE__)),
-        name,
-        number,
-        attributes
-      )
+  defmacro add(name_or_instrument, number, attributes) do
+    quote bind_quoted: [name_or_instrument: name_or_instrument, number: number, attributes: attributes] do
+      case is_atom(name_or_instrument) do
+        true ->
+          :otel_counter.add(
+            OpenTelemetry.Ctx.get_current(),
+            :opentelemetry_experimental.get_meter(:opentelemetry.get_application_scope(__MODULE__)),
+            name_or_instrument,
+            number,
+            attributes
+          )
+        _ ->
+          :otel_counter.add(
+            OpenTelemetry.Ctx.get_current(),
+            name_or_instrument,
+            number,
+            attributes
+          )
+      end
     end
   end
 end
