@@ -294,16 +294,17 @@ maybe_delete_old_generation(Tab, Name, ReaderId, Generation) ->
                [true]}],
     ets:select_delete(Tab, Select).
 
-datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime, #explicit_histogram_aggregation{
-                                                                   key=Key={_, Attributes, _, _},
-                                                                   explicit_bucket_boundaries=Boundaries,
-                                                                   start_time=StartTime,
-                                                                   checkpoint=undefined,
-                                                                   bucket_counts=BucketCounts,
-                                                                   min=Min,
-                                                                   max=Max,
-                                                                   sum=Sum
-                                                                  }) ->
+datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime,
+          #explicit_histogram_aggregation{
+             key=Key={_, Attributes, _, _},
+             explicit_bucket_boundaries=Boundaries,
+             start_time=StartTime,
+             checkpoint=undefined,
+             bucket_counts=BucketCounts,
+             min=Min,
+             max=Max,
+             sum=Sum
+            }) ->
     Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     Buckets = get_buckets(BucketCounts, Boundaries),
     #histogram_datapoint{
@@ -319,15 +320,16 @@ datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime, #explicit_histog
        min=Min,
        max=Max
       };
-datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime, #explicit_histogram_aggregation{
-                                                                   key=Key={_, Attributes, _, _},
-                                                                   explicit_bucket_boundaries=Boundaries,
-                                                                   checkpoint=#explicit_histogram_checkpoint{bucket_counts=BucketCounts,
-                                                                                                             min=Min,
-                                                                                                             max=Max,
-                                                                                                             sum=Sum,
-                                                                                                             start_time=StartTime}
-                                                                  }) ->
+datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime,
+          #explicit_histogram_aggregation{
+             key=Key={_, Attributes, _, _},
+             explicit_bucket_boundaries=Boundaries,
+             checkpoint=#explicit_histogram_checkpoint{bucket_counts=BucketCounts,
+                                                       min=Min,
+                                                       max=Max,
+                                                       sum=Sum,
+                                                       start_time=StartTime}
+            }) ->
     Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     Buckets = get_buckets(BucketCounts, Boundaries),
     #histogram_datapoint{
