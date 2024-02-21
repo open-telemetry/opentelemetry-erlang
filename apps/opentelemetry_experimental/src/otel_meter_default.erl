@@ -116,8 +116,8 @@ validate_explicit_bucket_boundaries(Name, Value) ->
 record(Ctx, Instrument=#instrument{}, Number) ->
     record(Ctx, Instrument, Number, #{}).
 
-record(Ctx, Meter={_,#meter{}}, Name, Number) ->
-    record(Ctx, Meter, Name, Number, #{});
+record(Ctx, Meter={_,#meter{}}, NameOrInstrument, Number) ->
+    record(Ctx, Meter, NameOrInstrument, Number, #{});
 
 record(Ctx, Instrument=#instrument{meter={_, #meter{streams_tab=StreamTab,
                                                     metrics_tab=MetricsTab,
@@ -126,5 +126,5 @@ record(Ctx, Instrument=#instrument{meter={_, #meter{streams_tab=StreamTab,
 
 record(Ctx, Meter={_, #meter{streams_tab=StreamTab,
                              metrics_tab=MetricsTab,
-                             exemplars_tab=ExemplarsTab}}, Name, Number, Attributes) ->
-    otel_meter_server:record(Ctx, Meter, StreamTab, MetricsTab, ExemplarsTab, Name, Number, Attributes).
+                             exemplars_tab=ExemplarsTab}}, NameOrInstrument, Number, Attributes) ->
+    otel_meter_server:record(Ctx, Meter, StreamTab, MetricsTab, ExemplarsTab, NameOrInstrument, Number, Attributes).
