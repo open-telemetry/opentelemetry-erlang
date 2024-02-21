@@ -20,8 +20,8 @@
 -behaviour(otel_aggregation).
 
 -export([init/2,
-         aggregate/4,
-         collect/3]).
+         aggregate/7,
+         collect/4]).
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_metrics.hrl").
@@ -32,12 +32,12 @@
 
 %% ignore eqwalizer errors in functions using a lot of matchspecs
 -eqwalizer({nowarn_function, checkpoint/3}).
--eqwalizer({nowarn_function, collect/3}).
+-eqwalizer({nowarn_function, collect/4}).
 -dialyzer({nowarn_function, checkpoint/3}).
--dialyzer({nowarn_function, aggregate/4}).
--dialyzer({nowarn_function, collect/3}).
+-dialyzer({nowarn_function, aggregate/7}).
+-dialyzer({nowarn_function, collect/4}).
 -dialyzer({nowarn_function, maybe_delete_old_generation/4}).
--dialyzer({nowarn_function, datapoint/2}).
+-dialyzer({nowarn_function, datapoint/4}).
 
 -include_lib("opentelemetry_api/include/gradualizer.hrl").
 -include("otel_view.hrl").
@@ -59,9 +59,10 @@ init(#stream{name=Name,
                             %% not needed or used, but makes eqwalizer happy
                             checkpoint=0}.
 
-aggregate(Tab, Stream=#stream{name=Name,
-                              reader=ReaderId,
-                              forget=Forget}, Value, Attributes) ->
+aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
+                                          reader=ReaderId,
+                                          forget=Forget,
+                                          exemplar_reservoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
@@ -71,10 +72,10 @@ aggregate(Tab, Stream=#stream{name=Name,
     Key = {Name, Attributes, ReaderId, Generation},
     case ets:update_element(Tab, Key, {#last_value_aggregation.value, Value}) of
         true ->
+            otel_metric_exemplar_reservoir:offer(Ctx, ExemplarReservoir, ExemplarsTab, Key, Value, DroppedAttributes),
             true;
         false ->
-            Metric = init(Stream, Attributes),
-            ets:insert(Tab, ?assert_type((?assert_type(Metric, #last_value_aggregation{}))#last_value_aggregation{value=Value}, tuple()))
+            false
     end.
 
 checkpoint(Tab, #stream{name=Name,
@@ -108,9 +109,10 @@ checkpoint(Tab, #stream{name=Name,
     ok.
 
 
-collect(Tab, Stream=#stream{name=Name,
-                            reader=ReaderId,
-                            forget=Forget}, Generation0) ->
+collect(Tab, ExemplarsTab, Stream=#stream{name=Name,
+                                          reader=ReaderId,
+                                          forget=Forget,
+                                          exemplar_reservoir=ExemplarReservoir}, Generation0) ->
     CollectionStartTime = opentelemetry:timestamp(),
     Generation = case Forget of
                      true ->
@@ -124,7 +126,7 @@ collect(Tab, Stream=#stream{name=Name,
     Select = [{#last_value_aggregation{key={Name, '_', ReaderId, Generation},
                                        _='_'}, [], ['$_']}],
     AttributesAggregation = ets:select(Tab, Select),
-    Result = #gauge{datapoints=[datapoint(CollectionStartTime, LastValueAgg) ||
+    Result = #gauge{datapoints=[datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime, LastValueAgg) ||
                                    LastValueAgg <- AttributesAggregation]},
 
     %% would be nice to do this in the reader so its not duplicated in each aggregator
@@ -147,12 +149,13 @@ maybe_delete_old_generation(Tab, Name, ReaderId, Generation) ->
                [true]}],
     ets:select_delete(Tab, Select).
 
-datapoint(CollectionStartTime, #last_value_aggregation{key={_, Attributes, _, _},
-                                                       start_time=StartTime,
-                                                       checkpoint=Checkpoint}) ->
+datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime, #last_value_aggregation{key=Key={_, Attributes, _, _},
+                                                                                        start_time=StartTime,
+                                                                                        checkpoint=Checkpoint}) ->
+    Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     #datapoint{attributes=Attributes,
                start_time=StartTime,
                time=CollectionStartTime,
                value=Checkpoint,
-               exemplars=[],
+               exemplars=Exemplars,
                flags=0}.

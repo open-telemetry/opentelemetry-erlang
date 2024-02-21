@@ -25,23 +25,41 @@
 -define(create_observable_updowncounter(Name, Callback, CallbackArgs, Opts),
         otel_meter:create_observable_updowncounter(?current_meter, Name, Callback, CallbackArgs, Opts)).
 
--define(counter_add(Name, Number),
-        otel_counter:add(?current_meter, Name, Number)).
+%% To support only using an atom name of an instrument the macro must support looking
+%% up the meter to use to resolve the instrument name. But if an Instrument record is
+%% given then the meter lookup can be skipped.
 
--define(counter_add(Name, Number, Attributes),
-        otel_counter:add(?current_meter, Name, Number, Attributes)).
+-define(counter_add(NameOrInstrument, Number, Attributes),
+        case is_atom(NameOrInstrument) of 
+            true -> 
+                otel_counter:add(otel_ctx:get_current(), ?current_meter, NameOrInstrument, Number, Attributes); 
+            false -> 
+                otel_counter:add(otel_ctx:get_current(), NameOrInstrument, Number, Attributes) 
+        end).
 
--define(updown_counter_add(Name, Number),
-        otel_updown_counter:add(?current_meter, Name, Number)).
+-define(counter_add(NameOrInstrument, Number),
+        ?counter_add(NameOrInstrument, Number, #{})).
 
--define(updown_counter_add(Name, Number, Attributes),
-        otel_updown_counter:add(?current_meter, Name, Number, Attributes)).
+-define(updown_counter_add(NameOrInstrument, Number, Attributes),
+        case is_atom(NameOrInstrument) of 
+            true -> 
+                otel_updown_counter:add(otel_ctx:get_current(), ?current_meter, NameOrInstrument, Number, Attributes); 
+            false -> 
+                otel_updown_counter:add(otel_ctx:get_current(), NameOrInstrument, Number, Attributes) 
+        end).
 
--define(histogram_record(Name, Number),
-        otel_histogram:record(?current_meter, Name, Number)).
+-define(updown_counter_add(NameOrInstrument, Number),
+        ?updown_counter_add(NameOrInstrument, Number, #{})).
 
--define(histogram_record(Name, Number, Attributes),
-        otel_histogram:record(?current_meter, Name, Number, Attributes)).
+-define(histogram_record(NameOrInstrument, Number, Attributes),
+        case is_atom(NameOrInstrument) of 
+            true -> 
+                otel_histogram:record(otel_ctx:get_current(), ?current_meter, NameOrInstrument, Number, Attributes); 
+            false -> otel_histogram:record(otel_ctx:get_current(), NameOrInstrument, Number, Attributes) 
+        end).
 
--define(lookup_instrument(Name),
-        otel_meter:lookup_instrument(?current_meter, Name)).
+-define(histogram_record(NameOrInstrument, Number),
+        ?histogram_record(NameOrInstrument, Number, #{})).
+
+-define(lookup_instrument(NameOrInstrument),
+        otel_meter:lookup_instrument(?current_meter, NameOrInstrument)).

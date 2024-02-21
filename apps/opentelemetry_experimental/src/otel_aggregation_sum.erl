@@ -20,8 +20,8 @@
 -behaviour(otel_aggregation).
 
 -export([init/2,
-         aggregate/4,
-         collect/3]).
+         aggregate/7,
+         collect/4]).
 
 -include("otel_metrics.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
@@ -33,12 +33,12 @@
 
 %% ignore eqwalizer errors in functions using a lot of matchspecs
 -eqwalizer({nowarn_function, checkpoint/3}).
--eqwalizer({nowarn_function, aggregate/4}).
+-eqwalizer({nowarn_function, aggregate/7}).
 -dialyzer({nowarn_function, checkpoint/3}).
--dialyzer({nowarn_function, aggregate/4}).
--dialyzer({nowarn_function, collect/3}).
+-dialyzer({nowarn_function, aggregate/7}).
+-dialyzer({nowarn_function, collect/4}).
 -dialyzer({nowarn_function, maybe_delete_old_generation/4}).
--dialyzer({nowarn_function, datapoint/5}).
+-dialyzer({nowarn_function, datapoint/7}).
 
 init(#stream{name=Name,
              reader=ReaderId,
@@ -59,9 +59,10 @@ init(#stream{name=Name,
                      int_value=0,
                      float_value=0.0}.
 
-aggregate(Tab, #stream{name=Name,
-                       reader=ReaderId,
-                       forget=Forget}, Value, Attributes)
+aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
+                                          reader=ReaderId,
+                                          forget=Forget,
+                                          exemplar_reservoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes)
   when is_integer(Value) ->
     Generation = case Forget of
                      true ->
@@ -70,9 +71,10 @@ aggregate(Tab, #stream{name=Name,
                          0
                  end,
     Key = {Name, Attributes, ReaderId, Generation},
-    try
-        _ = ets:update_counter(Tab, Key, {#sum_aggregation.int_value, Value}),
-        true
+    try ets:update_counter(Tab, Key, {#sum_aggregation.int_value, Value}) of
+        _ ->
+            otel_metric_exemplar_reservoir:offer(Ctx, ExemplarReservoir, ExemplarsTab, Key, Value, DroppedAttributes),
+            true
     catch
         error:badarg ->
             %% the use of `update_counter' guards against conflicting with another process
@@ -85,9 +87,10 @@ aggregate(Tab, #stream{name=Name,
             %% true
             false
     end;
-aggregate(Tab, #stream{name=Name,
-                       reader=ReaderId,
-                       forget=Forget}, Value, Attributes) ->
+aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
+                                          reader=ReaderId,
+                                          forget=Forget,
+                                          exemplar_reservoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
@@ -108,7 +111,13 @@ aggregate(Tab, #stream{name=Name,
                               previous_checkpoint='$6',
                               int_value='$3',
                               float_value={'+', '$4', {const, Value}}}}]}],
-    1 =:= ets:select_replace(Tab, MS).
+    case ets:select_replace(Tab, MS) of
+        1 ->
+            otel_metric_exemplar_reservoir:offer(Ctx, ExemplarReservoir, ExemplarsTab, Key, Value, DroppedAttributes),
+            true;
+        _ ->
+            false
+    end.
 
 checkpoint(Tab, #stream{name=Name,
                         reader=ReaderId,
@@ -180,12 +189,13 @@ checkpoint(Tab, #stream{name=Name,
     _ = ets:select_replace(Tab, MS),
     ok.
 
-collect(Tab, Stream=#stream{name=Name,
-                            reader=ReaderId,
-                            instrument=#instrument{temporality=InstrumentTemporality},
-                            temporality=Temporality,
-                            is_monotonic=IsMonotonic,
-                            forget=Forget}, Generation0) ->
+collect(Tab, ExemplarsTab, Stream=#stream{name=Name,
+                                          reader=ReaderId,
+                                          instrument=#instrument{temporality=InstrumentTemporality},
+                                          temporality=Temporality,
+                                          is_monotonic=IsMonotonic,
+                                          forget=Forget,
+                                          exemplar_reservoir=ExemplarReservoir}, Generation0) ->
     CollectionStartTime = opentelemetry:timestamp(),
     Generation = case Forget of
                      true ->
@@ -201,7 +211,7 @@ collect(Tab, Stream=#stream{name=Name,
     AttributesAggregation = ets:select(Tab, Select),
     Result = #sum{aggregation_temporality=Temporality,
                   is_monotonic=IsMonotonic,
-                  datapoints=[datapoint(Tab, CollectionStartTime, InstrumentTemporality, Temporality, SumAgg) || SumAgg <- AttributesAggregation]},
+                  datapoints=[datapoint(Tab, ExemplarReservoir, ExemplarsTab, CollectionStartTime, InstrumentTemporality, Temporality, SumAgg) || SumAgg <- AttributesAggregation]},
 
     %% would be nice to do this in the reader so its not duplicated in each aggregator
     maybe_delete_old_generation(Tab, Name, ReaderId, Generation),
@@ -222,50 +232,53 @@ maybe_delete_old_generation(Tab, Name, ReaderId, Generation) ->
     ets:select_delete(Tab, Select).
 
 %% nothing special to do if the instrument temporality and view temporality are the same
-datapoint(_Tab, CollectionStartTime, Temporality, Temporality, #sum_aggregation{key={_, Attributes, _, _},
-                                                                                start_time=StartTime,
-                                                                                checkpoint=Value}) ->
+datapoint(_Tab, ExemplarReservoir, ExemplarsTab, CollectionStartTime, Temporality, Temporality, #sum_aggregation{key=Key={_, Attributes, _, _},
+                                                                                                                 start_time=StartTime,
+                                                                                                                 checkpoint=Value}) ->
+    Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     #datapoint{
        attributes=Attributes,
        start_time=StartTime,
        time=CollectionStartTime,
        value=Value,
-       exemplars=[],
+       exemplars=Exemplars,
        flags=0
       };
 %% converting an instrument of delta temporality to cumulative means we need to add the
 %% previous value to the current because the actual value is only a delta
-datapoint(_Tab, Time, _, ?TEMPORALITY_CUMULATIVE, #sum_aggregation{key={_Name, Attributes, _ReaderId, _Generation},
-                                                                   start_time=StartTime,
-                                                                   previous_checkpoint=PreviousCheckpoint,
-                                                                   checkpoint=Value}) ->
+datapoint(_Tab, ExemplarReservoir, ExemplarsTab, Time, _, ?TEMPORALITY_CUMULATIVE, #sum_aggregation{key=Key={_Name, Attributes, _ReaderId, _Generation},
+                                                                                                    start_time=StartTime,
+                                                                                                    previous_checkpoint=PreviousCheckpoint,
+                                                                                                    checkpoint=Value}) ->
+    Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     #datapoint{
        attributes=Attributes,
        start_time=StartTime,
        time=Time,
        value=Value + PreviousCheckpoint,
-       exemplars=[],
+       exemplars=Exemplars,
        flags=0
       };
 %% converting an instrument of cumulative temporality to delta means subtracting the
 %% value of the previous collection, if one exists.
 %% because we use a generation counter to reset delta aggregates the previous value
 %% has to be looked up with an ets lookup of the previous generation
-datapoint(Tab, Time, _, ?TEMPORALITY_DELTA, #sum_aggregation{key={Name, Attributes, ReaderId, Generation},
-                                                             start_time=StartTime,
-                                                             checkpoint=Value}) ->
+datapoint(Tab, ExemplarReservoir, ExemplarsTab, Time, _, ?TEMPORALITY_DELTA, #sum_aggregation{key=Key={Name, Attributes, ReaderId, Generation},
+                                                                                              start_time=StartTime,
+                                                                                              checkpoint=Value}) ->
     %% converting from cumulative to delta by grabbing the last generation and subtracting it
     %% can't use `previous_checkpoint' because with delta metrics have their generation changed
     %% at each collection
     PreviousCheckpoint =
         otel_aggregation:ets_lookup_element(Tab, {Name, Attributes, ReaderId, Generation-1},
                                             #sum_aggregation.checkpoint, 0),
+    Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     #datapoint{
        attributes=Attributes,
        start_time=StartTime,
        time=Time,
        value=Value - PreviousCheckpoint,
-       exemplars=[],
+       exemplars=Exemplars,
        flags=0
       }.
 

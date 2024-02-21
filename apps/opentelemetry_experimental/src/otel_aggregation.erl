@@ -1,6 +1,6 @@
 -module(otel_aggregation).
 
--export([maybe_init_aggregate/4,
+-export([maybe_init_aggregate/6,
          default_mapping/0,
          ets_lookup_element/4]).
 
@@ -27,36 +27,40 @@
       Attributes :: opentelemetry:attributes_map(),
       Aggregation :: t().
 
--callback aggregate(Table, Stream, Value, Attributes) -> boolean() when
+-callback aggregate(Ctx, Table, ExemplarTable, Stream, Value, Attributes, DroppedAttributes) -> boolean() when
+      Ctx :: otel_ctx:t(),
       Table :: ets:table(),
+      ExemplarTable :: ets:table(),
       Stream :: #stream{},
       Value :: number(),
-      Attributes :: opentelemetry:attributes_map().
+      Attributes :: opentelemetry:attributes_map(),
+      DroppedAttributes :: opentelemetry:attributes_map().
 
--callback collect(Table, Stream, Generation) -> tuple() when
+-callback collect(Table, ExemplarTable, Stream, Generation) -> tuple() when
       Table :: ets:table(),
+      ExemplarTable :: ets:table(),
       Stream :: #stream{},
       Generation :: integer().
 
-maybe_init_aggregate(MetricsTab, Stream=#stream{aggregation_module=AggregationModule,
-                                                                   attribute_keys=AttributeKeys},
-                     Value, Attributes) ->
-    FilteredAttributes = filter_attributes(AttributeKeys, Attributes),
-    case AggregationModule:aggregate(MetricsTab, Stream, Value, FilteredAttributes) of
+maybe_init_aggregate(Ctx, MetricsTab, ExemplarsTab, Stream=#stream{aggregation_module=AggregationModule,
+                                                                           attribute_keys=AttributeKeys},
+                             Value, Attributes) ->
+    {FilteredAttributes, DroppedAttributes} = filter_attributes(AttributeKeys, Attributes),
+    case AggregationModule:aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value, FilteredAttributes, DroppedAttributes) of
         true ->
-            ok;
+            true;
         false ->
             %% entry doesn't exist, create it and rerun the aggregate function
             Metric = AggregationModule:init(Stream, FilteredAttributes),
             %% don't overwrite a possible concurrent measurement doing the same
             _ = ets:insert_new(MetricsTab, Metric),
-            AggregationModule:aggregate(MetricsTab, Stream, Value, FilteredAttributes)
+            AggregationModule:aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value, FilteredAttributes, DroppedAttributes)
     end.
 
 filter_attributes(undefined, Attributes) ->
-    Attributes;
+    {Attributes, #{}};
 filter_attributes(Keys, Attributes) ->
-    maps:with(Keys, Attributes).
+    split(Keys, Attributes).
 
 -spec default_mapping() -> #{otel_instrument:kind() => module()}.
 default_mapping() ->
@@ -67,6 +71,11 @@ default_mapping() ->
       ?KIND_UPDOWN_COUNTER => otel_aggregation_sum,
       ?KIND_OBSERVABLE_UPDOWNCOUNTER => otel_aggregation_sum}.
 
+split(Keys, Map) ->
+    lists:foldl(fun(Key, {KeptAcc, DroppedAcc}) ->
+                        {Value, DroppedAcc1} = maps:take(Key, DroppedAcc),
+                        {KeptAcc#{Key => Value}, DroppedAcc1}
+                end, {#{}, Map}, Keys).
 
 -if(?OTP_RELEASE >= 26).
 ets_lookup_element(Tab, Key, Pos, Default) ->

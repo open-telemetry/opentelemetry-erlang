@@ -20,12 +20,11 @@
 -module(otel_histogram).
 
 -export([create/3,
-         record/2,
          record/3,
-         record/4]).
+         record/4,
+         record/5]).
 
 -include("otel_metrics.hrl").
--include_lib("kernel/include/logger.hrl").
 
 -spec create(Meter, Name, Opts) -> otel_instrument:t() when
       Meter :: otel_meter:t(),
@@ -34,20 +33,21 @@
 create(Meter, Name, Opts) ->
     otel_meter:create_histogram(Meter, Name, Opts).
 
--spec record(otel_instrument:t(), pos_integer() | float()) -> ok.
-record(Instrument=#instrument{module=Module}, Number) ->
-    Module:record(Instrument, Number).
+-spec record(otel_ctx:t(), otel_instrument:t(), pos_integer() | float()) -> ok.
+record(Ctx, Instrument=#instrument{module=Module}, Number) ->
+    Module:record(Ctx, Instrument, Number).
 
 -spec record(
-    otel_meter:t() | otel_instrument:t(),
-    otel_instrument:name() | pos_integer() | float(),
-    pos_integer() | float() | opentelemetry:attributes_map()) -> ok.
-record(Instrument=#instrument{module=Module}, Number, Attributes) ->
-    Module:record(Instrument, Number, Attributes);
+        otel_ctx:t(),
+        otel_meter:t() | otel_instrument:t(),
+        otel_instrument:name() | pos_integer() | float(),
+        pos_integer() | float() | opentelemetry:attributes_map()) -> ok.
+record(Ctx, Instrument=#instrument{module=Module}, Number, Attributes) ->
+    Module:record(Ctx, Instrument, Number, Attributes);
 
-record(Meter, Name, Number) ->
-    otel_meter:record(Meter, Name, Number).
+record(Ctx, Meter, Name, Number) ->
+    otel_meter:record(Ctx, Meter, Name, Number).
 
--spec record(otel_meter:t(), otel_instrument:name(), pos_integer() | float(), opentelemetry:attributes_map()) -> ok.
-record(Meter, Name, Number, Attributes) ->
-    otel_meter:record(Meter, Name, Number, Attributes).
+-spec record(otel_ctx:t(), otel_meter:t(), otel_instrument:name(), pos_integer() | float(), opentelemetry:attributes_map()) -> ok.
+record(Ctx, Meter, Name, Number, Attributes) ->
+    otel_meter:record(Ctx, Meter, Name, Number, Attributes).

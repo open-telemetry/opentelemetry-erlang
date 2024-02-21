@@ -10,6 +10,7 @@
 -include_lib("opentelemetry_api_experimental/include/otel_meter.hrl").
 -include("otel_view.hrl").
 -include("otel_metrics.hrl").
+-include_lib("opentelemetry_api/include/otel_tracer.hrl").
 
 -define(assertSumReceive(Name, Description, Unit, Datapoints),
         (fun() ->
@@ -85,7 +86,8 @@ all() ->
      sync_filtered_attributes, async_filtered_attributes, delta_observable_counter,
      bad_observable_return, default_resource, histogram_aggregation_options, advisory_params,
      sync_delta_histogram, async_cumulative_page_faults, async_delta_page_faults,
-     async_attribute_removal, sync_cumulative_histogram
+     async_attribute_removal, sync_cumulative_histogram, simple_fixed_exemplars,
+     float_simple_fixed_exemplars, explicit_histogram_exemplars, trace_based_exemplars
     ].
 
 init_per_suite(Config) ->
@@ -217,6 +219,54 @@ init_per_testcase(delta_observable_counter, Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
     Config;
+init_per_testcase(simple_fixed_exemplars, Config) ->
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping => default_temporality_mapping()}}]),
+
+    ok = application:set_env(opentelemetry_experimental, exemplars_enabled, true),
+    ok = application:set_env(opentelemetry_experimental, exemplar_filter, always_on),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
+init_per_testcase(float_simple_fixed_exemplars, Config) ->
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping => default_temporality_mapping()}}]),
+
+    ok = application:set_env(opentelemetry_experimental, exemplars_enabled, true),
+    ok = application:set_env(opentelemetry_experimental, exemplar_filter, always_on),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
+init_per_testcase(explicit_histogram_exemplars, Config) ->
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping => default_temporality_mapping()}}]),
+
+    ok = application:set_env(opentelemetry_experimental, exemplars_enabled, true),
+    ok = application:set_env(opentelemetry_experimental, exemplar_filter, always_on),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
+init_per_testcase(trace_based_exemplars, Config) ->
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping => default_temporality_mapping()}}]),
+
+    ok = application:set_env(opentelemetry_experimental, exemplars_enabled, true),
+    ok = application:set_env(opentelemetry_experimental, exemplar_filter, trace_based),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
 init_per_testcase(_, Config) ->
     application:load(opentelemetry_experimental),
     ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
@@ -264,6 +314,8 @@ using_macros(_Config) ->
     Counter = ?create_counter(CounterName, #{description => CounterDesc,
                                              unit => CounterUnit}),
 
+    Ctx = otel_ctx:new(),
+
     ?assertMatch(#instrument{meter = {DefaultMeter,_},
                              module = DefaultMeter,
                              name = CounterName,
@@ -278,8 +330,8 @@ using_macros(_Config) ->
                              kind = counter,
                              unit = CounterUnit}, Counter),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?counter_add(CounterName, 5, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
@@ -302,17 +354,19 @@ float_counter(_Config) ->
     Counter = ?create_counter(CounterName, #{description => CounterDesc,
                                              unit => CounterUnit}),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 10.3, #{<<"c">> => <<"b">>})),
+    Ctx = otel_ctx:new(),
+
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 10.3, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?counter_add(CounterName, 5.5, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?counter_add(CounterName, 5, #{<<"c">> => <<"b">>})),
 
      %% without attributes
     ?assertEqual(ok, ?counter_add(CounterName, 1.2)),
-    ?assertEqual(ok, otel_counter:add(Counter, 2.1)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2.1)),
 
     %% negative values are discarded
     ?assertEqual(ok, ?counter_add(CounterName, -2, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, -2)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, -2)),
 
     otel_meter_server:force_flush(),
 
@@ -334,13 +388,15 @@ float_updown_counter(_Config) ->
     Counter = ?create_updown_counter(CounterName, #{description => CounterDesc,
                                                     unit => CounterUnit}),
 
-    ?assertEqual(ok, otel_updown_counter:add(Counter, 10.5, #{<<"c">> => <<"b">>})),
+    Ctx = otel_ctx:new(),
+
+    ?assertEqual(ok, otel_updown_counter:add(Ctx, Counter, 10.5, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?updown_counter_add(CounterName, -5.5, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?updown_counter_add(CounterName, 5, #{<<"c">> => <<"b">>})),
 
     %% without attributes
     ?assertEqual(ok, ?updown_counter_add(CounterName, 1.2)),
-    ?assertEqual(ok, otel_updown_counter:add(Counter, 2.1)),
+    ?assertEqual(ok, otel_updown_counter:add(Ctx, Counter, 2.1)),
 
 
     otel_meter_server:force_flush(),
@@ -362,18 +418,19 @@ float_histogram(_Config) ->
 
     Counter = ?create_histogram(CounterName, #{description => CounterDesc,
                                                unit => CounterUnit}),
+    Ctx = otel_ctx:new(),
 
-    ?assertEqual(ok, otel_histogram:record(Counter, 10.3, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_histogram:record(Counter, 10.3, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Counter, 10.3, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Counter, 10.3, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?histogram_record(CounterName, 5.5, #{<<"c">> => <<"b">>})),
 
     %% without attributes
     ?assertEqual(ok, ?histogram_record(CounterName, 1.2)),
-    ?assertEqual(ok, otel_histogram:record(Counter, 2.1)),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Counter, 2.1)),
 
     %% negative values are discarded
     ?assertEqual(ok, ?histogram_record(CounterName, -2, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_histogram:record(Counter, -2)),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Counter, -2)),
 
     %% float type accepts integers
     ?assertEqual(ok, ?histogram_record(CounterName, 5, #{<<"c">> => <<"b">>})),
@@ -422,10 +479,12 @@ default_view(_Config) ->
                              kind = counter,
                              unit = CounterUnit}, Counter),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
+    Ctx = otel_ctx:new(),
+
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 4, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
@@ -453,16 +512,18 @@ provider_test(_Config) ->
                              kind = counter,
                              unit = CounterUnit}, Counter),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
+    Ctx = otel_ctx:new(),
+
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 4, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5, #{<<"c">> => <<"b">>})),
 
     %% converts counter to a float value
-    ?assertEqual(ok, otel_counter:add(Counter, 5.0, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5.0, #{<<"c">> => <<"b">>})),
 
     %% ignored because only positive measurements are allowed for counters
-    ?assertEqual(ok, otel_counter:add(Counter, -10, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, -10, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
@@ -470,7 +531,7 @@ provider_test(_Config) ->
     ?assertSumReceive(view_c, <<"counter description">>, kb, [{16.0, #{<<"c">> => <<"b">>}}]),
 
     %% sum agg is default delta temporality so counter will reset
-    ?assertEqual(ok, otel_counter:add(Counter, 7, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 7, #{<<"c">> => <<"b">>})),
     otel_meter_server:force_flush(),
     ?assertSumReceive(a_counter, <<"counter description">>, kb, [{7, #{<<"c">> => <<"b">>}}]),
 
@@ -502,14 +563,14 @@ view_creation_test(_Config) ->
     %% view name becomes the instrument name
     ?assertEqual(a_counter, View#view.name),
 
-    Matches = otel_view:match_instrument_to_views(Counter, [View]),
+    Matches = otel_view:match_instrument_to_views(Counter, [View], false, always_off),
     ?assertMatch([_], Matches),
 
     {ok, ViewUnitMatch} = otel_view:new(#{instrument_name => CounterName, instrument_unit => CounterUnit}, #{aggregation_module => otel_aggregation_sum}),
-    ?assertMatch([{#view{}, _}], otel_view:match_instrument_to_views(Counter, [ViewUnitMatch])),
+    ?assertMatch([{#view{}, _}], otel_view:match_instrument_to_views(Counter, [ViewUnitMatch], false, always_off)),
 
     {ok, ViewUnitNotMatch} = otel_view:new(#{instrument_name => CounterName, instrument_unit => not_matching}, #{aggregation_module => otel_aggregation_sum}),
-    ?assertMatch([{undefined, _}], otel_view:match_instrument_to_views(Counter, [ViewUnitNotMatch])),
+    ?assertMatch([{undefined, _}], otel_view:match_instrument_to_views(Counter, [ViewUnitNotMatch], false, always_off)),
 
     %% views require a unique name
     ?assert(otel_meter_server:add_view(view_b, #{instrument_name => a_counter}, #{aggregation_module => otel_aggregation_sum})),
@@ -540,14 +601,16 @@ wildcard_view(_Config) ->
                                   #{description => CounterDesc,
                                     unit => CounterUnit}),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 1, #{})),
+    Ctx = otel_ctx:new(),
+
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 1, #{})),
 
     otel_meter_server:force_flush(),
 
     ?assertNotReceive(CounterName, CounterDesc, CounterUnit),
 
     {ok, View} = otel_view:new(ViewCriteria, ViewConfig),
-    ?assertMatch([{#view{}, _}], otel_view:match_instrument_to_views(Counter, [View])),
+    ?assertMatch([{#view{}, _}], otel_view:match_instrument_to_views(Counter, [View], false, always_off)),
 
     %% not possible to create wildcard views with a name
     {error, named_wildcard_view} = otel_view:new(view_name, ViewCriteria, ViewConfig),
@@ -565,7 +628,9 @@ counter_add(_Config) ->
                                   #{description => CounterDesc,
                                     unit => CounterUnit}),
 
-    ?assertMatch(ok, otel_counter:add(Counter, 3, #{})),
+    Ctx = otel_ctx:new(),
+
+    ?assertMatch(ok, otel_counter:add(Ctx, Counter, 3, #{})),
     ok.
 
 multiple_readers(_Config) ->
@@ -581,15 +646,17 @@ multiple_readers(_Config) ->
                                          #{description => CounterDesc,
                                            unit => CounterUnit}),
 
+    Ctx = otel_ctx:new(),
+
     otel_meter_server:add_view(#{instrument_name => a_counter}, #{aggregation_module => otel_aggregation_sum}),
     otel_meter_server:add_view(#{instrument_name => b_counter}, #{}),
 
-    ?assertEqual(ok, otel_counter:add(CounterA, 2, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_counter:add(CounterA, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
-    ?assertEqual(ok, otel_counter:add(CounterA, 4, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_counter:add(CounterA, 5, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, CounterA, 2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, CounterA, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, CounterA, 4, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, CounterA, 5, #{<<"c">> => <<"b">>})),
 
-    ?assertEqual(ok, otel_counter:add(CounterB, 2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, CounterB, 2, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
@@ -622,13 +689,15 @@ explicit_histograms(_Config) ->
                              kind = histogram,
                              unit = HistogramUnit}, Histogram),
 
+    Ctx = otel_ctx:new(),
+
     otel_meter_server:add_view(#{instrument_name => a_histogram}, #{}),
 
-    ?assertEqual(ok, otel_histogram:record(Histogram, 20, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_histogram:record(Histogram, 30, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
-    ?assertEqual(ok, otel_histogram:record(Histogram, 44, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_histogram:record(Histogram, 100, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_histogram:record(Histogram, 20000, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 20, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 30, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 44, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 100, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 20000, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
@@ -661,6 +730,8 @@ delta_explicit_histograms(_Config) ->
     HistogramDesc = <<"histogram description">>,
     HistogramUnit = ms,
 
+    Ctx = otel_ctx:new(),
+
     Histogram = otel_meter:create_histogram(Meter, HistogramName,
                                             #{description => HistogramDesc,
                                               unit => HistogramUnit}),
@@ -674,10 +745,10 @@ delta_explicit_histograms(_Config) ->
     otel_meter_server:add_view(#{instrument_name => a_histogram}, #{}),
 
 
-    ?assertEqual(ok, otel_histogram:record(Histogram, 20, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_histogram:record(Histogram, 30, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
-    ?assertEqual(ok, otel_histogram:record(Histogram, 44, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_histogram:record(Histogram, 100, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 20, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 30, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 44, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 100, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
@@ -698,7 +769,7 @@ delta_explicit_histograms(_Config) ->
             ct:fail(histogram_receive_timeout)
     end,
 
-    ?assertEqual(ok, otel_histogram:record(Histogram, 88, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 88, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
@@ -741,18 +812,20 @@ delta_counter(_Config) ->
 
     otel_meter_server:add_view(#{instrument_name => a_counter}, #{}),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
+    Ctx = otel_ctx:new(),
+
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 4, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
     ?assertSumReceive(a_counter, <<"counter description">>, kb, [{6, #{<<"c">> => <<"b">>}}]),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5, #{<<"c">> => <<"b">>})),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 8, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 8, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
@@ -780,28 +853,30 @@ cumulative_counter(_Config) ->
                              kind = counter,
                              unit = CounterUnit}, Counter),
 
+    Ctx = otel_ctx:new(),
+
     otel_meter_server:add_view(#{instrument_name => a_counter},
                                #{aggregation_module => otel_aggregation_sum}),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 4, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
     ?assertSumReceive(a_counter, <<"counter description">>, kb, [{6, #{<<"c">> => <<"b">>}}]),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5, #{<<"c">> => <<"b">>})),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 7, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 7, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
     ?assertSumReceive(a_counter, <<"counter description">>, kb, [{18, #{<<"c">> => <<"b">>}}]),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 3, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
@@ -829,8 +904,10 @@ kill_reader(_Config) ->
                              kind = counter,
                              unit = CounterUnit}, Counter),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    Ctx = otel_ctx:new(),
+
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 3, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
 
     otel_meter_server:force_flush(),
 
@@ -838,7 +915,7 @@ kill_reader(_Config) ->
 
     %% counter is delta, so is reset to 0. take a measurement here before
     %% killer the reader to test that it isn't lost when the reader restarts
-    ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 4, #{<<"c">> => <<"b">>})),
 
     [{_, ProviderSupPid, _, _}] = supervisor:which_children(otel_meter_provider_sup),
     {_, ReaderSup, _, _} = lists:keyfind(otel_metric_reader_sup, 1, supervisor:which_children(ProviderSupPid)),
@@ -856,8 +933,8 @@ kill_reader(_Config) ->
                                         #{description => CounterDesc,
                                           unit => CounterUnit}),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 4, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
@@ -890,8 +967,10 @@ kill_server(_Config) ->
                              kind = counter,
                              unit = CounterUnit}, Counter),
 
-    ?assertEqual(ok, otel_counter:add(ACounter, 2, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
+    Ctx = otel_ctx:new(),
+
+    ?assertEqual(ok, otel_counter:add(Ctx, ACounter, 2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
 
     CurrentPid = erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME),
     erlang:exit(erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME), kill),
@@ -909,8 +988,8 @@ kill_server(_Config) ->
                                         #{description => CounterDesc,
                                           unit => CounterUnit}),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 4, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, otel_counter:add(Counter, 5, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 4, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5, #{<<"c">> => <<"b">>})),
 
     otel_meter_server:force_flush(),
 
@@ -1083,12 +1162,14 @@ sync_filtered_attributes(_Config) ->
                              kind = counter,
                              unit = CounterUnit}, Counter),
 
+    Ctx = otel_ctx:new(),
+
     ?assert(otel_meter_server:add_view(view_a, #{instrument_name => CounterName},
                                        #{aggregation_module => otel_aggregation_sum,
                                          attribute_keys => [a, b]})),
 
-    ?assertEqual(ok, otel_counter:add(Counter, 2, #{a => 1, b => 2, c => 3})),
-    ?assertEqual(ok, otel_counter:add(Counter, 5, #{a => 1, b => 2})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2, #{a => 1, b => 2, c => 3})),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5, #{a => 1, b => 2})),
     ?assertEqual(ok, ?counter_add(CounterName, 5, #{a => 1, b => 2, c => 3})),
 
     otel_meter_server:force_flush(),
@@ -1250,9 +1331,11 @@ advisory_params(_Config) ->
                                   #{advisory_params => #{explicit_bucket_boundaries => [10, 20, 30]}}),
     ?assertEqual(Histogram#instrument.advisory_params, #{explicit_bucket_boundaries => [10, 20, 30]}),
 
-    ?assertEqual(ok, otel_histogram:record(Histogram, 15, #{<<"a">> => <<"1">>})),
-    ?assertEqual(ok, otel_histogram:record(Histogram, 50, #{<<"a">> => <<"1">>})),
-    ?assertEqual(ok, otel_histogram:record(Histogram, 26, #{<<"a">> => <<"2">>})),
+    Ctx = otel_ctx:new(),
+
+    ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 15, #{<<"a">> => <<"1">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 50, #{<<"a">> => <<"1">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 26, #{<<"a">> => <<"2">>})),
 
     otel_meter_server:force_flush(),
 
@@ -1282,9 +1365,9 @@ advisory_params(_Config) ->
                                   #{advisory_params => #{explicit_bucket_boundaries => [10, 20, 30]}}),
     ?assertEqual(HistogramB#instrument.advisory_params, #{explicit_bucket_boundaries => [10, 20, 30]}),
 
-    ?assertEqual(ok, otel_histogram:record(HistogramB, 15, #{<<"a">> => <<"1">>})),
-    ?assertEqual(ok, otel_histogram:record(HistogramB, 50, #{<<"a">> => <<"1">>})),
-    ?assertEqual(ok, otel_histogram:record(HistogramB, 26, #{<<"a">> => <<"2">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, HistogramB, 15, #{<<"a">> => <<"1">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, HistogramB, 50, #{<<"a">> => <<"1">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, HistogramB, 26, #{<<"a">> => <<"2">>})),
 
     otel_meter_server:force_flush(),
 
@@ -1317,9 +1400,11 @@ histogram_aggregation_options(_Config) ->
 
     Histogram = otel_histogram:create(Meter, histogram, #{}),
 
-    ?assertEqual(ok, otel_histogram:record(Histogram, 15, #{<<"a">> => <<"1">>})),
-    ?assertEqual(ok, otel_histogram:record(Histogram, 50, #{<<"a">> => <<"1">>})),
-    ?assertEqual(ok, otel_histogram:record(Histogram, 26, #{<<"a">> => <<"2">>})),
+    Ctx = otel_ctx:new(),
+
+    ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 15, #{<<"a">> => <<"1">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 50, #{<<"a">> => <<"1">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 26, #{<<"a">> => <<"2">>})),
 
     otel_meter_server:force_flush(),
 
@@ -1352,11 +1437,13 @@ sync_delta_histogram(_Config) ->
 
     HttpReqHistogram = otel_histogram:create(Meter, http_requests, #{}),
 
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 50, #{verb => <<"GET">>,
+    Ctx = otel_ctx:new(),
+
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 50, #{verb => <<"GET">>,
                                                                    status => 200})),
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 100, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 100, #{verb => <<"GET">>,
                                                                    status => 200})),
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 1, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 1, #{verb => <<"GET">>,
                                                                    status => 500})),
 
 
@@ -1389,9 +1476,9 @@ sync_delta_histogram(_Config) ->
             ok
     end,
 
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 5, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 5, #{verb => <<"GET">>,
                                                                    status => 500})),
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 2, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 2, #{verb => <<"GET">>,
                                                                    status => 500})),
 
     otel_meter_server:force_flush(),
@@ -1412,7 +1499,7 @@ sync_delta_histogram(_Config) ->
             ct:fail(histogram_receive_timeout)
     end,
 
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 100, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 100, #{verb => <<"GET">>,
                                                                    status => 200})),
 
     otel_meter_server:force_flush(),
@@ -1433,11 +1520,11 @@ sync_delta_histogram(_Config) ->
             ct:fail(histogram_receive_timeout)
     end,
 
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 200, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 200, #{verb => <<"GET">>,
                                                                     status => 200})),
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 30, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 30, #{verb => <<"GET">>,
                                                                    status => 200})),
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 50, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 50, #{verb => <<"GET">>,
                                                                    status => 200})),
     otel_meter_server:force_flush(),
 
@@ -1468,15 +1555,16 @@ sync_cumulative_histogram(_Config) ->
                                                          aggregation_module => otel_aggregation_histogram_explicit,
                                                          aggregation_options => #{explicit_bucket_boundaries => []}})),
 
+    Ctx = otel_ctx:new(),
+
     HttpReqHistogram = otel_histogram:create(Meter, http_requests, #{}),
 
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 50, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 50, #{verb => <<"GET">>,
                                                                    status => 200})),
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 100, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 100, #{verb => <<"GET">>,
                                                                    status => 200})),
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 1, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 1, #{verb => <<"GET">>,
                                                                    status => 500})),
-
 
     otel_meter_server:force_flush(),
 
@@ -1516,9 +1604,9 @@ sync_cumulative_histogram(_Config) ->
             ct:fail(histogram_receive_timeout)
     end,
 
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 5, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 5, #{verb => <<"GET">>,
                                                                    status => 500})),
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 2, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 2, #{verb => <<"GET">>,
                                                                    status => 500})),
 
     otel_meter_server:force_flush(),
@@ -1540,7 +1628,7 @@ sync_cumulative_histogram(_Config) ->
             ct:fail(histogram_receive_timeout)
     end,
 
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 100, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 100, #{verb => <<"GET">>,
                                                                    status => 200})),
 
     otel_meter_server:force_flush(),
@@ -1562,11 +1650,11 @@ sync_cumulative_histogram(_Config) ->
             ct:fail(histogram_receive_timeout)
     end,
 
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 100, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 100, #{verb => <<"GET">>,
                                                                     status => 200})),
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 30, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 30, #{verb => <<"GET">>,
                                                                    status => 200})),
-    ?assertEqual(ok, otel_histogram:record(HttpReqHistogram, 50, #{verb => <<"GET">>,
+    ?assertEqual(ok, otel_histogram:record(Ctx, HttpReqHistogram, 50, #{verb => <<"GET">>,
                                                                    status => 200})),
     otel_meter_server:force_flush(),
 
@@ -1787,6 +1875,295 @@ async_attribute_removal(_Config) ->
                   end, tuple_to_list(MeasurementsAndExpected)),
 
     ok.
+
+
+simple_fixed_exemplars(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = test_exemplar_counter,
+    CounterDesc = <<"counter description">>,
+    CounterUnit = kb,
+
+    CBAttributes = #{<<"c">> => <<"b">>},
+    ABDEAttributes = #{<<"a">> => <<"b">>, <<"d">> => <<"e">>},
+
+    Counter = otel_meter:create_counter(Meter, CounterName,
+                                        #{description => CounterDesc,
+                                          unit => CounterUnit}),
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = CounterName,
+                             description = CounterDesc,
+                             kind = counter,
+                             unit = CounterUnit}, Counter),
+
+    Ctx = otel_ctx:get_current(),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2, CBAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 3, ABDEAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 4, CBAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5, CBAttributes)),
+
+    ExemplarsTab = exemplars_otel_meter_provider_global,
+
+    %% default number of exemplars in SimpleFixedReservoir is the number of schedulers
+    MaxExemplars = erlang:system_info(schedulers_online),
+
+    %% measurements recorded before the first collection so generation is `0'
+    Generation0 = 0,
+    ExemplarReservoir = otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_simple, #{}, fun otel_metric_exemplar_filter:always_on/6),
+    %% exemplars for CBAttributes should be the min of 3
+    %% (the number of measurements we made above) and MaxExemplars
+    [[Count]] = ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation0}, '$1'}),
+    ?assertEqual(3, Count),
+    Matches = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {test_exemplar_counter, CBAttributes, '_', Generation0}),
+    %% collection deletes the objects
+    ?assertEqual([], ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation0}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{{test_exemplar_counter, CBAttributes, '_', Generation0}, '_'}, '$1'})),
+    ?assertEqual(min(3, MaxExemplars), length(Matches)),
+
+    %% bump generation
+    otel_meter_server:force_flush(),
+
+    %% now do more than `MaxExemplars' measurements to check it still only keeps
+    %% total of `MaxExemplars'
+    TotalMeasurements = MaxExemplars + 20,
+    lists:foreach(fun(N) ->
+                          ?assertEqual(ok, otel_counter:add(Ctx, Counter, N, CBAttributes))
+                  end, lists:seq(1, TotalMeasurements)),
+
+    %% total number of exemplars for `CBAttributes' should be `MaxExemplars'
+    %% (the number of measurements we made above) and `MaxExemplars'
+    Generation1 = 1,
+    [[Count1]] = ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation1}, '$1'}),
+    Matches1 = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {test_exemplar_counter, CBAttributes, '_', Generation1}),
+
+    %% collection deletes the objects
+    ?assertEqual([], ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation0}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{{test_exemplar_counter, CBAttributes, '_', Generation0}, '_'}, '$1'})),
+
+    ?assertEqual(TotalMeasurements, Count1),
+    ?assertEqual(MaxExemplars, length(Matches1)),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(test_exemplar_counter, <<"counter description">>, kb, [{11, CBAttributes}]),
+
+    ok.
+
+float_simple_fixed_exemplars(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = test_exemplar_float_counter,
+    CounterDesc = <<"float counter description">>,
+    CounterUnit = kb,
+
+    CBAttributes = #{<<"c">> => <<"b">>},
+    ABDEAttributes = #{<<"a">> => <<"b">>, <<"d">> => <<"e">>},
+
+    Counter = otel_meter:create_counter(Meter, CounterName,
+                                        #{description => CounterDesc,
+                                          unit => CounterUnit}),
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = CounterName,
+                             description = CounterDesc,
+                             kind = counter,
+                             unit = CounterUnit}, Counter),
+
+    Ctx = otel_ctx:get_current(),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2.2, CBAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 3.3, ABDEAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 4.1, CBAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5.8, CBAttributes)),
+
+    ExemplarsTab = exemplars_otel_meter_provider_global,
+
+    %% default number of exemplars in SimpleFixedReservoir is the number of schedulers
+    MaxExemplars = erlang:system_info(schedulers_online),
+
+    %% measurements recorded before the first collection so generation is `0'
+    Generation0 = 0,
+    ExemplarReservoir = otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_simple, #{}, fun otel_metric_exemplar_filter:always_on/6),
+    %% exemplars for CBAttributes should be the min of 3
+    %% (the number of measurements we made above) and MaxExemplars
+    [[Count]] = ets:match(ExemplarsTab, {{CounterName, CBAttributes, '_', Generation0}, '$1'}),
+    ?assertEqual(3, Count),
+    Matches = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {CounterName, CBAttributes, '_', Generation0}),
+    %% collection deletes the objects
+    ?assertEqual([], ets:match(ExemplarsTab, {{CounterName, CBAttributes, '_', Generation0}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{{CounterName, CBAttributes, '_', Generation0}, '_'}, '$1'})),
+    ?assertEqual(min(3, MaxExemplars), length(Matches)),
+
+    otel_meter_server:force_flush(),
+    ?assertSumReceive(CounterName, CounterDesc, CounterUnit, [{12.1, CBAttributes}]),
+
+    %% now do more than `MaxExemplars' measurements to check it still only keeps
+    %% total of `MaxExemplars'
+    TotalMeasurements = MaxExemplars + 20,
+    lists:foreach(fun(N) ->
+                          ?assertEqual(ok, otel_counter:add(Ctx, Counter, N, CBAttributes))
+                  end, lists:seq(1, TotalMeasurements)),
+
+    %% total number of exemplars for `CBAttributes' should be `MaxExemplars'
+    %% (the number of measurements we made above) and `MaxExemplars'
+    Generation1 = 1,
+    [[Count1]] = ets:match(ExemplarsTab, {{CounterName, CBAttributes, '_', Generation1}, '$1'}),
+    Matches1 = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {CounterName, CBAttributes, '_', Generation1}),
+
+    %% collection deletes the objects
+    ?assertEqual([], ets:match(ExemplarsTab, {{CounterName, CBAttributes, '_', Generation0}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{{CounterName, CBAttributes, '_', Generation0}, '_'}, '$1'})),
+
+    ?assertEqual(TotalMeasurements, Count1),
+    ?assertEqual(MaxExemplars, length(Matches1)),
+
+    ok.
+
+explicit_histogram_exemplars(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = f_histogram,
+    CounterDesc = <<"macro made histogram description">>,
+    CounterUnit = kb,
+    CBAttributes = #{<<"c">> => <<"b">>},
+
+    Counter = ?create_histogram(CounterName, #{description => CounterDesc,
+                                               unit => CounterUnit}),
+    Ctx = otel_ctx:new(),
+
+    ?assertEqual(ok, otel_histogram:record(Ctx, Counter, 10.3, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Counter, 10.3, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, ?histogram_record(CounterName, 5.5, #{<<"c">> => <<"b">>})),
+
+    %% without attributes
+    ?assertEqual(ok, ?histogram_record(CounterName, 1.2)),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Counter, 2.1)),
+
+    %% negative values are discarded
+    ?assertEqual(ok, ?histogram_record(CounterName, -2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Counter, -2)),
+
+    %% float type accepts integers
+    ?assertEqual(ok, ?histogram_record(CounterName, 5, #{<<"c">> => <<"b">>})),
+
+    ExemplarsTab = exemplars_otel_meter_provider_global,
+
+    %% measurements recorded before the first collection so generation is `0'
+    Generation0 = 0,
+    ExemplarReservoir = otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_aligned_histogram, #{}, fun otel_metric_exemplar_filter:always_on/6),
+
+    Matches = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {CounterName, CBAttributes, '_', Generation0}),
+
+    ?assertEqual([], ets:match(ExemplarsTab, {{{CounterName, CBAttributes, '_', Generation0}, '_'}, '$1'})),
+    ?assertMatch([{exemplar,5, _, _ , _, _},
+                  {exemplar,5.5, _, _ , _, _},
+                  {exemplar,10.3, _, _ , _, _}], lists:sort(Matches)),
+
+    otel_meter_server:force_flush(),
+
+    receive
+        {otel_metric, #metric{name=f_histogram,
+                              data=#histogram{datapoints=Datapoints}}} ->
+            AttributeBuckets =
+                [{Attributes, Buckets, Min, Max, Sum}
+                 || #histogram_datapoint{bucket_counts=Buckets,
+                                         attributes=Attributes,
+                                         min=Min,
+                                         max=Max,
+                                         sum=Sum}  <- Datapoints],
+            ?assertEqual([], [
+                              {#{<<"c">> => <<"b">>}, [0,1,1,2,0,0,0,0,0,0,0,0,0,0,0,0], 5, 10.3, 31.1},
+                              {#{}, [0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0], 1.2, 2.1, 3.3}]
+                         -- AttributeBuckets, AttributeBuckets)
+    after
+        5000 ->
+            ct:fail(histogram_receive_timeout)
+    end,
+
+    ok.
+
+%% verify the trace_based filter only creates exemplars for measurements taken
+%% when there is an active sampled span
+trace_based_exemplars(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = test_exemplar_counter,
+    CounterDesc = <<"counter description">>,
+    CounterUnit = kb,
+
+    CBAttributes = #{<<"c">> => <<"b">>},
+    ABDEAttributes = #{<<"a">> => <<"b">>, <<"d">> => <<"e">>},
+
+    Counter = otel_meter:create_counter(Meter, CounterName,
+                                        #{description => CounterDesc,
+                                          unit => CounterUnit}),
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = CounterName,
+                             description = CounterDesc,
+                             kind = counter,
+                             unit = CounterUnit}, Counter),
+
+    Ctx = otel_ctx:get_current(),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2, CBAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 3, ABDEAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 4, CBAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5, CBAttributes)),
+
+    ExemplarsTab = exemplars_otel_meter_provider_global,
+
+    %% measurements recorded before the first collection so generation is `0'
+    Generation0 = 0,
+
+    %% doesn't matter what the last 2 args are we are just creating a fake reservoir
+    %% structure so we can easily call collect on it
+    ExemplarReservoir = otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_simple, #{}, fun otel_metric_exemplar_filter:trace_based/6),
+
+    %% no active span so no sampled exemplars
+    ?assertEqual([], ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation0}, '$1'})),
+
+    %% bump generation
+    otel_meter_server:force_flush(),
+
+    ?with_span(<<"span-1">>, #{}, fun(_) ->
+                                          ?assert(otel_span:is_recording(otel_tracer:current_span_ctx())),
+                                          ?assertEqual(ok, ?counter_add(Counter, 3, CBAttributes)),
+                                          ?assertEqual(ok, ?counter_add(Counter, 5, CBAttributes)),
+                                          ?assertEqual(ok, ?counter_add(Counter, 2, CBAttributes))
+                                  end),
+
+    Generation1 = 1,
+    [[_Count1]] = ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation1}, '$1'}),
+    Matches1 = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {test_exemplar_counter, CBAttributes, '_', Generation1}),
+
+    %% collection deletes the objects
+    ?assertEqual([], ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation0}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{{test_exemplar_counter, CBAttributes, '_', Generation0}, '_'}, '$1'})),
+
+    %% default number of exemplars in SimpleFixedReservoir is the number of schedulers
+    MaxExemplars = erlang:system_info(schedulers_online),
+
+    %% since there was an active span the measurements were sampled
+    ?assertEqual(min(3, MaxExemplars), length(Matches1)),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(test_exemplar_counter, <<"counter description">>, kb, [{11, CBAttributes}]),
+
+    ok.
+
 %%
 
 check_observer_results(MetricName, Expected) ->

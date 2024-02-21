@@ -53,6 +53,7 @@
          callbacks_tab :: ets:table(),
          streams_tab :: ets:table(),
          metrics_tab :: ets:table(),
+         exemplars_tab :: ets:table(),
          config :: #{},
          resource :: otel_resource:t() | undefined,
          generation_ref :: atomics:atomics_ref()
@@ -124,13 +125,14 @@ handle_continue(register_with_server, State=#state{provider_sup=ProviderSup,
                                                    default_aggregation_mapping=DefaultAggregationMapping,
                                                    temporality_mapping=Temporality}) ->
     ServerPid = otel_meter_server_sup:provider_pid(ProviderSup),
-    {CallbacksTab, StreamsTab, MetricsTab, Resource} =
+    {CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, Resource} =
         otel_meter_server:add_metric_reader(ServerPid, ReaderId, self(),
                                             DefaultAggregationMapping,
                                             Temporality),
     {noreply, State#state{callbacks_tab=CallbacksTab,
                           streams_tab=StreamsTab,
                           metrics_tab=MetricsTab,
+                          exemplars_tab=ExemplarsTab,
                           resource=Resource}}.
 
 handle_call(shutdown, _From, State) ->
@@ -156,10 +158,11 @@ handle_info(collect, State=#state{id=ReaderId,
                                   callbacks_tab=CallbacksTab,
                                   streams_tab=StreamsTab,
                                   metrics_tab=MetricsTab,
+                                  exemplars_tab=ExemplarsTab,
                                   resource=Resource
                                  }) ->
     %% collect from view aggregations table and then export
-    Metrics = collect_(CallbacksTab, StreamsTab, MetricsTab, ReaderId),
+    Metrics = collect_(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId),
 
     otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
 
@@ -171,6 +174,7 @@ handle_info(collect, State=#state{id=ReaderId,
                                   callbacks_tab=CallbacksTab,
                                   streams_tab=StreamsTab,
                                   metrics_tab=MetricsTab,
+                                  exemplars_tab=ExemplarsTab,
                                   resource=Resource
                                  }) when TRef =/= undefined andalso
                                          ExporterIntervalMs =/= undefined  ->
@@ -178,7 +182,7 @@ handle_info(collect, State=#state{id=ReaderId,
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
 
     %% collect from view aggregations table and then export
-    Metrics = collect_(CallbacksTab, StreamsTab, MetricsTab, ReaderId),
+    Metrics = collect_(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId),
 
     otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
 
@@ -192,9 +196,9 @@ code_change(State) ->
 
 %%
 
--spec collect_(any(), ets:table(), any(), reference()) -> [any()].
-collect_(CallbacksTab, StreamsTab, MetricsTab, ReaderId) ->
-    _ = run_callbacks(ReaderId, CallbacksTab, StreamsTab, MetricsTab),
+-spec collect_(any(), ets:table(), any(), ets:table(), reference()) -> [any()].
+collect_(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId) ->
+    _ = run_callbacks(ReaderId, CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab),
 
     %% Need to be able to efficiently get all from VIEW_AGGREGATIONS_TAB that apply to this reader
 
@@ -211,38 +215,40 @@ collect_(CallbacksTab, StreamsTab, MetricsTab, ReaderId) ->
     Key = ets:first(StreamsTab),
 
     Generation = inc_checkpoint_generation(ReaderId),
-    collect_(CallbacksTab, StreamsTab, MetricsTab, Generation, ReaderId, [], Key).
+    collect_(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, Generation, ReaderId, [], Key).
 
-run_callbacks(ReaderId, CallbacksTab, StreamsTab, MetricsTab) ->
+run_callbacks(ReaderId, CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab) ->
     try ets:lookup_element(CallbacksTab, ReaderId, 2) of
         Callbacks ->
-            otel_observables:run_callbacks(Callbacks, ReaderId, StreamsTab, MetricsTab)
+            otel_observables:run_callbacks(Callbacks, ReaderId, StreamsTab, MetricsTab, ExemplarsTab)
     catch
         error:badarg ->
             []
     end.
 
-collect_(_CallbacksTab, _StreamsTab, _MetricsTab, _Generation, _ReaderId, MetricsAcc, '$end_of_table') ->
+collect_(_CallbacksTab, _StreamsTab, _MetricsTab, _ExemplarsTab, _Generation, _ReaderId, MetricsAcc, '$end_of_table') ->
     MetricsAcc;
-collect_(CallbacksTab, StreamsTab, MetricsTab, Generation, ReaderId, MetricsAcc, Key) ->
+collect_(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, Generation, ReaderId, MetricsAcc, Key) ->
     Streams = ets:lookup_element(StreamsTab, Key, 2),
-    collect_(CallbacksTab, StreamsTab, MetricsTab, Generation, ReaderId,
+    collect_(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, Generation, ReaderId,
              checkpoint_metrics(MetricsTab,
+                                ExemplarsTab,
                                 Generation,
                                 ReaderId,
                                 Streams) ++ MetricsAcc,
              ets:next(StreamsTab, Key)).
 
-checkpoint_metrics(MetricsTab, Generation, Id, Streams) ->
+checkpoint_metrics(MetricsTab, ExemplarsTab, Generation, Id, Streams) ->
     lists:foldl(fun(#stream{aggregation_module=otel_aggregation_drop}, Acc) ->
                         Acc;
                    (Stream=#stream{name=Name,
-                                                      reader=ReaderId,
-                                                      instrument=Instrument=#instrument{unit=Unit},
-                                                      aggregation_module=AggregationModule,
-                                                      description=Description
-                                                     }, Acc) when Id =:= ReaderId ->
+                                   reader=ReaderId,
+                                   instrument=Instrument=#instrument{unit=Unit},
+                                   aggregation_module=AggregationModule,
+                                   description=Description
+                                  }, Acc) when Id =:= ReaderId ->
                         Data = AggregationModule:collect(MetricsTab,
+                                                         ExemplarsTab,
                                                          Stream,
                                                          Generation),
                         [metric(Instrument, Name, Description, Unit, Data) | Acc];
