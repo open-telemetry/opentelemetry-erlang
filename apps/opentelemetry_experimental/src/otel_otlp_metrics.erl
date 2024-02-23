@@ -23,6 +23,7 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
+-include("otel_metric_exemplar.hrl").
 -include("otel_metrics.hrl").
 
 to_proto(Metrics, Resource) ->
@@ -90,7 +91,7 @@ to_data_points(#datapoint{attributes=Attributes,
       start_time_unix_nano => opentelemetry:timestamp_to_nano(StartTime),
       time_unix_nano => opentelemetry:timestamp_to_nano(CollectionStartTime),
       value => to_datapoint_value(Value),
-      exemplars => Exemplars,
+      exemplars => to_exemplars(Exemplars),
       flags => Flags
      }.
 
@@ -115,7 +116,7 @@ to_histogram_data_points(#histogram_datapoint{
       sum => Sum,
       bucket_counts => Buckets,
       explicit_bounds => Boundaries,
-      exemplars => Exemplars,
+      exemplars => to_exemplars(Exemplars),
       flags => Flags,
       min => Min,
       max => Max
@@ -132,3 +133,33 @@ to_otlp_temporality(?TEMPORALITY_DELTA) ->
     'AGGREGATION_TEMPORALITY_DELTA';
 to_otlp_temporality(?TEMPORALITY_CUMULATIVE) ->
     'AGGREGATION_TEMPORALITY_CUMULATIVE'.
+
+to_exemplars(Exemplars) ->
+    [to_exemplar(Exemplar) || Exemplar <- Exemplars].
+
+to_exemplar(#exemplar{value=Value,
+                      time=Time,
+                      filtered_attributes=FilteredAttributes,
+                      span_id=undefined,
+                      trace_id=undefined}) ->
+    #{filtered_attributes => otel_otlp_common:to_attributes(FilteredAttributes),
+      time_unix_nano      => opentelemetry:timestamp_to_nano(Time),
+      value               => value_to_int_or_double(Value)
+     };
+to_exemplar(#exemplar{value=Value,
+                      time=Time,
+                      filtered_attributes=FilteredAttributes,
+                      span_id=SpanId,
+                      trace_id=TraceId}) when SpanId =/= undefined andalso
+                                              TraceId =/= undefined  ->
+    #{filtered_attributes => otel_otlp_common:to_attributes(FilteredAttributes),
+      time_unix_nano      => opentelemetry:timestamp_to_nano(Time),
+      value               => value_to_int_or_double(Value),
+      span_id             => <<SpanId:64>>,
+      trace_id            => <<TraceId:128>>
+     }.
+
+value_to_int_or_double(Value) when is_float(Value) ->
+    {as_double, Value};
+value_to_int_or_double(Value) when is_integer(Value) ->
+    {as_int, Value}.

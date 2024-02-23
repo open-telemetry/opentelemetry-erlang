@@ -19,7 +19,7 @@
 
 -export([new/2,
          new/3,
-         match_instrument_to_views/2]).
+         match_instrument_to_views/4]).
 
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
@@ -87,14 +87,16 @@ do_new(Criteria, Config) ->
           aggregation_module=maps:get(aggregation_module, Config, undefined),
           aggregation_options=maps:get(aggregation_options, Config, #{})}.
 
--spec match_instrument_to_views(otel_instrument:t(), [t()]) -> [{t() | undefined, #stream{}}].
+-spec match_instrument_to_views(otel_instrument:t(), [t()], boolean(), always_on | always_off | trace_based) -> [{t() | undefined, #stream{}}].
 match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                                  meter=Meter,
+                                                 kind=Kind,
                                                  description=Description,
-                                                 advisory_params=AdvisoryParams}, Views) ->
+                                                 advisory_params=AdvisoryParams}, Views, ExemplarsEnabled, ExemplarFilter) ->
     IsMonotonic = otel_instrument:is_monotonic(Instrument),
     Temporality = otel_instrument:temporality(Instrument),
     Scope = otel_meter:scope(Meter),
+    ExemplarReservoir= otel_metric_exemplar:reservoir(Kind, ExemplarsEnabled, ExemplarFilter),
     case lists:filtermap(fun(View=#view{name=ViewName,
                                         description=ViewDescription,
                                         attribute_keys=AttributeKeys,
@@ -104,7 +106,7 @@ match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                      [] ->
                                          false;
                                      _ ->
-                                         AggregationOptions1 = aggragation_options(AggregationOptions, AdvisoryParams),
+                                         AggregationOptions1 = aggregation_options(AggregationOptions, AdvisoryParams),
                                          {true, {View, #stream{name=value_or(ViewName,
                                                                              InstrumentName),
                                                                scope=Scope,
@@ -114,12 +116,13 @@ match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                                                attribute_keys=AttributeKeys,
                                                                aggregation_options=AggregationOptions1,
                                                                description=value_or(ViewDescription,
-                                                                                    Description)
+                                                                                    Description),
+                                                               exemplar_reservoir=ExemplarReservoir
                                                               }}}
                                  end
                          end, Views) of
         [] ->
-            AggregationOptions1 = aggragation_options(#{}, AdvisoryParams),
+            AggregationOptions1 = aggregation_options(#{}, AdvisoryParams),
             [{undefined, #stream{name=InstrumentName,
                                  scope=Scope,
                                  instrument=Instrument,
@@ -127,18 +130,19 @@ match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                                  is_monotonic=IsMonotonic,
                                  attribute_keys=undefined,
                                  aggregation_options=AggregationOptions1,
-                                 description=Description}}];
+                                 description=Description,
+                                 exemplar_reservoir=ExemplarReservoir}}];
         Aggs ->
             Aggs
     end.
 
 %%
 
-aggragation_options(#{explicit_bucket_boundaries := _} = AggregationOptions, _AdvisoryParams) ->
+aggregation_options(#{explicit_bucket_boundaries := _} = AggregationOptions, _AdvisoryParams) ->
     AggregationOptions;
-aggragation_options(AggregationOptions, #{explicit_bucket_boundaries := Boundaries}) ->
+aggregation_options(AggregationOptions, #{explicit_bucket_boundaries := Boundaries}) ->
     maps:put(explicit_bucket_boundaries, Boundaries, AggregationOptions);
-aggragation_options(AggregationOptions, _AdvisoryParams) ->
+aggregation_options(AggregationOptions, _AdvisoryParams) ->
     AggregationOptions.
 
 value_or(undefined, Other) ->
@@ -196,3 +200,4 @@ view_name_from_criteria(Criteria) when is_map(Criteria) ->
     end;
 view_name_from_criteria(_) ->
     undefined.
+

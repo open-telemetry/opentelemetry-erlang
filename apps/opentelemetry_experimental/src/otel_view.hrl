@@ -27,5 +27,8 @@
          %% whether to forget metrics if they aren't recorded to during a
          %% collection cycle. This is the case for Observables and Delta
          %% temporality metrics
-         forget :: boolean() | undefined
+         forget :: boolean() | undefined,
+
+         %%
+         exemplar_reservoir :: term()
         }).
