@@ -10,6 +10,7 @@
 -include_lib("opentelemetry_api_experimental/include/otel_meter.hrl").
 -include("otel_view.hrl").
 -include("otel_metrics.hrl").
+-include("otel_metric_exemplar.hrl").
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").
 
 -define(assertSumReceive(Name, Description, Unit, Datapoints),
@@ -30,6 +31,34 @@
                                                        attributes=MetricAttributes,
                                                        start_time=StartTime,
                                                        time=Time} <- MetricDatapoints, StartTime =< Time]),
+                         ?assert(is_subset(Datapoints, SortedDatapoints), SortedDatapoints)
+                 after
+                     5000 ->
+                         ct:fail({metric_receive_timeout, ?LINE})
+                 end
+         end)()).
+
+-define(assertSumExemplarReceive(Name, Description, Unit, Datapoints),
+        (fun() ->
+                 receive
+                     {otel_metric, #metric{name=MetricName,
+                                           description=MetricDescription,
+                                           unit=MetricUnit,
+                                           data=#sum{datapoints=MetricDatapoints}}}
+                       when MetricName =:= Name ->
+                         ?assertEqual(Description, MetricDescription),
+                         ?assertEqual(Unit, MetricUnit),
+                         ?assertEqual(Description, MetricDescription),
+
+                         SortedDatapoints =
+                             lists:sort([{MetricValue, MetricAttributes, [{ExemplarValue, FilteredAttributes}]} ||
+                                            #datapoint{value=MetricValue,
+                                                       attributes=MetricAttributes,
+                                                       start_time=StartTime,
+                                                       time=Time,
+                                                       exemplars=[#exemplar{value=ExemplarValue,
+                                                                           filtered_attributes=FilteredAttributes}]} <- MetricDatapoints, StartTime =< Time]),
+
                          ?assert(is_subset(Datapoints, SortedDatapoints), SortedDatapoints)
                  after
                      5000 ->
@@ -87,7 +116,8 @@ all() ->
      bad_observable_return, default_resource, histogram_aggregation_options, advisory_params,
      sync_delta_histogram, async_cumulative_page_faults, async_delta_page_faults,
      async_attribute_removal, sync_cumulative_histogram, simple_fixed_exemplars,
-     float_simple_fixed_exemplars, explicit_histogram_exemplars, trace_based_exemplars
+     float_simple_fixed_exemplars, explicit_histogram_exemplars, trace_based_exemplars,
+     observable_exemplars
     ].
 
 init_per_suite(Config) ->
@@ -263,6 +293,18 @@ init_per_testcase(trace_based_exemplars, Config) ->
 
     ok = application:set_env(opentelemetry_experimental, exemplars_enabled, true),
     ok = application:set_env(opentelemetry_experimental, exemplar_filter, trace_based),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
+init_per_testcase(observable_exemplars, Config) ->
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping => default_temporality_mapping()}}]),
+
+    ok = application:set_env(opentelemetry_experimental, exemplars_enabled, true),
+    ok = application:set_env(opentelemetry_experimental, exemplar_filter, always_on),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
@@ -1888,7 +1930,13 @@ simple_fixed_exemplars(_Config) ->
     CounterUnit = kb,
 
     CBAttributes = #{<<"c">> => <<"b">>},
+    CBFGAttributes = #{<<"c">> => <<"b">>, <<"f">> => <<"g">>},
+    FGAttributes = #{<<"f">> => <<"g">>},
     ABDEAttributes = #{<<"a">> => <<"b">>, <<"d">> => <<"e">>},
+
+    ?assert(otel_meter_server:add_view(#{instrument_name => CounterName},
+                                       #{aggregation_module => otel_aggregation_sum,
+                                         attribute_keys => [<<"c">>]})),
 
     Counter = otel_meter:create_counter(Meter, CounterName,
                                         #{description => CounterDesc,
@@ -1901,10 +1949,10 @@ simple_fixed_exemplars(_Config) ->
                              unit = CounterUnit}, Counter),
 
     Ctx = otel_ctx:get_current(),
-    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2, CBAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2, CBFGAttributes)),
     ?assertEqual(ok, otel_counter:add(Ctx, Counter, 3, ABDEAttributes)),
-    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 4, CBAttributes)),
-    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5, CBAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 4, CBFGAttributes)),
+    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 5, CBFGAttributes)),
 
     ExemplarsTab = exemplars_otel_meter_provider_global,
 
@@ -1931,7 +1979,7 @@ simple_fixed_exemplars(_Config) ->
     %% total of `MaxExemplars'
     TotalMeasurements = MaxExemplars + 20,
     lists:foreach(fun(N) ->
-                          ?assertEqual(ok, otel_counter:add(Ctx, Counter, N, CBAttributes))
+                          ?assertEqual(ok, otel_counter:add(Ctx, Counter, N, CBFGAttributes))
                   end, lists:seq(1, TotalMeasurements)),
 
     %% total number of exemplars for `CBAttributes' should be `MaxExemplars'
@@ -1939,6 +1987,9 @@ simple_fixed_exemplars(_Config) ->
     Generation1 = 1,
     [[Count1]] = ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation1}, '$1'}),
     Matches1 = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {test_exemplar_counter, CBAttributes, '_', Generation1}),
+
+    %% check that attributes on exemplars are FGAttributes
+    ?assertMatch(FGAttributes, (hd(Matches1))#exemplar.filtered_attributes),
 
     %% collection deletes the objects
     ?assertEqual([], ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, '_', Generation0}, '$1'})),
@@ -1949,7 +2000,7 @@ simple_fixed_exemplars(_Config) ->
 
     otel_meter_server:force_flush(),
 
-    ?assertSumReceive(test_exemplar_counter, <<"counter description">>, kb, [{11, CBAttributes}]),
+    ?assertSumReceive(test_exemplar_counter, <<"counter description">>, kb, [{11, #{<<"c">> => <<"b">>} }]),
 
     ok.
 
@@ -2161,6 +2212,51 @@ trace_based_exemplars(_Config) ->
     otel_meter_server:force_flush(),
 
     ?assertSumReceive(test_exemplar_counter, <<"counter description">>, kb, [{11, CBAttributes}]),
+
+    ok.
+
+observable_exemplars(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    CounterName = a_observable_counter,
+    CounterDesc = <<"observable counter description">>,
+    CounterUnit = kb,
+
+    ?assert(otel_meter_server:add_view(#{instrument_name => CounterName},
+                                       #{aggregation_module => otel_aggregation_sum,
+                                         attribute_keys => [<<"a">>]})),
+
+    Counter = otel_meter:create_observable_counter(Meter, CounterName,
+                                                   fun(_Args) ->
+                                                           MeasurementAttributes1 = #{<<"a">> => <<"b">>, <<"f">> => <<"g">>},
+                                                           MeasurementAttributes2 = #{<<"c">> => <<"d">>},
+                                                           [{4, MeasurementAttributes1},
+                                                            {5, MeasurementAttributes2}]
+                                                   end,
+                                                   [],
+                                                   #{description => CounterDesc,
+                                                     unit => CounterUnit}),
+
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = CounterName,
+                             description = CounterDesc,
+                             kind = observable_counter,
+                             unit = CounterUnit,
+                             callback=_}, Counter),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumExemplarReceive(CounterName, <<"observable counter description">>, kb, [{4, #{<<"a">> => <<"b">>}, [{4, #{<<"f">> => <<"g">>}}]},
+                                                                                      {5, #{}, [{5, #{<<"c">> => <<"d">>}}]}]),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumExemplarReceive(CounterName, <<"observable counter description">>, kb, [{4, #{<<"a">> => <<"b">>}, [{4, #{<<"f">> => <<"g">>}}]},
+                                                                                      {5, #{}, [{5, #{<<"c">> => <<"d">>}}]}]),
 
     ok.
 
