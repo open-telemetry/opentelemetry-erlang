@@ -37,6 +37,7 @@
 
          attach/1,
          detach/1,
+         with_ctx/2,
          get_current/0,
 
          text_map_extractor/2,
@@ -164,6 +165,18 @@ detach(Token) ->
     %% at this time `Token' is a context
     update_logger_process_metadata(Token),
     erlang:put(?CURRENT_CTX, Token).
+
+%% @doc Attaches a context and runs a function, detaching the context at the end.
+%%
+%% Returns the detached context.
+-spec with_ctx(t(), fun()) -> t().
+with_ctx(Ctx, Fun) ->
+    Token = otel_ctx:attach(Ctx),
+    try
+        Fun()
+    after
+        otel_ctx:detach(Token)
+    end.
 
 
 %% Extractor and Injector setup functions
