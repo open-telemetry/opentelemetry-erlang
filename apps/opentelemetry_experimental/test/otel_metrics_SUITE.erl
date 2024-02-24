@@ -979,7 +979,7 @@ kill_server(_Config) ->
     ?UNTIL(erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME) =/= CurrentPid),
     ?UNTIL(erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME) =/= undefined),
 
-    %% TODO: Agh! need to supervise ETS tables so readers can crash and not then
+    %% TODO: Agh! need to supervise ETS tables so meter servers can crash and not then
     %% lose all existing Instrument/View matches
     ACounter = otel_meter:create_counter(Meter, ACounterName,
                                          #{description => CounterDesc,
