@@ -56,7 +56,8 @@
          exemplars_tab :: ets:table(),
          config :: #{},
          resource :: otel_resource:t() | undefined,
-         generation_ref :: atomics:atomics_ref()
+         generation_ref :: atomics:atomics_ref(),
+         producers :: [otel_metric_producer:t()]
         }).
 
 %% -spec start_link(atom(), map()) -> {ok, pid()} | ignore | {error, term()}.
@@ -125,7 +126,7 @@ handle_continue(register_with_server, State=#state{provider_sup=ProviderSup,
                                                    default_aggregation_mapping=DefaultAggregationMapping,
                                                    temporality_mapping=Temporality}) ->
     ServerPid = otel_meter_server_sup:provider_pid(ProviderSup),
-    {CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, Resource} =
+    {CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, Resource, Producers} =
         otel_meter_server:add_metric_reader(ServerPid, ReaderId, self(),
                                             DefaultAggregationMapping,
                                             Temporality),
@@ -133,7 +134,8 @@ handle_continue(register_with_server, State=#state{provider_sup=ProviderSup,
                           streams_tab=StreamsTab,
                           metrics_tab=MetricsTab,
                           exemplars_tab=ExemplarsTab,
-                          resource=Resource}}.
+                          resource=Resource,
+                          producers=Producers}}.
 
 handle_call(shutdown, _From, State) ->
     {reply, ok, State};
@@ -159,10 +161,10 @@ handle_info(collect, State=#state{id=ReaderId,
                                   streams_tab=StreamsTab,
                                   metrics_tab=MetricsTab,
                                   exemplars_tab=ExemplarsTab,
-                                  resource=Resource
+                                  resource=Resource,
+                                  producers=Producers
                                  }) ->
-    %% collect from view aggregations table and then export
-    Metrics = collect_(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId),
+    Metrics = run_collection(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId, Producers),
 
     otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
 
@@ -175,14 +177,14 @@ handle_info(collect, State=#state{id=ReaderId,
                                   streams_tab=StreamsTab,
                                   metrics_tab=MetricsTab,
                                   exemplars_tab=ExemplarsTab,
-                                  resource=Resource
+                                  resource=Resource,
+                                  producers=Producers
                                  }) when TRef =/= undefined andalso
                                          ExporterIntervalMs =/= undefined  ->
     erlang:cancel_timer(TRef, [{async, true}]),
     NewTRef = erlang:send_after(ExporterIntervalMs, self(), collect),
 
-    %% collect from view aggregations table and then export
-    Metrics = collect_(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId),
+    Metrics = run_collection(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId, Producers),
 
     otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
 
@@ -195,6 +197,25 @@ code_change(State) ->
     {ok, State}.
 
 %%
+
+run_collection(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId, Producers) ->
+    %% collect from view aggregations table and then export
+    Metrics = collect_(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId),
+
+    ExternalMetrics = run_producers(Producers),
+
+    Metrics ++ ExternalMetrics.
+
+run_producers(Producers) ->
+    run_producers(Producers, []).
+
+run_producers([], ExternalMetrics) ->
+    ExternalMetrics;
+run_producers([Producer | Rest], ExternalMetrics) ->
+    run_producers(Rest, ExternalMetrics ++ run_producer(Producer)).
+
+run_producer(Producer) ->
+    otel_metric_producer:produce_batch(Producer).
 
 -spec collect_(any(), ets:table(), any(), ets:table(), reference()) -> [any()].
 collect_(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId) ->

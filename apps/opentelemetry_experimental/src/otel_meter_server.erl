@@ -101,7 +101,9 @@
          views :: [otel_view:t()],
          readers :: [#reader{}],
 
-         resource :: otel_resource:t()
+         resource :: otel_resource:t(),
+
+         producers :: [otel_metric_producer:t()]
         }).
 
 %% I think these have warnings because the new view function is ignored
@@ -186,6 +188,7 @@ init([Name, RegName, Resource, Config]) ->
     Views = lists:filtermap(fun new_view/1, maps:get(views, Config, [])),
     ExemplarsEnabled = maps:get(exemplars_enabled, Config, false),
     ExemplarFilter = maps:get(exemplar_filter, Config, trace_based),
+    Producers = init_producers(maps:get(metric_producers, Config, [])),
 
     {ok, #state{shared_meter=Meter,
                 instruments_tab=InstrumentsTab,
@@ -197,7 +200,18 @@ init([Name, RegName, Resource, Config]) ->
                 exemplar_filter=ExemplarFilter,
                 views=Views,
                 readers=[],
-                resource=Resource}}.
+                resource=Resource,
+                producers=Producers}}.
+
+init_producers(Producers) ->
+    lists:filtermap(fun({ProducerModule, ProducerConfig}) ->
+                            case otel_metric_producer:init(ProducerModule, ProducerConfig) of
+                                false ->
+                                    false;
+                                Producer ->
+                                    {true, Producer}
+                            end
+                    end, Producers).
 
 handle_call({add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality},
             _From, State=#state{readers=Readers,
@@ -209,7 +223,8 @@ handle_call({add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, 
                                 exemplars_tab=ExemplarsTab,
                                 exemplars_enabled=ExemplarsEnabled,
                                 exemplar_filter=ExemplarFilter,
-                                resource=Resource}) ->
+                                resource=Resource,
+                                producers=Producers}) ->
     Reader = metric_reader(ReaderId,
                            ReaderPid,
                            DefaultAggregationMapping,
@@ -220,7 +235,7 @@ handle_call({add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, 
     %% matches for the new Reader
     _ = update_streams(InstrumentsTab, CallbacksTab, StreamsTab, Views, Readers1, ExemplarsEnabled, ExemplarFilter),
 
-    {reply, {CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, Resource}, State#state{readers=Readers1}};
+    {reply, {CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, Resource, Producers}, State#state{readers=Readers1}};
 handle_call(resource, _From, State=#state{resource=Resource}) ->
     {reply, Resource, State};
 handle_call({add_instrument, Instrument}, _From, State=#state{readers=Readers,

@@ -19,10 +19,10 @@
 
 -include("otel_metrics.hrl").
 
--export([new/2,
+-export([init/2,
          produce_batch/1]).
 
--callback new(module(), term()) -> t().
+-callback init(module(), term()) -> t().
 -callback produce_batch(t()) -> [#metric{}].
 
 -record(producer, {module :: module(),
@@ -31,12 +31,12 @@
 
 -export_type([t/0]).
 
-new(Module, Config) ->
-    State = Module:new(Config),
+init(Module, Config) ->
+    State = Module:init(Config),
     #producer{module=Module,
               state=State}.
 
--spec produce_batch(t()) -> [tuple()].
+-spec produce_batch(t()) -> [#metric{}].
 produce_batch(#producer{module=Module,
                         state=State}) ->
     Module:produce_batch(State).
