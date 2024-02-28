@@ -29,6 +29,7 @@
          record/4,
          record/5]).
 
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_metrics.hrl").
@@ -44,7 +45,7 @@ create_instrument(Meter, Name, Kind, Opts) ->
     _ = otel_meter_server:add_instrument(Provider, Instrument),
     Instrument.
 
-lookup_instrument(Meter={_, #meter{instruments_tab=Tab}}, Name) ->
+lookup_instrument({_, Meter=#meter{instruments_tab=Tab}}, Name) ->
     try ets:lookup_element(Tab, {Meter, Name}, 2) of
         Instrument ->
             Instrument
@@ -67,7 +68,10 @@ register_callback({_, #meter{provider=Provider}}, Instruments, Callback, Callbac
 register_callback(_, _, _, _) ->
     ok.
 
+-spec scope({module(), #meter{}} | #meter{}) -> opentelemetry:instrumentation_scope() | undefined.
 scope({_, #meter{instrumentation_scope=Scope}}) ->
+    Scope;
+scope(#meter{instrumentation_scope=Scope}) ->
     Scope.
 
 validate_name(Name) when is_atom(Name) ->
@@ -116,15 +120,11 @@ validate_explicit_bucket_boundaries(Name, Value) ->
 record(Ctx, Instrument=#instrument{}, Number) ->
     record(Ctx, Instrument, Number, #{}).
 
-record(Ctx, Meter={_,#meter{}}, NameOrInstrument, Number) ->
+record(Ctx, Meter={_, #meter{}}, NameOrInstrument, Number) ->
     record(Ctx, Meter, NameOrInstrument, Number, #{});
 
-record(Ctx, Instrument=#instrument{meter={_, #meter{streams_tab=StreamTab,
-                                                    metrics_tab=MetricsTab,
-                                                    exemplars_tab=ExemplarsTab}}}, Number, Attributes) ->
-    otel_meter_server:record(Ctx, StreamTab, MetricsTab, ExemplarsTab, Instrument, Number, Attributes).
+record(Ctx, Instrument=#instrument{meter={_, Meter=#meter{}}}, Number, Attributes) ->
+    otel_meter_server:record(Ctx, Meter, Instrument, Number, Attributes).
 
-record(Ctx, Meter={_, #meter{streams_tab=StreamTab,
-                             metrics_tab=MetricsTab,
-                             exemplars_tab=ExemplarsTab}}, NameOrInstrument, Number, Attributes) ->
-    otel_meter_server:record(Ctx, Meter, StreamTab, MetricsTab, ExemplarsTab, NameOrInstrument, Number, Attributes).
+record(Ctx, {_, Meter}, NameOrInstrument, Number, Attributes) ->
+    otel_meter_server:record(Ctx, Meter, NameOrInstrument, Number, Attributes).

@@ -44,7 +44,7 @@
 
 maybe_init_aggregate(Ctx, MetricsTab, ExemplarsTab, Stream=#stream{aggregation_module=AggregationModule,
                                                                    attribute_keys=AttributeKeys},
-                             Value, Attributes) ->
+                     Value, Attributes) ->
     {FilteredAttributes, DroppedAttributes} = filter_attributes(AttributeKeys, Attributes),
     case AggregationModule:aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value, FilteredAttributes, DroppedAttributes) of
         true ->

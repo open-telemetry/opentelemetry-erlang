@@ -277,7 +277,7 @@ checkpoint_metrics(MetricsTab, ExemplarsTab, Generation, Id, Streams) ->
                         Acc
                 end, [], Streams).
 
-metric(#instrument{meter=Meter}, Name, Description, Unit, Data) ->
+metric(#instrument{meter={_, Meter=#meter{}}}, Name, Description, Unit, Data) ->
     #metric{scope=otel_meter_default:scope(Meter),
             name=Name,
             description=Description,
