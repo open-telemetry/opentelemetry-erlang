@@ -212,7 +212,7 @@ run_producers(Producers) ->
 run_producers([], ExternalMetrics) ->
     ExternalMetrics;
 run_producers([Producer | Rest], ExternalMetrics) ->
-    run_producers(Rest, ExternalMetrics ++ run_producer(Producer)).
+    run_producers(Rest, run_producer(Producer) ++ ExternalMetrics).
 
 run_producer(Producer) ->
     otel_metric_producer:produce_batch(Producer).
