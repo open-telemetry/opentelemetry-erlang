@@ -198,7 +198,7 @@ init([Name, RegName, Resource, Config]) ->
                 resource=Resource,
                 producers=Producers}}.
 
-init_producers(Producers) ->
+init_producers(ProducerConfigs) ->
     lists:filtermap(fun({ProducerModule, ProducerConfig}) ->
                             case otel_metric_producer:init(ProducerModule, ProducerConfig) of
                                 false ->
@@ -206,7 +206,7 @@ init_producers(Producers) ->
                                 Producer ->
                                     {true, Producer}
                             end
-                    end, Producers).
+                    end, ProducerConfigs).
 
 handle_call({add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality},
             _From, State=#state{readers=Readers,
