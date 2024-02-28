@@ -164,11 +164,11 @@ force_flush(Provider) ->
     gen_server:call(Provider, force_flush).
 
 init([Name, RegName, Resource, Config]) ->
-    InstrumentsTab = instruments_tab(RegName),
-    CallbacksTab = callbacks_tab(RegName),
-    StreamsTab = streams_tab(RegName),
-    MetricsTab = metrics_tab(RegName),
-    ExemplarsTab = exemplars_tab(RegName),
+    InstrumentsTab = otel_metrics_tables:instruments_tab(RegName),
+    CallbacksTab = otel_metrics_tables:callbacks_tab(RegName),
+    StreamsTab = otel_metrics_tables:streams_tab(RegName),
+    MetricsTab = otel_metrics_tables:metrics_tab(RegName),
+    ExemplarsTab = otel_metrics_tables:exemplars_tab(RegName),
 
     Meter = #meter{module=otel_meter_default,
                    instruments_tab=InstrumentsTab,
@@ -289,36 +289,6 @@ add_view_(Name, Criteria, Config, InstrumentsTab, CallbacksTab, StreamsTab, Read
             {reply, false, State}
     end.
 
-instruments_tab(Name) ->
-    ets:new(list_to_atom(lists:concat([instruments, "_", Name])), [set,
-                                                                   named_table,
-                                                                   {keypos, 1},
-                                                                   protected]).
-
-callbacks_tab(Name) ->
-    ets:new(list_to_atom(lists:concat([callbacks, "_", Name])), [bag,
-                                                                 named_table,
-                                                                 {keypos, 1},
-                                                                 protected]).
-
-streams_tab(Name) ->
-    ets:new(list_to_atom(lists:concat([streams, "_", Name])), [bag,
-                                                               named_table,
-                                                               {keypos, 1},
-                                                               public]).
-
-metrics_tab(Name) ->
-    ets:new(list_to_atom(lists:concat([metrics, "_", Name])), [set,
-                                                               named_table,
-                                                               {keypos, 2},
-                                                               public]).
-
-exemplars_tab(Name) ->
-    ets:new(list_to_atom(lists:concat([exemplars, "_", Name])), [set,
-                                                                 named_table,
-                                                                 {keypos, 1},
-                                                                 public]).
-
 new_view(ViewConfig) ->
     Name = maps:get(name, ViewConfig, undefined),
     Description = maps:get(description, ViewConfig, undefined),
@@ -336,9 +306,10 @@ new_view(ViewConfig) ->
     end.
 
 %% Match the Instrument to views and then store a per-Reader aggregation for the View
-add_instrument_(InstrumentsTab, CallbacksTab, StreamsTab, Instrument=#instrument{meter={_, Meter},
-                                                                                 name=Name}, Views, Readers, ExemplarsEnabled, ExemplarFilter) ->
-    case ets:insert_new(InstrumentsTab, {{Meter, Name}, Instrument}) of
+add_instrument_(InstrumentsTab, CallbacksTab, StreamsTab,
+                Instrument=#instrument{meter={_, Meter=#meter{}},
+                                       name=Name}, Views, Readers, ExemplarsEnabled, ExemplarFilter) ->
+    case otel_metrics_tables:insert_instrument(InstrumentsTab, Meter, Name, Instrument) of
         true ->
             update_streams_(Instrument, CallbacksTab, StreamsTab, Views, Readers, ExemplarsEnabled, ExemplarFilter);
         false ->
@@ -348,30 +319,35 @@ add_instrument_(InstrumentsTab, CallbacksTab, StreamsTab, Instrument=#instrument
 
 %% used when a new View is added and the Views must be re-matched with each Instrument
 update_streams(InstrumentsTab, CallbacksTab, StreamsTab, Views, Readers, ExemplarsEnabled, ExemplarFilter) ->
-    ets:foldl(fun({_, Instrument}, Acc) ->
-                      update_streams_(Instrument, CallbacksTab, StreamsTab, Views, Readers, ExemplarsEnabled, ExemplarFilter),
-                      Acc
-              end, ok, InstrumentsTab).
+    otel_metrics_tables:foreach_instrument(InstrumentsTab,
+                                           fun(Instrument) ->
+                                                   update_streams_(Instrument,
+                                                                   CallbacksTab,
+                                                                   StreamsTab,
+                                                                   Views,
+                                                                   Readers,
+                                                                   ExemplarsEnabled,
+                                                                   ExemplarFilter)
+                                           end).
 
-update_streams_(Instrument=#instrument{meter={_, Meter},
+update_streams_(Instrument=#instrument{meter={_, Meter=#meter{}},
                                        name=Name}, CallbacksTab, StreamsTab, Views, Readers, ExemplarsEnabled, ExemplarFilter) ->
-    Key = {Meter, Name},
     ViewMatches = otel_view:match_instrument_to_views(Instrument, Views, ExemplarsEnabled, ExemplarFilter),
     lists:foreach(fun(Reader=#reader{id=ReaderId}) ->
                           Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
-                          [true = ets:insert(StreamsTab, {Key, M}) || M <- Matches],
+                          [true = otel_metrics_tables:insert_stream(StreamsTab, Meter, Name, M) || M <- Matches],
                           case {Instrument#instrument.callback, Instrument#instrument.callback_args} of
                               {undefined, _} ->
                                   ok;
                               {Callback, CallbackArgs} ->
-                                  ets:insert(CallbacksTab, {ReaderId, {Callback, CallbackArgs, Instrument}})
+                                  otel_metrics_tables:insert_callback(CallbacksTab, ReaderId, Callback, CallbackArgs, Instrument)
                           end
                   end, Readers).
 
 %% Match the Instrument to views and then store a per-Reader aggregation for the View
 register_callback_(CallbacksTab, Instruments, Callback, CallbackArgs, Readers) ->
     lists:map(fun(#reader{id=ReaderId}) ->
-                      ets:insert(CallbacksTab, {ReaderId, {Callback, CallbackArgs, Instruments}})
+                      otel_metrics_tables:insert_callback(CallbacksTab, ReaderId, Callback, CallbackArgs, Instruments)
               end, Readers).
 
 metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) ->
@@ -395,7 +371,7 @@ metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) ->
 %% active metrics are indexed by the Stream name + the Measurement's Attributes
 
 handle_measurement(Ctx, Meter=#meter{streams_tab=StreamsTab}, Name, Number, Attributes) ->
-    Streams = ets:match(StreamsTab, {{Meter, Name}, '$1'}),
+    Streams = otel_metrics_tables:match_streams(StreamsTab, Meter, Name),
     update_aggregations(Ctx, Meter, Number, Attributes, Streams).
 
 update_aggregations(Ctx, Meter, Value, Attributes, Streams) ->
@@ -420,8 +396,8 @@ per_reader_aggregations(Reader, Instrument, Streams) ->
      || {View, Stream} <- Streams].
 
 stream_for_reader(Instrument=#instrument{kind=Kind}, Stream, View=#view{attribute_keys=AttributeKeys},
-                            Reader=#reader{id=Id,
-                                           default_temporality_mapping=ReaderTemporalityMapping}) ->
+                  Reader=#reader{id=Id,
+                                 default_temporality_mapping=ReaderTemporalityMapping}) ->
     AggregationModule = aggregation_module(Instrument, View, Reader),
     Temporality = maps:get(Kind, ReaderTemporalityMapping, ?TEMPORALITY_CUMULATIVE),
 
@@ -475,7 +451,6 @@ report_cb(#{view_name := Name,
             stacktrace := StackTrace}) ->
     {"failed to create view: name=~ts exception=~ts",
      [Name, otel_utils:format_exception(Class, Exception, StackTrace)]}.
-
 
 do_forget(_, ?TEMPORALITY_DELTA) ->
     true;
