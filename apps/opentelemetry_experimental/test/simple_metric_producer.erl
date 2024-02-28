@@ -7,7 +7,7 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
 init(_) ->
-    [].
+    {ok, []}.
 
 produce_batch(_) ->
     [#metric{scope=#instrumentation_scope{name = <<"scope-1">>,

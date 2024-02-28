@@ -17,12 +17,13 @@
 %%%-------------------------------------------------------------------------
 -module(otel_metric_producer).
 
--include("otel_metrics.hrl").
-
 -export([init/2,
          produce_batch/1]).
 
--callback init(module(), term()) -> t().
+-include("otel_metrics.hrl").
+-include_lib("kernel/include/logger.hrl").
+
+-callback init(module(), term()) -> {ok, t()} | ignore.
 -callback produce_batch(t()) -> [#metric{}].
 
 -record(producer, {module :: module(),
@@ -31,10 +32,20 @@
 
 -export_type([t/0]).
 
+-spec init(module(), term()) -> t() | false.
 init(Module, Config) ->
-    State = Module:init(Config),
-    #producer{module=Module,
-              state=State}.
+    try Module:init(Config) of
+        ignore ->
+            false;
+        {ok, State} ->
+            #producer{module=Module,
+                      state=State}
+    catch
+        Kind:Reason:StackTrace ->
+            %% any exception during init should just make the Producer be ignored
+            ?LOG_INFO("MetricsProducer with module ~p and config ~p failed to initialize with exception: ~p", [Module, Config, otel_utils:format_exception(Kind, Reason, StackTrace)]),
+            false
+    end.
 
 -spec produce_batch(t()) -> [#metric{}].
 produce_batch(#producer{module=Module,
