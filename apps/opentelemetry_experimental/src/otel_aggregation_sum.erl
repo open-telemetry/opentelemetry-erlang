@@ -42,7 +42,7 @@
 
 init(#stream{name=Name,
              reader=ReaderId,
-             forget=Forget}, Attributes) ->
+             forget=Forget}, Attributes) when is_reference(ReaderId) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
@@ -270,8 +270,7 @@ datapoint(Tab, ExemplarReservoir, ExemplarsTab, Time, _, ?TEMPORALITY_DELTA, #su
     %% can't use `previous_checkpoint' because with delta metrics have their generation changed
     %% at each collection
     PreviousCheckpoint =
-        otel_aggregation:ets_lookup_element(Tab, {Name, Attributes, ReaderId, Generation-1},
-                                            #sum_aggregation.checkpoint, 0),
+        otel_metrics_tables:lookup_sum_checkpoint(Tab, Name, Attributes, ReaderId, Generation-1),
     Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     #datapoint{
        attributes=Attributes,

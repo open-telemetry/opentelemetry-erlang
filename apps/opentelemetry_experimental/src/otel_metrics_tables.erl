@@ -28,7 +28,10 @@
          insert_stream/4,
          insert_callback/5,
          match_streams/3,
-         foreach_instrument/2]).
+         foreach_instrument/2,
+         lookup_instrument/3,
+         lookup_explicit_histogram_bucket_counts/5,
+         lookup_sum_checkpoint/5]).
 
 -include("otel_metrics.hrl").
 -include("otel_view.hrl").
@@ -86,3 +89,36 @@ foreach_instrument(InstrumentsTab, Fun) ->
                       Fun(Instrument),
                       Acc
               end, ok, InstrumentsTab).
+
+-spec lookup_instrument(ets:table(), #meter{}, otel_instrument:name())
+                       -> otel_instrument:t() | undefined.
+lookup_instrument(InstrumentsTab, Meter, Name) ->
+    try ets:lookup_element(InstrumentsTab, {Meter, Name}, 2) of
+        Instrument ->
+            Instrument
+    catch
+        _:_ ->
+            undefined
+    end.
+
+-spec lookup_explicit_histogram_bucket_counts(ets:table(), atom(), opentelemetry:attributes_map(), reference(), number()) -> counters:counters_ref().
+lookup_explicit_histogram_bucket_counts(Table, Name, Attributes, ReaderId, Generation) ->
+    ets_lookup_element(Table, {Name, Attributes, ReaderId, Generation}, #explicit_histogram_aggregation.bucket_counts, false).
+
+-spec lookup_sum_checkpoint(ets:table(), atom(), opentelemetry:attributes_map(), reference(), number()) -> number().
+lookup_sum_checkpoint(Tab, Name, Attributes, ReaderId, Generation) ->
+    ets_lookup_element(Tab, {Name, Attributes, ReaderId, Generation},
+                       #sum_aggregation.checkpoint, 0).
+
+-if(?OTP_RELEASE >= 26).
+ets_lookup_element(Tab, Key, Pos, Default) ->
+    ets:lookup_element(Tab, Key, Pos, Default).
+-else.
+ets_lookup_element(Tab, Key, Pos, Default) ->
+    try
+        ets:lookup_element(Tab, Key, Pos)
+    catch
+        error:badarg ->
+            Default
+    end.
+-endif.

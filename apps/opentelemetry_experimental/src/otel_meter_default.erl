@@ -45,14 +45,8 @@ create_instrument(Meter, Name, Kind, Opts) ->
     _ = otel_meter_server:add_instrument(Provider, Instrument),
     Instrument.
 
-lookup_instrument({_, Meter=#meter{instruments_tab=Tab}}, Name) ->
-    try ets:lookup_element(Tab, {Meter, Name}, 2) of
-        Instrument ->
-            Instrument
-    catch
-        _:_ ->
-            undefined
-    end.
+lookup_instrument({_, Meter=#meter{instruments_tab=InstrumentsTab}}, Name) ->
+    otel_metrics_tables:lookup_instrument(InstrumentsTab, Meter, Name).
 
 -spec create_instrument(otel_meter:t(), otel_instrument:name(), otel_instrument:kind(), otel_instrument:callback(), otel_instrument:callback_args(), otel_instrument:opts()) -> otel_instrument:t().
 create_instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts) ->

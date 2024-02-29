@@ -1,18 +1,16 @@
 -module(otel_aggregation).
 
 -export([maybe_init_aggregate/6,
-         default_mapping/0,
-         ets_lookup_element/4]).
+         default_mapping/0]).
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
--include("otel_metrics.hrl").
 -include("otel_view.hrl").
 
 %% -type t() :: drop | sum | last_value | histogram.
 -type t() :: otel_aggregation_drop:t() | otel_aggregation_sum:t() |
              otel_aggregation_last_value:t() | otel_aggregation_histogram_explicit:t().
 
--type key() :: {atom(), opentelemetry:attributes_map(), reference() | undefined, number()}.
+-type key() :: {atom(), opentelemetry:attributes_map(), reference(), number()}.
 
 -type options() :: map().
 
@@ -76,16 +74,3 @@ split(Keys, Map) ->
                         {Value, DroppedAcc1} = maps:take(Key, DroppedAcc),
                         {KeptAcc#{Key => Value}, DroppedAcc1}
                 end, {#{}, Map}, Keys).
-
--if(?OTP_RELEASE >= 26).
-ets_lookup_element(Tab, Key, Pos, Default) ->
-    ets:lookup_element(Tab, Key, Pos, Default).
--else.
-ets_lookup_element(Tab, Key, Pos, Default) ->
-    try
-        ets:lookup_element(Tab, Key, Pos)
-    catch
-        error:badarg ->
-            Default
-    end.
--endif.
