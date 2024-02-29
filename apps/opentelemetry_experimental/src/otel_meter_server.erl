@@ -375,7 +375,7 @@ handle_measurement(Ctx, Meter=#meter{streams_tab=StreamsTab}, Name, Number, Attr
     update_aggregations(Ctx, Meter, Number, Attributes, Streams).
 
 update_aggregations(Ctx, Meter, Value, Attributes, Streams) ->
-    lists:foreach(fun([Stream=#stream{instrument=Instrument}]) ->
+    lists:foreach(fun(Stream=#stream{instrument=Instrument}) ->
                         maybe_init_aggregate(Ctx, Meter, Value, Instrument, Stream, Attributes);
                      (_) ->
                           ok

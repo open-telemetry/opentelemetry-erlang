@@ -118,6 +118,7 @@ init([ReaderId, ProviderSup, Config]) ->
                 export_interval_ms=ExporterIntervalMs,
                 tref=TRef,
                 generation_ref=GenerationRef,
+                producers=[],
                 config=Config}, {continue, register_with_server}}.
 
 %% eqwalizer:fixme get an unbound record error until the fixme for state record is resolved

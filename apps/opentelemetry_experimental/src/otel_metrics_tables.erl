@@ -82,7 +82,7 @@ insert_callback(CallbacksTab, ReaderId, Callback, CallbackArgs, Instrument)->
 
 -spec match_streams(ets:table(), #meter{}, atom()) -> [#stream{}].
 match_streams(StreamsTab, Meter, Name) ->
-    ets:match(StreamsTab, {{Meter, Name}, '$1'}).
+    [S || [S] <- ets:match(StreamsTab, {{Meter, Name}, '$1'})].
 
 foreach_instrument(InstrumentsTab, Fun) ->
     ets:foldl(fun({_, Instrument}, Acc) ->
