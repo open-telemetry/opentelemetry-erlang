@@ -160,7 +160,7 @@ attach(Ctx) ->
     erlang:put(?CURRENT_CTX, Ctx).
 
 %% @doc Detaches the given context from the current process.
--spec detach(token()) -> ok.
+-spec detach(token()) -> t() | undefined.
 detach(Token) ->
     %% at this time `Token' is a context
     update_logger_process_metadata(Token),
@@ -169,13 +169,16 @@ detach(Token) ->
 %% @doc Attaches a context and runs a function, detaching the context at the end.
 %%
 %% Returns the detached context.
--spec with_ctx(t(), fun()) -> t().
+-spec with_ctx(t(), fun(() -> term())) -> {term(), t()}.
 with_ctx(Ctx, Fun) ->
     Token = otel_ctx:attach(Ctx),
     try
-        Fun()
-    after
-        otel_ctx:detach(Token)
+        Result = Fun(),
+        {Result, otel_ctx:detach(Token)}
+    catch
+        C:T:S ->
+            otel_ctx:detach(Token),
+            erlang:raise(C, T, S)
     end.
 
 

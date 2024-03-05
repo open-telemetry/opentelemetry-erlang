@@ -34,7 +34,7 @@ run_callbacks(Callbacks, ReaderId, StreamTab, MetricsTab, ExemplarsTab) ->
                           Ctx0 = otel_ctx:new(),
                           {Results, Ctx} = ?with_ctx(Ctx0, fun() ->
                                                                    Results0 = Callback(CallbackArgs),
-                                                                   {Results0, ?current_ctx}
+                                                                   Results0
                                                            end),
                           handle_instruments_observations(Ctx,
                                                           Results,
@@ -47,7 +47,7 @@ run_callbacks(Callbacks, ReaderId, StreamTab, MetricsTab, ExemplarsTab) ->
                           Ctx0 = otel_ctx:new(),
                           {Results, Ctx} = ?with_ctx(Ctx0, fun() ->
                                                                    Results0 = Callback(CallbackArgs),
-                                                                   {Results0, ?current_ctx}
+                                                                   Results0
                                                            end),
                           %% when not a list of instruments it isn't expecting named observation
                           %% results so we use handle_instrument instead of handle_instruments
