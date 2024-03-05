@@ -37,6 +37,8 @@
 -export([start_link/4,
          add_metric_reader/4,
          add_metric_reader/5,
+         get_readers/0,
+         get_readers/1,
          add_instrument/1,
          add_instrument/2,
          register_callback/3,
@@ -128,6 +130,12 @@ add_metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) -
 add_metric_reader(Provider, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) ->
     gen_server:call(Provider, {add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality}).
 
+get_readers() ->
+    get_readers(?GLOBAL_METER_PROVIDER_REG_NAME).
+
+get_readers(Provider) ->
+    gen_server:call(Provider, get_readers).
+
 -spec register_callback([otel_instrument:t()], otel_instrument:callback(), otel_instrument:callback_args()) -> boolean().
 register_callback(Instruments, Callback, CallbackArgs) ->
     register_callback(?GLOBAL_METER_PROVIDER_REG_NAME, Instruments, Callback, CallbackArgs).
@@ -199,6 +207,9 @@ init([Name, RegName, Resource, Config]) ->
                 readers=[],
                 resource=Resource}}.
 
+handle_call(get_readers, _From, State=#state{readers=Readers}) ->
+
+    {reply, Readers, State};
 handle_call({add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality},
             _From, State=#state{readers=Readers,
                                 views=Views,
