@@ -65,7 +65,7 @@ run_callbacks(Callbacks, ReaderId, StreamTab, MetricsTab, ExemplarsTab) ->
 %% lookup Streams for Instrument and aggregate each observation
 -spec handle_instrument_observations(otel_ctx:t(), [otel_instrument:observation()], otel_instrument:t(),
                                      ets:table(), ets:table(), ets:table(), reference()) -> ok.
-handle_instrument_observations(Ctx, Results, #instrument{meter=Meter,
+handle_instrument_observations(Ctx, Results, #instrument{meter={_, Meter},
                                                          name=Name},
                                StreamTab, MetricsTab, ExemplarsTab, ReaderId) ->
     try ets:lookup_element(StreamTab, {Meter, Name}, 2) of

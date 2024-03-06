@@ -117,7 +117,7 @@ all() ->
      sync_delta_histogram, async_cumulative_page_faults, async_delta_page_faults,
      async_attribute_removal, sync_cumulative_histogram, simple_fixed_exemplars,
      float_simple_fixed_exemplars, explicit_histogram_exemplars, trace_based_exemplars,
-     observable_exemplars
+     observable_exemplars, simple_producer
     ].
 
 init_per_suite(Config) ->
@@ -305,7 +305,13 @@ init_per_testcase(observable_exemplars, Config) ->
 
     ok = application:set_env(opentelemetry_experimental, exemplars_enabled, true),
     ok = application:set_env(opentelemetry_experimental, exemplar_filter, always_on),
+init_per_testcase(simple_producer, Config) ->
+    application:load(opentelemetry_experimental),
 
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping => default_temporality_mapping()}}]),
+    ok = application:set_env(opentelemetry_experimental, metric_producers, [simple_metric_producer]),
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
     Config;
@@ -1021,7 +1027,7 @@ kill_server(_Config) ->
     ?UNTIL(erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME) =/= CurrentPid),
     ?UNTIL(erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME) =/= undefined),
 
-    %% TODO: Agh! need to supervise ETS tables so readers can crash and not then
+    %% TODO: Agh! need to supervise ETS tables so meter servers can crash and not then
     %% lose all existing Instrument/View matches
     ACounter = otel_meter:create_counter(Meter, ACounterName,
                                          #{description => CounterDesc,
@@ -2274,6 +2280,11 @@ observable_exemplars(_Config) ->
     ?assertSumExemplarReceive(CounterName, <<"observable counter description">>, kb, [{4, #{<<"a">> => <<"b">>}, [{4, #{<<"f">> => <<"g">>}}]},
                                                                                        {5, #{}, [{5, #{<<"c">> => <<"d">>}}]}]),
 
+simple_producer(_Config) ->
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(external_counter_1, <<"external counter description">>, kb,
+                      [{50, #{<<"a">> => <<"b">>}}]),
     ok.
 
 %%

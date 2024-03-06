@@ -266,12 +266,4 @@ report_cb(#{source := exporter,
             exporter := ExporterModule,
             stacktrace := StackTrace}) ->
     {"exporter threw exception: exporter=~p ~ts",
-     [ExporterModule, format_exception(Kind, Reason, StackTrace)]}.
-
--if(?OTP_RELEASE >= 24).
-format_exception(Kind, Reason, StackTrace) ->
-    erl_error:format_exception(Kind, Reason, StackTrace).
--else.
-format_exception(Kind, Reason, StackTrace) ->
-    io_lib:format("~p:~p ~p", [Kind, Reason, StackTrace]).
--endif.
+     [ExporterModule, otel_utils:format_exception(Kind, Reason, StackTrace)]}.

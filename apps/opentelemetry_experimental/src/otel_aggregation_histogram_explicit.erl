@@ -149,7 +149,7 @@ default_buckets() ->
 init(#stream{name=Name,
              reader=ReaderId,
              aggregation_options=Options,
-             forget=Forget}, Attributes) ->
+             forget=Forget}, Attributes) when is_reference(ReaderId) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
@@ -174,16 +174,15 @@ aggregate(Ctx, Table, ExemplarsTab, #stream{name=Name,
                                             reader=ReaderId,
                                             aggregation_options=Options,
                                             forget=Forget,
-                                            exemplar_reservoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes) ->
+                                            exemplar_reservoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes) when is_reference(ReaderId) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
                      _ ->
                          0
                  end,
-    Key = {Name, Attributes, ReaderId, Generation},
     ExplicitBucketBoundaries = maps:get(explicit_bucket_boundaries, Options, ?DEFAULT_BOUNDARIES),
-    case otel_aggregation:ets_lookup_element(Table, Key, #explicit_histogram_aggregation.bucket_counts, false) of
+    case otel_metrics_tables:lookup_explicit_histogram_bucket_counts(Table, Name, Attributes, ReaderId, Generation) of
         false ->
             %% since we need the options to initialize a histogram `false' is
             %% returned and `otel_metric_server' will initialize the histogram
@@ -199,6 +198,7 @@ aggregate(Ctx, Table, ExemplarsTab, #stream{name=Name,
             BucketIdx = find_bucket(ExplicitBucketBoundaries, Value),
             counters:add(BucketCounts, BucketIdx, 1),
 
+            Key = {Name, Attributes, ReaderId, Generation},
             MS = ?AGGREATE_MATCH_SPEC(Key, Value, BucketCounts),
             case ets:select_replace(Table, MS) of
                 1 ->
