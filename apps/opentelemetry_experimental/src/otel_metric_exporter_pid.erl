@@ -23,10 +23,6 @@
          force_flush/0,
          shutdown/1]).
 
--include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
--include("otel_view.hrl").
--include("otel_metrics.hrl").
-
 init({Tag, Pid}) ->
     {ok, {Tag, Pid}};
 init(Pid) ->
