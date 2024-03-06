@@ -305,6 +305,10 @@ init_per_testcase(observable_exemplars, Config) ->
 
     ok = application:set_env(opentelemetry_experimental, exemplars_enabled, true),
     ok = application:set_env(opentelemetry_experimental, exemplar_filter, always_on),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
 init_per_testcase(simple_producer, Config) ->
     application:load(opentelemetry_experimental),
 
@@ -2279,6 +2283,8 @@ observable_exemplars(_Config) ->
 
     ?assertSumExemplarReceive(CounterName, <<"observable counter description">>, kb, [{4, #{<<"a">> => <<"b">>}, [{4, #{<<"f">> => <<"g">>}}]},
                                                                                        {5, #{}, [{5, #{<<"c">> => <<"d">>}}]}]),
+
+    ok.
 
 simple_producer(_Config) ->
     otel_meter_server:force_flush(),
