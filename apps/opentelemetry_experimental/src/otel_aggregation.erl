@@ -71,6 +71,10 @@ default_mapping() ->
 
 split(Keys, Map) ->
     lists:foldl(fun(Key, {KeptAcc, DroppedAcc}) ->
-                        {Value, DroppedAcc1} = maps:take(Key, DroppedAcc),
-                        {KeptAcc#{Key => Value}, DroppedAcc1}
+                        case maps:take(Key, DroppedAcc) of
+                            {Value, DroppedAcc1} ->
+                                {KeptAcc#{Key => Value}, DroppedAcc1};
+                            error ->
+                                {KeptAcc, DroppedAcc}
+                        end
                 end, {#{}, Map}, Keys).
