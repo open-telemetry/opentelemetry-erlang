@@ -28,7 +28,7 @@
          collect/1,
          checkpoint_generation/1,
          shutdown/1,
-         collect_/4]).
+         collect_/5]).
 
 -export([init/1,
          handle_call/3,
@@ -143,40 +143,19 @@ handle_call(shutdown, _From, State) ->
     {reply, ok, State};
 
 handle_call(collect, _From, State=#state{id=ReaderId,
-                                  exporter=Exporter,
-                                  callbacks_tab=CallbacksTab,
-                                  streams_tab=StreamsTab,
-                                  metrics_tab=MetricsTab,
-                                  exemplars_tab=ExemplarsTab,
-                                  resource=Resource,
-                                  producers=Producers
-                                 }) ->
-    TRef = update_timer(State#state.tref, State#state.export_interval_ms),
-    Reply = collect_and_export(ReaderId, Exporter, CallbacksTab, ViewAggregationTab, MetricsTab, Resource),
-    {reply, Reply, State#state{tref=TRef}};
-
-handle_call(collect, _From, State=#state{id=ReaderId,
-                                          exporter={ExporterModule, Config},
-                                          export_interval_ms=ExporterIntervalMs,
-                                          tref=TRef,
-                                          callbacks_tab=CallbacksTab,
-                                          streams_tab=StreamsTab,
-                                          metrics_tab=MetricsTab,
-                                          exemplars_tab=ExemplarsTab,
-                                          resource=Resource,
-                                          producers=Producers
-                                         }) ->
-    TRef = update_timer(State#state.tref, State#state.export_interval_ms),
-
-    Metrics = run_collection(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId, Producers),
-
-    Reply = otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config),
-
-    {reply, Reply, State#state{tref=TRef}};
-
-%% no exporter, do nothing at all
-handle_call(collect, _From, State) ->
-    {reply, ok, State};
+                                         exporter=Exporter,
+                                         export_interval_ms=ExporterIntervalMs,
+                                         tref=TRef,
+                                         callbacks_tab=CallbacksTab,
+                                         streams_tab=StreamsTab,
+                                         metrics_tab=MetricsTab,
+                                         exemplars_tab=ExemplarsTab,
+                                         resource=Resource,
+                                         producers=Producers
+                                        }) ->
+    NewTRef = update_timer(TRef, ExporterIntervalMs),
+    Reply = collect_and_export(ReaderId, Exporter, CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, Producers, Resource),
+    {reply, Reply, State#state{tref=NewTRef}};
 
 handle_call(_, _From, State) ->
     {noreply, State}.
@@ -193,11 +172,19 @@ handle_cast(_, State) ->
 code_change(State) ->
     {ok, State}.
 
-update_timer(undefined, undefined) ->
-    undefined;
-update_timer(TRef, ExporterIntervalMs) ->
+collect_and_export(_ReaderId, undefined, _CallbacksTab, _StreamsTab, _MetricsTab, _ExemplarsTab, _Producers, _Resource) ->
+    ok;
+collect_and_export(ReaderId, {ExporterModule, Config}, CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, Producers, Resource) ->
+    Metrics = run_collection(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId, Producers),
+    otel_exporter:export_metrics(ExporterModule, Metrics, Resource, Config).
+
+update_timer(TRef, ExporterIntervalMs)
+  when TRef =/= undefined andalso
+       ExporterIntervalMs =/= undefined ->
     erlang:cancel_timer(TRef, [{async, true}]),
-    erlang:send_after(ExporterIntervalMs, self(), collect).
+    erlang:send_after(ExporterIntervalMs, self(), collect);
+update_timer(_TRef, _ExporterIntervalMs) ->
+    ok.
 
 run_collection(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId, Producers) ->
     %% collect from view aggregations table and then export
