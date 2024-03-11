@@ -112,7 +112,7 @@ fake_info_metric(Name, Scope, Attributes, Description) ->
         description=Description,
         data=#gauge{datapoints=[#datapoint{
             attributes=Attributes, value=1, exemplars=[],
-            flags=0, start_time_unix_nano=0, time_unix_nano=0
+            flags=0, start_time=0, time=0
         }]}
     }.
 
@@ -191,7 +191,7 @@ data(MetricName, Datapoints, Scope, AddCreated, #opts{add_scope_info=AddScopeInf
 
     lists:foldl(
         fun(DP, Acc) ->
-            datapoint(DP, MetricName, AddCreated, ScopeLabels, Acc) 
+            datapoint(DP, MetricName, AddCreated, ScopeLabels, Acc)
         end,
         [[], []],
         Datapoints
@@ -200,12 +200,12 @@ data(MetricName, Datapoints, Scope, AddCreated, #opts{add_scope_info=AddScopeInf
 datapoint(#datapoint{} = DP, MetricName, AddCreated, ScopeLabels, [Points, Created]) ->
     Labels = surround_labels(join_labels(ScopeLabels, labels(DP#datapoint.attributes))),
     Point = [MetricName, Labels, " ", number_to_binary(DP#datapoint.value), "\n"],
-    Created1 = created(AddCreated, Created, MetricName, Labels, DP#datapoint.start_time_unix_nano),
+    Created1 = created(AddCreated, Created, MetricName, Labels, DP#datapoint.start_time),
     [[Point | Points], Created1];
 datapoint(#histogram_datapoint{} = DP, MetricName, AddCreated, ScopeLabels, [Points, Created]) ->
     Labels = join_labels(ScopeLabels, labels(DP#histogram_datapoint.attributes)),
     SurroundedLabels = surround_labels(Labels),
-    
+
     Count = lists:sum(DP#histogram_datapoint.bucket_counts),
     CountPoint = [MetricName, "_count", SurroundedLabels, " ", number_to_binary(Count), "\n"],
 
@@ -223,14 +223,14 @@ datapoint(#histogram_datapoint{} = DP, MetricName, AddCreated, ScopeLabels, [Poi
         lists:zip(DP#histogram_datapoint.bucket_counts, DP#histogram_datapoint.explicit_bounds ++ [<<"+Inf">>])
     ),
 
-    Created1 = created(AddCreated, Created, MetricName, SurroundedLabels, DP#histogram_datapoint.start_time_unix_nano),
+    Created1 = created(AddCreated, Created, MetricName, SurroundedLabels, DP#histogram_datapoint.start_time),
 
     [[Buckets, CountPoint, SumPoint | Points], Created1].
 
-created(false, Created, _MetricName, _Labels, _Value) ->
+created(false, Created, _MetricName, _Labels, _StartTime) ->
     Created;
-created(true, Created, MetricName, Labels, Value) ->
-    [[MetricName, "_created", Labels, " ", number_to_binary(Value), "\n"] | Created].
+created(true, Created, MetricName, Labels, StartTime) ->
+    [[MetricName, "_created", Labels, " ", number_to_binary(opentelemetry:timestamp_to_nano(StartTime)), "\n"] | Created].
 
 join_labels(<<>>, L) -> L;
 join_labels(L, <<>> )-> L;
@@ -328,12 +328,16 @@ escape_help_char(X) ->
 
 -ifdef(TEST).
 
+nano_to_timestamp(Nano) ->
+    Offset = erlang:time_offset(),
+    erlang:convert_time_unit(Nano, nanosecond, native) - Offset.
+
 metrics_to_string(Metrics) ->
     metrics_to_string(Metrics, #{}).
 
 metrics_to_string(Metrics, Opts) ->
     Resource = otel_resource:create(#{"res" => "b"}, "url"),
-    {ok, Opts1} = init(Opts),
+    {ok, Opts1} = init(Opts#{order => ordered}),
     lists:flatten(io_lib:format("~ts", [parse_metrics(Metrics, Resource, Opts1)])).
 
 lines_join(Lines) ->
@@ -376,15 +380,15 @@ monotonic_counter_test() ->
                 datapoints = [
                     #datapoint{
                         attributes = #{},
-                        start_time_unix_nano = 0,
-                        time_unix_nano = 1,
+                        start_time = nano_to_timestamp(0),
+                        time = nano_to_timestamp(1),
                         value = 2,
                         flags = 0
                     },
                     #datapoint{
                         attributes = #{<<"foo">> => 1},
-                        start_time_unix_nano = 123,
-                        time_unix_nano = 456,
+                        start_time = nano_to_timestamp(123),
+                        time = nano_to_timestamp(456),
                         value = 789,
                         flags = 0
                     }
@@ -427,8 +431,8 @@ not_monotonic_counter_test() ->
                 datapoints = [
                     #datapoint{
                         attributes = #{},
-                        start_time_unix_nano = 0,
-                        time_unix_nano = 1,
+                        start_time = nano_to_timestamp(0),
+                        time = nano_to_timestamp(1),
                         value = 2,
                         flags = 0
                     }
@@ -465,8 +469,8 @@ gauge_test() ->
                 datapoints = [
                     #datapoint{
                         attributes = #{<<"foo">> => 1},
-                        start_time_unix_nano = 123,
-                        time_unix_nano = 456,
+                        start_time = nano_to_timestamp(123),
+                        time = nano_to_timestamp(456),
                         value = 2.0,
                         flags = 0
                     }
@@ -506,8 +510,8 @@ monotonic_histogram_test() ->
                 datapoints = [
                     #histogram_datapoint{
                         attributes = #{},
-                        start_time_unix_nano = 0,
-                        time_unix_nano = 1,
+                        start_time = nano_to_timestamp(0),
+                        time = nano_to_timestamp(1),
                         count = 3,
                         sum = 7,
                         bucket_counts = [2,0,1],
@@ -557,8 +561,8 @@ not_monotonic_histogram_test() ->
                 datapoints = [
                     #histogram_datapoint{
                         attributes = #{},
-                        start_time_unix_nano = 0,
-                        time_unix_nano = 1,
+                        start_time = nano_to_timestamp(0),
+                        time = nano_to_timestamp(1),
                         count = 1,
                         sum = 3,
                         bucket_counts = [0,0,1],
@@ -608,8 +612,8 @@ no_otel_scope_test() ->
                 datapoints = [
                     #datapoint{
                         attributes = #{},
-                        start_time_unix_nano = 0,
-                        time_unix_nano = 1,
+                        start_time = nano_to_timestamp(0),
+                        time = nano_to_timestamp(1),
                         value = 2,
                         flags = 0
                     }
