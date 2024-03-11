@@ -20,7 +20,8 @@
 
 -record(opts,{
     add_scope_info :: boolean(),
-    add_total_suffix :: boolean()
+    add_total_suffix :: boolean(),
+    order :: maps:iterator_order()
 }).
 
 -export([init/1,
@@ -42,7 +43,8 @@
 init(Opts) ->
     {ok, #opts{
         add_scope_info = maps:get(add_scope_info, Opts, true),
-        add_total_suffix = maps:get(add_total_suffix, Opts, true)
+        add_total_suffix = maps:get(add_total_suffix, Opts, true),
+        order = maps:get(order, Opts, undefined)
     }}.
 
 export(metrics, Metrics, Resource, Opts) ->
@@ -54,7 +56,7 @@ force_flush() ->
 shutdown(_) ->
     ok.
 
-parse_metrics(Metrics, Resource, Opts) ->
+parse_metrics(Metrics, Resource, #opts{order=Order} = Opts) ->
     ParsedMetrics = lists:foldl(
         fun(#metric{scope=Scope} = Metric, Acc) ->
             Acc1 = case Opts of
@@ -74,7 +76,8 @@ parse_metrics(Metrics, Resource, Opts) ->
     TargetInfoMetric = fake_info_metric(target, #instrumentation_scope{}, ResourceAttributes, <<"Target metadata">>),
     ParsedMetrics1 = parse_and_accumulate_metric(TargetInfoMetric, ParsedMetrics, Opts),
 
-    maps:fold(fun(_Name, #{preamble := Preamble, data := Data}, Acc) -> [[Preamble | Data] | Acc] end, [], ParsedMetrics1).
+    ParsedMetricsIter = maps:iterator(ParsedMetrics1, Order),
+    maps:fold(fun(_Name, #{preamble := Preamble, data := Data}, Acc) -> [[Preamble | Data] | Acc] end, [], ParsedMetricsIter).
 
 parse_and_accumulate_metric(#metric{name=Name, description=Description, data=Data, unit=Unit, scope=Scope}, Acc, Opts) ->
     FixedUnit = fix_unit(Unit),
