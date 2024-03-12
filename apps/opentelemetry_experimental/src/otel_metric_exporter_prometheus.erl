@@ -79,17 +79,19 @@ parse_metrics(Metrics, Resource, #opts{order=Order} = Opts) ->
     ParsedMetricsIter = maps:iterator(ParsedMetrics1, Order),
     maps:fold(fun(_Name, #{preamble := Preamble, data := Data}, Acc) -> [[Preamble | Data] | Acc] end, [], ParsedMetricsIter).
 
+parse_and_accumulate_metric(#metric{name=Name}, Acc, _Opts)
+  when is_map_key(Name, Acc) ->
+    %% skip duplicate metric, can this even happen?
+    Acc;
 parse_and_accumulate_metric(#metric{name=Name, description=Description, data=Data, unit=Unit, scope=Scope}, Acc, Opts) ->
     FixedUnit = fix_unit(Unit),
     {MetricNameUnit, FullName} = fix_metric_name(atom_to_list(Name), FixedUnit, Data, Opts),
-    case {maps:get(Name, Acc, undefined), data(FullName, Data, Scope, Opts)} of
-        {_, invalid_temporality} ->
+    case data(FullName, Data, Scope, Opts) of
+        invalid_temporality ->
             Acc;
-        {undefined, TextData} ->
+        TextData ->
             Preamble = preamble(MetricNameUnit, Description, FixedUnit, Data),
-            maps:put(Name, #{preamble => Preamble, data => TextData}, Acc);
-        _ ->
-            Acc
+            Acc#{Name => #{preamble => Preamble, data => TextData}}
     end.
 
 fix_metric_name(Name, Unit, Data, #opts{add_total_suffix=AddTotalSuffix}) ->
@@ -100,10 +102,14 @@ fix_metric_name(Name, Unit, Data, #opts{add_total_suffix=AddTotalSuffix}) ->
         _ -> reverse_append(MetricName, string:reverse([$_ | Unit]))
     end,
 
-    FullName = case {Name, AddTotalSuffix, Data} of
-        {Name1, _, _} when is_map_key(Name1, ?INFO_METRICS) -> string:reverse("_info") ++ MetricNameUnit;
-        {_, true, #sum{is_monotonic=true}} -> reverse_append(MetricNameUnit, string:reverse("_total"));
-        _ -> MetricNameUnit
+    FullName =
+        case Data of
+            _ when is_map_key(Name, ?INFO_METRICS) ->
+                string:reverse("_info") ++ MetricNameUnit;
+            #sum{is_monotonic=true} when AddTotalSuffix =:= true ->
+                reverse_append(MetricNameUnit, string:reverse("_total"));
+            _ ->
+                MetricNameUnit
     end,
 
     {string:reverse(MetricNameUnit), string:reverse(FullName)}.
