@@ -17,6 +17,7 @@
 %%%-------------------------------------------------------------------------
 
 -module(otel_metric_exporter_prometheus).
+-behavior(otel_exporter).
 
 -record(opts,{
     add_scope_info :: boolean(),
@@ -158,7 +159,75 @@ fix_unit(Unit) when is_atom(Unit) ->
 fix_unit("1") ->
     "ratio";
 fix_unit(Unit) ->
-    string:replace(Unit, "/", "_per_").
+    lists:join("_per_", [guess_unit(U) || U <- string:split(Unit, "/", all)]).
+
+guess_unit(Unit) ->
+    case try_unit(Unit) of
+        not_found ->
+            case try_unit_prefix(Unit) of
+                not_found ->
+                    Unit;
+                {Prefix, BaseUnit} ->
+                    case try_unit(BaseUnit) of
+                        not_found -> Unit;
+                        BaseUnitStr -> [Prefix, BaseUnitStr]
+                    end
+            end;
+        UnitStr ->
+            UnitStr
+    end.
+
+%% https://unitsofmeasure.org/ucum
+
+%% Si base units
+try_unit("m") -> "meters";
+try_unit("s") -> "seconds";
+try_unit("g") -> "grams";
+try_unit("rad") -> "radians";
+try_unit("K") -> "kelvin";
+try_unit("C") -> "coulombs";
+try_unit("cd") -> "candelas";
+
+%% IT units
+try_unit("By") -> "Bytes";
+try_unit("bit") -> "bits";
+try_unit("Bd") -> "baud";
+
+%% not in UCUM, but used in
+%% opentelemetry-collector:receiver/prometheusreceiver/internal/metricsbuilder.go
+try_unit("Bi") -> "bits";
+
+try_unit(_) -> not_found.
+
+%% IT unit prefixes
+try_unit_prefix([$K, $i | [_|_] = BaseUnit]) -> {"kibi", BaseUnit};
+try_unit_prefix([$M, $i | [_|_] = BaseUnit]) -> {"mebi", BaseUnit};
+try_unit_prefix([$G, $i | [_|_] = BaseUnit]) -> {"gibi", BaseUnit};
+try_unit_prefix([$T, $i | [_|_] = BaseUnit]) -> {"tebi", BaseUnit};
+
+%% Si prefixes
+try_unit_prefix([$Y | [_|_] = BaseUnit]) -> {"yotta", BaseUnit};
+try_unit_prefix([$Z | [_|_] = BaseUnit]) -> {"zetta", BaseUnit};
+try_unit_prefix([$E | [_|_] = BaseUnit]) -> {"exa", BaseUnit};
+try_unit_prefix([$P | [_|_] = BaseUnit]) -> {"peta", BaseUnit};
+try_unit_prefix([$T | [_|_] = BaseUnit]) -> {"tera", BaseUnit};
+try_unit_prefix([$G | [_|_] = BaseUnit]) -> {"giga", BaseUnit};
+try_unit_prefix([$M | [_|_] = BaseUnit]) -> {"mega", BaseUnit};
+try_unit_prefix([$k | [_|_] = BaseUnit]) -> {"kilo", BaseUnit};
+try_unit_prefix([$h | [_|_] = BaseUnit]) -> {"hecto", BaseUnit};
+try_unit_prefix([$d, $a | [_|_] = BaseUnit]) -> {"deka", BaseUnit};
+try_unit_prefix([$d | [_|_] = BaseUnit]) -> {"deci", BaseUnit};
+try_unit_prefix([$c | [_|_] = BaseUnit]) -> {"centi", BaseUnit};
+try_unit_prefix([$m | [_|_] = BaseUnit]) -> {"milli", BaseUnit};
+try_unit_prefix([$u | [_|_] = BaseUnit]) -> {"micro", BaseUnit};
+try_unit_prefix([$n | [_|_] = BaseUnit]) -> {"nano", BaseUnit};
+try_unit_prefix([$p | [_|_] = BaseUnit]) -> {"pico", BaseUnit};
+try_unit_prefix([$f | [_|_] = BaseUnit]) -> {"femto", BaseUnit};
+try_unit_prefix([$a | [_|_] = BaseUnit]) -> {"atto", BaseUnit};
+try_unit_prefix([$z | [_|_] = BaseUnit]) -> {"zepto", BaseUnit};
+try_unit_prefix([$y | [_|_] = BaseUnit]) -> {"yocto", BaseUnit};
+
+try_unit_prefix(_) -> not_found.
 
 preamble(Name, Description, Unit, Data) ->
     [
