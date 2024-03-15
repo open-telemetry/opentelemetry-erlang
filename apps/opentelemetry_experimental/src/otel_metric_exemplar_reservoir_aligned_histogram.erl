@@ -21,7 +21,7 @@
 %%   if bucket < num_buckets then
 %%     reservoir[bucket] = measurement
 %%   end
-
+%%
 %%   def find_histogram_bucket(measurement):
 %%     for boundary, idx in bucket_boundaries do
 %%       if value <= boundary then
