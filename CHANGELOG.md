@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Experimental SDK
+
+### Fixes
+
+- [use correct default temporality for streams based on the instrument
+  kind](https://github.com/open-telemetry/opentelemetry-erlang/pull/713)
+
+## API
+
 ## API 1.3.0 - 2024-03-15
 
 ### Changes

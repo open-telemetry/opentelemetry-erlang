@@ -169,8 +169,7 @@ init_per_testcase(delta_counter, Config) ->
     %% delta is the default for a counter with sum aggregation
     %% so no need to set any temporality mapping in the reader
     ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
-                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
-                                                                                 default_temporality_mapping => default_temporality_mapping()}}]),
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()}}}]),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
