@@ -97,6 +97,9 @@ validate_advisory_param(Name, _Kind, Opt, _Value) ->
     ?LOG_WARNING("[instrument '~s'] '~s' advisory parameter is not supported, ignoring", [Name, Opt]),
     false.
 
+%% empty list denotes a single bucket histogram that can be used for things like summaries
+validate_explicit_bucket_boundaries(_Name, []) ->
+    {true, {explicit_bucket_boundaries, []}};
 validate_explicit_bucket_boundaries(Name, [_ | _] = Value) ->
     case lists:all(fun is_number/1, Value) and (lists:sort(Value) == Value) of
         true ->

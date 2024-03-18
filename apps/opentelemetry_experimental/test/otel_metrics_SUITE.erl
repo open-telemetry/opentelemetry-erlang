@@ -1382,6 +1382,11 @@ advisory_params(_Config) ->
                                   #{advisory_params => #{explicit_bucket_boundaries => [10, 20, 30]}}),
     ?assertEqual(Histogram#instrument.advisory_params, #{explicit_bucket_boundaries => [10, 20, 30]}),
 
+    %% an empty boundaries list can be used to get a single bucket histogram `(-Inf, +Inf)'
+    BHistogram = otel_histogram:create(Meter, b_histogram,
+                                       #{advisory_params => #{explicit_bucket_boundaries => []}}),
+    ?assertEqual(BHistogram#instrument.advisory_params, #{explicit_bucket_boundaries => []}),
+
     Ctx = otel_ctx:new(),
 
     ?assertEqual(ok, otel_histogram:record(Ctx, Histogram, 15, #{<<"a">> => <<"1">>})),
