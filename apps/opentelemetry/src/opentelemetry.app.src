@@ -1,6 +1,6 @@
 {application, opentelemetry,
  [{description, "Implementation of stable OpenTelemetry signals"},
-  {vsn, "git"},
+  {vsn, "1.4.0"},
   {registered, [
                 %% global tracer provider supervisor for use by the API
                 otel_tracer_provider_sup
