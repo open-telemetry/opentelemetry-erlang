@@ -1,7 +1,8 @@
 -module(otel_aggregation).
 
 -export([maybe_init_aggregate/6,
-         default_mapping/0]).
+         default_mapping/0,
+         default_temporality_mapping/0]).
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_view.hrl").
@@ -68,6 +69,19 @@ default_mapping() ->
       ?KIND_OBSERVABLE_GAUGE => otel_aggregation_last_value,
       ?KIND_UPDOWN_COUNTER => otel_aggregation_sum,
       ?KIND_OBSERVABLE_UPDOWNCOUNTER => otel_aggregation_sum}.
+
+%% by default the aggregators use the same temporality as is native to the instrument
+-spec default_temporality_mapping() -> #{otel_instrument:kind() => otel_instrument:temporality()}.
+default_temporality_mapping() ->
+    lists:foldl(fun(Kind, Acc) ->
+                        Acc#{Kind => otel_instrument:kind_temporality(Kind)}
+                end, #{}, [?KIND_COUNTER,
+                           ?KIND_OBSERVABLE_COUNTER,
+                           ?KIND_HISTOGRAM,
+                           ?KIND_OBSERVABLE_GAUGE,
+                           ?KIND_UPDOWN_COUNTER,
+                           ?KIND_OBSERVABLE_UPDOWNCOUNTER
+                          ]).
 
 split(Keys, Map) ->
     lists:foldl(fun(Key, {KeptAcc, DroppedAcc}) ->

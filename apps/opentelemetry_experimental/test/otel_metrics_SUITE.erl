@@ -169,8 +169,7 @@ init_per_testcase(delta_counter, Config) ->
     %% delta is the default for a counter with sum aggregation
     %% so no need to set any temporality mapping in the reader
     ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
-                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
-                                                                                 default_temporality_mapping => default_temporality_mapping()}}]),
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()}}}]),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
@@ -1382,6 +1381,11 @@ advisory_params(_Config) ->
     Histogram = otel_histogram:create(Meter, a_histogram,
                                   #{advisory_params => #{explicit_bucket_boundaries => [10, 20, 30]}}),
     ?assertEqual(Histogram#instrument.advisory_params, #{explicit_bucket_boundaries => [10, 20, 30]}),
+
+    %% an empty boundaries list can be used to get a single bucket histogram `(-Inf, +Inf)'
+    BHistogram = otel_histogram:create(Meter, b_histogram,
+                                       #{advisory_params => #{explicit_bucket_boundaries => []}}),
+    ?assertEqual(BHistogram#instrument.advisory_params, #{explicit_bucket_boundaries => []}),
 
     Ctx = otel_ctx:new(),
 
