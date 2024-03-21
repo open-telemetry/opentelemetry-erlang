@@ -21,25 +21,34 @@
          export_traces/4,
          export_metrics/4,
          export_logs/4,
+         export/5,
          shutdown/1,
          report_cb/1]).
 
+-export_type([otel_signal/0,
+              exporter_config/0]).
+
 %% Do any initialization of the exporter here and return configuration
 %% that will be passed along with a list of spans to the `export' function.
--callback init(term()) -> {ok, term()} | ignore.
+-callback init(Config) -> {ok, ExporterState} | {error, Reason} | ignore when
+      Config :: term(),
+      ExporterState :: term(),
+      Reason :: term().
 
 %% This function is called when the configured interval expires with any
 %% spans that have been collected so far and the configuration returned in `init'.
 %% Do whatever needs to be done to export each span here, the caller will block
 %% until it returns.
--callback export(traces | metrics, ets:tab(), otel_resource:t(), term()) -> ok |
-                                                                            success |
-                                                                            failed_not_retryable |
-                                                                            failed_retryable.
--callback shutdown(term()) -> ok.
+-callback export(otel_signal(), ets:tab(), otel_resource:t(), term()) -> ok | error | {error, term()}.
+
+-callback shutdown(State) -> ok when State :: term().
+
+-type otel_signal() :: traces | metrics | logs.
+-type exporter_config() :: module() | {module(), Config :: term()} | undefined | none | ignore.
 
 -include_lib("kernel/include/logger.hrl").
 
+-spec init(exporter_config()) -> {module(), term()} | error | ignore.
 init({ExporterModule, Config}) when is_atom(ExporterModule) ->
     try ExporterModule:init(Config) of
         {ok, ExporterState} when ExporterModule =:= opentelemetry_exporter ->
@@ -49,8 +58,12 @@ init({ExporterModule, Config}) when is_atom(ExporterModule) ->
         {ok, ExporterState} ->
             ?LOG_INFO("Exporter ~tp successfully initialized", [ExporterModule]),
             {ExporterModule, ExporterState};
+        {error, Reason} ->
+            ?LOG_ERROR("Exporter failed to initalize, error: ~p",
+                       [ExporterModule, Reason]),
+            error;
         ignore ->
-            undefined
+            ignore
     catch
         Kind:Reason:StackTrace ->
             %% logging in debug level since config argument in stacktrace could have secrets
@@ -72,14 +85,14 @@ init({ExporterModule, Config}) when is_atom(ExporterModule) ->
                             %% the dependency needs to be added
                             try grpcbox:module_info() of
                                 _ ->
-                                    undefined
+                                    error
                             catch
                                 _:_ ->
                                     ?LOG_WARNING("OTLP exporter failed to initialize when using the GRPC "
                                                  "protocol and `grpcbox` module is not available in the "
                                                  "code path. Verify that you have the `grpcbox` dependency "
                                                  "included and rerun.", []),
-                                    undefined
+                                    error
                             end;
                         _ ->
                             %% same as the debug log above
@@ -89,17 +102,17 @@ init({ExporterModule, Config}) when is_atom(ExporterModule) ->
                                            kind => Kind,
                                            reason => Reason,
                                            exporter => ExporterModule}, #{report_cb => fun ?MODULE:report_cb/1}),
-                            undefined
+                            error
                     end;
                 {error, undef} when ExporterModule =:= opentelemetry_exporter ->
                     ?LOG_WARNING("OTLP exporter module `opentelemetry_exporter` not found. "
                                  "Verify you have included the `opentelemetry_exporter` dependency.",
                                  [ExporterModule]),
-                    undefined;
+                    error;
                 {error, undef} ->
                     ?LOG_WARNING("Exporter module ~tp not found. Verify you have included "
                                  "the dependency that contains the exporter module.", [ExporterModule]),
-                    undefined;
+                    error;
                 _ ->
                     %% same as the debug log above
                     %% without the stacktrace and at a higher level
@@ -108,22 +121,25 @@ init({ExporterModule, Config}) when is_atom(ExporterModule) ->
                                    kind => Kind,
                                    reason => Reason,
                                    exporter => ExporterModule}, #{report_cb => fun ?MODULE:report_cb/1}),
-                    undefined
+                    error
             end
     end;
-init(Exporter) when Exporter =:= none ; Exporter =:= undefined ->
-    undefined;
+init(Exporter) when Exporter =:= none; Exporter =:= undefined; Exporter =:= ignore ->
+    ignore;
 init(ExporterModule) when is_atom(ExporterModule) ->
     init({ExporterModule, []}).
 
-export_traces(ExporterModule, SpansTid, Resource, Config) ->
-    ExporterModule:export(traces, SpansTid, Resource, Config).
+export_traces(ExporterModule, SpansTid, Resource, ExporterState) ->
+    export(traces, ExporterModule, SpansTid, Resource, ExporterState).
 
-export_metrics(ExporterModule, MetricsTid, Resource, Config) ->
-    ExporterModule:export(metrics, MetricsTid, Resource, Config).
+export_metrics(ExporterModule, MetricsTid, Resource, ExporterState) ->
+    export(metrics, ExporterModule, MetricsTid, Resource, ExporterState).
 
-export_logs(ExporterModule, Batch, Resource, Config) ->
-    ExporterModule:export(logs, Batch, Resource, Config).
+export_logs(ExporterModule, LogsTidAndHandlerConfig, Resource, ExporterState) ->
+    export(logs, ExporterModule, LogsTidAndHandlerConfig, Resource, ExporterState).
+
+export(OtelSignal, ExporterModule, Tid, Resource, ExporterState) ->
+   ExporterModule:export(OtelSignal, Tid, Resource, ExporterState).
 
 shutdown(undefined) ->
     ok;

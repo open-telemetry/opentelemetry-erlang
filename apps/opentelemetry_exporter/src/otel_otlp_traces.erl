@@ -48,22 +48,43 @@ to_proto(Tab, Resource) ->
     end.
 
 to_proto_by_instrumentation_scope(Tab) ->
-    Key = ets:first(Tab),
-    to_proto_by_instrumentation_scope(Tab, Key).
+    %% Even though during the export trace spans are being inserted to another table,
+    %% some late writes to the table being exported are still possible.
+    %% Thus, we can't lookup all spans from the table and then let the processor
+    %% delete the table completely and re-create it as it will imply the risk of losing those (possible) late writes.
+    %% So, we fix the table and traverse it with ets:take/2. After that, the late writes won't be exported,
+    %% but they will be kept in the table and ready to be exported in the next exporter runs.
+    true = ets:safe_fixtable(Tab, true),
+    try
+        to_proto_by_instrumentation_scope(Tab, ets:first(Tab), #{})
+    after
+        _ = ets:safe_fixtable(Tab, false)
+    end.
 
-to_proto_by_instrumentation_scope(_Tab, '$end_of_table') ->
-    [];
-to_proto_by_instrumentation_scope(Tab, InstrumentationScope) ->
-    InstrumentationScopeSpans = lists:foldl(fun(Span, Acc) ->
-                                                      [to_proto(Span) | Acc]
-                                              end, [], ets:lookup(Tab, InstrumentationScope)),
-    InstrumentationScopeSpansProto = otel_otlp_common:to_instrumentation_scope_proto(InstrumentationScope),
-    [InstrumentationScopeSpansProto#{spans => InstrumentationScopeSpans}
-    | to_proto_by_instrumentation_scope(Tab, ets:next(Tab, InstrumentationScope))].
+to_proto_by_instrumentation_scope(_Tab, '$end_of_table', ScopeAcc) ->
+    maps:fold(
+      fun(Scope, Spans, Acc) ->
+              ScopeProto = otel_otlp_common:to_instrumentation_scope_proto(Scope),
+              [ScopeProto#{spans => Spans} | Acc]
+      end,
+      [],
+      ScopeAcc);
+to_proto_by_instrumentation_scope(Tab, Key, ScopeAcc) ->
+    ScopeAcc1 = lists:foldl(
+                  fun(#span{instrumentation_scope=Scope}=Span, Acc) ->
+                          SpanProto = to_proto(Span),
+                          maps:update_with(Scope,
+                                           fun(Spans) -> [SpanProto | Spans] end,
+                                           [SpanProto],
+                                           Acc)
+                  end,
+                  ScopeAcc,
+                  ets:take(Tab, Key)),
+    Key1 = ets:next(Tab, Key),
+    to_proto_by_instrumentation_scope(Tab, Key1, ScopeAcc1).
 
 %% TODO: figure out why this type spec fails
 %% -spec to_proto(#span{}) -> opentelemetry_exporter_trace_service_pb:span().
-
 to_proto(#span{trace_id=TraceId,
                span_id=SpanId,
                tracestate=TraceState,

@@ -31,6 +31,7 @@ export(_, SpansTid, _Resource, _) ->
     ets:foldl(fun(Span, _Acc) ->
                       io:format("~p~n", [Span])
               end, [], SpansTid),
+    ets:delete_all_objects(SpansTid),
     ok.
 
 shutdown(_) ->

@@ -245,7 +245,7 @@ export({ExporterModule, Config}, Resource, SpansTid) ->
     %% don't let a exporter exception crash us
     %% and return true if exporter failed
     try
-        otel_exporter:export_traces(ExporterModule, SpansTid, Resource, Config) =:= failed_not_retryable
+        otel_exporter:export_traces(ExporterModule, SpansTid, Resource, Config)
     catch
         Kind:Reason:StackTrace ->
             ?LOG_INFO(#{source => exporter,

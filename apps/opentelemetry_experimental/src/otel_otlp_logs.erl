@@ -31,41 +31,77 @@
 -define(IS_STRING(String),
         (is_list(String) orelse is_binary(String))).
 
-to_proto(Logs, Resource, Config) ->
-    InstrumentationScopeLogs = to_proto_by_instrumentation_scope(Logs, Config),
-    Attributes = otel_resource:attributes(Resource),
-    ResourceLogs = #{resource => #{attributes => otel_otlp_common:to_attributes(Attributes),
-                                   dropped_attributes_count => otel_attributes:dropped(Attributes)},
-                     scope_logs => InstrumentationScopeLogs},
-    case otel_resource:schema_url(Resource) of
-        undefined ->
-            #{resource_logs => [ResourceLogs]};
-        SchemaUrl ->
-            #{resource_logs => [ResourceLogs#{schema_url => SchemaUrl}]}
+-define(DEFAULT_SCOPE, opentelemetry:instrumentation_scope(<<>>, <<>>, <<>>)).
+
+-spec to_proto(ets:table(), otel_resource:t(), logger:handler_config()) ->
+          opentelemetry_exporter_logs_service_pb:export_logs_service_request() | empty.
+to_proto(Tab, Resource, LogHandlerConfig) ->
+    case to_proto_by_instrumentation_scope(Tab, LogHandlerConfig) of
+        [] ->
+            empty;
+        InstrumentationScopeLogs ->
+            Attributes = otel_resource:attributes(Resource),
+            ResourceLogs = #{resource => #{attributes => otel_otlp_common:to_attributes(Attributes),
+                                           dropped_attributes_count => otel_attributes:dropped(Attributes)},
+                             scope_logs => InstrumentationScopeLogs},
+            case otel_resource:schema_url(Resource) of
+                undefined ->
+                    #{resource_logs => [ResourceLogs]};
+                SchemaUrl ->
+                    #{resource_logs => [ResourceLogs#{schema_url => SchemaUrl}]}
+            end
     end.
 
+to_proto_by_instrumentation_scope(Tab, LogHandlerConfig) ->
+    %% Even though during the export log events are being inserted to another table,
+    %% some late writes to the table being exported are still possible.
+    %% Thus, we can't lookup all the log events from the table and then let otel_log_handler
+    %% delete the table completely and re-create it as it will imply the risk of losing those (possible) late writes.
+    %% So, we fix the table and traverse it with ets:take/2. After that, the late writes won't be exported,
+    %% but they will be kept in the table and ready to be exported in the next exporter runs.
+    true = ets:safe_fixtable(Tab, true),
+    try
+        to_proto_by_instrumentation_scope(Tab, ets:first(Tab), LogHandlerConfig, #{}, ?DEFAULT_SCOPE)
+    after
+        _ = ets:safe_fixtable(Tab, false)
+    end.
 
-to_proto_by_instrumentation_scope(Logs, Config) ->
-    ScopeLogs = logs_by_scope(Logs, Config),
-    maps:fold(fun(Scope, LogRecords, Acc) ->
-                      [#{scope => otel_otlp_common:to_instrumentation_scope_proto(Scope),
-                         log_records => LogRecords
-                         %% schema_url              => unicode:chardata() % = 3, optional
-                        } | Acc]
-              end, [], ScopeLogs).
+to_proto_by_instrumentation_scope(_Tab, '$end_of_table', _Config, ScopeAcc, _DefaultScope) ->
+    maps:fold(
+      fun(Scope, LogRecords, Acc) ->
+              ScopeProto = otel_otlp_common:to_instrumentation_scope_proto(Scope),
+              [ScopeProto#{log_records => LogRecords} | Acc]
+      end,
+      [],
+      ScopeAcc);
+to_proto_by_instrumentation_scope(Tab, Key, LogHandlerConfig, ScopeAcc, DefaultScope) ->
+    ScopeAcc1 = lists:foldl(
+                  fun({_Ts, LogEvent}, Acc) ->
+                          Scope = scope(LogEvent, DefaultScope),
+                          LogRecord = log_record(LogEvent, LogHandlerConfig),
+                          maps:update_with(Scope,
+                                           fun(Logs) -> [LogRecord | Logs] end,
+                                           [LogRecord],
+                                           Acc)
+                  end,
+                  ScopeAcc,
+                  ets:take(Tab,Key)),
+    Key1 = ets:next(Tab, Key),
+    to_proto_by_instrumentation_scope(Tab, Key1, LogHandlerConfig, ScopeAcc1, DefaultScope).
 
-
-logs_by_scope(ScopeLogs, Config) ->
-    maps:fold(fun(InstrumentationScope, Logs, Acc) ->
-                      LogRecords = [log_record(Log, Config) || Log <- Logs],
-                      Acc#{InstrumentationScope => LogRecords}
-              end, #{}, ScopeLogs).
-
+scope(LogEvent, Default) ->
+    case LogEvent of
+        #{meta := #{otel_scope := Scope0=#instrumentation_scope{}}} ->
+            Scope0;
+        #{meta := #{mfa := {Module, _, _}}} ->
+            opentelemetry:get_application_scope(Module);
+        _ ->
+            Default
+    end.
 
 log_record(#{level := Level,
              msg := Body,
-             meta := Metadata=#{time := ObservedTime}}, Config) ->
-    Time = opentelemetry:timestamp(),
+             meta := Metadata=#{time := Time}}, Config) ->
     {SeverityNumber, SeverityText} = level_to_severity(Level),
     Body1 = case format_msg(Body, Metadata, Config) of
                 S when ?IS_STRING(S) ->
@@ -87,19 +123,23 @@ log_record(#{level := Level,
     DroppedAttributesCount = maps:size(Attributes) - length(Attributes1),
     Flags = 0,
 
-    LogRecord = case  Metadata of
+    LogRecord = case Metadata of
                     #{otel_trace_id := TraceId,
                       otel_span_id := SpanId} ->
-                        #{trace_id => TraceId,
-                          span_id => SpanId};
+                        #{trace_id => from_hex_str(TraceId, 128),
+                          span_id => from_hex_str(SpanId, 64)};
                     _ ->
                         #{}
                 end,
 
+    %% Time produced by logger, the unit is microsecond:
+    %% https://www.erlang.org/doc/man/logger#timestamp-0
+    TimeNano = erlang:convert_time_unit(Time, microsecond, nanosecond),
 
-
-    LogRecord#{time_unix_nano          => opentelemetry:timestamp_to_nano(Time),
-               observed_time_unix_nano => erlang:convert_time_unit(ObservedTime, microsecond, nanosecond),
+    LogRecord#{time_unix_nano          => TimeNano,
+               %% Setting the same logger time to both fields, acc. to the specification:
+               %% https://opentelemetry.io/docs/specs/otel/logs/data-model/#field-observedtimestamp
+               observed_time_unix_nano => TimeNano,
                severity_number         => SeverityNumber,
                severity_text           => SeverityText,
                body                    => otel_otlp_common:to_any_value(Body1),
@@ -108,8 +148,13 @@ log_record(#{level := Level,
                flags                   => Flags
               }.
 
+from_hex_str(Str, Size) ->
+    B = iolist_to_binary(Str),
+    <<(binary_to_integer(B, 16)):Size>>.
+
 format_msg({string, Chardata}, Meta, Config) ->
     format_msg({"~ts", [Chardata]}, Meta, Config);
+%% TODO: check it report_cb is formatter config
 format_msg({report,_}=Msg, Meta, #{report_cb := Fun}=Config)
   when is_function(Fun,1); is_function(Fun,2) ->
     format_msg(Msg, Meta#{report_cb => Fun}, maps:remove(report_cb,Config));
