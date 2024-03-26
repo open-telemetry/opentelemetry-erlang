@@ -156,7 +156,7 @@
 %% * **AWS Lambda:** Use the (full) log stream name
 -define(FAAS_INSTANCE, 'faas.instance').
 
-%% The amount of memory available to the serverless function in MiB
+%% The amount of memory available to the serverless function in Bytes
 %% It's recommended to set this attribute since e.g. too little memory can easily stop a Java AWS Lambda function from working correctly. On AWS Lambda, the environment variable `AWS_LAMBDA_FUNCTION_MEMORY_SIZE` provides this information
 -define(FAAS_MAX_MEMORY, 'faas.max_memory').
 

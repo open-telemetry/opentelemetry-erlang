@@ -447,7 +447,7 @@ defmodule OpenTelemetry.SemanticConventions.Resource do
     :"faas.instance"
   end
   @doc """
-  The amount of memory available to the serverless function in MiB
+  The amount of memory available to the serverless function in Bytes
 
   ### Notes
 

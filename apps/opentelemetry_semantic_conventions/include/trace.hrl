@@ -146,8 +146,8 @@
 %% call to invoke the lambda, which is often HTTP)
 -define(FAAS_TRIGGER, 'faas.trigger').
 
-%% The execution ID of the current function execution
--define(FAAS_EXECUTION, 'faas.execution').
+%% The invocation ID of the current function invocation
+-define(FAAS_EXECUTION, 'faas.invocation_id').
 
 %% The name of the source on which the triggering operation was performed. For example, in Cloud Storage or S3 corresponds to the bucket name, and in Cosmos DB to the database name
 -define(FAAS_DOCUMENT_COLLECTION, 'faas.document.collection').
@@ -259,35 +259,26 @@
 %% A string identifying the messaging system
 -define(MESSAGING_SYSTEM, 'messaging.system').
 
-%% The message destination name. This might be equal to the span name but is required nevertheless
--define(MESSAGING_DESTINATION, 'messaging.destination').
-
-%% The kind of message destination
--define(MESSAGING_DESTINATION_KIND, 'messaging.destination_kind').
+%% The message destination name.
+-define(MESSAGING_DESTINATION, 'messaging.destination.name').
 
 %% A boolean that is true if the message destination is temporary
--define(MESSAGING_TEMP_DESTINATION, 'messaging.temp_destination').
+-define(MESSAGING_TEMP_DESTINATION, 'messaging.destination.temporary').
 
 %% The name of the transport protocol
--define(MESSAGING_PROTOCOL, 'messaging.protocol').
+-define(MESSAGING_PROTOCOL, 'network.protocol.name').
 
 %% The version of the transport protocol
--define(MESSAGING_PROTOCOL_VERSION, 'messaging.protocol_version').
-
-%% Connection string
--define(MESSAGING_URL, 'messaging.url').
+-define(MESSAGING_PROTOCOL_VERSION, 'network.protocol.version').
 
 %% A value used by the messaging system as an identifier for the message, represented as a string
--define(MESSAGING_MESSAGE_ID, 'messaging.message_id').
+-define(MESSAGING_MESSAGE_ID, 'messaging.message.id').
 
 %% The [conversation ID](#conversations) identifying the conversation to which the message belongs, represented as a string. Sometimes called "Correlation ID"
--define(MESSAGING_CONVERSATION_ID, 'messaging.conversation_id').
+-define(MESSAGING_CONVERSATION_ID, 'messaging.message.conversation_id').
 
-%% The (uncompressed) size of the message payload in bytes. Also use this attribute if it is unknown whether the compressed or uncompressed payload size is reported
--define(MESSAGING_MESSAGE_PAYLOAD_SIZE_BYTES, 'messaging.message_payload_size_bytes').
-
-%% The compressed size of the message payload in bytes
--define(MESSAGING_MESSAGE_PAYLOAD_COMPRESSED_SIZE_BYTES, 'messaging.message_payload_compressed_size_bytes').
+%% The size of the message body in bytes. This can refer to both the compressed or uncompressed body size. If both sizes are known, the uncompressed body size should be used
+-define(MESSAGING_MESSAGE_PAYLOAD_SIZE_BYTES, 'messaging.message.body.size').
 
 %% A string containing the function invocation time in the [ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html) format expressed in [UTC](https://www.w3.org/TR/NOTE-datetime)
 -define(FAAS_TIME, 'faas.time').
@@ -434,30 +425,30 @@
 %% The value may be sanitized to exclude sensitive information
 -define(GRAPHQL_DOCUMENT, 'graphql.document').
 
-%% A string identifying the kind of message consumption as defined in the [Operation names](#operation-names) section above. If the operation is "send", this attribute MUST NOT be set, since the operation can be inferred from the span kind in that case
+%% A string identifying the kind of message consumption as defined in the [Operation names](#operation-names) section above.
 -define(MESSAGING_OPERATION, 'messaging.operation').
 
-%% The identifier for the consumer receiving a message. For Kafka, set it to `{messaging.kafka.consumer_group} - {messaging.kafka.client_id}`, if both are present, or only `messaging.kafka.consumer_group`. For brokers, such as RabbitMQ and Artemis, set it to the `client_id` of the client consuming the message
--define(MESSAGING_CONSUMER_ID, 'messaging.consumer_id').
+%% The identifier for the consumer receiving a message. For Kafka, set it to `{messaging.kafka.consumer.group} - {messaging.kafka.client_id}`, if both are present, or only `messaging.kafka.consumer.group`. For brokers, such as RabbitMQ and Artemis, set it to the `client_id` of the client consuming the message
+-define(MESSAGING_CONSUMER_ID, 'messaging.consumer.id').
 
 %% RabbitMQ message routing key
--define(MESSAGING_RABBITMQ_ROUTING_KEY, 'messaging.rabbitmq.routing_key').
+-define(MESSAGING_RABBITMQ_ROUTING_KEY, 'messaging.rabbitmq.destination.routing_key').
 
-%% Message keys in Kafka are used for grouping alike messages to ensure they're processed on the same partition. They differ from `messaging.message_id` in that they're not unique. If the key is `null`, the attribute MUST NOT be set
+	%% Message keys in Kafka are used for grouping alike messages to ensure they're processed on the same partition. They differ from `messaging.message.id` in that they're not unique. If the key is `null`, the attribute MUST NOT be set
 %% If the key type is not string, it's string representation has to be supplied for the attribute. If the key has no unambiguous, canonical string form, don't include its value
--define(MESSAGING_KAFKA_MESSAGE_KEY, 'messaging.kafka.message_key').
+-define(MESSAGING_KAFKA_MESSAGE_KEY, 'messaging.kafka.message.key').
 
 %% Name of the Kafka Consumer Group that is handling the message. Only applies to consumers, not producers
--define(MESSAGING_KAFKA_CONSUMER_GROUP, 'messaging.kafka.consumer_group').
+-define(MESSAGING_KAFKA_CONSUMER_GROUP, 'messaging.kafka.consumer.group').
 
 %% Client Id for the Consumer or Producer that is handling the message
 -define(MESSAGING_KAFKA_CLIENT_ID, 'messaging.kafka.client_id').
 
 %% Partition the message is sent to
--define(MESSAGING_KAFKA_PARTITION, 'messaging.kafka.partition').
+-define(MESSAGING_KAFKA_PARTITION, 'messaging.kafka.destination.partition').
 
 %% A boolean that is true if the message is a tombstone
--define(MESSAGING_KAFKA_TOMBSTONE, 'messaging.kafka.tombstone').
+-define(MESSAGING_KAFKA_TOMBSTONE, 'messaging.kafka.message.tombstone').
 
 %% Namespace of RocketMQ resources, resources in different namespaces are individual
 -define(MESSAGING_ROCKETMQ_NAMESPACE, 'messaging.rocketmq.namespace').
@@ -469,13 +460,13 @@
 -define(MESSAGING_ROCKETMQ_CLIENT_ID, 'messaging.rocketmq.client_id').
 
 %% Type of message
--define(MESSAGING_ROCKETMQ_MESSAGE_TYPE, 'messaging.rocketmq.message_type').
+-define(MESSAGING_ROCKETMQ_MESSAGE_TYPE, 'messaging.rocketmq.message.type').
 
 %% The secondary classifier of message besides topic
--define(MESSAGING_ROCKETMQ_MESSAGE_TAG, 'messaging.rocketmq.message_tag').
+-define(MESSAGING_ROCKETMQ_MESSAGE_TAG, 'messaging.rocketmq.message.tag').
 
 %% Key(s) of message, another way to mark message besides message id
--define(MESSAGING_ROCKETMQ_MESSAGE_KEYS, 'messaging.rocketmq.message_keys').
+-define(MESSAGING_ROCKETMQ_MESSAGE_KEYS, 'messaging.rocketmq.message.keys').
 
 %% Model of message consumption. This only applies to consumer spans
 -define(MESSAGING_ROCKETMQ_CONSUMPTION_MODEL, 'messaging.rocketmq.consumption_model').
