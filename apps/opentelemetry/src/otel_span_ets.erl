@@ -55,7 +55,7 @@ start_link(Opts) ->
 
 %% @doc Start a span and insert into the active span ets table.
 -spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_sampler:t(), otel_id_generator:t(),
-                 otel_span:start_opts(), fun(), otel_tracer_server:instrumentation_scope() | undefined)
+                 otel_span:start_config(), fun(), otel_tracer_server:instrumentation_scope() | undefined)
                 -> opentelemetry:span_ctx().
 start_span(Ctx, Name, Sampler, IdGeneratorModule, Opts, Processors, InstrumentationScope) ->
     case otel_span_utils:start_span(Ctx, Name, Sampler, IdGeneratorModule, Opts) of
