@@ -3,18 +3,18 @@ defmodule OpenTelemetry.SemanticConventions.Resource do
   The schema url for telemetry resources.
 
       iex> OpenTelemetry.SemanticConventions.Resource.resource_schema_url()
-      "https://opentelemetry.io/schemas/1.13.0"
+      "https://opentelemetry.io/schemas/1.20.0"
   """
   @spec resource_schema_url :: String.t()
   def resource_schema_url do
-    "https://opentelemetry.io/schemas/1.13.0"
+    "https://opentelemetry.io/schemas/1.20.0"
   end
   @doc """
   Array of brand name and version separated by a space
 
   ### Notes
 
-  This value is intended to be taken from the [UA client hints API](https://wicg.github.io/ua-client-hints/#interface) (navigator.userAgentData.brands)
+  This value is intended to be taken from the [UA client hints API](https://wicg.github.io/ua-client-hints/#interface) (`navigator.userAgentData.brands`)
 
       iex> OpenTelemetry.SemanticConventions.Resource.browser_brands()
       :"browser.brands"
@@ -28,8 +28,8 @@ defmodule OpenTelemetry.SemanticConventions.Resource do
 
   ### Notes
 
-  This value is intended to be taken from the [UA client hints API](https://wicg.github.io/ua-client-hints/#interface) (navigator.userAgentData.platform). If unavailable, the legacy `navigator.platform` API SHOULD NOT be used instead and this attribute SHOULD be left unset in order for the values to be consistent.
-  The list of possible values is defined in the [W3C User-Agent Client Hints specification](https://wicg.github.io/ua-client-hints/#sec-ch-ua-platform). Note that some (but not all) of these values can overlap with values in the [os.type and os.name attributes](./os.md). However, for consistency, the values in the `browser.platform` attribute should capture the exact value that the user agent provides
+  This value is intended to be taken from the [UA client hints API](https://wicg.github.io/ua-client-hints/#interface) (`navigator.userAgentData.platform`). If unavailable, the legacy `navigator.platform` API SHOULD NOT be used instead and this attribute SHOULD be left unset in order for the values to be consistent.
+  The list of possible values is defined in the [W3C User-Agent Client Hints specification](https://wicg.github.io/ua-client-hints/#sec-ch-ua-platform). Note that some (but not all) of these values can overlap with values in the [`os.type` and `os.name` attributes](./os.md). However, for consistency, the values in the `browser.platform` attribute should capture the exact value that the user agent provides
 
       iex> OpenTelemetry.SemanticConventions.Resource.browser_platform()
       :"browser.platform"
@@ -39,18 +39,46 @@ defmodule OpenTelemetry.SemanticConventions.Resource do
     :"browser.platform"
   end
   @doc """
+  A boolean that is true if the browser is running on a mobile device
+
+  ### Notes
+
+  This value is intended to be taken from the [UA client hints API](https://wicg.github.io/ua-client-hints/#interface) (`navigator.userAgentData.mobile`). If unavailable, this attribute SHOULD be left unset
+
+      iex> OpenTelemetry.SemanticConventions.Resource.browser_mobile()
+      :"browser.mobile"
+  """
+  @spec browser_mobile :: :"browser.mobile"
+  def browser_mobile do
+    :"browser.mobile"
+  end
+  @doc """
+  Preferred language of the user using the browser
+
+  ### Notes
+
+  This value is intended to be taken from the Navigator API `navigator.language`
+
+      iex> OpenTelemetry.SemanticConventions.Resource.browser_language()
+      :"browser.language"
+  """
+  @spec browser_language :: :"browser.language"
+  def browser_language do
+    :"browser.language"
+  end
+  @doc """
   Full user-agent string provided by the browser
 
   ### Notes
 
   The user-agent value SHOULD be provided only from browsers that do not have a mechanism to retrieve brands and platform individually from the User-Agent Client Hints API. To retrieve the value, the legacy `navigator.userAgent` API can be used
 
-      iex> OpenTelemetry.SemanticConventions.Resource.browser_user_agent()
-      :"browser.user_agent"
+      iex> OpenTelemetry.SemanticConventions.Resource.user_agent_original()
+      :"user_agent.original"
   """
-  @spec browser_user_agent :: :"browser.user_agent"
-  def browser_user_agent do
-    :"browser.user_agent"
+  @spec user_agent_original :: :"user_agent.original"
+  def user_agent_original do
+    :"user_agent.original"
   end
   @doc """
   Name of the cloud provider
@@ -77,7 +105,7 @@ defmodule OpenTelemetry.SemanticConventions.Resource do
 
   ### Notes
 
-  Refer to your provider's docs to see the available regions, for example [Alibaba Cloud regions](https://www.alibabacloud.com/help/doc-detail/40654.htm), [AWS regions](https://aws.amazon.com/about-aws/global-infrastructure/regions_az/), [Azure regions](https://azure.microsoft.com/en-us/global-infrastructure/geographies/), [Google Cloud regions](https://cloud.google.com/about/locations), or [Tencent Cloud regions](https://intl.cloud.tencent.com/document/product/213/6091)
+  Refer to your provider's docs to see the available regions, for example [Alibaba Cloud regions](https://www.alibabacloud.com/help/doc-detail/40654.htm), [AWS regions](https://aws.amazon.com/about-aws/global-infrastructure/regions_az/), [Azure regions](https://azure.microsoft.com/en-us/global-infrastructure/geographies/), [Google Cloud regions](https://cloud.google.com/about/locations), or [Tencent Cloud regions](https://www.tencentcloud.com/document/product/213/6091)
 
       iex> OpenTelemetry.SemanticConventions.Resource.cloud_region()
       :"cloud.region"
@@ -85,6 +113,36 @@ defmodule OpenTelemetry.SemanticConventions.Resource do
   @spec cloud_region :: :"cloud.region"
   def cloud_region do
     :"cloud.region"
+  end
+  @doc """
+  Cloud provider-specific native identifier of the monitored cloud resource (e.g. an [ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html) on AWS, a [fully qualified resource ID](https://learn.microsoft.com/en-us/rest/api/resources/resources/get-by-id) on Azure, a [full resource name](https://cloud.google.com/apis/design/resource_names#full_resource_name) on GCP)
+
+  ### Notes
+
+  On some cloud providers, it may not be possible to determine the full ID at startup,
+  so it may be necessary to set `cloud.resource_id` as a span attribute instead.
+  
+  The exact value to use for `cloud.resource_id` depends on the cloud provider.
+  The following well-known definitions MUST be used if you set this attribute and they apply:
+  
+  * **AWS Lambda:** The function [ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html).
+    Take care not to use the "invoked ARN" directly but replace any
+    [alias suffix](https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html)
+    with the resolved function version, as the same runtime instance may be invokable with
+    multiple different aliases.
+  * **GCP:** The [URI of the resource](https://cloud.google.com/iam/docs/full-resource-names)
+  * **Azure:** The [Fully Qualified Resource ID](https://docs.microsoft.com/en-us/rest/api/resources/resources/get-by-id) of the invoked function,
+    *not* the function app, having the form
+    `/subscriptions/<SUBSCIPTION_GUID>/resourceGroups/<RG>/providers/Microsoft.Web/sites/<FUNCAPP>/functions/<FUNC>`.
+    This means that a span attribute MUST be used, as an Azure function app can host multiple functions that would usually share
+    a TracerProvider
+
+      iex> OpenTelemetry.SemanticConventions.Resource.cloud_resource_id()
+      :"cloud.resource_id"
+  """
+  @spec cloud_resource_id :: :"cloud.resource_id"
+  def cloud_resource_id do
+    :"cloud.resource_id"
   end
   @doc """
   Cloud regions often have multiple, isolated locations known as zones to increase availability. Availability zone represents the zone where the resource is running
@@ -237,6 +295,36 @@ defmodule OpenTelemetry.SemanticConventions.Resource do
     :"aws.log.stream.arns"
   end
   @doc """
+  Time and date the release was created
+
+      iex> OpenTelemetry.SemanticConventions.Resource.heroku_release_creation_timestamp()
+      :"heroku.release.creation_timestamp"
+  """
+  @spec heroku_release_creation_timestamp :: :"heroku.release.creation_timestamp"
+  def heroku_release_creation_timestamp do
+    :"heroku.release.creation_timestamp"
+  end
+  @doc """
+  Commit hash for the current release
+
+      iex> OpenTelemetry.SemanticConventions.Resource.heroku_release_commit()
+      :"heroku.release.commit"
+  """
+  @spec heroku_release_commit :: :"heroku.release.commit"
+  def heroku_release_commit do
+    :"heroku.release.commit"
+  end
+  @doc """
+  Unique identifier for the application
+
+      iex> OpenTelemetry.SemanticConventions.Resource.heroku_app_id()
+      :"heroku.app.id"
+  """
+  @spec heroku_app_id :: :"heroku.app.id"
+  def heroku_app_id do
+    :"heroku.app.id"
+  end
+  @doc """
   Container name used by container runtime
 
       iex> OpenTelemetry.SemanticConventions.Resource.container_name()
@@ -372,7 +460,7 @@ defmodule OpenTelemetry.SemanticConventions.Resource do
     can also be seen in the resource JSON for the function).
     This means that a span attribute MUST be used, as an Azure function
     app can host multiple functions that would usually share
-    a TracerProvider (see also the `faas.id` attribute)
+    a TracerProvider (see also the `cloud.resource_id` attribute)
 
       iex> OpenTelemetry.SemanticConventions.Resource.faas_name()
       :"faas.name"
@@ -380,35 +468,6 @@ defmodule OpenTelemetry.SemanticConventions.Resource do
   @spec faas_name :: :"faas.name"
   def faas_name do
     :"faas.name"
-  end
-  @doc """
-  The unique ID of the single function that this runtime instance executes
-
-  ### Notes
-
-  On some cloud providers, it may not be possible to determine the full ID at startup,
-  so consider setting `faas.id` as a span attribute instead.
-  
-  The exact value to use for `faas.id` depends on the cloud provider:
-  
-  * **AWS Lambda:** The function [ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html).
-    Take care not to use the "invoked ARN" directly but replace any
-    [alias suffix](https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html)
-    with the resolved function version, as the same runtime instance may be invokable with
-    multiple different aliases.
-  * **GCP:** The [URI of the resource](https://cloud.google.com/iam/docs/full-resource-names)
-  * **Azure:** The [Fully Qualified Resource ID](https://docs.microsoft.com/en-us/rest/api/resources/resources/get-by-id) of the invoked function,
-    *not* the function app, having the form
-    `/subscriptions/<SUBSCIPTION_GUID>/resourceGroups/<RG>/providers/Microsoft.Web/sites/<FUNCAPP>/functions/<FUNC>`.
-    This means that a span attribute MUST be used, as an Azure function app can host multiple functions that would usually share
-    a TracerProvider
-
-      iex> OpenTelemetry.SemanticConventions.Resource.faas_id()
-      :"faas.id"
-  """
-  @spec faas_id :: :"faas.id"
-  def faas_id do
-    :"faas.id"
   end
   @doc """
   The immutable version of the function being executed
@@ -447,11 +506,11 @@ defmodule OpenTelemetry.SemanticConventions.Resource do
     :"faas.instance"
   end
   @doc """
-  The amount of memory available to the serverless function in MiB
+  The amount of memory available to the serverless function converted to Bytes
 
   ### Notes
 
-  It's recommended to set this attribute since e.g. too little memory can easily stop a Java AWS Lambda function from working correctly. On AWS Lambda, the environment variable `AWS_LAMBDA_FUNCTION_MEMORY_SIZE` provides this information
+  It's recommended to set this attribute since e.g. too little memory can easily stop a Java AWS Lambda function from working correctly. On AWS Lambda, the environment variable `AWS_LAMBDA_FUNCTION_MEMORY_SIZE` provides this information (which must be multiplied by 1,048,576)
 
       iex> OpenTelemetry.SemanticConventions.Resource.faas_max_memory()
       :"faas.max_memory"
@@ -461,7 +520,7 @@ defmodule OpenTelemetry.SemanticConventions.Resource do
     :"faas.max_memory"
   end
   @doc """
-  Unique host ID. For Cloud, this must be the instance_id assigned by the cloud provider
+  Unique host ID. For Cloud, this must be the instance_id assigned by the cloud provider. For non-containerized systems, this should be the `machine-id`. See the table below for the sources to use to determine the `machine-id` based on operating system
 
       iex> OpenTelemetry.SemanticConventions.Resource.host_id()
       :"host.id"
@@ -1001,5 +1060,45 @@ defmodule OpenTelemetry.SemanticConventions.Resource do
   @spec webengine_description :: :"webengine.description"
   def webengine_description do
     :"webengine.description"
+  end
+  @doc """
+  The name of the instrumentation scope - (`InstrumentationScope.Name` in OTLP)
+
+      iex> OpenTelemetry.SemanticConventions.Resource.otel_scope_name()
+      :"otel.scope.name"
+  """
+  @spec otel_scope_name :: :"otel.scope.name"
+  def otel_scope_name do
+    :"otel.scope.name"
+  end
+  @doc """
+  The version of the instrumentation scope - (`InstrumentationScope.Version` in OTLP)
+
+      iex> OpenTelemetry.SemanticConventions.Resource.otel_scope_version()
+      :"otel.scope.version"
+  """
+  @spec otel_scope_version :: :"otel.scope.version"
+  def otel_scope_version do
+    :"otel.scope.version"
+  end
+  @doc """
+  Deprecated, use the `otel.scope.name` attribute
+
+      iex> OpenTelemetry.SemanticConventions.Resource.otel_library_name()
+      :"otel.library.name"
+  """
+  @spec otel_library_name :: :"otel.library.name"
+  def otel_library_name do
+    :"otel.library.name"
+  end
+  @doc """
+  Deprecated, use the `otel.scope.version` attribute
+
+      iex> OpenTelemetry.SemanticConventions.Resource.otel_library_version()
+      :"otel.library.version"
+  """
+  @spec otel_library_version :: :"otel.library.version"
+  def otel_library_version do
+    :"otel.library.version"
   end
 end
