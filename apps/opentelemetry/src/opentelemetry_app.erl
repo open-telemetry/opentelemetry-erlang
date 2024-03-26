@@ -54,6 +54,8 @@ start(_StartType, _StartArgs) ->
     end.
 
 stop(_State) ->
+    _ = opentelemetry:cleanup_persistent_terms(),
+    _ = otel_span_limits:cleanup_persistent_terms(),
     ok.
 
 %% internal functions
