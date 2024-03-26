@@ -32,6 +32,7 @@ defmodule OpenTelemetry.Span do
   require OpenTelemetry.SemanticConventions.Trace
 
   @type start_opts() :: :otel_span.start_opts()
+  @type sdk_start_opts() :: :otel_span.sdk_start_opts()
 
   @doc """
   Get the SpanId of a Span.
