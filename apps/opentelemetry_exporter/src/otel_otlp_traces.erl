@@ -25,7 +25,6 @@
          to_proto/1]).
 -endif.
 
--include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
 

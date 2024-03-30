@@ -141,7 +141,7 @@ init_per_testcase(provider_test, Config) ->
                                 aggregation_module => otel_aggregation_sum},
                               #{name => view_b,
                                 selector => #{instrument_name => a_counter},
-                                aggregation_module => otel_aggregation_sum}
+                                aggregation_module => otel_aggregation_sum},
                               #{name => view_c,
                                 selector => #{instrument_name => a_counter}}]),
 
@@ -579,6 +579,8 @@ provider_test(_Config) ->
     otel_meter_server:force_flush(),
 
     ?assertSumReceive(a_counter, <<"counter description">>, kb, [{16.0, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(view_a, <<"counter description">>, kb, [{16.0, #{<<"c">> => <<"b">>}}]),
+    ?assertSumReceive(view_b, <<"counter description">>, kb, [{16.0, #{<<"c">> => <<"b">>}}]),
     ?assertSumReceive(view_c, <<"counter description">>, kb, [{16.0, #{<<"c">> => <<"b">>}}]),
 
     %% sum agg is default delta temporality so counter will reset

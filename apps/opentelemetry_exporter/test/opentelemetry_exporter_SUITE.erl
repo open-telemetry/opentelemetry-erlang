@@ -8,8 +8,6 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
--include_lib("opentelemetry_experimental/include/otel_metrics.hrl").
--include_lib("opentelemetry_experimental/src/otel_metric_exemplar.hrl").
 
 all() ->
     [{group, functional}, {group, http_protobuf}, {group, http_protobuf_gzip},
@@ -17,7 +15,7 @@ all() ->
 
 groups() ->
     [{functional, [], [configuration, span_round_trip, ets_instrumentation_info]},
-     {grpc, [], [verify_export, verify_metrics_export]},
+     {grpc, [], [verify_export]},
      {grpc_gzip, [], [verify_export]},
      {http_protobuf, [], [verify_export, user_agent]},
      {http_protobuf_gzip, [], [verify_export]}].
@@ -53,221 +51,113 @@ end_per_group(Group, _Config) when Group =:= grpc ;
     ok;
 end_per_group(_, _) ->
     application:stop(opentelemetry),
-    application:unload(opentelemetry_exporter),
-    ok.
-
-verify_metrics_export(Config) ->
-    os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=my-test-service,service.version=98da75ea6d38724743bf42b45565049238d86b3f,schema_url=https://opentelemetry.io/schemas/1.8.0"),
-    Protocol = ?config(protocol, Config),
-    Compression = ?config(compression, Config),
-
-    Port = case Protocol of
-               grpc ->
-                   4317;
-               http_protobuf ->
-                   4318
-           end,
-
-    {ok, State} = opentelemetry_exporter:init(#{protocol => Protocol,
-                                                compression => Compression,
-                                                endpoints => [{http, "localhost", Port, []}]}),
-
-    Exemplars = [#exemplar{filtered_attributes=#{<<"a">> => <<"b">>},
-                           time=opentelemetry:timestamp(),
-                           value=3,
-                           span_id=otel_id_generator:generate_span_id(),
-                           trace_id=otel_id_generator:generate_trace_id()}],
-
-    Metrics = [#metric{scope=#instrumentation_scope{name = <<"scope-1">>,
-                                                    version = <<"version-1">>,
-                                                    schema_url = <<"https://example.com/schemas/1.8.0">>},
-                       name = <<"sum name">>,
-                       description = <<"some sum description">>,
-                       unit = kb,
-                       data = #sum{aggregation_temporality = temporality_cumulative,
-                                   is_monotonic=true,
-                                   datapoints=[#datapoint{
-                                                  attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
-                                                                                 128, 128),
-                                                  start_time=opentelemetry:timestamp(),
-                                                  time=opentelemetry:timestamp(),
-                                                  value=5,
-                                                  exemplars=Exemplars,
-                                                  flags=0
-                                                 },
-                                               #datapoint{
-                                                  attributes=otel_attributes:new(#{<<"key-2">> => <<"value-2">>},
-                                                                                 128, 128),
-                                                  start_time=opentelemetry:timestamp(),
-                                                  time=opentelemetry:timestamp(),
-                                                  value=8,
-                                                  exemplars=[],
-                                                  flags=0
-                                                 }]}},
-               #metric{scope=#instrumentation_scope{name = <<"scope-1">>,
-                                                    version = <<"version-1">>,
-                                                    schema_url = <<"https://example.com/schemas/1.8.0">>},
-                       name = <<"gauge name">>,
-                       description = <<"some gauge description">>,
-                       unit = kb,
-                       data = #gauge{datapoints=[#datapoint{
-                                                    attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
-                                                                                   128, 128),
-                                                    start_time=opentelemetry:timestamp(),
-                                                    time=opentelemetry:timestamp(),
-                                                    value=8,
-                                                    exemplars=[],
-                                                    flags=0
-                                                   },
-                                                 #datapoint{
-                                                    attributes=otel_attributes:new(#{<<"key-2">> => <<"value-2">>},
-                                                                                   128, 128),
-                                                    start_time=opentelemetry:timestamp(),
-                                                    time=opentelemetry:timestamp(),
-                                                    value=9,
-                                                    exemplars=[],
-                                                    flags=0
-                                                   }]}},
-               #metric{scope=#instrumentation_scope{name = <<"scope-1">>,
-                                                    version = <<"version-1">>,
-                                                    schema_url = <<"https://example.com/schemas/1.8.0">>},
-                       name = <<"histogram name">>,
-                       description = <<"some histogram description">>,
-                       unit = kb,
-                       data = #histogram{aggregation_temporality = temporality_cumulative,
-                                         datapoints=[#histogram_datapoint{
-                                                        attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
-                                                                                       128, 128),
-                                                        start_time=opentelemetry:timestamp(),
-                                                        time=opentelemetry:timestamp(),
-                                                        count = 3,
-                                                        sum = 9,
-                                                        bucket_counts = [1,1,1],
-                                                        explicit_bounds = [0,3,5],
-                                                        exemplars = [],
-                                                        flags = 0,
-                                                        min = 1,
-                                                        max = 5
-                                                       },
-                                                     #histogram_datapoint{
-                                                        attributes=otel_attributes:new(#{<<"key-2">> => <<"value-2">>},
-                                                                                       128, 128),
-                                                        start_time=opentelemetry:timestamp(),
-                                                        time=opentelemetry:timestamp(),
-                                                        count = 3,
-                                                        sum = 9,
-                                                        bucket_counts = [1,1,1],
-                                                        explicit_bounds = [0,3,5],
-                                                        exemplars = [],
-                                                        flags = 0,
-                                                        min = 1,
-                                                        max = 5
-                                                       }]}}],
-    Resource = otel_resource_env_var:get_resource([]),
-
-    ?assertMatch(ok, opentelemetry_exporter:export(metrics, Metrics, Resource, State)),
+    application:stop(opentelemetry_exporter),
     ok.
 
 configuration(_Config) ->
     try
+        ?assertMatch(#{endpoints := [#{host := "localhost", path := "", port := 4317,
+                                       scheme := "http"}]},
+                     otel_exporter_traces_otlp:merge_with_environment(#{protocol => grpc})),
+
         ?assertMatch(#{endpoints := [#{host := "localhost", path := "/v1/traces", port := 4318,
                                        scheme := "http"}]},
-                     opentelemetry_exporter:merge_with_environment(#{})),
+                     otel_exporter_traces_otlp:merge_with_environment(#{})),
 
         ?assertMatch(#{endpoints :=
                            [#{scheme := "http", host := "localhost",
                               port := 9090, path := "/v1/traces", ssl_options := []}]},
-                     opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}], ssl_options => [{cacertfile, "/etc/ssl/cert.pem"}]})),
+                     otel_exporter_traces_otlp:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}], ssl_options => [{cacertfile, "/etc/ssl/cert.pem"}]})),
 
         ?assertMatch(#{endpoints :=
                            [#{scheme := "http", host := "localhost",
                               port := 9090, path := "/v1/traces", ssl_options := [{cacertfile, "/etc/ssl/cert.pem"}]}]},
-                     opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, [{cacertfile, "/etc/ssl/cert.pem"}]}]})),
+                     otel_exporter_traces_otlp:merge_with_environment(#{endpoints => [{http, "localhost", 9090, [{cacertfile, "/etc/ssl/cert.pem"}]}]})),
 
         ?assertMatch(#{endpoints :=
                            [#{scheme := "http", host := "localhost",
                               port := 9090, path := "/v1/traces", ssl_options := [{verify, verify_none}]}]},
-                     opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, [{verify, verify_none}]}]})),
+                     otel_exporter_traces_otlp:merge_with_environment(#{endpoints => [{http, "localhost", 9090, [{verify, verify_none}]}]})),
 
         application:set_env(opentelemetry_exporter, ssl_options, [{cacertfile, "/etc/ssl/other.pem"}]),
         ?assertMatch(#{endpoints := [#{host := "localhost", path := "/v1/traces", port := 4318,
                                        scheme := "http"}], ssl_options := [{cacertfile, "/etc/ssl/other.pem"}]},
-                     opentelemetry_exporter:merge_with_environment(#{})),
+                     otel_exporter_traces_otlp:merge_with_environment(#{})),
 
         ?assertMatch(#{endpoints :=
                            [#{scheme := "http", host := "localhost",
                               port := 9090, path := "/v1/traces", ssl_options := []}],
                        ssl_options := [{cacertfile, "/etc/ssl/other.pem"}]},
-                     opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}], ssl_options => [{cacertfile, "/etc/ssl/cert.pem"}]})),
+                     otel_exporter_traces_otlp:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}], ssl_options => [{cacertfile, "/etc/ssl/cert.pem"}]})),
 
         ?assertMatch(#{endpoints :=
                            [#{scheme := "http", host := "localhost",
                               port := 9090, path := "/v1/traces", ssl_options := [{cacertfile, "/etc/ssl/cert.pem"}]}],
                        ssl_options := [{cacertfile, "/etc/ssl/other.pem"}]},
-                     opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, [{cacertfile, "/etc/ssl/cert.pem"}]}]})),
+                     otel_exporter_traces_otlp:merge_with_environment(#{endpoints => [{http, "localhost", 9090, [{cacertfile, "/etc/ssl/cert.pem"}]}]})),
 
         ?assertMatch(#{endpoints :=
                            [#{scheme := "http", host := "localhost",
                               port := 9090, path := "/v1/traces", ssl_options := [{verify, verify_none}]}],
                        ssl_options := [{cacertfile, "/etc/ssl/other.pem"}]},
-                     opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, [{verify, verify_none}]}]})),
+                     otel_exporter_traces_otlp:merge_with_environment(#{endpoints => [{http, "localhost", 9090, [{verify, verify_none}]}]})),
 
         ?assertMatch([#{scheme := "http", host := "localhost", port := 4318, path := "/v1/traces", ssl_options := [{cacertfile, "/etc/ssl/cert.pem"}]}],
-                     opentelemetry_exporter:endpoints(
+                     otel_exporter_traces_otlp:endpoints(
                        [#{host => "localhost", path => "/v1/traces", port => 4318, scheme => "http"}],
                        [{cacertfile, "/etc/ssl/cert.pem"}]
                       )),
 
         ?assertMatch([#{scheme := "http", host := "localhost", port := 4318, path := "/v1/traces", ssl_options := [{verify, verify_none}]}],
-                     opentelemetry_exporter:endpoints(
+                     otel_exporter_traces_otlp:endpoints(
                        [#{host => "localhost", path => "/v1/traces", port => 4318, scheme => "http", ssl_options => [{verify, verify_none}]}],
                        []
                       )),
         application:unset_env(opentelemetry_exporter, ssl_options),
 
         ?assertMatch([#{scheme := "http", host := "localhost", port := 443, path := [], ssl_options := [{cacertfile, "/etc/ssl/cert.pem"}]}],
-                     opentelemetry_exporter:endpoints(["http://localhost:443"], [{cacertfile, "/etc/ssl/cert.pem"}])),
+                     otel_exporter_traces_otlp:endpoints(["http://localhost:443"], [{cacertfile, "/etc/ssl/cert.pem"}])),
 
         ?assertMatch([#{scheme := "http", host := "localhost", port := 443, path := [], ssl_options := []}],
-                     opentelemetry_exporter:endpoints([<<"http://localhost:443">>], [])),
+                     otel_exporter_traces_otlp:endpoints([<<"http://localhost:443">>], [])),
 
         ?assertMatch([#{scheme := "https", host := "localhost", port := 443, path := []}],
-                     opentelemetry_exporter:endpoints(<<"https://localhost:443">>, [])),
+                     otel_exporter_traces_otlp:endpoints(<<"https://localhost:443">>, [])),
 
         ?assertMatch([#{scheme := "https", host := "localhost", port := 443, path := "/used/path"}],
-                     opentelemetry_exporter:endpoints(<<"https://localhost/used/path">>, [])),
+                     otel_exporter_traces_otlp:endpoints(<<"https://localhost/used/path">>, [])),
 
         ?assertMatch([#{scheme := "http", host := "localhost", port := 80, path := []}],
-                     opentelemetry_exporter:endpoints("http://localhost", [])),
+                     otel_exporter_traces_otlp:endpoints("http://localhost", [])),
 
-        ?assertMatch([], opentelemetry_exporter:endpoints("://badendpoint", [])),
-
-        application:set_env(opentelemetry_exporter, otlp_endpoint, "http://localhost:5353"),
-        ?assertMatch(#{endpoints := [#{host := "localhost", path := "/v1/traces", port := 5353,
-                                       scheme := "http"}]},
-                     opentelemetry_exporter:merge_with_environment(#{})),
+        ?assertMatch([], otel_exporter_traces_otlp:endpoints("://badendpoint", [])),
 
         application:set_env(opentelemetry_exporter, otlp_endpoint, "http://localhost:5353"),
         ?assertMatch(#{endpoints := [#{host := "localhost", path := "/v1/traces", port := 5353,
                                        scheme := "http"}]},
-                     opentelemetry_exporter:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}]})),
+                     otel_exporter_traces_otlp:merge_with_environment(#{})),
+
+        application:set_env(opentelemetry_exporter, otlp_endpoint, "http://localhost:5353"),
+        ?assertMatch(#{endpoints := [#{host := "localhost", path := "/v1/traces", port := 5353,
+                                       scheme := "http"}]},
+                     otel_exporter_traces_otlp:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}]})),
 
         application:set_env(opentelemetry_exporter, otlp_endpoint, "\"http://withextraquotes.com:5353\""),
-        ?assertMatch(#{endpoints := []}, opentelemetry_exporter:merge_with_environment(#{})),
+        ?assertMatch(#{endpoints := []}, otel_exporter_traces_otlp:merge_with_environment(#{})),
 
         %% test that the os env and app env give the same configuration
         application:set_env(opentelemetry_exporter, otlp_endpoint, <<"http://localhost:4317">>),
         application:set_env(opentelemetry_exporter, otlp_protocol, grpc),
-        A = opentelemetry_exporter:merge_with_environment(#{}),
+        A = otel_exporter_traces_otlp:merge_with_environment(#{}),
         ?assertMatch([#{scheme := "http", host := "localhost", port := 4317}],
-             opentelemetry_exporter:endpoints(maps:get(endpoints, A), [])),
+                     otel_exporter_traces_otlp:endpoints(maps:get(endpoints, A), [])),
 
         application:unset_env(opentelemetry_exporter, otlp_protocol),
         os:putenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317"),
         os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
-        B = opentelemetry_exporter:merge_with_environment(#{}),
-        ?assertEqual(opentelemetry_exporter:endpoints(maps:get(endpoints, A), []),
-                     opentelemetry_exporter:endpoints(maps:get(endpoints, B), [])),
+        B = otel_exporter_traces_otlp:merge_with_environment(#{}),
+        ?assertEqual(otel_exporter_traces_otlp:endpoints(maps:get(endpoints, A), []),
+                     otel_exporter_traces_otlp:endpoints(maps:get(endpoints, B), [])),
 
         os:unsetenv("OTEL_EXPORTER_OTLP_PROTOCOL"),
         os:unsetenv("OTEL_EXPORTER_OTLP_ENDPOINT"),
@@ -281,7 +171,7 @@ configuration(_Config) ->
                        compression => undefined,
                        protocol => http_protobuf,
                        ssl_options => undefined},
-                     opentelemetry_exporter:merge_with_environment(#{endpoints => []})),
+                     otel_exporter_traces_otlp:merge_with_environment(#{endpoints => []})),
 
         os:putenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4343/internal"),
         os:putenv("OTEL_EXPORTER_OTLP_HEADERS", "key1=value1"),
@@ -292,28 +182,29 @@ configuration(_Config) ->
                        compression => undefined,
                        protocol => http_protobuf,
                        ssl_options => undefined},
-                     opentelemetry_exporter:merge_with_environment(#{endpoints => []})),
+                     otel_exporter_traces_otlp:merge_with_environment(#{endpoints => []})),
 
         %% test all supported protocols
         application:unset_env(opentelemetry_exporter, otlp_protocol),
         os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
         ?assertMatch(#{protocol := grpc},
-                     opentelemetry_exporter:merge_with_environment(#{})),
+                     otel_exporter_traces_otlp:merge_with_environment(#{})),
 
         %% the specification defines the value as "http/protobuf"
         %% https://github.com/open-telemetry/opentelemetry-specification/blob/82707fd9f7b1266f1246b02ff3e00bebdee6b538/specification/protocol/exporter.md#specify-protocol
         application:unset_env(opentelemetry_exporter, otlp_protocol),
         os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf"),
         ?assertMatch(#{protocol := http_protobuf},
-                     opentelemetry_exporter:merge_with_environment(#{})),
+                     otel_exporter_traces_otlp:merge_with_environment(#{})),
 
         %% backwards compatible with earlier stable version that uses "http_protobuf"
         application:unset_env(opentelemetry_exporter, otlp_protocol),
         os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "http_protobuf"),
         ?assertMatch(#{protocol := http_protobuf},
-                     opentelemetry_exporter:merge_with_environment(#{})),
+                     otel_exporter_traces_otlp:merge_with_environment(#{})),
 
 
+        os:putenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:5353/internal"),
         %% TRACES_ENDPOINT takes precedence
         os:putenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://localhost:5353/traces/path"),
         os:putenv("OTEL_EXPORTER_OTLP_TRACES_HEADERS", "key2=value2"),
@@ -324,14 +215,19 @@ configuration(_Config) ->
                        compression => undefined,
                        protocol => http_protobuf,
                        ssl_options => undefined},
-                     opentelemetry_exporter:merge_with_environment(#{endpoints => []})),
+                     otel_exporter_traces_otlp:merge_with_environment(#{endpoints => []})),
 
         os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
         ?assertMatch(#{protocol := grpc},
-                     opentelemetry_exporter:merge_with_environment(#{})),
+                     otel_exporter_traces_otlp:merge_with_environment(#{})),
 
         ok
     after
+        %% TODO: add these unset_env and it fixed the verify_export test failures,
+        %% figure out if its a timing issue or actually needed.
+        application:unset_env(opentelemetry_exporter, otlp_protocol),
+        application:unset_env(opentelemetry_exporter, otlp_endpoint),
+        application:unset_env(opentelemetry_exporter, ssl_options),
         os:unsetenv("OTEL_EXPORTER_OTLP_ENDPOINT"),
         os:unsetenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"),
         os:unsetenv("OTEL_EXPORTER_OTLP_HEADERS"),

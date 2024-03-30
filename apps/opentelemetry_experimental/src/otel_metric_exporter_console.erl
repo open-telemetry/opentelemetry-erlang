@@ -19,18 +19,16 @@
 -module(otel_metric_exporter_console).
 
 -export([init/1,
-         export/4,
+         export/3,
          force_flush/0,
          shutdown/0]).
 
--include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
--include("otel_view.hrl").
 -include("otel_metrics.hrl").
 
 init(_) ->
     {ok, []}.
 
-export(metrics, Metrics, _Resource, _) ->
+export(Metrics, _Resource, _) ->
     io:format("** METRICS FOR DEBUG **~n"),
     lists:map(fun(#metric{name=Name,
                           data=Data}) ->

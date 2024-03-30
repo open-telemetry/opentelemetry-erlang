@@ -45,7 +45,7 @@
 init(#stream{name=Name,
              reader=ReaderId,
              aggregation_options=_Options,
-             forget=Forget}, Attributes) ->
+             forget=Forget}, Attributes) when erlang:is_reference(ReaderId) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
