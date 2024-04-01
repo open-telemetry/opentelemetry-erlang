@@ -12,10 +12,17 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc Ctx is responsible for propagating values within a process that
+%% @doc The Context is responsible for propagating values within a process that
 %% are associated with a particular Trace or set of Baggage.
 %% `OpenTelemetry.Tracer' and `OpenTelemetry.Baggage' handle updating
 %% the Context.
+%%
+%% For more information on what the Context is and what is its purpose,
+%% see the <a href="https://opentelemetry.io/docs/concepts/context-propagation/">
+%% OpenTelemetry documentation</a>.
+%%
+%% Contexts are propagated around the system using <b>propagators</b>.
+%% See the {@link otel_propagator} behaviour for more information.
 %%
 %% Functions in this module include variants that explicitly take a `Ctx'
 %% argument and variants that implicitly use the <i>current context</i>, which is

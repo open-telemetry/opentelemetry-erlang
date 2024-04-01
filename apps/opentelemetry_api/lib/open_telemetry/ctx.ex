@@ -1,10 +1,17 @@
 defmodule OpenTelemetry.Ctx do
   @moduledoc """
-  Ctx is responsible for propagating values within a process that are associated
-  with a particular Trace or set of Baggage. `OpenTelemetry.Tracer` and
-  `OpenTelemetry.Baggage` handle updating the Context.
+  The Context is responsible for propagating values within a process that
+  are associated with a particular Trace or set of Baggage.
+
+  `OpenTelemetry.Tracer' and `OpenTelemetry.Baggage' handle updating
+  the Context.
+
+  The Elixir version of this module only delegates to the `:otel_ctx` module.
   """
 
+  @typedoc """
+  Same as `t::otel_ctx.t/0`.
+  """
   @type t() :: :otel_ctx.t()
 
   defdelegate new(), to: :otel_ctx
