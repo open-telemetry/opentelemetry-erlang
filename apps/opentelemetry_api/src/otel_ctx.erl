@@ -18,11 +18,8 @@
 %% the Context.
 %%
 %% For more information on what the Context is and what is its purpose,
-%% see the <a href="https://opentelemetry.io/docs/concepts/context-propagation/">
+%% see the <a href="https://opentelemetry.io/docs/specs/otel/context/#overview/">
 %% OpenTelemetry documentation</a>.
-%%
-%% Contexts are propagated around the system using <b>propagators</b>.
-%% See the {@link otel_propagator} behaviour for more information.
 %%
 %% Functions in this module include variants that explicitly take a `Ctx'
 %% argument and variants that implicitly use the <i>current context</i>, which is
