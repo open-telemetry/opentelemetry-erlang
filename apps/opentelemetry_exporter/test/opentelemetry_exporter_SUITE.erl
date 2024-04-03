@@ -103,34 +103,34 @@ configuration(_Config) ->
                      otel_exporter_traces_otlp:merge_with_environment(#{endpoints => [{http, "localhost", 9090, [{verify, verify_none}]}]})),
 
         ?assertMatch([#{scheme := "http", host := "localhost", port := 4318, path := "/v1/traces", ssl_options := [{cacertfile, "/etc/ssl/cert.pem"}]}],
-                     otel_exporter_traces_otlp:endpoints(
+                     otel_exporter_otlp:endpoints(
                        [#{host => "localhost", path => "/v1/traces", port => 4318, scheme => "http"}],
                        [{cacertfile, "/etc/ssl/cert.pem"}]
                       )),
 
         ?assertMatch([#{scheme := "http", host := "localhost", port := 4318, path := "/v1/traces", ssl_options := [{verify, verify_none}]}],
-                     otel_exporter_traces_otlp:endpoints(
+                     otel_exporter_otlp:endpoints(
                        [#{host => "localhost", path => "/v1/traces", port => 4318, scheme => "http", ssl_options => [{verify, verify_none}]}],
                        []
                       )),
         application:unset_env(opentelemetry_exporter, ssl_options),
 
         ?assertMatch([#{scheme := "http", host := "localhost", port := 443, path := [], ssl_options := [{cacertfile, "/etc/ssl/cert.pem"}]}],
-                     otel_exporter_traces_otlp:endpoints(["http://localhost:443"], [{cacertfile, "/etc/ssl/cert.pem"}])),
+                     otel_exporter_otlp:endpoints(["http://localhost:443"], [{cacertfile, "/etc/ssl/cert.pem"}])),
 
         ?assertMatch([#{scheme := "http", host := "localhost", port := 443, path := [], ssl_options := []}],
-                     otel_exporter_traces_otlp:endpoints([<<"http://localhost:443">>], [])),
+                     otel_exporter_otlp:endpoints([<<"http://localhost:443">>], [])),
 
         ?assertMatch([#{scheme := "https", host := "localhost", port := 443, path := []}],
-                     otel_exporter_traces_otlp:endpoints(<<"https://localhost:443">>, [])),
+                     otel_exporter_otlp:endpoints(<<"https://localhost:443">>, [])),
 
         ?assertMatch([#{scheme := "https", host := "localhost", port := 443, path := "/used/path"}],
-                     otel_exporter_traces_otlp:endpoints(<<"https://localhost/used/path">>, [])),
+                     otel_exporter_otlp:endpoints(<<"https://localhost/used/path">>, [])),
 
         ?assertMatch([#{scheme := "http", host := "localhost", port := 80, path := []}],
-                     otel_exporter_traces_otlp:endpoints("http://localhost", [])),
+                     otel_exporter_otlp:endpoints("http://localhost", [])),
 
-        ?assertMatch([], otel_exporter_traces_otlp:endpoints("://badendpoint", [])),
+        ?assertMatch([], otel_exporter_otlp:endpoints("://badendpoint", [])),
 
         application:set_env(opentelemetry_exporter, otlp_endpoint, "http://localhost:5353"),
         ?assertMatch(#{endpoints := [#{host := "localhost", path := "/v1/traces", port := 5353,
@@ -150,14 +150,14 @@ configuration(_Config) ->
         application:set_env(opentelemetry_exporter, otlp_protocol, grpc),
         A = otel_exporter_traces_otlp:merge_with_environment(#{}),
         ?assertMatch([#{scheme := "http", host := "localhost", port := 4317}],
-                     otel_exporter_traces_otlp:endpoints(maps:get(endpoints, A), [])),
+                     otel_exporter_otlp:endpoints(maps:get(endpoints, A), [])),
 
         application:unset_env(opentelemetry_exporter, otlp_protocol),
         os:putenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317"),
         os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
         B = otel_exporter_traces_otlp:merge_with_environment(#{}),
-        ?assertEqual(otel_exporter_traces_otlp:endpoints(maps:get(endpoints, A), []),
-                     otel_exporter_traces_otlp:endpoints(maps:get(endpoints, B), [])),
+        ?assertEqual(otel_exporter_otlp:endpoints(maps:get(endpoints, A), []),
+                     otel_exporter_otlp:endpoints(maps:get(endpoints, B), [])),
 
         os:unsetenv("OTEL_EXPORTER_OTLP_PROTOCOL"),
         os:unsetenv("OTEL_EXPORTER_OTLP_ENDPOINT"),
