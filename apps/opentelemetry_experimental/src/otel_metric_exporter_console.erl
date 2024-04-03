@@ -80,8 +80,12 @@ print_histogram_datapoint(Name, #histogram_datapoint{
     AttributesString = attributes_string(Attributes),
     io:format("~s{~s} ~p~n", [Name, AttributesString, Buckets]).
 
+attr_str(V) when is_list(V); is_binary(V) -> V;
+attr_str(V) when is_atom(V) -> atom_to_list(V);
+attr_str(V) -> io_lib:format("~0tp", [V]).
+
 %% need to handle non-string values
 attributes_string(Attributes) ->
     lists:join(", ", maps:fold(fun(K, V, Acc) ->
-                                       [[K, "=", V] | Acc]
+                                       [[attr_str(K), "=", attr_str(V)] | Acc]
                                end, [], Attributes)).
