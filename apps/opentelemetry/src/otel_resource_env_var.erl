@@ -12,8 +12,15 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc Resource detector ({@link otel_resource_detector}) which adds attributes
+%% to the `Resource' based on environment variables.
 %%
+%% This resource detector reads the `OTEL_RESOURCE_ATTRIBUTES' environment
+%% variable and parses it as a comma-separated list of key-value pairs. For
+%% example, `key1=val1,key2=val2'.
+
+%% To use this module, add it to the list of `resource_detectors' in the
+%% `opentelemetry' application environment.
 %% @end
 %%%-----------------------------------------------------------------------
 -module(otel_resource_env_var).
@@ -27,11 +34,13 @@
 -define(LABEL_LIST_SPLITTER, ",").
 -define(LABEL_KEY_VALUE_SPLITTER, "=").
 
+%% @private
 get_resource(_Config) ->
     otel_resource:create(parse(os:getenv(?OS_ENV))).
 
 %%
 
+%% @private
 -spec parse(false | string()) -> list().
 parse(false) ->
     [];
