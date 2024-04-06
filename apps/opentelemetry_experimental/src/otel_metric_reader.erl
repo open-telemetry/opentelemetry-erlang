@@ -83,7 +83,7 @@ inc_checkpoint_generation(ReaderId) ->
 
 init([ReaderId, ProviderSup, Config]) ->
     ExporterModuleConfig = maps:get(exporter, Config, undefined),
-    Exporter = otel_metric_exporter:init(ExporterModuleConfig),
+    Exporter = otel_exporter_metrics:init(ExporterModuleConfig),
 
     DefaultAggregationMapping = maps:get(default_aggregation_mapping, Config, otel_aggregation:default_mapping()),
     Temporality = maps:get(default_temporality_mapping, Config, otel_aggregation:default_temporality_mapping()),
