@@ -22,7 +22,6 @@
 
 -export([init/1,
          export/3,
-         force_flush/0,
          shutdown/1]).
 
 init({Tag, Pid}) ->
@@ -34,9 +33,6 @@ export(Metrics, _Resource, {Tag, Pid}) ->
     lists:map(fun(Metric) ->
                       Pid ! {Tag, Metric}
               end, Metrics),
-    ok.
-
-force_flush() ->
     ok.
 
 shutdown(_) ->

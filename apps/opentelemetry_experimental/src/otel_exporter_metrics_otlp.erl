@@ -96,6 +96,8 @@
 %%%-------------------------------------------------------------------------
 -module(otel_exporter_metrics_otlp).
 
+-behaviour(otel_exporter_metrics).
+
 -export([init/1,
          export/3,
          shutdown/1,

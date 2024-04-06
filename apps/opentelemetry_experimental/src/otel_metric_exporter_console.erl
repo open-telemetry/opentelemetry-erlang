@@ -18,10 +18,12 @@
 
 -module(otel_metric_exporter_console).
 
+-behaviour(otel_exporter_metrics).
+
 -export([init/1,
          export/3,
          force_flush/0,
-         shutdown/0]).
+         shutdown/1]).
 
 -include("otel_metrics.hrl").
 
@@ -39,7 +41,7 @@ export(Metrics, _Resource, _) ->
 force_flush() ->
     ok.
 
-shutdown() ->
+shutdown(_) ->
     ok.
 
 %%

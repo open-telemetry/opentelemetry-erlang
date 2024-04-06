@@ -39,15 +39,6 @@
                                    scheme => "http"}]).
 
 -type headers() :: [{unicode:chardata(), unicode:chardata()}].
--type scheme() :: http | https | string() | binary().
--type host() :: unicode:chardata().
--type input_endpoint_map() :: #{scheme := scheme(),
-                                host := host(),
-                                path => unicode:chardata(),
-                                port => integer(),
-                                ssl_options => []}.
-
--type input_endpoint() :: uri_string:uri_string() | uri_string:uri_map() | input_endpoint_map().
 -type endpoint() :: uri_string:uri_string() | uri_string:uri_map().
 -type endpoint_map() :: #{scheme := unicode:chardata(),
                           host := unicode:chardata(),

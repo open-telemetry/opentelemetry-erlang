@@ -36,8 +36,12 @@
 init(Opts) ->
     otel_exporter:init(Opts).
 
+export(undefined, _Metrics, _Resource) ->
+    ok;
 export({ExporterModule, Config}, Metrics, Resource) ->
     ExporterModule:export(Metrics, Resource, Config).
 
+shutdown(undefined) ->
+    ok;
 shutdown(Exporter) ->
     otel_exporter:shutdown(Exporter).
