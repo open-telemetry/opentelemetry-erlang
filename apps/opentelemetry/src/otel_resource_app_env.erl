@@ -27,8 +27,8 @@
 %% then it results in the `Resource' attributes `service.name' and `service.namespace'
 %% set to `service-name' and `service-namespace' respectively.
 %%
-%% To use this module, add it to the list of `resource_detectors' in the
-%% `opentelemetry' application environment.
+%% This detector is on by default (see the default configuration for `resource_detectors' in the
+%% `opentelemetry' application environment).
 %% @end
 %%%-----------------------------------------------------------------------
 -module(otel_resource_app_env).
