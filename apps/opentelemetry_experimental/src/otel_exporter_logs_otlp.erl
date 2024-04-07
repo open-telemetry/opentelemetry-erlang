@@ -157,17 +157,17 @@ init(Opts) ->
     end.
 
 %% @doc Export OTLP protocol telemery data to the configured endpoints.
-export(_Tab, _Resource, #state{protocol=http_json}) ->
+export(_, _Resource, #state{protocol=http_json}) ->
     {error, unimplemented};
-export(Tab, Resource, #state{protocol=http_protobuf,
-                             httpc_profile=HttpcProfile,
-                             headers=Headers,
-                             compression=Compression,
-                             endpoints=[#{scheme := Scheme,
-                                          host := Host,
-                                          path := Path,
-                                          port := Port,
-                                          ssl_options := SSLOptions} | _]}) ->
+export({Logs, Config}, Resource, #state{protocol=http_protobuf,
+                                        httpc_profile=HttpcProfile,
+                                        headers=Headers,
+                                        compression=Compression,
+                                        endpoints=[#{scheme := Scheme,
+                                                     host := Host,
+                                                     path := Path,
+                                                     port := Port,
+                                                     ssl_options := SSLOptions} | _]}) ->
     case uri_string:normalize(#{scheme => Scheme,
                                 host => Host,
                                 port => Port,
@@ -177,7 +177,7 @@ export(Tab, Resource, #state{protocol=http_protobuf,
                       [Type, Error]),
             error;
         Address ->
-            case otel_otlp_logs:to_proto(Tab, Resource) of
+            case otel_otlp_logs:to_proto(Logs, Resource, Config) of
                 empty ->
                     ok;
                 ProtoMap ->
@@ -186,17 +186,17 @@ export(Tab, Resource, #state{protocol=http_protobuf,
                     otel_exporter_otlp:export_http(Address, Headers, Body, Compression, SSLOptions, HttpcProfile)
             end
     end;
-export(Tab, Resource, #state{protocol=grpc,
-                             grpc_metadata=Metadata,
-                             channel=Channel}) ->
-    case otel_otlp_logs:to_proto(Tab, Resource) of
+export({Logs, Config}, Resource, #state{protocol=grpc,
+                                        grpc_metadata=Metadata,
+                                        channel=Channel}) ->
+    case otel_otlp_logs:to_proto(Logs, Resource, Config) of
         empty ->
             ok;
         Request ->
             GrpcCtx = ctx:new(),
             otel_exporter_otlp:export_grpc(GrpcCtx, opentelemetry_logs_service, Metadata, Request, Channel)
     end;
-export(_Tab, _Resource, _State) ->
+export(_, _Resource, _State) ->
     {error, unimplemented}.
 
 %% @doc Shutdown the exporter.
