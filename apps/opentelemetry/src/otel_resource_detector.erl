@@ -20,7 +20,7 @@
 %% This module is meant for users who intend to write their own resource
 %% detectors.
 %%
-%% This module is a state machine (started by the `opentelemetry' application)
+%% This behaviour is a state machine (started by the `opentelemetry' application)
 %%  which spawns a process for each detector, collects the
 %% results of running each, and merges them in the order they are defined. Once the
 %% state machine process is ready, it will reply to {@link get_resource/1}
