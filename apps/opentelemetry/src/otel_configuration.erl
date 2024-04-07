@@ -12,10 +12,10 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc Merges environment variable configuration values with application
+%% Merges environment variable configuration values with application
 %% configuration. The OS environment variables take precedence over the
 %% application environment.
-%% @end
+%% @private
 %%%-------------------------------------------------------------------------
 -module(otel_configuration).
 
