@@ -2004,6 +2004,7 @@ simple_fixed_exemplars(_Config) ->
     %% total number of exemplars for `CBAttributes' should be `MaxExemplars'
     %% (the number of measurements we made above) and `MaxExemplars'
     Generation1 = 1,
+
     [[Count1]] = ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, ReaderId, Generation1}, '$1'}),
     Matches1 = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {test_exemplar_counter, CBAttributes, ReaderId, Generation1}),
 
