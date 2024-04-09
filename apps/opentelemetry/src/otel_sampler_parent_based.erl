@@ -12,15 +12,19 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
-%% This sampler makes the decision based on the parent, with the following possibilities:
-%% 1) a remote parent that is sampled (by default always_on);
-%% 2) a remote parent that is not sampled (by default always_off);
-%% 3) a local parent that is sampled (by default always_on);
-%% 4) a local parent that is not sampled (by default always_off);
-%% 5) no parent (by default always_on).
+%% @doc An {@link otel_sampler} that makes the decision based on the parent.
+%%
+%% This sampler decides with the following possibilities:
+%% <ol>
+%%   <li>a remote parent that is sampled (by default `always_on');</li>
+%%   <li>a remote parent that is not sampled (by default `always_off');</li>
+%%   <li>a local parent that is sampled (by default `always_on');</li>
+%%   <li>a local parent that is not sampled (by default `always_off');</li>
+%%   <li>no parent (by default `always_on').</li>
+%% </ol>
 %%
 %% For each of these cases a different sampler can be configured.
+%% For options, see {@link opts()}.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_sampler_parent_based).
@@ -41,7 +45,9 @@
     local_parent_not_sampled => otel_sampler:sampler_spec(),
     root => otel_sampler:sampler_spec()
 }.
+%% Options to configure this sampler.
 
+%% @private
 setup(Opts = #{root := RootSpec}) ->
     RemoteParentSampledSampler = sampler_for_spec(remote_parent_sampled, Opts, always_on),
     RemoteParentNotSampledSampler = sampler_for_spec(remote_parent_not_sampled, Opts, always_off),
@@ -63,6 +69,7 @@ sampler_for_spec(Key, Opts, DefaultModule) ->
     Spec = maps:get(Key, Opts, DefaultModule),
     otel_sampler:new(Spec).
 
+%% @private
 description(#{
     root := RootSampler,
     remote_parent_sampled := RemoteParentSampler,
@@ -76,6 +83,7 @@ description(#{
         (otel_sampler:description(LocalParentSampler))/binary, ",localParentNotSampled:",
         (otel_sampler:description(LocalParentNotSampler))/binary, "}">>.
 
+%% @private
 should_sample(Ctx, TraceId, Links, SpanName, SpanKind, Attributes, Config) ->
     ParentSpanCtx = otel_tracer:current_span_ctx(Ctx),
     SamplerKey = parent_based_sampler(ParentSpanCtx),
