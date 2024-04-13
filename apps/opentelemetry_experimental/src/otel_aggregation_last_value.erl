@@ -153,7 +153,7 @@ datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime, #last_value_aggr
                                                                                         start_time=StartTime,
                                                                                         checkpoint=Checkpoint}) ->
     Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
-    #datapoint{attributes=Attributes,
+    #datapoint{attributes=binary_to_term(Attributes),
                start_time=StartTime,
                time=CollectionStartTime,
                value=Checkpoint,

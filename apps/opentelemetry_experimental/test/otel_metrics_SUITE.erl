@@ -407,11 +407,11 @@ float_counter(_Config) ->
 
     Ctx = otel_ctx:new(),
 
-    ?assertEqual(ok, otel_counter:add(Ctx, Counter, 10.3, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, ?counter_add(CounterName, 10.3, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?counter_add(CounterName, 5.5, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, ?counter_add(CounterName, 5, #{<<"c">> => <<"b">>})),
 
-     %% without attributes
+    %% without attributes
     ?assertEqual(ok, ?counter_add(CounterName, 1.2)),
     ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2.1)),
 
@@ -1983,12 +1983,13 @@ simple_fixed_exemplars(_Config) ->
     ExemplarReservoir = otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_simple, #{}, fun otel_metric_exemplar_filter:always_on/6),
     %% exemplars for CBAttributes should be the min of 3
     %% (the number of measurements we made above) and MaxExemplars
-    [[Count]] = ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, ReaderId, Generation0}, '$1'}),
+    CBAttributesBinary = term_to_binary(CBAttributes),
+    [[Count]] = ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributesBinary, ReaderId, Generation0}, '$1'}),
     ?assertEqual(3, Count),
-    Matches = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {test_exemplar_counter, CBAttributes, ReaderId, Generation0}),
+    Matches = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {test_exemplar_counter, CBAttributesBinary, ReaderId, Generation0}),
     %% collection deletes the objects
-    ?assertEqual([], ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, ReaderId, Generation0}, '$1'})),
-    ?assertEqual([], ets:match(ExemplarsTab, {{{test_exemplar_counter, CBAttributes, ReaderId, Generation0}, '_'}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributesBinary, ReaderId, Generation0}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{{test_exemplar_counter, CBAttributesBinary, ReaderId, Generation0}, '_'}, '$1'})),
     ?assertEqual(min(3, MaxExemplars), length(Matches)),
 
     %% bump generation
@@ -2005,15 +2006,15 @@ simple_fixed_exemplars(_Config) ->
     %% (the number of measurements we made above) and `MaxExemplars'
     Generation1 = 1,
 
-    [[Count1]] = ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, ReaderId, Generation1}, '$1'}),
-    Matches1 = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {test_exemplar_counter, CBAttributes, ReaderId, Generation1}),
+    [[Count1]] = ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributesBinary, ReaderId, Generation1}, '$1'}),
+    Matches1 = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {test_exemplar_counter, CBAttributesBinary, ReaderId, Generation1}),
 
     %% check that attributes on exemplars are FGAttributes
     ?assertMatch(FGAttributes, (hd(Matches1))#exemplar.filtered_attributes),
 
     %% collection deletes the objects
-    ?assertEqual([], ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, ReaderId, Generation0}, '$1'})),
-    ?assertEqual([], ets:match(ExemplarsTab, {{{test_exemplar_counter, CBAttributes, ReaderId, Generation0}, '_'}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributesBinary, ReaderId, Generation0}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{{test_exemplar_counter, CBAttributesBinary, ReaderId, Generation0}, '_'}, '$1'})),
 
     ?assertEqual(TotalMeasurements, Count1),
     ?assertEqual(MaxExemplars, length(Matches1)),
@@ -2069,12 +2070,13 @@ float_simple_fixed_exemplars(_Config) ->
     ExemplarReservoir = otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_simple, #{}, fun otel_metric_exemplar_filter:always_on/6),
     %% exemplars for CBAttributes should be the min of 3
     %% (the number of measurements we made above) and MaxExemplars
-    [[Count]] = ets:match(ExemplarsTab, {{CounterName, CBAttributes, ReaderId, Generation0}, '$1'}),
+    CBAttributesBinary = term_to_binary(CBAttributes),
+    [[Count]] = ets:match(ExemplarsTab, {{CounterName, CBAttributesBinary, ReaderId, Generation0}, '$1'}),
     ?assertEqual(3, Count),
-    Matches = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {CounterName, CBAttributes, ReaderId, Generation0}),
+    Matches = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {CounterName, CBAttributesBinary, ReaderId, Generation0}),
     %% collection deletes the objects
-    ?assertEqual([], ets:match(ExemplarsTab, {{CounterName, CBAttributes, ReaderId, Generation0}, '$1'})),
-    ?assertEqual([], ets:match(ExemplarsTab, {{{CounterName, CBAttributes, ReaderId, Generation0}, '_'}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{CounterName, CBAttributesBinary, ReaderId, Generation0}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{{CounterName, CBAttributesBinary, ReaderId, Generation0}, '_'}, '$1'})),
     ?assertEqual(min(3, MaxExemplars), length(Matches)),
 
     otel_meter_server:force_flush(),
@@ -2090,12 +2092,12 @@ float_simple_fixed_exemplars(_Config) ->
     %% total number of exemplars for `CBAttributes' should be `MaxExemplars'
     %% (the number of measurements we made above) and `MaxExemplars'
     Generation1 = 1,
-    [[Count1]] = ets:match(ExemplarsTab, {{CounterName, CBAttributes, ReaderId, Generation1}, '$1'}),
-    Matches1 = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {CounterName, CBAttributes, ReaderId, Generation1}),
+    [[Count1]] = ets:match(ExemplarsTab, {{CounterName, CBAttributesBinary, ReaderId, Generation1}, '$1'}),
+    Matches1 = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {CounterName, CBAttributesBinary, ReaderId, Generation1}),
 
     %% collection deletes the objects
-    ?assertEqual([], ets:match(ExemplarsTab, {{CounterName, CBAttributes, ReaderId, Generation0}, '$1'})),
-    ?assertEqual([], ets:match(ExemplarsTab, {{{CounterName, CBAttributes, ReaderId, Generation0}, '_'}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{CounterName, CBAttributesBinary, ReaderId, Generation0}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{{CounterName, CBAttributesBinary, ReaderId, Generation0}, '_'}, '$1'})),
 
     ?assertEqual(TotalMeasurements, Count1),
     ?assertEqual(MaxExemplars, length(Matches1)),
@@ -2141,9 +2143,9 @@ explicit_histogram_exemplars(_Config) ->
     Generation0 = 0,
     ExemplarReservoir = otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_aligned_histogram, #{}, fun otel_metric_exemplar_filter:always_on/6),
 
-    Matches = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {CounterName, CBAttributes, ReaderId, Generation0}),
-
-    ?assertEqual([], ets:match(ExemplarsTab, {{{CounterName, CBAttributes, ReaderId, Generation0}, '_'}, '$1'})),
+    CBAttributesBinary = term_to_binary(CBAttributes),
+    Matches = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {CounterName, CBAttributesBinary, ReaderId, Generation0}),
+    ?assertEqual([], ets:match(ExemplarsTab, {{{CounterName, CBAttributesBinary, ReaderId, Generation0}, '_'}, '$1'})),
     ?assertMatch([{exemplar,5, _, _ , _, _},
                   {exemplar,5.5, _, _ , _, _},
                   {exemplar,10.3, _, _ , _, _}], lists:sort(Matches)),
@@ -2228,12 +2230,13 @@ trace_based_exemplars(_Config) ->
                                   end),
 
     Generation1 = 1,
-    [[_Count1]] = ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, ReaderId, Generation1}, '$1'}),
-    Matches1 = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {test_exemplar_counter, CBAttributes, ReaderId, Generation1}),
+    CBAttributesBinary = term_to_binary(CBAttributes),
+    [[_Count1]] = ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributesBinary, ReaderId, Generation1}, '$1'}),
+    Matches1 = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, {test_exemplar_counter, CBAttributesBinary, ReaderId, Generation1}),
 
     %% collection deletes the objects
-    ?assertEqual([], ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributes, ReaderId, Generation0}, '$1'})),
-    ?assertEqual([], ets:match(ExemplarsTab, {{{test_exemplar_counter, CBAttributes, ReaderId, Generation0}, '_'}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{test_exemplar_counter, CBAttributesBinary, ReaderId, Generation0}, '$1'})),
+    ?assertEqual([], ets:match(ExemplarsTab, {{{test_exemplar_counter, CBAttributesBinary, ReaderId, Generation0}, '_'}, '$1'})),
 
     %% default number of exemplars in SimpleFixedReservoir is the number of schedulers
     MaxExemplars = erlang:system_info(schedulers_online),
