@@ -107,8 +107,8 @@ attributes(_) ->
 
 %% @doc Returns `true' if `Key' is valid and part of the given resource.
 -spec is_key(key(), t()) -> boolean().
-is_key(Key, #resource{attributes=Attributes}) ->
-    case try_check_key(Key, false) of
+is_key(K, #resource{attributes=Attributes}) ->
+    case try_check_key(K, false) of
         {true, Key} ->
             maps:is_key(Key, otel_attributes:map(Attributes));
         _ ->
