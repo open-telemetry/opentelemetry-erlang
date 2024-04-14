@@ -40,8 +40,8 @@
          handle_event/4]).
 
 -callback get_resource(term()) -> otel_resource:t().
-%% Should return a resource identified by the given term. For example,
-%% the term could be the name of an environment variable.
+%% Function that takes the configuration of a resource detector 
+%% and returns a resource.
 
 -type detector() :: module() | {module(), term()}.
 
