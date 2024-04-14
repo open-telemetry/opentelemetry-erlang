@@ -12,13 +12,23 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc Adds attributes to the `Resource' based on the value of `resource'
+%% @doc Resource detector ({@link otel_resource_detector}) which adds attributes
+%% to the `Resource' based on the value of `resource'
 %% in the `opentelemetry' application's environment.
 %%
-%%     [{service, #{name => "service-name",
-%%                  namespace => "service-namespace"}]
+%% For example, if the `opentelemetry' application environment has the following
+%% configuration under the `resource' key:
 %%
-%% Results in the `Resource' attributes `service.name' and `service.namespace'.
+%% ```
+%% [{service, #{name => "myservice",
+%%              namespace => "mynamespace"}}]
+%% '''
+%%
+%% then it results in the `Resource' attributes `service.name' and `service.namespace'
+%% set to `myservice' and `mynamespace"}}]' respectively.
+%%
+%% This detector is on by default (see the default configuration for `resource_detectors' in the
+%% `opentelemetry' application environment).
 %% @end
 %%%-----------------------------------------------------------------------
 -module(otel_resource_app_env).
@@ -28,12 +38,14 @@
 -export([get_resource/1,
          parse/1]).
 
+%% @private
 get_resource(_Config) ->
     Attributes = parse(application:get_env(opentelemetry, resource, #{})),
     otel_resource:create(Attributes).
 
 %%
 
+%% @private
 parse(Attributes) when is_map(Attributes) ->
     parse(maps:to_list(Attributes));
 parse(Attributes) when is_list(Attributes) ->

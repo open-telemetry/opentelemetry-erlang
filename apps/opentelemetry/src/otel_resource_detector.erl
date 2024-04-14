@@ -15,12 +15,16 @@
 %% @doc Resource detectors are responsible for reading in attributes about
 %% the runtime environment of a node (such as an environment variable or
 %% some metadata endpoint provided by a cloud host) and returning a
-%% `otel_resource:t()' made from those attributes.
+%% {@link otel_resource:t()} made from those attributes.
 %%
-%% The state machine will spawn a process for each detector and collect the
-%% results of running each and merge in the order they are defined. Once in
-%% the `ready' state it will reply to `get_resource' calls with the final
-%% `otel_resource:t()'.
+%% This module is meant for users who intend to write their own resource
+%% detectors.
+%%
+%% This behaviour is a state machine (started by the `opentelemetry' application)
+%%  which spawns a process for each detector, collects the
+%% results of running each, and merges them in the order they are defined. Once the
+%% state machine process is ready, it will reply to {@link get_resource/1}
+%% calls with the final {@link otel_resource:t()}.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_resource_detector).
@@ -36,6 +40,8 @@
          handle_event/4]).
 
 -callback get_resource(term()) -> otel_resource:t().
+%% Function that takes the configuration of a resource detector 
+%% and returns a resource.
 
 -type detector() :: module() | {module(), term()}.
 
@@ -46,15 +52,24 @@
                detectors        :: [detector()],
                detector_timeout :: integer()}).
 
+%% @private
 -spec start_link(Config) -> {ok, pid()} | ignore | {error, term()} when
               Config :: #{resource_detectors := [module()],
                           resource_detector_timeout := integer()}.
 start_link(Config) ->
     gen_statem:start_link({local, ?MODULE}, ?MODULE, [Config], []).
 
+%% @equiv get_resource(6000)
+-spec get_resource() -> otel_resource:t().
 get_resource() ->
     get_resource(6000).
 
+%% @doc Gets the resource formed by detecting attributes through resource
+%% detectors.
+%%
+%% If the call doesn't complete within the given `Timeout' then an empty
+%% resource is returned.
+-spec get_resource(timeout()) -> otel_resource:t().
 get_resource(Timeout) ->
     try gen_statem:call(?MODULE, get_resource, Timeout)
     catch
@@ -67,6 +82,7 @@ get_resource(Timeout) ->
             otel_resource:create([])
     end.
 
+%% @private
 init([#{resource_detectors := Detectors,
         resource_detector_timeout := DetectorTimeout}]) ->
     process_flag(trap_exit, true),
@@ -76,9 +92,11 @@ init([#{resource_detectors := Detectors,
                            detector_timeout=DetectorTimeout},
      [{next_event, internal, spawn_detectors}]}.
 
+%% @private
 callback_mode() ->
     [handle_event_function, state_enter].
 
+%% @private
 handle_event(enter, _, ready, Data=#data{resource=Resource}) ->
     NewResource = default_resource_attributes(Resource),
     {keep_state, Data#data{resource=NewResource}};
