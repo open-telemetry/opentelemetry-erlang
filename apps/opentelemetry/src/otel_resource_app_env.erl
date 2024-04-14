@@ -20,12 +20,12 @@
 %% configuration under the `resource' key:
 %%
 %% ```
-%% [{service, #{name => "service-name",
-%%              namespace => "service-namespace"}]
+%% [{service, #{name => "myservice",
+%%              namespace => "mynamespace"}}]
 %% '''
 %%
 %% then it results in the `Resource' attributes `service.name' and `service.namespace'
-%% set to `service-name' and `service-namespace' respectively.
+%% set to `myservice' and `mynamespace"}}]' respectively.
 %%
 %% This detector is on by default (see the default configuration for `resource_detectors' in the
 %% `opentelemetry' application environment).
