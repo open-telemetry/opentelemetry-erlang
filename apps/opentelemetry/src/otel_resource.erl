@@ -14,11 +14,19 @@
 %%
 %% @doc A Resource is attributes representing the entity producing
 %% telemetry. For example, by default the language (Erlang), name of this
-%% library (opentelemetry) and version of this library are included in
+%% library (`opentelemetry'), and version of this library are included in
 %% the Resource.
 %%
 %% This module provides the functional interface for working with the
 %% resource record.
+%%
+%% The `opentelemetry' library supports <i>resource detectors</i> to
+%% detect attributes to include in the Resource. See {@link otel_resource_detector}
+%% for the behaviour to detect resources, and the {@link otel_resource_app_env}
+%% and {@link otel_resource_env_var} modules for built-in implementations.
+%%
+%% See the <a href="https://opentelemetry.io/docs/concepts/resources/">
+%% OpenTelemetry Resource documentation</a> for more information on Resources.
 %% @end
 %%%-----------------------------------------------------------------------
 -module(otel_resource).
@@ -32,22 +40,33 @@
 
 -type key() :: unicode:latin1_binary() | atom().
 %% values allowed in attributes of a resource are limited
+
 -type value() :: unicode:latin1_binary() | integer() | float() | boolean().
+%% A resource value.
+
 -type schema_url() :: uri_string:uri_string().
+%% A schema URL for the resource.
 
 -define(MAX_LENGTH, 255).
 
 -record(resource, {schema_url :: schema_url() | undefined,
                    attributes :: otel_attributes:t()}).
+
 -type t() :: #resource{} | undefined.
+%% The type that represents a resource.
 
 -export_type([t/0]).
 
+%% @equiv create(Attributes, undefined)
 -spec create(#{key() => value()} | [{key(), value()}]) -> t().
 create(Attributes) ->
     create(Attributes, undefined).
 
-%% verifies each key and value and drops any that don't pass verification
+%% @doc Creates a new resources from the given map or list of `Attributes' and
+%% with the given `SchemaUrl'.
+%%
+%%
+%% This function verifies each key and value, and drops any that don't pass verification.
 -spec create(#{key() => value()} | [{key(), value()}], schema_url() | undefined) -> t().
 create(Map, SchemaUrl) when is_map(Map) ->
     create(maps:to_list(Map), SchemaUrl);
@@ -69,18 +88,24 @@ create(List, SchemaUrl) when is_list(List) ->
     #resource{schema_url=SchemaUrl,
               attributes=otel_attributes:new(List1, 128, 255)}.
 
+%% @doc Returns the schema URL of the resource.
 -spec schema_url(t()) -> schema_url() | undefined.
 schema_url(#resource{schema_url=Schema}) ->
     Schema;
 schema_url(_) ->
     undefined.
 
+%% @doc Returns the attributes of the given `Resource'.
+%%
+%% This function returns `undefined' only in case `Resource' is an invalid argument
+%% (not a resource record).
 -spec attributes(t()) -> otel_attributes:t() | undefined.
 attributes(#resource{attributes=Attributes}) ->
     Attributes;
 attributes(_) ->
     undefined.
 
+%% @doc Returns `true' if `Key' is valid and part of the given resource.
 -spec is_key(key(), t()) -> boolean().
 is_key(K, #resource{attributes=Attributes}) ->
     case try_check_key(K, false) of
@@ -92,14 +117,16 @@ is_key(K, #resource{attributes=Attributes}) ->
 is_key(_, _) ->
     false.
 
-%% in case of collision the updating, first argument, resource takes precedence.
+%% @doc Merges the two given resources.
+%%
+%% In case of collision, the first argument (`Resource') takes precedence.
 -spec merge(t(), t()) -> t().
 merge(#resource{schema_url=NewSchemaUrl,
-                attributes=NewAttributes}, Current=#resource{schema_url=CurrentSchemaUrl,
+                attributes=NewAttributes}, CurrentResource=#resource{schema_url=CurrentSchemaUrl,
                                                              attributes=CurrentAttributes}) ->
     SchameUrl = merge_schema_url(NewSchemaUrl, CurrentSchemaUrl),
     NewMap = otel_attributes:map(NewAttributes),
-    Current#resource{schema_url=SchameUrl,
+    CurrentResource#resource{schema_url=SchameUrl,
                      attributes=otel_attributes:set(NewMap, CurrentAttributes)}.
 
 %%
