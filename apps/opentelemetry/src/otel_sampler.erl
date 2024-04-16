@@ -19,7 +19,9 @@
 %%
 %% For more information on the concept of <i>Sampling</i>, see
 %% <a href="https://opentelemetry.io/docs/concepts/sampling/">Sampling in the OpenTelemetry
-%% documentation</a>. For examples of configuring samplers or implementing your own sampler,
+%% documentation</a> or the
+%% <a href="https://opentelemetry.io/docs/specs/otel/trace/sdk/#sampling">Sampling spec</a>.
+%% For examples of configuring samplers or implementing your own sampler,
 %% see <a href="https://opentelemetry.io/docs/languages/erlang/sampling/">the OpenTelemetry
 %% Erlang documentation</a>.
 %% @end

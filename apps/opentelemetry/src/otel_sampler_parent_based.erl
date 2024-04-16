@@ -25,6 +25,10 @@
 %%
 %% For each of these cases a different sampler can be configured.
 %% For options, see {@link opts()}.
+%%
+%% This is one of the
+%% <a href="https://opentelemetry.io/docs/specs/otel/trace/sdk/#built-in-samplers">built-in
+%% samplers</a> provided by the OpenTelemetry SDK.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_sampler_parent_based).

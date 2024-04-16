@@ -13,6 +13,10 @@
 %% limitations under the License.
 %%
 %% @doc An {@link otel_sampler} that drops all spans.
+%%
+%% This is one of the
+%% <a href="https://opentelemetry.io/docs/specs/otel/trace/sdk/#built-in-samplers">built-in
+%% samplers</a> provided by the OpenTelemetry SDK.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_sampler_always_off).

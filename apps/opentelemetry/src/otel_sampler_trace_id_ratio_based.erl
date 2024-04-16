@@ -17,6 +17,10 @@
 %% This sampler samples a configured percentage of spans, where the sampling
 %% decision is <i>deterministic</i> with respect to the span trace ID. That means
 %% the sampler always makes the same decision for the same trace ID.
+%%
+%% This is one of the
+%% <a href="https://opentelemetry.io/docs/specs/otel/trace/sdk/#built-in-samplers">built-in
+%% samplers</a> provided by the OpenTelemetry SDK.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_sampler_trace_id_ratio_based).
