@@ -24,6 +24,11 @@
 %% For examples of configuring samplers or implementing your own sampler,
 %% see <a href="https://opentelemetry.io/docs/languages/erlang/sampling/">the OpenTelemetry
 %% Erlang documentation</a>.
+%%
+%% <h3>Configuration</h3>
+%%
+%% To configure sampling for the `opentelemetry' application, see
+%% <a href="https://hexdocs.pm/opentelemetry/readme.html#samplers">the documentation</a>.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_sampler).
@@ -81,6 +86,7 @@
 %% A built-in sampler.
 
 -type sampler_spec() :: builtin_sampler() | {module(), sampler_opts()}.
+%% Specification to create a sampler.
 
 -type sampling_decision() :: ?DROP | ?RECORD_ONLY | ?RECORD_AND_SAMPLE.
 %% The decision that a sampler can make on a given span.
@@ -90,12 +96,13 @@
                             opentelemetry:attributes_map(),
                             opentelemetry:tracestate() | otel_tracestate:members()
                            }.
+%% The result of a sampling decision.
 
 -opaque t() :: {module(), description(), sampler_opts()}.
 %% A sampler.
 
-%% @private
--spec new(sampler_spec()) -> t().
+%% @doc Returns a sampler based on the given specification.
+-spec new(SamplerSpec :: sampler_spec()) -> t().
 new(always_on) ->
     new({otel_sampler_always_on, #{}});
 new(always_off) ->
@@ -128,6 +135,6 @@ should_sample({Sampler, _, Config}, Ctx, TraceId, Links, SpanName, Kind, Attribu
             Result
     end.
 
-%% @private
+%% @doc Returns the description of the given sampler.
 -spec description(t()) -> description().
-description({_, Description, _}) -> Description.
+description(_Sampler = {_, Description, _}) -> Description.
