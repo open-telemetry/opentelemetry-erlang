@@ -127,8 +127,17 @@ current_span_ctx(Ctx) ->
 update_logger_process_metadata(Ctx) ->
     update_logger_process_metadata_from_span_ctx(current_span_ctx(Ctx)).
 
-%%
-
+%% If the (previous) context is undefined, logger process metadata must be cleared
+update_logger_process_metadata_from_span_ctx(undefined) ->
+    clear_logger_proces_metadata();
 update_logger_process_metadata_from_span_ctx(SpanCtx) ->
     Metadata = otel_span:hex_span_ctx(SpanCtx),
     logger:update_process_metadata(Metadata).
+
+clear_logger_proces_metadata() ->
+    case logger:get_process_metadata() of
+        M when is_map(M) ->
+            logger:set_process_metadata(maps:without(otel_span:hex_span_ctx_keys(), M));
+        _ ->
+            ok
+    end.

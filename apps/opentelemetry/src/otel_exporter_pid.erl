@@ -30,6 +30,7 @@ export(traces, SpansTid, _Resource, Pid) ->
     ets:foldl(fun(Span, _Acc) ->
                       Pid ! {span, Span}
               end, [], SpansTid),
+    ets:delete_all_objects(SpansTid),
     ok.
 
 shutdown(_) ->
