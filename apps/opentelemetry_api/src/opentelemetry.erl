@@ -343,9 +343,11 @@ convert_timestamp(Timestamp, Unit) ->
     Offset = erlang:time_offset(),
     erlang:convert_time_unit(Timestamp + Offset, native, Unit).
 
--spec links([{TraceId, SpanId, Attributes, TraceState} | span_ctx() | {span_ctx(), Attributes}]) -> [link()] when
-      TraceId :: trace_id(),
-      SpanId :: span_id(),
+%% @doc Creates a list of Span links from the given `List'.
+%%
+%% This is equivalent to calling {@link link/2} or {@link link/4} multiple times.
+-spec links([TraceIdAndSpanId | span_ctx() | {span_ctx(), Attributes}]) -> [link()] when
+      TraceIdAndSpanId :: {trace_id(), span_id(), Attributes, TraceState},
       Attributes :: attributes_map(),
       TraceState :: otel_tracestate:t() | [{string(), string()}].
 links(List) when is_list(List) ->
@@ -368,18 +370,26 @@ links(List) when is_list(List) ->
 links(_) ->
     [].
 
+
+%% @equiv link(SpanCtx, [])
 -spec link(span_ctx() | undefined) -> link() | undefined.
 link(SpanCtx) ->
     link(SpanCtx, []).
 
+%% @doc Creates a Span link to the Span represented by the given `SpanCtx'.
+%%
+%% The returned link can be used in the `links' field of a Span.
 -spec link(span_ctx() | undefined, attributes_map()) -> link() | undefined.
-link(#span_ctx{trace_id=TraceId,
-               span_id=SpanId,
-               tracestate=TraceState}, Attributes) ->
+link(_SpanCtx = #span_ctx{trace_id=TraceId,
+                          span_id=SpanId,
+                          tracestate=TraceState}, Attributes) ->
     ?MODULE:link(TraceId, SpanId, otel_attributes:process_attributes(Attributes), TraceState);
 link(_, _) ->
     undefined.
 
+%% @doc Creates a Span link to the Span represented by the given `TraceId' and `SpanId'.
+%%
+%% The returned link can be used in the `links' field of a Span.
 -spec link(TraceId, SpanId, Attributes, TraceState) -> link() | undefined when
       TraceId :: trace_id(),
       SpanId :: span_id(),
@@ -395,12 +405,18 @@ link(TraceId, SpanId, Attributes, TraceState) when is_integer(TraceId),
 link(_, _, _, _) ->
     undefined.
 
+%% @equiv event(opentelemetry:timestamp(), Name, Attributes)
 -spec event(Name, Attributes) -> event() | undefined when
       Name :: event_name(),
       Attributes :: attributes_map().
 event(Name, Attributes) ->
     event(opentelemetry:timestamp(), Name, Attributes).
 
+%% @doc Creates a Span event with the given `Name' and `Attributes'.
+%%
+%% The Span event is marked to have happened at `Timestamp'. The returned
+%% event can be used to add an event to a Span through {@link otel_span:add_events/2},
+%% for example.
 -spec event(Timestamp, Name, Attributes) -> event() | undefined when
       Timestamp :: integer(),
       Name :: event_name(),
@@ -419,7 +435,16 @@ event(Timestamp, Name, Attributes) when is_integer(Timestamp),
 event(_, _, _) ->
     undefined.
 
-events(List) ->
+%% @doc Creates a list of Span events from the given `List'.
+%%
+%% This is a conveneince function to create a list of Span events from a list
+%% of `{Time, Name, Attributes}' or `{Name, Attributes}' tuples. It's equivalent
+%% to calling {@link event/2} or {@link event/3} multiple times. This function
+%% also automatically filters out any invalid tuple.
+-spec events([Event]) -> [event()] when
+      Event :: {Timestamp :: integer(), event_name(), attributes_map()} |
+               {event_name(), attributes_map()}.
+events(Events) ->
     Now = opentelemetry:timestamp(),
     lists:filtermap(fun({Time, Name, Attributes}) ->
                             case event(Time, Name, Attributes) of
@@ -437,13 +462,21 @@ events(List) ->
                             end;
                        (_) ->
                             false
-                    end, List).
+                    end, Events).
 
+%% @doc Create a Span status from the given `Code'.
+%%
+%% The returned status can be used to set the status of a Span through
+%% {@link otel_span:set_status/2}, for example.
 -spec status(Code) -> status() | undefined when
       Code :: status_code().
 status(Code) ->
     status(Code, <<>>).
 
+%% @doc Create a Span status from the given `Code' and with the given `Message'.
+%%
+%% The returned status can be used to set the status of a Span through
+%% {@link otel_span:set_status/2}, for example.
 -spec status(Code, Message) -> status() | undefined when
       Code :: status_code(),
       Message :: unicode:unicode_binary().
@@ -458,6 +491,7 @@ status(_, _) ->
 
 %% internal functions
 
+%% @private
 -spec verify_and_set_term(module() | {module(), term()}, term(), atom()) -> boolean().
 verify_and_set_term(Module, TermKey, Behaviour) ->
     case verify_module_exists(Module) of
@@ -471,6 +505,7 @@ verify_and_set_term(Module, TermKey, Behaviour) ->
             false
     end.
 
+%% @private
 -spec verify_module_exists(module() | {module(), term()}) -> boolean().
 verify_module_exists({Module, _}) ->
     verify_module_exists(Module);
@@ -486,6 +521,7 @@ verify_module_exists(Module) ->
 %% for use in a filtermap
 %% return {true, Link} if a link is returned or return false
 %% a list is supported for tracestate for backwards compatibility
+%% @private
 link_or_false(TraceId, SpanId, Attributes, TraceState) when is_list(TraceState) ->
     link_or_false(TraceId, SpanId, Attributes, otel_tracestate:new(TraceState));
 link_or_false(TraceId, SpanId, Attributes, TraceState) ->
@@ -519,6 +555,7 @@ schema_url_to_binary(_) ->
 
 %% Vsn can't be an atom or anything but a list or binary
 %% so return empty binary string if it isn't a list or binary.
+%% @private
 vsn_to_binary(Vsn) when is_binary(Vsn) ; is_list(Vsn) ->
     unicode:characters_to_binary(Vsn);
 vsn_to_binary(_) ->
