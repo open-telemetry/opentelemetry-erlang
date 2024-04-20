@@ -33,10 +33,10 @@ run_callbacks(Callbacks, ReaderId, StreamTab, MetricsTab, ExemplarsTab) ->
                         when is_list(Instruments) ->
                           Ctx0 = otel_ctx:new(),
                           {Results, Ctx} = ?with_ctx(Ctx0, fun() ->
-                                                                   Results0 = Callback(CallbackArgs),
-                                                                   Results0
+                                                                   Callback(CallbackArgs)
                                                            end),
                           handle_instruments_observations(Ctx,
+                                                          %% eqwalizer:ignore not sure why it doesn't like Results
                                                           Results,
                                                           Instruments,
                                                           StreamTab,
@@ -46,8 +46,7 @@ run_callbacks(Callbacks, ReaderId, StreamTab, MetricsTab, ExemplarsTab) ->
                      ({Callback, CallbackArgs, Instrument}) ->
                           Ctx0 = otel_ctx:new(),
                           {Results, Ctx} = ?with_ctx(Ctx0, fun() ->
-                                                                   Results0 = Callback(CallbackArgs),
-                                                                   Results0
+                                                                   Callback(CallbackArgs)
                                                            end),
                           %% when not a list of instruments it isn't expecting named observation
                           %% results so we use handle_instrument instead of handle_instruments

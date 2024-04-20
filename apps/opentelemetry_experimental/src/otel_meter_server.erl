@@ -272,7 +272,8 @@ handle_call({add_view, Name, Criteria, Config}, _From, State=#state{views=Views,
                                                                     readers=Readers}) ->
     add_view_(Name, Criteria, Config, InstrumentsTab, CallbacksTab, StreamsTab, Readers, Views, State);
 handle_call(force_flush, _From, State=#state{readers=Readers}) ->
-    [otel_metric_reader:collect(Pid) || #reader{pid=Pid} <- Readers],
+    %% for force_flush do a sync collection of each reader so it blocks until complete
+    [otel_metric_reader:call_collect(Pid) || #reader{pid=Pid} <- Readers],
     {reply, ok, State}.
 
 handle_cast(_, State) ->
