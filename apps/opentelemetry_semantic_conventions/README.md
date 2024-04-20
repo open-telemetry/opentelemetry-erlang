@@ -1,13 +1,12 @@
-Opentelemetry Semantic Conventions
-=====
+# Opentelemetry Semantic Conventions
 
 Auto-generated constants that represent the [OpenTelemetry Semantic
-Conventions](https://github.com/open-telemetry/opentelemetry-specification/tree/main/semantic_conventions).
+Conventions](https://github.com/open-telemetry/semantic-conventions).
 
 ## How to Use
 
 For Erlang include the semantic conventions header for the particular kind you
-need (`trace`, `resource`, `logs`):
+need (`trace`, `resource`, `logs`, `metrics`):
 
 ```
 -include_lib("opentelemetry_semantic_conventions/include/trace.hrl").
