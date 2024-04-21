@@ -47,30 +47,29 @@ for kind <- ["metric", "attribute_group", "resource", "span", "event"] do
 
   # erlang
   Task.async(fn ->
-
-      System.cmd("docker", [
-        "run",
-        "--rm",
-        "-v",
-        "#{build_dir}/model:/source",
-        "-v",
-        "#{cwd}/templates:/templates",
-        "-v",
-        "#{cwd}/include:/output",
-        "otel/semconvgen:#{docker_img_vsn}",
-        "--only",
-        kind,
-        "--yaml-root",
-        "/source",
-        "code",
-        "--template",
-        "/templates/semantic_attributes.hrl.j2",
-        "--output",
-        "/output/#{module}.hrl",
-        "-Dmodule=#{module}",
-        "-Dschema_uri=#{schema_uri}"
-      ])
-    end)
+    System.cmd("docker", [
+      "run",
+      "--rm",
+      "-v",
+      "#{build_dir}/model:/source",
+      "-v",
+      "#{cwd}/templates:/templates",
+      "-v",
+      "#{cwd}/include:/output",
+      "otel/semconvgen:#{docker_img_vsn}",
+      "--only",
+      kind,
+      "--yaml-root",
+      "/source",
+      "code",
+      "--template",
+      "/templates/semantic_attributes.hrl.j2",
+      "--output",
+      "/output/#{module}.hrl",
+      "-Dmodule=#{module}",
+      "-Dschema_uri=#{schema_uri}"
+    ])
+  end)
 end
 |> List.flatten()
 |> Task.await_many(:timer.minutes(5))
