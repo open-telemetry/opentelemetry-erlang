@@ -18,9 +18,10 @@
 
 -module(otel_metric_exporter_pid).
 
+-behaviour(otel_exporter_metrics).
+
 -export([init/1,
-         export/4,
-         force_flush/0,
+         export/3,
          shutdown/1]).
 
 init({Tag, Pid}) ->
@@ -28,13 +29,10 @@ init({Tag, Pid}) ->
 init(Pid) ->
     {ok, {otel_metric, Pid}}.
 
-export(metrics, Metrics, _Resource, {Tag, Pid}) ->
+export(Metrics, _Resource, {Tag, Pid}) ->
     lists:map(fun(Metric) ->
                       Pid ! {Tag, Metric}
               end, Metrics),
-    ok.
-
-force_flush() ->
     ok.
 
 shutdown(_) ->

@@ -17,16 +17,16 @@
 %%%-----------------------------------------------------------------------
 -module(otel_exporter_stdout).
 
--behaviour(otel_exporter).
+-behaviour(otel_exporter_traces).
 
 -export([init/1,
-         export/4,
+         export/3,
          shutdown/1]).
 
 init(_) ->
     {ok, []}.
 
-export(_, SpansTid, _Resource, _) ->
+export(SpansTid, _Resource, _) ->
     io:format("*SPANS FOR DEBUG*~n"),
     ets:foldl(fun(Span, _Acc) ->
                       io:format("~p~n", [Span])

@@ -21,21 +21,25 @@
          export_traces/4,
          export_metrics/4,
          export_logs/4,
+         export_traces/3,
+         export_metrics/3,
+         export_logs/3,
          shutdown/1,
          report_cb/1]).
 
-%% Do any initialization of the exporter here and return configuration
-%% that will be passed along with a list of spans to the `export' function.
+%% Kept only for backwards compatibility. Look at `otel_exporter_traces', `otel_exporter_metrics'
+%% and `otel_exporter_logs' instead.
 -callback init(term()) -> {ok, term()} | ignore.
 
-%% This function is called when the configured interval expires with any
-%% spans that have been collected so far and the configuration returned in `init'.
-%% Do whatever needs to be done to export each span here, the caller will block
-%% until it returns.
--callback export(traces | metrics, ets:tab(), otel_resource:t(), term()) -> ok |
-                                                                            success |
-                                                                            failed_not_retryable |
-                                                                            failed_retryable.
+%% Kept only for backwards compatibility. Look at `otel_exporter_traces', `otel_exporter_metrics'
+%% and `otel_exporter_logs' instead.
+-callback export(traces | logs | metrics, ets:tab(), otel_resource:t(), term()) -> ok |
+                                                                                   success |
+                                                                                   failed_not_retryable |
+                                                                                   failed_retryable.
+
+%% Kept only for backwards compatibility. Look at `otel_exporter_traces', `otel_exporter_metrics'
+%% and `otel_exporter_logs' instead.failed_retryable.
 -callback shutdown(term()) -> ok.
 
 -include_lib("kernel/include/logger.hrl").
@@ -115,6 +119,17 @@ init(Exporter) when Exporter =:= none ; Exporter =:= undefined ->
     undefined;
 init(ExporterModule) when is_atom(ExporterModule) ->
     init({ExporterModule, []}).
+
+export_traces({ExporterModule, Config}, SpansTid, Resource) ->
+    ExporterModule:export(traces, SpansTid, Resource, Config).
+
+export_metrics({ExporterModule, Config}, MetricsTid, Resource) ->
+    ExporterModule:export(metrics, MetricsTid, Resource, Config).
+
+export_logs({ExporterModule, Config}, Batch, Resource) ->
+    ExporterModule:export(logs, Batch, Resource, Config).
+
+%% below export_* functions are for backwards compatibility
 
 export_traces(ExporterModule, SpansTid, Resource, Config) ->
     ExporterModule:export(traces, SpansTid, Resource, Config).

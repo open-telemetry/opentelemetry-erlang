@@ -56,6 +56,7 @@ offer(Ctx, ExemplarsTab, Key, Value, FilteredAttributes, #state{num_buckets=NumB
         true ->
             add_exemplar(Ctx, ExemplarsTab, Key, Seen, Value, FilteredAttributes);
         false ->
+            %% eqwalizer:ignore `Seen' will be an integer since `ets:update_counter/3' is not passed a list above
             case rand:uniform(Seen) of
                 X when X =< NumBuckets ->
                     add_exemplar(Ctx, ExemplarsTab, Key, X, Value, FilteredAttributes);
