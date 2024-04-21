@@ -19,6 +19,9 @@
 {%- macro excluded_namespaces() -%}
 ('android', 'aspnetcore', 'cloud', 'dotnet', 'ios', 'jvm', 'signalr')
 {%- endmacro -%}
+{%- macro strong_reqs(string) -%}
+  {{ string | regex_replace(pattern="(?<!\*\*)MUST NOT", replace="**MUST NOT**") | regex_replace(pattern="(?<!\*\*)MUST", replace="**MUST**") | regex_replace(pattern="(?<!\*\*)SHOULD NOT", replace="**SHOULD NOT**") | regex_replace(pattern="(?<!\*\*)SHOULD", replace="**SHOULD**") | regex_replace(pattern="(?<!\*\*)MAY", replace="**MAY**") | regex_replace(pattern="(?<=\s)NOT(?=\s)", replace="**NOT**") }}
+{%- endmacro -%}
 
 defmodule OpenTelemetry.SemanticConventions.{{ module|to_camelcase|first_up }} do
   @moduledoc """
@@ -32,16 +35,13 @@ defmodule OpenTelemetry.SemanticConventions.{{ module|to_camelcase|first_up }} d
   @doc namespace: {{ toAtom(attribute.root_namespace) }}
   {%- endif %}
   @typedoc """
-  {{ attribute.brief | to_doc_brief }}
+  {{ strong_reqs(attribute.brief | to_doc_brief) }}
 
   ### Options
-
   {% for member in attribute.attr_type.members %}
   * `{{ to_elixir_type(member.value) }}`
   {%- if member|is_experimental %}^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^{% endif %} - {% if member|is_deprecated %}**deprecated** ~~{% endif %}{{ member.brief | to_doc_brief }}{% if member|is_deprecated %}~~{% endif %}
   {% endfor %}
-
-  {# type attribute {{ attribute }} #}
   """
   @type {{ attribute.fqn|to_const_name|lower }}() ::
     {%- for member in attribute.attr_type.members -%}
@@ -62,30 +62,28 @@ defmodule OpenTelemetry.SemanticConventions.{{ module|to_camelcase|first_up }} d
   end
 
 {%- for attribute in attributes | unique(attribute="fqn") %}
-  {%- if attribute.is_enum and attribute.is_local  and attribute.root_namespace not in excluded_namespaces() %}
+  {%- if attribute.is_local and attribute.root_namespace not in excluded_namespaces() %}
   {% if attribute.root_namespace != '' %}
   @doc namespace: {{ toAtom(attribute.root_namespace) }}
-  {%- endif %}
-  {% if attribute|is_deprecated %}
+  {% endif -%}
+  {%- if attribute|is_deprecated %}
   @deprecated """
   {{ attribute.deprecated | to_doc_brief | regex_replace(pattern="\n", replace="\n  ") }}
   """
-  {% else %}
+  {%- else -%}
   @doc """
-  {# attribute {{ attribute }} #}
-
-  {{ attribute.brief | to_doc_brief | regex_replace(pattern="\n", replace="\n  ") }}
+  {{ strong_reqs(attribute.brief | to_doc_brief | regex_replace(pattern="\n", replace="\n  ")) }}
   {%- if attribute.note %}
 
   ### Notes
 
-  {{attribute.note | to_doc_brief | regex_replace(pattern="\n", replace="\n  ") }}
+  {{ strong_reqs(attribute.note | to_doc_brief | regex_replace(pattern="\n", replace="\n  ")) }}
   {%- endif %}
 
       iex> OpenTelemetry.SemanticConventions.{{ upFirst(module) }}.{{ funcName(attribute.fqn) }}()
       :"{{ attribute.fqn }}"
   """
-  {% endif %}
+  {%- endif %}
   @spec {{ funcName(attribute.fqn) }} :: {{ toAtom(attribute.fqn) }}
   def {{ funcName(attribute.fqn) }} do
     {{ toAtom(attribute.fqn) }}
