@@ -19,7 +19,8 @@ defmodule OpenTelemetry.SemanticConventions.MixProject do
       source_url:
         "https://github.com/open-telemetry/opentelemetry-erlang/apps/opentelemetry_semantic_conventions",
       docs: [
-        main: "OpenTelemetry.SemanticConventions.SemanticAttributes",
+        markdown_processor: {ExDoc.Markdown.Earmark, [all: true]},
+        main: "OpenTelemetry.SemanticConventions",
         extras: [],
         groups_for_docs: [
           AWS: &(&1[:namespace] == :aws),
@@ -31,6 +32,7 @@ defmodule OpenTelemetry.SemanticConventions.MixProject do
           DNS: &(&1[:namespace] in [:client, :destination, :dns]),
           "End User": &(&1[:namespace] == :enduser),
           FAAS: &(&1[:namespace] == :faas),
+          "Feature Flag": &(&1[:namespace] == :feature_flag),
           File: &(&1[:namespace] == :file),
           GCP: &(&1[:namespace] == :gcp),
           GraphQL: &(&1[:namespace] == :graphql),
@@ -51,8 +53,12 @@ defmodule OpenTelemetry.SemanticConventions.MixProject do
           URL: &(&1[:namespace] == :url)
         ],
         nest_modules_by_prefix: [
-          OpenTelemetry,
-          SemanticConventions.SemanticAttributes
+          OpenTelemetry.SemanticConventions,
+          Common,
+          Event,
+          Metric,
+          Resource,
+          Span
         ]
       ],
       test_coverage: [tool: :covertool],
