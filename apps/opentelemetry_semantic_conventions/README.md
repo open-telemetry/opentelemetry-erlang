@@ -25,3 +25,12 @@ You could also use `OpenTelemetry.SemanticConventions.Logs`, `OpenTelemetry.Sema
 
     iex> OpenTelemetry.SemanticConventions.Logs.event_name()
     :"event.name"
+
+## Contribution
+
+The semantic conventions are auto-generated from the definitions in
+[OpenTelemetry Semantic
+Conventions](https://github.com/open-telemetry/semantic-conventions) repository.
+To generate the file, execute the generator by invoking `elixir generate.exs` in the
+root of this folder. The definitions version to be generated is set in the `generate.exs`
+file.
