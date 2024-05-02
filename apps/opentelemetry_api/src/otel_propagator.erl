@@ -34,21 +34,30 @@
 -export([builtins_to_modules/1,
          builtin_to_module/1]).
 
-%% Sets a value into a carrier
 -callback inject(t(), carrier()) -> carrier().
+%% Sets a value into a carrier.
+
 -callback inject_from(otel_ctx:t(), t(), carrier()) -> carrier().
-%% extracts values from a carrier and sets them in the context
+%% Sets a value from a context into a carrier.
+
 -callback extract(t(), carrier()) -> otel_ctx:t() | otel_ctx:token().
+%% Extracts a value from a carrier.
+
 -callback extract_to(otel_ctx:t(), t(), carrier()) -> otel_ctx:t().
+%% Extracts a value from a carrier into a context.
 
 -type t() :: builtin() | module() | {module(), term()}.
+%% A propagator, which can be a built-in propagator, a module, or a module
+%% and associated term.
 
 %% trace_context and tracecontext are the same. tracecontext is the term
 %% in Otel specs and trace_context is the more idiomatic Erlang spelling
--type builtin() :: trace_context | tracecontext | b3 | b3multi | baggage. %% jaeger
+%% In the future, also: jaeger
+-type builtin() :: trace_context | tracecontext | b3 | b3multi | baggage.
+%% A built-in propagator.
 
-%% a carrier can be any type
 -type carrier() :: term().
+%% A carrier, which can be any type.
 
 -export_type([t/0,
               builtin/0,
@@ -56,12 +65,12 @@
 
 %% convert the short name of a propagator to its module name if it is a builtin
 %% if the name doesn't match a builtin it is assumed to be a module
-%% @hidden
+%% @private
 -spec builtins_to_modules([t()]) -> [module() | {module(), term()}].
 builtins_to_modules(Propagators) ->
     [builtin_to_module(P) || P <- Propagators].
 
-%% @hidden
+%% @private
 -spec builtin_to_module(builtin() | module() | {module(), term()}) -> module() | {module(), term()}.
 builtin_to_module(tracecontext) ->
     otel_propagator_trace_context;

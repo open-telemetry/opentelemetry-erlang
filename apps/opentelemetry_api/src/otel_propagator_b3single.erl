@@ -31,9 +31,11 @@
 
 -define(B3_CONTEXT_KEY, <<"b3">>).
 
+%% @private
 fields(_) ->
     [?B3_CONTEXT_KEY].
 
+%% @private
 -spec inject(Context, Carrier, CarrierSetFun, Options) -> Carrier
               when Context :: otel_ctx:t(),
                    Carrier :: otel_propagator:carrier(),
@@ -54,6 +56,7 @@ inject(Ctx, Carrier, CarrierSet, _Options) ->
             Carrier
     end.
 
+%% @private
 -spec extract(Context, Carrier, CarrierKeysFun, CarrierGetFun, Options) -> Context
               when Context :: otel_ctx:t(),
                    Carrier :: otel_propagator:carrier(),
