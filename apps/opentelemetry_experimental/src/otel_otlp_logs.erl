@@ -31,6 +31,8 @@
 -define(IS_STRING(String),
         (is_list(String) orelse is_binary(String))).
 
+to_proto([], _Resource, _Config) ->
+    empty;
 to_proto(Logs, Resource, Config) ->
     InstrumentationScopeLogs = to_proto_by_instrumentation_scope(Logs, Config),
     Attributes = otel_resource:attributes(Resource),

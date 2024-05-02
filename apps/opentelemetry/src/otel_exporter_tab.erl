@@ -17,16 +17,16 @@
 %%%-----------------------------------------------------------------------
 -module(otel_exporter_tab).
 
--behaviour(otel_exporter).
+-behaviour(otel_exporter_traces).
 
 -export([init/1,
-         export/4,
+         export/3,
          shutdown/1]).
 
 init(Tid) ->
     {ok, Tid}.
 
-export(traces, SpansTid, _Resource, Tid) ->
+export(SpansTid, _Resource, Tid) ->
     ets:foldl(fun(Span, _Acc) ->
                       ets:insert(Tid, Span)
               end, [], SpansTid),
