@@ -6,7 +6,7 @@
          instrument_temporality/1]).
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
--include("otel_metrics.hrl").
+-include("otel_metrics2.hrl").
 
 -type temporality() :: ?AGGREGATION_TEMPORALITY_UNSPECIFIED |
                        ?AGGREGATION_TEMPORALITY_DELTA |

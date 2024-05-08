@@ -9,7 +9,7 @@
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_meter.hrl").
 -include("otel_view.hrl").
--include("otel_metrics.hrl").
+-include("otel_metrics2.hrl").
 
 -define(assertSumReceive(Name, Description, Unit, Datapoints),
         (fun() ->

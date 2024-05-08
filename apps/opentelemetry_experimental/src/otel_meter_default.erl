@@ -29,7 +29,7 @@
          record/4]).
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
--include("otel_metrics.hrl").
+-include("otel_metrics2.hrl").
 
 create_instrument(Meter, Name, Kind, Opts) ->
     Instrument=#instrument{meter={_, #meter{provider=Provider}}} =

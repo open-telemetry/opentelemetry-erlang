@@ -24,7 +24,7 @@
          checkpoint/5,
          collect/5]).
 
--include("otel_metrics.hrl").
+-include("otel_metrics2.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 
 -type t() :: #explicit_histogram_aggregation{}.

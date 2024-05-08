@@ -39,7 +39,7 @@
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include_lib("kernel/include/logger.hrl").
 -include("otel_view.hrl").
--include("otel_metrics.hrl").
+-include("otel_metrics2.hrl").
 
 -record(state,
         {

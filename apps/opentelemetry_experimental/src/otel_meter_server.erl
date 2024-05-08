@@ -62,7 +62,7 @@
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_meter.hrl").
 -include_lib("kernel/include/logger.hrl").
--include("otel_metrics.hrl").
+-include("otel_metrics2.hrl").
 -include("otel_view.hrl").
 
 -type meter() :: #meter{}.

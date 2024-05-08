@@ -25,7 +25,7 @@
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_view.hrl").
--include("otel_metrics.hrl").
+-include("otel_metrics2.hrl").
 
 init(_) ->
     {ok, []}.

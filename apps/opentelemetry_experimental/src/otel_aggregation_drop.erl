@@ -7,7 +7,7 @@
          checkpoint/5,
          collect/5]).
 
--include("otel_metrics.hrl").
+-include("otel_metrics2.hrl").
 
 -type t() :: #drop_aggregation{}.
 
