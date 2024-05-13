@@ -21,17 +21,17 @@
          offer/6,
          collect/3]).
 
--record(exemplar_resevoir, {module :: module(),
+-record(exemplar_reservoir, {module :: module(),
                             state :: term(),
                             filter :: fun()}).
 
 new(Module, Config, Filter) ->
     State = Module:new(Config),
-    #exemplar_resevoir{module=Module,
+    #exemplar_reservoir{module=Module,
                        state=State,
                        filter=Filter}.
 
-offer(Ctx, ExemplarReservoir=#exemplar_resevoir{module=Module,
+offer(Ctx, ExemplarReservoir=#exemplar_reservoir{module=Module,
                                                 state=State,
                                                 filter=Filter},
       ExemplarTab, Key, Value, DroppedAttributes) ->
@@ -42,6 +42,6 @@ offer(Ctx, ExemplarReservoir=#exemplar_resevoir{module=Module,
             ok
     end.
 
-collect(#exemplar_resevoir{module=Module,
+collect(#exemplar_reservoir{module=Module,
                            state=State}, ExemplarTab, Key) ->
     Module:collect(ExemplarTab, Key, State).

@@ -1025,10 +1025,10 @@ too_many_attributes(Config) ->
     ?set_current_span(SpanCtx),
 
     %% tuple tests cover lists, as well.
-    ?set_attribute(attr1, {homogenous, tuple}),
+    ?set_attribute(attr1, {homogeneous, tuple}),
 
-    %% dropped because of non-homogenous
-    ?set_attribute(<<"attr-2-dropped">>, {non_homogenous, <<"attributes">>}),
+    %% dropped because of non-homogeneous
+    ?set_attribute(<<"attr-2-dropped">>, {non_homogeneous, <<"attributes">>}),
 
     ?set_attribute(<<"attr-3">>, attr_3_value),
 
@@ -1045,7 +1045,7 @@ too_many_attributes(Config) ->
     otel_span:end_span(SpanCtx),
     [Span] = assert_exported(Tid, SpanCtx),
 
-    ?assertEqual(#{attr1 => [homogenous, tuple],
+    ?assertEqual(#{attr1 => [homogeneous, tuple],
                    <<"attr-3">> => 4}, otel_attributes:map(Span#span.attributes)),
     ?assertEqual(3, otel_attributes:dropped(Span#span.attributes)),
 
@@ -1055,7 +1055,7 @@ too_many_attributes(Config) ->
     ?set_current_span(SpanCtx2),
 
     ?set_attributes(#{<<"attr-1">> => <<"attr-value-1">>,
-                      <<"attr-2">> => {homogenous, attribute},
+                      <<"attr-2">> => {homogeneous, attribute},
                       <<"attr-3">> => attr_3_value,
                       <<"attr-4">> => <<"attr-value-4">>}),
 

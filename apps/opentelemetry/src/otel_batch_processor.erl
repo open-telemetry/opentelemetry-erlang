@@ -95,7 +95,7 @@ current_tab_to_list(RegName) ->
     ets:tab2list(?CURRENT_TABLE(RegName)).
 -endif.
 
-%% require a unique name to distiguish multiple batch processors while
+%% require a unique name to distinguish multiple batch processors while
 %% still having a single name, instead of a possibly changing pid, to
 %% communicate with the processor
 %% @doc Starts a Batch Span Processor.
