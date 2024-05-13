@@ -39,7 +39,7 @@
 
 %% @doc Create a new Composite TextMap Propagator.
 %%
-%% The `Propagators' list is a list of atoms that represnet the <i>suffix</i>
+%% The `Propagators' list is a list of atoms that represent the <i>suffix</i>
 %% of the module name of the TextMap Propagator to be used.
 -spec create([otel_propagator:builtin()]) -> otel_propagator:t().
 create(Propagators) ->
