@@ -437,7 +437,7 @@ event(_, _, _) ->
 
 %% @doc Creates a list of Span events from the given `List'.
 %%
-%% This is a conveneince function to create a list of Span events from a list
+%% This is a convenience function to create a list of Span events from a list
 %% of `{Time, Name, Attributes}' or `{Name, Attributes}' tuples. It's equivalent
 %% to calling {@link event/2} or {@link event/3} multiple times. This function
 %% also automatically filters out any invalid tuple.

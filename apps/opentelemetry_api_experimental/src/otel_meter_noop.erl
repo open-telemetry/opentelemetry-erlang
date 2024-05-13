@@ -32,7 +32,7 @@
 record(_Meter, _Name, _Number, _Attributes) ->
     ok.
 
-record(_Insturment, _Number, _Attributes) ->
+record(_Instrument, _Number, _Attributes) ->
     ok.
 
 %%

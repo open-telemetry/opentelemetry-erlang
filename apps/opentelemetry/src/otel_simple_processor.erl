@@ -64,7 +64,7 @@
 -define(DEFAULT_EXPORTER_TIMEOUT_MS, timer:minutes(5)).
 -define(NAME_TO_ATOM(Name, Unique), list_to_atom(lists:concat([Name, "_", Unique]))).
 
-%% require a unique name to distiguish multiple simple processors while
+%% require a unique name to distinguish multiple simple processors while
 %% still having a single name, instead of a possibly changing pid, to
 %% communicate with the processor
 %% @doc Starts a Simple Span Processor.
