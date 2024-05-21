@@ -89,11 +89,11 @@ log_record(#{level := Level,
     DroppedAttributesCount = maps:size(Attributes) - length(Attributes1),
     Flags = 0,
 
-    LogRecord = case  Metadata of
+    LogRecord = case Metadata of
                     #{otel_trace_id := TraceId,
                       otel_span_id := SpanId} ->
-                        #{trace_id => TraceId,
-                          span_id => SpanId};
+                        #{trace_id => from_hex_str(TraceId, 128),
+                          span_id => from_hex_str(SpanId, 64)};
                     _ ->
                         #{}
                 end,
@@ -109,6 +109,10 @@ log_record(#{level := Level,
                dropped_attributes_count => DroppedAttributesCount,
                flags                   => Flags
               }.
+
+from_hex_str(Str, Size) ->
+    B = iolist_to_binary(Str),
+    <<(binary_to_integer(B, 16)):Size>>.
 
 format_msg({string, Chardata}, Meta, Config) ->
     format_msg({"~ts", [Chardata]}, Meta, Config);
