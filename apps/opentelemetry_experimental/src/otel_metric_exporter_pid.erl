@@ -18,27 +18,21 @@
 
 -module(otel_metric_exporter_pid).
 
--export([init/1,
-         export/4,
-         force_flush/0,
-         shutdown/1]).
+-behaviour(otel_exporter_metrics).
 
--include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
--include("otel_view.hrl").
--include("otel_metrics.hrl").
+-export([init/1,
+         export/3,
+         shutdown/1]).
 
 init({Tag, Pid}) ->
     {ok, {Tag, Pid}};
 init(Pid) ->
     {ok, {otel_metric, Pid}}.
 
-export(metrics, Metrics, _Resource, {Tag, Pid}) ->
+export(Metrics, _Resource, {Tag, Pid}) ->
     lists:map(fun(Metric) ->
                       Pid ! {Tag, Metric}
               end, Metrics),
-    ok.
-
-force_flush() ->
     ok.
 
 shutdown(_) ->

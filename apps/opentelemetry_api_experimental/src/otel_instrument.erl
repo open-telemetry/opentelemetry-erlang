@@ -20,7 +20,8 @@
 -export([new/5,
          new/7,
          is_monotonic/1,
-         temporality/1]).
+         temporality/1,
+         kind_temporality/1]).
 
 -include("otel_metrics.hrl").
 
@@ -99,15 +100,18 @@ is_monotonic(#instrument{kind=?KIND_HISTOGRAM}) ->
 is_monotonic(_) ->
     false.
 
-temporality(#instrument{kind=?KIND_COUNTER}) ->
+temporality(#instrument{kind=Kind}) ->
+    kind_temporality(Kind).
+
+kind_temporality(?KIND_COUNTER) ->
     ?TEMPORALITY_DELTA;
-temporality(#instrument{kind=?KIND_OBSERVABLE_COUNTER}) ->
+kind_temporality(?KIND_OBSERVABLE_COUNTER) ->
     ?TEMPORALITY_CUMULATIVE;
-temporality(#instrument{kind=?KIND_UPDOWN_COUNTER}) ->
+kind_temporality(?KIND_UPDOWN_COUNTER) ->
     ?TEMPORALITY_DELTA;
-temporality(#instrument{kind=?KIND_OBSERVABLE_UPDOWNCOUNTER}) ->
+kind_temporality(?KIND_OBSERVABLE_UPDOWNCOUNTER) ->
     ?TEMPORALITY_CUMULATIVE;
-temporality(#instrument{kind=?KIND_HISTOGRAM}) ->
+kind_temporality(?KIND_HISTOGRAM) ->
     ?TEMPORALITY_DELTA;
-temporality(#instrument{kind=?KIND_OBSERVABLE_GAUGE}) ->
+kind_temporality(?KIND_OBSERVABLE_GAUGE) ->
     ?TEMPORALITY_CUMULATIVE.

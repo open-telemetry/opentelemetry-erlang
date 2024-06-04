@@ -41,7 +41,7 @@
 %% since we need the Key in the MatchHead for the index to be used we
 %% can't use `ets:fun2ms' as it will shadow `Key' in the `fun' head
 -if(?OTP_RELEASE >= 26).
--define(AGGREATE_MATCH_SPEC(Key, Value, BucketCounts),
+-define(AGGREGATE_MATCH_SPEC(Key, Value, BucketCounts),
         [
          {
           {explicit_histogram_aggregation,Key,'_','_','_','_','_','$1','$2','$3'},
@@ -62,7 +62,7 @@
         ]
        ).
 -else.
--define(AGGREATE_MATCH_SPEC(Key, Value, BucketCounts),
+-define(AGGREGATE_MATCH_SPEC(Key, Value, BucketCounts),
         [
          {
           {explicit_histogram_aggregation,Key,'_','_','_','_','_','$1','$2','$3'},
@@ -149,7 +149,7 @@ default_buckets() ->
 init(#stream{name=Name,
              reader=ReaderId,
              aggregation_options=Options,
-             forget=Forget}, Attributes) ->
+             forget=Forget}, Attributes) when is_reference(ReaderId) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
@@ -174,16 +174,15 @@ aggregate(Ctx, Table, ExemplarsTab, #stream{name=Name,
                                             reader=ReaderId,
                                             aggregation_options=Options,
                                             forget=Forget,
-                                            exemplar_reservoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes) ->
+                                            exemplar_reservoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes) when is_reference(ReaderId) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
                      _ ->
                          0
                  end,
-    Key = {Name, Attributes, ReaderId, Generation},
     ExplicitBucketBoundaries = maps:get(explicit_bucket_boundaries, Options, ?DEFAULT_BOUNDARIES),
-    case otel_aggregation:ets_lookup_element(Table, Key, #explicit_histogram_aggregation.bucket_counts, false) of
+    case otel_metrics_tables:lookup_explicit_histogram_bucket_counts(Table, Name, Attributes, ReaderId, Generation) of
         false ->
             %% since we need the options to initialize a histogram `false' is
             %% returned and `otel_metric_server' will initialize the histogram
@@ -199,7 +198,8 @@ aggregate(Ctx, Table, ExemplarsTab, #stream{name=Name,
             BucketIdx = find_bucket(ExplicitBucketBoundaries, Value),
             counters:add(BucketCounts, BucketIdx, 1),
 
-            MS = ?AGGREATE_MATCH_SPEC(Key, Value, BucketCounts),
+            Key = {Name, Attributes, ReaderId, Generation},
+            MS = ?AGGREGATE_MATCH_SPEC(Key, Value, BucketCounts),
             case ets:select_replace(Table, MS) of
                 1 ->
                     otel_metric_exemplar_reservoir:offer(Ctx, ExemplarReservoir, ExemplarsTab, Key, Value, DroppedAttributes),
@@ -308,7 +308,7 @@ datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime,
     Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     Buckets = get_buckets(BucketCounts, Boundaries),
     #histogram_datapoint{
-       attributes=Attributes,
+       attributes=binary_to_term(Attributes),
        start_time=StartTime,
        time=CollectionStartTime,
        count=lists:sum(Buckets),
@@ -333,7 +333,7 @@ datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime,
     Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     Buckets = get_buckets(BucketCounts, Boundaries),
     #histogram_datapoint{
-       attributes=Attributes,
+       attributes=binary_to_term(Attributes),
        start_time=StartTime,
        time=CollectionStartTime,
        count=lists:sum(Buckets),

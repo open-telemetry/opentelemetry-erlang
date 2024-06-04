@@ -33,9 +33,11 @@
 -define(B3_SPAN_ID, <<"X-B3-SpanId">>).
 -define(B3_SAMPLED, <<"X-B3-Sampled">>).
 
+%% @private
 fields(_) ->
     [?B3_TRACE_ID, ?B3_SPAN_ID, ?B3_SAMPLED].
 
+%% @private
 -spec inject(Context, Carrier, CarrierSetFun, Options) -> Carrier
               when Context :: otel_ctx:t(),
                    Carrier :: otel_propagator:carrier(),
@@ -66,6 +68,7 @@ inject(Ctx, Carrier, CarrierSet, _Options) ->
 % precedence over the multi-header format.
 %
 % If extraction fails, the original context will be returned.
+%% @private
 -spec extract(Context, Carrier, CarrierKeysFun, CarrierGetFun, Options) -> Context
               when Context :: otel_ctx:t(),
                    Carrier :: otel_propagator:carrier(),

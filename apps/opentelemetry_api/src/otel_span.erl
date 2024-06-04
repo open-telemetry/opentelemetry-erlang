@@ -45,17 +45,22 @@
 
 -define(is_recording(SpanCtx), SpanCtx =/= undefined andalso SpanCtx#span_ctx.is_recording =:= true).
 
--type start_opts() :: #{attributes := opentelemetry:attributes_map(),
-                        links := [opentelemetry:link()],
-                        is_recording := boolean(),
-                        start_time := opentelemetry:timestamp(),
-                        kind := opentelemetry:span_kind()}.
+-type start_opts() :: #{attributes => opentelemetry:attributes_map(),
+                        links => [opentelemetry:link()],
+                        is_recording => boolean(),
+                        start_time => opentelemetry:timestamp(),
+                        kind => opentelemetry:span_kind()}.
+-type start_config() :: #{attributes := opentelemetry:attributes_map(),
+                            links := [opentelemetry:link()],
+                            is_recording := boolean(),
+                            start_time := opentelemetry:timestamp(),
+                            kind := opentelemetry:span_kind()}.
 %% Start options for a span.
 
--export_type([start_opts/0]).
+-export_type([start_opts/0, start_config/0]).
 
 %% @doc Validates the start options for a span and fills in defaults.
--spec validate_start_opts(start_opts()) -> start_opts().
+-spec validate_start_opts(start_opts()) -> start_config().
 validate_start_opts(Opts) when is_map(Opts) ->
     Attributes = maps:get(attributes, Opts, #{}),
     Links = maps:get(links, Opts, []),
@@ -72,7 +77,7 @@ validate_start_opts(Opts) when is_map(Opts) ->
 
 %% @doc Returns whether the span is recording.
 -spec is_recording(SpanCtx) -> boolean() when
-      SpanCtx :: opentelemetry:span_ctx().
+      SpanCtx :: opentelemetry:span_ctx() | undefined.
 is_recording(SpanCtx) ->
     ?is_recording(SpanCtx).
 

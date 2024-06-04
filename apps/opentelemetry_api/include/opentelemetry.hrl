@@ -13,7 +13,7 @@
 %% limitations under the License.
 %%%------------------------------------------------------------------------
 
-%% convert 2 strings (one meant to be like a namspace and the other a unique name)
+%% convert 2 strings (one meant to be like a namespace and the other a unique name)
 %% to an atom for use registering a process
 -define(REG_NAME(Name), list_to_atom(lists:concat([?MODULE, "_", Name]))).
 -define(GLOBAL_TRACER_PROVIDER_NAME, global).

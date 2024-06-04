@@ -18,19 +18,19 @@
 
 -module(otel_metric_exporter_console).
 
--export([init/1,
-         export/4,
-         force_flush/0,
-         shutdown/0]).
+-behaviour(otel_exporter_metrics).
 
--include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
--include("otel_view.hrl").
+-export([init/1,
+         export/3,
+         force_flush/0,
+         shutdown/1]).
+
 -include("otel_metrics.hrl").
 
 init(_) ->
     {ok, []}.
 
-export(metrics, Metrics, _Resource, _) ->
+export(Metrics, _Resource, _) ->
     io:format("** METRICS FOR DEBUG **~n"),
     lists:map(fun(#metric{name=Name,
                           data=Data}) ->
@@ -41,7 +41,7 @@ export(metrics, Metrics, _Resource, _) ->
 force_flush() ->
     ok.
 
-shutdown() ->
+shutdown(_) ->
     ok.
 
 %%
@@ -80,8 +80,12 @@ print_histogram_datapoint(Name, #histogram_datapoint{
     AttributesString = attributes_string(Attributes),
     io:format("~s{~s} ~p~n", [Name, AttributesString, Buckets]).
 
+attr_str(V) when is_list(V); is_binary(V) -> V;
+attr_str(V) when is_atom(V) -> atom_to_list(V);
+attr_str(V) -> io_lib:format("~0tp", [V]).
+
 %% need to handle non-string values
 attributes_string(Attributes) ->
     lists:join(", ", maps:fold(fun(K, V, Acc) ->
-                                       [[K, "=", V] | Acc]
+                                       [[attr_str(K), "=", attr_str(V)] | Acc]
                                end, [], Attributes)).

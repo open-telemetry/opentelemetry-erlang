@@ -19,13 +19,14 @@
 
 -export([to_proto/2]).
 
--include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
--include_lib("opentelemetry/include/otel_span.hrl").
 -include("otel_metric_exemplar.hrl").
 -include("otel_metrics.hrl").
 
+-spec to_proto([#metric{}], otel_resource:t()) -> opentelemetry_exporter_metrics_service_pb:export_metrics_service_request() | empty.
+to_proto([], _) ->
+    empty;
 to_proto(Metrics, Resource) ->
     InstrumentationScopeMetrics = to_proto_by_scope(Metrics),
     Attributes = otel_resource:attributes(Resource),
@@ -60,10 +61,14 @@ to_proto(#metric{name=Name,
                  description=Description,
                  unit=Unit,
                  data=Data}) ->
-    #{name => otel_otlp_common:to_binary(Name),
-      description => Description,
-      unit => otel_otlp_common:to_binary(Unit),
-      data => to_data(Data)}.
+    Metric =
+        #{name => otel_otlp_common:to_binary(Name),
+          description => Description,
+          data => to_data(Data)},
+    case Unit of
+        undefined -> Metric;
+        _ -> Metric#{unit => otel_otlp_common:to_binary(Unit)}
+    end.
 
 to_data(#sum{aggregation_temporality=Temporality,
              is_monotonic=IsMonotonic,

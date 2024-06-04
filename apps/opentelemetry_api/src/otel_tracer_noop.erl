@@ -37,7 +37,7 @@
 -define(NOOP_TRACER_CTX, []).
 
 -spec start_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(),
-                 otel_span:start_opts()) -> opentelemetry:span_ctx().
+                 otel_span:start_config()) -> opentelemetry:span_ctx().
 start_span(Ctx, _, _SpanName, _) ->
     %% Spec: Behavior of the API in the absence of an installed SDK
     case otel_tracer:current_span_ctx(Ctx) of
@@ -50,7 +50,7 @@ start_span(Ctx, _, _SpanName, _) ->
     end.
 
 -spec with_span(otel_ctx:t(), opentelemetry:tracer(), opentelemetry:span_name(),
-                otel_span:start_opts(), otel_tracer:traced_fun(T)) -> T.
+                otel_span:start_config(), otel_tracer:traced_fun(T)) -> T.
 with_span(Ctx, Tracer, SpanName, Opts, Fun) ->
     SpanCtx = start_span(Ctx, Tracer, SpanName, Opts),
     Ctx1 = otel_tracer:set_current_span(Ctx, SpanCtx),

@@ -12,10 +12,15 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
+%% @doc An {@link otel_sampler} that samples a configured percentage of spans.
+%%
 %% This sampler samples a configured percentage of spans, where the sampling
-%% decision is deterministic with respect to the span trace id, i.e., it always
-%% makes the same decision for the same trace id.
+%% decision is <i>deterministic</i> with respect to the span trace ID. That means
+%% the sampler always makes the same decision for the same trace ID.
+%%
+%% This is one of the
+%% <a href="https://opentelemetry.io/docs/specs/otel/trace/sdk/#built-in-samplers">built-in
+%% samplers</a> provided by the OpenTelemetry SDK.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_sampler_trace_id_ratio_based).
@@ -30,11 +35,15 @@
 -include("otel_sampler.hrl").
 
 -type probability() :: float().
+%% A probability on whether to sample a span, between `0.0' and `1.0'.
+
 -type config() :: #{probability := probability(), id_upper_bound := integer()}.
+%% The configuration for this sampler.
 
 %% 2^63 - 1
 -define(MAX_VALUE, 9223372036854775807).
 
+%% @private
 -spec setup(probability()) -> config().
 setup(Probability) ->
     IdUpperBound =
@@ -48,9 +57,11 @@ setup(Probability) ->
         end,
     #{probability => Probability, id_upper_bound => IdUpperBound}.
 
+%% @private
 description(#{probability := Probability}) ->
     unicode:characters_to_binary(io_lib:format("TraceIdRatioBased{~.6f}", [Probability])).
 
+%% @private
 should_sample(Ctx, TraceId, _Links, _SpanName, _SpanKind, _Attributes, #{
     id_upper_bound := IdUpperBound
 }) ->

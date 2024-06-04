@@ -2,17 +2,16 @@
 
 -export([maybe_init_aggregate/6,
          default_mapping/0,
-         ets_lookup_element/4]).
+         default_temporality_mapping/0]).
 
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
--include("otel_metrics.hrl").
 -include("otel_view.hrl").
 
 %% -type t() :: drop | sum | last_value | histogram.
 -type t() :: otel_aggregation_drop:t() | otel_aggregation_sum:t() |
              otel_aggregation_last_value:t() | otel_aggregation_histogram_explicit:t().
 
--type key() :: {atom(), opentelemetry:attributes_map(), reference() | undefined, number()}.
+-type key() :: {atom(), opentelemetry:attributes_map(), reference(), number()}.
 
 -type options() :: map().
 
@@ -43,18 +42,18 @@
       Generation :: integer().
 
 maybe_init_aggregate(Ctx, MetricsTab, ExemplarsTab, Stream=#stream{aggregation_module=AggregationModule,
-                                                                           attribute_keys=AttributeKeys},
-                             Value, Attributes) ->
+                                                                   attribute_keys=AttributeKeys},
+                     Value, Attributes) ->
     {FilteredAttributes, DroppedAttributes} = filter_attributes(AttributeKeys, Attributes),
-    case AggregationModule:aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value, FilteredAttributes, DroppedAttributes) of
+    case AggregationModule:aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value, term_to_binary(FilteredAttributes), DroppedAttributes) of
         true ->
             true;
         false ->
             %% entry doesn't exist, create it and rerun the aggregate function
-            Metric = AggregationModule:init(Stream, FilteredAttributes),
+            Metric = AggregationModule:init(Stream, term_to_binary(FilteredAttributes)),
             %% don't overwrite a possible concurrent measurement doing the same
             _ = ets:insert_new(MetricsTab, Metric),
-            AggregationModule:aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value, FilteredAttributes, DroppedAttributes)
+            AggregationModule:aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value, term_to_binary(FilteredAttributes), DroppedAttributes)
     end.
 
 filter_attributes(undefined, Attributes) ->
@@ -71,21 +70,25 @@ default_mapping() ->
       ?KIND_UPDOWN_COUNTER => otel_aggregation_sum,
       ?KIND_OBSERVABLE_UPDOWNCOUNTER => otel_aggregation_sum}.
 
+%% by default the aggregators use the same temporality as is native to the instrument
+-spec default_temporality_mapping() -> #{otel_instrument:kind() => otel_instrument:temporality()}.
+default_temporality_mapping() ->
+    lists:foldl(fun(Kind, Acc) ->
+                        Acc#{Kind => otel_instrument:kind_temporality(Kind)}
+                end, #{}, [?KIND_COUNTER,
+                           ?KIND_OBSERVABLE_COUNTER,
+                           ?KIND_HISTOGRAM,
+                           ?KIND_OBSERVABLE_GAUGE,
+                           ?KIND_UPDOWN_COUNTER,
+                           ?KIND_OBSERVABLE_UPDOWNCOUNTER
+                          ]).
+
 split(Keys, Map) ->
     lists:foldl(fun(Key, {KeptAcc, DroppedAcc}) ->
-                        {Value, DroppedAcc1} = maps:take(Key, DroppedAcc),
-                        {KeptAcc#{Key => Value}, DroppedAcc1}
+                        case maps:take(Key, DroppedAcc) of
+                            {Value, DroppedAcc1} ->
+                                {KeptAcc#{Key => Value}, DroppedAcc1};
+                            error ->
+                                {KeptAcc, DroppedAcc}
+                        end
                 end, {#{}, Map}, Keys).
-
--if(?OTP_RELEASE >= 26).
-ets_lookup_element(Tab, Key, Pos, Default) ->
-    ets:lookup_element(Tab, Key, Pos, Default).
--else.
-ets_lookup_element(Tab, Key, Pos, Default) ->
-    try
-        ets:lookup_element(Tab, Key, Pos)
-    catch
-        error:badarg ->
-            Default
-    end.
--endif.

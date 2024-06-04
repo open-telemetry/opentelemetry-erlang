@@ -56,6 +56,7 @@ offer(Ctx, ExemplarsTab, Key, Value, FilteredAttributes, #state{num_buckets=NumB
         true ->
             add_exemplar(Ctx, ExemplarsTab, Key, Seen, Value, FilteredAttributes);
         false ->
+            %% eqwalizer:ignore `Seen' will be an integer since `ets:update_counter/3' is not passed a list above
             case rand:uniform(Seen) of
                 X when X =< NumBuckets ->
                     add_exemplar(Ctx, ExemplarsTab, Key, X, Value, FilteredAttributes);
@@ -67,10 +68,12 @@ offer(Ctx, ExemplarsTab, Key, Value, FilteredAttributes, #state{num_buckets=NumB
 %% @doc Return all exemplars for a `Key' and then delete them.
 -spec collect(ets:table(), term(), #state{}) -> [otel_metric_exemplar:exemplar()].
 collect(ExemplarsTab, Key, _State) ->
-    Exemplars = [E || [E] <- ets:match(ExemplarsTab, {{Key, '_'}, '$1'})],
+    Exemplars = ets:select(ExemplarsTab, [{{{'$1', '_'}, '$2'},
+                                           [{'==', '$1', {const, Key}}],
+                                           ['$2']}]),
 
-    _ = ets:select_delete(ExemplarsTab, [{{Key, '_'}, [], [true]},
-                                         {{{Key, '_'}, '_'}, [], [true]}]),
+    _ = ets:select_delete(ExemplarsTab, [{{'$1', '_'}, [{'==', '$1', {const, Key}}], [true]},
+                                         {{{'$1', '_'}, '_'}, [{'==', '$1', {const, Key}}], [true]}]),
 
     Exemplars.
 

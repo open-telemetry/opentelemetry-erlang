@@ -95,7 +95,7 @@ current_tab_to_list(RegName) ->
     ets:tab2list(?CURRENT_TABLE(RegName)).
 -endif.
 
-%% require a unique name to distiguish multiple batch processors while
+%% require a unique name to distinguish multiple batch processors while
 %% still having a single name, instead of a possibly changing pid, to
 %% communicate with the processor
 %% @doc Starts a Batch Span Processor.
@@ -437,18 +437,18 @@ completed(FromPid) ->
 
 export(undefined, _, _) ->
     true;
-export({ExporterModule, Config}, Resource, SpansTid) ->
+export(Exporter, Resource, SpansTid) ->
     %% don't let a exporter exception crash us
     %% and return true if exporter failed
     try
-        otel_exporter:export_traces(ExporterModule, SpansTid, Resource, Config) =:= failed_not_retryable
+        otel_exporter_traces:export(Exporter, SpansTid, Resource) =:= failed_not_retryable
     catch
         Kind:Reason:StackTrace ->
             ?LOG_INFO(#{source => exporter,
                         during => export,
                         kind => Kind,
                         reason => Reason,
-                        exporter => ExporterModule,
+                        exporter => Exporter,
                         stacktrace => StackTrace}, #{report_cb => fun ?MODULE:report_cb/1}),
             true
     end.
@@ -459,7 +459,7 @@ report_cb(#{source := exporter,
             during := export,
             kind := Kind,
             reason := Reason,
-            exporter := ExporterModule,
+            exporter := {ExporterModule, _},
             stacktrace := StackTrace}) ->
     {"span exporter threw exception: exporter=~p ~ts",
      [ExporterModule, otel_utils:format_exception(Kind, Reason, StackTrace)]}.

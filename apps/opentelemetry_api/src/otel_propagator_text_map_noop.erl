@@ -12,9 +12,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc This noop TextMap Propagator makes no changes to the context or the
+%% @doc This no-op TextMap Propagator makes no changes to the context or the
 %% carrier when doing an extract or inject call.
-%% '''
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_propagator_text_map_noop).
@@ -25,9 +24,11 @@
          inject/4,
          extract/5]).
 
+%% @private
 fields(_Propagators) ->
     [].
 
+%% @private
 -spec inject(Context, Carrier, CarrierSetFun, Options) -> Carrier
               when Context :: otel_ctx:t(),
                    Carrier :: otel_propagator:carrier(),
@@ -36,6 +37,7 @@ fields(_Propagators) ->
 inject(_Context, Carrier, _CarrierSetFun, _Options) ->
     Carrier.
 
+%% @private
 -spec extract(Context, Carrier, CarrierKeysFun, CarrierGetFun, Options) -> Context
               when Context :: otel_ctx:t(),
                    Carrier :: otel_propagator:carrier(),

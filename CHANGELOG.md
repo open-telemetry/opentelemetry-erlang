@@ -7,7 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## API
+## Experimental API 0.5.1 - 2024-03-18
+
+### Added
+
+- [instrument kind temporality function for use by the
+  SDK](https://github.com/open-telemetry/opentelemetry-erlang/pull/713)
+
+## Experimental SDK 0.5.1 - 2024-03-18
+
+### Fixes
+
+- [use correct default temporality for streams based on the instrument
+  kind](https://github.com/open-telemetry/opentelemetry-erlang/pull/713)
+
+## API 1.3.0 - 2024-03-15
 
 ### Changes
 
@@ -18,18 +32,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Moved attribute processing functions to `otel_attributes` from
   `otel_span`](https://github.com/open-telemetry/opentelemetry-erlang/pull/620)
 
-## SDK
+## SDK 1.4.0 - 2024-03-15
 
 ### Changes
 
 - [Attributes module `otel_attributes` moved to
   API](https://github.com/open-telemetry/opentelemetry-erlang/pull/618)
+- [create unique processor name in
+  otel_tracer_server](https://github.com/open-telemetry/opentelemetry-erlang/pull/646)
 
 ### Fixes
 
 - [Fix leak of atoms/persistent terms by creating unique processor name in `otel_tracer_server`](https://github.com/open-telemetry/opentelemetry-erlang/pull/646)
+- [fix(otel_batch_processor): don't divide `max_queue_size` by
+  word-size](https://github.com/open-telemetry/opentelemetry-erlang/pull/635)
+- [fix(otel_processor): wait for runner process
+  termination](https://github.com/open-telemetry/opentelemetry-erlang/pull/641)
 
-## Experimental API
+## Exporter 1.7.0 - 2024-03-15
+
+## Added
+
+- [Add User-Agent header to exporter
+  requests](https://github.com/open-telemetry/opentelemetry-erlang/pull/605)
+
+## Experimental API 0.5.0 - 2024-03-15
 
 ### Changes
 
@@ -37,28 +64,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   arguments](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
 - [Allow to give `advisory_params` to instrument creation functions](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
 - [Attributes are optional in Counter.add(), UpDownCounter.add() and Histo.record()](https://github.com/open-telemetry/opentelemetry-erlang/pull/632)
+- [Support explicit_bucket_boundaries advisory
+  parameters](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
 
-## Experimental SDK
+## Experimental SDK 0.5.0 - 2024-03-15
 
 ### Added
 
 - [Add `instrument_unit` to view criteria](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
 - [Validate instrument name](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
-- [Handle `explict_bucket_boundaries` advisory parameter](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
-- [Rename `boundaries` to `explict_bucket_boundaries` in histogram explicit aggregation options](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
+- [Handle `explicit_bucket_boundaries` advisory parameter](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
+- [Rename `boundaries` to `explicit_bucket_boundaries` in histogram explicit aggregation options](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
 - [Allow creating wildcard views](https://github.com/open-telemetry/opentelemetry-erlang/pull/624)
 - [Exemplars support](https://github.com/open-telemetry/opentelemetry-erlang/pull/692)
-
+- [Metric
+  producers](https://github.com/open-telemetry/opentelemetry-erlang/pull/701)
+- [Exemplar reservoir support](https://github.com/open-telemetry/opentelemetry-erlang/pull/692)
+  
 ### Changes
 
 - [Align histogram default boundaries with specification](https://github.com/open-telemetry/opentelemetry-erlang/pull/614)
-
+- [Metrics: fix observable callbacks to return a list of
+  results](https://github.com/open-telemetry/opentelemetry-erlang/pull/561)
+- [Add a fresh context to each observable callback and test observe
+  exemplars](https://github.com/open-telemetry/opentelemetry-erlang/pull/697)
+  
 ### Fixes
 
  - [Correctly record histogram values greater than last boundary](https://github.com/open-telemetry/opentelemetry-erlang/pull/614)
  - [Readers should use a default cumulative temporality if not specified](https://github.com/open-telemetry/opentelemetry-erlang/pull/613)
  - [Check for positive data values in counters and histograms](https://github.com/open-telemetry/opentelemetry-erlang/pull/632)
 - [Fix Delta metric export to only include those recorded in collection cycle](https://github.com/open-telemetry/opentelemetry-erlang/pull/677)
+- [Cumulative sums
+  fix](https://github.com/open-telemetry/opentelemetry-erlang/pull/592)
+- [Fix transmitted time units for
+  logs](https://github.com/open-telemetry/opentelemetry-erlang/pull/640)
+- [don't export unit fields in metrics when the unit is
+  undefined](https://github.com/open-telemetry/opentelemetry-erlang/pull/669)
 
 ## SDK 1.3.1 - 2023-08-15
 
@@ -442,9 +484,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Attribute values now validate against what is allowable per the specification
   rather than allowing anything the protobuf could encode. This may be breaking
   to some users who were relying on the incorrect behavior, such as allowing
-  dictionaries or non-homogenous lists/tuples. The one exception we have
+  dictionaries or non-homogeneous lists/tuples. The one exception we have
   kept is continuing to allow atoms in place of binaries for performance.
-- Attribute values of type list/tuple must be homogenous.
+- Attribute values of type list/tuple must be homogeneous.
 - Span start opts are now validated. Previously, opts underwent no validations.
 - Event and link attributes are now validated. Previously only span attributes
   were validated.

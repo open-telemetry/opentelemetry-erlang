@@ -42,7 +42,7 @@
 
 init(#stream{name=Name,
              reader=ReaderId,
-             forget=Forget}, Attributes) ->
+             forget=Forget}, Attributes) when is_reference(ReaderId) ->
     Generation = case Forget of
                      true ->
                          otel_metric_reader:checkpoint_generation(ReaderId);
@@ -111,11 +111,12 @@ aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
                               previous_checkpoint='$6',
                               int_value='$3',
                               float_value={'+', '$4', {const, Value}}}}]}],
+
     case ets:select_replace(Tab, MS) of
         1 ->
             otel_metric_exemplar_reservoir:offer(Ctx, ExemplarReservoir, ExemplarsTab, Key, Value, DroppedAttributes),
             true;
-        _ ->
+        _N ->
             false
     end.
 
@@ -237,7 +238,7 @@ datapoint(_Tab, ExemplarReservoir, ExemplarsTab, CollectionStartTime, Temporalit
                                                                                                                  checkpoint=Value}) ->
     Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     #datapoint{
-       attributes=Attributes,
+       attributes=binary_to_term(Attributes),
        start_time=StartTime,
        time=CollectionStartTime,
        value=Value,
@@ -252,7 +253,7 @@ datapoint(_Tab, ExemplarReservoir, ExemplarsTab, Time, _, ?TEMPORALITY_CUMULATIV
                                                                                                     checkpoint=Value}) ->
     Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     #datapoint{
-       attributes=Attributes,
+       attributes=binary_to_term(Attributes),
        start_time=StartTime,
        time=Time,
        value=Value + PreviousCheckpoint,
@@ -270,11 +271,10 @@ datapoint(Tab, ExemplarReservoir, ExemplarsTab, Time, _, ?TEMPORALITY_DELTA, #su
     %% can't use `previous_checkpoint' because with delta metrics have their generation changed
     %% at each collection
     PreviousCheckpoint =
-        otel_aggregation:ets_lookup_element(Tab, {Name, Attributes, ReaderId, Generation-1},
-                                            #sum_aggregation.checkpoint, 0),
+        otel_metrics_tables:lookup_sum_checkpoint(Tab, Name, Attributes, ReaderId, Generation-1),
     Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     #datapoint{
-       attributes=Attributes,
+       attributes=binary_to_term(Attributes),
        start_time=StartTime,
        time=Time,
        value=Value - PreviousCheckpoint,

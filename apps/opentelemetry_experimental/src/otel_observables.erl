@@ -22,6 +22,7 @@
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_view.hrl").
+-include_lib("opentelemetry_api/include/otel_ctx.hrl").
 
 -type callbacks() :: [{otel_instrument:callback(), otel_instrument:callback_args(), otel_instrument:t()}].
 
@@ -30,9 +31,12 @@
 run_callbacks(Callbacks, ReaderId, StreamTab, MetricsTab, ExemplarsTab) ->
     lists:foreach(fun({Callback, CallbackArgs, Instruments})
                         when is_list(Instruments) ->
-                          Ctx = otel_ctx:new(),
-                          Results = Callback(CallbackArgs),
+                          Ctx0 = otel_ctx:new(),
+                          {Results, Ctx} = ?with_ctx(Ctx0, fun() ->
+                                                                   Callback(CallbackArgs)
+                                                           end),
                           handle_instruments_observations(Ctx,
+                                                          %% eqwalizer:ignore not sure why it doesn't like Results
                                                           Results,
                                                           Instruments,
                                                           StreamTab,
@@ -40,8 +44,10 @@ run_callbacks(Callbacks, ReaderId, StreamTab, MetricsTab, ExemplarsTab) ->
                                                           ExemplarsTab,
                                                           ReaderId);
                      ({Callback, CallbackArgs, Instrument}) ->
-                          Ctx = otel_ctx:new(),
-                          Results = Callback(CallbackArgs),
+                          Ctx0 = otel_ctx:new(),
+                          {Results, Ctx} = ?with_ctx(Ctx0, fun() ->
+                                                                   Callback(CallbackArgs)
+                                                           end),
                           %% when not a list of instruments it isn't expecting named observation
                           %% results so we use handle_instrument instead of handle_instruments
                           %% but we can't type that correctly so have to use a `fixme'
@@ -58,7 +64,7 @@ run_callbacks(Callbacks, ReaderId, StreamTab, MetricsTab, ExemplarsTab) ->
 %% lookup Streams for Instrument and aggregate each observation
 -spec handle_instrument_observations(otel_ctx:t(), [otel_instrument:observation()], otel_instrument:t(),
                                      ets:table(), ets:table(), ets:table(), reference()) -> ok.
-handle_instrument_observations(Ctx, Results, #instrument{meter=Meter,
+handle_instrument_observations(Ctx, Results, #instrument{meter={_, Meter},
                                                          name=Name},
                                StreamTab, MetricsTab, ExemplarsTab, ReaderId) ->
     try ets:lookup_element(StreamTab, {Meter, Name}, 2) of

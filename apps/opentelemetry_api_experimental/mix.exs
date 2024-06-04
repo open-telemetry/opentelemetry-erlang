@@ -18,16 +18,7 @@ defmodule OpenTelemetryExperimental.MixProject do
       # source_url: "https://github.com/USER/PROJECT",
       # homepage_url: "http://YOUR_PROJECT_HOMEPAGE",
       test_coverage: [tool: :covertool],
-      docs: [
-        markdown_processor: ExDoc.Markdown.Cmark,
-        main: "OpenTelemetryAPIExperimental",
-        # logo: "path/to/logo.png",
-        extras: erlang_docs()
-      ],
-      aliases: [
-        # when build docs first build edocs with rebar3
-        docs: ["cmd rebar3 edoc", "docs"]
-      ],
+      aliases: [docs: & &1],
       package: package()
     ]
   end
@@ -53,7 +44,7 @@ defmodule OpenTelemetryExperimental.MixProject do
     end)
     |> Enum.concat([
       {:cmark, "~> 0.10", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.31", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:covertool, ">= 0.0.0", only: :test}
     ])
@@ -70,15 +61,6 @@ defmodule OpenTelemetryExperimental.MixProject do
         "OpenTelemetry.io" => "https://opentelemetry.io"
       }
     ]
-  end
-
-  def erlang_docs() do
-    files =
-      for file <- Path.wildcard("edoc/*.md"),
-          file != "edoc/README.md",
-          do: {String.to_atom(file), [title: Path.basename(file, ".md")]}
-
-    [{:"README.md", [title: "Overview"]} | files]
   end
 
   defp load_config do

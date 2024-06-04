@@ -12,9 +12,7 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
-%% Functional interface for span_ctx and span records.
-%% @end
+%% @private
 %%%-------------------------------------------------------------------------
 -module(otel_span_utils).
 
@@ -27,7 +25,7 @@
 -include("otel_span.hrl").
 
 -spec start_span(otel_ctx:t(), opentelemetry:span_name(), otel_sampler:t(), otel_id_generator:t(),
-                 otel_span:start_opts()) -> {opentelemetry:span_ctx(), opentelemetry:span() | undefined}.
+                 otel_span:start_config()) -> {opentelemetry:span_ctx(), opentelemetry:span() | undefined}.
 start_span(Ctx, Name, Sampler, IdGenerator, Opts) ->
     SpanAttributeCountLimit = otel_span_limits:attribute_count_limit(),
     SpanAttributeValueLengthLimit= otel_span_limits:attribute_value_length_limit(),
@@ -37,17 +35,17 @@ start_span(Ctx, Name, Sampler, IdGenerator, Opts) ->
     AttributePerLinkLimit = otel_span_limits:attribute_per_link_limit(),
 
 
-    Attributes = otel_attributes:new(maps:get(attributes, Opts, #{}),
+    Attributes = otel_attributes:new(maps:get(attributes, Opts),
                                      SpanAttributeCountLimit,
                                      SpanAttributeValueLengthLimit),
-    Links = otel_links:new(maps:get(links, Opts, []),
+    Links = otel_links:new(maps:get(links, Opts),
                            LinkCountLimit,
                            AttributePerLinkLimit,
                            SpanAttributeValueLengthLimit),
     Events = otel_events:new(EventCountLimit, AttributePerEventLimit, SpanAttributeValueLengthLimit),
 
-    Kind = maps:get(kind, Opts, ?SPAN_KIND_INTERNAL),
-    StartTime = maps:get(start_time, Opts, opentelemetry:timestamp()),
+    Kind = maps:get(kind, Opts),
+    StartTime = maps:get(start_time, Opts),
 
     new_span(Ctx, Name, Sampler, IdGenerator, StartTime, Kind, Attributes, Events, Links).
 
