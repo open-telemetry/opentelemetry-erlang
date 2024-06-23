@@ -1,0 +1,91 @@
+templates:
+  - pattern: semantic_attributes.ex.j2
+    filter: >
+      ["ios", "android", "dotnet", "aspnetcore", "signalr", "jvm"] as $excluded |
+      .groups
+      | map(select(.type == "attribute_group"))
+      | map(select(.id | startswith("registry.")))
+      | map({ id: .id, group_id: .id | split(".") | .[1], attributes: .attributes})
+      | group_by(.group_id)
+      | map({ id: .[0].group_id, attributes: [.[].attributes[]] | sort_by(.id) })
+      | map(select( .id as $id | any( $excluded[]; . == $id) | not ))
+      | map(select(.attributes | length > 0))
+    application_mode: each
+
+    # | map(select([.attributes[] | select(.stability="stable")] | any))
+text_maps:
+  type_mapping:
+    "int": "integer()"
+    "int[]": "[integer()]"
+    "double": "float()"
+    "double[]": "[float()]"
+    "boolean": "boolean()"
+    "boolean[]": "[boolean()]"
+    "string": "String.t()"
+    "string[]": "[String.t()]"
+    "template[int]": "integer()"
+    "template[double]": "float()"
+    "template[boolean]": "boolean()"
+    "template[string]": "String.t()"
+    "template[string[]]": "[String.t()]"
+    "template[int[]]": "[integer()]"
+    "template[double[]]": "[float()]"
+    "template[boolean[]]": "[boolean()]"
+#   java_generic_type:
+#     int: Long
+#     double: Double
+#     boolean: Boolean
+#     string: String
+#     string[]: List<String>
+#     int[]: List<Long>
+#     double[]: List<Double>
+#     boolean[]: List<Boolean>
+#     template[int]: Long
+#     template[double]: Double
+#     template[boolean]: Boolean
+#     template[string]: String
+#     template[string[]]: List<String>
+#     template[int[]]: List<Long>
+#     template[double[]]: List<Double>
+#     template[boolean[]]: List<Boolean>
+#   java_key_type:
+#     int: AttributeKey<Long>
+#     double: AttributeKey<Double>
+#     boolean: AttributeKey<Boolean>
+#     string: AttributeKey<String>
+#     string[]: AttributeKey<List<String>>
+#     int[]: AttributeKey<List<Long>>
+#     double[]: AttributeKey<List<Double>>
+#     boolean[]: AttributeKey<List<Boolean>>
+#     template[int]: AttributeKeyTemplate<Long>
+#     template[double]: AttributeKeyTemplate<Double>
+#     template[boolean]: AttributeKeyTemplate<Boolean>
+#     template[string]: AttributeKeyTemplate<String>
+#     template[string[]]: AttributeKeyTemplate<List<String>>
+#     template[int[]]: AttributeKeyTemplate<List<Long>>
+#     template[double[]]: AttributeKeyTemplate<List<Double>>
+#     template[boolean[]]: AttributeKeyTemplate<List<Boolean>>
+#   java_key_factory:
+#     int: longKey
+#     double: doubleKey
+#     boolean: booleanKey
+#     string: stringKey
+#     string[]: stringArrayKey
+#     int[]: longArrayKey
+#     double[]: doubleArrayKey
+#     boolean[]: booleanArrayKey
+#     template[int]: longKeyTemplate
+#     template[double]: doubleKeyTemplate
+#     template[boolean]: booleanKeyTemplate
+#     template[string]: stringKeyTemplate
+#     template[string[]]: stringArrayKeyTemplate
+#     template[int[]]: longArrayKeyTemplate
+#     template[double[]]: doubleArrayKeyTemplate
+#     template[boolean[]]: booleanArrayKeyTemplate
+
+# Space delimited list of root namespaces to excluded (i.e. "foo bar")
+#        "-Dexcluded_namespaces=\"ios aspnetcore signalr\"",
+#"-Dfilter=${filter}",
+#        "-DclassPrefix=${classPrefix}",
+#        "-Dpkg=$packageNameArg",
+#        "-DstablePkg=$stablePackageNameArg"
