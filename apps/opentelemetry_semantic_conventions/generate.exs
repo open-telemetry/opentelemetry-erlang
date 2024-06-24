@@ -17,13 +17,10 @@ cwd = File.cwd!()
 # File.cd!(build_dir, fn ->
 #   System.cmd("git", ["pull"])
 #   System.cmd("git", ["checkout", "v#{semconv_version}"])
+#   System.cmd("cp", ["-r", "#{build_dir}/docs", "guides"])
+#   System.cmd("rm", ["-rf", "#{cwd}/guides/docs"])
 # end)
 
-# for kind <- ["metric", "attribute_group", "resource", "span", "event"] do
-# module = if kind == "attribute_group", do: "common", else: kind
-
-# elixir
-# Task.async(fn ->
 System.cmd("docker", [
   "run",
   # "--rm",
@@ -42,8 +39,6 @@ System.cmd("docker", [
   "elixir",
   "/output/"
 ])
-
-# end)
 
 # erlang
 # Task.async(fn ->

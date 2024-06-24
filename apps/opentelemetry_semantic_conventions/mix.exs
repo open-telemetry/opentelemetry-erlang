@@ -13,7 +13,7 @@ defmodule OpenTelemetry.SemanticConventions.MixProject do
       deps: [
         {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
         {:covertool, ">= 0.0.0", only: :test},
-        {:ex_doc, "~> 0.32", only: [:dev]}
+        {:ex_doc, "~> 0.34", only: [:dev]}
       ],
       name: "OpenTelemetry.SemanticConventions",
       source_url:
@@ -21,44 +21,31 @@ defmodule OpenTelemetry.SemanticConventions.MixProject do
       docs: [
         markdown_processor: {ExDoc.Markdown.Earmark, [all: true]},
         main: "OpenTelemetry.SemanticConventions",
-        extras: [],
-        groups_for_docs: [
-          AWS: &(&1[:namespace] == :aws),
-          Browser: &(&1[:namespace] == :browser),
-          Cloud: &(&1[:namespace] in [:cloud, :cloudevents]),
-          Code: &(&1[:namespace] in [:code, :exception]),
-          Container: &(&1[:namespace] == :container),
-          Database: &(&1[:namespace] == :db),
-          DNS: &(&1[:namespace] in [:client, :destination, :dns]),
-          "End User": &(&1[:namespace] == :enduser),
-          FAAS: &(&1[:namespace] == :faas),
-          "Feature Flag": &(&1[:namespace] == :feature_flag),
-          File: &(&1[:namespace] == :file),
-          GCP: &(&1[:namespace] == :gcp),
-          GraphQL: &(&1[:namespace] == :graphql),
-          Host: &(&1[:namespace] == :host),
-          HTTP: &(&1[:namespace] == :http),
-          Kubernetes: &(&1[:namespace] == :k8s),
-          Log: &(&1[:namespace] == :log),
-          Messaging: &(&1[:namespace] == :messaging),
-          Network: &(&1[:namespace] == :network),
-          Process: &(&1[:namespace] == :process),
-          RPC: &(&1[:namespace] == :rpc),
-          Runtime: &(&1[:namespace] in [:thread]),
-          Service: &(&1[:namespace] == :service),
-          Session: &(&1[:namespace] == :session),
-          System: &(&1[:namespace] in [:device, :system]),
-          Telemetry: &(&1[:namespace] == :telemetry),
-          TLS: &(&1[:namespace] == :tls),
-          URL: &(&1[:namespace] == :url)
+        extra_section: "GUIDES",
+        extras: guides() ++ [],
+        groups_for_extras: [
+          "Attributes Registry": Path.wildcard("guides/attributes-registry/*.md"),
+          "Cloud Providers": Path.wildcard("guides/cloud-providers/*.md"),
+          "Cloud Events": Path.wildcard("guides/cloudevents/*.md"),
+          Database: Path.wildcard("guides/database/*.md"),
+          DNS: Path.wildcard("guides/dns/*.md"),
+          Exceptions: Path.wildcard("guides/exceptions/*.md"),
+          FAAS: Path.wildcard("guides/faas/*.md"),
+          "Feature Flags": Path.wildcard("guides/feature-flags/*.md"),
+          General: Path.wildcard("guides/general/*.md"),
+          "Generative AI": Path.wildcard("guides/gen-ai/*.md"),
+          GraphQL: Path.wildcard("guides/graphql/*.md"),
+          HTTP: Path.wildcard("guides/http/*.md"),
+          Messaging: Path.wildcard("guides/messaging/*.md"),
+          "Object Stores": Path.wildcard("guides/object-stores/*.md"),
+          Resource: Path.wildcard("guides/resource/**/*.md"),
+          RPC: Path.wildcard("guides/rpc/*.md"),
+          Runtime: Path.wildcard("guides/runtime/*.md"),
+          System: Path.wildcard("guides/system/*.md"),
+          URL: Path.wildcard("guides/url/*.md")
         ],
         nest_modules_by_prefix: [
-          OpenTelemetry.SemanticConventions,
-          Common,
-          Event,
-          Metric,
-          Resource,
-          Span
+          OpenTelemetry.SemanticConventions
         ]
       ],
       test_coverage: [tool: :covertool],
@@ -86,5 +73,20 @@ defmodule OpenTelemetry.SemanticConventions.MixProject do
       :file.consult(~c"src/opentelemetry_semantic_conventions.app.src")
 
     {name, desc}
+  end
+
+  defp guides do
+    Path.wildcard("guides/**/*.md")
+    |> Enum.reject(fn path ->
+      path in ([
+                 "guides/attributes-registry/android.md",
+                 "guides/attributes-registry/aspnetcore.md",
+                 "guides/attributes-registry/dotnet.md",
+                 "guides/attributes-registry/ios.md",
+                 "guides/attributes-registry/jvm.md",
+                 "guides/attributes-registry/signalr.md"
+               ] ++ Path.wildcard("guides/dotnet/*") ++ Path.wildcard("guides/mobile/*"))
+    end)
+    |> IO.inspect()
   end
 end
