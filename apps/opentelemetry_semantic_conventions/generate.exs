@@ -6,13 +6,17 @@ schema_uri = "https://opentelemetry.io/schemas/#{semconv_version}"
 build_dir = "#{File.cwd!()}/semtmp"
 # File.rm_rf!(build_dir)
 
+cwd = File.cwd!()
+
+#######
+# Uncomment the following two sections to setup your env
+# #####
+
 # System.cmd("git", [
 #   "clone",
 #   "https://github.com/open-telemetry/semantic-conventions.git",
 #   build_dir
 # ])
-
-cwd = File.cwd!()
 
 # File.cd!(build_dir, fn ->
 #   System.cmd("git", ["pull"])
@@ -69,6 +73,8 @@ System.cmd("docker", [
 # |> List.flatten()
 # |> Task.await_many(:timer.minutes(5))
 
+# rpc_attributes.ex will fail with duplicate types for
+# sent/receive around the mid-400s lines. Delete
+# and run these two commands again
 System.cmd("mix", ["format"])
 System.cmd("mix", ["docs"])
-#
