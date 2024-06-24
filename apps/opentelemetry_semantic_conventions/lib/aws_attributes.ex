@@ -343,8 +343,6 @@ defmodule OpenTelemetry.SemanticConventions.AwsAttributes do
   """
   @spec aws_ecs_launchtype(aws_ecs_launchtype()) :: :ec2 | :fargate | atom()
   def aws_ecs_launchtype(option) do
-    :"aws.ecs.launchtype"
-
     case option do
       :ec2 -> :ec2
       :fargate -> :fargate

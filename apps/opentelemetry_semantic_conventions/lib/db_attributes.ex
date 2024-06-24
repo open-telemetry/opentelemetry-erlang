@@ -62,8 +62,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
           | :local_serial
           | atom()
   def db_cassandra_consistencylevel(option) do
-    :"db.cassandra.consistency_level"
-
     case option do
       :all -> :all
       :each_quorum -> :each_quorum
@@ -196,8 +194,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   """
   @spec db_client_connections_state(db_client_connections_state()) :: :idle | :used | atom()
   def db_client_connections_state(option) do
-    :"db.client.connections.state"
-
     case option do
       :idle -> :idle
       :used -> :used
@@ -268,8 +264,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   """
   @spec db_cosmosdb_connectionmode(db_cosmosdb_connectionmode()) :: :gateway | :direct | atom()
   def db_cosmosdb_connectionmode(option) do
-    :"db.cosmosdb.connection_mode"
-
     case option do
       :gateway -> :gateway
       :direct -> :direct
@@ -384,8 +378,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
           | execute_javascript()
           | atom()
   def db_cosmosdb_operationtype(option) do
-    :"db.cosmosdb.operation_type"
-
     case option do
       :invalid -> :Invalid
       :create -> :Create
@@ -834,8 +826,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
           | :trino
           | atom()
   def db_system(option) do
-    :"db.system"
-
     case option do
       :other_sql -> :other_sql
       :mssql -> :mssql
@@ -927,8 +917,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
 
   @spec state(state()) :: :idle | :used | atom()
   def state(option) do
-    :state
-
     case option do
       :idle -> :idle
       :used -> :used

@@ -52,8 +52,6 @@ defmodule OpenTelemetry.SemanticConventions.ErrorAttributes do
   """
   @spec error_type(error_type()) :: other() | atom()
   def error_type(option) do
-    :"error.type"
-
     case option do
       :other -> :_OTHER
       _ -> option

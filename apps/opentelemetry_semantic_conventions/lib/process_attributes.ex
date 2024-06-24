@@ -70,8 +70,6 @@ defmodule OpenTelemetry.SemanticConventions.ProcessAttributes do
   @spec process_contextswitchtype(process_contextswitchtype()) ::
           :voluntary | :involuntary | atom()
   def process_contextswitchtype(option) do
-    :"process.context_switch_type"
-
     case option do
       :voluntary -> :voluntary
       :involuntary -> :involuntary
@@ -105,8 +103,6 @@ defmodule OpenTelemetry.SemanticConventions.ProcessAttributes do
   """
   @spec process_cpu_state(process_cpu_state()) :: :system | :user | :wait | atom()
   def process_cpu_state(option) do
-    :"process.cpu.state"
-
     case option do
       :system -> :system
       :user -> :user
@@ -252,8 +248,6 @@ defmodule OpenTelemetry.SemanticConventions.ProcessAttributes do
   """
   @spec process_paging_faulttype(process_paging_faulttype()) :: :major | :minor | atom()
   def process_paging_faulttype(option) do
-    :"process.paging.fault_type"
-
     case option do
       :major -> :major
       :minor -> :minor

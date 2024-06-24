@@ -247,8 +247,6 @@ defmodule OpenTelemetry.SemanticConventions.TlsAttributes do
   """
   @spec tls_protocol_name(tls_protocol_name()) :: :ssl | :tls | atom()
   def tls_protocol_name(option) do
-    :"tls.protocol.name"
-
     case option do
       :ssl -> :ssl
       :tls -> :tls

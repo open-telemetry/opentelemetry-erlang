@@ -47,8 +47,6 @@ defmodule OpenTelemetry.SemanticConventions.SystemAttributes do
   @spec system_cpu_state(system_cpu_state()) ::
           :user | :system | :nice | :idle | :iowait | :interrupt | :steal | atom()
   def system_cpu_state(option) do
-    :"system.cpu.state"
-
     case option do
       :user -> :user
       :system -> :system
@@ -124,8 +122,6 @@ defmodule OpenTelemetry.SemanticConventions.SystemAttributes do
   """
   @spec system_filesystem_state(system_filesystem_state()) :: :used | :free | :reserved | atom()
   def system_filesystem_state(option) do
-    :"system.filesystem.state"
-
     case option do
       :used -> :used
       :free -> :free
@@ -162,8 +158,6 @@ defmodule OpenTelemetry.SemanticConventions.SystemAttributes do
   @spec system_filesystem_type(system_filesystem_type()) ::
           :fat32 | :exfat | :ntfs | :refs | :hfsplus | :ext4 | atom()
   def system_filesystem_type(option) do
-    :"system.filesystem.type"
-
     case option do
       :fat32 -> :fat32
       :exfat -> :exfat
@@ -202,8 +196,6 @@ defmodule OpenTelemetry.SemanticConventions.SystemAttributes do
   @spec system_memory_state(system_memory_state()) ::
           :used | :free | :shared | :buffers | :cached | atom()
   def system_memory_state(option) do
-    :"system.memory.state"
-
     case option do
       :used -> :used
       :free -> :free
@@ -273,8 +265,6 @@ defmodule OpenTelemetry.SemanticConventions.SystemAttributes do
           | :time_wait
           | atom()
   def system_network_state(option) do
-    :"system.network.state"
-
     case option do
       :close -> :close
       :close_wait -> :close_wait
@@ -315,8 +305,6 @@ defmodule OpenTelemetry.SemanticConventions.SystemAttributes do
   """
   @spec system_paging_direction(system_paging_direction()) :: :in | :out | atom()
   def system_paging_direction(option) do
-    :"system.paging.direction"
-
     case option do
       :in -> :in
       :out -> :out
@@ -347,8 +335,6 @@ defmodule OpenTelemetry.SemanticConventions.SystemAttributes do
   """
   @spec system_paging_state(system_paging_state()) :: :used | :free | atom()
   def system_paging_state(option) do
-    :"system.paging.state"
-
     case option do
       :used -> :used
       :free -> :free
@@ -379,8 +365,6 @@ defmodule OpenTelemetry.SemanticConventions.SystemAttributes do
   """
   @spec system_paging_type(system_paging_type()) :: :major | :minor | atom()
   def system_paging_type(option) do
-    :"system.paging.type"
-
     case option do
       :major -> :major
       :minor -> :minor
@@ -416,8 +400,6 @@ defmodule OpenTelemetry.SemanticConventions.SystemAttributes do
   @spec system_process_status(system_process_status()) ::
           :running | :sleeping | :stopped | :defunct | atom()
   def system_process_status(option) do
-    :"system.process.status"
-
     case option do
       :running -> :running
       :sleeping -> :sleeping
@@ -446,8 +428,6 @@ defmodule OpenTelemetry.SemanticConventions.SystemAttributes do
   @spec system_processes_status(system_processes_status()) ::
           :running | :sleeping | :stopped | :defunct | atom()
   def system_processes_status(option) do
-    :"system.processes.status"
-
     case option do
       :running -> :running
       :sleeping -> :sleeping

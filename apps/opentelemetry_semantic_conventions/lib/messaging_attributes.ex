@@ -422,8 +422,6 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
   @spec messaging_operation_type(messaging_operation_type()) ::
           :publish | :create | :receive | deliver() | :settle | atom()
   def messaging_operation_type(option) do
-    :"messaging.operation.type"
-
     case option do
       :publish -> :publish
       :create -> :create
@@ -502,8 +500,6 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
   @spec messaging_rocketmq_consumptionmodel(messaging_rocketmq_consumptionmodel()) ::
           :clustering | :broadcasting | atom()
   def messaging_rocketmq_consumptionmodel(option) do
-    :"messaging.rocketmq.consumption_model"
-
     case option do
       :clustering -> :clustering
       :broadcasting -> :broadcasting
@@ -611,8 +607,6 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
   @spec messaging_rocketmq_message_type(messaging_rocketmq_message_type()) ::
           :normal | :fifo | :delay | :transaction | atom()
   def messaging_rocketmq_message_type(option) do
-    :"messaging.rocketmq.message.type"
-
     case option do
       :normal -> :normal
       :fifo -> :fifo
@@ -680,8 +674,6 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
   @spec messaging_servicebus_dispositionstatus(messaging_servicebus_dispositionstatus()) ::
           :complete | :abandon | :dead_letter | :defer | atom()
   def messaging_servicebus_dispositionstatus(option) do
-    :"messaging.servicebus.disposition_status"
-
     case option do
       :complete -> :complete
       :abandon -> :abandon
@@ -776,8 +768,6 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
           | :rocketmq
           | atom()
   def messaging_system(option) do
-    :"messaging.system"
-
     case option do
       :activemq -> :activemq
       :aws_sqs -> :aws_sqs

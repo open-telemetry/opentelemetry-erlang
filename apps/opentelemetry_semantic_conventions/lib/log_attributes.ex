@@ -85,8 +85,6 @@ defmodule OpenTelemetry.SemanticConventions.LogAttributes do
   """
   @spec log_iostream(log_iostream()) :: :stdout | :stderr | atom()
   def log_iostream(option) do
-    :"log.iostream"
-
     case option do
       :stdout -> :stdout
       :stderr -> :stderr
@@ -100,7 +98,7 @@ defmodule OpenTelemetry.SemanticConventions.LogAttributes do
   ### Notes
 
   If an id is provided, other log records with the same id will be considered duplicates and can be removed safely. This means, that two distinguishable log records **MUST** have different values.
-  The id{"replace": " **MAY** "}be an [Universally Unique Lexicographically Sortable Identifier (ULID)](https://github.com/ulid/spec), but other identifiers (e.g. UUID) may be used as needed.
+  The id **MAY** be an [Universally Unique Lexicographically Sortable Identifier (ULID)](https://github.com/ulid/spec), but other identifiers (e.g. UUID) may be used as needed.
 
 
   ### Example

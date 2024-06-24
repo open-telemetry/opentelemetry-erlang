@@ -73,8 +73,6 @@ defmodule OpenTelemetry.SemanticConventions.ContainerAttributes do
   """
   @spec container_cpu_state(container_cpu_state()) :: :user | :system | :kernel | atom()
   def container_cpu_state(option) do
-    :"container.cpu.state"
-
     case option do
       :user -> :user
       :system -> :system

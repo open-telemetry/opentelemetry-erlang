@@ -75,8 +75,6 @@ defmodule OpenTelemetry.SemanticConventions.OtelAttributes do
   """
   @spec otel_statuscode(otel_statuscode()) :: ok() | error() | atom()
   def otel_statuscode(option) do
-    :"otel.status_code"
-
     case option do
       :ok -> :OK
       :error -> :ERROR

@@ -36,8 +36,6 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   """
   @spec http_connection_state(http_connection_state()) :: :active | :idle | atom()
   def http_connection_state(option) do
-    :"http.connection.state"
-
     case option do
       :active -> :active
       :idle -> :idle
@@ -79,8 +77,6 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   @spec http_flavor(http_flavor()) ::
           http_1_0() | http_1_1() | http_2_0() | http_3_0() | spdy() | quic() | atom()
   def http_flavor(option) do
-    :"http.flavor"
-
     case option do
       :http_1_0 -> :"1.0"
       :http_1_1 -> :"1.1"
@@ -130,7 +126,7 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   ### Notes
 
   Instrumentations **SHOULD** require an explicit configuration of which headers are to be captured. Including all request headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
-  The `User-Agent` header is already captured in the `user_agent.original` attribute. Users{"replace": " **MAY** "}explicitly configure instrumentations to capture them even though it is not recommended.
+  The `User-Agent` header is already captured in the `user_agent.original` attribute. Users **MAY** explicitly configure instrumentations to capture them even though it is not recommended.
   The attribute value **MUST** consist of either multiple header values as an array of strings or a single-item array containing a possibly comma-concatenated string, depending on the way the HTTP library provides access to headers.
 
 
@@ -232,8 +228,6 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
           | other()
           | atom()
   def http_request_method(option) do
-    :"http.request.method"
-
     case option do
       :connect -> :CONNECT
       :delete -> :DELETE
@@ -331,7 +325,7 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   ### Notes
 
   Instrumentations **SHOULD** require an explicit configuration of which headers are to be captured. Including all response headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
-  Users{"replace": " **MAY** "}explicitly configure instrumentations to capture them even though it is not recommended.
+  Users **MAY** explicitly configure instrumentations to capture them even though it is not recommended.
   The attribute value **MUST** consist of either multiple header values as an array of strings or a single-item array containing a possibly comma-concatenated string, depending on the way the HTTP library provides access to headers.
 
 

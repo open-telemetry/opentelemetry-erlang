@@ -147,8 +147,6 @@ defmodule OpenTelemetry.SemanticConventions.CloudAttributes do
           | :tencent_cloud_scf
           | atom()
   def cloud_platform(option) do
-    :"cloud.platform"
-
     case option do
       :alibaba_cloud_ecs -> :alibaba_cloud_ecs
       :alibaba_cloud_fc -> :alibaba_cloud_fc
@@ -214,8 +212,6 @@ defmodule OpenTelemetry.SemanticConventions.CloudAttributes do
   @spec cloud_provider(cloud_provider()) ::
           :alibaba_cloud | :aws | :azure | :gcp | :heroku | :ibm_cloud | :tencent_cloud | atom()
   def cloud_provider(option) do
-    :"cloud.provider"
-
     case option do
       :alibaba_cloud -> :alibaba_cloud
       :aws -> :aws

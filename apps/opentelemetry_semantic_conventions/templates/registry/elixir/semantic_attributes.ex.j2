@@ -102,8 +102,6 @@ defmodule OpenTelemetry.SemanticConventions.{{ module_name }} do
     {%- endfor -%}
     | atom()
   def {{ func_name(attribute.name) }}(option) do
-    {{ to_atom(attribute.name) }}
-
     case option do
     {% for member in attribute.type.members %}
       {{ to_atom(member.id) }} -> {{ enum_value_to_elixir_type(member.value) }}

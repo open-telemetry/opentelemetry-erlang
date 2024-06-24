@@ -30,8 +30,6 @@ defmodule OpenTelemetry.SemanticConventions.OpentracingAttributes do
   """
   @spec opentracing_reftype(opentracing_reftype()) :: :child_of | :follows_from | atom()
   def opentracing_reftype(option) do
-    :"opentracing.ref_type"
-
     case option do
       :child_of -> :child_of
       :follows_from -> :follows_from

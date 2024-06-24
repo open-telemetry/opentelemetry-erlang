@@ -27,8 +27,6 @@ defmodule OpenTelemetry.SemanticConventions.DiskAttributes do
   """
   @spec disk_io_direction(disk_io_direction()) :: :read | :write | atom()
   def disk_io_direction(option) do
-    :"disk.io.direction"
-
     case option do
       :read -> :read
       :write -> :write

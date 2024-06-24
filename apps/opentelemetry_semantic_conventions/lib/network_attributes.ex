@@ -93,8 +93,6 @@ defmodule OpenTelemetry.SemanticConventions.NetworkAttributes do
 
   @spec net_sock_family(net_sock_family()) :: :inet | :inet6 | :unix | atom()
   def net_sock_family(option) do
-    :"net.sock.family"
-
     case option do
       :inet -> :inet
       :inet6 -> :inet6
@@ -167,8 +165,6 @@ defmodule OpenTelemetry.SemanticConventions.NetworkAttributes do
 
   @spec net_transport(net_transport()) :: :ip_tcp | :ip_udp | :pipe | :inproc | :other | atom()
   def net_transport(option) do
-    :"net.transport"
-
     case option do
       :ip_tcp -> :ip_tcp
       :ip_udp -> :ip_udp
@@ -317,8 +313,6 @@ defmodule OpenTelemetry.SemanticConventions.NetworkAttributes do
           | :lte_ca
           | atom()
   def network_connection_subtype(option) do
-    :"network.connection.subtype"
-
     case option do
       :gprs -> :gprs
       :edge -> :edge
@@ -372,8 +366,6 @@ defmodule OpenTelemetry.SemanticConventions.NetworkAttributes do
   @spec network_connection_type(network_connection_type()) ::
           :wifi | :wired | :cell | :unavailable | :unknown | atom()
   def network_connection_type(option) do
-    :"network.connection.type"
-
     case option do
       :wifi -> :wifi
       :wired -> :wired
@@ -407,8 +399,6 @@ defmodule OpenTelemetry.SemanticConventions.NetworkAttributes do
   """
   @spec network_io_direction(network_io_direction()) :: :transmit | :receive | atom()
   def network_io_direction(option) do
-    :"network.io.direction"
-
     case option do
       :transmit -> :transmit
       :receive -> :receive
@@ -533,8 +523,6 @@ defmodule OpenTelemetry.SemanticConventions.NetworkAttributes do
   """
   @spec network_transport(network_transport()) :: :tcp | :udp | :pipe | :unix | atom()
   def network_transport(option) do
-    :"network.transport"
-
     case option do
       :tcp -> :tcp
       :udp -> :udp
@@ -569,8 +557,6 @@ defmodule OpenTelemetry.SemanticConventions.NetworkAttributes do
   """
   @spec network_type(network_type()) :: :ipv4 | :ipv6 | atom()
   def network_type(option) do
-    :"network.type"
-
     case option do
       :ipv4 -> :ipv4
       :ipv6 -> :ipv6

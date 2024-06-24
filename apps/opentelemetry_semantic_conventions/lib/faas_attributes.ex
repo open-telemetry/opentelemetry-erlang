@@ -84,8 +84,6 @@ defmodule OpenTelemetry.SemanticConventions.FaasAttributes do
   """
   @spec faas_document_operation(faas_document_operation()) :: :insert | :edit | :delete | atom()
   def faas_document_operation(option) do
-    :"faas.document.operation"
-
     case option do
       :insert -> :insert
       :edit -> :edit
@@ -188,8 +186,6 @@ defmodule OpenTelemetry.SemanticConventions.FaasAttributes do
   @spec faas_invokedprovider(faas_invokedprovider()) ::
           :alibaba_cloud | :aws | :azure | :gcp | :tencent_cloud | atom()
   def faas_invokedprovider(option) do
-    :"faas.invoked_provider"
-
     case option do
       :alibaba_cloud -> :alibaba_cloud
       :aws -> :aws
@@ -308,8 +304,6 @@ defmodule OpenTelemetry.SemanticConventions.FaasAttributes do
   """
   @spec faas_trigger(faas_trigger()) :: :datasource | :http | :pubsub | :timer | :other | atom()
   def faas_trigger(option) do
-    :"faas.trigger"
-
     case option do
       :datasource -> :datasource
       :http -> :http

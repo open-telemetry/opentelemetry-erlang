@@ -36,8 +36,6 @@ defmodule OpenTelemetry.SemanticConventions.HostAttributes do
   @spec host_arch(host_arch()) ::
           :amd64 | :arm32 | :arm64 | :ia64 | :ppc32 | :ppc64 | :s390x | :x86 | atom()
   def host_arch(option) do
-    :"host.arch"
-
     case option do
       :amd64 -> :amd64
       :arm32 -> :arm32

@@ -97,8 +97,6 @@ defmodule OpenTelemetry.SemanticConventions.TelemetryAttributes do
           | :webjs
           | atom()
   def telemetry_sdk_language(option) do
-    :"telemetry.sdk.language"
-
     case option do
       :cpp -> :cpp
       :dotnet -> :dotnet

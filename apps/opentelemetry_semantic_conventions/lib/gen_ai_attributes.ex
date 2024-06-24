@@ -150,8 +150,6 @@ defmodule OpenTelemetry.SemanticConventions.GenAiAttributes do
   """
   @spec genai_system(genai_system()) :: :openai | atom()
   def genai_system(option) do
-    :"gen_ai.system"
-
     case option do
       :openai -> :openai
       _ -> option

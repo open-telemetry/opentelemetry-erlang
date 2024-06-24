@@ -57,8 +57,6 @@ defmodule OpenTelemetry.SemanticConventions.GraphqlAttributes do
   @spec graphql_operation_type(graphql_operation_type()) ::
           :query | :mutation | :subscription | atom()
   def graphql_operation_type(option) do
-    :"graphql.operation.type"
-
     case option do
       :query -> :query
       :mutation -> :mutation

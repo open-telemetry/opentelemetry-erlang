@@ -42,8 +42,6 @@ defmodule OpenTelemetry.SemanticConventions.RpcAttributes do
 
   @spec message_type(message_type()) :: sent() | received() | atom()
   def message_type(option) do
-    :"message.type"
-
     case option do
       :sent -> :SENT
       :received -> :RECEIVED
@@ -131,8 +129,6 @@ defmodule OpenTelemetry.SemanticConventions.RpcAttributes do
           | :unauthenticated
           | atom()
   def rpc_connectrpc_errorcode(option) do
-    :"rpc.connect_rpc.error_code"
-
     case option do
       :cancelled -> :cancelled
       :unknown -> :unknown
@@ -330,8 +326,6 @@ defmodule OpenTelemetry.SemanticConventions.RpcAttributes do
           | unauthenticated()
           | atom()
   def rpc_grpc_statuscode(option) do
-    :"rpc.grpc.status_code"
-
     case option do
       :ok -> 0
       :cancelled -> 1
@@ -458,8 +452,6 @@ defmodule OpenTelemetry.SemanticConventions.RpcAttributes do
   """
   @spec rpc_message_type(rpc_message_type()) :: sent() | received() | atom()
   def rpc_message_type(option) do
-    :"rpc.message.type"
-
     case option do
       :sent -> :SENT
       :received -> :RECEIVED
@@ -539,8 +531,6 @@ defmodule OpenTelemetry.SemanticConventions.RpcAttributes do
   @spec rpc_system(rpc_system()) ::
           :grpc | :java_rmi | :dotnet_wcf | :apache_dubbo | :connect_rpc | atom()
   def rpc_system(option) do
-    :"rpc.system"
-
     case option do
       :grpc -> :grpc
       :java_rmi -> :java_rmi

@@ -102,8 +102,6 @@ defmodule OpenTelemetry.SemanticConventions.OsAttributes do
           | :z_os
           | atom()
   def os_type(option) do
-    :"os.type"
-
     case option do
       :windows -> :windows
       :linux -> :linux
