@@ -22,7 +22,7 @@
   {%- if value is string %}{{ to_atom(value) }}{% else -%}{{ value }}{%- endif %}
 {%- endmacro -%}
 {%- macro strong_reqs(string) -%}
-  {{ string | replace(" MUST ", " **MUST** ") | replace(" MUST NOT ", " **MUST NOT** ") | replace(" SHOULD ", " **SHOULD** ") | replace(" SHOULD NOT ", " **SHOULD NOT** ") |  replace(" MAY ", replace=" **MAY** ") | replace(" NOT ", " **NOT** ") }}
+  {{ string | replace(" MUST ", " **MUST** ") | replace(" MUST NOT ", " **MUST NOT** ") | replace(" SHOULD ", " **SHOULD** ") | replace(" SHOULD NOT ", " **SHOULD NOT** ") |  replace(" MAY ", " **MAY** ") | replace(" NOT ", " **NOT** ") }}
 {%- endmacro -%}
 
 {%- set file_name = ctx.id | snake_case ~ "_attributes.ex" -%}
