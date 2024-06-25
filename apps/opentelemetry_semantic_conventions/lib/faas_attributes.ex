@@ -63,33 +63,39 @@ defmodule OpenTelemetry.SemanticConventions.FaasAttributes do
   @typedoc """
   Describes the type of the operation that was performed on the data.
 
-  ### Options
+  ### Enum Values
   * `:insert` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - When a new object is created.
   * `:edit` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - When an object is modified.
   * `:delete` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - When an object is deleted.
-
   """
-  @type faas_document_operation() :: :insert | :edit | :delete | atom()
-
+  @type faas_document_operation() :: %{
+          :insert => :insert,
+          :edit => :edit,
+          :delete => :delete
+        }
   @doc """
   Describes the type of the operation that was performed on the data.
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.FaasAttributes.faas_document_operation(:insert)
+      iex> OpenTelemetry.SemanticConventions.FaasAttributes.faas_document_operation().insert
       :insert
       
       iex> OpenTelemetry.SemanticConventions.FaasAttributes.faas_document_operation(:custom_value)
       :custom_value
   """
-  @spec faas_document_operation(faas_document_operation()) :: :insert | :edit | :delete | atom()
-  def faas_document_operation(option) do
-    case option do
-      :insert -> :insert
-      :edit -> :edit
-      :delete -> :delete
-      _ -> option
-    end
+  @spec faas_document_operation() :: faas_document_operation()
+  def faas_document_operation() do
+    %{
+      :insert => :insert,
+      :edit => :edit,
+      :delete => :delete
+    }
+  end
+
+  @spec faas_document_operation(atom() | String.t()) :: atom() | String.t()
+  def faas_document_operation(custom_value) do
+    custom_value
   end
 
   @doc """
@@ -158,16 +164,20 @@ defmodule OpenTelemetry.SemanticConventions.FaasAttributes do
   The cloud provider of the invoked function.
 
 
-  ### Options
+  ### Enum Values
   * `:alibaba_cloud` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Alibaba Cloud
   * `:aws` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Amazon Web Services
   * `:azure` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Microsoft Azure
   * `:gcp` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Google Cloud Platform
   * `:tencent_cloud` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Tencent Cloud
-
   """
-  @type faas_invokedprovider() :: :alibaba_cloud | :aws | :azure | :gcp | :tencent_cloud | atom()
-
+  @type faas_invokedprovider() :: %{
+          :alibaba_cloud => :alibaba_cloud,
+          :aws => :aws,
+          :azure => :azure,
+          :gcp => :gcp,
+          :tencent_cloud => :tencent_cloud
+        }
   @doc """
   The cloud provider of the invoked function.
 
@@ -177,23 +187,26 @@ defmodule OpenTelemetry.SemanticConventions.FaasAttributes do
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.FaasAttributes.faas_invokedprovider(:alibaba_cloud)
+      iex> OpenTelemetry.SemanticConventions.FaasAttributes.faas_invokedprovider().alibaba_cloud
       :alibaba_cloud
       
       iex> OpenTelemetry.SemanticConventions.FaasAttributes.faas_invokedprovider(:custom_value)
       :custom_value
   """
-  @spec faas_invokedprovider(faas_invokedprovider()) ::
-          :alibaba_cloud | :aws | :azure | :gcp | :tencent_cloud | atom()
-  def faas_invokedprovider(option) do
-    case option do
-      :alibaba_cloud -> :alibaba_cloud
-      :aws -> :aws
-      :azure -> :azure
-      :gcp -> :gcp
-      :tencent_cloud -> :tencent_cloud
-      _ -> option
-    end
+  @spec faas_invokedprovider() :: faas_invokedprovider()
+  def faas_invokedprovider() do
+    %{
+      :alibaba_cloud => :alibaba_cloud,
+      :aws => :aws,
+      :azure => :azure,
+      :gcp => :gcp,
+      :tencent_cloud => :tencent_cloud
+    }
+  end
+
+  @spec faas_invokedprovider(atom() | String.t()) :: atom() | String.t()
+  def faas_invokedprovider(custom_value) do
+    custom_value
   end
 
   @doc """
@@ -280,38 +293,46 @@ defmodule OpenTelemetry.SemanticConventions.FaasAttributes do
   Type of the trigger which caused this function invocation.
 
 
-  ### Options
+  ### Enum Values
   * `:datasource` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - A response to some data source operation such as a database or filesystem read/write
   * `:http` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - To provide an answer to an inbound HTTP request
   * `:pubsub` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - A function is set to be executed when messages are sent to a messaging system
   * `:timer` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - A function is scheduled to be executed regularly
   * `:other` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - If none of the others apply
-
   """
-  @type faas_trigger() :: :datasource | :http | :pubsub | :timer | :other | atom()
-
+  @type faas_trigger() :: %{
+          :datasource => :datasource,
+          :http => :http,
+          :pubsub => :pubsub,
+          :timer => :timer,
+          :other => :other
+        }
   @doc """
   Type of the trigger which caused this function invocation.
 
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.FaasAttributes.faas_trigger(:datasource)
+      iex> OpenTelemetry.SemanticConventions.FaasAttributes.faas_trigger().datasource
       :datasource
       
       iex> OpenTelemetry.SemanticConventions.FaasAttributes.faas_trigger(:custom_value)
       :custom_value
   """
-  @spec faas_trigger(faas_trigger()) :: :datasource | :http | :pubsub | :timer | :other | atom()
-  def faas_trigger(option) do
-    case option do
-      :datasource -> :datasource
-      :http -> :http
-      :pubsub -> :pubsub
-      :timer -> :timer
-      :other -> :other
-      _ -> option
-    end
+  @spec faas_trigger() :: faas_trigger()
+  def faas_trigger() do
+    %{
+      :datasource => :datasource,
+      :http => :http,
+      :pubsub => :pubsub,
+      :timer => :timer,
+      :other => :other
+    }
+  end
+
+  @spec faas_trigger(atom() | String.t()) :: atom() | String.t()
+  def faas_trigger(custom_value) do
+    custom_value
   end
 
   @doc """

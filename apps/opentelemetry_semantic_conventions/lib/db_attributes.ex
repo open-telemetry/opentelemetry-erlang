@@ -8,7 +8,7 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   The consistency level of the query. Based on consistency values from [CQL](https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/dml/dmlConfigConsistency.html).
 
 
-  ### Options
+  ### Enum Values
   * `:all` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:each_quorum` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:quorum` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
@@ -20,62 +20,52 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   * `:any` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:serial` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:local_serial` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
-
   """
-  @type db_cassandra_consistencylevel() ::
-          :all
-          | :each_quorum
-          | :quorum
-          | :local_quorum
-          | :one
-          | :two
-          | :three
-          | :local_one
-          | :any
-          | :serial
-          | :local_serial
-          | atom()
-
+  @type db_cassandra_consistencylevel() :: %{
+          :all => :all,
+          :each_quorum => :each_quorum,
+          :quorum => :quorum,
+          :local_quorum => :local_quorum,
+          :one => :one,
+          :two => :two,
+          :three => :three,
+          :local_one => :local_one,
+          :any => :any,
+          :serial => :serial,
+          :local_serial => :local_serial
+        }
   @doc """
   The consistency level of the query. Based on consistency values from [CQL](https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/dml/dmlConfigConsistency.html).
 
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.DbAttributes.db_cassandra_consistencylevel(:all)
+      iex> OpenTelemetry.SemanticConventions.DbAttributes.db_cassandra_consistencylevel().all
       :all
       
       iex> OpenTelemetry.SemanticConventions.DbAttributes.db_cassandra_consistencylevel(:custom_value)
       :custom_value
   """
-  @spec db_cassandra_consistencylevel(db_cassandra_consistencylevel()) ::
-          :all
-          | :each_quorum
-          | :quorum
-          | :local_quorum
-          | :one
-          | :two
-          | :three
-          | :local_one
-          | :any
-          | :serial
-          | :local_serial
-          | atom()
-  def db_cassandra_consistencylevel(option) do
-    case option do
-      :all -> :all
-      :each_quorum -> :each_quorum
-      :quorum -> :quorum
-      :local_quorum -> :local_quorum
-      :one -> :one
-      :two -> :two
-      :three -> :three
-      :local_one -> :local_one
-      :any -> :any
-      :serial -> :serial
-      :local_serial -> :local_serial
-      _ -> option
-    end
+  @spec db_cassandra_consistencylevel() :: db_cassandra_consistencylevel()
+  def db_cassandra_consistencylevel() do
+    %{
+      :all => :all,
+      :each_quorum => :each_quorum,
+      :quorum => :quorum,
+      :local_quorum => :local_quorum,
+      :one => :one,
+      :two => :two,
+      :three => :three,
+      :local_one => :local_one,
+      :any => :any,
+      :serial => :serial,
+      :local_serial => :local_serial
+    }
+  end
+
+  @spec db_cassandra_consistencylevel(atom() | String.t()) :: atom() | String.t()
+  def db_cassandra_consistencylevel(custom_value) do
+    custom_value
   end
 
   @doc """
@@ -151,7 +141,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   @deprecated """
   Replaced by `db.collection.name`.
   """
-
   @spec db_cassandra_table :: :"db.cassandra.table"
   def db_cassandra_table do
     :"db.cassandra.table"
@@ -174,31 +163,36 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   @typedoc """
   The state of a connection in the pool
 
-  ### Options
+  ### Enum Values
   * `:idle` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:used` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
-
   """
-  @type db_client_connections_state() :: :idle | :used | atom()
-
+  @type db_client_connections_state() :: %{
+          :idle => :idle,
+          :used => :used
+        }
   @doc """
   The state of a connection in the pool
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.DbAttributes.db_client_connections_state(:idle)
+      iex> OpenTelemetry.SemanticConventions.DbAttributes.db_client_connections_state().idle
       :idle
       
       iex> OpenTelemetry.SemanticConventions.DbAttributes.db_client_connections_state(:custom_value)
       :custom_value
   """
-  @spec db_client_connections_state(db_client_connections_state()) :: :idle | :used | atom()
-  def db_client_connections_state(option) do
-    case option do
-      :idle -> :idle
-      :used -> :used
-      _ -> option
-    end
+  @spec db_client_connections_state() :: db_client_connections_state()
+  def db_client_connections_state() do
+    %{
+      :idle => :idle,
+      :used => :used
+    }
+  end
+
+  @spec db_client_connections_state(atom() | String.t()) :: atom() | String.t()
+  def db_client_connections_state(custom_value) do
+    custom_value
   end
 
   @doc """
@@ -222,7 +216,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   "Replaced by `server.address` and `server.port`."
 
   """
-
   @spec db_connectionstring :: :"db.connection_string"
   def db_connectionstring do
     :"db.connection_string"
@@ -244,76 +237,50 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   @typedoc """
   Cosmos client connection mode.
 
-  ### Options
+  ### Enum Values
   * `:gateway` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Gateway (HTTP) connections mode
   * `:direct` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Direct connection.
-
   """
-  @type db_cosmosdb_connectionmode() :: :gateway | :direct | atom()
-
+  @type db_cosmosdb_connectionmode() :: %{
+          :gateway => :gateway,
+          :direct => :direct
+        }
   @doc """
   Cosmos client connection mode.
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.DbAttributes.db_cosmosdb_connectionmode(:gateway)
+      iex> OpenTelemetry.SemanticConventions.DbAttributes.db_cosmosdb_connectionmode().gateway
       :gateway
       
       iex> OpenTelemetry.SemanticConventions.DbAttributes.db_cosmosdb_connectionmode(:custom_value)
       :custom_value
   """
-  @spec db_cosmosdb_connectionmode(db_cosmosdb_connectionmode()) :: :gateway | :direct | atom()
-  def db_cosmosdb_connectionmode(option) do
-    case option do
-      :gateway -> :gateway
-      :direct -> :direct
-      _ -> option
-    end
+  @spec db_cosmosdb_connectionmode() :: db_cosmosdb_connectionmode()
+  def db_cosmosdb_connectionmode() do
+    %{
+      :gateway => :gateway,
+      :direct => :direct
+    }
+  end
+
+  @spec db_cosmosdb_connectionmode(atom() | String.t()) :: atom() | String.t()
+  def db_cosmosdb_connectionmode(custom_value) do
+    custom_value
   end
 
   @deprecated """
   Replaced by `db.collection.name`.
   """
-
   @spec db_cosmosdb_container :: :"db.cosmosdb.container"
   def db_cosmosdb_container do
     :"db.cosmosdb.container"
   end
 
-  @type invalid() :: :Invalid
-
-  @type create() :: :Create
-
-  @type patch() :: :Patch
-
-  @type read() :: :Read
-
-  @type read_feed() :: :ReadFeed
-
-  @type delete() :: :Delete
-
-  @type replace() :: :Replace
-
-  @type execute() :: :Execute
-
-  @type query() :: :Query
-
-  @type head() :: :Head
-
-  @type head_feed() :: :HeadFeed
-
-  @type upsert() :: :Upsert
-
-  @type batch() :: :Batch
-
-  @type query_plan() :: :QueryPlan
-
-  @type execute_javascript() :: :ExecuteJavaScript
-
   @typedoc """
   CosmosDB Operation Type.
 
-  ### Options
+  ### Enum Values
   * `:invalid` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:create` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:patch` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
@@ -329,73 +296,59 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   * `:batch` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:query_plan` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:execute_javascript` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
-
   """
-  @type db_cosmosdb_operationtype() ::
-          invalid()
-          | create()
-          | patch()
-          | read()
-          | read_feed()
-          | delete()
-          | replace()
-          | execute()
-          | query()
-          | head()
-          | head_feed()
-          | upsert()
-          | batch()
-          | query_plan()
-          | execute_javascript()
-          | atom()
-
+  @type db_cosmosdb_operationtype() :: %{
+          :invalid => :Invalid,
+          :create => :Create,
+          :patch => :Patch,
+          :read => :Read,
+          :read_feed => :ReadFeed,
+          :delete => :Delete,
+          :replace => :Replace,
+          :execute => :Execute,
+          :query => :Query,
+          :head => :Head,
+          :head_feed => :HeadFeed,
+          :upsert => :Upsert,
+          :batch => :Batch,
+          :query_plan => :QueryPlan,
+          :execute_javascript => :ExecuteJavaScript
+        }
   @doc """
   CosmosDB Operation Type.
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.DbAttributes.db_cosmosdb_operationtype(:invalid)
+      iex> OpenTelemetry.SemanticConventions.DbAttributes.db_cosmosdb_operationtype().invalid
       :Invalid
       
       iex> OpenTelemetry.SemanticConventions.DbAttributes.db_cosmosdb_operationtype(:custom_value)
       :custom_value
   """
-  @spec db_cosmosdb_operationtype(db_cosmosdb_operationtype()) ::
-          invalid()
-          | create()
-          | patch()
-          | read()
-          | read_feed()
-          | delete()
-          | replace()
-          | execute()
-          | query()
-          | head()
-          | head_feed()
-          | upsert()
-          | batch()
-          | query_plan()
-          | execute_javascript()
-          | atom()
-  def db_cosmosdb_operationtype(option) do
-    case option do
-      :invalid -> :Invalid
-      :create -> :Create
-      :patch -> :Patch
-      :read -> :Read
-      :read_feed -> :ReadFeed
-      :delete -> :Delete
-      :replace -> :Replace
-      :execute -> :Execute
-      :query -> :Query
-      :head -> :Head
-      :head_feed -> :HeadFeed
-      :upsert -> :Upsert
-      :batch -> :Batch
-      :query_plan -> :QueryPlan
-      :execute_javascript -> :ExecuteJavaScript
-      _ -> option
-    end
+  @spec db_cosmosdb_operationtype() :: db_cosmosdb_operationtype()
+  def db_cosmosdb_operationtype() do
+    %{
+      :invalid => :Invalid,
+      :create => :Create,
+      :patch => :Patch,
+      :read => :Read,
+      :read_feed => :ReadFeed,
+      :delete => :Delete,
+      :replace => :Replace,
+      :execute => :Execute,
+      :query => :Query,
+      :head => :Head,
+      :head_feed => :HeadFeed,
+      :upsert => :Upsert,
+      :batch => :Batch,
+      :query_plan => :QueryPlan,
+      :execute_javascript => :ExecuteJavaScript
+    }
+  end
+
+  @spec db_cosmosdb_operationtype(atom() | String.t()) :: atom() | String.t()
+  def db_cosmosdb_operationtype(custom_value) do
+    custom_value
   end
 
   @doc """
@@ -498,7 +451,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   @deprecated """
   Deprecated, no general replacement at this time. For Elasticsearch, use `db.elasticsearch.node.name` instead.
   """
-
   @spec db_instance_id :: :"db.instance.id"
   def db_instance_id do
     :"db.instance.id"
@@ -507,7 +459,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   @deprecated """
   Removed as not used.
   """
-
   @spec db_jdbc_driverclassname :: :"db.jdbc.driver_classname"
   def db_jdbc_driverclassname do
     :"db.jdbc.driver_classname"
@@ -516,7 +467,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   @deprecated """
   Replaced by `db.collection.name`.
   """
-
   @spec db_mongodb_collection :: :"db.mongodb.collection"
   def db_mongodb_collection do
     :"db.mongodb.collection"
@@ -525,7 +475,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   @deprecated """
   Deprecated, no replacement at this time.
   """
-
   @spec db_mssql_instancename :: :"db.mssql.instance_name"
   def db_mssql_instancename do
     :"db.mssql.instance_name"
@@ -534,7 +483,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   @deprecated """
   Replaced by `db.namespace`.
   """
-
   @spec db_name :: :"db.name"
   def db_name do
     :"db.name"
@@ -562,7 +510,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   @deprecated """
   Replaced by `db.operation.name`.
   """
-
   @spec db_operation :: :"db.operation"
   def db_operation do
     :"db.operation"
@@ -620,7 +567,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   @deprecated """
   Replaced by `db.namespace`.
   """
-
   @spec db_redis_databaseindex :: :"db.redis.database_index"
   def db_redis_databaseindex do
     :"db.redis.database_index"
@@ -629,7 +575,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   @deprecated """
   Replaced by `db.collection.name`.
   """
-
   @spec db_sql_table :: :"db.sql.table"
   def db_sql_table do
     :"db.sql.table"
@@ -638,7 +583,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   @deprecated """
   Replaced by `db.query.text`.
   """
-
   @spec db_statement :: :"db.statement"
   def db_statement do
     :"db.statement"
@@ -647,7 +591,7 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   @typedoc """
   The database management system (DBMS) product as identified by the client instrumentation.
 
-  ### Options
+  ### Enum Values
   * `:other_sql` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Some other SQL database. Fallback only. See notes.
   * `:mssql` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Microsoft SQL Server
   * `:mssqlcompact` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Microsoft SQL Server Compact
@@ -700,63 +644,61 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   * `:clickhouse` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - ClickHouse
   * `:spanner` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Cloud Spanner
   * `:trino` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Trino
-
   """
-  @type db_system() ::
-          :other_sql
-          | :mssql
-          | :mssqlcompact
-          | :mysql
-          | :oracle
-          | :db2
-          | :postgresql
-          | :redshift
-          | :hive
-          | :cloudscape
-          | :hsqldb
-          | :progress
-          | :maxdb
-          | :hanadb
-          | :ingres
-          | :firstsql
-          | :edb
-          | :cache
-          | :adabas
-          | :firebird
-          | :derby
-          | :filemaker
-          | :informix
-          | :instantdb
-          | :interbase
-          | :mariadb
-          | :netezza
-          | :pervasive
-          | :pointbase
-          | :sqlite
-          | :sybase
-          | :teradata
-          | :vertica
-          | :h2
-          | :coldfusion
-          | :cassandra
-          | :hbase
-          | :mongodb
-          | :redis
-          | :couchbase
-          | :couchdb
-          | :cosmosdb
-          | :dynamodb
-          | :neo4j
-          | :geode
-          | :elasticsearch
-          | :memcached
-          | :cockroachdb
-          | :opensearch
-          | :clickhouse
-          | :spanner
-          | :trino
-          | atom()
-
+  @type db_system() :: %{
+          :other_sql => :other_sql,
+          :mssql => :mssql,
+          :mssqlcompact => :mssqlcompact,
+          :mysql => :mysql,
+          :oracle => :oracle,
+          :db2 => :db2,
+          :postgresql => :postgresql,
+          :redshift => :redshift,
+          :hive => :hive,
+          :cloudscape => :cloudscape,
+          :hsqldb => :hsqldb,
+          :progress => :progress,
+          :maxdb => :maxdb,
+          :hanadb => :hanadb,
+          :ingres => :ingres,
+          :firstsql => :firstsql,
+          :edb => :edb,
+          :cache => :cache,
+          :adabas => :adabas,
+          :firebird => :firebird,
+          :derby => :derby,
+          :filemaker => :filemaker,
+          :informix => :informix,
+          :instantdb => :instantdb,
+          :interbase => :interbase,
+          :mariadb => :mariadb,
+          :netezza => :netezza,
+          :pervasive => :pervasive,
+          :pointbase => :pointbase,
+          :sqlite => :sqlite,
+          :sybase => :sybase,
+          :teradata => :teradata,
+          :vertica => :vertica,
+          :h2 => :h2,
+          :coldfusion => :coldfusion,
+          :cassandra => :cassandra,
+          :hbase => :hbase,
+          :mongodb => :mongodb,
+          :redis => :redis,
+          :couchbase => :couchbase,
+          :couchdb => :couchdb,
+          :cosmosdb => :cosmosdb,
+          :dynamodb => :dynamodb,
+          :neo4j => :neo4j,
+          :geode => :geode,
+          :elasticsearch => :elasticsearch,
+          :memcached => :memcached,
+          :cockroachdb => :cockroachdb,
+          :opensearch => :opensearch,
+          :clickhouse => :clickhouse,
+          :spanner => :spanner,
+          :trino => :trino
+        }
   @doc """
   The database management system (DBMS) product as identified by the client instrumentation.
   ### Notes
@@ -765,128 +707,78 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.DbAttributes.db_system(:other_sql)
+      iex> OpenTelemetry.SemanticConventions.DbAttributes.db_system().other_sql
       :other_sql
       
       iex> OpenTelemetry.SemanticConventions.DbAttributes.db_system(:custom_value)
       :custom_value
   """
-  @spec db_system(db_system()) ::
-          :other_sql
-          | :mssql
-          | :mssqlcompact
-          | :mysql
-          | :oracle
-          | :db2
-          | :postgresql
-          | :redshift
-          | :hive
-          | :cloudscape
-          | :hsqldb
-          | :progress
-          | :maxdb
-          | :hanadb
-          | :ingres
-          | :firstsql
-          | :edb
-          | :cache
-          | :adabas
-          | :firebird
-          | :derby
-          | :filemaker
-          | :informix
-          | :instantdb
-          | :interbase
-          | :mariadb
-          | :netezza
-          | :pervasive
-          | :pointbase
-          | :sqlite
-          | :sybase
-          | :teradata
-          | :vertica
-          | :h2
-          | :coldfusion
-          | :cassandra
-          | :hbase
-          | :mongodb
-          | :redis
-          | :couchbase
-          | :couchdb
-          | :cosmosdb
-          | :dynamodb
-          | :neo4j
-          | :geode
-          | :elasticsearch
-          | :memcached
-          | :cockroachdb
-          | :opensearch
-          | :clickhouse
-          | :spanner
-          | :trino
-          | atom()
-  def db_system(option) do
-    case option do
-      :other_sql -> :other_sql
-      :mssql -> :mssql
-      :mssqlcompact -> :mssqlcompact
-      :mysql -> :mysql
-      :oracle -> :oracle
-      :db2 -> :db2
-      :postgresql -> :postgresql
-      :redshift -> :redshift
-      :hive -> :hive
-      :cloudscape -> :cloudscape
-      :hsqldb -> :hsqldb
-      :progress -> :progress
-      :maxdb -> :maxdb
-      :hanadb -> :hanadb
-      :ingres -> :ingres
-      :firstsql -> :firstsql
-      :edb -> :edb
-      :cache -> :cache
-      :adabas -> :adabas
-      :firebird -> :firebird
-      :derby -> :derby
-      :filemaker -> :filemaker
-      :informix -> :informix
-      :instantdb -> :instantdb
-      :interbase -> :interbase
-      :mariadb -> :mariadb
-      :netezza -> :netezza
-      :pervasive -> :pervasive
-      :pointbase -> :pointbase
-      :sqlite -> :sqlite
-      :sybase -> :sybase
-      :teradata -> :teradata
-      :vertica -> :vertica
-      :h2 -> :h2
-      :coldfusion -> :coldfusion
-      :cassandra -> :cassandra
-      :hbase -> :hbase
-      :mongodb -> :mongodb
-      :redis -> :redis
-      :couchbase -> :couchbase
-      :couchdb -> :couchdb
-      :cosmosdb -> :cosmosdb
-      :dynamodb -> :dynamodb
-      :neo4j -> :neo4j
-      :geode -> :geode
-      :elasticsearch -> :elasticsearch
-      :memcached -> :memcached
-      :cockroachdb -> :cockroachdb
-      :opensearch -> :opensearch
-      :clickhouse -> :clickhouse
-      :spanner -> :spanner
-      :trino -> :trino
-      _ -> option
-    end
+  @spec db_system() :: db_system()
+  def db_system() do
+    %{
+      :other_sql => :other_sql,
+      :mssql => :mssql,
+      :mssqlcompact => :mssqlcompact,
+      :mysql => :mysql,
+      :oracle => :oracle,
+      :db2 => :db2,
+      :postgresql => :postgresql,
+      :redshift => :redshift,
+      :hive => :hive,
+      :cloudscape => :cloudscape,
+      :hsqldb => :hsqldb,
+      :progress => :progress,
+      :maxdb => :maxdb,
+      :hanadb => :hanadb,
+      :ingres => :ingres,
+      :firstsql => :firstsql,
+      :edb => :edb,
+      :cache => :cache,
+      :adabas => :adabas,
+      :firebird => :firebird,
+      :derby => :derby,
+      :filemaker => :filemaker,
+      :informix => :informix,
+      :instantdb => :instantdb,
+      :interbase => :interbase,
+      :mariadb => :mariadb,
+      :netezza => :netezza,
+      :pervasive => :pervasive,
+      :pointbase => :pointbase,
+      :sqlite => :sqlite,
+      :sybase => :sybase,
+      :teradata => :teradata,
+      :vertica => :vertica,
+      :h2 => :h2,
+      :coldfusion => :coldfusion,
+      :cassandra => :cassandra,
+      :hbase => :hbase,
+      :mongodb => :mongodb,
+      :redis => :redis,
+      :couchbase => :couchbase,
+      :couchdb => :couchdb,
+      :cosmosdb => :cosmosdb,
+      :dynamodb => :dynamodb,
+      :neo4j => :neo4j,
+      :geode => :geode,
+      :elasticsearch => :elasticsearch,
+      :memcached => :memcached,
+      :cockroachdb => :cockroachdb,
+      :opensearch => :opensearch,
+      :clickhouse => :clickhouse,
+      :spanner => :spanner,
+      :trino => :trino
+    }
+  end
+
+  @spec db_system(atom() | String.t()) :: atom() | String.t()
+  def db_system(custom_value) do
+    custom_value
   end
 
   @deprecated """
   No replacement at this time.
   """
-
   @spec db_user :: :"db.user"
   def db_user do
     :"db.user"
@@ -895,7 +787,6 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   @deprecated """
   Replaced by `db.client.connections.pool.name`.
   """
-
   @spec pool_name :: :"pool.name"
   def pool_name do
     :"pool.name"
@@ -904,23 +795,27 @@ defmodule OpenTelemetry.SemanticConventions.DbAttributes do
   @typedoc """
   Deprecated, use `db.client.connections.state` instead.
 
-  ### Options
+  ### Enum Values
   * `:idle` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:used` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
-
   """
-  @type state() :: :idle | :used | atom()
-
+  @type state() :: %{
+          :idle => :idle,
+          :used => :used
+        }
   @deprecated """
   Replaced by `db.client.connections.state`.
   """
+  @spec state() :: state()
+  def state() do
+    %{
+      :idle => :idle,
+      :used => :used
+    }
+  end
 
-  @spec state(state()) :: :idle | :used | atom()
-  def state(option) do
-    case option do
-      :idle -> :idle
-      :used -> :used
-      _ -> option
-    end
+  @spec state(atom() | String.t()) :: atom() | String.t()
+  def state(custom_value) do
+    custom_value
   end
 end

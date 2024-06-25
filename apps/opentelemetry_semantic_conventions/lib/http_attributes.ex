@@ -7,7 +7,6 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   @deprecated """
   Replaced by `client.address`.
   """
-
   @spec http_clientip :: :"http.client_ip"
   def http_clientip do
     :"http.client_ip"
@@ -16,82 +15,80 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   @typedoc """
   State of the HTTP connection in the HTTP connection pool.
 
-  ### Options
+  ### Enum Values
   * `:active` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - active state.
   * `:idle` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - idle state.
-
   """
-  @type http_connection_state() :: :active | :idle | atom()
-
+  @type http_connection_state() :: %{
+          :active => :active,
+          :idle => :idle
+        }
   @doc """
   State of the HTTP connection in the HTTP connection pool.
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.HttpAttributes.http_connection_state(:active)
+      iex> OpenTelemetry.SemanticConventions.HttpAttributes.http_connection_state().active
       :active
       
       iex> OpenTelemetry.SemanticConventions.HttpAttributes.http_connection_state(:custom_value)
       :custom_value
   """
-  @spec http_connection_state(http_connection_state()) :: :active | :idle | atom()
-  def http_connection_state(option) do
-    case option do
-      :active -> :active
-      :idle -> :idle
-      _ -> option
-    end
+  @spec http_connection_state() :: http_connection_state()
+  def http_connection_state() do
+    %{
+      :active => :active,
+      :idle => :idle
+    }
   end
 
-  @type http_1_0() :: :"1.0"
-
-  @type http_1_1() :: :"1.1"
-
-  @type http_2_0() :: :"2.0"
-
-  @type http_3_0() :: :"3.0"
-
-  @type spdy() :: :SPDY
-
-  @type quic() :: :QUIC
+  @spec http_connection_state(atom() | String.t()) :: atom() | String.t()
+  def http_connection_state(custom_value) do
+    custom_value
+  end
 
   @typedoc """
   Deprecated, use `network.protocol.name` instead.
 
-  ### Options
+  ### Enum Values
   * `:http_1_0` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - HTTP/1.0
   * `:http_1_1` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - HTTP/1.1
   * `:http_2_0` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - HTTP/2
   * `:http_3_0` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - HTTP/3
   * `:spdy` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - SPDY protocol.
   * `:quic` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - QUIC protocol.
-
   """
-  @type http_flavor() ::
-          http_1_0() | http_1_1() | http_2_0() | http_3_0() | spdy() | quic() | atom()
-
+  @type http_flavor() :: %{
+          :http_1_0 => :"1.0",
+          :http_1_1 => :"1.1",
+          :http_2_0 => :"2.0",
+          :http_3_0 => :"3.0",
+          :spdy => :SPDY,
+          :quic => :QUIC
+        }
   @deprecated """
   Replaced by `network.protocol.name`.
   """
+  @spec http_flavor() :: http_flavor()
+  def http_flavor() do
+    %{
+      :http_1_0 => :"1.0",
+      :http_1_1 => :"1.1",
+      :http_2_0 => :"2.0",
+      :http_3_0 => :"3.0",
+      :spdy => :SPDY,
+      :quic => :QUIC
+    }
+  end
 
-  @spec http_flavor(http_flavor()) ::
-          http_1_0() | http_1_1() | http_2_0() | http_3_0() | spdy() | quic() | atom()
-  def http_flavor(option) do
-    case option do
-      :http_1_0 -> :"1.0"
-      :http_1_1 -> :"1.1"
-      :http_2_0 -> :"2.0"
-      :http_3_0 -> :"3.0"
-      :spdy -> :SPDY
-      :quic -> :QUIC
-      _ -> option
-    end
+  @spec http_flavor(atom() | String.t()) :: atom() | String.t()
+  def http_flavor(custom_value) do
+    custom_value
   end
 
   @deprecated """
   Replaced by one of `server.address`, `client.address` or `http.request.header.host`, depending on the usage.
   """
-
   @spec http_host :: :"http.host"
   def http_host do
     :"http.host"
@@ -100,7 +97,6 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   @deprecated """
   Replaced by `http.request.method`.
   """
-
   @spec http_method :: :"http.method"
   def http_method do
     :"http.method"
@@ -139,30 +135,10 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
     :"http.request.header"
   end
 
-  @type connect() :: :CONNECT
-
-  @type delete() :: :DELETE
-
-  @type get() :: :GET
-
-  @type head() :: :HEAD
-
-  @type options() :: :OPTIONS
-
-  @type patch() :: :PATCH
-
-  @type post() :: :POST
-
-  @type put() :: :PUT
-
-  @type trace() :: :TRACE
-
-  @type other() :: :_OTHER
-
   @typedoc """
   HTTP request method.
 
-  ### Options
+  ### Enum Values
   * `:connect` - CONNECT method.
   * `:delete` - DELETE method.
   * `:get` - GET method.
@@ -173,21 +149,19 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   * `:put` - PUT method.
   * `:trace` - TRACE method.
   * `:other` - Any HTTP method that the instrumentation has no prior knowledge of.
-
   """
-  @type http_request_method() ::
-          connect()
-          | delete()
-          | get()
-          | head()
-          | options()
-          | patch()
-          | post()
-          | put()
-          | trace()
-          | other()
-          | atom()
-
+  @type http_request_method() :: %{
+          :connect => :CONNECT,
+          :delete => :DELETE,
+          :get => :GET,
+          :head => :HEAD,
+          :options => :OPTIONS,
+          :patch => :PATCH,
+          :post => :POST,
+          :put => :PUT,
+          :trace => :TRACE,
+          :other => :_OTHER
+        }
   @doc """
   HTTP request method.
   ### Notes
@@ -209,38 +183,31 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.HttpAttributes.http_request_method(:connect)
+      iex> OpenTelemetry.SemanticConventions.HttpAttributes.http_request_method().connect
       :CONNECT
       
       iex> OpenTelemetry.SemanticConventions.HttpAttributes.http_request_method(:custom_value)
       :custom_value
   """
-  @spec http_request_method(http_request_method()) ::
-          connect()
-          | delete()
-          | get()
-          | head()
-          | options()
-          | patch()
-          | post()
-          | put()
-          | trace()
-          | other()
-          | atom()
-  def http_request_method(option) do
-    case option do
-      :connect -> :CONNECT
-      :delete -> :DELETE
-      :get -> :GET
-      :head -> :HEAD
-      :options -> :OPTIONS
-      :patch -> :PATCH
-      :post -> :POST
-      :put -> :PUT
-      :trace -> :TRACE
-      :other -> :_OTHER
-      _ -> option
-    end
+  @spec http_request_method() :: http_request_method()
+  def http_request_method() do
+    %{
+      :connect => :CONNECT,
+      :delete => :DELETE,
+      :get => :GET,
+      :head => :HEAD,
+      :options => :OPTIONS,
+      :patch => :PATCH,
+      :post => :POST,
+      :put => :PUT,
+      :trace => :TRACE,
+      :other => :_OTHER
+    }
+  end
+
+  @spec http_request_method(atom() | String.t()) :: atom() | String.t()
+  def http_request_method(custom_value) do
+    custom_value
   end
 
   @doc """
@@ -290,7 +257,6 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   @deprecated """
   Replaced by `http.request.header.content-length`.
   """
-
   @spec http_requestcontentlength :: :"http.request_content_length"
   def http_requestcontentlength do
     :"http.request_content_length"
@@ -299,7 +265,6 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   @deprecated """
   Replaced by `http.request.body.size`.
   """
-
   @spec http_requestcontentlengthuncompressed :: :"http.request_content_length_uncompressed"
   def http_requestcontentlengthuncompressed do
     :"http.request_content_length_uncompressed"
@@ -368,7 +333,6 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   @deprecated """
   Replaced by `http.response.header.content-length`.
   """
-
   @spec http_responsecontentlength :: :"http.response_content_length"
   def http_responsecontentlength do
     :"http.response_content_length"
@@ -377,7 +341,6 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   @deprecated """
   Replace by `http.response.body.size`.
   """
-
   @spec http_responsecontentlengthuncompressed :: :"http.response_content_length_uncompressed"
   def http_responsecontentlengthuncompressed do
     :"http.response_content_length_uncompressed"
@@ -404,7 +367,6 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   @deprecated """
   Replaced by `url.scheme` instead.
   """
-
   @spec http_scheme :: :"http.scheme"
   def http_scheme do
     :"http.scheme"
@@ -413,7 +375,6 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   @deprecated """
   Replaced by `server.address`.
   """
-
   @spec http_servername :: :"http.server_name"
   def http_servername do
     :"http.server_name"
@@ -422,7 +383,6 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   @deprecated """
   Replaced by `http.response.status_code`.
   """
-
   @spec http_statuscode :: :"http.status_code"
   def http_statuscode do
     :"http.status_code"
@@ -431,7 +391,6 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   @deprecated """
   Split to `url.path` and `url.query.
   """
-
   @spec http_target :: :"http.target"
   def http_target do
     :"http.target"
@@ -440,7 +399,6 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   @deprecated """
   Replaced by `url.full`.
   """
-
   @spec http_url :: :"http.url"
   def http_url do
     :"http.url"
@@ -449,7 +407,6 @@ defmodule OpenTelemetry.SemanticConventions.HttpAttributes do
   @deprecated """
   Replaced by `user_agent.original`.
   """
-
   @spec http_useragent :: :"http.user_agent"
   def http_useragent do
     :"http.user_agent"

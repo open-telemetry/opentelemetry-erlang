@@ -21,6 +21,31 @@
 {%- macro enum_value_to_elixir_type(value) -%}
   {%- if value is string %}{{ to_atom(value) }}{% else -%}{{ value }}{%- endif %}
 {%- endmacro -%}
+{%- macro enum_value_return_type(value) -%}
+  {%- if value is string -%}
+  atom() | String.t()
+  {%- elif value is integer -%}
+  integer()
+  {%- else -%}
+  NOT_MAPPED
+  {%- endif -%}
+{%- endmacro -%}
+{%- macro enum_value_return_type_example(value) -%}
+  {%- if value is string -%}
+  :custom_value
+  {%- elif value is integer -%}
+  27
+  {%- else -%}
+  NOT_MAPPED
+  {%- endif -%}
+{%- endmacro -%}
+{%- macro enum_to_map(members) -%}
+  {% raw %}%{{% endraw %}
+  {% for member in members %}
+    {{ to_atom(member.id) }} => {{ enum_value_to_elixir_type(member.value) }}{% if not loop.last %},{% endif %}
+  {% endfor %}
+  {% raw %}}{% endraw %}
+{%- endmacro -%}
 {%- macro strong_reqs(string) -%}
   {{ string | replace(" MUST ", " **MUST** ") | replace(" MUST NOT ", " **MUST NOT** ") | replace(" SHOULD ", " **SHOULD** ") | replace(" SHOULD NOT ", " **SHOULD NOT** ") |  replace(" MAY ", " **MAY** ") | replace(" NOT ", " **NOT** ") }}
 {%- endmacro -%}
@@ -38,35 +63,27 @@ defmodule OpenTelemetry.SemanticConventions.{{ module_name }} do
   OpenTelemetry Semantic Conventions for {{ ctx.id | title }} attributes.
   """
 {%- for attribute in ctx.attributes | sort(attribute="name") %}
-{% if attribute.type is mapping %}
+  {% if attribute.type is mapping %}
   {# @doc namespace: {{ to_atom(ctx.id) }} #}
-
-  {% for member in attribute.type.members %}
-  {% if member.id ~ '' != member.value -%}
-  @type {{ member.id }}() :: {{ enum_value_to_elixir_type(member.value) }}
-  {%- endif %}
-  {% endfor %}
+  
   @typedoc """
   {{ strong_reqs(attribute.brief) }}
 
-  ### Options
+  ### Enum Values
   {% for member in attribute.type.members -%}
   * `{{ to_atom(member.id) }}`
   {%- if member is experimental %} ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^{% endif %}{% if member.brief != none %} - {% if member is deprecated %}**deprecated** ~~{% endif %}{{ member.brief }}{% if member is deprecated %}~~{% endif %}{% endif %}
-  {% endfor %}
+  {% endfor -%}
   """
-  @type {{ attribute.name | snake_case_const }}() ::
-    {%- for member in attribute.type.members -%}
-    {% if loop.first %} {% endif %}{% if member.id ~ '' != member.value %}{{ member.id }}(){% else %}{{ enum_value_to_elixir_type(member.value) }}{% endif %}{% if not loop.last %} | {% endif %}
-    {%- endfor -%}
-    | atom()
-  {%- endif %}
+  @type {{ attribute.name | snake_case_const }}() :: {{ enum_to_map(attribute.type.members) }}
+  {%- endif -%}
  
   {% if attribute is deprecated %}
   @deprecated """
   {{ attribute.deprecated | replace("\n", "\n  ") }}
   """
-  {% else %}
+  {%- endif -%}
+  {% if not(attribute is deprecated) %}
   @doc """
   {{ strong_reqs(attribute.brief | replace("\n", "\n  ")) }}
   {% if attribute.note -%}
@@ -78,36 +95,33 @@ defmodule OpenTelemetry.SemanticConventions.{{ module_name }} do
   {%- endif %}
 
   ### Example
-  {%- if not(attribute.type is mapping) %}
-      iex> OpenTelemetry.SemanticConventions.{{ module_name }}.{{ func_name(attribute.name) }}()
-      {{ to_atom(attribute.name) }}
-  {%- else %}
-      iex> OpenTelemetry.SemanticConventions.{{ module_name }}.{{ func_name(attribute.name) }}({{ to_atom(attribute.type.members|first|attr('id'))}})
+  {%- if attribute.type is mapping %}
+      iex> OpenTelemetry.SemanticConventions.{{ module_name }}.{{ func_name(attribute.name) }}().{{ attribute.type.members|first|attr('id') }}
       {{ enum_value_to_elixir_type(attribute.type.members|first|attr('value')) }}
       
-      iex> OpenTelemetry.SemanticConventions.{{ module_name }}.{{ func_name(attribute.name) }}(:custom_value)
-      :custom_value
+      iex> OpenTelemetry.SemanticConventions.{{ module_name }}.{{ func_name(attribute.name) }}({{ enum_value_return_type_example(attribute.type.members|first|attr('value')) }})
+      {{ enum_value_return_type_example(attribute.type.members|first|attr('value')) }}
+  {%- else %}
+      iex> OpenTelemetry.SemanticConventions.{{ module_name }}.{{ func_name(attribute.name) }}()
+      {{ to_atom(attribute.name) }}
   {%- endif %}
   """
   {%- endif %}
+
   {%- if not(attribute.type is mapping) %}
   @spec {{ func_name(attribute.name) }} :: {{ to_atom(attribute.name) }}
   def {{ func_name(attribute.name) }} do
     {{ to_atom(attribute.name) }}
   end
   {%- else %}
-  @spec {{ func_name(attribute.name) }}({{ attribute.name | snake_case_const }}()) :: 
-    {%- for member in attribute.type.members -%}
-    {% if loop.first %} {% endif %}{% if member.id ~ '' != member.value %}{{ member.id }}(){% else %}{{ enum_value_to_elixir_type(member.value) }}{% endif %}{% if not loop.last %} | {% endif %}
-    {%- endfor -%}
-    | atom()
-  def {{ func_name(attribute.name) }}(option) do
-    case option do
-    {% for member in attribute.type.members %}
-      {{ to_atom(member.id) }} -> {{ enum_value_to_elixir_type(member.value) }}
-    {% endfor %}
-      _ -> option
-    end
+  @spec {{ func_name(attribute.name) }}() :: {{ attribute.name | snake_case_const }}()
+  def {{ func_name(attribute.name) }}() do
+  {{ enum_to_map(attribute.type.members) }}
+  end
+
+  @spec {{ func_name(attribute.name) }}({{ enum_value_return_type(attribute.type.members|first|attr('value')) }}) :: {{ enum_value_return_type(attribute.type.members|first|attr('value')) }} 
+  def {{ func_name(attribute.name) }}(custom_value) do
+    custom_value
   end
   {%- endif %}
 {% endfor %}

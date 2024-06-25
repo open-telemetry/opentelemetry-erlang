@@ -49,66 +49,76 @@ defmodule OpenTelemetry.SemanticConventions.ProcessAttributes do
   @typedoc """
   Specifies whether the context switches for this data point were voluntary or involuntary.
 
-  ### Options
+  ### Enum Values
   * `:voluntary` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:involuntary` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
-
   """
-  @type process_contextswitchtype() :: :voluntary | :involuntary | atom()
-
+  @type process_contextswitchtype() :: %{
+          :voluntary => :voluntary,
+          :involuntary => :involuntary
+        }
   @doc """
   Specifies whether the context switches for this data point were voluntary or involuntary.
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.ProcessAttributes.process_contextswitchtype(:voluntary)
+      iex> OpenTelemetry.SemanticConventions.ProcessAttributes.process_contextswitchtype().voluntary
       :voluntary
       
       iex> OpenTelemetry.SemanticConventions.ProcessAttributes.process_contextswitchtype(:custom_value)
       :custom_value
   """
-  @spec process_contextswitchtype(process_contextswitchtype()) ::
-          :voluntary | :involuntary | atom()
-  def process_contextswitchtype(option) do
-    case option do
-      :voluntary -> :voluntary
-      :involuntary -> :involuntary
-      _ -> option
-    end
+  @spec process_contextswitchtype() :: process_contextswitchtype()
+  def process_contextswitchtype() do
+    %{
+      :voluntary => :voluntary,
+      :involuntary => :involuntary
+    }
+  end
+
+  @spec process_contextswitchtype(atom() | String.t()) :: atom() | String.t()
+  def process_contextswitchtype(custom_value) do
+    custom_value
   end
 
   @typedoc """
   The CPU state of the process.
 
 
-  ### Options
+  ### Enum Values
   * `:system` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:user` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:wait` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
-
   """
-  @type process_cpu_state() :: :system | :user | :wait | atom()
-
+  @type process_cpu_state() :: %{
+          :system => :system,
+          :user => :user,
+          :wait => :wait
+        }
   @doc """
   The CPU state of the process.
 
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.ProcessAttributes.process_cpu_state(:system)
+      iex> OpenTelemetry.SemanticConventions.ProcessAttributes.process_cpu_state().system
       :system
       
       iex> OpenTelemetry.SemanticConventions.ProcessAttributes.process_cpu_state(:custom_value)
       :custom_value
   """
-  @spec process_cpu_state(process_cpu_state()) :: :system | :user | :wait | atom()
-  def process_cpu_state(option) do
-    case option do
-      :system -> :system
-      :user -> :user
-      :wait -> :wait
-      _ -> option
-    end
+  @spec process_cpu_state() :: process_cpu_state()
+  def process_cpu_state() do
+    %{
+      :system => :system,
+      :user => :user,
+      :wait => :wait
+    }
+  end
+
+  @spec process_cpu_state(atom() | String.t()) :: atom() | String.t()
+  def process_cpu_state(custom_value) do
+    custom_value
   end
 
   @doc """
@@ -227,32 +237,37 @@ defmodule OpenTelemetry.SemanticConventions.ProcessAttributes do
   The type of page fault for this data point. Type `major` is for major/hard page faults, and `minor` is for minor/soft page faults.
 
 
-  ### Options
+  ### Enum Values
   * `:major` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:minor` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
-
   """
-  @type process_paging_faulttype() :: :major | :minor | atom()
-
+  @type process_paging_faulttype() :: %{
+          :major => :major,
+          :minor => :minor
+        }
   @doc """
   The type of page fault for this data point. Type `major` is for major/hard page faults, and `minor` is for minor/soft page faults.
 
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.ProcessAttributes.process_paging_faulttype(:major)
+      iex> OpenTelemetry.SemanticConventions.ProcessAttributes.process_paging_faulttype().major
       :major
       
       iex> OpenTelemetry.SemanticConventions.ProcessAttributes.process_paging_faulttype(:custom_value)
       :custom_value
   """
-  @spec process_paging_faulttype(process_paging_faulttype()) :: :major | :minor | atom()
-  def process_paging_faulttype(option) do
-    case option do
-      :major -> :major
-      :minor -> :minor
-      _ -> option
-    end
+  @spec process_paging_faulttype() :: process_paging_faulttype()
+  def process_paging_faulttype() do
+    %{
+      :major => :major,
+      :minor => :minor
+    }
+  end
+
+  @spec process_paging_faulttype(atom() | String.t()) :: atom() | String.t()
+  def process_paging_faulttype(custom_value) do
+    custom_value
   end
 
   @doc """

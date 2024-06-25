@@ -40,7 +40,7 @@ defmodule OpenTelemetry.SemanticConventions.TelemetryAttributes do
   The language of the telemetry SDK.
 
 
-  ### Options
+  ### Enum Values
   * `:cpp`
   * `:dotnet`
   * `:erlang`
@@ -53,65 +53,54 @@ defmodule OpenTelemetry.SemanticConventions.TelemetryAttributes do
   * `:rust`
   * `:swift`
   * `:webjs`
-
   """
-  @type telemetry_sdk_language() ::
-          :cpp
-          | :dotnet
-          | :erlang
-          | :go
-          | :java
-          | :nodejs
-          | :php
-          | :python
-          | :ruby
-          | :rust
-          | :swift
-          | :webjs
-          | atom()
-
+  @type telemetry_sdk_language() :: %{
+          :cpp => :cpp,
+          :dotnet => :dotnet,
+          :erlang => :erlang,
+          :go => :go,
+          :java => :java,
+          :nodejs => :nodejs,
+          :php => :php,
+          :python => :python,
+          :ruby => :ruby,
+          :rust => :rust,
+          :swift => :swift,
+          :webjs => :webjs
+        }
   @doc """
   The language of the telemetry SDK.
 
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.TelemetryAttributes.telemetry_sdk_language(:cpp)
+      iex> OpenTelemetry.SemanticConventions.TelemetryAttributes.telemetry_sdk_language().cpp
       :cpp
       
       iex> OpenTelemetry.SemanticConventions.TelemetryAttributes.telemetry_sdk_language(:custom_value)
       :custom_value
   """
-  @spec telemetry_sdk_language(telemetry_sdk_language()) ::
-          :cpp
-          | :dotnet
-          | :erlang
-          | :go
-          | :java
-          | :nodejs
-          | :php
-          | :python
-          | :ruby
-          | :rust
-          | :swift
-          | :webjs
-          | atom()
-  def telemetry_sdk_language(option) do
-    case option do
-      :cpp -> :cpp
-      :dotnet -> :dotnet
-      :erlang -> :erlang
-      :go -> :go
-      :java -> :java
-      :nodejs -> :nodejs
-      :php -> :php
-      :python -> :python
-      :ruby -> :ruby
-      :rust -> :rust
-      :swift -> :swift
-      :webjs -> :webjs
-      _ -> option
-    end
+  @spec telemetry_sdk_language() :: telemetry_sdk_language()
+  def telemetry_sdk_language() do
+    %{
+      :cpp => :cpp,
+      :dotnet => :dotnet,
+      :erlang => :erlang,
+      :go => :go,
+      :java => :java,
+      :nodejs => :nodejs,
+      :php => :php,
+      :python => :python,
+      :ruby => :ruby,
+      :rust => :rust,
+      :swift => :swift,
+      :webjs => :webjs
+    }
+  end
+
+  @spec telemetry_sdk_language(atom() | String.t()) :: atom() | String.t()
+  def telemetry_sdk_language(custom_value) do
+    custom_value
   end
 
   @doc """

@@ -52,33 +52,39 @@ defmodule OpenTelemetry.SemanticConventions.ContainerAttributes do
   @typedoc """
   The CPU state for this data point.
 
-  ### Options
+  ### Enum Values
   * `:user` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - When tasks of the cgroup are in user mode (Linux). When all container processes are in user mode (Windows).
   * `:system` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - When CPU is used by the system (host OS)
   * `:kernel` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - When tasks of the cgroup are in kernel mode (Linux). When all container processes are in kernel mode (Windows).
-
   """
-  @type container_cpu_state() :: :user | :system | :kernel | atom()
-
+  @type container_cpu_state() :: %{
+          :user => :user,
+          :system => :system,
+          :kernel => :kernel
+        }
   @doc """
   The CPU state for this data point.
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.ContainerAttributes.container_cpu_state(:user)
+      iex> OpenTelemetry.SemanticConventions.ContainerAttributes.container_cpu_state().user
       :user
       
       iex> OpenTelemetry.SemanticConventions.ContainerAttributes.container_cpu_state(:custom_value)
       :custom_value
   """
-  @spec container_cpu_state(container_cpu_state()) :: :user | :system | :kernel | atom()
-  def container_cpu_state(option) do
-    case option do
-      :user -> :user
-      :system -> :system
-      :kernel -> :kernel
-      _ -> option
-    end
+  @spec container_cpu_state() :: container_cpu_state()
+  def container_cpu_state() do
+    %{
+      :user => :user,
+      :system => :system,
+      :kernel => :kernel
+    }
+  end
+
+  @spec container_cpu_state(atom() | String.t()) :: atom() | String.t()
+  def container_cpu_state(custom_value) do
+    custom_value
   end
 
   @doc """
@@ -176,7 +182,6 @@ defmodule OpenTelemetry.SemanticConventions.ContainerAttributes do
   @deprecated """
   Replaced by `container.label`.
   """
-
   @spec container_labels :: :"container.labels"
   def container_labels do
     :"container.labels"

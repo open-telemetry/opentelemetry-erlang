@@ -48,7 +48,7 @@ defmodule OpenTelemetry.SemanticConventions.OsAttributes do
   The operating system type.
 
 
-  ### Options
+  ### Enum Values
   * `:windows` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Microsoft Windows
   * `:linux` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Linux
   * `:darwin` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Apple Darwin
@@ -60,62 +60,52 @@ defmodule OpenTelemetry.SemanticConventions.OsAttributes do
   * `:aix` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - AIX (Advanced Interactive eXecutive)
   * `:solaris` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - SunOS, Oracle Solaris
   * `:z_os` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - IBM z/OS
-
   """
-  @type os_type() ::
-          :windows
-          | :linux
-          | :darwin
-          | :freebsd
-          | :netbsd
-          | :openbsd
-          | :dragonflybsd
-          | :hpux
-          | :aix
-          | :solaris
-          | :z_os
-          | atom()
-
+  @type os_type() :: %{
+          :windows => :windows,
+          :linux => :linux,
+          :darwin => :darwin,
+          :freebsd => :freebsd,
+          :netbsd => :netbsd,
+          :openbsd => :openbsd,
+          :dragonflybsd => :dragonflybsd,
+          :hpux => :hpux,
+          :aix => :aix,
+          :solaris => :solaris,
+          :z_os => :z_os
+        }
   @doc """
   The operating system type.
 
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.OsAttributes.os_type(:windows)
+      iex> OpenTelemetry.SemanticConventions.OsAttributes.os_type().windows
       :windows
       
       iex> OpenTelemetry.SemanticConventions.OsAttributes.os_type(:custom_value)
       :custom_value
   """
-  @spec os_type(os_type()) ::
-          :windows
-          | :linux
-          | :darwin
-          | :freebsd
-          | :netbsd
-          | :openbsd
-          | :dragonflybsd
-          | :hpux
-          | :aix
-          | :solaris
-          | :z_os
-          | atom()
-  def os_type(option) do
-    case option do
-      :windows -> :windows
-      :linux -> :linux
-      :darwin -> :darwin
-      :freebsd -> :freebsd
-      :netbsd -> :netbsd
-      :openbsd -> :openbsd
-      :dragonflybsd -> :dragonflybsd
-      :hpux -> :hpux
-      :aix -> :aix
-      :solaris -> :solaris
-      :z_os -> :z_os
-      _ -> option
-    end
+  @spec os_type() :: os_type()
+  def os_type() do
+    %{
+      :windows => :windows,
+      :linux => :linux,
+      :darwin => :darwin,
+      :freebsd => :freebsd,
+      :netbsd => :netbsd,
+      :openbsd => :openbsd,
+      :dragonflybsd => :dragonflybsd,
+      :hpux => :hpux,
+      :aix => :aix,
+      :solaris => :solaris,
+      :z_os => :z_os
+    }
+  end
+
+  @spec os_type(atom() | String.t()) :: atom() | String.t()
+  def os_type(custom_value) do
+    custom_value
   end
 
   @doc """

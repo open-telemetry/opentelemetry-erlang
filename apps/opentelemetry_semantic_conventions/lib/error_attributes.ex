@@ -4,19 +4,17 @@ defmodule OpenTelemetry.SemanticConventions.ErrorAttributes do
   OpenTelemetry Semantic Conventions for Error attributes.
   """
 
-  @type other() :: :_OTHER
-
   @typedoc """
   Describes a class of error the operation ended with.
 
 
-  ### Options
+  ### Enum Values
   * `:other` - A fallback error value to be used when the instrumentation doesn't define a custom value.
 
-
   """
-  @type error_type() :: other() | atom()
-
+  @type error_type() :: %{
+          :other => :_OTHER
+        }
   @doc """
   Describes a class of error the operation ended with.
 
@@ -44,17 +42,21 @@ defmodule OpenTelemetry.SemanticConventions.ErrorAttributes do
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.ErrorAttributes.error_type(:other)
+      iex> OpenTelemetry.SemanticConventions.ErrorAttributes.error_type().other
       :_OTHER
       
       iex> OpenTelemetry.SemanticConventions.ErrorAttributes.error_type(:custom_value)
       :custom_value
   """
-  @spec error_type(error_type()) :: other() | atom()
-  def error_type(option) do
-    case option do
-      :other -> :_OTHER
-      _ -> option
-    end
+  @spec error_type() :: error_type()
+  def error_type() do
+    %{
+      :other => :_OTHER
+    }
+  end
+
+  @spec error_type(atom() | String.t()) :: atom() | String.t()
+  def error_type(custom_value) do
+    custom_value
   end
 end

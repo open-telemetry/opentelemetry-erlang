@@ -35,33 +35,38 @@ defmodule OpenTelemetry.SemanticConventions.GraphqlAttributes do
   @typedoc """
   The type of the operation being executed.
 
-  ### Options
+  ### Enum Values
   * `:query` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - GraphQL query
   * `:mutation` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - GraphQL mutation
   * `:subscription` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - GraphQL subscription
-
   """
-  @type graphql_operation_type() :: :query | :mutation | :subscription | atom()
-
+  @type graphql_operation_type() :: %{
+          :query => :query,
+          :mutation => :mutation,
+          :subscription => :subscription
+        }
   @doc """
   The type of the operation being executed.
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.GraphqlAttributes.graphql_operation_type(:query)
+      iex> OpenTelemetry.SemanticConventions.GraphqlAttributes.graphql_operation_type().query
       :query
       
       iex> OpenTelemetry.SemanticConventions.GraphqlAttributes.graphql_operation_type(:custom_value)
       :custom_value
   """
-  @spec graphql_operation_type(graphql_operation_type()) ::
-          :query | :mutation | :subscription | atom()
-  def graphql_operation_type(option) do
-    case option do
-      :query -> :query
-      :mutation -> :mutation
-      :subscription -> :subscription
-      _ -> option
-    end
+  @spec graphql_operation_type() :: graphql_operation_type()
+  def graphql_operation_type() do
+    %{
+      :query => :query,
+      :mutation => :mutation,
+      :subscription => :subscription
+    }
+  end
+
+  @spec graphql_operation_type(atom() | String.t()) :: atom() | String.t()
+  def graphql_operation_type(custom_value) do
+    custom_value
   end
 end

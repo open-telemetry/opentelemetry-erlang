@@ -226,32 +226,37 @@ defmodule OpenTelemetry.SemanticConventions.TlsAttributes do
   Normalized lowercase protocol name parsed from original string of the negotiated [SSL/TLS protocol version](https://www.openssl.org/docs/man1.1.1/man3/SSL_get_version.html#RETURN-VALUES)
 
 
-  ### Options
+  ### Enum Values
   * `:ssl` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:tls` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
-
   """
-  @type tls_protocol_name() :: :ssl | :tls | atom()
-
+  @type tls_protocol_name() :: %{
+          :ssl => :ssl,
+          :tls => :tls
+        }
   @doc """
   Normalized lowercase protocol name parsed from original string of the negotiated [SSL/TLS protocol version](https://www.openssl.org/docs/man1.1.1/man3/SSL_get_version.html#RETURN-VALUES)
 
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.TlsAttributes.tls_protocol_name(:ssl)
+      iex> OpenTelemetry.SemanticConventions.TlsAttributes.tls_protocol_name().ssl
       :ssl
       
       iex> OpenTelemetry.SemanticConventions.TlsAttributes.tls_protocol_name(:custom_value)
       :custom_value
   """
-  @spec tls_protocol_name(tls_protocol_name()) :: :ssl | :tls | atom()
-  def tls_protocol_name(option) do
-    case option do
-      :ssl -> :ssl
-      :tls -> :tls
-      _ -> option
-    end
+  @spec tls_protocol_name() :: tls_protocol_name()
+  def tls_protocol_name() do
+    %{
+      :ssl => :ssl,
+      :tls => :tls
+    }
+  end
+
+  @spec tls_protocol_name(atom() | String.t()) :: atom() | String.t()
+  def tls_protocol_name(custom_value) do
+    custom_value
   end
 
   @doc """

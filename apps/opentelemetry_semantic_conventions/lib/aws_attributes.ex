@@ -322,32 +322,37 @@ defmodule OpenTelemetry.SemanticConventions.AwsAttributes do
   The [launch type](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_types.html) for an ECS task.
 
 
-  ### Options
+  ### Enum Values
   * `:ec2` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:fargate` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
-
   """
-  @type aws_ecs_launchtype() :: :ec2 | :fargate | atom()
-
+  @type aws_ecs_launchtype() :: %{
+          :ec2 => :ec2,
+          :fargate => :fargate
+        }
   @doc """
   The [launch type](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_types.html) for an ECS task.
 
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.AwsAttributes.aws_ecs_launchtype(:ec2)
+      iex> OpenTelemetry.SemanticConventions.AwsAttributes.aws_ecs_launchtype().ec2
       :ec2
       
       iex> OpenTelemetry.SemanticConventions.AwsAttributes.aws_ecs_launchtype(:custom_value)
       :custom_value
   """
-  @spec aws_ecs_launchtype(aws_ecs_launchtype()) :: :ec2 | :fargate | atom()
-  def aws_ecs_launchtype(option) do
-    case option do
-      :ec2 -> :ec2
-      :fargate -> :fargate
-      _ -> option
-    end
+  @spec aws_ecs_launchtype() :: aws_ecs_launchtype()
+  def aws_ecs_launchtype() do
+    %{
+      :ec2 => :ec2,
+      :fargate => :fargate
+    }
+  end
+
+  @spec aws_ecs_launchtype(atom() | String.t()) :: atom() | String.t()
+  def aws_ecs_launchtype(custom_value) do
+    custom_value
   end
 
   @doc """

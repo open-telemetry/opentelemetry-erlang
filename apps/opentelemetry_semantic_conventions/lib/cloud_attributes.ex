@@ -39,7 +39,7 @@ defmodule OpenTelemetry.SemanticConventions.CloudAttributes do
   The cloud platform in use.
 
 
-  ### Options
+  ### Enum Values
   * `:alibaba_cloud_ecs` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Alibaba Cloud Elastic Compute Service
   * `:alibaba_cloud_fc` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Alibaba Cloud Function Compute
   * `:alibaba_cloud_openshift` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Red Hat OpenShift on Alibaba Cloud
@@ -68,39 +68,37 @@ defmodule OpenTelemetry.SemanticConventions.CloudAttributes do
   * `:tencent_cloud_cvm` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Tencent Cloud Cloud Virtual Machine (CVM)
   * `:tencent_cloud_eks` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Tencent Cloud Elastic Kubernetes Service (EKS)
   * `:tencent_cloud_scf` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Tencent Cloud Serverless Cloud Function (SCF)
-
   """
-  @type cloud_platform() ::
-          :alibaba_cloud_ecs
-          | :alibaba_cloud_fc
-          | :alibaba_cloud_openshift
-          | :aws_ec2
-          | :aws_ecs
-          | :aws_eks
-          | :aws_lambda
-          | :aws_elastic_beanstalk
-          | :aws_app_runner
-          | :aws_openshift
-          | :azure_vm
-          | :azure_container_apps
-          | :azure_container_instances
-          | :azure_aks
-          | :azure_functions
-          | :azure_app_service
-          | :azure_openshift
-          | :gcp_bare_metal_solution
-          | :gcp_compute_engine
-          | :gcp_cloud_run
-          | :gcp_kubernetes_engine
-          | :gcp_cloud_functions
-          | :gcp_app_engine
-          | :gcp_openshift
-          | :ibm_cloud_openshift
-          | :tencent_cloud_cvm
-          | :tencent_cloud_eks
-          | :tencent_cloud_scf
-          | atom()
-
+  @type cloud_platform() :: %{
+          :alibaba_cloud_ecs => :alibaba_cloud_ecs,
+          :alibaba_cloud_fc => :alibaba_cloud_fc,
+          :alibaba_cloud_openshift => :alibaba_cloud_openshift,
+          :aws_ec2 => :aws_ec2,
+          :aws_ecs => :aws_ecs,
+          :aws_eks => :aws_eks,
+          :aws_lambda => :aws_lambda,
+          :aws_elastic_beanstalk => :aws_elastic_beanstalk,
+          :aws_app_runner => :aws_app_runner,
+          :aws_openshift => :aws_openshift,
+          :azure_vm => :azure_vm,
+          :azure_container_apps => :azure_container_apps,
+          :azure_container_instances => :azure_container_instances,
+          :azure_aks => :azure_aks,
+          :azure_functions => :azure_functions,
+          :azure_app_service => :azure_app_service,
+          :azure_openshift => :azure_openshift,
+          :gcp_bare_metal_solution => :gcp_bare_metal_solution,
+          :gcp_compute_engine => :gcp_compute_engine,
+          :gcp_cloud_run => :gcp_cloud_run,
+          :gcp_kubernetes_engine => :gcp_kubernetes_engine,
+          :gcp_cloud_functions => :gcp_cloud_functions,
+          :gcp_app_engine => :gcp_app_engine,
+          :gcp_openshift => :gcp_openshift,
+          :ibm_cloud_openshift => :ibm_cloud_openshift,
+          :tencent_cloud_cvm => :tencent_cloud_cvm,
+          :tencent_cloud_eks => :tencent_cloud_eks,
+          :tencent_cloud_scf => :tencent_cloud_scf
+        }
   @doc """
   The cloud platform in use.
 
@@ -110,81 +108,56 @@ defmodule OpenTelemetry.SemanticConventions.CloudAttributes do
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.CloudAttributes.cloud_platform(:alibaba_cloud_ecs)
+      iex> OpenTelemetry.SemanticConventions.CloudAttributes.cloud_platform().alibaba_cloud_ecs
       :alibaba_cloud_ecs
       
       iex> OpenTelemetry.SemanticConventions.CloudAttributes.cloud_platform(:custom_value)
       :custom_value
   """
-  @spec cloud_platform(cloud_platform()) ::
-          :alibaba_cloud_ecs
-          | :alibaba_cloud_fc
-          | :alibaba_cloud_openshift
-          | :aws_ec2
-          | :aws_ecs
-          | :aws_eks
-          | :aws_lambda
-          | :aws_elastic_beanstalk
-          | :aws_app_runner
-          | :aws_openshift
-          | :azure_vm
-          | :azure_container_apps
-          | :azure_container_instances
-          | :azure_aks
-          | :azure_functions
-          | :azure_app_service
-          | :azure_openshift
-          | :gcp_bare_metal_solution
-          | :gcp_compute_engine
-          | :gcp_cloud_run
-          | :gcp_kubernetes_engine
-          | :gcp_cloud_functions
-          | :gcp_app_engine
-          | :gcp_openshift
-          | :ibm_cloud_openshift
-          | :tencent_cloud_cvm
-          | :tencent_cloud_eks
-          | :tencent_cloud_scf
-          | atom()
-  def cloud_platform(option) do
-    case option do
-      :alibaba_cloud_ecs -> :alibaba_cloud_ecs
-      :alibaba_cloud_fc -> :alibaba_cloud_fc
-      :alibaba_cloud_openshift -> :alibaba_cloud_openshift
-      :aws_ec2 -> :aws_ec2
-      :aws_ecs -> :aws_ecs
-      :aws_eks -> :aws_eks
-      :aws_lambda -> :aws_lambda
-      :aws_elastic_beanstalk -> :aws_elastic_beanstalk
-      :aws_app_runner -> :aws_app_runner
-      :aws_openshift -> :aws_openshift
-      :azure_vm -> :azure_vm
-      :azure_container_apps -> :azure_container_apps
-      :azure_container_instances -> :azure_container_instances
-      :azure_aks -> :azure_aks
-      :azure_functions -> :azure_functions
-      :azure_app_service -> :azure_app_service
-      :azure_openshift -> :azure_openshift
-      :gcp_bare_metal_solution -> :gcp_bare_metal_solution
-      :gcp_compute_engine -> :gcp_compute_engine
-      :gcp_cloud_run -> :gcp_cloud_run
-      :gcp_kubernetes_engine -> :gcp_kubernetes_engine
-      :gcp_cloud_functions -> :gcp_cloud_functions
-      :gcp_app_engine -> :gcp_app_engine
-      :gcp_openshift -> :gcp_openshift
-      :ibm_cloud_openshift -> :ibm_cloud_openshift
-      :tencent_cloud_cvm -> :tencent_cloud_cvm
-      :tencent_cloud_eks -> :tencent_cloud_eks
-      :tencent_cloud_scf -> :tencent_cloud_scf
-      _ -> option
-    end
+  @spec cloud_platform() :: cloud_platform()
+  def cloud_platform() do
+    %{
+      :alibaba_cloud_ecs => :alibaba_cloud_ecs,
+      :alibaba_cloud_fc => :alibaba_cloud_fc,
+      :alibaba_cloud_openshift => :alibaba_cloud_openshift,
+      :aws_ec2 => :aws_ec2,
+      :aws_ecs => :aws_ecs,
+      :aws_eks => :aws_eks,
+      :aws_lambda => :aws_lambda,
+      :aws_elastic_beanstalk => :aws_elastic_beanstalk,
+      :aws_app_runner => :aws_app_runner,
+      :aws_openshift => :aws_openshift,
+      :azure_vm => :azure_vm,
+      :azure_container_apps => :azure_container_apps,
+      :azure_container_instances => :azure_container_instances,
+      :azure_aks => :azure_aks,
+      :azure_functions => :azure_functions,
+      :azure_app_service => :azure_app_service,
+      :azure_openshift => :azure_openshift,
+      :gcp_bare_metal_solution => :gcp_bare_metal_solution,
+      :gcp_compute_engine => :gcp_compute_engine,
+      :gcp_cloud_run => :gcp_cloud_run,
+      :gcp_kubernetes_engine => :gcp_kubernetes_engine,
+      :gcp_cloud_functions => :gcp_cloud_functions,
+      :gcp_app_engine => :gcp_app_engine,
+      :gcp_openshift => :gcp_openshift,
+      :ibm_cloud_openshift => :ibm_cloud_openshift,
+      :tencent_cloud_cvm => :tencent_cloud_cvm,
+      :tencent_cloud_eks => :tencent_cloud_eks,
+      :tencent_cloud_scf => :tencent_cloud_scf
+    }
+  end
+
+  @spec cloud_platform(atom() | String.t()) :: atom() | String.t()
+  def cloud_platform(custom_value) do
+    custom_value
   end
 
   @typedoc """
   Name of the cloud provider.
 
 
-  ### Options
+  ### Enum Values
   * `:alibaba_cloud` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Alibaba Cloud
   * `:aws` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Amazon Web Services
   * `:azure` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Microsoft Azure
@@ -192,36 +165,44 @@ defmodule OpenTelemetry.SemanticConventions.CloudAttributes do
   * `:heroku` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Heroku Platform as a Service
   * `:ibm_cloud` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - IBM Cloud
   * `:tencent_cloud` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Tencent Cloud
-
   """
-  @type cloud_provider() ::
-          :alibaba_cloud | :aws | :azure | :gcp | :heroku | :ibm_cloud | :tencent_cloud | atom()
-
+  @type cloud_provider() :: %{
+          :alibaba_cloud => :alibaba_cloud,
+          :aws => :aws,
+          :azure => :azure,
+          :gcp => :gcp,
+          :heroku => :heroku,
+          :ibm_cloud => :ibm_cloud,
+          :tencent_cloud => :tencent_cloud
+        }
   @doc """
   Name of the cloud provider.
 
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.CloudAttributes.cloud_provider(:alibaba_cloud)
+      iex> OpenTelemetry.SemanticConventions.CloudAttributes.cloud_provider().alibaba_cloud
       :alibaba_cloud
       
       iex> OpenTelemetry.SemanticConventions.CloudAttributes.cloud_provider(:custom_value)
       :custom_value
   """
-  @spec cloud_provider(cloud_provider()) ::
-          :alibaba_cloud | :aws | :azure | :gcp | :heroku | :ibm_cloud | :tencent_cloud | atom()
-  def cloud_provider(option) do
-    case option do
-      :alibaba_cloud -> :alibaba_cloud
-      :aws -> :aws
-      :azure -> :azure
-      :gcp -> :gcp
-      :heroku -> :heroku
-      :ibm_cloud -> :ibm_cloud
-      :tencent_cloud -> :tencent_cloud
-      _ -> option
-    end
+  @spec cloud_provider() :: cloud_provider()
+  def cloud_provider() do
+    %{
+      :alibaba_cloud => :alibaba_cloud,
+      :aws => :aws,
+      :azure => :azure,
+      :gcp => :gcp,
+      :heroku => :heroku,
+      :ibm_cloud => :ibm_cloud,
+      :tencent_cloud => :tencent_cloud
+    }
+  end
+
+  @spec cloud_provider(atom() | String.t()) :: atom() | String.t()
+  def cloud_provider(custom_value) do
+    custom_value
   end
 
   @doc """

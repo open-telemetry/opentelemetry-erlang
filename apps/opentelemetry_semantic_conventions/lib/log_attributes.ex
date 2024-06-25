@@ -64,32 +64,37 @@ defmodule OpenTelemetry.SemanticConventions.LogAttributes do
   The stream associated with the log. See below for a list of well-known values.
 
 
-  ### Options
+  ### Enum Values
   * `:stdout` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Logs from stdout stream
   * `:stderr` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Events from stderr stream
-
   """
-  @type log_iostream() :: :stdout | :stderr | atom()
-
+  @type log_iostream() :: %{
+          :stdout => :stdout,
+          :stderr => :stderr
+        }
   @doc """
   The stream associated with the log. See below for a list of well-known values.
 
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.LogAttributes.log_iostream(:stdout)
+      iex> OpenTelemetry.SemanticConventions.LogAttributes.log_iostream().stdout
       :stdout
       
       iex> OpenTelemetry.SemanticConventions.LogAttributes.log_iostream(:custom_value)
       :custom_value
   """
-  @spec log_iostream(log_iostream()) :: :stdout | :stderr | atom()
-  def log_iostream(option) do
-    case option do
-      :stdout -> :stdout
-      :stderr -> :stderr
-      _ -> option
-    end
+  @spec log_iostream() :: log_iostream()
+  def log_iostream() do
+    %{
+      :stdout => :stdout,
+      :stderr => :stderr
+    }
+  end
+
+  @spec log_iostream(atom() | String.t()) :: atom() | String.t()
+  def log_iostream(custom_value) do
+    custom_value
   end
 
   @doc """

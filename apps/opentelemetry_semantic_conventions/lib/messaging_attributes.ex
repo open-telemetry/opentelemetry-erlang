@@ -37,7 +37,6 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
   @deprecated """
   Replaced by `messaging.client.id`.
   """
-
   @spec messaging_clientid :: :"messaging.client_id"
   def messaging_clientid do
     :"messaging.client_id"
@@ -248,7 +247,6 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
   @deprecated """
   Replaced by `messaging.destination.partition.id`.
   """
-
   @spec messaging_kafka_destination_partition :: :"messaging.kafka.destination.partition"
   def messaging_kafka_destination_partition do
     :"messaging.kafka.destination.partition"
@@ -364,7 +362,6 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
   @deprecated """
   Replaced by `messaging.operation.type`.
   """
-
   @spec messaging_operation :: :"messaging.operation"
   def messaging_operation do
     :"messaging.operation"
@@ -384,13 +381,11 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
     :"messaging.operation.name"
   end
 
-  @type deliver() :: :process
-
   @typedoc """
   A string identifying the type of the messaging operation.
 
 
-  ### Options
+  ### Enum Values
   * `:publish` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - One or more messages are provided for publishing to an intermediary. If a single message is published, the context of the "Publish" span can be used as the creation context and no "Create" span needs to be created.
 
   * `:create` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - A message is created. "Create" spans always refer to a single message and are used to provide a unique creation context for messages in batch publishing scenarios.
@@ -401,10 +396,14 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
 
   * `:settle` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - One or more messages are settled.
 
-
   """
-  @type messaging_operation_type() :: :publish | :create | :receive | deliver() | :settle | atom()
-
+  @type messaging_operation_type() :: %{
+          :publish => :publish,
+          :create => :create,
+          :receive => :receive,
+          :deliver => :process,
+          :settle => :settle
+        }
   @doc """
   A string identifying the type of the messaging operation.
 
@@ -413,23 +412,26 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
   If a custom value is used, it **MUST** be of low cardinality.
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.MessagingAttributes.messaging_operation_type(:publish)
+      iex> OpenTelemetry.SemanticConventions.MessagingAttributes.messaging_operation_type().publish
       :publish
       
       iex> OpenTelemetry.SemanticConventions.MessagingAttributes.messaging_operation_type(:custom_value)
       :custom_value
   """
-  @spec messaging_operation_type(messaging_operation_type()) ::
-          :publish | :create | :receive | deliver() | :settle | atom()
-  def messaging_operation_type(option) do
-    case option do
-      :publish -> :publish
-      :create -> :create
-      :receive -> :receive
-      :deliver -> :process
-      :settle -> :settle
-      _ -> option
-    end
+  @spec messaging_operation_type() :: messaging_operation_type()
+  def messaging_operation_type() do
+    %{
+      :publish => :publish,
+      :create => :create,
+      :receive => :receive,
+      :deliver => :process,
+      :settle => :settle
+    }
+  end
+
+  @spec messaging_operation_type(atom() | String.t()) :: atom() | String.t()
+  def messaging_operation_type(custom_value) do
+    custom_value
   end
 
   @doc """
@@ -478,33 +480,37 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
   Model of message consumption. This only applies to consumer spans.
 
 
-  ### Options
+  ### Enum Values
   * `:clustering` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Clustering consumption model
   * `:broadcasting` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Broadcasting consumption model
-
   """
-  @type messaging_rocketmq_consumptionmodel() :: :clustering | :broadcasting | atom()
-
+  @type messaging_rocketmq_consumptionmodel() :: %{
+          :clustering => :clustering,
+          :broadcasting => :broadcasting
+        }
   @doc """
   Model of message consumption. This only applies to consumer spans.
 
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.MessagingAttributes.messaging_rocketmq_consumptionmodel(:clustering)
+      iex> OpenTelemetry.SemanticConventions.MessagingAttributes.messaging_rocketmq_consumptionmodel().clustering
       :clustering
       
       iex> OpenTelemetry.SemanticConventions.MessagingAttributes.messaging_rocketmq_consumptionmodel(:custom_value)
       :custom_value
   """
-  @spec messaging_rocketmq_consumptionmodel(messaging_rocketmq_consumptionmodel()) ::
-          :clustering | :broadcasting | atom()
-  def messaging_rocketmq_consumptionmodel(option) do
-    case option do
-      :clustering -> :clustering
-      :broadcasting -> :broadcasting
-      _ -> option
-    end
+  @spec messaging_rocketmq_consumptionmodel() :: messaging_rocketmq_consumptionmodel()
+  def messaging_rocketmq_consumptionmodel() do
+    %{
+      :clustering => :clustering,
+      :broadcasting => :broadcasting
+    }
+  end
+
+  @spec messaging_rocketmq_consumptionmodel(atom() | String.t()) :: atom() | String.t()
+  def messaging_rocketmq_consumptionmodel(custom_value) do
+    custom_value
   end
 
   @doc """
@@ -583,37 +589,43 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
   Type of message.
 
 
-  ### Options
+  ### Enum Values
   * `:normal` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Normal message
   * `:fifo` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - FIFO message
   * `:delay` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Delay message
   * `:transaction` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Transaction message
-
   """
-  @type messaging_rocketmq_message_type() :: :normal | :fifo | :delay | :transaction | atom()
-
+  @type messaging_rocketmq_message_type() :: %{
+          :normal => :normal,
+          :fifo => :fifo,
+          :delay => :delay,
+          :transaction => :transaction
+        }
   @doc """
   Type of message.
 
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.MessagingAttributes.messaging_rocketmq_message_type(:normal)
+      iex> OpenTelemetry.SemanticConventions.MessagingAttributes.messaging_rocketmq_message_type().normal
       :normal
       
       iex> OpenTelemetry.SemanticConventions.MessagingAttributes.messaging_rocketmq_message_type(:custom_value)
       :custom_value
   """
-  @spec messaging_rocketmq_message_type(messaging_rocketmq_message_type()) ::
-          :normal | :fifo | :delay | :transaction | atom()
-  def messaging_rocketmq_message_type(option) do
-    case option do
-      :normal -> :normal
-      :fifo -> :fifo
-      :delay -> :delay
-      :transaction -> :transaction
-      _ -> option
-    end
+  @spec messaging_rocketmq_message_type() :: messaging_rocketmq_message_type()
+  def messaging_rocketmq_message_type() do
+    %{
+      :normal => :normal,
+      :fifo => :fifo,
+      :delay => :delay,
+      :transaction => :transaction
+    }
+  end
+
+  @spec messaging_rocketmq_message_type(atom() | String.t()) :: atom() | String.t()
+  def messaging_rocketmq_message_type(custom_value) do
+    custom_value
   end
 
   @doc """
@@ -649,38 +661,43 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
   Describes the [settlement type](https://learn.microsoft.com/azure/service-bus-messaging/message-transfers-locks-settlement#peeklock).
 
 
-  ### Options
+  ### Enum Values
   * `:complete` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Message is completed
   * `:abandon` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Message is abandoned
   * `:dead_letter` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Message is sent to dead letter queue
   * `:defer` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Message is deferred
-
   """
-  @type messaging_servicebus_dispositionstatus() ::
-          :complete | :abandon | :dead_letter | :defer | atom()
-
+  @type messaging_servicebus_dispositionstatus() :: %{
+          :complete => :complete,
+          :abandon => :abandon,
+          :dead_letter => :dead_letter,
+          :defer => :defer
+        }
   @doc """
   Describes the [settlement type](https://learn.microsoft.com/azure/service-bus-messaging/message-transfers-locks-settlement#peeklock).
 
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.MessagingAttributes.messaging_servicebus_dispositionstatus(:complete)
+      iex> OpenTelemetry.SemanticConventions.MessagingAttributes.messaging_servicebus_dispositionstatus().complete
       :complete
       
       iex> OpenTelemetry.SemanticConventions.MessagingAttributes.messaging_servicebus_dispositionstatus(:custom_value)
       :custom_value
   """
-  @spec messaging_servicebus_dispositionstatus(messaging_servicebus_dispositionstatus()) ::
-          :complete | :abandon | :dead_letter | :defer | atom()
-  def messaging_servicebus_dispositionstatus(option) do
-    case option do
-      :complete -> :complete
-      :abandon -> :abandon
-      :dead_letter -> :dead_letter
-      :defer -> :defer
-      _ -> option
-    end
+  @spec messaging_servicebus_dispositionstatus() :: messaging_servicebus_dispositionstatus()
+  def messaging_servicebus_dispositionstatus() do
+    %{
+      :complete => :complete,
+      :abandon => :abandon,
+      :dead_letter => :dead_letter,
+      :defer => :defer
+    }
+  end
+
+  @spec messaging_servicebus_dispositionstatus(atom() | String.t()) :: atom() | String.t()
+  def messaging_servicebus_dispositionstatus(custom_value) do
+    custom_value
   end
 
   @doc """
@@ -715,7 +732,7 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
   @typedoc """
   The messaging system as identified by the client instrumentation.
 
-  ### Options
+  ### Enum Values
   * `:activemq` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Apache ActiveMQ
   * `:aws_sqs` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Amazon Simple Queue Service (SQS)
   * `:eventgrid` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Azure Event Grid
@@ -726,21 +743,19 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
   * `:kafka` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Apache Kafka
   * `:rabbitmq` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - RabbitMQ
   * `:rocketmq` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Apache RocketMQ
-
   """
-  @type messaging_system() ::
-          :activemq
-          | :aws_sqs
-          | :eventgrid
-          | :eventhubs
-          | :servicebus
-          | :gcp_pubsub
-          | :jms
-          | :kafka
-          | :rabbitmq
-          | :rocketmq
-          | atom()
-
+  @type messaging_system() :: %{
+          :activemq => :activemq,
+          :aws_sqs => :aws_sqs,
+          :eventgrid => :eventgrid,
+          :eventhubs => :eventhubs,
+          :servicebus => :servicebus,
+          :gcp_pubsub => :gcp_pubsub,
+          :jms => :jms,
+          :kafka => :kafka,
+          :rabbitmq => :rabbitmq,
+          :rocketmq => :rocketmq
+        }
   @doc """
   The messaging system as identified by the client instrumentation.
   ### Notes
@@ -749,37 +764,30 @@ defmodule OpenTelemetry.SemanticConventions.MessagingAttributes do
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.MessagingAttributes.messaging_system(:activemq)
+      iex> OpenTelemetry.SemanticConventions.MessagingAttributes.messaging_system().activemq
       :activemq
       
       iex> OpenTelemetry.SemanticConventions.MessagingAttributes.messaging_system(:custom_value)
       :custom_value
   """
-  @spec messaging_system(messaging_system()) ::
-          :activemq
-          | :aws_sqs
-          | :eventgrid
-          | :eventhubs
-          | :servicebus
-          | :gcp_pubsub
-          | :jms
-          | :kafka
-          | :rabbitmq
-          | :rocketmq
-          | atom()
-  def messaging_system(option) do
-    case option do
-      :activemq -> :activemq
-      :aws_sqs -> :aws_sqs
-      :eventgrid -> :eventgrid
-      :eventhubs -> :eventhubs
-      :servicebus -> :servicebus
-      :gcp_pubsub -> :gcp_pubsub
-      :jms -> :jms
-      :kafka -> :kafka
-      :rabbitmq -> :rabbitmq
-      :rocketmq -> :rocketmq
-      _ -> option
-    end
+  @spec messaging_system() :: messaging_system()
+  def messaging_system() do
+    %{
+      :activemq => :activemq,
+      :aws_sqs => :aws_sqs,
+      :eventgrid => :eventgrid,
+      :eventhubs => :eventhubs,
+      :servicebus => :servicebus,
+      :gcp_pubsub => :gcp_pubsub,
+      :jms => :jms,
+      :kafka => :kafka,
+      :rabbitmq => :rabbitmq,
+      :rocketmq => :rocketmq
+    }
+  end
+
+  @spec messaging_system(atom() | String.t()) :: atom() | String.t()
+  def messaging_system(custom_value) do
+    custom_value
   end
 end

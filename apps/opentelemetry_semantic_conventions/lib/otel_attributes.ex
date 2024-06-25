@@ -7,7 +7,6 @@ defmodule OpenTelemetry.SemanticConventions.OtelAttributes do
   @deprecated """
   use the `otel.scope.name` attribute.
   """
-
   @spec otel_library_name :: :"otel.library.name"
   def otel_library_name do
     :"otel.library.name"
@@ -16,7 +15,6 @@ defmodule OpenTelemetry.SemanticConventions.OtelAttributes do
   @deprecated """
   use the `otel.scope.version` attribute.
   """
-
   @spec otel_library_version :: :"otel.library.version"
   def otel_library_version do
     :"otel.library.version"
@@ -48,38 +46,39 @@ defmodule OpenTelemetry.SemanticConventions.OtelAttributes do
     :"otel.scope.version"
   end
 
-  @type ok() :: :OK
-
-  @type error() :: :ERROR
-
   @typedoc """
   Name of the code, either "OK" or "ERROR". **MUST** **NOT** be set if the status code is UNSET.
 
-  ### Options
+  ### Enum Values
   * `:ok` - The operation has been validated by an Application developer or Operator to have completed successfully.
   * `:error` - The operation contains an error.
-
   """
-  @type otel_statuscode() :: ok() | error() | atom()
-
+  @type otel_statuscode() :: %{
+          :ok => :OK,
+          :error => :ERROR
+        }
   @doc """
   Name of the code, either "OK" or "ERROR". **MUST** **NOT** be set if the status code is UNSET.
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.OtelAttributes.otel_statuscode(:ok)
+      iex> OpenTelemetry.SemanticConventions.OtelAttributes.otel_statuscode().ok
       :OK
       
       iex> OpenTelemetry.SemanticConventions.OtelAttributes.otel_statuscode(:custom_value)
       :custom_value
   """
-  @spec otel_statuscode(otel_statuscode()) :: ok() | error() | atom()
-  def otel_statuscode(option) do
-    case option do
-      :ok -> :OK
-      :error -> :ERROR
-      _ -> option
-    end
+  @spec otel_statuscode() :: otel_statuscode()
+  def otel_statuscode() do
+    %{
+      :ok => :OK,
+      :error => :ERROR
+    }
+  end
+
+  @spec otel_statuscode(atom() | String.t()) :: atom() | String.t()
+  def otel_statuscode(custom_value) do
+    custom_value
   end
 
   @doc """

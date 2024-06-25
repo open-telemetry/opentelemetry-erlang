@@ -128,12 +128,12 @@ defmodule OpenTelemetry.SemanticConventions.GenAiAttributes do
   @typedoc """
   The Generative AI product as identified by the client instrumentation.
 
-  ### Options
+  ### Enum Values
   * `:openai` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - OpenAI
-
   """
-  @type genai_system() :: :openai | atom()
-
+  @type genai_system() :: %{
+          :openai => :openai
+        }
   @doc """
   The Generative AI product as identified by the client instrumentation.
   ### Notes
@@ -142,18 +142,22 @@ defmodule OpenTelemetry.SemanticConventions.GenAiAttributes do
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.GenAiAttributes.genai_system(:openai)
+      iex> OpenTelemetry.SemanticConventions.GenAiAttributes.genai_system().openai
       :openai
       
       iex> OpenTelemetry.SemanticConventions.GenAiAttributes.genai_system(:custom_value)
       :custom_value
   """
-  @spec genai_system(genai_system()) :: :openai | atom()
-  def genai_system(option) do
-    case option do
-      :openai -> :openai
-      _ -> option
-    end
+  @spec genai_system() :: genai_system()
+  def genai_system() do
+    %{
+      :openai => :openai
+    }
+  end
+
+  @spec genai_system(atom() | String.t()) :: atom() | String.t()
+  def genai_system(custom_value) do
+    custom_value
   end
 
   @doc """

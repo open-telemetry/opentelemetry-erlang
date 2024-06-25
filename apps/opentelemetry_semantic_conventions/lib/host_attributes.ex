@@ -8,7 +8,7 @@ defmodule OpenTelemetry.SemanticConventions.HostAttributes do
   The CPU architecture the host system is running on.
 
 
-  ### Options
+  ### Enum Values
   * `:amd64` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - AMD64
   * `:arm32` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - ARM32
   * `:arm64` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - ARM64
@@ -17,36 +17,46 @@ defmodule OpenTelemetry.SemanticConventions.HostAttributes do
   * `:ppc64` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - 64-bit PowerPC
   * `:s390x` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - IBM z/Architecture
   * `:x86` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - 32-bit x86
-
   """
-  @type host_arch() :: :amd64 | :arm32 | :arm64 | :ia64 | :ppc32 | :ppc64 | :s390x | :x86 | atom()
-
+  @type host_arch() :: %{
+          :amd64 => :amd64,
+          :arm32 => :arm32,
+          :arm64 => :arm64,
+          :ia64 => :ia64,
+          :ppc32 => :ppc32,
+          :ppc64 => :ppc64,
+          :s390x => :s390x,
+          :x86 => :x86
+        }
   @doc """
   The CPU architecture the host system is running on.
 
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.HostAttributes.host_arch(:amd64)
+      iex> OpenTelemetry.SemanticConventions.HostAttributes.host_arch().amd64
       :amd64
       
       iex> OpenTelemetry.SemanticConventions.HostAttributes.host_arch(:custom_value)
       :custom_value
   """
-  @spec host_arch(host_arch()) ::
-          :amd64 | :arm32 | :arm64 | :ia64 | :ppc32 | :ppc64 | :s390x | :x86 | atom()
-  def host_arch(option) do
-    case option do
-      :amd64 -> :amd64
-      :arm32 -> :arm32
-      :arm64 -> :arm64
-      :ia64 -> :ia64
-      :ppc32 -> :ppc32
-      :ppc64 -> :ppc64
-      :s390x -> :s390x
-      :x86 -> :x86
-      _ -> option
-    end
+  @spec host_arch() :: host_arch()
+  def host_arch() do
+    %{
+      :amd64 => :amd64,
+      :arm32 => :arm32,
+      :arm64 => :arm64,
+      :ia64 => :ia64,
+      :ppc32 => :ppc32,
+      :ppc64 => :ppc64,
+      :s390x => :s390x,
+      :x86 => :x86
+    }
+  end
+
+  @spec host_arch(atom() | String.t()) :: atom() | String.t()
+  def host_arch(custom_value) do
+    custom_value
   end
 
   @doc """

@@ -284,7 +284,6 @@ defmodule OpenTelemetry.SemanticConventions.K8SAttributes do
   @deprecated """
   Replaced by `k8s.pod.label`.
   """
-
   @spec k_8_s_pod_labels :: :"k8s.pod.labels"
   def k_8_s_pod_labels do
     :"k8s.pod.labels"

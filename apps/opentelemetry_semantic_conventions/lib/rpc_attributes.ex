@@ -7,7 +7,6 @@ defmodule OpenTelemetry.SemanticConventions.RpcAttributes do
   @deprecated """
   Replaced by `rpc.message.compressed_size`.
   """
-
   @spec message_compressedsize :: :"message.compressed_size"
   def message_compressedsize do
     :"message.compressed_size"
@@ -16,43 +15,41 @@ defmodule OpenTelemetry.SemanticConventions.RpcAttributes do
   @deprecated """
   Replaced by `rpc.message.id`.
   """
-
   @spec message_id :: :"message.id"
   def message_id do
     :"message.id"
   end
 
-  @type sent() :: :SENT
-
-  @type received() :: :RECEIVED
-
   @typedoc """
   Deprecated, use `rpc.message.type` instead.
 
-  ### Options
+  ### Enum Values
   * `:sent` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:received` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
-
   """
-  @type message_type() :: sent() | received() | atom()
-
+  @type message_type() :: %{
+          :sent => :SENT,
+          :received => :RECEIVED
+        }
   @deprecated """
   Replaced by `rpc.message.type`.
   """
+  @spec message_type() :: message_type()
+  def message_type() do
+    %{
+      :sent => :SENT,
+      :received => :RECEIVED
+    }
+  end
 
-  @spec message_type(message_type()) :: sent() | received() | atom()
-  def message_type(option) do
-    case option do
-      :sent -> :SENT
-      :received -> :RECEIVED
-      _ -> option
-    end
+  @spec message_type(atom() | String.t()) :: atom() | String.t()
+  def message_type(custom_value) do
+    custom_value
   end
 
   @deprecated """
   Replaced by `rpc.message.uncompressed_size`.
   """
-
   @spec message_uncompressedsize :: :"message.uncompressed_size"
   def message_uncompressedsize do
     :"message.uncompressed_size"
@@ -61,7 +58,7 @@ defmodule OpenTelemetry.SemanticConventions.RpcAttributes do
   @typedoc """
   The [error codes](https://connect.build/docs/protocol/#error-codes) of the Connect request. Error codes are always string values.
 
-  ### Options
+  ### Enum Values
   * `:cancelled` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:unknown` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:invalid_argument` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
@@ -78,76 +75,61 @@ defmodule OpenTelemetry.SemanticConventions.RpcAttributes do
   * `:unavailable` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:data_loss` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:unauthenticated` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
-
   """
-  @type rpc_connectrpc_errorcode() ::
-          :cancelled
-          | :unknown
-          | :invalid_argument
-          | :deadline_exceeded
-          | :not_found
-          | :already_exists
-          | :permission_denied
-          | :resource_exhausted
-          | :failed_precondition
-          | :aborted
-          | :out_of_range
-          | :unimplemented
-          | :internal
-          | :unavailable
-          | :data_loss
-          | :unauthenticated
-          | atom()
-
+  @type rpc_connectrpc_errorcode() :: %{
+          :cancelled => :cancelled,
+          :unknown => :unknown,
+          :invalid_argument => :invalid_argument,
+          :deadline_exceeded => :deadline_exceeded,
+          :not_found => :not_found,
+          :already_exists => :already_exists,
+          :permission_denied => :permission_denied,
+          :resource_exhausted => :resource_exhausted,
+          :failed_precondition => :failed_precondition,
+          :aborted => :aborted,
+          :out_of_range => :out_of_range,
+          :unimplemented => :unimplemented,
+          :internal => :internal,
+          :unavailable => :unavailable,
+          :data_loss => :data_loss,
+          :unauthenticated => :unauthenticated
+        }
   @doc """
   The [error codes](https://connect.build/docs/protocol/#error-codes) of the Connect request. Error codes are always string values.
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.RpcAttributes.rpc_connectrpc_errorcode(:cancelled)
+      iex> OpenTelemetry.SemanticConventions.RpcAttributes.rpc_connectrpc_errorcode().cancelled
       :cancelled
-
+      
       iex> OpenTelemetry.SemanticConventions.RpcAttributes.rpc_connectrpc_errorcode(:custom_value)
       :custom_value
   """
-  @spec rpc_connectrpc_errorcode(rpc_connectrpc_errorcode()) ::
-          :cancelled
-          | :unknown
-          | :invalid_argument
-          | :deadline_exceeded
-          | :not_found
-          | :already_exists
-          | :permission_denied
-          | :resource_exhausted
-          | :failed_precondition
-          | :aborted
-          | :out_of_range
-          | :unimplemented
-          | :internal
-          | :unavailable
-          | :data_loss
-          | :unauthenticated
-          | atom()
-  def rpc_connectrpc_errorcode(option) do
-    case option do
-      :cancelled -> :cancelled
-      :unknown -> :unknown
-      :invalid_argument -> :invalid_argument
-      :deadline_exceeded -> :deadline_exceeded
-      :not_found -> :not_found
-      :already_exists -> :already_exists
-      :permission_denied -> :permission_denied
-      :resource_exhausted -> :resource_exhausted
-      :failed_precondition -> :failed_precondition
-      :aborted -> :aborted
-      :out_of_range -> :out_of_range
-      :unimplemented -> :unimplemented
-      :internal -> :internal
-      :unavailable -> :unavailable
-      :data_loss -> :data_loss
-      :unauthenticated -> :unauthenticated
-      _ -> option
-    end
+  @spec rpc_connectrpc_errorcode() :: rpc_connectrpc_errorcode()
+  def rpc_connectrpc_errorcode() do
+    %{
+      :cancelled => :cancelled,
+      :unknown => :unknown,
+      :invalid_argument => :invalid_argument,
+      :deadline_exceeded => :deadline_exceeded,
+      :not_found => :not_found,
+      :already_exists => :already_exists,
+      :permission_denied => :permission_denied,
+      :resource_exhausted => :resource_exhausted,
+      :failed_precondition => :failed_precondition,
+      :aborted => :aborted,
+      :out_of_range => :out_of_range,
+      :unimplemented => :unimplemented,
+      :internal => :internal,
+      :unavailable => :unavailable,
+      :data_loss => :data_loss,
+      :unauthenticated => :unauthenticated
+    }
+  end
+
+  @spec rpc_connectrpc_errorcode(atom() | String.t()) :: atom() | String.t()
+  def rpc_connectrpc_errorcode(custom_value) do
+    custom_value
   end
 
   @doc """
@@ -218,44 +200,10 @@ defmodule OpenTelemetry.SemanticConventions.RpcAttributes do
     :"rpc.grpc.response.metadata"
   end
 
-  @type ok() :: 0
-
-  @type cancelled() :: 1
-
-  @type unknown() :: 2
-
-  @type invalid_argument() :: 3
-
-  @type deadline_exceeded() :: 4
-
-  @type not_found() :: 5
-
-  @type already_exists() :: 6
-
-  @type permission_denied() :: 7
-
-  @type resource_exhausted() :: 8
-
-  @type failed_precondition() :: 9
-
-  @type aborted() :: 10
-
-  @type out_of_range() :: 11
-
-  @type unimplemented() :: 12
-
-  @type internal() :: 13
-
-  @type unavailable() :: 14
-
-  @type data_loss() :: 15
-
-  @type unauthenticated() :: 16
-
   @typedoc """
   The [numeric status code](https://github.com/grpc/grpc/blob/v1.33.2/doc/statuscodes.md) of the gRPC request.
 
-  ### Options
+  ### Enum Values
   * `:ok` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - OK
   * `:cancelled` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - CANCELLED
   * `:unknown` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - UNKNOWN
@@ -273,79 +221,63 @@ defmodule OpenTelemetry.SemanticConventions.RpcAttributes do
   * `:unavailable` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - UNAVAILABLE
   * `:data_loss` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - DATA_LOSS
   * `:unauthenticated` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - UNAUTHENTICATED
-
   """
-  @type rpc_grpc_statuscode() ::
-          ok()
-          | cancelled()
-          | unknown()
-          | invalid_argument()
-          | deadline_exceeded()
-          | not_found()
-          | already_exists()
-          | permission_denied()
-          | resource_exhausted()
-          | failed_precondition()
-          | aborted()
-          | out_of_range()
-          | unimplemented()
-          | internal()
-          | unavailable()
-          | data_loss()
-          | unauthenticated()
-          | atom()
-
+  @type rpc_grpc_statuscode() :: %{
+          :ok => 0,
+          :cancelled => 1,
+          :unknown => 2,
+          :invalid_argument => 3,
+          :deadline_exceeded => 4,
+          :not_found => 5,
+          :already_exists => 6,
+          :permission_denied => 7,
+          :resource_exhausted => 8,
+          :failed_precondition => 9,
+          :aborted => 10,
+          :out_of_range => 11,
+          :unimplemented => 12,
+          :internal => 13,
+          :unavailable => 14,
+          :data_loss => 15,
+          :unauthenticated => 16
+        }
   @doc """
   The [numeric status code](https://github.com/grpc/grpc/blob/v1.33.2/doc/statuscodes.md) of the gRPC request.
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.RpcAttributes.rpc_grpc_statuscode(:ok)
+      iex> OpenTelemetry.SemanticConventions.RpcAttributes.rpc_grpc_statuscode().ok
       0
-
-      iex> OpenTelemetry.SemanticConventions.RpcAttributes.rpc_grpc_statuscode(:custom_value)
-      :custom_value
+      
+      iex> OpenTelemetry.SemanticConventions.RpcAttributes.rpc_grpc_statuscode(27)
+      27
   """
-  @spec rpc_grpc_statuscode(rpc_grpc_statuscode()) ::
-          ok()
-          | cancelled()
-          | unknown()
-          | invalid_argument()
-          | deadline_exceeded()
-          | not_found()
-          | already_exists()
-          | permission_denied()
-          | resource_exhausted()
-          | failed_precondition()
-          | aborted()
-          | out_of_range()
-          | unimplemented()
-          | internal()
-          | unavailable()
-          | data_loss()
-          | unauthenticated()
-          | atom()
-  def rpc_grpc_statuscode(option) do
-    case option do
-      :ok -> 0
-      :cancelled -> 1
-      :unknown -> 2
-      :invalid_argument -> 3
-      :deadline_exceeded -> 4
-      :not_found -> 5
-      :already_exists -> 6
-      :permission_denied -> 7
-      :resource_exhausted -> 8
-      :failed_precondition -> 9
-      :aborted -> 10
-      :out_of_range -> 11
-      :unimplemented -> 12
-      :internal -> 13
-      :unavailable -> 14
-      :data_loss -> 15
-      :unauthenticated -> 16
-      _ -> option
-    end
+  @spec rpc_grpc_statuscode() :: rpc_grpc_statuscode()
+  def rpc_grpc_statuscode() do
+    %{
+      :ok => 0,
+      :cancelled => 1,
+      :unknown => 2,
+      :invalid_argument => 3,
+      :deadline_exceeded => 4,
+      :not_found => 5,
+      :already_exists => 6,
+      :permission_denied => 7,
+      :resource_exhausted => 8,
+      :failed_precondition => 9,
+      :aborted => 10,
+      :out_of_range => 11,
+      :unimplemented => 12,
+      :internal => 13,
+      :unavailable => 14,
+      :data_loss => 15,
+      :unauthenticated => 16
+    }
+  end
+
+  @spec rpc_grpc_statuscode(integer()) :: integer()
+  def rpc_grpc_statuscode(custom_value) do
+    custom_value
   end
 
   @doc """
@@ -432,31 +364,36 @@ defmodule OpenTelemetry.SemanticConventions.RpcAttributes do
   @typedoc """
   Whether this is a received or sent message.
 
-  ### Options
+  ### Enum Values
   * `:sent` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
   * `:received` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^
-
   """
-  @type rpc_message_type() :: sent() | received() | atom()
-
+  @type rpc_message_type() :: %{
+          :sent => :SENT,
+          :received => :RECEIVED
+        }
   @doc """
   Whether this is a received or sent message.
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.RpcAttributes.rpc_message_type(:sent)
+      iex> OpenTelemetry.SemanticConventions.RpcAttributes.rpc_message_type().sent
       :SENT
-
+      
       iex> OpenTelemetry.SemanticConventions.RpcAttributes.rpc_message_type(:custom_value)
       :custom_value
   """
-  @spec rpc_message_type(rpc_message_type()) :: sent() | received() | atom()
-  def rpc_message_type(option) do
-    case option do
-      :sent -> :SENT
-      :received -> :RECEIVED
-      _ -> option
-    end
+  @spec rpc_message_type() :: rpc_message_type()
+  def rpc_message_type() do
+    %{
+      :sent => :SENT,
+      :received => :RECEIVED
+    }
+  end
+
+  @spec rpc_message_type(atom() | String.t()) :: atom() | String.t()
+  def rpc_message_type(custom_value) do
+    custom_value
   end
 
   @doc """
@@ -507,37 +444,44 @@ defmodule OpenTelemetry.SemanticConventions.RpcAttributes do
   @typedoc """
   A string identifying the remoting system. See below for a list of well-known identifiers.
 
-  ### Options
+  ### Enum Values
   * `:grpc` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - gRPC
   * `:java_rmi` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Java RMI
   * `:dotnet_wcf` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - .NET WCF
   * `:apache_dubbo` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Apache Dubbo
   * `:connect_rpc` ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^ - Connect RPC
-
   """
-  @type rpc_system() :: :grpc | :java_rmi | :dotnet_wcf | :apache_dubbo | :connect_rpc | atom()
-
+  @type rpc_system() :: %{
+          :grpc => :grpc,
+          :java_rmi => :java_rmi,
+          :dotnet_wcf => :dotnet_wcf,
+          :apache_dubbo => :apache_dubbo,
+          :connect_rpc => :connect_rpc
+        }
   @doc """
   A string identifying the remoting system. See below for a list of well-known identifiers.
 
 
   ### Example
-      iex> OpenTelemetry.SemanticConventions.RpcAttributes.rpc_system(:grpc)
+      iex> OpenTelemetry.SemanticConventions.RpcAttributes.rpc_system().grpc
       :grpc
-
+      
       iex> OpenTelemetry.SemanticConventions.RpcAttributes.rpc_system(:custom_value)
       :custom_value
   """
-  @spec rpc_system(rpc_system()) ::
-          :grpc | :java_rmi | :dotnet_wcf | :apache_dubbo | :connect_rpc | atom()
-  def rpc_system(option) do
-    case option do
-      :grpc -> :grpc
-      :java_rmi -> :java_rmi
-      :dotnet_wcf -> :dotnet_wcf
-      :apache_dubbo -> :apache_dubbo
-      :connect_rpc -> :connect_rpc
-      _ -> option
-    end
+  @spec rpc_system() :: rpc_system()
+  def rpc_system() do
+    %{
+      :grpc => :grpc,
+      :java_rmi => :java_rmi,
+      :dotnet_wcf => :dotnet_wcf,
+      :apache_dubbo => :apache_dubbo,
+      :connect_rpc => :connect_rpc
+    }
+  end
+
+  @spec rpc_system(atom() | String.t()) :: atom() | String.t()
+  def rpc_system(custom_value) do
+    custom_value
   end
 end
