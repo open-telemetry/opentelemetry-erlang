@@ -1,54 +1,39 @@
-defmodule OpenTelemetry.SemanticConventions.UserAgentAttributes do
+defmodule OpenTelemetry.SemConv.UserAgentAttributes do
   # This is an auto-generated file
   @moduledoc """
   OpenTelemetry Semantic Conventions for User_Agent attributes.
   """
 
   @doc """
-  Name of the user-agent extracted from original. Usually refers to the browser's name.
-
-  ### Notes
-
-  [Example](https://www.whatsmyua.info) of extracting browser's name from original string. In the case of using a user-agent for non-browser products, such as microservices with multiple names/versions inside the `user_agent.original`, the most significant name **SHOULD** be selected. In such a scenario it should align with `user_agent.version`
-
-
-  ### Example
-      iex> OpenTelemetry.SemanticConventions.UserAgentAttributes.useragent_name()
-      :"user_agent.name"
-  """
-  @spec useragent_name :: :"user_agent.name"
-  def useragent_name do
-    :"user_agent.name"
-  end
-
-  @doc """
   Value of the [HTTP User-Agent](https://www.rfc-editor.org/rfc/rfc9110.html#field.user-agent) header sent by the client.
 
+  ### Value type
 
+  Value must be of type `atom() | String.t()`.
+  ### Examples
 
-  ### Example
-      iex> OpenTelemetry.SemanticConventions.UserAgentAttributes.useragent_original()
+  ```
+  ["CERN-LineMode/2.15 libwww/2.17b3", "Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1", "YourApp/1.0.0 grpc-java-okhttp/1.27.2"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.UserAgentAttributes.useragent_original()
       :"user_agent.original"
+
+  ### Erlang
+
+  ```erlang
+  ?USERAGENT_ORIGINAL.
+  'user_agent.original'
+  ```
+
+  <!-- tabs-close -->
   """
   @spec useragent_original :: :"user_agent.original"
   def useragent_original do
     :"user_agent.original"
-  end
-
-  @doc """
-  Version of the user-agent extracted from original. Usually refers to the browser's version
-
-  ### Notes
-
-  [Example](https://www.whatsmyua.info) of extracting browser's version from original string. In the case of using a user-agent for non-browser products, such as microservices with multiple names/versions inside the `user_agent.original`, the most significant version **SHOULD** be selected. In such a scenario it should align with `user_agent.name`
-
-
-  ### Example
-      iex> OpenTelemetry.SemanticConventions.UserAgentAttributes.useragent_version()
-      :"user_agent.version"
-  """
-  @spec useragent_version :: :"user_agent.version"
-  def useragent_version do
-    :"user_agent.version"
   end
 end

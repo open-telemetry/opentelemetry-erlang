@@ -1,14 +1,16 @@
-%% The schema url for telemetry resources
--define({{ module | to_const_name }}_SCHEMA_URL, <<"{{ schema_uri }}">>).
-{# blank line #}
-{%- for attribute in attributes | unique(attribute="fqn") %}
-%% {{ attribute.brief | to_doc_brief | regex_replace(pattern="\n", replace="\n%% ") }}
-{%- if attribute.note %}
-%% {{ attribute.note | to_doc_brief | regex_replace(pattern="\n", replace="\n%% ") }}
+{%- set file_name = ctx.id | snake_case ~ "_attributes.hrl" -%}
+{{ template.set_file_name(file_name) }}
+{%- for attribute in ctx.attributes | sort(attribute="name") %}
+{% if attribute is deprecated -%}
+%% @deprecated {{ attribute.deprecated | replace("\n", "\n%%  ") }}
 {%- endif %}
-{%- if attribute.deprecated %}
-%% @deprecated {{ attribute.deprecated | to_doc_brief | regex_replace(pattern="\n", replace="\n %%  ") }}
+%% {{ attribute.brief | replace("\n", "\n%%  ") }}
+{% if attribute.type is mapping -%}
+{%- for member in attribute.type.members %}
+-define('{{ attribute.name | snake_case_const }}.{{ member.id }}', '{{ member.value }}').
+{% endfor %}
+-define({{ attribute.name | snake_case_const }}.(Custom), Custom).
+{%- else -%}
+-define({{ attribute.name | snake_case_const | upper }}, '{{ attribute.name }}').
 {%- endif %}
--define({{ attribute.fqn | to_const_name }}, '{{ attribute.fqn }}').
-{# blank line #}
-{%- endfor %}
+{% endfor %}

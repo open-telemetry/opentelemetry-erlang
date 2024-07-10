@@ -1,4 +1,4 @@
-defmodule OpenTelemetry.SemanticConventions.ErrorAttributes do
+defmodule OpenTelemetry.SemConv.ErrorAttributes do
   # This is an auto-generated file
   @moduledoc """
   OpenTelemetry Semantic Conventions for Error attributes.
@@ -17,6 +17,7 @@ defmodule OpenTelemetry.SemanticConventions.ErrorAttributes do
         }
   @doc """
   Describes a class of error the operation ended with.
+
 
   ### Notes
 
@@ -40,13 +41,33 @@ defmodule OpenTelemetry.SemanticConventions.ErrorAttributes do
   * Use a domain-specific attribute
   * Set `error.type` to capture all errors, regardless of whether they are defined within the domain-specific set or not.
 
+  ### Examples
 
-  ### Example
-      iex> OpenTelemetry.SemanticConventions.ErrorAttributes.error_type().other
+  ```
+  ["timeout", "java.net.UnknownHostException", "server_certificate_invalid", "500"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.ErrorAttributes.error_type().other
       :_OTHER
       
-      iex> OpenTelemetry.SemanticConventions.ErrorAttributes.error_type(:custom_value)
+      iex> OpenTelemetry.SemConv.ErrorAttributes.error_type(:custom_value)
       :custom_value
+
+  ### Erlang
+
+  ```erlang
+  ?'error_type.other'.
+  _OTHER
+
+  ?error_type.(custom_value).
+  custom_value
+  ```
+
+  <!-- tabs-close -->
   """
   @spec error_type() :: error_type()
   def error_type() do

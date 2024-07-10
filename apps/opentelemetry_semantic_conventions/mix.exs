@@ -15,12 +15,12 @@ defmodule OpenTelemetry.SemanticConventions.MixProject do
         {:covertool, ">= 0.0.0", only: :test},
         {:ex_doc, "~> 0.34", only: [:dev]}
       ],
-      name: "OpenTelemetry.SemanticConventions",
+      name: "OpenTelemetry.SemConv",
       source_url:
         "https://github.com/open-telemetry/opentelemetry-erlang/apps/opentelemetry_semantic_conventions",
       docs: [
         markdown_processor: {ExDoc.Markdown.Earmark, [all: true]},
-        main: "OpenTelemetry.SemanticConventions",
+        main: "OpenTelemetry.SemConv",
         extra_section: "GUIDES",
         extras: guides() ++ [],
         groups_for_extras: [
@@ -45,6 +45,7 @@ defmodule OpenTelemetry.SemanticConventions.MixProject do
           URL: Path.wildcard("guides/url/*.md")
         ],
         nest_modules_by_prefix: [
+          OpenTelemetry.SemConv,
           OpenTelemetry.SemanticConventions
         ]
       ],

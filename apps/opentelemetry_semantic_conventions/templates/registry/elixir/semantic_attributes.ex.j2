@@ -1,9 +1,7 @@
-{%- macro to_elixir_module(text) -%}
-  {{ text | pascal_case }}
-{%- endmacro -%}
 {#- waiting on https://github.com/open-telemetry/weaver/pull/207 for split to be available -#}
 
   {# {{ text | snake_case_const | replace('_', ' ') | split | reject(ctx.id) | join('_') }} #}
+{%- set acronyms = ["http", "url", "tls", "rpc", "os", "oci", "gcp", "faas", "dns", "db", "aws"] %}
 {%- macro func_name(text) -%}
   {{ text | snake_case_const }}
 {%- endmacro -%}
@@ -39,6 +37,15 @@
   NOT_MAPPED
   {%- endif -%}
 {%- endmacro -%}
+{%- macro erlang_enum_value_return_type_example(value) -%}
+  {%- if value is string -%}
+  custom_value
+  {%- elif value is integer -%}
+  27
+  {%- else -%}
+  NOT_MAPPED
+  {%- endif -%}
+{%- endmacro -%}
 {%- macro enum_to_map(members) -%}
   {% raw %}%{{% endraw %}
   {% for member in members %}
@@ -49,30 +56,40 @@
 {%- macro strong_reqs(string) -%}
   {{ string | replace(" MUST ", " **MUST** ") | replace(" MUST NOT ", " **MUST NOT** ") | replace(" SHOULD ", " **SHOULD** ") | replace(" SHOULD NOT ", " **SHOULD NOT** ") |  replace(" MAY ", " **MAY** ") | replace(" NOT ", " **NOT** ") }}
 {%- endmacro -%}
+{%- macro format_acronym(value) -%}
+  {%- if value | lower in acronyms -%}
+  {{ value | upper }}
+  {%- else -%}
+  {{ value }}
+  {%- endif -%}
+{%- endmacro -%}
 
 {%- set file_name = ctx.id | snake_case ~ "_attributes.ex" -%}
-{%- set module_name = ctx.id | pascal_case -%}
+{%- set module_name = (ctx.id | pascal_case) -%}
 {%- set trim_blocks = true %}
 {%- set trim_lstrip_blocks = true %}
 {{ template.set_file_name(file_name) }}
 
-{%- set module_name = ctx.id | pascal_case ~ "Attributes" -%}
-defmodule OpenTelemetry.SemanticConventions.{{ module_name }} do
+{%- set module_name = format_acronym(ctx.id | pascal_case) ~ "Attributes" -%}
+{%- if params.stability == "experimental" -%}
+{%- set module_namespace = "OpenTelemetry.SemConv.Incubating" -%}
+{%- else -%}
+{%- set module_namespace = "OpenTelemetry.SemConv" -%}
+{%- endif -%}
+defmodule {{ module_namespace }}.{{ module_name }} do
   # This is an auto-generated file
   @moduledoc """
-  OpenTelemetry Semantic Conventions for {{ ctx.id | title }} attributes.
+  OpenTelemetry Semantic Conventions for {{ format_acronym(ctx.id | title) }} attributes.
   """
 {%- for attribute in ctx.attributes | sort(attribute="name") %}
   {% if attribute.type is mapping %}
-  {# @doc namespace: {{ to_atom(ctx.id) }} #}
-  
   @typedoc """
   {{ strong_reqs(attribute.brief) }}
 
   ### Enum Values
   {% for member in attribute.type.members -%}
   * `{{ to_atom(member.id) }}`
-  {%- if member is experimental %} ^[e](`m:OpenTelemetry.SemanticConventions#experimental`)^{% endif %}{% if member.brief != none %} - {% if member is deprecated %}**deprecated** ~~{% endif %}{{ member.brief }}{% if member is deprecated %}~~{% endif %}{% endif %}
+  {%- if member is experimental %} ^[e](`m:OpenTelemetry.SemConv#experimental`)^{% endif %}{% if member.brief != none %} - {% if member is deprecated %}**deprecated** ~~{% endif %}{{ member.brief }}{% if member is deprecated %}~~{% endif %}{% endif %}
   {% endfor -%}
   """
   @type {{ attribute.name | snake_case_const }}() :: {{ enum_to_map(attribute.type.members) }}
@@ -86,25 +103,61 @@ defmodule OpenTelemetry.SemanticConventions.{{ module_name }} do
   {% if not(attribute is deprecated) %}
   @doc """
   {{ strong_reqs(attribute.brief | replace("\n", "\n  ")) }}
-  {% if attribute.note -%}
+  {% if (attribute.type is simple_type) or (attribute.type is template_type) -%}
+  ### Value type
 
+  Value must be of type `{{ attribute.type | map_text("elixir_types") }}`.
+  {%- endif %}
+  {%- if attribute.note %}
   ### Notes
 
   {{ strong_reqs(attribute.note | replace("\n", "\n  ")) }}
+  {%- endif %}
+  {%- if attribute.examples %}
+  ### Examples
+
+  ```
+  {{ attribute.examples }}
+  ```
 
   {%- endif %}
 
-  ### Example
+  <!-- tabs-open -->
   {%- if attribute.type is mapping %}
-      iex> OpenTelemetry.SemanticConventions.{{ module_name }}.{{ func_name(attribute.name) }}().{{ attribute.type.members|first|attr('id') }}
+
+  ### Elixir
+
+      iex> {{ module_namespace }}.{{ module_name }}.{{ func_name(attribute.name) }}().{{ attribute.type.members|first|attr('id') }}
       {{ enum_value_to_elixir_type(attribute.type.members|first|attr('value')) }}
       
-      iex> OpenTelemetry.SemanticConventions.{{ module_name }}.{{ func_name(attribute.name) }}({{ enum_value_return_type_example(attribute.type.members|first|attr('value')) }})
+      iex> {{ module_namespace }}.{{ module_name }}.{{ func_name(attribute.name) }}({{ enum_value_return_type_example(attribute.type.members|first|attr('value')) }})
       {{ enum_value_return_type_example(attribute.type.members|first|attr('value')) }}
+
+  ### Erlang
+
+  ```erlang
+  ?'{{ attribute.name | snake_case_const }}.{{ attribute.type.members|first|attr('id') }}'.
+  {{ attribute.type.members|first|attr('value') }}
+  
+  ?{{ attribute.name | snake_case_const }}.({{ erlang_enum_value_return_type_example(attribute.type.members|first|attr('value')) }}).
+  {{ erlang_enum_value_return_type_example(attribute.type.members|first|attr('value')) }}
+  ```
   {%- else %}
-      iex> OpenTelemetry.SemanticConventions.{{ module_name }}.{{ func_name(attribute.name) }}()
+  
+  ### Elixir
+
+      iex> {{ module_namespace }}.{{ module_name }}.{{ func_name(attribute.name) }}()
       {{ to_atom(attribute.name) }}
+
+  ### Erlang
+
+  ```erlang
+  ?{{ attribute.name | snake_case_const | upper }}.
+  '{{ attribute.name }}'
+  ```
   {%- endif %}
+
+  <!-- tabs-close -->
   """
   {%- endif %}
 

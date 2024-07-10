@@ -1,40 +1,8 @@
-defmodule OpenTelemetry.SemanticConventions.TelemetryAttributes do
+defmodule OpenTelemetry.SemConv.TelemetryAttributes do
   # This is an auto-generated file
   @moduledoc """
   OpenTelemetry Semantic Conventions for Telemetry attributes.
   """
-
-  @doc """
-  The name of the auto instrumentation agent or distribution, if used.
-
-  ### Notes
-
-  Official auto instrumentation agents and distributions **SHOULD** set the `telemetry.distro.name` attribute to
-  a string starting with `opentelemetry-`, e.g. `opentelemetry-java-instrumentation`.
-
-
-  ### Example
-      iex> OpenTelemetry.SemanticConventions.TelemetryAttributes.telemetry_distro_name()
-      :"telemetry.distro.name"
-  """
-  @spec telemetry_distro_name :: :"telemetry.distro.name"
-  def telemetry_distro_name do
-    :"telemetry.distro.name"
-  end
-
-  @doc """
-  The version string of the auto instrumentation agent or distribution, if used.
-
-
-
-  ### Example
-      iex> OpenTelemetry.SemanticConventions.TelemetryAttributes.telemetry_distro_version()
-      :"telemetry.distro.version"
-  """
-  @spec telemetry_distro_version :: :"telemetry.distro.version"
-  def telemetry_distro_version do
-    :"telemetry.distro.version"
-  end
 
   @typedoc """
   The language of the telemetry SDK.
@@ -73,12 +41,27 @@ defmodule OpenTelemetry.SemanticConventions.TelemetryAttributes do
 
 
 
-  ### Example
-      iex> OpenTelemetry.SemanticConventions.TelemetryAttributes.telemetry_sdk_language().cpp
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_language().cpp
       :cpp
       
-      iex> OpenTelemetry.SemanticConventions.TelemetryAttributes.telemetry_sdk_language(:custom_value)
+      iex> OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_language(:custom_value)
       :custom_value
+
+  ### Erlang
+
+  ```erlang
+  ?'telemetry_sdk_language.cpp'.
+  cpp
+
+  ?telemetry_sdk_language.(custom_value).
+  custom_value
+  ```
+
+  <!-- tabs-close -->
   """
   @spec telemetry_sdk_language() :: telemetry_sdk_language()
   def telemetry_sdk_language() do
@@ -106,6 +89,9 @@ defmodule OpenTelemetry.SemanticConventions.TelemetryAttributes do
   @doc """
   The name of the telemetry SDK as defined above.
 
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
   ### Notes
 
   The OpenTelemetry SDK **MUST** set the `telemetry.sdk.name` attribute to `opentelemetry`.
@@ -115,10 +101,27 @@ defmodule OpenTelemetry.SemanticConventions.TelemetryAttributes do
   The identifier `opentelemetry` is reserved and **MUST** **NOT** be used in this case.
   All custom identifiers **SHOULD** be stable across different versions of an implementation.
 
+  ### Examples
 
-  ### Example
-      iex> OpenTelemetry.SemanticConventions.TelemetryAttributes.telemetry_sdk_name()
+  ```
+  ["opentelemetry"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_name()
       :"telemetry.sdk.name"
+
+  ### Erlang
+
+  ```erlang
+  ?TELEMETRY_SDK_NAME.
+  'telemetry.sdk.name'
+  ```
+
+  <!-- tabs-close -->
   """
   @spec telemetry_sdk_name :: :"telemetry.sdk.name"
   def telemetry_sdk_name do
@@ -128,11 +131,30 @@ defmodule OpenTelemetry.SemanticConventions.TelemetryAttributes do
   @doc """
   The version string of the telemetry SDK.
 
+  ### Value type
 
+  Value must be of type `atom() | String.t()`.
+  ### Examples
 
-  ### Example
-      iex> OpenTelemetry.SemanticConventions.TelemetryAttributes.telemetry_sdk_version()
+  ```
+  ["1.2.3"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_version()
       :"telemetry.sdk.version"
+
+  ### Erlang
+
+  ```erlang
+  ?TELEMETRY_SDK_VERSION.
+  'telemetry.sdk.version'
+  ```
+
+  <!-- tabs-close -->
   """
   @spec telemetry_sdk_version :: :"telemetry.sdk.version"
   def telemetry_sdk_version do

@@ -1,3 +1,6 @@
+params:
+  stability: "stable"
+  
 templates:
   - pattern: semantic_attributes.ex.j2
     filter: >
@@ -6,31 +9,33 @@ templates:
       | map(select(.type == "attribute_group"))
       | map(select(.id | startswith("registry.")))
       | map({ id: .id, group_id: .id | split(".") | .[1], attributes: .attributes})
+      | map(select([.attributes[] | select(.stability == $stability)] | any))
       | group_by(.group_id)
-      | map({ id: .[0].group_id, attributes: [.[].attributes[]] | sort_by(.id) })
+      | map({ id: .[0].group_id, attributes: [.[].attributes[] | select(.stability == $stability)] | sort_by(.id) })
       | map(select( .id as $id | any( $excluded[]; . == $id) | not ))
       | map(select(.attributes | length > 0))
     application_mode: each
 
-    # | map(select([.attributes[] | select(.stability="stable")] | any))
 text_maps:
-  type_mapping:
+  elixir_types:
     "int": "integer()"
     "int[]": "[integer()]"
     "double": "float()"
     "double[]": "[float()]"
     "boolean": "boolean()"
     "boolean[]": "[boolean()]"
-    "string": "String.t()"
-    "string[]": "[String.t()]"
+    "string": "atom() | String.t()"
+    "string[]": "[atom() | String.t()]"
     "template[int]": "integer()"
     "template[double]": "float()"
     "template[boolean]": "boolean()"
-    "template[string]": "String.t()"
-    "template[string[]]": "[String.t()]"
+    "template[string]": "atom() | String.t()"
+    "template[string[]]": "[atom() | String.t()]"
     "template[int[]]": "[integer()]"
     "template[double[]]": "[float()]"
     "template[boolean[]]": "[boolean()]"
+
+acronyms: ["iOS", "HTTP", "API", "SDK", "CLI", "URL", "JSON", "XML", "HTML", "TLS", "RPC", "OS", "OCI", "GCP", "FAAS", "DNS", "DB", "AWS" ]
 #   java_generic_type:
 #     int: Long
 #     double: Double
@@ -82,10 +87,3 @@ text_maps:
 #     template[int[]]: longArrayKeyTemplate
 #     template[double[]]: doubleArrayKeyTemplate
 #     template[boolean[]]: booleanArrayKeyTemplate
-
-# Space delimited list of root namespaces to excluded (i.e. "foo bar")
-#        "-Dexcluded_namespaces=\"ios aspnetcore signalr\"",
-#"-Dfilter=${filter}",
-#        "-DclassPrefix=${classPrefix}",
-#        "-Dpkg=$packageNameArg",
-#        "-DstablePkg=$stablePackageNameArg"

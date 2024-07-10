@@ -25,6 +25,11 @@ cwd = File.cwd!()
 #   System.cmd("rm", ["-rf", "#{cwd}/guides/docs"])
 # end)
 
+########
+# Delete all generated files before generating new versions.
+########
+
+# elixir
 System.cmd("docker", [
   "run",
   # "--rm",
@@ -40,41 +45,76 @@ System.cmd("docker", [
   "generate",
   "--registry=/source/model",
   "--templates=/weaver/templates",
+  "--param",
+  "stability=stable",
+  "elixir",
+  "/output/"
+])
+
+System.cmd("docker", [
+  "run",
+  # "--rm",
+  "-v",
+  "#{build_dir}:/source",
+  "-v",
+  "#{cwd}/templates:/weaver/templates",
+  "-v",
+  "#{cwd}/lib/incubating:/output",
+  "local-weaver",
+  # "otel/weaver:#{docker_img_vsn}",
+  "registry",
+  "generate",
+  "--registry=/source/model",
+  "--templates=/weaver/templates",
+  "--param",
+  "stability=experimental",
   "elixir",
   "/output/"
 ])
 
 # erlang
-# Task.async(fn ->
-#   System.cmd("docker", [
-#     "run",
-#     "--rm",
-#     "-v",
-#     "#{build_dir}/model:/source",
-#     "-v",
-#     "#{cwd}/templates:/templates",
-#     "-v",
-#     "#{cwd}/include:/output",
-#     "otel/semconvgen:#{docker_img_vsn}",
-#     "--only",
-#     kind,
-#     "--yaml-root",
-#     "/source",
-#     "code",
-#     "--template",
-#     "/templates/semantic_attributes.hrl.j2",
-#     "--output",
-#     "/output/#{module}.hrl",
-#     "-Dmodule=#{module}",
-#     "-Dschema_uri=#{schema_uri}"
-#   ])
-# end)
-# end)
-# |> List.flatten()
-# |> Task.await_many(:timer.minutes(5))
 
-# rpc_attributes.ex will fail with duplicate types for
-# sent/receive around the mid-400s lines. Delete
-# and run these two commands again
+System.cmd("docker", [
+  "run",
+  # "--rm",
+  "-v",
+  "#{build_dir}:/source",
+  "-v",
+  "#{cwd}/templates:/weaver/templates",
+  "-v",
+  "#{cwd}/include:/output",
+  "local-weaver",
+  # "otel/weaver:#{docker_img_vsn}",
+  "registry",
+  "generate",
+  "--registry=/source/model",
+  "--templates=/weaver/templates",
+  "--param",
+  "stability=stable",
+  "erlang",
+  "/output/"
+])
+
+System.cmd("docker", [
+  "run",
+  # "--rm",
+  "-v",
+  "#{build_dir}:/source",
+  "-v",
+  "#{cwd}/templates:/weaver/templates",
+  "-v",
+  "#{cwd}/include/incubating:/output",
+  "local-weaver",
+  # "otel/weaver:#{docker_img_vsn}",
+  "registry",
+  "generate",
+  "--registry=/source/model",
+  "--templates=/weaver/templates",
+  "--param",
+  "stability=experimental",
+  "erlang",
+  "/output/"
+])
+
 System.cmd("mix", ["format"])
 System.cmd("mix", ["docs"])
