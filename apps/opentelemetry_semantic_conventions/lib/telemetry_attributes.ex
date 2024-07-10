@@ -57,7 +57,7 @@ defmodule OpenTelemetry.SemConv.TelemetryAttributes do
   ?'telemetry_sdk_language.cpp'.
   cpp
 
-  ?telemetry_sdk_language.(custom_value).
+  ?telemetry_sdk_language(custom_value).
   custom_value
   ```
 

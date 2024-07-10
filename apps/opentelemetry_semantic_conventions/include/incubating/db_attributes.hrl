@@ -25,7 +25,7 @@
 
 -define('db_cassandra_consistencylevel.local_serial', 'local_serial').
 
--define(db_cassandra_consistencylevel.(Custom), Custom).
+-define(db_cassandra_consistencylevel(Custom), Custom).
 
 
 %% The data center of the coordinating node for a query.
@@ -68,7 +68,7 @@
 
 -define('db_client_connections_state.used', 'used').
 
--define(db_client_connections_state.(Custom), Custom).
+-define(db_client_connections_state(Custom), Custom).
 
 
 %% The name of a collection (table, container) within the database.
@@ -90,7 +90,7 @@
 
 -define('db_cosmosdb_connectionmode.direct', 'direct').
 
--define(db_cosmosdb_connectionmode.(Custom), Custom).
+-define(db_cosmosdb_connectionmode(Custom), Custom).
 
 %% @deprecated Replaced by `db.collection.name`.
 %% Deprecated, use `db.collection.name` instead.
@@ -129,7 +129,7 @@
 
 -define('db_cosmosdb_operationtype.execute_javascript', 'ExecuteJavaScript').
 
--define(db_cosmosdb_operationtype.(Custom), Custom).
+-define(db_cosmosdb_operationtype(Custom), Custom).
 
 
 %% RU consumed for that operation
@@ -325,7 +325,7 @@
 
 -define('db_system.trino', 'trino').
 
--define(db_system.(Custom), Custom).
+-define(db_system(Custom), Custom).
 
 %% @deprecated No replacement at this time.
 %% Deprecated, no replacement at this time.
@@ -342,4 +342,4 @@
 
 -define('state.used', 'used').
 
--define(state.(Custom), Custom).
+-define(state(Custom), Custom).

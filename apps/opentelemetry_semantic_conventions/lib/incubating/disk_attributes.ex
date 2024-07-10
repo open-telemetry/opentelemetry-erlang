@@ -40,7 +40,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DiskAttributes do
   ?'disk_io_direction.read'.
   read
 
-  ?disk_io_direction.(custom_value).
+  ?disk_io_direction(custom_value).
   custom_value
   ```
 

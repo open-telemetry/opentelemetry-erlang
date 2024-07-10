@@ -99,7 +99,7 @@ defmodule OpenTelemetry.SemConv.OtelAttributes do
   ?'otel_statuscode.ok'.
   OK
 
-  ?otel_statuscode.(custom_value).
+  ?otel_statuscode(custom_value).
   custom_value
   ```
 

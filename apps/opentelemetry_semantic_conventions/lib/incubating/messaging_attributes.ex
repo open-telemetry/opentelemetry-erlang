@@ -871,7 +871,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ?'messaging_operation_type.publish'.
   publish
 
-  ?messaging_operation_type.(custom_value).
+  ?messaging_operation_type(custom_value).
   custom_value
   ```
 
@@ -1025,7 +1025,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ?'messaging_rocketmq_consumptionmodel.clustering'.
   clustering
 
-  ?messaging_rocketmq_consumptionmodel.(custom_value).
+  ?messaging_rocketmq_consumptionmodel(custom_value).
   custom_value
   ```
 
@@ -1248,7 +1248,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ?'messaging_rocketmq_message_type.normal'.
   normal
 
-  ?messaging_rocketmq_message_type.(custom_value).
+  ?messaging_rocketmq_message_type(custom_value).
   custom_value
   ```
 
@@ -1373,7 +1373,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ?'messaging_servicebus_dispositionstatus.complete'.
   complete
 
-  ?messaging_servicebus_dispositionstatus.(custom_value).
+  ?messaging_servicebus_dispositionstatus(custom_value).
   custom_value
   ```
 
@@ -1512,7 +1512,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ?'messaging_system.activemq'.
   activemq
 
-  ?messaging_system.(custom_value).
+  ?messaging_system(custom_value).
   custom_value
   ```
 

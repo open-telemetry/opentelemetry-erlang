@@ -109,7 +109,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GraphqlAttributes do
   ?'graphql_operation_type.query'.
   query
 
-  ?graphql_operation_type.(custom_value).
+  ?graphql_operation_type(custom_value).
   custom_value
   ```
 

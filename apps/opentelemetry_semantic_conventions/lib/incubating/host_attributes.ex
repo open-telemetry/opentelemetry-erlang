@@ -49,7 +49,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ?'host_arch.amd64'.
   amd64
 
-  ?host_arch.(custom_value).
+  ?host_arch(custom_value).
   custom_value
   ```
 

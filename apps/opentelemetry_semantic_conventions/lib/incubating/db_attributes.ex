@@ -55,7 +55,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ?'db_cassandra_consistencylevel.all'.
   all
 
-  ?db_cassandra_consistencylevel.(custom_value).
+  ?db_cassandra_consistencylevel(custom_value).
   custom_value
   ```
 
@@ -320,7 +320,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ?'db_client_connections_state.idle'.
   idle
 
-  ?db_client_connections_state.(custom_value).
+  ?db_client_connections_state(custom_value).
   custom_value
   ```
 
@@ -448,7 +448,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ?'db_cosmosdb_connectionmode.gateway'.
   gateway
 
-  ?db_cosmosdb_connectionmode.(custom_value).
+  ?db_cosmosdb_connectionmode(custom_value).
   custom_value
   ```
 
@@ -532,7 +532,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ?'db_cosmosdb_operationtype.invalid'.
   Invalid
 
-  ?db_cosmosdb_operationtype.(custom_value).
+  ?db_cosmosdb_operationtype(custom_value).
   custom_value
   ```
 
@@ -1144,7 +1144,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ?'db_system.other_sql'.
   other_sql
 
-  ?db_system.(custom_value).
+  ?db_system(custom_value).
   custom_value
   ```
 

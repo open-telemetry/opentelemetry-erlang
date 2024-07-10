@@ -16,4 +16,4 @@
 
 -define('graphql_operation_type.subscription', 'subscription').
 
--define(graphql_operation_type.(Custom), Custom).
+-define(graphql_operation_type(Custom), Custom).

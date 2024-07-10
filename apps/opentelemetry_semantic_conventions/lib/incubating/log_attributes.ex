@@ -169,7 +169,7 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
   ?'log_iostream.stdout'.
   stdout
 
-  ?log_iostream.(custom_value).
+  ?log_iostream(custom_value).
   custom_value
   ```
 

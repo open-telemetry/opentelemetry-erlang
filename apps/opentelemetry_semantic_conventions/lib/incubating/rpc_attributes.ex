@@ -114,7 +114,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ?'rpc_connectrpc_errorcode.cancelled'.
   cancelled
 
-  ?rpc_connectrpc_errorcode.(custom_value).
+  ?rpc_connectrpc_errorcode(custom_value).
   custom_value
   ```
 
@@ -356,7 +356,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ?'rpc_grpc_statuscode.ok'.
   0
 
-  ?rpc_grpc_statuscode.(27).
+  ?rpc_grpc_statuscode(27).
   27
   ```
 
@@ -607,7 +607,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ?'rpc_message_type.sent'.
   SENT
 
-  ?rpc_message_type.(custom_value).
+  ?rpc_message_type(custom_value).
   custom_value
   ```
 
@@ -762,7 +762,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ?'rpc_system.grpc'.
   grpc
 
-  ?rpc_system.(custom_value).
+  ?rpc_system(custom_value).
   custom_value
   ```
 

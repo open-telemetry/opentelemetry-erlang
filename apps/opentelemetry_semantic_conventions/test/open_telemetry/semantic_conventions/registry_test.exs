@@ -7,7 +7,7 @@ contents =
     modules_to_test =
       Enum.filter(modules, fn module ->
         module = to_string(module)
-        String.starts_with?(module, "Elixir") && String.contains?(module, "SemanticConventions")
+        String.starts_with?(module, "Elixir") && String.contains?(module, "SemConv")
       end)
 
     for module <- modules_to_test do

@@ -35,7 +35,7 @@
 
 -define('network_transport.unix', 'unix').
 
--define(network_transport.(Custom), Custom).
+-define(network_transport(Custom), Custom).
 
 
 %% [OSI network layer](https://osi-model.com/network-layer/) or non-OSI equivalent.
@@ -44,4 +44,4 @@
 
 -define('network_type.ipv6', 'ipv6').
 
--define(network_type.(Custom), Custom).
+-define(network_type(Custom), Custom).

@@ -112,7 +112,7 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   ?'http_request_method.connect'.
   CONNECT
 
-  ?http_request_method.(custom_value).
+  ?http_request_method(custom_value).
   custom_value
   ```
 

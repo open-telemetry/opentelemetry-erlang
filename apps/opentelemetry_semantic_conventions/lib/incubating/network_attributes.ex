@@ -376,7 +376,7 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   ?'network_connection_subtype.gprs'.
   gprs
 
-  ?network_connection_subtype.(custom_value).
+  ?network_connection_subtype(custom_value).
   custom_value
   ```
 
@@ -456,7 +456,7 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   ?'network_connection_type.wifi'.
   wifi
 
-  ?network_connection_type.(custom_value).
+  ?network_connection_type(custom_value).
   custom_value
   ```
 
@@ -514,7 +514,7 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   ?'network_io_direction.transmit'.
   transmit
 
-  ?network_io_direction.(custom_value).
+  ?network_io_direction(custom_value).
   custom_value
   ```
 

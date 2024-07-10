@@ -5,4 +5,4 @@
 
 -define('error_type.other', '_OTHER').
 
--define(error_type.(Custom), Custom).
+-define(error_type(Custom), Custom).

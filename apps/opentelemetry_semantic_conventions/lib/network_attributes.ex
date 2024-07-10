@@ -253,7 +253,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   ?'network_transport.tcp'.
   tcp
 
-  ?network_transport.(custom_value).
+  ?network_transport(custom_value).
   custom_value
   ```
 
@@ -313,7 +313,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   ?'network_type.ipv4'.
   ipv4
 
-  ?network_type.(custom_value).
+  ?network_type(custom_value).
   custom_value
   ```
 

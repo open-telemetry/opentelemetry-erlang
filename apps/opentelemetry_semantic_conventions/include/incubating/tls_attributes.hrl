@@ -78,7 +78,7 @@
 
 -define('tls_protocol_name.tls', 'tls').
 
--define(tls_protocol_name.(Custom), Custom).
+-define(tls_protocol_name(Custom), Custom).
 
 
 %% Numeric part of the version parsed from the original string of the negotiated [SSL/TLS protocol version](https://www.openssl.org/docs/man1.1.1/man3/SSL_get_version.html#RETURN-VALUES)

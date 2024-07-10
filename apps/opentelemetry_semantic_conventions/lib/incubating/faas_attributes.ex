@@ -164,7 +164,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ?'faas_document_operation.insert'.
   insert
 
-  ?faas_document_operation.(custom_value).
+  ?faas_document_operation(custom_value).
   custom_value
   ```
 
@@ -367,7 +367,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ?'faas_invokedprovider.alibaba_cloud'.
   alibaba_cloud
 
-  ?faas_invokedprovider.(custom_value).
+  ?faas_invokedprovider(custom_value).
   custom_value
   ```
 
@@ -587,7 +587,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ?'faas_trigger.datasource'.
   datasource
 
-  ?faas_trigger.(custom_value).
+  ?faas_trigger(custom_value).
   custom_value
   ```
 

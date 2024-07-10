@@ -63,7 +63,7 @@ defmodule OpenTelemetry.SemConv.ErrorAttributes do
   ?'error_type.other'.
   _OTHER
 
-  ?error_type.(custom_value).
+  ?error_type(custom_value).
   custom_value
   ```
 

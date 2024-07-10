@@ -20,7 +20,7 @@
 
 -define('system_cpu_state.steal', 'steal').
 
--define(system_cpu_state.(Custom), Custom).
+-define(system_cpu_state(Custom), Custom).
 
 
 %% The device identifier
@@ -43,7 +43,7 @@
 
 -define('system_filesystem_state.reserved', 'reserved').
 
--define(system_filesystem_state.(Custom), Custom).
+-define(system_filesystem_state(Custom), Custom).
 
 
 %% The filesystem type
@@ -60,7 +60,7 @@
 
 -define('system_filesystem_type.ext4', 'ext4').
 
--define(system_filesystem_type.(Custom), Custom).
+-define(system_filesystem_type(Custom), Custom).
 
 
 %% The memory state
@@ -75,7 +75,7 @@
 
 -define('system_memory_state.cached', 'cached').
 
--define(system_memory_state.(Custom), Custom).
+-define(system_memory_state(Custom), Custom).
 
 
 %% A stateless protocol MUST NOT set this attribute
@@ -104,7 +104,7 @@
 
 -define('system_network_state.time_wait', 'time_wait').
 
--define(system_network_state.(Custom), Custom).
+-define(system_network_state(Custom), Custom).
 
 
 %% The paging access direction
@@ -113,7 +113,7 @@
 
 -define('system_paging_direction.out', 'out').
 
--define(system_paging_direction.(Custom), Custom).
+-define(system_paging_direction(Custom), Custom).
 
 
 %% The memory paging state
@@ -122,7 +122,7 @@
 
 -define('system_paging_state.free', 'free').
 
--define(system_paging_state.(Custom), Custom).
+-define(system_paging_state(Custom), Custom).
 
 
 %% The memory paging type
@@ -131,7 +131,7 @@
 
 -define('system_paging_type.minor', 'minor').
 
--define(system_paging_type.(Custom), Custom).
+-define(system_paging_type(Custom), Custom).
 
 
 %% The process state, e.g., [Linux Process State Codes](https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES)
@@ -145,7 +145,7 @@
 
 -define('system_process_status.defunct', 'defunct').
 
--define(system_process_status.(Custom), Custom).
+-define(system_process_status(Custom), Custom).
 
 %% @deprecated Replaced by `system.process.status`.
 %% Deprecated, use `system.process.status` instead.
@@ -158,4 +158,4 @@
 
 -define('system_processes_status.defunct', 'defunct').
 
--define(system_processes_status.(Custom), Custom).
+-define(system_processes_status(Custom), Custom).

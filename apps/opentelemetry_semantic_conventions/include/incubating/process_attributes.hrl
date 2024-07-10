@@ -21,7 +21,7 @@
 
 -define('process_contextswitchtype.involuntary', 'involuntary').
 
--define(process_contextswitchtype.(Custom), Custom).
+-define(process_contextswitchtype(Custom), Custom).
 
 
 %% The CPU state of the process.
@@ -33,7 +33,7 @@
 
 -define('process_cpu_state.wait', 'wait').
 
--define(process_cpu_state.(Custom), Custom).
+-define(process_cpu_state(Custom), Custom).
 
 
 %% The date and time the process was created, in ISO 8601 format.
@@ -83,7 +83,7 @@
 
 -define('process_paging_faulttype.minor', 'minor').
 
--define(process_paging_faulttype.(Custom), Custom).
+-define(process_paging_faulttype(Custom), Custom).
 
 
 %% Parent Process identifier (PPID).

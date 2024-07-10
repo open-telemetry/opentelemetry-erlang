@@ -40,7 +40,7 @@
 
 -define('genai_system.openai', 'openai').
 
--define(genai_system.(Custom), Custom).
+-define(genai_system(Custom), Custom).
 
 
 %% The number of tokens used in the LLM response (completion).

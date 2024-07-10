@@ -10,7 +10,7 @@
 
 -define('http_connection_state.idle', 'idle').
 
--define(http_connection_state.(Custom), Custom).
+-define(http_connection_state(Custom), Custom).
 
 %% @deprecated Replaced by `network.protocol.name`.
 %% Deprecated, use `network.protocol.name` instead.
@@ -27,7 +27,7 @@
 
 -define('http_flavor.quic', 'QUIC').
 
--define(http_flavor.(Custom), Custom).
+-define(http_flavor(Custom), Custom).
 
 %% @deprecated Replaced by one of `server.address`, `client.address` or `http.request.header.host`, depending on the usage.
 %% Deprecated, use one of `server.address`, `client.address` or `http.request.header.host` instead, depending on the usage.

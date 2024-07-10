@@ -152,7 +152,7 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
   ?'os_type.windows'.
   windows
 
-  ?os_type.(custom_value).
+  ?os_type(custom_value).
   custom_value
   ```
 

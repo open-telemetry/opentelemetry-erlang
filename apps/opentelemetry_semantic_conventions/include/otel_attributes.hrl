@@ -14,7 +14,7 @@
 
 -define('otel_statuscode.error', 'ERROR').
 
--define(otel_statuscode.(Custom), Custom).
+-define(otel_statuscode(Custom), Custom).
 
 
 %% Description of the Status if it has a value, otherwise not set.

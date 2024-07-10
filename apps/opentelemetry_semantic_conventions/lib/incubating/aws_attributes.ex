@@ -797,7 +797,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ?'aws_ecs_launchtype.ec2'.
   ec2
 
-  ?aws_ecs_launchtype.(custom_value).
+  ?aws_ecs_launchtype(custom_value).
   custom_value
   ```
 

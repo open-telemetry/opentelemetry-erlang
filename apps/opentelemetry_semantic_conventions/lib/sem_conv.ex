@@ -54,7 +54,7 @@ defmodule OpenTelemetry.SemConv do
   ```
   -include_lib("opentelemetry_semantic_conventions/include/incubating/db_attributes.hrl").
 
-  ?db_system.("custom").
+  ?db_system("custom").
   ```
 
   #### Incubating Attributes

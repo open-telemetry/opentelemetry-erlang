@@ -6,4 +6,4 @@
 
 -define('disk_io_direction.write', 'write').
 
--define(disk_io_direction.(Custom), Custom).
+-define(disk_io_direction(Custom), Custom).

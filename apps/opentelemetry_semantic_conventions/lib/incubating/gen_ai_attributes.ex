@@ -336,7 +336,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ?'genai_system.openai'.
   openai
 
-  ?genai_system.(custom_value).
+  ?genai_system(custom_value).
   custom_value
   ```
 

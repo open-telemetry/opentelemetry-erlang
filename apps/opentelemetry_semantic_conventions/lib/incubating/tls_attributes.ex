@@ -560,7 +560,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ?'tls_protocol_name.ssl'.
   ssl
 
-  ?tls_protocol_name.(custom_value).
+  ?tls_protocol_name(custom_value).
   custom_value
   ```
 

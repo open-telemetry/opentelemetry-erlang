@@ -6,4 +6,4 @@
 
 -define('opentracing_reftype.follows_from', 'follows_from').
 
--define(opentracing_reftype.(Custom), Custom).
+-define(opentracing_reftype(Custom), Custom).

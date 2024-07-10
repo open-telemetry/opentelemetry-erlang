@@ -38,7 +38,7 @@
 
 -define('os_type.z_os', 'z_os').
 
--define(os_type.(Custom), Custom).
+-define(os_type(Custom), Custom).
 
 
 %% The version string of the operating system as defined in [Version Attributes](/docs/resource/README.md#version-attributes).

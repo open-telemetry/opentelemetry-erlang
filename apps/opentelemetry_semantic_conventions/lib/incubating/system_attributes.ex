@@ -82,7 +82,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?'system_cpu_state.user'.
   user
 
-  ?system_cpu_state.(custom_value).
+  ?system_cpu_state(custom_value).
   custom_value
   ```
 
@@ -240,7 +240,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?'system_filesystem_state.used'.
   used
 
-  ?system_filesystem_state.(custom_value).
+  ?system_filesystem_state(custom_value).
   custom_value
   ```
 
@@ -304,7 +304,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?'system_filesystem_type.fat32'.
   fat32
 
-  ?system_filesystem_type.(custom_value).
+  ?system_filesystem_type(custom_value).
   custom_value
   ```
 
@@ -369,7 +369,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?'system_memory_state.used'.
   used
 
-  ?system_memory_state.(custom_value).
+  ?system_memory_state(custom_value).
   custom_value
   ```
 
@@ -447,7 +447,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?'system_network_state.close'.
   close
 
-  ?system_network_state.(custom_value).
+  ?system_network_state(custom_value).
   custom_value
   ```
 
@@ -512,7 +512,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?'system_paging_direction.in'.
   in
 
-  ?system_paging_direction.(custom_value).
+  ?system_paging_direction(custom_value).
   custom_value
   ```
 
@@ -567,7 +567,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?'system_paging_state.used'.
   used
 
-  ?system_paging_state.(custom_value).
+  ?system_paging_state(custom_value).
   custom_value
   ```
 
@@ -622,7 +622,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?'system_paging_type.major'.
   major
 
-  ?system_paging_type.(custom_value).
+  ?system_paging_type(custom_value).
   custom_value
   ```
 
@@ -683,7 +683,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?'system_process_status.running'.
   running
 
-  ?system_process_status.(custom_value).
+  ?system_process_status(custom_value).
   custom_value
   ```
 

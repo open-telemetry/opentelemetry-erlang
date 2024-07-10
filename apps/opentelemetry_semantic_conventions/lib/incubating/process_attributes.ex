@@ -134,7 +134,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ?'process_contextswitchtype.voluntary'.
   voluntary
 
-  ?process_contextswitchtype.(custom_value).
+  ?process_contextswitchtype(custom_value).
   custom_value
   ```
 
@@ -188,7 +188,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ?'process_cpu_state.system'.
   system
 
-  ?process_cpu_state.(custom_value).
+  ?process_cpu_state(custom_value).
   custom_value
   ```
 
@@ -500,7 +500,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ?'process_paging_faulttype.major'.
   major
 
-  ?process_paging_faulttype.(custom_value).
+  ?process_paging_faulttype(custom_value).
   custom_value
   ```
 

@@ -39,7 +39,7 @@ defmodule OpenTelemetry.SemConv.Incubating.OpentracingAttributes do
   ?'opentracing_reftype.child_of'.
   child_of
 
-  ?opentracing_reftype.(custom_value).
+  ?opentracing_reftype(custom_value).
   custom_value
   ```
 

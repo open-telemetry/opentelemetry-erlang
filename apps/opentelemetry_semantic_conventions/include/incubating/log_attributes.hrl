@@ -27,7 +27,7 @@
 
 -define('log_iostream.stderr', 'stderr').
 
--define(log_iostream.(Custom), Custom).
+-define(log_iostream(Custom), Custom).
 
 
 %% A unique identifier for the Log Record.

@@ -40,7 +40,7 @@
 
 -define('net_sock_family.unix', 'unix').
 
--define(net_sock_family.(Custom), Custom).
+-define(net_sock_family(Custom), Custom).
 
 %% @deprecated Replaced by `network.local.address`.
 %% Deprecated, use `network.local.address`.
@@ -75,7 +75,7 @@
 
 -define('net_transport.other', 'other').
 
--define(net_transport.(Custom), Custom).
+-define(net_transport(Custom), Custom).
 
 
 %% The ISO 3166-1 alpha-2 2-character country code associated with the mobile carrier network.
@@ -138,7 +138,7 @@
 
 -define('network_connection_subtype.lte_ca', 'lte_ca').
 
--define(network_connection_subtype.(Custom), Custom).
+-define(network_connection_subtype(Custom), Custom).
 
 
 %% The internet connection type.
@@ -153,7 +153,7 @@
 
 -define('network_connection_type.unknown', 'unknown').
 
--define(network_connection_type.(Custom), Custom).
+-define(network_connection_type(Custom), Custom).
 
 
 %% The network IO operation direction.
@@ -162,4 +162,4 @@
 
 -define('network_io_direction.receive', 'receive').
 
--define(network_io_direction.(Custom), Custom).
+-define(network_io_direction(Custom), Custom).

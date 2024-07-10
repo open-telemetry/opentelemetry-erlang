@@ -139,7 +139,7 @@
 
 -define('messaging_operation_type.settle', 'settle').
 
--define(messaging_operation_type.(Custom), Custom).
+-define(messaging_operation_type(Custom), Custom).
 
 
 %% RabbitMQ message routing key.
@@ -164,7 +164,7 @@
 
 -define('messaging_rocketmq_consumptionmodel.broadcasting', 'broadcasting').
 
--define(messaging_rocketmq_consumptionmodel.(Custom), Custom).
+-define(messaging_rocketmq_consumptionmodel(Custom), Custom).
 
 
 %% The delay time level for delay message, which determines the message delay time.
@@ -203,7 +203,7 @@
 
 -define('messaging_rocketmq_message_type.transaction', 'transaction').
 
--define(messaging_rocketmq_message_type.(Custom), Custom).
+-define(messaging_rocketmq_message_type(Custom), Custom).
 
 
 %% Namespace of RocketMQ resources, resources in different namespaces are individual.
@@ -227,7 +227,7 @@
 
 -define('messaging_servicebus_dispositionstatus.defer', 'defer').
 
--define(messaging_servicebus_dispositionstatus.(Custom), Custom).
+-define(messaging_servicebus_dispositionstatus(Custom), Custom).
 
 
 %% Number of deliveries that have been attempted for this message.
@@ -262,4 +262,4 @@
 
 -define('messaging_system.rocketmq', 'rocketmq').
 
--define(messaging_system.(Custom), Custom).
+-define(messaging_system(Custom), Custom).

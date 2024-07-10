@@ -163,7 +163,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   ?'cloud_platform.alibaba_cloud_ecs'.
   alibaba_cloud_ecs
 
-  ?cloud_platform.(custom_value).
+  ?cloud_platform(custom_value).
   custom_value
   ```
 
@@ -251,7 +251,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   ?'cloud_provider.alibaba_cloud'.
   alibaba_cloud
 
-  ?cloud_provider.(custom_value).
+  ?cloud_provider(custom_value).
   custom_value
   ```
 

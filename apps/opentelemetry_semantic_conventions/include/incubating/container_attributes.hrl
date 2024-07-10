@@ -23,7 +23,7 @@
 
 -define('container_cpu_state.kernel', 'kernel').
 
--define(container_cpu_state.(Custom), Custom).
+-define(container_cpu_state(Custom), Custom).
 
 
 %% Container ID. Usually a UUID, as for example used to [identify Docker containers](https://docs.docker.com/engine/reference/run/#container-identification). The UUID might be abbreviated.

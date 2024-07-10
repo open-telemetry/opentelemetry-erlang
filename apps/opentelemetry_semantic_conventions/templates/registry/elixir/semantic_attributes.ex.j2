@@ -139,7 +139,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   ?'{{ attribute.name | snake_case_const }}.{{ attribute.type.members|first|attr('id') }}'.
   {{ attribute.type.members|first|attr('value') }}
   
-  ?{{ attribute.name | snake_case_const }}.({{ erlang_enum_value_return_type_example(attribute.type.members|first|attr('value')) }}).
+  ?{{ attribute.name | snake_case_const }}({{ erlang_enum_value_return_type_example(attribute.type.members|first|attr('value')) }}).
   {{ erlang_enum_value_return_type_example(attribute.type.members|first|attr('value')) }}
   ```
   {%- else %}
