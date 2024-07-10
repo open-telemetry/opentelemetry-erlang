@@ -358,7 +358,7 @@ span_round_trip(_Config) ->
                                                     {string_value,<<"value-2">>}}]}}}},
                      #{key => <<"attr_3">>,
                        value => #{value => {string_value,<<"true">>}}}],
-    ?assertEqual(ExpectedAttributes, maps:get(attributes, DecodedProto)),
+    ?assertMatch(ExpectedAttributes, maps:get(attributes, DecodedProto)),
     ?assertEqual(maps:with([trace_id, span_id], DecodedProto),
                  maps:with([trace_id, span_id], PbSpan1)),
 
