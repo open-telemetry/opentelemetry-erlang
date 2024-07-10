@@ -346,6 +346,8 @@ span_round_trip(_Config) ->
                                            [#{value => {string_value,<<"value-1">>}},
                                             #{value =>
                                                   {string_value,<<"value-2">>}}]}}}},
+                     #{key => <<"attr-2">>,
+                       value => #{value => {string_value,<<"value-2">>}}},
                      #{key => <<"atom-list-key-1">>,
                          value =>
                              #{value =>
@@ -354,8 +356,6 @@ span_round_trip(_Config) ->
                                              [#{value => {string_value,<<"value-1">>}},
                                               #{value =>
                                                     {string_value,<<"value-2">>}}]}}}},
-                     #{key => <<"attr-2">>,
-                       value => #{value => {string_value,<<"value-2">>}}},
                      #{key => <<"attr_3">>,
                        value => #{value => {string_value,<<"true">>}}}],
     ?assertEqual(ExpectedAttributes, maps:get(attributes, DecodedProto)),
