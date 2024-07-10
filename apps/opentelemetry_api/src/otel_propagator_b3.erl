@@ -15,7 +15,7 @@
 %% @doc An implementation of {@link otel_propagator_text_map} that injects and
 %% extracts trace context using the B3 specification from Zipkin.
 %%
-%% Since `trace_context' and `baggage' are the two default propagators the
+%% Since `trace_context' and `baggage' are the two default propagators, the
 %% global TextMap Propagators must be configured if B3 is to be used for
 %% propagation:
 %%
@@ -71,6 +71,7 @@
 -define(B3_CONTEXT_KEY, <<"b3">>).
 
 %% Returns all the keys the propagator sets with `inject'
+%% @private
 fields(b3single) ->
     otel_propagator_b3single:fields(b3single);
 fields(b3multi) ->
@@ -78,6 +79,7 @@ fields(b3multi) ->
 fields(_) ->
     [].
 
+%% @private
 -spec inject(Context, Carrier, CarrierSetFun, Options) -> Carrier
               when Context :: otel_ctx:t(),
                    Carrier :: otel_propagator:carrier(),
@@ -94,6 +96,7 @@ inject(_Ctx, Carrier, _CarrierSet, _Options) ->
 % precedence over the multi-header format.
 %
 % If extraction fails, the original context will be returned.
+%% @private
 -spec extract(Context, Carrier, CarrierKeysFun, CarrierGetFun, Options) -> Context
               when Context :: otel_ctx:t(),
                    Carrier :: otel_propagator:carrier(),

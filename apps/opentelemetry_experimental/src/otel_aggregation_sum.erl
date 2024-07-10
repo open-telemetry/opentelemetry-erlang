@@ -111,11 +111,12 @@ aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
                               previous_checkpoint='$6',
                               int_value='$3',
                               float_value={'+', '$4', {const, Value}}}}]}],
+
     case ets:select_replace(Tab, MS) of
         1 ->
             otel_metric_exemplar_reservoir:offer(Ctx, ExemplarReservoir, ExemplarsTab, Key, Value, DroppedAttributes),
             true;
-        _ ->
+        _N ->
             false
     end.
 
@@ -237,7 +238,7 @@ datapoint(_Tab, ExemplarReservoir, ExemplarsTab, CollectionStartTime, Temporalit
                                                                                                                  checkpoint=Value}) ->
     Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     #datapoint{
-       attributes=Attributes,
+       attributes=binary_to_term(Attributes),
        start_time=StartTime,
        time=CollectionStartTime,
        value=Value,
@@ -252,7 +253,7 @@ datapoint(_Tab, ExemplarReservoir, ExemplarsTab, Time, _, ?TEMPORALITY_CUMULATIV
                                                                                                     checkpoint=Value}) ->
     Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     #datapoint{
-       attributes=Attributes,
+       attributes=binary_to_term(Attributes),
        start_time=StartTime,
        time=Time,
        value=Value + PreviousCheckpoint,
@@ -273,7 +274,7 @@ datapoint(Tab, ExemplarReservoir, ExemplarsTab, Time, _, ?TEMPORALITY_DELTA, #su
         otel_metrics_tables:lookup_sum_checkpoint(Tab, Name, Attributes, ReaderId, Generation-1),
     Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     #datapoint{
-       attributes=Attributes,
+       attributes=binary_to_term(Attributes),
        start_time=StartTime,
        time=Time,
        value=Value - PreviousCheckpoint,

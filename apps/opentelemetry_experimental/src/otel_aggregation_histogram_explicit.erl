@@ -41,7 +41,7 @@
 %% since we need the Key in the MatchHead for the index to be used we
 %% can't use `ets:fun2ms' as it will shadow `Key' in the `fun' head
 -if(?OTP_RELEASE >= 26).
--define(AGGREATE_MATCH_SPEC(Key, Value, BucketCounts),
+-define(AGGREGATE_MATCH_SPEC(Key, Value, BucketCounts),
         [
          {
           {explicit_histogram_aggregation,Key,'_','_','_','_','_','$1','$2','$3'},
@@ -62,7 +62,7 @@
         ]
        ).
 -else.
--define(AGGREATE_MATCH_SPEC(Key, Value, BucketCounts),
+-define(AGGREGATE_MATCH_SPEC(Key, Value, BucketCounts),
         [
          {
           {explicit_histogram_aggregation,Key,'_','_','_','_','_','$1','$2','$3'},
@@ -199,7 +199,7 @@ aggregate(Ctx, Table, ExemplarsTab, #stream{name=Name,
             counters:add(BucketCounts, BucketIdx, 1),
 
             Key = {Name, Attributes, ReaderId, Generation},
-            MS = ?AGGREATE_MATCH_SPEC(Key, Value, BucketCounts),
+            MS = ?AGGREGATE_MATCH_SPEC(Key, Value, BucketCounts),
             case ets:select_replace(Table, MS) of
                 1 ->
                     otel_metric_exemplar_reservoir:offer(Ctx, ExemplarReservoir, ExemplarsTab, Key, Value, DroppedAttributes),
@@ -308,7 +308,7 @@ datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime,
     Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     Buckets = get_buckets(BucketCounts, Boundaries),
     #histogram_datapoint{
-       attributes=Attributes,
+       attributes=binary_to_term(Attributes),
        start_time=StartTime,
        time=CollectionStartTime,
        count=lists:sum(Buckets),
@@ -333,7 +333,7 @@ datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime,
     Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     Buckets = get_buckets(BucketCounts, Boundaries),
     #histogram_datapoint{
-       attributes=Attributes,
+       attributes=binary_to_term(Attributes),
        start_time=StartTime,
        time=CollectionStartTime,
        count=lists:sum(Buckets),

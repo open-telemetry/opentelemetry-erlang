@@ -222,11 +222,11 @@ init_exporter(ExporterConfig) ->
 
 export(undefined, _, _, _) ->
     true;
-export({ExporterModule, ExporterConfig}, Resource, Batch, Config) ->
+export(Exporter, Resource, Batch, Config) ->
     %% don't let a exporter exception crash us
     %% and return true if exporter failed
     try
-        otel_exporter:export_logs(ExporterModule, {Batch, Config}, Resource, ExporterConfig)
+        otel_exporter_logs:export(Exporter, {Batch, Config}, Resource)
             =:= failed_not_retryable
     catch
         Kind:Reason:StackTrace ->
@@ -234,7 +234,7 @@ export({ExporterModule, ExporterConfig}, Resource, Batch, Config) ->
                            during => export,
                            kind => Kind,
                            reason => Reason,
-                           exporter => ExporterModule,
+                           exporter => Exporter,
                            stacktrace => StackTrace}, #{report_cb => fun ?MODULE:report_cb/1}),
             true
     end.
@@ -244,7 +244,7 @@ report_cb(#{source := exporter,
             during := export,
             kind := Kind,
             reason := Reason,
-            exporter := ExporterModule,
+            exporter := {ExporterModule, _},
             stacktrace := StackTrace}) ->
     {"log exporter threw exception: exporter=~p ~ts",
      [ExporterModule, otel_utils:format_exception(Kind, Reason, StackTrace)]}.

@@ -50,7 +50,7 @@
 %% `Pairs' can be a list of key-value pairs or a map. If `Pairs' is not a list or map, the
 %% function returns an empty `Attributes'.
 -spec new(
-    [opentelemetry:attribute()] | opentelemetry:attributes_map() | term(),
+    [opentelemetry:attribute()] | opentelemetry:attributes_map(),
     integer(),
     integer() | infinity
 ) -> t().
@@ -72,7 +72,7 @@ new(_, CountLimit, ValueLengthLimit) ->
 %%
 %% `NewListOrMap' can be a list of key-value pairs or a map. If `NewListOrMap' is not a list
 %% or map, the function returns `Attributes' as is. Returns the updated `Attributes'.
--spec set([opentelemetry:attribute()] | opentelemetry:attributes_map() | term(), t()) -> t().
+-spec set([opentelemetry:attribute()] | opentelemetry:attributes_map(), t()) -> t().
 set(NewListOrMap, Attributes) when is_list(NewListOrMap) ->
     set(maps:from_list(NewListOrMap), Attributes);
 set(NewMap, Attributes) when is_map(NewMap) ->

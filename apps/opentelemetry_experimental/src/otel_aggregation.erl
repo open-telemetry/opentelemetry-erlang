@@ -45,15 +45,15 @@ maybe_init_aggregate(Ctx, MetricsTab, ExemplarsTab, Stream=#stream{aggregation_m
                                                                    attribute_keys=AttributeKeys},
                      Value, Attributes) ->
     {FilteredAttributes, DroppedAttributes} = filter_attributes(AttributeKeys, Attributes),
-    case AggregationModule:aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value, FilteredAttributes, DroppedAttributes) of
+    case AggregationModule:aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value, term_to_binary(FilteredAttributes), DroppedAttributes) of
         true ->
             true;
         false ->
             %% entry doesn't exist, create it and rerun the aggregate function
-            Metric = AggregationModule:init(Stream, FilteredAttributes),
+            Metric = AggregationModule:init(Stream, term_to_binary(FilteredAttributes)),
             %% don't overwrite a possible concurrent measurement doing the same
             _ = ets:insert_new(MetricsTab, Metric),
-            AggregationModule:aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value, FilteredAttributes, DroppedAttributes)
+            AggregationModule:aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value, term_to_binary(FilteredAttributes), DroppedAttributes)
     end.
 
 filter_attributes(undefined, Attributes) ->

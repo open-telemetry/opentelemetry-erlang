@@ -64,7 +64,7 @@
 -define(DEFAULT_EXPORTER_TIMEOUT_MS, timer:minutes(5)).
 -define(NAME_TO_ATOM(Name, Unique), list_to_atom(lists:concat([Name, "_", Unique]))).
 
-%% require a unique name to distiguish multiple simple processors while
+%% require a unique name to distinguish multiple simple processors while
 %% still having a single name, instead of a possibly changing pid, to
 %% communicate with the processor
 %% @doc Starts a Simple Span Processor.
@@ -241,18 +241,18 @@ completed(FromPid) ->
 
 export(undefined, _, _) ->
     true;
-export({ExporterModule, Config}, Resource, SpansTid) ->
+export(Exporter, Resource, SpansTid) ->
     %% don't let a exporter exception crash us
     %% and return true if exporter failed
     try
-        otel_exporter:export_traces(ExporterModule, SpansTid, Resource, Config) =:= failed_not_retryable
+        otel_exporter_traces:export(Exporter, SpansTid, Resource) =:= failed_not_retryable
     catch
         Kind:Reason:StackTrace ->
             ?LOG_INFO(#{source => exporter,
                         during => export,
                         kind => Kind,
                         reason => Reason,
-                        exporter => ExporterModule,
+                        exporter => Exporter,
                         stacktrace => StackTrace}, #{report_cb => fun ?MODULE:report_cb/1}),
             true
     end.
@@ -263,7 +263,7 @@ report_cb(#{source := exporter,
             during := export,
             kind := Kind,
             reason := Reason,
-            exporter := ExporterModule,
+            exporter := {ExporterModule, _},
             stacktrace := StackTrace}) ->
     {"exporter threw exception: exporter=~p ~ts",
      [ExporterModule, otel_utils:format_exception(Kind, Reason, StackTrace)]}.

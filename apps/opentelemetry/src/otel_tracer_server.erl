@@ -161,7 +161,7 @@ init_processor(SpanProcessorSup, ProcessorModule, Config) ->
         true ->
             try supervisor:start_child(SpanProcessorSup,
                                        [ProcessorModule,
-                                        %% use a unique reference to distiguish multiple processors of the same type while
+                                        %% use a unique reference to distinguish multiple processors of the same type while
                                         %% still having a single name, instead of a possibly changing pid, to
                                         %% communicate with the processor
                                         maps:merge(#{name => erlang:ref_to_list(erlang:make_ref())},

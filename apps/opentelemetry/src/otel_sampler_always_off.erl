@@ -12,8 +12,11 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc
-%% This sampler always decides to neither record nor sample each span.
+%% @doc An {@link otel_sampler} that drops all spans.
+%%
+%% This is one of the
+%% <a href="https://opentelemetry.io/docs/specs/otel/trace/sdk/#built-in-samplers">built-in
+%% samplers</a> provided by the OpenTelemetry SDK.
 %% @end
 %%%-------------------------------------------------------------------------
 -module(otel_sampler_always_off).
@@ -25,10 +28,13 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include("otel_sampler.hrl").
 
+%% @private
 setup(_Opts) -> [].
 
+%% @private
 description(_) -> <<"AlwaysOffSampler">>.
 
+%% @private
 should_sample(Ctx, _TraceId, _Links, _SpanName, _SpanKind, _Attributes, _Opts) ->
     SpanCtx = otel_tracer:current_span_ctx(Ctx),
     {?DROP, [], otel_span:tracestate(SpanCtx)}.
