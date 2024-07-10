@@ -76,14 +76,8 @@ new_link({TraceId, SpanId, Attributes, TraceState}, AttributePerLinkLimit, Attri
           span_id=SpanId,
           tracestate=TraceState,
           attributes=otel_attributes:new(Attributes, AttributePerLinkLimit, AttributeValueLengthLimit)};
-new_link(#link{trace_id=TraceId,
-               span_id=SpanId,
-               tracestate=TraceState,
-               attributes=Attributes}, AttributePerLinkLimit, AttributeValueLengthLimit) ->
-    #link{trace_id=TraceId,
-          span_id=SpanId,
-          tracestate=TraceState,
-          attributes=otel_attributes:new(Attributes, AttributePerLinkLimit, AttributeValueLengthLimit)};
+new_link(Link=#link{}, _AttributePerLinkLimit, _AttributeValueLengthLimit) ->
+    Link;
 new_link(#{trace_id := TraceId,
            span_id := SpanId,
            tracestate := TraceState,

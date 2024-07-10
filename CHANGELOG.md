@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Exporter 
+
+### Fixes
+
+- [BREAKING: Fixes support for attribute values that are lists when the elements
+  are strings. Lists of strings in attribute values are no longer flattened but
+  remain lists. Meaning to use an Erlang charlist string or iolist as a value in
+  an attribute you must convert with `unicode:characters_to_binary` before
+  adding to the
+  attributes](https://github.com/open-telemetry/opentelemetry-erlang/pull/737)
+
 ## Experimental API 0.5.1 - 2024-03-18
 
 ### Added
