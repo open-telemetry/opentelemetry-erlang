@@ -157,9 +157,6 @@ jobs:
         otp_version: ["26.1.2", "24.3.4.14"]
         rebar3_version: ["3.22.1"]
         os: [ubuntu-20.04]
-        exclude:
-          - elixir_version: "1.12.3"
-          - otp_version: "26.1.2"
     defaults:
       run:
         working-directory: apps/opentelemetry_semantic_conventions
