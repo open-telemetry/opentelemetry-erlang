@@ -4,10 +4,12 @@ name: Erlang
 on:
   pull_request:
     branches:
-      - 'main'
+      - "main"
+    types: [opened, reopened, synchronize, labeled]
+
   push:
     branches:
-      - 'main'
+      - "main"
 
 permissions:
   checks: write
@@ -18,130 +20,160 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['26.1.2', '25.3.2.7', '24.3.4.14']
-        rebar3_version: ['3.22.1']
+        otp_version: ["26.1.2", "25.3.2.7", "24.3.4.14"]
+        rebar3_version: ["3.22.1"]
         os: [ubuntu-20.04]
         include:
-          - otp_version: '23.3.4.19'
-            rebar3_version: '3.17.0'
+          - otp_version: "23.3.4.19"
+            rebar3_version: "3.17.0"
             os: ubuntu-20.04
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
     steps:
-    - uses: actions/checkout@v4
-    - name: Run Collector
-      run: docker-compose up -d
-    - uses: erlef/setup-beam@v1
-      with:
-        otp-version: ${{ matrix.otp_version }}
-        rebar3-version: ${{ matrix.rebar3_version }}
-        version-type: 'strict'
-    - uses: actions/cache@v4
-      name: Cache
-      with:
-        path: |
-          _build
-        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles(format('rebar.lock')) }}-5
-        restore-keys: |
-          ${{ runner.os }}-build-${{ matrix.otp_version }}-5-
-    - name: Compile
-      run: rebar3 compile
-    - name: EUnit tests
-      run: rebar3 eunit --cover
-    - name: Common Test tests
-      run: rebar3 ct --cover
+      - uses: actions/checkout@v4
+      - name: Run Collector
+        run: docker-compose up -d
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ matrix.otp_version }}
+          rebar3-version: ${{ matrix.rebar3_version }}
+          version-type: "strict"
+      - uses: actions/cache@v4
+        name: Cache
+        with:
+          path: |
+            _build
+          key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles(format('rebar.lock')) }}-5
+          restore-keys: |
+            ${{ runner.os }}-build-${{ matrix.otp_version }}-5-
+      - name: Compile
+        run: rebar3 compile
+      - name: EUnit tests
+        run: rebar3 eunit --cover
+      - name: Common Test tests
+        run: rebar3 ct --cover
 
-    - name: Publish Test Report
-      uses: mikepenz/action-junit-report@v4
-      if: success() || failure() # always run even if the previous step fails
-      with:
-        report_paths: '**/_build/test/logs/*/junit_report.xml'
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v4
+        if: success() || failure() # always run even if the previous step fails
+        with:
+          report_paths: "**/_build/test/logs/*/junit_report.xml"
 
-    - name: XRef
-      run: rebar3 xref
-    - name: Covertool
-      if: ${{ always() }}
-      run: rebar3 covertool generate
-    - uses: codecov/codecov-action@v4
-      if: ${{ always() }}
-      with:
-        file: _build/test/covertool/opentelemetry.covertool.xml
-        env_vars: OTP_VERSION
-        flags: sdk,erlang
-    - uses: codecov/codecov-action@v4
-      if: ${{ always() }}
-      with:
-        file: _build/test/covertool/opentelemetry_api.covertool.xml
-        env_vars: OTP_VERSION
-        flags: api,erlang
-    - uses: codecov/codecov-action@v4
-      if: ${{ always() }}
-      with:
-        file: _build/test/covertool/opentelemetry_exporter.covertool.xml
-        env_vars: OTP_VERSION
-        flags: exporter,erlang
-    - uses: codecov/codecov-action@v4
-      if: ${{ always() }}
-      with:
-        file: _build/test/covertool/opentelemetry_zipkin.covertool.xml
-        env_vars: OTP_VERSION
-        flags: zipkin,erlang
+      - name: XRef
+        run: rebar3 xref
+      - name: Covertool
+        if: ${{ always() }}
+        run: rebar3 covertool generate
+      - uses: codecov/codecov-action@v4
+        if: ${{ always() }}
+        with:
+          file: _build/test/covertool/opentelemetry.covertool.xml
+          env_vars: OTP_VERSION
+          flags: sdk,erlang
+      - uses: codecov/codecov-action@v4
+        if: ${{ always() }}
+        with:
+          file: _build/test/covertool/opentelemetry_api.covertool.xml
+          env_vars: OTP_VERSION
+          flags: api,erlang
+      - uses: codecov/codecov-action@v4
+        if: ${{ always() }}
+        with:
+          file: _build/test/covertool/opentelemetry_exporter.covertool.xml
+          env_vars: OTP_VERSION
+          flags: exporter,erlang
+      - uses: codecov/codecov-action@v4
+        if: ${{ always() }}
+        with:
+          file: _build/test/covertool/opentelemetry_zipkin.covertool.xml
+          env_vars: OTP_VERSION
+          flags: zipkin,erlang
   dialyzer:
     name: Dialyze on OTP ${{ matrix.otp_version }} and ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['26.1.2']
-        rebar3_version: ['3.22.1']
+        otp_version: ["26.1.2"]
+        rebar3_version: ["3.22.1"]
         os: [ubuntu-20.04]
     steps:
-    - uses: actions/checkout@v4
-    - uses: erlef/setup-beam@v1
-      with:
-        otp-version: ${{ matrix.otp_version }}
-        rebar3-version: ${{ matrix.rebar3_version }}
-        version-type: 'strict'
-    - uses: actions/cache@v4
-      name: Cache
-      with:
-        path: |
-          _build
-        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}-5
-        restore-keys: |
-          ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-5-
-    - name: Compile
-      run: rebar3 compile
-    - name: Dialyzer
-      run: rebar3 as dialyzer dialyzer
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ matrix.otp_version }}
+          rebar3-version: ${{ matrix.rebar3_version }}
+          version-type: "strict"
+      - uses: actions/cache@v4
+        name: Cache
+        with:
+          path: |
+            _build
+          key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}-5
+          restore-keys: |
+            ${{ runner.os }}-dialyzer-${{ matrix.otp_version }}-5-
+      - name: Compile
+        run: rebar3 compile
+      - name: Dialyzer
+        run: rebar3 as dialyzer dialyzer
 
   eqWAlizer:
     name: EqWAlizer on OTP ${{ matrix.otp_version }} and ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['26.1.2']
-        rebar3_version: ['3.22.1']
+        otp_version: ["26.1.2"]
+        rebar3_version: ["3.22.1"]
         os: [ubuntu-20.04]
     steps:
-    - uses: actions/checkout@v4
-    - uses: erlef/setup-beam@v1
-      with:
-        otp-version: ${{ matrix.otp_version }}
-        rebar3-version: ${{ matrix.rebar3_version }}
-        version-type: 'strict'
-    - uses: actions/cache@v4
-      name: Cache
-      with:
-        path: |
-          _build
-        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}-5
-        restore-keys: |
-          ${{ runner.os }}-eqWAlizer-${{ matrix.otp_version }}-5-
-    - name: Download elp
-      run: |
-        wget https://github.com/WhatsApp/eqwalizer/releases/download/v0.17.16/elp-linux.tar.gz
-        tar xvf elp-linux.tar.gz
-    - name: Compile
-      run: rebar3 compile
-    - name: eqWAlizer
-      run: ./elp eqwalize-all
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ matrix.otp_version }}
+          rebar3-version: ${{ matrix.rebar3_version }}
+          version-type: "strict"
+      - uses: actions/cache@v4
+        name: Cache
+        with:
+          path: |
+            _build
+          key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}-5
+          restore-keys: |
+            ${{ runner.os }}-eqWAlizer-${{ matrix.otp_version }}-5-
+      - name: Download elp
+        run: |
+          wget https://github.com/WhatsApp/eqwalizer/releases/download/v0.17.16/elp-linux.tar.gz
+          tar xvf elp-linux.tar.gz
+      - name: Compile
+        run: rebar3 compile
+      - name: eqWAlizer
+        run: ./elp eqwalize-all
+
+  semconv_tests:
+    runs-on: ${{ matrix.os }}
+    if: (contains(github.event.pull_request.labels.*.name, 'language-erlang') && contains(github.event.pull_request.labels.*.name, 'scope-semconv'))
+    name: Test SemConv on (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
+    strategy:
+      matrix:
+        otp_version: ["26.1.2", "24.3.4.14"]
+        rebar3_version: ["3.22.1"]
+        os: [ubuntu-20.04]
+        exclude:
+          - elixir_version: "1.12.3"
+          - otp_version: "26.1.2"
+    defaults:
+      run:
+        working-directory: apps/opentelemetry_semantic_conventions
+    env:
+      OTP_VERSION: ${{ matrix.otp_version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ matrix.otp_version }}
+          elixir-version: ${{ matrix.elixir_version }}
+          rebar3-version: ${{ matrix.rebar3_version }}
+          version-type: "strict"
+      - name: Compile
+        run: rebar3 compile
+      - name: Common Test tests
+        run: rebar3 ct --cover
