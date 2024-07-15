@@ -1,6 +1,5 @@
 semconv_version = "1.26.0"
 docker_img_vsn = "0.5.0"
-schema_uri = "https://opentelemetry.io/schemas/#{semconv_version}"
 
 # build_dir = System.cmd("mktemp", ["-d"]) |> elem(0) |> String.trim()
 build_dir = "#{File.cwd!()}/semtmp"
@@ -30,11 +29,13 @@ cwd = File.cwd!()
 ########
 
 # elixir
+
+# stable attrs
 System.cmd("docker", [
   "run",
   # "--rm",
   "-v",
-  "#{build_dir}:/source",
+  "#{build_dir}/model:/source",
   "-v",
   "#{cwd}/templates:/weaver/templates",
   "-v",
@@ -43,29 +44,34 @@ System.cmd("docker", [
   # "otel/weaver:#{docker_img_vsn}",
   "registry",
   "generate",
-  "--registry=/source/model",
+  "--registry=/source",
   "--templates=/weaver/templates",
+  "--param",
+  "output=/output/",
   "--param",
   "stability=stable",
   "elixir",
   "/output/"
 ])
 
+# incubating attrs
 System.cmd("docker", [
   "run",
   # "--rm",
   "-v",
-  "#{build_dir}:/source",
+  "#{build_dir}/model:/source",
   "-v",
   "#{cwd}/templates:/weaver/templates",
   "-v",
-  "#{cwd}/lib/incubating:/output",
+  "#{cwd}/lib:/output",
   "local-weaver",
   # "otel/weaver:#{docker_img_vsn}",
   "registry",
   "generate",
-  "--registry=/source/model",
+  "--registry=/source",
   "--templates=/weaver/templates",
+  "--param",
+  "output=/output/incubating/",
   "--param",
   "stability=experimental",
   "elixir",
@@ -74,11 +80,36 @@ System.cmd("docker", [
 
 # erlang
 
+# stable attrs
 System.cmd("docker", [
   "run",
   # "--rm",
   "-v",
-  "#{build_dir}:/source",
+  "#{build_dir}/model:/source",
+  "-v",
+  "#{cwd}/templates:/weaver/templates",
+  "-v",
+  "#{cwd}/include:/output/",
+  "local-weaver",
+  # "otel/weaver:#{docker_img_vsn}",
+  "registry",
+  "generate",
+  "--registry=/source",
+  "--templates=/weaver/templates",
+  "--param",
+  "output=/output/",
+  "--param",
+  "stability=stable",
+  "erlang",
+  "/output/"
+])
+
+# incubating attrs
+System.cmd("docker", [
+  "run",
+  # "--rm",
+  "-v",
+  "#{build_dir}/model:/source",
   "-v",
   "#{cwd}/templates:/weaver/templates",
   "-v",
@@ -87,29 +118,10 @@ System.cmd("docker", [
   # "otel/weaver:#{docker_img_vsn}",
   "registry",
   "generate",
-  "--registry=/source/model",
+  "--registry=/source",
   "--templates=/weaver/templates",
   "--param",
-  "stability=stable",
-  "erlang",
-  "/output/"
-])
-
-System.cmd("docker", [
-  "run",
-  # "--rm",
-  "-v",
-  "#{build_dir}:/source",
-  "-v",
-  "#{cwd}/templates:/weaver/templates",
-  "-v",
-  "#{cwd}/include/incubating:/output",
-  "local-weaver",
-  # "otel/weaver:#{docker_img_vsn}",
-  "registry",
-  "generate",
-  "--registry=/source/model",
-  "--templates=/weaver/templates",
+  "output=/output/incubating/",
   "--param",
   "stability=experimental",
   "erlang",

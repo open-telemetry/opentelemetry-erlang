@@ -1,76 +1,15 @@
 {#- waiting on https://github.com/open-telemetry/weaver/pull/207 for split to be available -#}
 
   {# {{ text | snake_case_const | replace('_', ' ') | split | reject(ctx.id) | join('_') }} #}
-{%- set acronyms = ["http", "url", "tls", "rpc", "os", "oci", "gcp", "faas", "dns", "db", "aws"] %}
-{%- macro func_name(text) -%}
-  {{ text | snake_case_const }}
-{%- endmacro -%}
-{%- macro to_atom(text) -%}
-{% if text | split_id | length > 1 -%}:"{{ text }}"{%- else -%}:{{ text }}{%- endif %}
-{%- endmacro -%}
-{% macro to_elixir_type(member) -%}
-  {%- if member.id == member.value -%}
-    {{ to_atom(member.value) }}
-  {%- else -%}
-  {{ member }}
-    {{ member.type | type_mapping }}
-  {%- endif -%}
-{%- endmacro %}
-{%- macro enum_value_to_elixir_type(value) -%}
-  {%- if value is string %}{{ to_atom(value) }}{% else -%}{{ value }}{%- endif %}
-{%- endmacro -%}
-{%- macro enum_value_return_type(value) -%}
-  {%- if value is string -%}
-  atom() | String.t()
-  {%- elif value is integer -%}
-  integer()
-  {%- else -%}
-  NOT_MAPPED
-  {%- endif -%}
-{%- endmacro -%}
-{%- macro enum_value_return_type_example(value) -%}
-  {%- if value is string -%}
-  :custom_value
-  {%- elif value is integer -%}
-  27
-  {%- else -%}
-  NOT_MAPPED
-  {%- endif -%}
-{%- endmacro -%}
-{%- macro erlang_enum_value_return_type_example(value) -%}
-  {%- if value is string -%}
-  custom_value
-  {%- elif value is integer -%}
-  27
-  {%- else -%}
-  NOT_MAPPED
-  {%- endif -%}
-{%- endmacro -%}
-{%- macro enum_to_map(members) -%}
-  {% raw %}%{{% endraw %}
-  {% for member in members %}
-    {{ to_atom(member.id) }} => {{ enum_value_to_elixir_type(member.value) }}{% if not loop.last %},{% endif %}
-  {% endfor %}
-  {% raw %}}{% endraw %}
-{%- endmacro -%}
-{%- macro strong_reqs(string) -%}
-  {{ string | replace(" MUST ", " **MUST** ") | replace(" MUST NOT ", " **MUST NOT** ") | replace(" SHOULD ", " **SHOULD** ") | replace(" SHOULD NOT ", " **SHOULD NOT** ") |  replace(" MAY ", " **MAY** ") | replace(" NOT ", " **NOT** ") }}
-{%- endmacro -%}
-{%- macro format_acronym(value) -%}
-  {%- if value | lower in acronyms -%}
-  {{ value | upper }}
-  {%- else -%}
-  {{ value }}
-  {%- endif -%}
-{%- endmacro -%}
 
-{%- set file_name = ctx.id | snake_case ~ "_attributes.ex" -%}
+{%- import 'common.j2' as c %}
+{%- set acronyms = c.acronyms() -%}
+
+{%- set file_name = ctx.output + ctx.id | snake_case ~ "_attributes.ex" -%}
 {%- set module_name = (ctx.id | pascal_case) -%}
-{%- set trim_blocks = true %}
-{%- set trim_lstrip_blocks = true %}
 {{ template.set_file_name(file_name) }}
 
-{%- set module_name = format_acronym(ctx.id | pascal_case) ~ "Attributes" -%}
+{%- set module_name = c.format_acronym(ctx.id | pascal_case, acronyms) ~ "Attributes" -%}
 {%- if params.stability == "experimental" -%}
 {%- set module_namespace = "OpenTelemetry.SemConv.Incubating" -%}
 {%- else -%}
@@ -79,20 +18,20 @@
 defmodule {{ module_namespace }}.{{ module_name }} do
   # This is an auto-generated file
   @moduledoc """
-  OpenTelemetry Semantic Conventions for {{ format_acronym(ctx.id | title) }} attributes.
+  OpenTelemetry Semantic Conventions for {{ c.format_acronym(ctx.id | title, acronyms) }} attributes.
   """
 {%- for attribute in ctx.attributes | sort(attribute="name") %}
   {% if attribute.type is mapping %}
   @typedoc """
-  {{ strong_reqs(attribute.brief) }}
+  {{ c.strong_reqs(attribute.brief) }}
 
   ### Enum Values
   {% for member in attribute.type.members -%}
-  * `{{ to_atom(member.id) }}`
+  * `{{ c.to_atom(member.id) }}`
   {%- if member is experimental %} ^[e](`m:OpenTelemetry.SemConv#experimental`)^{% endif %}{% if member.brief != none %} - {% if member is deprecated %}**deprecated** ~~{% endif %}{{ member.brief }}{% if member is deprecated %}~~{% endif %}{% endif %}
   {% endfor -%}
   """
-  @type {{ attribute.name | snake_case_const }}() :: {{ enum_to_map(attribute.type.members) }}
+  @type {{ attribute.name | snake_case_const }}() :: {{ c.enum_to_map(attribute.type.members) }}
   {%- endif -%}
  
   {% if attribute is deprecated %}
@@ -102,7 +41,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   {%- endif -%}
   {% if not(attribute is deprecated) %}
   @doc """
-  {{ strong_reqs(attribute.brief | replace("\n", "\n  ")) }}
+  {{ c.strong_reqs(attribute.brief | replace("\n", "\n  ")) }}
   {% if (attribute.type is simple_type) or (attribute.type is template_type) -%}
   ### Value type
 
@@ -111,7 +50,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   {%- if attribute.note %}
   ### Notes
 
-  {{ strong_reqs(attribute.note | replace("\n", "\n  ")) }}
+  {{ c.strong_reqs(attribute.note | replace("\n", "\n  ")) }}
   {%- endif %}
   {%- if attribute.examples %}
   ### Examples
@@ -127,11 +66,11 @@ defmodule {{ module_namespace }}.{{ module_name }} do
 
   ### Elixir
 
-      iex> {{ module_namespace }}.{{ module_name }}.{{ func_name(attribute.name) }}().{{ attribute.type.members|first|attr('id') }}
-      {{ enum_value_to_elixir_type(attribute.type.members|first|attr('value')) }}
+      iex> {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}().{{ attribute.type.members|first|attr('id') }}
+      {{ c.enum_value_to_elixir_type(attribute.type.members|first|attr('value')) }}
       
-      iex> {{ module_namespace }}.{{ module_name }}.{{ func_name(attribute.name) }}({{ enum_value_return_type_example(attribute.type.members|first|attr('value')) }})
-      {{ enum_value_return_type_example(attribute.type.members|first|attr('value')) }}
+      iex> {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}({{ c.enum_value_return_type_example(attribute.type.members|first|attr('value')) }})
+      {{ c.enum_value_return_type_example(attribute.type.members|first|attr('value')) }}
 
   ### Erlang
 
@@ -139,15 +78,15 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   ?'{{ attribute.name | snake_case_const }}.{{ attribute.type.members|first|attr('id') }}'.
   {{ attribute.type.members|first|attr('value') }}
   
-  ?{{ attribute.name | snake_case_const }}({{ erlang_enum_value_return_type_example(attribute.type.members|first|attr('value')) }}).
-  {{ erlang_enum_value_return_type_example(attribute.type.members|first|attr('value')) }}
+  ?{{ attribute.name | snake_case_const }}({{ c.erlang_enum_value_return_type_example(attribute.type.members|first|attr('value')) }}).
+  {{ c.erlang_enum_value_return_type_example(attribute.type.members|first|attr('value')) }}
   ```
   {%- else %}
   
   ### Elixir
 
-      iex> {{ module_namespace }}.{{ module_name }}.{{ func_name(attribute.name) }}()
-      {{ to_atom(attribute.name) }}
+      iex> {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}()
+      {{ c.to_atom(attribute.name) }}
 
   ### Erlang
 
@@ -162,18 +101,18 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   {%- endif %}
 
   {%- if not(attribute.type is mapping) %}
-  @spec {{ func_name(attribute.name) }} :: {{ to_atom(attribute.name) }}
-  def {{ func_name(attribute.name) }} do
-    {{ to_atom(attribute.name) }}
+  @spec {{ c.func_name(attribute.name) }} :: {{ c.to_atom(attribute.name) }}
+  def {{ c.func_name(attribute.name) }} do
+    {{ c.to_atom(attribute.name) }}
   end
   {%- else %}
-  @spec {{ func_name(attribute.name) }}() :: {{ attribute.name | snake_case_const }}()
-  def {{ func_name(attribute.name) }}() do
-  {{ enum_to_map(attribute.type.members) }}
+  @spec {{ c.func_name(attribute.name) }}() :: {{ attribute.name | snake_case_const }}()
+  def {{ c.func_name(attribute.name) }}() do
+  {{ c.enum_to_map(attribute.type.members) }}
   end
 
-  @spec {{ func_name(attribute.name) }}({{ enum_value_return_type(attribute.type.members|first|attr('value')) }}) :: {{ enum_value_return_type(attribute.type.members|first|attr('value')) }} 
-  def {{ func_name(attribute.name) }}(custom_value) do
+  @spec {{ c.func_name(attribute.name) }}({{ c.enum_value_return_type(attribute.type.members|first|attr('value')) }}) :: {{ c.enum_value_return_type(attribute.type.members|first|attr('value')) }} 
+  def {{ c.func_name(attribute.name) }}(custom_value) do
     custom_value
   end
   {%- endif %}
