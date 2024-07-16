@@ -1,4 +1,4 @@
-defmodule OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics do
+defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   # This is an auto-generated file
   @moduledoc """
   OpenTelemetry Semantic Conventions for DB metrics.
@@ -12,7 +12,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics.db_client_connection_count()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics.db_client_connection_count()
       :"db.client.connection.count"
 
   ### Erlang
@@ -39,7 +39,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics.db_client_connection_createtime()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics.db_client_connection_createtime()
       :"db.client.connection.create_time"
 
   ### Erlang
@@ -66,7 +66,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics.db_client_connection_idle_max()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics.db_client_connection_idle_max()
       :"db.client.connection.idle.max"
 
   ### Erlang
@@ -93,7 +93,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics.db_client_connection_idle_min()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics.db_client_connection_idle_min()
       :"db.client.connection.idle.min"
 
   ### Erlang
@@ -120,7 +120,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics.db_client_connection_max()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics.db_client_connection_max()
       :"db.client.connection.max"
 
   ### Erlang
@@ -147,7 +147,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics.db_client_connection_pendingrequests()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics.db_client_connection_pendingrequests()
       :"db.client.connection.pending_requests"
 
   ### Erlang
@@ -174,7 +174,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics.db_client_connection_timeouts()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics.db_client_connection_timeouts()
       :"db.client.connection.timeouts"
 
   ### Erlang
@@ -201,7 +201,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics.db_client_connection_usetime()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics.db_client_connection_usetime()
       :"db.client.connection.use_time"
 
   ### Erlang
@@ -228,7 +228,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics.db_client_connection_waittime()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics.db_client_connection_waittime()
       :"db.client.connection.wait_time"
 
   ### Erlang
@@ -336,7 +336,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.DbMetrics.db_client_operation_duration()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics.db_client_operation_duration()
       :"db.client.operation.duration"
 
   ### Erlang

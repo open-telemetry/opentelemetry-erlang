@@ -10,7 +10,7 @@
 {%- set trim_lstrip_blocks = true %}
 {{ template.set_file_name(file_name) }}
 
-{%- set module_name = c.format_acronym(ctx.id | pascal_case) ~ "Metrics" -%}
+{%- set module_name = c.format_acronym(ctx.id | pascal_case, acronyms) ~ "Metrics" -%}
 {%- if params.stability == "experimental" -%}
 {%- set module_namespace = "OpenTelemetry.SemConv.Incubating.Metrics" -%}
 {%- else -%}

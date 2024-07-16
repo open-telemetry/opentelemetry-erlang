@@ -1,4 +1,4 @@
-defmodule OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics do
+defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   # This is an auto-generated file
   @moduledoc """
   OpenTelemetry Semantic Conventions for RPC metrics.
@@ -19,7 +19,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_client_duration()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_client_duration()
       :"rpc.client.duration"
 
   ### Erlang
@@ -50,7 +50,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_client_request_size()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_client_request_size()
       :"rpc.client.request.size"
 
   ### Erlang
@@ -83,7 +83,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_client_requestsperrpc()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_client_requestsperrpc()
       :"rpc.client.requests_per_rpc"
 
   ### Erlang
@@ -114,7 +114,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_client_response_size()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_client_response_size()
       :"rpc.client.response.size"
 
   ### Erlang
@@ -147,7 +147,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_client_responsesperrpc()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_client_responsesperrpc()
       :"rpc.client.responses_per_rpc"
 
   ### Erlang
@@ -181,7 +181,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_server_duration()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_server_duration()
       :"rpc.server.duration"
 
   ### Erlang
@@ -212,7 +212,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_server_request_size()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_server_request_size()
       :"rpc.server.request.size"
 
   ### Erlang
@@ -245,7 +245,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_server_requestsperrpc()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_server_requestsperrpc()
       :"rpc.server.requests_per_rpc"
 
   ### Erlang
@@ -276,7 +276,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_server_response_size()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_server_response_size()
       :"rpc.server.response.size"
 
   ### Erlang
@@ -309,7 +309,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_server_responsesperrpc()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_server_responsesperrpc()
       :"rpc.server.responses_per_rpc"
 
   ### Erlang

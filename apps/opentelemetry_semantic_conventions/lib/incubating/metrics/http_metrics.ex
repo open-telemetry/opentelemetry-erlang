@@ -1,4 +1,4 @@
-defmodule OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics do
+defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   # This is an auto-generated file
   @moduledoc """
   OpenTelemetry Semantic Conventions for HTTP metrics.
@@ -12,7 +12,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics.http_client_activerequests()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics.http_client_activerequests()
       :"http.client.active_requests"
 
   ### Erlang
@@ -39,7 +39,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics.http_client_connection_duration()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics.http_client_connection_duration()
       :"http.client.connection.duration"
 
   ### Erlang
@@ -66,7 +66,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics.http_client_openconnections()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics.http_client_openconnections()
       :"http.client.open_connections"
 
   ### Erlang
@@ -97,7 +97,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics.http_client_request_body_size()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics.http_client_request_body_size()
       :"http.client.request.body.size"
 
   ### Erlang
@@ -128,7 +128,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics.http_client_response_body_size()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics.http_client_response_body_size()
       :"http.client.response.body.size"
 
   ### Erlang
@@ -155,7 +155,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics.http_server_activerequests()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics.http_server_activerequests()
       :"http.server.active_requests"
 
   ### Erlang
@@ -186,7 +186,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics.http_server_request_body_size()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics.http_server_request_body_size()
       :"http.server.request.body.size"
 
   ### Erlang
@@ -217,7 +217,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics.http_server_response_body_size()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics.http_server_response_body_size()
       :"http.server.response.body.size"
 
   ### Erlang

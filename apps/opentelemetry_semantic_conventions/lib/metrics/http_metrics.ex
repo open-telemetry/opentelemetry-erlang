@@ -1,4 +1,4 @@
-defmodule OpenTelemetry.SemConv.Metrics.HttpMetrics do
+defmodule OpenTelemetry.SemConv.Metrics.HTTPMetrics do
   # This is an auto-generated file
   @moduledoc """
   OpenTelemetry Semantic Conventions for HTTP metrics.
@@ -12,7 +12,7 @@ defmodule OpenTelemetry.SemConv.Metrics.HttpMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Metrics.HttpMetrics.http_client_request_duration()
+      iex> OpenTelemetry.SemConv.Metrics.HTTPMetrics.http_client_request_duration()
       :"http.client.request.duration"
 
   ### Erlang
@@ -39,7 +39,7 @@ defmodule OpenTelemetry.SemConv.Metrics.HttpMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Metrics.HttpMetrics.http_server_request_duration()
+      iex> OpenTelemetry.SemConv.Metrics.HTTPMetrics.http_server_request_duration()
       :"http.server.request.duration"
 
   ### Erlang

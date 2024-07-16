@@ -1,4 +1,4 @@
-defmodule OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics do
+defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   # This is an auto-generated file
   @moduledoc """
   OpenTelemetry Semantic Conventions for FAAS metrics.
@@ -12,7 +12,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics.faas_coldstarts()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics.faas_coldstarts()
       :"faas.coldstarts"
 
   ### Erlang
@@ -39,7 +39,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics.faas_cpuusage()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics.faas_cpuusage()
       :"faas.cpu_usage"
 
   ### Erlang
@@ -66,7 +66,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics.faas_errors()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics.faas_errors()
       :"faas.errors"
 
   ### Erlang
@@ -93,7 +93,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics.faas_initduration()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics.faas_initduration()
       :"faas.init_duration"
 
   ### Erlang
@@ -120,7 +120,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics.faas_invocations()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics.faas_invocations()
       :"faas.invocations"
 
   ### Erlang
@@ -147,7 +147,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics.faas_invokeduration()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics.faas_invokeduration()
       :"faas.invoke_duration"
 
   ### Erlang
@@ -174,7 +174,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics.faas_memusage()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics.faas_memusage()
       :"faas.mem_usage"
 
   ### Erlang
@@ -201,7 +201,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics.faas_netio()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics.faas_netio()
       :"faas.net_io"
 
   ### Erlang
@@ -228,7 +228,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.FaasMetrics.faas_timeouts()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics.faas_timeouts()
       :"faas.timeouts"
 
   ### Erlang

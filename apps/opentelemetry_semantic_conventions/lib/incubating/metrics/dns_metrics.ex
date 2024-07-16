@@ -1,4 +1,4 @@
-defmodule OpenTelemetry.SemConv.Incubating.Metrics.DnsMetrics do
+defmodule OpenTelemetry.SemConv.Incubating.Metrics.DNSMetrics do
   # This is an auto-generated file
   @moduledoc """
   OpenTelemetry Semantic Conventions for DNS metrics.
@@ -12,7 +12,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DnsMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.DnsMetrics.dns_lookup_duration()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.DNSMetrics.dns_lookup_duration()
       :"dns.lookup.duration"
 
   ### Erlang
