@@ -10,7 +10,7 @@ Comprehensive documentation is available on [hexdocs](https://hexdocs.pm/opentel
 Check out the Guides tab on HexDocs for detailed attribute information
 and usage.
 
-### Migration from v1.13.0 semantic conventions
+### Migration from v1.13.0 (v0.2.0 package version) semantic conventions
 
 The structure of OpenTelemetry Semantic Conventions has evolved a great
 deal since the last version we have published. All attributes now live
