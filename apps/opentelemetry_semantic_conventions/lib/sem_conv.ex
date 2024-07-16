@@ -57,9 +57,9 @@ defmodule OpenTelemetry.SemConv do
   ?db_system("custom").
   ```
 
-  #### Incubating Attributes
+  #### Incubating Attributes & Metrics
 
-  Incubating attribute header files are located in the `incubating` folder.
+  Incubating attribute header files are located in the `incubating` folder and metrics under `incubating/metrics`.
 
   Experimental attributes are considered to be incubating. Attribute groups can
   contain attributes which are stable, experimental, or both. Experimental
@@ -104,10 +104,10 @@ defmodule OpenTelemetry.SemConv do
   :custom
   ```
 
-  #### Incubating Attributes
+  #### Incubating Attributes & Metrics
 
   Incubating attributes are located under the `OpenTelemetry.SemConv.Incubating`
-  namespace.
+  and `OpenTelemetry.SemConv.Incubating.Metrics` namespaces.
 
   Experimental attributes are considered to be incubating. Attribute groups can
   contain attributes which are stable, experimental, or both. Experimental

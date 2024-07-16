@@ -49,9 +49,9 @@ use a custom value, a function macro is provided.
 ?db_system("custom").
 ```
 
-#### Incubating Attributes
+#### Incubating Attributes & Metrics
 
-Incubating attribute header files are located in the `incubating` folder.
+Incubating attribute header files are located in the `incubating` folder and metrics under `incubating/metrics`.
 
 Experimental attributes are considered to be incubating. Attribute groups can
 contain attributes which are stable, experimental, or both. Experimental

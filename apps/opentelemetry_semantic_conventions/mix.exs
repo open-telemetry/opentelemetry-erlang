@@ -44,8 +44,20 @@ defmodule OpenTelemetry.SemanticConventions.MixProject do
           System: Path.wildcard("guides/system/*.md"),
           URL: Path.wildcard("guides/url/*.md")
         ],
+        groups_for_modules: [
+          Attributes:
+            ~r/^OpenTelemetry\.SemConv(?!\.Metrics|\.Incubating)(\.[A-Z][A-Za-z0-9]*)+$/,
+          "Incubating Attributes":
+            ~r/^OpenTelemetry\.SemConv\.Incubating(?!\.Metrics)(\.[A-Z][A-Za-z0-9]*)+$/,
+          Metrics: ~r/OpenTelemetry.SemConv.Metrics/,
+          "Incubating Metrics": ~r/OpenTelemetry.SemConv.Incubating.Metrics/,
+          Deprecated: ~r/OpenTelemetry.SemanticConventions(\.[A-Z][A-Za-z0-9]*)+$/
+        ],
         nest_modules_by_prefix: [
           OpenTelemetry.SemConv,
+          OpenTelemetry.SemConv.Metrics,
+          OpenTelemetry.SemConv.Incubating,
+          OpenTelemetry.SemConv.Incubating.Metrics,
           OpenTelemetry.SemanticConventions
         ]
       ],
