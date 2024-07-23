@@ -117,17 +117,22 @@ defmodule OpenTelemetry.SemConv do
   """
 
   @typedoc """
-  Stability opt-in value
+  HTTP stability opt-in
   """
-  @type stability_option() :: String.t()
+  @type http_stability() :: :http | :http_dup | :unset
+
+  @typedoc """
+  Map of stability opt-ins
+  """
+  @type stability_opt_ins() :: %{http: http_stability()}
 
   @doc """
-  List of stability opt-ins defined by the `OTEL_SEMCONV_STABILITY_OPT_IN` env var.
+  Map of stability opt-ins defined by the `OTEL_SEMCONV_STABILITY_OPT_IN` env var.
 
   Current valid options:
 
   * [http](migration-guide.md)
   """
-  @spec stability_opt_in() :: [stability_option()]
+  @spec stability_opt_in() :: stability_opt_ins()
   defdelegate stability_opt_in(), to: :opentelemetry_sem_conv
 end

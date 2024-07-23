@@ -5,23 +5,23 @@ defmodule OpenTelemetry.SemConvTest do
 
   describe "stability_opt_in" do
     test "http" do
-      assert SemConv.stability_opt_in() == []
+      assert SemConv.stability_opt_in() == %{http: :unset}
 
       System.put_env("OTEL_SEMCONV_STABILITY_OPT_IN", "")
-      assert SemConv.stability_opt_in() == []
+      assert SemConv.stability_opt_in() == %{http: :unset}
 
       System.put_env("OTEL_SEMCONV_STABILITY_OPT_IN", "unsupported")
-      assert SemConv.stability_opt_in() == []
+      assert SemConv.stability_opt_in() == %{http: :unset}
 
       System.put_env("OTEL_SEMCONV_STABILITY_OPT_IN", "http")
-      assert SemConv.stability_opt_in() == ["http"]
+      assert SemConv.stability_opt_in() == %{http: :http}
 
       System.put_env("OTEL_SEMCONV_STABILITY_OPT_IN", "http/dup,http")
-      assert SemConv.stability_opt_in() == ["http/dup"]
+      assert SemConv.stability_opt_in() == %{http: :http_dup}
 
       # dup takes precedence
       System.put_env("OTEL_SEMCONV_STABILITY_OPT_IN", "http,http/dup")
-      assert SemConv.stability_opt_in() == ["http/dup"]
+      assert SemConv.stability_opt_in() == %{http: :http_dup}
 
       System.delete_env("OTEL_SEMCONV_STABILITY_OPT_IN")
     end
