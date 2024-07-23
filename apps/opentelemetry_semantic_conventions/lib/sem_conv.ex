@@ -119,7 +119,7 @@ defmodule OpenTelemetry.SemConv do
   @typedoc """
   HTTP stability opt-in
   """
-  @type http_stability() :: :http | :http_dup | :unset
+  @type http_stability() :: :http | :http_dup | :default
 
   @typedoc """
   Map of stability opt-ins

@@ -6,7 +6,7 @@
   http_stability/0,
   stability_opt_ins/0]).
 
--type http_stability() :: http | http_dup | unset.
+-type http_stability() :: http | http_dup | default.
 -type stability_opt_ins() :: #{http => http_stability()}.
 
 
@@ -25,5 +25,5 @@ http_stability(OptIns) ->
     {_, true} ->
       http;
     _ ->
-      unset
+      default
   end.

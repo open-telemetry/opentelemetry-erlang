@@ -5,13 +5,13 @@ defmodule OpenTelemetry.SemConvTest do
 
   describe "stability_opt_in" do
     test "http" do
-      assert SemConv.stability_opt_in() == %{http: :unset}
+      assert SemConv.stability_opt_in() == %{http: :default}
 
       System.put_env("OTEL_SEMCONV_STABILITY_OPT_IN", "")
-      assert SemConv.stability_opt_in() == %{http: :unset}
+      assert SemConv.stability_opt_in() == %{http: :default}
 
       System.put_env("OTEL_SEMCONV_STABILITY_OPT_IN", "unsupported")
-      assert SemConv.stability_opt_in() == %{http: :unset}
+      assert SemConv.stability_opt_in() == %{http: :default}
 
       System.put_env("OTEL_SEMCONV_STABILITY_OPT_IN", "http")
       assert SemConv.stability_opt_in() == %{http: :http}
