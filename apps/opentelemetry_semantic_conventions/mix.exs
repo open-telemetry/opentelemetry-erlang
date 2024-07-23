@@ -100,6 +100,5 @@ defmodule OpenTelemetry.SemanticConventions.MixProject do
                  "guides/attributes-registry/signalr.md"
                ] ++ Path.wildcard("guides/dotnet/*") ++ Path.wildcard("guides/mobile/*"))
     end)
-    |> IO.inspect()
   end
 end

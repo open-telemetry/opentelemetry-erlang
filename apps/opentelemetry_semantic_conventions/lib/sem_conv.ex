@@ -115,4 +115,19 @@ defmodule OpenTelemetry.SemConv do
   attributes of both stability levels will have two modules in this case.
 
   """
+
+  @typedoc """
+  Stability opt-in value
+  """
+  @type stability_option() :: String.t()
+
+  @doc """
+  List of stability opt-ins defined by the `OTEL_SEMCONV_STABILITY_OPT_IN` env var.
+
+  Current valid options:
+
+  * [http](migration-guide.md)
+  """
+  @spec stability_opt_in() :: [stability_option()]
+  defdelegate stability_opt_in(), to: :opentelemetry_sem_conv
 end
