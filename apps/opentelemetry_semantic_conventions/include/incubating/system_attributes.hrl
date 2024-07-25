@@ -35,7 +35,7 @@
 
 -define('SYSTEM_CPU_STATE_VALUES.steal', 'steal').
 
--define('SYSTEM_CPU_STATE_VALUES(Custom), Custom).
+-define(SYSTEM_CPU_STATE_VALUES(Custom), Custom).
 
 
 %% The device identifier
@@ -59,7 +59,7 @@
 
 -define('SYSTEM_FILESYSTEM_STATE_VALUES.reserved', 'reserved').
 
--define('SYSTEM_FILESYSTEM_STATE_VALUES(Custom), Custom).
+-define(SYSTEM_FILESYSTEM_STATE_VALUES(Custom), Custom).
 
 
 %% The filesystem type
@@ -77,7 +77,7 @@
 
 -define('SYSTEM_FILESYSTEM_TYPE_VALUES.ext4', 'ext4').
 
--define('SYSTEM_FILESYSTEM_TYPE_VALUES(Custom), Custom).
+-define(SYSTEM_FILESYSTEM_TYPE_VALUES(Custom), Custom).
 
 
 %% The memory state
@@ -93,7 +93,7 @@
 
 -define('SYSTEM_MEMORY_STATE_VALUES.cached', 'cached').
 
--define('SYSTEM_MEMORY_STATE_VALUES(Custom), Custom).
+-define(SYSTEM_MEMORY_STATE_VALUES(Custom), Custom).
 
 
 %% A stateless protocol MUST NOT set this attribute
@@ -123,7 +123,7 @@
 
 -define('SYSTEM_NETWORK_STATE_VALUES.time_wait', 'time_wait').
 
--define('SYSTEM_NETWORK_STATE_VALUES(Custom), Custom).
+-define(SYSTEM_NETWORK_STATE_VALUES(Custom), Custom).
 
 
 %% The paging access direction
@@ -133,7 +133,7 @@
 
 -define('SYSTEM_PAGING_DIRECTION_VALUES.out', 'out').
 
--define('SYSTEM_PAGING_DIRECTION_VALUES(Custom), Custom).
+-define(SYSTEM_PAGING_DIRECTION_VALUES(Custom), Custom).
 
 
 %% The memory paging state
@@ -143,7 +143,7 @@
 
 -define('SYSTEM_PAGING_STATE_VALUES.free', 'free').
 
--define('SYSTEM_PAGING_STATE_VALUES(Custom), Custom).
+-define(SYSTEM_PAGING_STATE_VALUES(Custom), Custom).
 
 
 %% The memory paging type
@@ -153,7 +153,7 @@
 
 -define('SYSTEM_PAGING_TYPE_VALUES.minor', 'minor').
 
--define('SYSTEM_PAGING_TYPE_VALUES(Custom), Custom).
+-define(SYSTEM_PAGING_TYPE_VALUES(Custom), Custom).
 
 
 %% The process state, e.g., [Linux Process State Codes](https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES)
@@ -168,7 +168,7 @@
 
 -define('SYSTEM_PROCESS_STATUS_VALUES.defunct', 'defunct').
 
--define('SYSTEM_PROCESS_STATUS_VALUES(Custom), Custom).
+-define(SYSTEM_PROCESS_STATUS_VALUES(Custom), Custom).
 
 %% @deprecated Replaced by `system.process.status`.
 %% Deprecated, use `system.process.status` instead.
@@ -182,4 +182,4 @@
 
 -define('SYSTEM_PROCESSES_STATUS_VALUES.defunct', 'defunct').
 
--define('SYSTEM_PROCESSES_STATUS_VALUES(Custom), Custom).
+-define(SYSTEM_PROCESSES_STATUS_VALUES(Custom), Custom).

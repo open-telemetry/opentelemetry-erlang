@@ -29,7 +29,7 @@
 
 -define('OTEL_STATUSCODE_VALUES.error', 'ERROR').
 
--define('OTEL_STATUSCODE_VALUES(Custom), Custom).
+-define(OTEL_STATUSCODE_VALUES(Custom), Custom).
 
 
 %% Description of the Status if it has a value, otherwise not set.

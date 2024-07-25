@@ -25,7 +25,7 @@
 
 -define('HTTP_CONNECTION_STATE_VALUES.idle', 'idle').
 
--define('HTTP_CONNECTION_STATE_VALUES(Custom), Custom).
+-define(HTTP_CONNECTION_STATE_VALUES(Custom), Custom).
 
 %% @deprecated Replaced by `network.protocol.name`.
 %% Deprecated, use `network.protocol.name` instead.
@@ -43,7 +43,7 @@
 
 -define('HTTP_FLAVOR_VALUES.quic', 'QUIC').
 
--define('HTTP_FLAVOR_VALUES(Custom), Custom).
+-define(HTTP_FLAVOR_VALUES(Custom), Custom).
 
 %% @deprecated Replaced by one of `server.address`, `client.address` or `http.request.header.host`, depending on the usage.
 %% Deprecated, use one of `server.address`, `client.address` or `http.request.header.host` instead, depending on the usage.

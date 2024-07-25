@@ -34,7 +34,7 @@
 
 -define('HOST_ARCH_VALUES.x86', 'x86').
 
--define('HOST_ARCH_VALUES(Custom), Custom).
+-define(HOST_ARCH_VALUES(Custom), Custom).
 
 
 %% The amount of level 2 memory cache available to the processor (in Bytes).

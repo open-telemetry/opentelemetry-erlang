@@ -154,7 +154,7 @@
 
 -define('MESSAGING_OPERATION_TYPE_VALUES.settle', 'settle').
 
--define('MESSAGING_OPERATION_TYPE_VALUES(Custom), Custom).
+-define(MESSAGING_OPERATION_TYPE_VALUES(Custom), Custom).
 
 
 %% RabbitMQ message routing key.
@@ -180,7 +180,7 @@
 
 -define('MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES.broadcasting', 'broadcasting').
 
--define('MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES(Custom), Custom).
+-define(MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES(Custom), Custom).
 
 
 %% The delay time level for delay message, which determines the message delay time.
@@ -220,7 +220,7 @@
 
 -define('MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES.transaction', 'transaction').
 
--define('MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES(Custom), Custom).
+-define(MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES(Custom), Custom).
 
 
 %% Namespace of RocketMQ resources, resources in different namespaces are individual.
@@ -245,7 +245,7 @@
 
 -define('MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.defer', 'defer').
 
--define('MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES(Custom), Custom).
+-define(MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES(Custom), Custom).
 
 
 %% Number of deliveries that have been attempted for this message.
@@ -281,4 +281,4 @@
 
 -define('MESSAGING_SYSTEM_VALUES.rocketmq', 'rocketmq').
 
--define('MESSAGING_SYSTEM_VALUES(Custom), Custom).
+-define(MESSAGING_SYSTEM_VALUES(Custom), Custom).

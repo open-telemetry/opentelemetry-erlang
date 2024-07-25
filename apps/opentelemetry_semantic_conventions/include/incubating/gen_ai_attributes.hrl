@@ -55,7 +55,7 @@
 
 -define('GENAI_SYSTEM_VALUES.openai', 'openai').
 
--define('GENAI_SYSTEM_VALUES(Custom), Custom).
+-define(GENAI_SYSTEM_VALUES(Custom), Custom).
 
 
 %% The number of tokens used in the LLM response (completion).

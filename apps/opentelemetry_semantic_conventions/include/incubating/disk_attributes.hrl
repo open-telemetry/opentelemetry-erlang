@@ -21,4 +21,4 @@
 
 -define('DISK_IO_DIRECTION_VALUES.write', 'write').
 
--define('DISK_IO_DIRECTION_VALUES(Custom), Custom).
+-define(DISK_IO_DIRECTION_VALUES(Custom), Custom).
