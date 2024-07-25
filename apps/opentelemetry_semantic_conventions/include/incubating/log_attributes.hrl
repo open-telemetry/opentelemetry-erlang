@@ -21,7 +21,7 @@
 
 %% The basename of the file, with symlinks resolved.
 %%  
--define(LOG_FILE_NAMERESOLVED, 'log.file.name_resolved').
+-define(LOG_FILE_NAME_RESOLVED, 'log.file.name_resolved').
 
 
 %% The full path to the file.
@@ -31,7 +31,7 @@
 
 %% The full path to the file, with symlinks resolved.
 %%  
--define(LOG_FILE_PATHRESOLVED, 'log.file.path_resolved').
+-define(LOG_FILE_PATH_RESOLVED, 'log.file.path_resolved').
 
 
 %% The stream associated with the log. See below for a list of well-known values.

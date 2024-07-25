@@ -20,20 +20,20 @@ defmodule OpenTelemetry.SemConv.UserAgentAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.UserAgentAttributes.useragent_original()
+      iex> OpenTelemetry.SemConv.UserAgentAttributes.user_agent_original()
       :"user_agent.original"
 
   ### Erlang
 
   ```erlang
-  ?USERAGENT_ORIGINAL.
+  ?USER_AGENT_ORIGINAL.
   'user_agent.original'
   ```
 
   <!-- tabs-close -->
   """
-  @spec useragent_original :: :"user_agent.original"
-  def useragent_original do
+  @spec user_agent_original :: :"user_agent.original"
+  def user_agent_original do
     :"user_agent.original"
   end
 end

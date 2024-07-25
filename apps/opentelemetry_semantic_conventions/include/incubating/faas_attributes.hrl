@@ -57,38 +57,38 @@
 
 %% The invocation ID of the current function invocation.
 %%  
--define(FAAS_INVOCATIONID, 'faas.invocation_id').
+-define(FAAS_INVOCATION_ID, 'faas.invocation_id').
 
 
 %% The name of the invoked function.
 %%  
--define(FAAS_INVOKEDNAME, 'faas.invoked_name').
+-define(FAAS_INVOKED_NAME, 'faas.invoked_name').
 
 
 %% The cloud provider of the invoked function.
 %%  
--define(FAAS_INVOKEDPROVIDER, 'faas.invoked_provider').
+-define(FAAS_INVOKED_PROVIDER, 'faas.invoked_provider').
 
--define('FAAS_INVOKEDPROVIDER_VALUES.alibaba_cloud', 'alibaba_cloud').
+-define('FAAS_INVOKED_PROVIDER_VALUES.alibaba_cloud', 'alibaba_cloud').
 
--define('FAAS_INVOKEDPROVIDER_VALUES.aws', 'aws').
+-define('FAAS_INVOKED_PROVIDER_VALUES.aws', 'aws').
 
--define('FAAS_INVOKEDPROVIDER_VALUES.azure', 'azure').
+-define('FAAS_INVOKED_PROVIDER_VALUES.azure', 'azure').
 
--define('FAAS_INVOKEDPROVIDER_VALUES.gcp', 'gcp').
+-define('FAAS_INVOKED_PROVIDER_VALUES.gcp', 'gcp').
 
--define('FAAS_INVOKEDPROVIDER_VALUES.tencent_cloud', 'tencent_cloud').
+-define('FAAS_INVOKED_PROVIDER_VALUES.tencent_cloud', 'tencent_cloud').
 
 
 
 %% The cloud region of the invoked function.
 %%  
--define(FAAS_INVOKEDREGION, 'faas.invoked_region').
+-define(FAAS_INVOKED_REGION, 'faas.invoked_region').
 
 
 %% The amount of memory available to the serverless function converted to Bytes.
 %%  
--define(FAAS_MAXMEMORY, 'faas.max_memory').
+-define(FAAS_MAX_MEMORY, 'faas.max_memory').
 
 
 %% The name of the single function that this runtime instance executes.

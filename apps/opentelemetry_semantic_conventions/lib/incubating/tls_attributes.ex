@@ -90,20 +90,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_certificatechain()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_certificate_chain()
       :"tls.client.certificate_chain"
 
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_CERTIFICATECHAIN.
+  ?TLS_CLIENT_CERTIFICATE_CHAIN.
   'tls.client.certificate_chain'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_client_certificatechain :: :"tls.client.certificate_chain"
-  def tls_client_certificatechain do
+  @spec tls_client_certificate_chain :: :"tls.client.certificate_chain"
+  def tls_client_certificate_chain do
     :"tls.client.certificate_chain"
   end
 
@@ -123,20 +123,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_hash_md_5()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_hash_md5()
       :"tls.client.hash.md5"
 
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_HASH_MD_5.
+  ?TLS_CLIENT_HASH_MD5.
   'tls.client.hash.md5'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_client_hash_md_5 :: :"tls.client.hash.md5"
-  def tls_client_hash_md_5 do
+  @spec tls_client_hash_md5 :: :"tls.client.hash.md5"
+  def tls_client_hash_md5 do
     :"tls.client.hash.md5"
   end
 
@@ -156,20 +156,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_hash_sha_1()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_hash_sha1()
       :"tls.client.hash.sha1"
 
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_HASH_SHA_1.
+  ?TLS_CLIENT_HASH_SHA1.
   'tls.client.hash.sha1'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_client_hash_sha_1 :: :"tls.client.hash.sha1"
-  def tls_client_hash_sha_1 do
+  @spec tls_client_hash_sha1 :: :"tls.client.hash.sha1"
+  def tls_client_hash_sha1 do
     :"tls.client.hash.sha1"
   end
 
@@ -189,20 +189,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_hash_sha_256()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_hash_sha256()
       :"tls.client.hash.sha256"
 
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_HASH_SHA_256.
+  ?TLS_CLIENT_HASH_SHA256.
   'tls.client.hash.sha256'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_client_hash_sha_256 :: :"tls.client.hash.sha256"
-  def tls_client_hash_sha_256 do
+  @spec tls_client_hash_sha256 :: :"tls.client.hash.sha256"
+  def tls_client_hash_sha256 do
     :"tls.client.hash.sha256"
   end
 
@@ -253,20 +253,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_ja_3()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_ja3()
       :"tls.client.ja3"
 
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_JA_3.
+  ?TLS_CLIENT_JA3.
   'tls.client.ja3'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_client_ja_3 :: :"tls.client.ja3"
-  def tls_client_ja_3 do
+  @spec tls_client_ja3 :: :"tls.client.ja3"
+  def tls_client_ja3 do
     :"tls.client.ja3"
   end
 
@@ -285,20 +285,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_notafter()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_not_after()
       :"tls.client.not_after"
 
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_NOTAFTER.
+  ?TLS_CLIENT_NOT_AFTER.
   'tls.client.not_after'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_client_notafter :: :"tls.client.not_after"
-  def tls_client_notafter do
+  @spec tls_client_not_after :: :"tls.client.not_after"
+  def tls_client_not_after do
     :"tls.client.not_after"
   end
 
@@ -317,20 +317,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_notbefore()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_not_before()
       :"tls.client.not_before"
 
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_NOTBEFORE.
+  ?TLS_CLIENT_NOT_BEFORE.
   'tls.client.not_before'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_client_notbefore :: :"tls.client.not_before"
-  def tls_client_notbefore do
+  @spec tls_client_not_before :: :"tls.client.not_before"
+  def tls_client_not_before do
     :"tls.client.not_before"
   end
 
@@ -349,20 +349,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_servername()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_server_name()
       :"tls.client.server_name"
 
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_SERVERNAME.
+  ?TLS_CLIENT_SERVER_NAME.
   'tls.client.server_name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_client_servername :: :"tls.client.server_name"
-  def tls_client_servername do
+  @spec tls_client_server_name :: :"tls.client.server_name"
+  def tls_client_server_name do
     :"tls.client.server_name"
   end
 
@@ -413,20 +413,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_supportedciphers()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_supported_ciphers()
       :"tls.client.supported_ciphers"
 
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_SUPPORTEDCIPHERS.
+  ?TLS_CLIENT_SUPPORTED_CIPHERS.
   'tls.client.supported_ciphers'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_client_supportedciphers :: :"tls.client.supported_ciphers"
-  def tls_client_supportedciphers do
+  @spec tls_client_supported_ciphers :: :"tls.client.supported_ciphers"
+  def tls_client_supported_ciphers do
     :"tls.client.supported_ciphers"
   end
 
@@ -510,20 +510,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_nextprotocol()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_next_protocol()
       :"tls.next_protocol"
 
   ### Erlang
 
   ```erlang
-  ?TLS_NEXTPROTOCOL.
+  ?TLS_NEXT_PROTOCOL.
   'tls.next_protocol'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_nextprotocol :: :"tls.next_protocol"
-  def tls_nextprotocol do
+  @spec tls_next_protocol :: :"tls.next_protocol"
+  def tls_next_protocol do
     :"tls.next_protocol"
   end
 
@@ -699,20 +699,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_server_certificatechain()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_server_certificate_chain()
       :"tls.server.certificate_chain"
 
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_CERTIFICATECHAIN.
+  ?TLS_SERVER_CERTIFICATE_CHAIN.
   'tls.server.certificate_chain'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_server_certificatechain :: :"tls.server.certificate_chain"
-  def tls_server_certificatechain do
+  @spec tls_server_certificate_chain :: :"tls.server.certificate_chain"
+  def tls_server_certificate_chain do
     :"tls.server.certificate_chain"
   end
 
@@ -732,20 +732,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_server_hash_md_5()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_server_hash_md5()
       :"tls.server.hash.md5"
 
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_HASH_MD_5.
+  ?TLS_SERVER_HASH_MD5.
   'tls.server.hash.md5'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_server_hash_md_5 :: :"tls.server.hash.md5"
-  def tls_server_hash_md_5 do
+  @spec tls_server_hash_md5 :: :"tls.server.hash.md5"
+  def tls_server_hash_md5 do
     :"tls.server.hash.md5"
   end
 
@@ -765,20 +765,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_server_hash_sha_1()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_server_hash_sha1()
       :"tls.server.hash.sha1"
 
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_HASH_SHA_1.
+  ?TLS_SERVER_HASH_SHA1.
   'tls.server.hash.sha1'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_server_hash_sha_1 :: :"tls.server.hash.sha1"
-  def tls_server_hash_sha_1 do
+  @spec tls_server_hash_sha1 :: :"tls.server.hash.sha1"
+  def tls_server_hash_sha1 do
     :"tls.server.hash.sha1"
   end
 
@@ -798,20 +798,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_server_hash_sha_256()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_server_hash_sha256()
       :"tls.server.hash.sha256"
 
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_HASH_SHA_256.
+  ?TLS_SERVER_HASH_SHA256.
   'tls.server.hash.sha256'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_server_hash_sha_256 :: :"tls.server.hash.sha256"
-  def tls_server_hash_sha_256 do
+  @spec tls_server_hash_sha256 :: :"tls.server.hash.sha256"
+  def tls_server_hash_sha256 do
     :"tls.server.hash.sha256"
   end
 
@@ -862,20 +862,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_server_ja_3_s()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_server_ja3s()
       :"tls.server.ja3s"
 
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_JA_3_S.
+  ?TLS_SERVER_JA3S.
   'tls.server.ja3s'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_server_ja_3_s :: :"tls.server.ja3s"
-  def tls_server_ja_3_s do
+  @spec tls_server_ja3s :: :"tls.server.ja3s"
+  def tls_server_ja3s do
     :"tls.server.ja3s"
   end
 
@@ -894,20 +894,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_server_notafter()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_server_not_after()
       :"tls.server.not_after"
 
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_NOTAFTER.
+  ?TLS_SERVER_NOT_AFTER.
   'tls.server.not_after'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_server_notafter :: :"tls.server.not_after"
-  def tls_server_notafter do
+  @spec tls_server_not_after :: :"tls.server.not_after"
+  def tls_server_not_after do
     :"tls.server.not_after"
   end
 
@@ -926,20 +926,20 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_server_notbefore()
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_server_not_before()
       :"tls.server.not_before"
 
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_NOTBEFORE.
+  ?TLS_SERVER_NOT_BEFORE.
   'tls.server.not_before'
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_server_notbefore :: :"tls.server.not_before"
-  def tls_server_notbefore do
+  @spec tls_server_not_before :: :"tls.server.not_before"
+  def tls_server_not_before do
     :"tls.server.not_before"
   end
 

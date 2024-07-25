@@ -15,19 +15,19 @@
 %%%-------------------------------------------------------------------------
 
 %% The JSON-serialized value of each item in the `AttributeDefinitions` request field.
--define(AWS_DYNAMODB_ATTRIBUTEDEFINITIONS, 'aws.dynamodb.attribute_definitions').
+-define(AWS_DYNAMODB_ATTRIBUTE_DEFINITIONS, 'aws.dynamodb.attribute_definitions').
 
 
 %% The value of the `AttributesToGet` request parameter.
--define(AWS_DYNAMODB_ATTRIBUTESTOGET, 'aws.dynamodb.attributes_to_get').
+-define(AWS_DYNAMODB_ATTRIBUTES_TO_GET, 'aws.dynamodb.attributes_to_get').
 
 
 %% The value of the `ConsistentRead` request parameter.
--define(AWS_DYNAMODB_CONSISTENTREAD, 'aws.dynamodb.consistent_read').
+-define(AWS_DYNAMODB_CONSISTENT_READ, 'aws.dynamodb.consistent_read').
 
 
 %% The JSON-serialized value of each item in the `ConsumedCapacity` response field.
--define(AWS_DYNAMODB_CONSUMEDCAPACITY, 'aws.dynamodb.consumed_capacity').
+-define(AWS_DYNAMODB_CONSUMED_CAPACITY, 'aws.dynamodb.consumed_capacity').
 
 
 %% The value of the `Count` response parameter.
@@ -35,23 +35,23 @@
 
 
 %% The value of the `ExclusiveStartTableName` request parameter.
--define(AWS_DYNAMODB_EXCLUSIVESTARTTABLE, 'aws.dynamodb.exclusive_start_table').
+-define(AWS_DYNAMODB_EXCLUSIVE_START_TABLE, 'aws.dynamodb.exclusive_start_table').
 
 
 %% The JSON-serialized value of each item in the `GlobalSecondaryIndexUpdates` request field.
--define(AWS_DYNAMODB_GLOBALSECONDARYINDEXUPDATES, 'aws.dynamodb.global_secondary_index_updates').
+-define(AWS_DYNAMODB_GLOBAL_SECONDARY_INDEX_UPDATES, 'aws.dynamodb.global_secondary_index_updates').
 
 
 %% The JSON-serialized value of each item of the `GlobalSecondaryIndexes` request field
--define(AWS_DYNAMODB_GLOBALSECONDARYINDEXES, 'aws.dynamodb.global_secondary_indexes').
+-define(AWS_DYNAMODB_GLOBAL_SECONDARY_INDEXES, 'aws.dynamodb.global_secondary_indexes').
 
 
 %% The value of the `IndexName` request parameter.
--define(AWS_DYNAMODB_INDEXNAME, 'aws.dynamodb.index_name').
+-define(AWS_DYNAMODB_INDEX_NAME, 'aws.dynamodb.index_name').
 
 
 %% The JSON-serialized value of the `ItemCollectionMetrics` response field.
--define(AWS_DYNAMODB_ITEMCOLLECTIONMETRICS, 'aws.dynamodb.item_collection_metrics').
+-define(AWS_DYNAMODB_ITEM_COLLECTION_METRICS, 'aws.dynamodb.item_collection_metrics').
 
 
 %% The value of the `Limit` request parameter.
@@ -59,7 +59,7 @@
 
 
 %% The JSON-serialized value of each item of the `LocalSecondaryIndexes` request field.
--define(AWS_DYNAMODB_LOCALSECONDARYINDEXES, 'aws.dynamodb.local_secondary_indexes').
+-define(AWS_DYNAMODB_LOCAL_SECONDARY_INDEXES, 'aws.dynamodb.local_secondary_indexes').
 
 
 %% The value of the `ProjectionExpression` request parameter.
@@ -67,19 +67,19 @@
 
 
 %% The value of the `ProvisionedThroughput.ReadCapacityUnits` request parameter.
--define(AWS_DYNAMODB_PROVISIONEDREADCAPACITY, 'aws.dynamodb.provisioned_read_capacity').
+-define(AWS_DYNAMODB_PROVISIONED_READ_CAPACITY, 'aws.dynamodb.provisioned_read_capacity').
 
 
 %% The value of the `ProvisionedThroughput.WriteCapacityUnits` request parameter.
--define(AWS_DYNAMODB_PROVISIONEDWRITECAPACITY, 'aws.dynamodb.provisioned_write_capacity').
+-define(AWS_DYNAMODB_PROVISIONED_WRITE_CAPACITY, 'aws.dynamodb.provisioned_write_capacity').
 
 
 %% The value of the `ScanIndexForward` request parameter.
--define(AWS_DYNAMODB_SCANFORWARD, 'aws.dynamodb.scan_forward').
+-define(AWS_DYNAMODB_SCAN_FORWARD, 'aws.dynamodb.scan_forward').
 
 
 %% The value of the `ScannedCount` response parameter.
--define(AWS_DYNAMODB_SCANNEDCOUNT, 'aws.dynamodb.scanned_count').
+-define(AWS_DYNAMODB_SCANNED_COUNT, 'aws.dynamodb.scanned_count').
 
 
 %% The value of the `Segment` request parameter.
@@ -91,15 +91,15 @@
 
 
 %% The number of items in the `TableNames` response parameter.
--define(AWS_DYNAMODB_TABLECOUNT, 'aws.dynamodb.table_count').
+-define(AWS_DYNAMODB_TABLE_COUNT, 'aws.dynamodb.table_count').
 
 
 %% The keys in the `RequestItems` object field.
--define(AWS_DYNAMODB_TABLENAMES, 'aws.dynamodb.table_names').
+-define(AWS_DYNAMODB_TABLE_NAMES, 'aws.dynamodb.table_names').
 
 
 %% The value of the `TotalSegments` request parameter.
--define(AWS_DYNAMODB_TOTALSEGMENTS, 'aws.dynamodb.total_segments').
+-define(AWS_DYNAMODB_TOTAL_SEGMENTS, 'aws.dynamodb.total_segments').
 
 
 %% The ARN of an [ECS cluster](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/clusters.html).
@@ -149,7 +149,7 @@
 
 %% The full invoked ARN as provided on the `Context` passed to the function (`Lambda-Runtime-Invoked-Function-Arn` header on the `/runtime/invocation/next` applicable).
 %%  
--define(AWS_LAMBDA_INVOKEDARN, 'aws.lambda.invoked_arn').
+-define(AWS_LAMBDA_INVOKED_ARN, 'aws.lambda.invoked_arn').
 
 
 %% The Amazon Resource Name(s) (ARN) of the AWS log group(s).
@@ -173,28 +173,28 @@
 
 
 %% The AWS request ID as returned in the response headers `x-amz-request-id` or `x-amz-requestid`.
--define(AWS_REQUESTID, 'aws.request_id').
+-define(AWS_REQUEST_ID, 'aws.request_id').
 
 
 %% The S3 bucket name the request refers to. Corresponds to the `--bucket` parameter of the [S3 API](https://docs.aws.amazon.com/cli/latest/reference/s3api/index.html) operations.
--define(AWS_S_3_BUCKET, 'aws.s3.bucket').
+-define(AWS_S3_BUCKET, 'aws.s3.bucket').
 
 
 %% The source object (in the form `bucket`/`key`) for the copy operation.
--define(AWS_S_3_COPYSOURCE, 'aws.s3.copy_source').
+-define(AWS_S3_COPY_SOURCE, 'aws.s3.copy_source').
 
 
 %% The delete request container that specifies the objects to be deleted.
--define(AWS_S_3_DELETE, 'aws.s3.delete').
+-define(AWS_S3_DELETE, 'aws.s3.delete').
 
 
 %% The S3 object key the request refers to. Corresponds to the `--key` parameter of the [S3 API](https://docs.aws.amazon.com/cli/latest/reference/s3api/index.html) operations.
--define(AWS_S_3_KEY, 'aws.s3.key').
+-define(AWS_S3_KEY, 'aws.s3.key').
 
 
 %% The part number of the part being uploaded in a multipart-upload operation. This is a positive integer between 1 and 10,000.
--define(AWS_S_3_PARTNUMBER, 'aws.s3.part_number').
+-define(AWS_S3_PART_NUMBER, 'aws.s3.part_number').
 
 
 %% Upload ID that identifies the multipart upload.
--define(AWS_S_3_UPLOADID, 'aws.s3.upload_id').
+-define(AWS_S3_UPLOAD_ID, 'aws.s3.upload_id').

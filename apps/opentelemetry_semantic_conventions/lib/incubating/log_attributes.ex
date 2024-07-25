@@ -53,20 +53,20 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.LogAttributes.log_file_nameresolved()
+      iex> OpenTelemetry.SemConv.Incubating.LogAttributes.log_file_name_resolved()
       :"log.file.name_resolved"
 
   ### Erlang
 
   ```erlang
-  ?LOG_FILE_NAMERESOLVED.
+  ?LOG_FILE_NAME_RESOLVED.
   'log.file.name_resolved'
   ```
 
   <!-- tabs-close -->
   """
-  @spec log_file_nameresolved :: :"log.file.name_resolved"
-  def log_file_nameresolved do
+  @spec log_file_name_resolved :: :"log.file.name_resolved"
+  def log_file_name_resolved do
     :"log.file.name_resolved"
   end
 
@@ -119,20 +119,20 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.LogAttributes.log_file_pathresolved()
+      iex> OpenTelemetry.SemConv.Incubating.LogAttributes.log_file_path_resolved()
       :"log.file.path_resolved"
 
   ### Erlang
 
   ```erlang
-  ?LOG_FILE_PATHRESOLVED.
+  ?LOG_FILE_PATH_RESOLVED.
   'log.file.path_resolved'
   ```
 
   <!-- tabs-close -->
   """
-  @spec log_file_pathresolved :: :"log.file.path_resolved"
-  def log_file_pathresolved do
+  @spec log_file_path_resolved :: :"log.file.path_resolved"
+  def log_file_path_resolved do
     :"log.file.path_resolved"
   end
 

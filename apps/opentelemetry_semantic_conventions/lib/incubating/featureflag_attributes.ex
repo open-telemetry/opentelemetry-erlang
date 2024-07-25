@@ -19,20 +19,20 @@ defmodule OpenTelemetry.SemConv.Incubating.FeatureFlagAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.FeatureFlagAttributes.featureflag_key()
+      iex> OpenTelemetry.SemConv.Incubating.FeatureFlagAttributes.feature_flag_key()
       :"feature_flag.key"
 
   ### Erlang
 
   ```erlang
-  ?FEATUREFLAG_KEY.
+  ?FEATURE_FLAG_KEY.
   'feature_flag.key'
   ```
 
   <!-- tabs-close -->
   """
-  @spec featureflag_key :: :"feature_flag.key"
-  def featureflag_key do
+  @spec feature_flag_key :: :"feature_flag.key"
+  def feature_flag_key do
     :"feature_flag.key"
   end
 
@@ -51,20 +51,20 @@ defmodule OpenTelemetry.SemConv.Incubating.FeatureFlagAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.FeatureFlagAttributes.featureflag_providername()
+      iex> OpenTelemetry.SemConv.Incubating.FeatureFlagAttributes.feature_flag_provider_name()
       :"feature_flag.provider_name"
 
   ### Erlang
 
   ```erlang
-  ?FEATUREFLAG_PROVIDERNAME.
+  ?FEATURE_FLAG_PROVIDER_NAME.
   'feature_flag.provider_name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec featureflag_providername :: :"feature_flag.provider_name"
-  def featureflag_providername do
+  @spec feature_flag_provider_name :: :"feature_flag.provider_name"
+  def feature_flag_provider_name do
     :"feature_flag.provider_name"
   end
 
@@ -94,20 +94,20 @@ defmodule OpenTelemetry.SemConv.Incubating.FeatureFlagAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.FeatureFlagAttributes.featureflag_variant()
+      iex> OpenTelemetry.SemConv.Incubating.FeatureFlagAttributes.feature_flag_variant()
       :"feature_flag.variant"
 
   ### Erlang
 
   ```erlang
-  ?FEATUREFLAG_VARIANT.
+  ?FEATURE_FLAG_VARIANT.
   'feature_flag.variant'
   ```
 
   <!-- tabs-close -->
   """
-  @spec featureflag_variant :: :"feature_flag.variant"
-  def featureflag_variant do
+  @spec feature_flag_variant :: :"feature_flag.variant"
+  def feature_flag_variant do
     :"feature_flag.variant"
   end
 end

@@ -57,20 +57,20 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_commandargs()
+      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_command_args()
       :"container.command_args"
 
   ### Erlang
 
   ```erlang
-  ?CONTAINER_COMMANDARGS.
+  ?CONTAINER_COMMAND_ARGS.
   'container.command_args'
   ```
 
   <!-- tabs-close -->
   """
-  @spec container_commandargs :: :"container.command_args"
-  def container_commandargs do
+  @spec container_command_args :: :"container.command_args"
+  def container_command_args do
     :"container.command_args"
   end
 
@@ -90,20 +90,20 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_commandline()
+      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_command_line()
       :"container.command_line"
 
   ### Erlang
 
   ```erlang
-  ?CONTAINER_COMMANDLINE.
+  ?CONTAINER_COMMAND_LINE.
   'container.command_line'
   ```
 
   <!-- tabs-close -->
   """
-  @spec container_commandline :: :"container.command_line"
-  def container_commandline do
+  @spec container_command_line :: :"container.command_line"
+  def container_command_line do
     :"container.command_line"
   end
 
@@ -296,20 +296,20 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_image_repodigests()
+      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_image_repo_digests()
       :"container.image.repo_digests"
 
   ### Erlang
 
   ```erlang
-  ?CONTAINER_IMAGE_REPODIGESTS.
+  ?CONTAINER_IMAGE_REPO_DIGESTS.
   'container.image.repo_digests'
   ```
 
   <!-- tabs-close -->
   """
-  @spec container_image_repodigests :: :"container.image.repo_digests"
-  def container_image_repodigests do
+  @spec container_image_repo_digests :: :"container.image.repo_digests"
+  def container_image_repo_digests do
     :"container.image.repo_digests"
   end
 

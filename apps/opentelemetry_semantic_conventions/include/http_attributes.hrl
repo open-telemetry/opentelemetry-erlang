@@ -45,12 +45,12 @@
 
 
 %% Original HTTP method sent by the client in the request line.
--define(HTTP_REQUEST_METHODORIGINAL, 'http.request.method_original').
+-define(HTTP_REQUEST_METHOD_ORIGINAL, 'http.request.method_original').
 
 
 %% The ordinal number of request resending attempt (for any reason, including redirects).
 %%  
--define(HTTP_REQUEST_RESENDCOUNT, 'http.request.resend_count').
+-define(HTTP_REQUEST_RESEND_COUNT, 'http.request.resend_count').
 
 
 %% HTTP response headers, `<key>` being the normalized HTTP Header name (lowercase), the value being the header values.
@@ -59,7 +59,7 @@
 
 
 %% [HTTP response status code](https://tools.ietf.org/html/rfc7231#section-6).
--define(HTTP_RESPONSE_STATUSCODE, 'http.response.status_code').
+-define(HTTP_RESPONSE_STATUS_CODE, 'http.response.status_code').
 
 
 %% The matched route, that is, the path template in the format used by the respective server framework.

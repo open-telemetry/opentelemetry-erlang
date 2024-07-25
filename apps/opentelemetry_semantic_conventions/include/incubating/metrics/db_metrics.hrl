@@ -19,7 +19,7 @@
 
 
 %% The time it took to create a new connection
--define(DB_CLIENT_CONNECTION_CREATETIME, 'db.client.connection.create_time').
+-define(DB_CLIENT_CONNECTION_CREATE_TIME, 'db.client.connection.create_time').
 
 
 %% The maximum number of idle open connections allowed
@@ -35,7 +35,7 @@
 
 
 %% The number of pending requests for an open connection, cumulative for the entire pool
--define(DB_CLIENT_CONNECTION_PENDINGREQUESTS, 'db.client.connection.pending_requests').
+-define(DB_CLIENT_CONNECTION_PENDING_REQUESTS, 'db.client.connection.pending_requests').
 
 
 %% The number of connection timeouts that have occurred trying to obtain a connection from the pool
@@ -43,15 +43,15 @@
 
 
 %% The time between borrowing a connection and returning it to the pool
--define(DB_CLIENT_CONNECTION_USETIME, 'db.client.connection.use_time').
+-define(DB_CLIENT_CONNECTION_USE_TIME, 'db.client.connection.use_time').
 
 
 %% The time it took to obtain an open connection from the pool
--define(DB_CLIENT_CONNECTION_WAITTIME, 'db.client.connection.wait_time').
+-define(DB_CLIENT_CONNECTION_WAIT_TIME, 'db.client.connection.wait_time').
 
 %% @deprecated Replaced by `db.client.connection.create_time`. Note: the unit also changed from `ms` to `s`.
 %% Deprecated, use `db.client.connection.create_time` instead. Note: the unit also changed from `ms` to `s`.
--define(DB_CLIENT_CONNECTIONS_CREATETIME, 'db.client.connections.create_time').
+-define(DB_CLIENT_CONNECTIONS_CREATE_TIME, 'db.client.connections.create_time').
 
 %% @deprecated Replaced by `db.client.connection.idle.max`.
 %% Deprecated, use `db.client.connection.idle.max` instead.
@@ -67,7 +67,7 @@
 
 %% @deprecated Replaced by `db.client.connection.pending_requests`.
 %% Deprecated, use `db.client.connection.pending_requests` instead.
--define(DB_CLIENT_CONNECTIONS_PENDINGREQUESTS, 'db.client.connections.pending_requests').
+-define(DB_CLIENT_CONNECTIONS_PENDING_REQUESTS, 'db.client.connections.pending_requests').
 
 %% @deprecated Replaced by `db.client.connection.timeouts`.
 %% Deprecated, use `db.client.connection.timeouts` instead.
@@ -79,11 +79,11 @@
 
 %% @deprecated Replaced by `db.client.connection.use_time`. Note: the unit also changed from `ms` to `s`.
 %% Deprecated, use `db.client.connection.use_time` instead. Note: the unit also changed from `ms` to `s`.
--define(DB_CLIENT_CONNECTIONS_USETIME, 'db.client.connections.use_time').
+-define(DB_CLIENT_CONNECTIONS_USE_TIME, 'db.client.connections.use_time').
 
 %% @deprecated Replaced by `db.client.connection.wait_time`. Note: the unit also changed from `ms` to `s`.
 %% Deprecated, use `db.client.connection.wait_time` instead. Note: the unit also changed from `ms` to `s`.
--define(DB_CLIENT_CONNECTIONS_WAITTIME, 'db.client.connections.wait_time').
+-define(DB_CLIENT_CONNECTIONS_WAIT_TIME, 'db.client.connections.wait_time').
 
 
 %% Duration of database client operations.

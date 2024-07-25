@@ -15,7 +15,7 @@
 %%%-------------------------------------------------------------------------
 
 %% Number of times the process has been context switched.
--define(PROCESS_CONTEXTSWITCHES, 'process.context_switches').
+-define(PROCESS_CONTEXT_SWITCHES, 'process.context_switches').
 
 
 %% Total CPU seconds broken down by different states.
@@ -43,7 +43,7 @@
 
 
 %% Number of file descriptors in use by the process.
--define(PROCESS_OPENFILEDESCRIPTOR_COUNT, 'process.open_file_descriptor.count').
+-define(PROCESS_OPEN_FILE_DESCRIPTOR_COUNT, 'process.open_file_descriptor.count').
 
 
 %% Number of page faults the process has made.

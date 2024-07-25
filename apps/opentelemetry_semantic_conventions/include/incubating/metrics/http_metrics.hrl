@@ -15,7 +15,7 @@
 %%%-------------------------------------------------------------------------
 
 %% Number of active HTTP requests.
--define(HTTP_CLIENT_ACTIVEREQUESTS, 'http.client.active_requests').
+-define(HTTP_CLIENT_ACTIVE_REQUESTS, 'http.client.active_requests').
 
 
 %% The duration of the successfully established outbound HTTP connections.
@@ -23,7 +23,7 @@
 
 
 %% Number of outbound HTTP connections that are currently active or idle on the client.
--define(HTTP_CLIENT_OPENCONNECTIONS, 'http.client.open_connections').
+-define(HTTP_CLIENT_OPEN_CONNECTIONS, 'http.client.open_connections').
 
 
 %% Size of HTTP client request bodies.
@@ -35,7 +35,7 @@
 
 
 %% Number of active HTTP server requests.
--define(HTTP_SERVER_ACTIVEREQUESTS, 'http.server.active_requests').
+-define(HTTP_SERVER_ACTIVE_REQUESTS, 'http.server.active_requests').
 
 
 %% Size of HTTP server request bodies.

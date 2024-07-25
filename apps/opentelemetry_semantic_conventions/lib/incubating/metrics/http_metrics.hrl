@@ -1,7 +1,8 @@
-defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
+
+defmodule OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics do
   # This is an auto-generated file
   @moduledoc """
-  OpenTelemetry Semantic Conventions for HTTP metrics.
+  OpenTelemetry Semantic Conventions for Http metrics.
   """
   @doc """
   Number of active HTTP requests.
@@ -12,7 +13,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics.http_client_active_requests()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics.http_client_active_requests()
       :"http.client.active_requests"
 
   ### Erlang
@@ -39,7 +40,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics.http_client_connection_duration()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics.http_client_connection_duration()
       :"http.client.connection.duration"
 
   ### Erlang
@@ -66,7 +67,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics.http_client_open_connections()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics.http_client_open_connections()
       :"http.client.open_connections"
 
   ### Erlang
@@ -92,12 +93,12 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   ### Notes
 
   The size of the request payload body in bytes. This is the number of bytes transferred excluding headers and is often, but not always, present as the [Content-Length](https://www.rfc-editor.org/rfc/rfc9110.html#field.content-length) header. For requests using transport encoding, this should be the compressed size.
-
+  
 
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics.http_client_request_body_size()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics.http_client_request_body_size()
       :"http.client.request.body.size"
 
   ### Erlang
@@ -123,12 +124,12 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   ### Notes
 
   The size of the response payload body in bytes. This is the number of bytes transferred excluding headers and is often, but not always, present as the [Content-Length](https://www.rfc-editor.org/rfc/rfc9110.html#field.content-length) header. For requests using transport encoding, this should be the compressed size.
-
+  
 
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics.http_client_response_body_size()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics.http_client_response_body_size()
       :"http.client.response.body.size"
 
   ### Erlang
@@ -155,7 +156,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics.http_server_active_requests()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics.http_server_active_requests()
       :"http.server.active_requests"
 
   ### Erlang
@@ -181,12 +182,12 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   ### Notes
 
   The size of the request payload body in bytes. This is the number of bytes transferred excluding headers and is often, but not always, present as the [Content-Length](https://www.rfc-editor.org/rfc/rfc9110.html#field.content-length) header. For requests using transport encoding, this should be the compressed size.
-
+  
 
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics.http_server_request_body_size()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics.http_server_request_body_size()
       :"http.server.request.body.size"
 
   ### Erlang
@@ -212,12 +213,12 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   ### Notes
 
   The size of the response payload body in bytes. This is the number of bytes transferred excluding headers and is often, but not always, present as the [Content-Length](https://www.rfc-editor.org/rfc/rfc9110.html#field.content-length) header. For requests using transport encoding, this should be the compressed size.
-
+  
 
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics.http_server_response_body_size()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.HttpMetrics.http_server_response_body_size()
       :"http.server.response.body.size"
 
   ### Erlang
@@ -234,4 +235,5 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   def http_server_response_body_size do
     :"http.server.response.body.size"
   end
+
 end

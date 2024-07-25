@@ -14,11 +14,8 @@
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
 
-%% Name of the user-agent extracted from original. Usually refers to the browser's name.
+%% Value of the [HTTP User-Agent](https://www.rfc-editor.org/rfc/rfc9110.html#field.user-agent) header sent by the client.
 %%  
--define(USER_AGENT_NAME, 'user_agent.name').
-
-
-%% Version of the user-agent extracted from original. Usually refers to the browser's version
-%%  
--define(USER_AGENT_VERSION, 'user_agent.version').
+{"brief": "Value of the [HTTP User-Agent](https://www.rfc-editor.org/rfc/rfc9110.html#field.user-agent) header sent by the client.\n", "examples": ["CERN-LineMode/2.15 libwww/2.17b3", "Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Mobile/15E148 Safari/604.1", "YourApp/1.0.0 grpc-java-okhttp/1.27.2"], "name": "user_agent.original", "requirement_level": "recommended", "stability": "stable", "type": "string"}
+user_agent_original
+-define(USER_AGENT_ORIGINAL, 'user_agent.original').

@@ -1,7 +1,8 @@
-defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
+
+defmodule OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics do
   # This is an auto-generated file
   @moduledoc """
-  OpenTelemetry Semantic Conventions for RPC metrics.
+  OpenTelemetry Semantic Conventions for Rpc metrics.
   """
   @doc """
   Measures the duration of outbound RPC.
@@ -12,14 +13,14 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
 
   While streaming RPCs may record this metric as start-of-batch
   to end-of-batch, it's hard to interpret in practice.
-
+  
   **Streaming**: N/A.
-
+  
 
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_client_duration()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_client_duration()
       :"rpc.client.duration"
 
   ### Erlang
@@ -45,12 +46,12 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Notes
 
   **Streaming**: Recorded per message in a streaming batch
-
+  
 
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_client_request_size()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_client_request_size()
       :"rpc.client.request.size"
 
   ### Erlang
@@ -76,14 +77,14 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Notes
 
   Should be 1 for all non-streaming RPCs.
-
+  
   **Streaming**: This metric is required for server and client streaming RPCs
-
+  
 
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_client_requests_per_rpc()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_client_requests_per_rpc()
       :"rpc.client.requests_per_rpc"
 
   ### Erlang
@@ -109,12 +110,12 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Notes
 
   **Streaming**: Recorded per response in a streaming batch
-
+  
 
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_client_response_size()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_client_response_size()
       :"rpc.client.response.size"
 
   ### Erlang
@@ -140,14 +141,14 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Notes
 
   Should be 1 for all non-streaming RPCs.
-
+  
   **Streaming**: This metric is required for server and client streaming RPCs
-
+  
 
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_client_responses_per_rpc()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_client_responses_per_rpc()
       :"rpc.client.responses_per_rpc"
 
   ### Erlang
@@ -174,14 +175,14 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
 
   While streaming RPCs may record this metric as start-of-batch
   to end-of-batch, it's hard to interpret in practice.
-
+  
   **Streaming**: N/A.
-
+  
 
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_server_duration()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_server_duration()
       :"rpc.server.duration"
 
   ### Erlang
@@ -207,12 +208,12 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Notes
 
   **Streaming**: Recorded per message in a streaming batch
-
+  
 
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_server_request_size()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_server_request_size()
       :"rpc.server.request.size"
 
   ### Erlang
@@ -238,14 +239,14 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Notes
 
   Should be 1 for all non-streaming RPCs.
-
+  
   **Streaming** : This metric is required for server and client streaming RPCs
-
+  
 
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_server_requests_per_rpc()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_server_requests_per_rpc()
       :"rpc.server.requests_per_rpc"
 
   ### Erlang
@@ -271,12 +272,12 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Notes
 
   **Streaming**: Recorded per response in a streaming batch
-
+  
 
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_server_response_size()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_server_response_size()
       :"rpc.server.response.size"
 
   ### Erlang
@@ -302,14 +303,14 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Notes
 
   Should be 1 for all non-streaming RPCs.
-
+  
   **Streaming**: This metric is required for server and client streaming RPCs
-
+  
 
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics.rpc_server_responses_per_rpc()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.RpcMetrics.rpc_server_responses_per_rpc()
       :"rpc.server.responses_per_rpc"
 
   ### Erlang
@@ -326,4 +327,5 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   def rpc_server_responses_per_rpc do
     :"rpc.server.responses_per_rpc"
   end
+
 end

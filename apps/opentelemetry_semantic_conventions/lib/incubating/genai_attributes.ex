@@ -22,20 +22,20 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_completion()
+      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_completion()
       :"gen_ai.completion"
 
   ### Erlang
 
   ```erlang
-  ?GENAI_COMPLETION.
+  ?GEN_AI_COMPLETION.
   'gen_ai.completion'
   ```
 
   <!-- tabs-close -->
   """
-  @spec genai_completion :: :"gen_ai.completion"
-  def genai_completion do
+  @spec gen_ai_completion :: :"gen_ai.completion"
+  def gen_ai_completion do
     :"gen_ai.completion"
   end
 
@@ -57,20 +57,20 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_prompt()
+      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_prompt()
       :"gen_ai.prompt"
 
   ### Erlang
 
   ```erlang
-  ?GENAI_PROMPT.
+  ?GEN_AI_PROMPT.
   'gen_ai.prompt'
   ```
 
   <!-- tabs-close -->
   """
-  @spec genai_prompt :: :"gen_ai.prompt"
-  def genai_prompt do
+  @spec gen_ai_prompt :: :"gen_ai.prompt"
+  def gen_ai_prompt do
     :"gen_ai.prompt"
   end
 
@@ -89,20 +89,20 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_request_maxtokens()
+      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_request_max_tokens()
       :"gen_ai.request.max_tokens"
 
   ### Erlang
 
   ```erlang
-  ?GENAI_REQUEST_MAXTOKENS.
+  ?GEN_AI_REQUEST_MAX_TOKENS.
   'gen_ai.request.max_tokens'
   ```
 
   <!-- tabs-close -->
   """
-  @spec genai_request_maxtokens :: :"gen_ai.request.max_tokens"
-  def genai_request_maxtokens do
+  @spec gen_ai_request_max_tokens :: :"gen_ai.request.max_tokens"
+  def gen_ai_request_max_tokens do
     :"gen_ai.request.max_tokens"
   end
 
@@ -121,20 +121,20 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_request_model()
+      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_request_model()
       :"gen_ai.request.model"
 
   ### Erlang
 
   ```erlang
-  ?GENAI_REQUEST_MODEL.
+  ?GEN_AI_REQUEST_MODEL.
   'gen_ai.request.model'
   ```
 
   <!-- tabs-close -->
   """
-  @spec genai_request_model :: :"gen_ai.request.model"
-  def genai_request_model do
+  @spec gen_ai_request_model :: :"gen_ai.request.model"
+  def gen_ai_request_model do
     :"gen_ai.request.model"
   end
 
@@ -153,20 +153,20 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_request_temperature()
+      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_request_temperature()
       :"gen_ai.request.temperature"
 
   ### Erlang
 
   ```erlang
-  ?GENAI_REQUEST_TEMPERATURE.
+  ?GEN_AI_REQUEST_TEMPERATURE.
   'gen_ai.request.temperature'
   ```
 
   <!-- tabs-close -->
   """
-  @spec genai_request_temperature :: :"gen_ai.request.temperature"
-  def genai_request_temperature do
+  @spec gen_ai_request_temperature :: :"gen_ai.request.temperature"
+  def gen_ai_request_temperature do
     :"gen_ai.request.temperature"
   end
 
@@ -185,20 +185,20 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_request_topp()
+      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_request_top_p()
       :"gen_ai.request.top_p"
 
   ### Erlang
 
   ```erlang
-  ?GENAI_REQUEST_TOPP.
+  ?GEN_AI_REQUEST_TOP_P.
   'gen_ai.request.top_p'
   ```
 
   <!-- tabs-close -->
   """
-  @spec genai_request_topp :: :"gen_ai.request.top_p"
-  def genai_request_topp do
+  @spec gen_ai_request_top_p :: :"gen_ai.request.top_p"
+  def gen_ai_request_top_p do
     :"gen_ai.request.top_p"
   end
 
@@ -217,20 +217,20 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_response_finishreasons()
+      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_response_finish_reasons()
       :"gen_ai.response.finish_reasons"
 
   ### Erlang
 
   ```erlang
-  ?GENAI_RESPONSE_FINISHREASONS.
+  ?GEN_AI_RESPONSE_FINISH_REASONS.
   'gen_ai.response.finish_reasons'
   ```
 
   <!-- tabs-close -->
   """
-  @spec genai_response_finishreasons :: :"gen_ai.response.finish_reasons"
-  def genai_response_finishreasons do
+  @spec gen_ai_response_finish_reasons :: :"gen_ai.response.finish_reasons"
+  def gen_ai_response_finish_reasons do
     :"gen_ai.response.finish_reasons"
   end
 
@@ -249,20 +249,20 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_response_id()
+      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_response_id()
       :"gen_ai.response.id"
 
   ### Erlang
 
   ```erlang
-  ?GENAI_RESPONSE_ID.
+  ?GEN_AI_RESPONSE_ID.
   'gen_ai.response.id'
   ```
 
   <!-- tabs-close -->
   """
-  @spec genai_response_id :: :"gen_ai.response.id"
-  def genai_response_id do
+  @spec gen_ai_response_id :: :"gen_ai.response.id"
+  def gen_ai_response_id do
     :"gen_ai.response.id"
   end
 
@@ -281,20 +281,20 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_response_model()
+      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_response_model()
       :"gen_ai.response.model"
 
   ### Erlang
 
   ```erlang
-  ?GENAI_RESPONSE_MODEL.
+  ?GEN_AI_RESPONSE_MODEL.
   'gen_ai.response.model'
   ```
 
   <!-- tabs-close -->
   """
-  @spec genai_response_model :: :"gen_ai.response.model"
-  def genai_response_model do
+  @spec gen_ai_response_model :: :"gen_ai.response.model"
+  def gen_ai_response_model do
     :"gen_ai.response.model"
   end
 
@@ -304,7 +304,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Enum Values
   * `:openai` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - OpenAI
   """
-  @type genai_system_values() :: %{
+  @type gen_ai_system_values() :: %{
           :openai => :openai
         }
   @doc """
@@ -324,37 +324,37 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_system()
+      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_system()
       :"gen_ai.system"
       
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_system_values().openai
+      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_system_values().openai
       :openai
       
-      iex> %{OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_system() => OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_system_values().openai}
+      iex> %{OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_system() => OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_system_values().openai}
       %{:"gen_ai.system" => :openai}
 
   ### Erlang
 
   ```erlang
-  ?GENAI_SYSTEM.
+  ?GEN_AI_SYSTEM.
   'gen_ai.system'
 
-  ?'GENAI_SYSTEM_VALUES.openai'.
+  ?'GEN_AI_SYSTEM_VALUES.openai'.
   openai
 
-  \#{?GENAI_SYSTEM => ?'GENAI_SYSTEM_VALUES.openai'}.
+  \#{?GEN_AI_SYSTEM => ?'GEN_AI_SYSTEM_VALUES.openai'}.
   \#{'gen_ai.system' => openai}
   ```
 
   <!-- tabs-close -->
   """
-  @spec genai_system :: :"gen_ai.system"
-  def genai_system do
+  @spec gen_ai_system :: :"gen_ai.system"
+  def gen_ai_system do
     :"gen_ai.system"
   end
 
-  @spec genai_system_values() :: genai_system_values()
-  def genai_system_values() do
+  @spec gen_ai_system_values() :: gen_ai_system_values()
+  def gen_ai_system_values() do
     %{
       :openai => :openai
     }
@@ -375,20 +375,20 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_usage_completiontokens()
+      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_usage_completion_tokens()
       :"gen_ai.usage.completion_tokens"
 
   ### Erlang
 
   ```erlang
-  ?GENAI_USAGE_COMPLETIONTOKENS.
+  ?GEN_AI_USAGE_COMPLETION_TOKENS.
   'gen_ai.usage.completion_tokens'
   ```
 
   <!-- tabs-close -->
   """
-  @spec genai_usage_completiontokens :: :"gen_ai.usage.completion_tokens"
-  def genai_usage_completiontokens do
+  @spec gen_ai_usage_completion_tokens :: :"gen_ai.usage.completion_tokens"
+  def gen_ai_usage_completion_tokens do
     :"gen_ai.usage.completion_tokens"
   end
 
@@ -407,20 +407,20 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_usage_prompttokens()
+      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_usage_prompt_tokens()
       :"gen_ai.usage.prompt_tokens"
 
   ### Erlang
 
   ```erlang
-  ?GENAI_USAGE_PROMPTTOKENS.
+  ?GEN_AI_USAGE_PROMPT_TOKENS.
   'gen_ai.usage.prompt_tokens'
   ```
 
   <!-- tabs-close -->
   """
-  @spec genai_usage_prompttokens :: :"gen_ai.usage.prompt_tokens"
-  def genai_usage_prompttokens do
+  @spec gen_ai_usage_prompt_tokens :: :"gen_ai.usage.prompt_tokens"
+  def gen_ai_usage_prompt_tokens do
     :"gen_ai.usage.prompt_tokens"
   end
 end

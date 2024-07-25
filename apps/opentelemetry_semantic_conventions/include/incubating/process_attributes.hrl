@@ -21,20 +21,20 @@
 
 %% All the command arguments (including the command/executable itself) as received by the process. On Linux-based systems (and some other Unixoid systems supporting procfs), can be set according to the list of null-delimited strings extracted from `proc/[pid]/cmdline`. For libc-based executables, this would be the full argv vector passed to `main`.
 %%  
--define(PROCESS_COMMANDARGS, 'process.command_args').
+-define(PROCESS_COMMAND_ARGS, 'process.command_args').
 
 
 %% The full command used to launch the process as a single string representing the full command. On Windows, can be set to the result of `GetCommandLineW`. Do not set this if you have to assemble it just for monitoring; use `process.command_args` instead.
 %%  
--define(PROCESS_COMMANDLINE, 'process.command_line').
+-define(PROCESS_COMMAND_LINE, 'process.command_line').
 
 
 %% Specifies whether the context switches for this data point were voluntary or involuntary.
--define(PROCESS_CONTEXTSWITCHTYPE, 'process.context_switch_type').
+-define(PROCESS_CONTEXT_SWITCH_TYPE, 'process.context_switch_type').
 
--define('PROCESS_CONTEXTSWITCHTYPE_VALUES.voluntary', 'voluntary').
+-define('PROCESS_CONTEXT_SWITCH_TYPE_VALUES.voluntary', 'voluntary').
 
--define('PROCESS_CONTEXTSWITCHTYPE_VALUES.involuntary', 'involuntary').
+-define('PROCESS_CONTEXT_SWITCH_TYPE_VALUES.involuntary', 'involuntary').
 
 
 
@@ -77,7 +77,7 @@
 
 %% The PID of the process's group leader. This is also the process group ID (PGID) of the process.
 %%  
--define(PROCESS_GROUPLEADER_PID, 'process.group_leader.pid').
+-define(PROCESS_GROUP_LEADER_PID, 'process.group_leader.pid').
 
 
 %% Whether the process is connected to an interactive shell.
@@ -92,17 +92,17 @@
 
 %% The type of page fault for this data point. Type `major` is for major/hard page faults, and `minor` is for minor/soft page faults.
 %%  
--define(PROCESS_PAGING_FAULTTYPE, 'process.paging.fault_type').
+-define(PROCESS_PAGING_FAULT_TYPE, 'process.paging.fault_type').
 
--define('PROCESS_PAGING_FAULTTYPE_VALUES.major', 'major').
+-define('PROCESS_PAGING_FAULT_TYPE_VALUES.major', 'major').
 
--define('PROCESS_PAGING_FAULTTYPE_VALUES.minor', 'minor').
+-define('PROCESS_PAGING_FAULT_TYPE_VALUES.minor', 'minor').
 
 
 
 %% Parent Process identifier (PPID).
 %%  
--define(PROCESS_PARENTPID, 'process.parent_pid').
+-define(PROCESS_PARENT_PID, 'process.parent_pid').
 
 
 %% Process identifier (PID).
@@ -112,12 +112,12 @@
 
 %% The real user ID (RUID) of the process.
 %%  
--define(PROCESS_REALUSER_ID, 'process.real_user.id').
+-define(PROCESS_REAL_USER_ID, 'process.real_user.id').
 
 
 %% The username of the real user of the process.
 %%  
--define(PROCESS_REALUSER_NAME, 'process.real_user.name').
+-define(PROCESS_REAL_USER_NAME, 'process.real_user.name').
 
 
 %% An additional description about the runtime of the process, for example a specific vendor customization of the runtime environment.
@@ -137,17 +137,17 @@
 
 %% The saved user ID (SUID) of the process.
 %%  
--define(PROCESS_SAVEDUSER_ID, 'process.saved_user.id').
+-define(PROCESS_SAVED_USER_ID, 'process.saved_user.id').
 
 
 %% The username of the saved user.
 %%  
--define(PROCESS_SAVEDUSER_NAME, 'process.saved_user.name').
+-define(PROCESS_SAVED_USER_NAME, 'process.saved_user.name').
 
 
 %% The PID of the process's session leader. This is also the session ID (SID) of the process.
 %%  
--define(PROCESS_SESSIONLEADER_PID, 'process.session_leader.pid').
+-define(PROCESS_SESSION_LEADER_PID, 'process.session_leader.pid').
 
 
 %% The effective user ID (EUID) of the process.

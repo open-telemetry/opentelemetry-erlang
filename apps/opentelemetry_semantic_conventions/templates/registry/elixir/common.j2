@@ -1,9 +1,13 @@
-{%- macro acronyms() -%}
-["http", "url", "tls", "rpc", "os", "oci", "gcp", "faas", "dns", "db", "aws"]
+{%- macro erl_attr_name(text) -%}
+  {{ text | acronym | replace(".", "_") | upper }}
 {%- endmacro -%}
 
 {%- macro func_name(text) -%}
-  {{ text | snake_case_const }}
+  {{ text | acronym | replace(".", "_") | lower }}
+{%- endmacro -%}
+
+{%- macro file_name(id) -%}
+  {{ id | pascal_case | acronym | lower }}
 {%- endmacro -%}
 
 {%- macro to_atom(text) -%}
@@ -63,12 +67,4 @@
 
 {%- macro strong_reqs(string) -%}
   {{ string | replace(" MUST ", " **MUST** ") | replace(" MUST NOT ", " **MUST NOT** ") | replace(" SHOULD ", " **SHOULD** ") | replace(" SHOULD NOT ", " **SHOULD NOT** ") |  replace(" MAY ", " **MAY** ") | replace(" NOT ", " **NOT** ") }}
-{%- endmacro -%}
-
-{%- macro format_acronym(value, acronyms) -%}
-  {%- if value | lower in acronyms -%}
-  {{ value | upper }}
-  {%- else -%}
-  {{ value }}
-  {%- endif -%}
 {%- endmacro -%}

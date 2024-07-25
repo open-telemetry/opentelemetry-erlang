@@ -15,17 +15,12 @@
 %%%-------------------------------------------------------------------------
 
 %% The number of messages sent, received, or processed in the scope of the batching operation.
--define(MESSAGING_BATCH_MESSAGECOUNT, 'messaging.batch.message_count').
+-define(MESSAGING_BATCH_MESSAGE_COUNT, 'messaging.batch.message_count').
 
 
 %% A unique identifier for the client that consumes or produces a message.
 %%  
 -define(MESSAGING_CLIENT_ID, 'messaging.client.id').
-
-%% @deprecated Replaced by `messaging.client.id`.
-%% Deprecated, use `messaging.client.id` instead.
-%%  
--define(MESSAGING_CLIENTID, 'messaging.client_id').
 
 
 %% A boolean that is true if the message destination is anonymous (could be unnamed or have auto-generated name).
@@ -50,11 +45,11 @@
 
 
 %% A boolean that is true if the publish message destination is anonymous (could be unnamed or have auto-generated name).
--define(MESSAGING_DESTINATIONPUBLISH_ANONYMOUS, 'messaging.destination_publish.anonymous').
+-define(MESSAGING_DESTINATION_PUBLISH_ANONYMOUS, 'messaging.destination_publish.anonymous').
 
 
 %% The name of the original destination the message was published to
--define(MESSAGING_DESTINATIONPUBLISH_NAME, 'messaging.destination_publish.name').
+-define(MESSAGING_DESTINATION_PUBLISH_NAME, 'messaging.destination_publish.name').
 
 
 %% The name of the consumer group the event consumer is associated with.
@@ -64,27 +59,27 @@
 
 %% The UTC epoch seconds at which the message has been accepted and stored in the entity.
 %%  
--define(MESSAGING_EVENTHUBS_MESSAGE_ENQUEUEDTIME, 'messaging.eventhubs.message.enqueued_time').
+-define(MESSAGING_EVENTHUBS_MESSAGE_ENQUEUED_TIME, 'messaging.eventhubs.message.enqueued_time').
 
 
 %% The ack deadline in seconds set for the modify ack deadline request.
 %%  
--define(MESSAGING_GCPPUBSUB_MESSAGE_ACKDEADLINE, 'messaging.gcp_pubsub.message.ack_deadline').
+-define(MESSAGING_GCP_PUBSUB_MESSAGE_ACK_DEADLINE, 'messaging.gcp_pubsub.message.ack_deadline').
 
 
 %% The ack id for a given message.
 %%  
--define(MESSAGING_GCPPUBSUB_MESSAGE_ACKID, 'messaging.gcp_pubsub.message.ack_id').
+-define(MESSAGING_GCP_PUBSUB_MESSAGE_ACK_ID, 'messaging.gcp_pubsub.message.ack_id').
 
 
 %% The delivery attempt for a given message.
 %%  
--define(MESSAGING_GCPPUBSUB_MESSAGE_DELIVERYATTEMPT, 'messaging.gcp_pubsub.message.delivery_attempt').
+-define(MESSAGING_GCP_PUBSUB_MESSAGE_DELIVERY_ATTEMPT, 'messaging.gcp_pubsub.message.delivery_attempt').
 
 
 %% The ordering key for a given message. If the attribute is not present, the message does not have an ordering key.
 %%  
--define(MESSAGING_GCPPUBSUB_MESSAGE_ORDERINGKEY, 'messaging.gcp_pubsub.message.ordering_key').
+-define(MESSAGING_GCP_PUBSUB_MESSAGE_ORDERING_KEY, 'messaging.gcp_pubsub.message.ordering_key').
 
 
 %% Name of the Kafka Consumer Group that is handling the message. Only applies to consumers, not producers.
@@ -118,7 +113,7 @@
 
 %% The conversation ID identifying the conversation to which the message belongs, represented as a string. Sometimes called "Correlation ID".
 %%  
--define(MESSAGING_MESSAGE_CONVERSATIONID, 'messaging.message.conversation_id').
+-define(MESSAGING_MESSAGE_CONVERSATION_ID, 'messaging.message.conversation_id').
 
 
 %% The size of the message body and metadata in bytes.
@@ -158,37 +153,37 @@
 
 %% RabbitMQ message routing key.
 %%  
--define(MESSAGING_RABBITMQ_DESTINATION_ROUTINGKEY, 'messaging.rabbitmq.destination.routing_key').
+-define(MESSAGING_RABBITMQ_DESTINATION_ROUTING_KEY, 'messaging.rabbitmq.destination.routing_key').
 
 
 %% RabbitMQ message delivery tag
 %%  
--define(MESSAGING_RABBITMQ_MESSAGE_DELIVERYTAG, 'messaging.rabbitmq.message.delivery_tag').
+-define(MESSAGING_RABBITMQ_MESSAGE_DELIVERY_TAG, 'messaging.rabbitmq.message.delivery_tag').
 
 
 %% Name of the RocketMQ producer/consumer group that is handling the message. The client type is identified by the SpanKind.
 %%  
--define(MESSAGING_ROCKETMQ_CLIENTGROUP, 'messaging.rocketmq.client_group').
+-define(MESSAGING_ROCKETMQ_CLIENT_GROUP, 'messaging.rocketmq.client_group').
 
 
 %% Model of message consumption. This only applies to consumer spans.
 %%  
--define(MESSAGING_ROCKETMQ_CONSUMPTIONMODEL, 'messaging.rocketmq.consumption_model').
+-define(MESSAGING_ROCKETMQ_CONSUMPTION_MODEL, 'messaging.rocketmq.consumption_model').
 
--define('MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES.clustering', 'clustering').
+-define('MESSAGING_ROCKETMQ_CONSUMPTION_MODEL_VALUES.clustering', 'clustering').
 
--define('MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES.broadcasting', 'broadcasting').
+-define('MESSAGING_ROCKETMQ_CONSUMPTION_MODEL_VALUES.broadcasting', 'broadcasting').
 
 
 
 %% The delay time level for delay message, which determines the message delay time.
 %%  
--define(MESSAGING_ROCKETMQ_MESSAGE_DELAYTIMELEVEL, 'messaging.rocketmq.message.delay_time_level').
+-define(MESSAGING_ROCKETMQ_MESSAGE_DELAY_TIME_LEVEL, 'messaging.rocketmq.message.delay_time_level').
 
 
 %% The timestamp in milliseconds that the delay message is expected to be delivered to consumer.
 %%  
--define(MESSAGING_ROCKETMQ_MESSAGE_DELIVERYTIMESTAMP, 'messaging.rocketmq.message.delivery_timestamp').
+-define(MESSAGING_ROCKETMQ_MESSAGE_DELIVERY_TIMESTAMP, 'messaging.rocketmq.message.delivery_timestamp').
 
 
 %% It is essential for FIFO message. Messages that belong to the same message group are always processed one by one within the same consumer group.
@@ -227,31 +222,31 @@
 
 %% The name of the subscription in the topic messages are received from.
 %%  
--define(MESSAGING_SERVICEBUS_DESTINATION_SUBSCRIPTIONNAME, 'messaging.servicebus.destination.subscription_name').
+-define(MESSAGING_SERVICEBUS_DESTINATION_SUBSCRIPTION_NAME, 'messaging.servicebus.destination.subscription_name').
 
 
 %% Describes the [settlement type](https://learn.microsoft.com/azure/service-bus-messaging/message-transfers-locks-settlement#peeklock).
 %%  
--define(MESSAGING_SERVICEBUS_DISPOSITIONSTATUS, 'messaging.servicebus.disposition_status').
+-define(MESSAGING_SERVICEBUS_DISPOSITION_STATUS, 'messaging.servicebus.disposition_status').
 
--define('MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.complete', 'complete').
+-define('MESSAGING_SERVICEBUS_DISPOSITION_STATUS_VALUES.complete', 'complete').
 
--define('MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.abandon', 'abandon').
+-define('MESSAGING_SERVICEBUS_DISPOSITION_STATUS_VALUES.abandon', 'abandon').
 
--define('MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.dead_letter', 'dead_letter').
+-define('MESSAGING_SERVICEBUS_DISPOSITION_STATUS_VALUES.dead_letter', 'dead_letter').
 
--define('MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.defer', 'defer').
+-define('MESSAGING_SERVICEBUS_DISPOSITION_STATUS_VALUES.defer', 'defer').
 
 
 
 %% Number of deliveries that have been attempted for this message.
 %%  
--define(MESSAGING_SERVICEBUS_MESSAGE_DELIVERYCOUNT, 'messaging.servicebus.message.delivery_count').
+-define(MESSAGING_SERVICEBUS_MESSAGE_DELIVERY_COUNT, 'messaging.servicebus.message.delivery_count').
 
 
 %% The UTC epoch seconds at which the message has been accepted and stored in the entity.
 %%  
--define(MESSAGING_SERVICEBUS_MESSAGE_ENQUEUEDTIME, 'messaging.servicebus.message.enqueued_time').
+-define(MESSAGING_SERVICEBUS_MESSAGE_ENQUEUED_TIME, 'messaging.servicebus.message.enqueued_time').
 
 
 %% The messaging system as identified by the client instrumentation.

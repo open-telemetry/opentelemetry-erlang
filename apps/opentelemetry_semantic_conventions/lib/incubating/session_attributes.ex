@@ -51,20 +51,20 @@ defmodule OpenTelemetry.SemConv.Incubating.SessionAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.SessionAttributes.session_previousid()
+      iex> OpenTelemetry.SemConv.Incubating.SessionAttributes.session_previous_id()
       :"session.previous_id"
 
   ### Erlang
 
   ```erlang
-  ?SESSION_PREVIOUSID.
+  ?SESSION_PREVIOUS_ID.
   'session.previous_id'
   ```
 
   <!-- tabs-close -->
   """
-  @spec session_previousid :: :"session.previous_id"
-  def session_previousid do
+  @spec session_previous_id :: :"session.previous_id"
+  def session_previous_id do
     :"session.previous_id"
   end
 end

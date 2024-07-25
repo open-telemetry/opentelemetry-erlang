@@ -38,7 +38,7 @@
 
 %% The amount of level 2 memory cache available to the processor (in Bytes).
 %%  
--define(HOST_CPU_CACHE_L_2_SIZE, 'host.cpu.cache.l2.size').
+-define(HOST_CPU_CACHE_L2_SIZE, 'host.cpu.cache.l2.size').
 
 
 %% Family or generation of the CPU.

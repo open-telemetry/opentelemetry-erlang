@@ -15,7 +15,7 @@
 %%%-------------------------------------------------------------------------
 
 %% The logical CPU number [0..n-1]
--define(SYSTEM_CPU_LOGICALNUMBER, 'system.cpu.logical_number').
+-define(SYSTEM_CPU_LOGICAL_NUMBER, 'system.cpu.logical_number').
 
 
 %% The state of the CPU

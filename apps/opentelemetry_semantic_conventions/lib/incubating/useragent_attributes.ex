@@ -24,20 +24,20 @@ defmodule OpenTelemetry.SemConv.Incubating.UserAgentAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.UserAgentAttributes.useragent_name()
+      iex> OpenTelemetry.SemConv.Incubating.UserAgentAttributes.user_agent_name()
       :"user_agent.name"
 
   ### Erlang
 
   ```erlang
-  ?USERAGENT_NAME.
+  ?USER_AGENT_NAME.
   'user_agent.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec useragent_name :: :"user_agent.name"
-  def useragent_name do
+  @spec user_agent_name :: :"user_agent.name"
+  def user_agent_name do
     :"user_agent.name"
   end
 
@@ -61,20 +61,20 @@ defmodule OpenTelemetry.SemConv.Incubating.UserAgentAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.UserAgentAttributes.useragent_version()
+      iex> OpenTelemetry.SemConv.Incubating.UserAgentAttributes.user_agent_version()
       :"user_agent.version"
 
   ### Erlang
 
   ```erlang
-  ?USERAGENT_VERSION.
+  ?USER_AGENT_VERSION.
   'user_agent.version'
   ```
 
   <!-- tabs-close -->
   """
-  @spec useragent_version :: :"user_agent.version"
-  def useragent_version do
+  @spec user_agent_version :: :"user_agent.version"
+  def user_agent_version do
     :"user_agent.version"
   end
 end

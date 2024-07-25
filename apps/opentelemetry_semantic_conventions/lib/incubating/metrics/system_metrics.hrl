@@ -1,3 +1,4 @@
+
 defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   # This is an auto-generated file
   @moduledoc """
@@ -173,12 +174,12 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Notes
 
   The real elapsed time ("wall clock") used in the I/O path (time from operations running in parallel are not counted). Measured as:
-
+  
   - Linux: Field 13 from [procfs-diskstats](https://www.kernel.org/doc/Documentation/ABI/testing/procfs-diskstats)
   - Windows: The complement of
     ["Disk\% Idle Time"](https://learn.microsoft.com/archive/blogs/askcore/windows-performance-monitor-disk-counters-explained#windows-performance-monitor-disk-counters-explained)
     performance counter: `uptime * (100 - "Disk\% Idle Time") / 100`
-
+  
 
   <!-- tabs-open -->
   ### Elixir
@@ -236,10 +237,10 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Notes
 
   Because it is the sum of time each request took, parallel-issued requests each contribute to make the count grow. Measured as:
-
+  
   - Linux: Fields 7 & 11 from [procfs-diskstats](https://www.kernel.org/doc/Documentation/ABI/testing/procfs-diskstats)
   - Windows: "Avg. Disk sec/Read" perf counter multiplied by "Disk Reads/sec" perf counter (similar for Writes)
-
+  
 
   <!-- tabs-open -->
   ### Elixir
@@ -355,7 +356,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   This is supposed to be more accurate than just "free" memory.
   For reference, see the calculations [here](https://superuser.com/a/980821).
   See also `MemAvailable` in [/proc/meminfo](https://man7.org/linux/man-pages/man5/proc.5.html).
-
+  
 
   <!-- tabs-open -->
   ### Elixir
@@ -386,7 +387,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Notes
 
   Its value **SHOULD** equal the sum of `system.memory.state` over all states.
-
+  
 
   <!-- tabs-open -->
   ### Elixir
@@ -418,7 +419,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
 
   Equivalent of `shared` from [`free` command](https://man7.org/linux/man-pages/man1/free.1.html) or
   `Shmem` from [`/proc/meminfo`](https://man7.org/linux/man-pages/man5/proc.5.html)"
-
+  
 
   <!-- tabs-open -->
   ### Elixir
@@ -450,7 +451,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
 
   The sum over all `system.memory.state` values **SHOULD** equal the total memory
   available on the system, that is `system.memory.limit`.
-
+  
 
   <!-- tabs-open -->
   ### Elixir
@@ -535,11 +536,11 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Notes
 
   Measured as:
-
+  
   - Linux: the `drop` column in `/proc/dev/net` ([source](https://web.archive.org/web/20180321091318/http://www.onlamp.com/pub/a/linux/2000/11/16/LinuxAdmin.html))
   - Windows: [`InDiscards`/`OutDiscards`](https://docs.microsoft.com/windows/win32/api/netioapi/ns-netioapi-mib_if_row2)
     from [`GetIfEntry2`](https://docs.microsoft.com/windows/win32/api/netioapi/nf-netioapi-getifentry2)
-
+  
 
   <!-- tabs-open -->
   ### Elixir
@@ -570,11 +571,11 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Notes
 
   Measured as:
-
+  
   - Linux: the `errs` column in `/proc/dev/net` ([source](https://web.archive.org/web/20180321091318/http://www.onlamp.com/pub/a/linux/2000/11/16/LinuxAdmin.html)).
   - Windows: [`InErrors`/`OutErrors`](https://docs.microsoft.com/windows/win32/api/netioapi/ns-netioapi-mib_if_row2)
     from [`GetIfEntry2`](https://docs.microsoft.com/windows/win32/api/netioapi/nf-netioapi-getifentry2).
-
+  
 
   <!-- tabs-open -->
   ### Elixir
@@ -812,4 +813,5 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   def system_process_created do
     :"system.process.created"
   end
+
 end

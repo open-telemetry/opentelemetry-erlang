@@ -1,3 +1,4 @@
+
 defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   # This is an auto-generated file
   @moduledoc """
@@ -272,4 +273,5 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   def process_thread_count do
     :"process.thread.count"
   end
+
 end

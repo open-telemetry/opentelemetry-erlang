@@ -15,7 +15,7 @@
 %%%-------------------------------------------------------------------------
 %% @deprecated Replaced by `client.address`.
 %% Deprecated, use `client.address` instead.
--define(HTTP_CLIENTIP, 'http.client_ip').
+-define(HTTP_CLIENT_IP, 'http.client_ip').
 
 
 %% State of the HTTP connection in the HTTP connection pool.
@@ -63,11 +63,11 @@
 
 %% @deprecated Replaced by `http.request.header.content-length`.
 %% Deprecated, use `http.request.header.content-length` instead.
--define(HTTP_REQUESTCONTENTLENGTH, 'http.request_content_length').
+-define(HTTP_REQUEST_CONTENT_LENGTH, 'http.request_content_length').
 
 %% @deprecated Replaced by `http.request.body.size`.
 %% Deprecated, use `http.request.body.size` instead.
--define(HTTP_REQUESTCONTENTLENGTHUNCOMPRESSED, 'http.request_content_length_uncompressed').
+-define(HTTP_REQUEST_CONTENT_LENGTH_UNCOMPRESSED, 'http.request_content_length_uncompressed').
 
 
 %% The size of the response payload body in bytes. This is the number of bytes transferred excluding headers and is often, but not always, present as the [Content-Length](https://www.rfc-editor.org/rfc/rfc9110.html#field.content-length) header. For requests using transport encoding, this should be the compressed size.
@@ -81,11 +81,11 @@
 
 %% @deprecated Replaced by `http.response.header.content-length`.
 %% Deprecated, use `http.response.header.content-length` instead.
--define(HTTP_RESPONSECONTENTLENGTH, 'http.response_content_length').
+-define(HTTP_RESPONSE_CONTENT_LENGTH, 'http.response_content_length').
 
 %% @deprecated Replace by `http.response.body.size`.
 %% Deprecated, use `http.response.body.size` instead.
--define(HTTP_RESPONSECONTENTLENGTHUNCOMPRESSED, 'http.response_content_length_uncompressed').
+-define(HTTP_RESPONSE_CONTENT_LENGTH_UNCOMPRESSED, 'http.response_content_length_uncompressed').
 
 %% @deprecated Replaced by `url.scheme` instead.
 %% Deprecated, use `url.scheme` instead.
@@ -93,11 +93,11 @@
 
 %% @deprecated Replaced by `server.address`.
 %% Deprecated, use `server.address` instead.
--define(HTTP_SERVERNAME, 'http.server_name').
+-define(HTTP_SERVER_NAME, 'http.server_name').
 
 %% @deprecated Replaced by `http.response.status_code`.
 %% Deprecated, use `http.response.status_code` instead.
--define(HTTP_STATUSCODE, 'http.status_code').
+-define(HTTP_STATUS_CODE, 'http.status_code').
 
 %% @deprecated Split to `url.path` and `url.query.
 %% Deprecated, use `url.path` and `url.query` instead.
@@ -109,4 +109,4 @@
 
 %% @deprecated Replaced by `user_agent.original`.
 %% Deprecated, use `user_agent.original` instead.
--define(HTTP_USERAGENT, 'http.user_agent').
+-define(HTTP_USER_AGENT, 'http.user_agent').

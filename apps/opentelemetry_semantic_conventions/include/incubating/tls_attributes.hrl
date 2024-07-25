@@ -26,22 +26,22 @@
 
 %% Array of PEM-encoded certificates that make up the certificate chain offered by the client. This is usually mutually-exclusive of `client.certificate` since that value should be the first certificate in the chain.
 %%  
--define(TLS_CLIENT_CERTIFICATECHAIN, 'tls.client.certificate_chain').
+-define(TLS_CLIENT_CERTIFICATE_CHAIN, 'tls.client.certificate_chain').
 
 
 %% Certificate fingerprint using the MD5 digest of DER-encoded version of certificate offered by the client. For consistency with other hash values, this value should be formatted as an uppercase hash.
 %%  
--define(TLS_CLIENT_HASH_MD_5, 'tls.client.hash.md5').
+-define(TLS_CLIENT_HASH_MD5, 'tls.client.hash.md5').
 
 
 %% Certificate fingerprint using the SHA1 digest of DER-encoded version of certificate offered by the client. For consistency with other hash values, this value should be formatted as an uppercase hash.
 %%  
--define(TLS_CLIENT_HASH_SHA_1, 'tls.client.hash.sha1').
+-define(TLS_CLIENT_HASH_SHA1, 'tls.client.hash.sha1').
 
 
 %% Certificate fingerprint using the SHA256 digest of DER-encoded version of certificate offered by the client. For consistency with other hash values, this value should be formatted as an uppercase hash.
 %%  
--define(TLS_CLIENT_HASH_SHA_256, 'tls.client.hash.sha256').
+-define(TLS_CLIENT_HASH_SHA256, 'tls.client.hash.sha256').
 
 
 %% Distinguished name of [subject](https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.6) of the issuer of the x.509 certificate presented by the client.
@@ -49,19 +49,19 @@
 
 
 %% A hash that identifies clients based on how they perform an SSL/TLS handshake.
--define(TLS_CLIENT_JA_3, 'tls.client.ja3').
+-define(TLS_CLIENT_JA3, 'tls.client.ja3').
 
 
 %% Date/Time indicating when client certificate is no longer considered valid.
--define(TLS_CLIENT_NOTAFTER, 'tls.client.not_after').
+-define(TLS_CLIENT_NOT_AFTER, 'tls.client.not_after').
 
 
 %% Date/Time indicating when client certificate is first considered valid.
--define(TLS_CLIENT_NOTBEFORE, 'tls.client.not_before').
+-define(TLS_CLIENT_NOT_BEFORE, 'tls.client.not_before').
 
 
 %% Also called an SNI, this tells the server which hostname to which the client is attempting to connect to.
--define(TLS_CLIENT_SERVERNAME, 'tls.client.server_name').
+-define(TLS_CLIENT_SERVER_NAME, 'tls.client.server_name').
 
 
 %% Distinguished name of subject of the x.509 certificate presented by the client.
@@ -69,7 +69,7 @@
 
 
 %% Array of ciphers offered by the client during the client hello.
--define(TLS_CLIENT_SUPPORTEDCIPHERS, 'tls.client.supported_ciphers').
+-define(TLS_CLIENT_SUPPORTED_CIPHERS, 'tls.client.supported_ciphers').
 
 
 %% String indicating the curve used for the given cipher, when applicable
@@ -82,7 +82,7 @@
 
 %% String indicating the protocol being tunneled. Per the values in the [IANA registry](https://www.iana.org/assignments/tls-extensiontype-values/tls-extensiontype-values.xhtml#alpn-protocol-ids), this string should be lower case.
 %%  
--define(TLS_NEXTPROTOCOL, 'tls.next_protocol').
+-define(TLS_NEXT_PROTOCOL, 'tls.next_protocol').
 
 
 %% Normalized lowercase protocol name parsed from original string of the negotiated [SSL/TLS protocol version](https://www.openssl.org/docs/man1.1.1/man3/SSL_get_version.html#RETURN-VALUES)
@@ -111,22 +111,22 @@
 
 %% Array of PEM-encoded certificates that make up the certificate chain offered by the server. This is usually mutually-exclusive of `server.certificate` since that value should be the first certificate in the chain.
 %%  
--define(TLS_SERVER_CERTIFICATECHAIN, 'tls.server.certificate_chain').
+-define(TLS_SERVER_CERTIFICATE_CHAIN, 'tls.server.certificate_chain').
 
 
 %% Certificate fingerprint using the MD5 digest of DER-encoded version of certificate offered by the server. For consistency with other hash values, this value should be formatted as an uppercase hash.
 %%  
--define(TLS_SERVER_HASH_MD_5, 'tls.server.hash.md5').
+-define(TLS_SERVER_HASH_MD5, 'tls.server.hash.md5').
 
 
 %% Certificate fingerprint using the SHA1 digest of DER-encoded version of certificate offered by the server. For consistency with other hash values, this value should be formatted as an uppercase hash.
 %%  
--define(TLS_SERVER_HASH_SHA_1, 'tls.server.hash.sha1').
+-define(TLS_SERVER_HASH_SHA1, 'tls.server.hash.sha1').
 
 
 %% Certificate fingerprint using the SHA256 digest of DER-encoded version of certificate offered by the server. For consistency with other hash values, this value should be formatted as an uppercase hash.
 %%  
--define(TLS_SERVER_HASH_SHA_256, 'tls.server.hash.sha256').
+-define(TLS_SERVER_HASH_SHA256, 'tls.server.hash.sha256').
 
 
 %% Distinguished name of [subject](https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.6) of the issuer of the x.509 certificate presented by the client.
@@ -134,15 +134,15 @@
 
 
 %% A hash that identifies servers based on how they perform an SSL/TLS handshake.
--define(TLS_SERVER_JA_3_S, 'tls.server.ja3s').
+-define(TLS_SERVER_JA3S, 'tls.server.ja3s').
 
 
 %% Date/Time indicating when server certificate is no longer considered valid.
--define(TLS_SERVER_NOTAFTER, 'tls.server.not_after').
+-define(TLS_SERVER_NOT_AFTER, 'tls.server.not_after').
 
 
 %% Date/Time indicating when server certificate is first considered valid.
--define(TLS_SERVER_NOTBEFORE, 'tls.server.not_before').
+-define(TLS_SERVER_NOT_BEFORE, 'tls.server.not_before').
 
 
 %% Distinguished name of subject of the x.509 certificate presented by the server.

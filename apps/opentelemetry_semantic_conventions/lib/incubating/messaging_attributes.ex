@@ -23,20 +23,20 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_batch_messagecount()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_batch_message_count()
       :"messaging.batch.message_count"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_BATCH_MESSAGECOUNT.
+  ?MESSAGING_BATCH_MESSAGE_COUNT.
   'messaging.batch.message_count'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_batch_messagecount :: :"messaging.batch.message_count"
-  def messaging_batch_messagecount do
+  @spec messaging_batch_message_count :: :"messaging.batch.message_count"
+  def messaging_batch_message_count do
     :"messaging.batch.message_count"
   end
 
@@ -251,20 +251,20 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_destinationpublish_anonymous()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_destination_publish_anonymous()
       :"messaging.destination_publish.anonymous"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_DESTINATIONPUBLISH_ANONYMOUS.
+  ?MESSAGING_DESTINATION_PUBLISH_ANONYMOUS.
   'messaging.destination_publish.anonymous'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_destinationpublish_anonymous :: :"messaging.destination_publish.anonymous"
-  def messaging_destinationpublish_anonymous do
+  @spec messaging_destination_publish_anonymous :: :"messaging.destination_publish.anonymous"
+  def messaging_destination_publish_anonymous do
     :"messaging.destination_publish.anonymous"
   end
 
@@ -288,20 +288,20 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_destinationpublish_name()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_destination_publish_name()
       :"messaging.destination_publish.name"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_DESTINATIONPUBLISH_NAME.
+  ?MESSAGING_DESTINATION_PUBLISH_NAME.
   'messaging.destination_publish.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_destinationpublish_name :: :"messaging.destination_publish.name"
-  def messaging_destinationpublish_name do
+  @spec messaging_destination_publish_name :: :"messaging.destination_publish.name"
+  def messaging_destination_publish_name do
     :"messaging.destination_publish.name"
   end
 
@@ -354,20 +354,20 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_eventhubs_message_enqueuedtime()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_eventhubs_message_enqueued_time()
       :"messaging.eventhubs.message.enqueued_time"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_EVENTHUBS_MESSAGE_ENQUEUEDTIME.
+  ?MESSAGING_EVENTHUBS_MESSAGE_ENQUEUED_TIME.
   'messaging.eventhubs.message.enqueued_time'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_eventhubs_message_enqueuedtime :: :"messaging.eventhubs.message.enqueued_time"
-  def messaging_eventhubs_message_enqueuedtime do
+  @spec messaging_eventhubs_message_enqueued_time :: :"messaging.eventhubs.message.enqueued_time"
+  def messaging_eventhubs_message_enqueued_time do
     :"messaging.eventhubs.message.enqueued_time"
   end
 
@@ -387,20 +387,20 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_gcppubsub_message_ackdeadline()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_gcp_pubsub_message_ack_deadline()
       :"messaging.gcp_pubsub.message.ack_deadline"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_GCPPUBSUB_MESSAGE_ACKDEADLINE.
+  ?MESSAGING_GCP_PUBSUB_MESSAGE_ACK_DEADLINE.
   'messaging.gcp_pubsub.message.ack_deadline'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_gcppubsub_message_ackdeadline :: :"messaging.gcp_pubsub.message.ack_deadline"
-  def messaging_gcppubsub_message_ackdeadline do
+  @spec messaging_gcp_pubsub_message_ack_deadline :: :"messaging.gcp_pubsub.message.ack_deadline"
+  def messaging_gcp_pubsub_message_ack_deadline do
     :"messaging.gcp_pubsub.message.ack_deadline"
   end
 
@@ -420,20 +420,20 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_gcppubsub_message_ackid()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_gcp_pubsub_message_ack_id()
       :"messaging.gcp_pubsub.message.ack_id"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_GCPPUBSUB_MESSAGE_ACKID.
+  ?MESSAGING_GCP_PUBSUB_MESSAGE_ACK_ID.
   'messaging.gcp_pubsub.message.ack_id'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_gcppubsub_message_ackid :: :"messaging.gcp_pubsub.message.ack_id"
-  def messaging_gcppubsub_message_ackid do
+  @spec messaging_gcp_pubsub_message_ack_id :: :"messaging.gcp_pubsub.message.ack_id"
+  def messaging_gcp_pubsub_message_ack_id do
     :"messaging.gcp_pubsub.message.ack_id"
   end
 
@@ -453,21 +453,21 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_gcppubsub_message_deliveryattempt()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_gcp_pubsub_message_delivery_attempt()
       :"messaging.gcp_pubsub.message.delivery_attempt"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_GCPPUBSUB_MESSAGE_DELIVERYATTEMPT.
+  ?MESSAGING_GCP_PUBSUB_MESSAGE_DELIVERY_ATTEMPT.
   'messaging.gcp_pubsub.message.delivery_attempt'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_gcppubsub_message_deliveryattempt ::
+  @spec messaging_gcp_pubsub_message_delivery_attempt ::
           :"messaging.gcp_pubsub.message.delivery_attempt"
-  def messaging_gcppubsub_message_deliveryattempt do
+  def messaging_gcp_pubsub_message_delivery_attempt do
     :"messaging.gcp_pubsub.message.delivery_attempt"
   end
 
@@ -487,20 +487,20 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_gcppubsub_message_orderingkey()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_gcp_pubsub_message_ordering_key()
       :"messaging.gcp_pubsub.message.ordering_key"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_GCPPUBSUB_MESSAGE_ORDERINGKEY.
+  ?MESSAGING_GCP_PUBSUB_MESSAGE_ORDERING_KEY.
   'messaging.gcp_pubsub.message.ordering_key'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_gcppubsub_message_orderingkey :: :"messaging.gcp_pubsub.message.ordering_key"
-  def messaging_gcppubsub_message_orderingkey do
+  @spec messaging_gcp_pubsub_message_ordering_key :: :"messaging.gcp_pubsub.message.ordering_key"
+  def messaging_gcp_pubsub_message_ordering_key do
     :"messaging.gcp_pubsub.message.ordering_key"
   end
 
@@ -696,20 +696,20 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_message_conversationid()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_message_conversation_id()
       :"messaging.message.conversation_id"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_MESSAGE_CONVERSATIONID.
+  ?MESSAGING_MESSAGE_CONVERSATION_ID.
   'messaging.message.conversation_id'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_message_conversationid :: :"messaging.message.conversation_id"
-  def messaging_message_conversationid do
+  @spec messaging_message_conversation_id :: :"messaging.message.conversation_id"
+  def messaging_message_conversation_id do
     :"messaging.message.conversation_id"
   end
 
@@ -915,20 +915,21 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rabbitmq_destination_routingkey()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rabbitmq_destination_routing_key()
       :"messaging.rabbitmq.destination.routing_key"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_RABBITMQ_DESTINATION_ROUTINGKEY.
+  ?MESSAGING_RABBITMQ_DESTINATION_ROUTING_KEY.
   'messaging.rabbitmq.destination.routing_key'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_rabbitmq_destination_routingkey :: :"messaging.rabbitmq.destination.routing_key"
-  def messaging_rabbitmq_destination_routingkey do
+  @spec messaging_rabbitmq_destination_routing_key ::
+          :"messaging.rabbitmq.destination.routing_key"
+  def messaging_rabbitmq_destination_routing_key do
     :"messaging.rabbitmq.destination.routing_key"
   end
 
@@ -948,20 +949,20 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rabbitmq_message_deliverytag()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rabbitmq_message_delivery_tag()
       :"messaging.rabbitmq.message.delivery_tag"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_RABBITMQ_MESSAGE_DELIVERYTAG.
+  ?MESSAGING_RABBITMQ_MESSAGE_DELIVERY_TAG.
   'messaging.rabbitmq.message.delivery_tag'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_rabbitmq_message_deliverytag :: :"messaging.rabbitmq.message.delivery_tag"
-  def messaging_rabbitmq_message_deliverytag do
+  @spec messaging_rabbitmq_message_delivery_tag :: :"messaging.rabbitmq.message.delivery_tag"
+  def messaging_rabbitmq_message_delivery_tag do
     :"messaging.rabbitmq.message.delivery_tag"
   end
 
@@ -981,20 +982,20 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_clientgroup()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_client_group()
       :"messaging.rocketmq.client_group"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_ROCKETMQ_CLIENTGROUP.
+  ?MESSAGING_ROCKETMQ_CLIENT_GROUP.
   'messaging.rocketmq.client_group'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_rocketmq_clientgroup :: :"messaging.rocketmq.client_group"
-  def messaging_rocketmq_clientgroup do
+  @spec messaging_rocketmq_client_group :: :"messaging.rocketmq.client_group"
+  def messaging_rocketmq_client_group do
     :"messaging.rocketmq.client_group"
   end
 
@@ -1006,7 +1007,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   * `:clustering` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Clustering consumption model
   * `:broadcasting` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Broadcasting consumption model
   """
-  @type messaging_rocketmq_consumptionmodel_values() :: %{
+  @type messaging_rocketmq_consumption_model_values() :: %{
           :clustering => :clustering,
           :broadcasting => :broadcasting
         }
@@ -1019,38 +1020,38 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumptionmodel()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumption_model()
       :"messaging.rocketmq.consumption_model"
       
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumptionmodel_values().clustering
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumption_model_values().clustering
       :clustering
       
-      iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumptionmodel() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumptionmodel_values().clustering}
+      iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumption_model() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumption_model_values().clustering}
       %{:"messaging.rocketmq.consumption_model" => :clustering}
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_ROCKETMQ_CONSUMPTIONMODEL.
+  ?MESSAGING_ROCKETMQ_CONSUMPTION_MODEL.
   'messaging.rocketmq.consumption_model'
 
-  ?'MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES.clustering'.
+  ?'MESSAGING_ROCKETMQ_CONSUMPTION_MODEL_VALUES.clustering'.
   clustering
 
-  \#{?MESSAGING_ROCKETMQ_CONSUMPTIONMODEL => ?'MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES.clustering'}.
+  \#{?MESSAGING_ROCKETMQ_CONSUMPTION_MODEL => ?'MESSAGING_ROCKETMQ_CONSUMPTION_MODEL_VALUES.clustering'}.
   \#{'messaging.rocketmq.consumption_model' => clustering}
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_rocketmq_consumptionmodel :: :"messaging.rocketmq.consumption_model"
-  def messaging_rocketmq_consumptionmodel do
+  @spec messaging_rocketmq_consumption_model :: :"messaging.rocketmq.consumption_model"
+  def messaging_rocketmq_consumption_model do
     :"messaging.rocketmq.consumption_model"
   end
 
-  @spec messaging_rocketmq_consumptionmodel_values() ::
-          messaging_rocketmq_consumptionmodel_values()
-  def messaging_rocketmq_consumptionmodel_values() do
+  @spec messaging_rocketmq_consumption_model_values() ::
+          messaging_rocketmq_consumption_model_values()
+  def messaging_rocketmq_consumption_model_values() do
     %{
       :clustering => :clustering,
       :broadcasting => :broadcasting
@@ -1073,21 +1074,21 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_delaytimelevel()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_delay_time_level()
       :"messaging.rocketmq.message.delay_time_level"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_ROCKETMQ_MESSAGE_DELAYTIMELEVEL.
+  ?MESSAGING_ROCKETMQ_MESSAGE_DELAY_TIME_LEVEL.
   'messaging.rocketmq.message.delay_time_level'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_rocketmq_message_delaytimelevel ::
+  @spec messaging_rocketmq_message_delay_time_level ::
           :"messaging.rocketmq.message.delay_time_level"
-  def messaging_rocketmq_message_delaytimelevel do
+  def messaging_rocketmq_message_delay_time_level do
     :"messaging.rocketmq.message.delay_time_level"
   end
 
@@ -1107,21 +1108,21 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_deliverytimestamp()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_delivery_timestamp()
       :"messaging.rocketmq.message.delivery_timestamp"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_ROCKETMQ_MESSAGE_DELIVERYTIMESTAMP.
+  ?MESSAGING_ROCKETMQ_MESSAGE_DELIVERY_TIMESTAMP.
   'messaging.rocketmq.message.delivery_timestamp'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_rocketmq_message_deliverytimestamp ::
+  @spec messaging_rocketmq_message_delivery_timestamp ::
           :"messaging.rocketmq.message.delivery_timestamp"
-  def messaging_rocketmq_message_deliverytimestamp do
+  def messaging_rocketmq_message_delivery_timestamp do
     :"messaging.rocketmq.message.delivery_timestamp"
   end
 
@@ -1337,21 +1338,21 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_destination_subscriptionname()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_destination_subscription_name()
       :"messaging.servicebus.destination.subscription_name"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_SERVICEBUS_DESTINATION_SUBSCRIPTIONNAME.
+  ?MESSAGING_SERVICEBUS_DESTINATION_SUBSCRIPTION_NAME.
   'messaging.servicebus.destination.subscription_name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_servicebus_destination_subscriptionname ::
+  @spec messaging_servicebus_destination_subscription_name ::
           :"messaging.servicebus.destination.subscription_name"
-  def messaging_servicebus_destination_subscriptionname do
+  def messaging_servicebus_destination_subscription_name do
     :"messaging.servicebus.destination.subscription_name"
   end
 
@@ -1365,7 +1366,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   * `:dead_letter` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Message is sent to dead letter queue
   * `:defer` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Message is deferred
   """
-  @type messaging_servicebus_dispositionstatus_values() :: %{
+  @type messaging_servicebus_disposition_status_values() :: %{
           :complete => :complete,
           :abandon => :abandon,
           :dead_letter => :dead_letter,
@@ -1380,38 +1381,38 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_dispositionstatus()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_disposition_status()
       :"messaging.servicebus.disposition_status"
       
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_dispositionstatus_values().complete
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_disposition_status_values().complete
       :complete
       
-      iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_dispositionstatus() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_dispositionstatus_values().complete}
+      iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_disposition_status() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_disposition_status_values().complete}
       %{:"messaging.servicebus.disposition_status" => :complete}
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_SERVICEBUS_DISPOSITIONSTATUS.
+  ?MESSAGING_SERVICEBUS_DISPOSITION_STATUS.
   'messaging.servicebus.disposition_status'
 
-  ?'MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.complete'.
+  ?'MESSAGING_SERVICEBUS_DISPOSITION_STATUS_VALUES.complete'.
   complete
 
-  \#{?MESSAGING_SERVICEBUS_DISPOSITIONSTATUS => ?'MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.complete'}.
+  \#{?MESSAGING_SERVICEBUS_DISPOSITION_STATUS => ?'MESSAGING_SERVICEBUS_DISPOSITION_STATUS_VALUES.complete'}.
   \#{'messaging.servicebus.disposition_status' => complete}
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_servicebus_dispositionstatus :: :"messaging.servicebus.disposition_status"
-  def messaging_servicebus_dispositionstatus do
+  @spec messaging_servicebus_disposition_status :: :"messaging.servicebus.disposition_status"
+  def messaging_servicebus_disposition_status do
     :"messaging.servicebus.disposition_status"
   end
 
-  @spec messaging_servicebus_dispositionstatus_values() ::
-          messaging_servicebus_dispositionstatus_values()
-  def messaging_servicebus_dispositionstatus_values() do
+  @spec messaging_servicebus_disposition_status_values() ::
+          messaging_servicebus_disposition_status_values()
+  def messaging_servicebus_disposition_status_values() do
     %{
       :complete => :complete,
       :abandon => :abandon,
@@ -1436,21 +1437,21 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_message_deliverycount()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_message_delivery_count()
       :"messaging.servicebus.message.delivery_count"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_SERVICEBUS_MESSAGE_DELIVERYCOUNT.
+  ?MESSAGING_SERVICEBUS_MESSAGE_DELIVERY_COUNT.
   'messaging.servicebus.message.delivery_count'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_servicebus_message_deliverycount ::
+  @spec messaging_servicebus_message_delivery_count ::
           :"messaging.servicebus.message.delivery_count"
-  def messaging_servicebus_message_deliverycount do
+  def messaging_servicebus_message_delivery_count do
     :"messaging.servicebus.message.delivery_count"
   end
 
@@ -1470,20 +1471,21 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_message_enqueuedtime()
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_message_enqueued_time()
       :"messaging.servicebus.message.enqueued_time"
 
   ### Erlang
 
   ```erlang
-  ?MESSAGING_SERVICEBUS_MESSAGE_ENQUEUEDTIME.
+  ?MESSAGING_SERVICEBUS_MESSAGE_ENQUEUED_TIME.
   'messaging.servicebus.message.enqueued_time'
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_servicebus_message_enqueuedtime :: :"messaging.servicebus.message.enqueued_time"
-  def messaging_servicebus_message_enqueuedtime do
+  @spec messaging_servicebus_message_enqueued_time ::
+          :"messaging.servicebus.message.enqueued_time"
+  def messaging_servicebus_message_enqueued_time do
     :"messaging.servicebus.message.enqueued_time"
   end
 

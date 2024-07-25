@@ -7,8 +7,8 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   @deprecated """
   Replaced by `rpc.message.compressed_size`.
   """
-  @spec message_compressedsize :: :"message.compressed_size"
-  def message_compressedsize do
+  @spec message_compressed_size :: :"message.compressed_size"
+  def message_compressed_size do
     :"message.compressed_size"
   end
 
@@ -50,8 +50,8 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   @deprecated """
   Replaced by `rpc.message.uncompressed_size`.
   """
-  @spec message_uncompressedsize :: :"message.uncompressed_size"
-  def message_uncompressedsize do
+  @spec message_uncompressed_size :: :"message.uncompressed_size"
+  def message_uncompressed_size do
     :"message.uncompressed_size"
   end
 
@@ -76,7 +76,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   * `:data_loss` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:unauthenticated` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   """
-  @type rpc_connectrpc_errorcode_values() :: %{
+  @type rpc_connect_rpc_error_code_values() :: %{
           :cancelled => :cancelled,
           :unknown => :unknown,
           :invalid_argument => :invalid_argument,
@@ -102,37 +102,37 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connectrpc_errorcode()
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connect_rpc_error_code()
       :"rpc.connect_rpc.error_code"
       
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connectrpc_errorcode_values().cancelled
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connect_rpc_error_code_values().cancelled
       :cancelled
       
-      iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connectrpc_errorcode() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connectrpc_errorcode_values().cancelled}
+      iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connect_rpc_error_code() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connect_rpc_error_code_values().cancelled}
       %{:"rpc.connect_rpc.error_code" => :cancelled}
 
   ### Erlang
 
   ```erlang
-  ?RPC_CONNECTRPC_ERRORCODE.
+  ?RPC_CONNECT_RPC_ERROR_CODE.
   'rpc.connect_rpc.error_code'
 
-  ?'RPC_CONNECTRPC_ERRORCODE_VALUES.cancelled'.
+  ?'RPC_CONNECT_RPC_ERROR_CODE_VALUES.cancelled'.
   cancelled
 
-  \#{?RPC_CONNECTRPC_ERRORCODE => ?'RPC_CONNECTRPC_ERRORCODE_VALUES.cancelled'}.
+  \#{?RPC_CONNECT_RPC_ERROR_CODE => ?'RPC_CONNECT_RPC_ERROR_CODE_VALUES.cancelled'}.
   \#{'rpc.connect_rpc.error_code' => cancelled}
   ```
 
   <!-- tabs-close -->
   """
-  @spec rpc_connectrpc_errorcode :: :"rpc.connect_rpc.error_code"
-  def rpc_connectrpc_errorcode do
+  @spec rpc_connect_rpc_error_code :: :"rpc.connect_rpc.error_code"
+  def rpc_connect_rpc_error_code do
     :"rpc.connect_rpc.error_code"
   end
 
-  @spec rpc_connectrpc_errorcode_values() :: rpc_connectrpc_errorcode_values()
-  def rpc_connectrpc_errorcode_values() do
+  @spec rpc_connect_rpc_error_code_values() :: rpc_connect_rpc_error_code_values()
+  def rpc_connect_rpc_error_code_values() do
     %{
       :cancelled => :cancelled,
       :unknown => :unknown,
@@ -173,20 +173,20 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connectrpc_request_metadata()
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connect_rpc_request_metadata()
       :"rpc.connect_rpc.request.metadata"
 
   ### Erlang
 
   ```erlang
-  ?RPC_CONNECTRPC_REQUEST_METADATA.
+  ?RPC_CONNECT_RPC_REQUEST_METADATA.
   'rpc.connect_rpc.request.metadata'
   ```
 
   <!-- tabs-close -->
   """
-  @spec rpc_connectrpc_request_metadata :: :"rpc.connect_rpc.request.metadata"
-  def rpc_connectrpc_request_metadata do
+  @spec rpc_connect_rpc_request_metadata :: :"rpc.connect_rpc.request.metadata"
+  def rpc_connect_rpc_request_metadata do
     :"rpc.connect_rpc.request.metadata"
   end
 
@@ -210,20 +210,20 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connectrpc_response_metadata()
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connect_rpc_response_metadata()
       :"rpc.connect_rpc.response.metadata"
 
   ### Erlang
 
   ```erlang
-  ?RPC_CONNECTRPC_RESPONSE_METADATA.
+  ?RPC_CONNECT_RPC_RESPONSE_METADATA.
   'rpc.connect_rpc.response.metadata'
   ```
 
   <!-- tabs-close -->
   """
-  @spec rpc_connectrpc_response_metadata :: :"rpc.connect_rpc.response.metadata"
-  def rpc_connectrpc_response_metadata do
+  @spec rpc_connect_rpc_response_metadata :: :"rpc.connect_rpc.response.metadata"
+  def rpc_connect_rpc_response_metadata do
     :"rpc.connect_rpc.response.metadata"
   end
 
@@ -323,7 +323,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   * `:data_loss` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - DATA_LOSS
   * `:unauthenticated` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - UNAUTHENTICATED
   """
-  @type rpc_grpc_statuscode_values() :: %{
+  @type rpc_grpc_status_code_values() :: %{
           :ok => 0,
           :cancelled => 1,
           :unknown => 2,
@@ -350,37 +350,37 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_statuscode()
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_status_code()
       :"rpc.grpc.status_code"
       
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_statuscode_values().ok
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_status_code_values().ok
       0
       
-      iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_statuscode() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_statuscode_values().ok}
+      iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_status_code() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_status_code_values().ok}
       %{:"rpc.grpc.status_code" => 0}
 
   ### Erlang
 
   ```erlang
-  ?RPC_GRPC_STATUSCODE.
+  ?RPC_GRPC_STATUS_CODE.
   'rpc.grpc.status_code'
 
-  ?'RPC_GRPC_STATUSCODE_VALUES.ok'.
+  ?'RPC_GRPC_STATUS_CODE_VALUES.ok'.
   0
 
-  \#{?RPC_GRPC_STATUSCODE => ?'RPC_GRPC_STATUSCODE_VALUES.ok'}.
+  \#{?RPC_GRPC_STATUS_CODE => ?'RPC_GRPC_STATUS_CODE_VALUES.ok'}.
   \#{'rpc.grpc.status_code' => 0}
   ```
 
   <!-- tabs-close -->
   """
-  @spec rpc_grpc_statuscode :: :"rpc.grpc.status_code"
-  def rpc_grpc_statuscode do
+  @spec rpc_grpc_status_code :: :"rpc.grpc.status_code"
+  def rpc_grpc_status_code do
     :"rpc.grpc.status_code"
   end
 
-  @spec rpc_grpc_statuscode_values() :: rpc_grpc_statuscode_values()
-  def rpc_grpc_statuscode_values() do
+  @spec rpc_grpc_status_code_values() :: rpc_grpc_status_code_values()
+  def rpc_grpc_status_code_values() do
     %{
       :ok => 0,
       :cancelled => 1,
@@ -417,20 +417,20 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_jsonrpc_errorcode()
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_jsonrpc_error_code()
       :"rpc.jsonrpc.error_code"
 
   ### Erlang
 
   ```erlang
-  ?RPC_JSONRPC_ERRORCODE.
+  ?RPC_JSONRPC_ERROR_CODE.
   'rpc.jsonrpc.error_code'
   ```
 
   <!-- tabs-close -->
   """
-  @spec rpc_jsonrpc_errorcode :: :"rpc.jsonrpc.error_code"
-  def rpc_jsonrpc_errorcode do
+  @spec rpc_jsonrpc_error_code :: :"rpc.jsonrpc.error_code"
+  def rpc_jsonrpc_error_code do
     :"rpc.jsonrpc.error_code"
   end
 
@@ -449,20 +449,20 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_jsonrpc_errormessage()
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_jsonrpc_error_message()
       :"rpc.jsonrpc.error_message"
 
   ### Erlang
 
   ```erlang
-  ?RPC_JSONRPC_ERRORMESSAGE.
+  ?RPC_JSONRPC_ERROR_MESSAGE.
   'rpc.jsonrpc.error_message'
   ```
 
   <!-- tabs-close -->
   """
-  @spec rpc_jsonrpc_errormessage :: :"rpc.jsonrpc.error_message"
-  def rpc_jsonrpc_errormessage do
+  @spec rpc_jsonrpc_error_message :: :"rpc.jsonrpc.error_message"
+  def rpc_jsonrpc_error_message do
     :"rpc.jsonrpc.error_message"
   end
 
@@ -482,20 +482,20 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_jsonrpc_requestid()
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_jsonrpc_request_id()
       :"rpc.jsonrpc.request_id"
 
   ### Erlang
 
   ```erlang
-  ?RPC_JSONRPC_REQUESTID.
+  ?RPC_JSONRPC_REQUEST_ID.
   'rpc.jsonrpc.request_id'
   ```
 
   <!-- tabs-close -->
   """
-  @spec rpc_jsonrpc_requestid :: :"rpc.jsonrpc.request_id"
-  def rpc_jsonrpc_requestid do
+  @spec rpc_jsonrpc_request_id :: :"rpc.jsonrpc.request_id"
+  def rpc_jsonrpc_request_id do
     :"rpc.jsonrpc.request_id"
   end
 
@@ -541,20 +541,20 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_compressedsize()
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_compressed_size()
       :"rpc.message.compressed_size"
 
   ### Erlang
 
   ```erlang
-  ?RPC_MESSAGE_COMPRESSEDSIZE.
+  ?RPC_MESSAGE_COMPRESSED_SIZE.
   'rpc.message.compressed_size'
   ```
 
   <!-- tabs-close -->
   """
-  @spec rpc_message_compressedsize :: :"rpc.message.compressed_size"
-  def rpc_message_compressedsize do
+  @spec rpc_message_compressed_size :: :"rpc.message.compressed_size"
+  def rpc_message_compressed_size do
     :"rpc.message.compressed_size"
   end
 
@@ -654,20 +654,20 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_uncompressedsize()
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_uncompressed_size()
       :"rpc.message.uncompressed_size"
 
   ### Erlang
 
   ```erlang
-  ?RPC_MESSAGE_UNCOMPRESSEDSIZE.
+  ?RPC_MESSAGE_UNCOMPRESSED_SIZE.
   'rpc.message.uncompressed_size'
   ```
 
   <!-- tabs-close -->
   """
-  @spec rpc_message_uncompressedsize :: :"rpc.message.uncompressed_size"
-  def rpc_message_uncompressedsize do
+  @spec rpc_message_uncompressed_size :: :"rpc.message.uncompressed_size"
+  def rpc_message_uncompressed_size do
     :"rpc.message.uncompressed_size"
   end
 

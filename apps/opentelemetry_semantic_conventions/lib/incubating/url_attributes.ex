@@ -169,20 +169,20 @@ defmodule OpenTelemetry.SemConv.Incubating.URLAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.URLAttributes.url_registereddomain()
+      iex> OpenTelemetry.SemConv.Incubating.URLAttributes.url_registered_domain()
       :"url.registered_domain"
 
   ### Erlang
 
   ```erlang
-  ?URL_REGISTEREDDOMAIN.
+  ?URL_REGISTERED_DOMAIN.
   'url.registered_domain'
   ```
 
   <!-- tabs-close -->
   """
-  @spec url_registereddomain :: :"url.registered_domain"
-  def url_registereddomain do
+  @spec url_registered_domain :: :"url.registered_domain"
+  def url_registered_domain do
     :"url.registered_domain"
   end
 
@@ -276,20 +276,20 @@ defmodule OpenTelemetry.SemConv.Incubating.URLAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.URLAttributes.url_topleveldomain()
+      iex> OpenTelemetry.SemConv.Incubating.URLAttributes.url_top_level_domain()
       :"url.top_level_domain"
 
   ### Erlang
 
   ```erlang
-  ?URL_TOPLEVELDOMAIN.
+  ?URL_TOP_LEVEL_DOMAIN.
   'url.top_level_domain'
   ```
 
   <!-- tabs-close -->
   """
-  @spec url_topleveldomain :: :"url.top_level_domain"
-  def url_topleveldomain do
+  @spec url_top_level_domain :: :"url.top_level_domain"
+  def url_top_level_domain do
     :"url.top_level_domain"
   end
 end

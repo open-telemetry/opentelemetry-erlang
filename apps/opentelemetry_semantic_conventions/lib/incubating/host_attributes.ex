@@ -96,20 +96,20 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.HostAttributes.host_cpu_cache_l_2_size()
+      iex> OpenTelemetry.SemConv.Incubating.HostAttributes.host_cpu_cache_l2_size()
       :"host.cpu.cache.l2.size"
 
   ### Erlang
 
   ```erlang
-  ?HOST_CPU_CACHE_L_2_SIZE.
+  ?HOST_CPU_CACHE_L2_SIZE.
   'host.cpu.cache.l2.size'
   ```
 
   <!-- tabs-close -->
   """
-  @spec host_cpu_cache_l_2_size :: :"host.cpu.cache.l2.size"
-  def host_cpu_cache_l_2_size do
+  @spec host_cpu_cache_l2_size :: :"host.cpu.cache.l2.size"
+  def host_cpu_cache_l2_size do
     :"host.cpu.cache.l2.size"
   end
 

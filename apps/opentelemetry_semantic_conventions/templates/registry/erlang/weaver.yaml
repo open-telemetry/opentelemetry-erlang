@@ -35,6 +35,8 @@ templates:
       | map(select(.metrics | length > 0))
     application_mode: each
 
+acronyms: ["iOS", "HTTP", "API", "SDK", "CLI", "URL", "JSON", "XML", "HTML", "TLS", "RPC", "OS", "OCI", "GCP", "FAAS", "DNS", "DB", "AWS", "S3", "K8S" ]
+
 text_maps:
   erlang_types:
     "int": "integer()"

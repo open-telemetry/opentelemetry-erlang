@@ -39,7 +39,7 @@
 
 
 %% Time disk spent activated
--define(SYSTEM_DISK_IOTIME, 'system.disk.io_time').
+-define(SYSTEM_DISK_IO_TIME, 'system.disk.io_time').
 
 
 %% none
@@ -47,7 +47,7 @@
 
 
 %% Sum of the time each operation took to complete
--define(SYSTEM_DISK_OPERATIONTIME, 'system.disk.operation_time').
+-define(SYSTEM_DISK_OPERATION_TIME, 'system.disk.operation_time').
 
 
 %% none

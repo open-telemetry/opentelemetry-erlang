@@ -19,20 +19,20 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_cpu_logicalnumber()
+      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_cpu_logical_number()
       :"system.cpu.logical_number"
 
   ### Erlang
 
   ```erlang
-  ?SYSTEM_CPU_LOGICALNUMBER.
+  ?SYSTEM_CPU_LOGICAL_NUMBER.
   'system.cpu.logical_number'
   ```
 
   <!-- tabs-close -->
   """
-  @spec system_cpu_logicalnumber :: :"system.cpu.logical_number"
-  def system_cpu_logicalnumber do
+  @spec system_cpu_logical_number :: :"system.cpu.logical_number"
+  def system_cpu_logical_number do
     :"system.cpu.logical_number"
   end
 

@@ -1,7 +1,7 @@
 defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   # This is an auto-generated file
   @moduledoc """
-  OpenTelemetry Semantic Conventions for K8s attributes.
+  OpenTelemetry Semantic Conventions for K8S attributes.
   """
 
   @doc """
@@ -20,20 +20,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_cluster_name()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_cluster_name()
       :"k8s.cluster.name"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_CLUSTER_NAME.
+  ?K8S_CLUSTER_NAME.
   'k8s.cluster.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_cluster_name :: :"k8s.cluster.name"
-  def k_8_s_cluster_name do
+  @spec k8s_cluster_name :: :"k8s.cluster.name"
+  def k8s_cluster_name do
     :"k8s.cluster.name"
   end
 
@@ -78,20 +78,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_cluster_uid()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_cluster_uid()
       :"k8s.cluster.uid"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_CLUSTER_UID.
+  ?K8S_CLUSTER_UID.
   'k8s.cluster.uid'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_cluster_uid :: :"k8s.cluster.uid"
-  def k_8_s_cluster_uid do
+  @spec k8s_cluster_uid :: :"k8s.cluster.uid"
+  def k8s_cluster_uid do
     :"k8s.cluster.uid"
   end
 
@@ -111,20 +111,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_container_name()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_container_name()
       :"k8s.container.name"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_CONTAINER_NAME.
+  ?K8S_CONTAINER_NAME.
   'k8s.container.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_container_name :: :"k8s.container.name"
-  def k_8_s_container_name do
+  @spec k8s_container_name :: :"k8s.container.name"
+  def k8s_container_name do
     :"k8s.container.name"
   end
 
@@ -139,20 +139,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_container_restartcount()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_container_restart_count()
       :"k8s.container.restart_count"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_CONTAINER_RESTARTCOUNT.
+  ?K8S_CONTAINER_RESTART_COUNT.
   'k8s.container.restart_count'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_container_restartcount :: :"k8s.container.restart_count"
-  def k_8_s_container_restartcount do
+  @spec k8s_container_restart_count :: :"k8s.container.restart_count"
+  def k8s_container_restart_count do
     :"k8s.container.restart_count"
   end
 
@@ -172,21 +172,21 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_container_status_lastterminatedreason()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_container_status_last_terminated_reason()
       :"k8s.container.status.last_terminated_reason"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_CONTAINER_STATUS_LASTTERMINATEDREASON.
+  ?K8S_CONTAINER_STATUS_LAST_TERMINATED_REASON.
   'k8s.container.status.last_terminated_reason'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_container_status_lastterminatedreason ::
+  @spec k8s_container_status_last_terminated_reason ::
           :"k8s.container.status.last_terminated_reason"
-  def k_8_s_container_status_lastterminatedreason do
+  def k8s_container_status_last_terminated_reason do
     :"k8s.container.status.last_terminated_reason"
   end
 
@@ -206,20 +206,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_cronjob_name()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_cronjob_name()
       :"k8s.cronjob.name"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_CRONJOB_NAME.
+  ?K8S_CRONJOB_NAME.
   'k8s.cronjob.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_cronjob_name :: :"k8s.cronjob.name"
-  def k_8_s_cronjob_name do
+  @spec k8s_cronjob_name :: :"k8s.cronjob.name"
+  def k8s_cronjob_name do
     :"k8s.cronjob.name"
   end
 
@@ -239,20 +239,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_cronjob_uid()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_cronjob_uid()
       :"k8s.cronjob.uid"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_CRONJOB_UID.
+  ?K8S_CRONJOB_UID.
   'k8s.cronjob.uid'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_cronjob_uid :: :"k8s.cronjob.uid"
-  def k_8_s_cronjob_uid do
+  @spec k8s_cronjob_uid :: :"k8s.cronjob.uid"
+  def k8s_cronjob_uid do
     :"k8s.cronjob.uid"
   end
 
@@ -272,20 +272,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_daemonset_name()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_daemonset_name()
       :"k8s.daemonset.name"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_DAEMONSET_NAME.
+  ?K8S_DAEMONSET_NAME.
   'k8s.daemonset.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_daemonset_name :: :"k8s.daemonset.name"
-  def k_8_s_daemonset_name do
+  @spec k8s_daemonset_name :: :"k8s.daemonset.name"
+  def k8s_daemonset_name do
     :"k8s.daemonset.name"
   end
 
@@ -305,20 +305,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_daemonset_uid()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_daemonset_uid()
       :"k8s.daemonset.uid"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_DAEMONSET_UID.
+  ?K8S_DAEMONSET_UID.
   'k8s.daemonset.uid'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_daemonset_uid :: :"k8s.daemonset.uid"
-  def k_8_s_daemonset_uid do
+  @spec k8s_daemonset_uid :: :"k8s.daemonset.uid"
+  def k8s_daemonset_uid do
     :"k8s.daemonset.uid"
   end
 
@@ -338,20 +338,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_deployment_name()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_deployment_name()
       :"k8s.deployment.name"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_DEPLOYMENT_NAME.
+  ?K8S_DEPLOYMENT_NAME.
   'k8s.deployment.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_deployment_name :: :"k8s.deployment.name"
-  def k_8_s_deployment_name do
+  @spec k8s_deployment_name :: :"k8s.deployment.name"
+  def k8s_deployment_name do
     :"k8s.deployment.name"
   end
 
@@ -371,20 +371,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_deployment_uid()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_deployment_uid()
       :"k8s.deployment.uid"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_DEPLOYMENT_UID.
+  ?K8S_DEPLOYMENT_UID.
   'k8s.deployment.uid'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_deployment_uid :: :"k8s.deployment.uid"
-  def k_8_s_deployment_uid do
+  @spec k8s_deployment_uid :: :"k8s.deployment.uid"
+  def k8s_deployment_uid do
     :"k8s.deployment.uid"
   end
 
@@ -404,20 +404,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_job_name()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_job_name()
       :"k8s.job.name"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_JOB_NAME.
+  ?K8S_JOB_NAME.
   'k8s.job.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_job_name :: :"k8s.job.name"
-  def k_8_s_job_name do
+  @spec k8s_job_name :: :"k8s.job.name"
+  def k8s_job_name do
     :"k8s.job.name"
   end
 
@@ -437,20 +437,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_job_uid()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_job_uid()
       :"k8s.job.uid"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_JOB_UID.
+  ?K8S_JOB_UID.
   'k8s.job.uid'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_job_uid :: :"k8s.job.uid"
-  def k_8_s_job_uid do
+  @spec k8s_job_uid :: :"k8s.job.uid"
+  def k8s_job_uid do
     :"k8s.job.uid"
   end
 
@@ -470,20 +470,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_namespace_name()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_namespace_name()
       :"k8s.namespace.name"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_NAMESPACE_NAME.
+  ?K8S_NAMESPACE_NAME.
   'k8s.namespace.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_namespace_name :: :"k8s.namespace.name"
-  def k_8_s_namespace_name do
+  @spec k8s_namespace_name :: :"k8s.namespace.name"
+  def k8s_namespace_name do
     :"k8s.namespace.name"
   end
 
@@ -503,20 +503,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_node_name()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_node_name()
       :"k8s.node.name"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_NODE_NAME.
+  ?K8S_NODE_NAME.
   'k8s.node.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_node_name :: :"k8s.node.name"
-  def k_8_s_node_name do
+  @spec k8s_node_name :: :"k8s.node.name"
+  def k8s_node_name do
     :"k8s.node.name"
   end
 
@@ -536,20 +536,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_node_uid()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_node_uid()
       :"k8s.node.uid"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_NODE_UID.
+  ?K8S_NODE_UID.
   'k8s.node.uid'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_node_uid :: :"k8s.node.uid"
-  def k_8_s_node_uid do
+  @spec k8s_node_uid :: :"k8s.node.uid"
+  def k8s_node_uid do
     :"k8s.node.uid"
   end
 
@@ -569,20 +569,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_pod_annotation()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_pod_annotation()
       :"k8s.pod.annotation"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_POD_ANNOTATION.
+  ?K8S_POD_ANNOTATION.
   'k8s.pod.annotation'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_pod_annotation :: :"k8s.pod.annotation"
-  def k_8_s_pod_annotation do
+  @spec k8s_pod_annotation :: :"k8s.pod.annotation"
+  def k8s_pod_annotation do
     :"k8s.pod.annotation"
   end
 
@@ -602,28 +602,28 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_pod_label()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_pod_label()
       :"k8s.pod.label"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_POD_LABEL.
+  ?K8S_POD_LABEL.
   'k8s.pod.label'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_pod_label :: :"k8s.pod.label"
-  def k_8_s_pod_label do
+  @spec k8s_pod_label :: :"k8s.pod.label"
+  def k8s_pod_label do
     :"k8s.pod.label"
   end
 
   @deprecated """
   Replaced by `k8s.pod.label`.
   """
-  @spec k_8_s_pod_labels :: :"k8s.pod.labels"
-  def k_8_s_pod_labels do
+  @spec k8s_pod_labels :: :"k8s.pod.labels"
+  def k8s_pod_labels do
     :"k8s.pod.labels"
   end
 
@@ -643,20 +643,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_pod_name()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_pod_name()
       :"k8s.pod.name"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_POD_NAME.
+  ?K8S_POD_NAME.
   'k8s.pod.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_pod_name :: :"k8s.pod.name"
-  def k_8_s_pod_name do
+  @spec k8s_pod_name :: :"k8s.pod.name"
+  def k8s_pod_name do
     :"k8s.pod.name"
   end
 
@@ -676,20 +676,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_pod_uid()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_pod_uid()
       :"k8s.pod.uid"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_POD_UID.
+  ?K8S_POD_UID.
   'k8s.pod.uid'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_pod_uid :: :"k8s.pod.uid"
-  def k_8_s_pod_uid do
+  @spec k8s_pod_uid :: :"k8s.pod.uid"
+  def k8s_pod_uid do
     :"k8s.pod.uid"
   end
 
@@ -709,20 +709,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_replicaset_name()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_replicaset_name()
       :"k8s.replicaset.name"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_REPLICASET_NAME.
+  ?K8S_REPLICASET_NAME.
   'k8s.replicaset.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_replicaset_name :: :"k8s.replicaset.name"
-  def k_8_s_replicaset_name do
+  @spec k8s_replicaset_name :: :"k8s.replicaset.name"
+  def k8s_replicaset_name do
     :"k8s.replicaset.name"
   end
 
@@ -742,20 +742,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_replicaset_uid()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_replicaset_uid()
       :"k8s.replicaset.uid"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_REPLICASET_UID.
+  ?K8S_REPLICASET_UID.
   'k8s.replicaset.uid'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_replicaset_uid :: :"k8s.replicaset.uid"
-  def k_8_s_replicaset_uid do
+  @spec k8s_replicaset_uid :: :"k8s.replicaset.uid"
+  def k8s_replicaset_uid do
     :"k8s.replicaset.uid"
   end
 
@@ -775,20 +775,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_statefulset_name()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_statefulset_name()
       :"k8s.statefulset.name"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_STATEFULSET_NAME.
+  ?K8S_STATEFULSET_NAME.
   'k8s.statefulset.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_statefulset_name :: :"k8s.statefulset.name"
-  def k_8_s_statefulset_name do
+  @spec k8s_statefulset_name :: :"k8s.statefulset.name"
+  def k8s_statefulset_name do
     :"k8s.statefulset.name"
   end
 
@@ -808,20 +808,20 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k_8_s_statefulset_uid()
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_statefulset_uid()
       :"k8s.statefulset.uid"
 
   ### Erlang
 
   ```erlang
-  ?K_8_S_STATEFULSET_UID.
+  ?K8S_STATEFULSET_UID.
   'k8s.statefulset.uid'
   ```
 
   <!-- tabs-close -->
   """
-  @spec k_8_s_statefulset_uid :: :"k8s.statefulset.uid"
-  def k_8_s_statefulset_uid do
+  @spec k8s_statefulset_uid :: :"k8s.statefulset.uid"
+  def k8s_statefulset_uid do
     :"k8s.statefulset.uid"
   end
 end

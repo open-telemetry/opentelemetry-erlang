@@ -19,7 +19,7 @@
 
 
 %% Distribution of CPU usage per invocation
--define(FAAS_CPUUSAGE, 'faas.cpu_usage').
+-define(FAAS_CPU_USAGE, 'faas.cpu_usage').
 
 
 %% Number of invocation errors
@@ -27,7 +27,7 @@
 
 
 %% Measures the duration of the function's initialization, such as a cold start
--define(FAAS_INITDURATION, 'faas.init_duration').
+-define(FAAS_INIT_DURATION, 'faas.init_duration').
 
 
 %% Number of successful invocations
@@ -35,15 +35,15 @@
 
 
 %% Measures the duration of the function's logic execution
--define(FAAS_INVOKEDURATION, 'faas.invoke_duration').
+-define(FAAS_INVOKE_DURATION, 'faas.invoke_duration').
 
 
 %% Distribution of max memory usage per invocation
--define(FAAS_MEMUSAGE, 'faas.mem_usage').
+-define(FAAS_MEM_USAGE, 'faas.mem_usage').
 
 
 %% Distribution of net I/O usage per invocation
--define(FAAS_NETIO, 'faas.net_io').
+-define(FAAS_NET_IO, 'faas.net_io').
 
 
 %% Number of invocation timeouts

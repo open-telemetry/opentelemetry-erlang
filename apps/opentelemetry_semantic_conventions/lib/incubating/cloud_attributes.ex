@@ -57,20 +57,20 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_availabilityzone()
+      iex> OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_availability_zone()
       :"cloud.availability_zone"
 
   ### Erlang
 
   ```erlang
-  ?CLOUD_AVAILABILITYZONE.
+  ?CLOUD_AVAILABILITY_ZONE.
   'cloud.availability_zone'
   ```
 
   <!-- tabs-close -->
   """
-  @spec cloud_availabilityzone :: :"cloud.availability_zone"
-  def cloud_availabilityzone do
+  @spec cloud_availability_zone :: :"cloud.availability_zone"
+  def cloud_availability_zone do
     :"cloud.availability_zone"
   end
 
@@ -360,20 +360,20 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_resourceid()
+      iex> OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_resource_id()
       :"cloud.resource_id"
 
   ### Erlang
 
   ```erlang
-  ?CLOUD_RESOURCEID.
+  ?CLOUD_RESOURCE_ID.
   'cloud.resource_id'
   ```
 
   <!-- tabs-close -->
   """
-  @spec cloud_resourceid :: :"cloud.resource_id"
-  def cloud_resourceid do
+  @spec cloud_resource_id :: :"cloud.resource_id"
+  def cloud_resource_id do
     :"cloud.resource_id"
   end
 end

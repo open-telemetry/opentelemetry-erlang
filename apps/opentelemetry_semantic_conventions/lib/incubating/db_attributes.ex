@@ -21,7 +21,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   * `:serial` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:local_serial` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   """
-  @type db_cassandra_consistencylevel_values() :: %{
+  @type db_cassandra_consistency_level_values() :: %{
           :all => :all,
           :each_quorum => :each_quorum,
           :quorum => :quorum,
@@ -43,37 +43,37 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistencylevel()
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistency_level()
       :"db.cassandra.consistency_level"
       
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistencylevel_values().all
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistency_level_values().all
       :all
       
-      iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistencylevel() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistencylevel_values().all}
+      iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistency_level() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistency_level_values().all}
       %{:"db.cassandra.consistency_level" => :all}
 
   ### Erlang
 
   ```erlang
-  ?DB_CASSANDRA_CONSISTENCYLEVEL.
+  ?DB_CASSANDRA_CONSISTENCY_LEVEL.
   'db.cassandra.consistency_level'
 
-  ?'DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.all'.
+  ?'DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES.all'.
   all
 
-  \#{?DB_CASSANDRA_CONSISTENCYLEVEL => ?'DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.all'}.
+  \#{?DB_CASSANDRA_CONSISTENCY_LEVEL => ?'DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES.all'}.
   \#{'db.cassandra.consistency_level' => all}
   ```
 
   <!-- tabs-close -->
   """
-  @spec db_cassandra_consistencylevel :: :"db.cassandra.consistency_level"
-  def db_cassandra_consistencylevel do
+  @spec db_cassandra_consistency_level :: :"db.cassandra.consistency_level"
+  def db_cassandra_consistency_level do
     :"db.cassandra.consistency_level"
   end
 
-  @spec db_cassandra_consistencylevel_values() :: db_cassandra_consistencylevel_values()
-  def db_cassandra_consistencylevel_values() do
+  @spec db_cassandra_consistency_level_values() :: db_cassandra_consistency_level_values()
+  def db_cassandra_consistency_level_values() do
     %{
       :all => :all,
       :each_quorum => :each_quorum,
@@ -199,20 +199,20 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_pagesize()
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_page_size()
       :"db.cassandra.page_size"
 
   ### Erlang
 
   ```erlang
-  ?DB_CASSANDRA_PAGESIZE.
+  ?DB_CASSANDRA_PAGE_SIZE.
   'db.cassandra.page_size'
   ```
 
   <!-- tabs-close -->
   """
-  @spec db_cassandra_pagesize :: :"db.cassandra.page_size"
-  def db_cassandra_pagesize do
+  @spec db_cassandra_page_size :: :"db.cassandra.page_size"
+  def db_cassandra_page_size do
     :"db.cassandra.page_size"
   end
 
@@ -232,20 +232,20 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_speculativeexecutioncount()
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_speculative_execution_count()
       :"db.cassandra.speculative_execution_count"
 
   ### Erlang
 
   ```erlang
-  ?DB_CASSANDRA_SPECULATIVEEXECUTIONCOUNT.
+  ?DB_CASSANDRA_SPECULATIVE_EXECUTION_COUNT.
   'db.cassandra.speculative_execution_count'
   ```
 
   <!-- tabs-close -->
   """
-  @spec db_cassandra_speculativeexecutioncount :: :"db.cassandra.speculative_execution_count"
-  def db_cassandra_speculativeexecutioncount do
+  @spec db_cassandra_speculative_execution_count :: :"db.cassandra.speculative_execution_count"
+  def db_cassandra_speculative_execution_count do
     :"db.cassandra.speculative_execution_count"
   end
 
@@ -392,8 +392,8 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   "Replaced by `server.address` and `server.port`."
 
   """
-  @spec db_connectionstring :: :"db.connection_string"
-  def db_connectionstring do
+  @spec db_connection_string :: :"db.connection_string"
+  def db_connection_string do
     :"db.connection_string"
   end
 
@@ -412,20 +412,20 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_clientid()
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_client_id()
       :"db.cosmosdb.client_id"
 
   ### Erlang
 
   ```erlang
-  ?DB_COSMOSDB_CLIENTID.
+  ?DB_COSMOSDB_CLIENT_ID.
   'db.cosmosdb.client_id'
   ```
 
   <!-- tabs-close -->
   """
-  @spec db_cosmosdb_clientid :: :"db.cosmosdb.client_id"
-  def db_cosmosdb_clientid do
+  @spec db_cosmosdb_client_id :: :"db.cosmosdb.client_id"
+  def db_cosmosdb_client_id do
     :"db.cosmosdb.client_id"
   end
 
@@ -436,7 +436,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   * `:gateway` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Gateway (HTTP) connections mode
   * `:direct` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Direct connection.
   """
-  @type db_cosmosdb_connectionmode_values() :: %{
+  @type db_cosmosdb_connection_mode_values() :: %{
           :gateway => :gateway,
           :direct => :direct
         }
@@ -448,37 +448,37 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connectionmode()
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connection_mode()
       :"db.cosmosdb.connection_mode"
       
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connectionmode_values().gateway
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connection_mode_values().gateway
       :gateway
       
-      iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connectionmode() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connectionmode_values().gateway}
+      iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connection_mode() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connection_mode_values().gateway}
       %{:"db.cosmosdb.connection_mode" => :gateway}
 
   ### Erlang
 
   ```erlang
-  ?DB_COSMOSDB_CONNECTIONMODE.
+  ?DB_COSMOSDB_CONNECTION_MODE.
   'db.cosmosdb.connection_mode'
 
-  ?'DB_COSMOSDB_CONNECTIONMODE_VALUES.gateway'.
+  ?'DB_COSMOSDB_CONNECTION_MODE_VALUES.gateway'.
   gateway
 
-  \#{?DB_COSMOSDB_CONNECTIONMODE => ?'DB_COSMOSDB_CONNECTIONMODE_VALUES.gateway'}.
+  \#{?DB_COSMOSDB_CONNECTION_MODE => ?'DB_COSMOSDB_CONNECTION_MODE_VALUES.gateway'}.
   \#{'db.cosmosdb.connection_mode' => gateway}
   ```
 
   <!-- tabs-close -->
   """
-  @spec db_cosmosdb_connectionmode :: :"db.cosmosdb.connection_mode"
-  def db_cosmosdb_connectionmode do
+  @spec db_cosmosdb_connection_mode :: :"db.cosmosdb.connection_mode"
+  def db_cosmosdb_connection_mode do
     :"db.cosmosdb.connection_mode"
   end
 
-  @spec db_cosmosdb_connectionmode_values() :: db_cosmosdb_connectionmode_values()
-  def db_cosmosdb_connectionmode_values() do
+  @spec db_cosmosdb_connection_mode_values() :: db_cosmosdb_connection_mode_values()
+  def db_cosmosdb_connection_mode_values() do
     %{
       :gateway => :gateway,
       :direct => :direct
@@ -513,7 +513,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   * `:query_plan` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:execute_javascript` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   """
-  @type db_cosmosdb_operationtype_values() :: %{
+  @type db_cosmosdb_operation_type_values() :: %{
           :invalid => :Invalid,
           :create => :Create,
           :patch => :Patch,
@@ -538,37 +538,37 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operationtype()
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operation_type()
       :"db.cosmosdb.operation_type"
       
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operationtype_values().invalid
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operation_type_values().invalid
       :Invalid
       
-      iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operationtype() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operationtype_values().invalid}
+      iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operation_type() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operation_type_values().invalid}
       %{:"db.cosmosdb.operation_type" => :Invalid}
 
   ### Erlang
 
   ```erlang
-  ?DB_COSMOSDB_OPERATIONTYPE.
+  ?DB_COSMOSDB_OPERATION_TYPE.
   'db.cosmosdb.operation_type'
 
-  ?'DB_COSMOSDB_OPERATIONTYPE_VALUES.invalid'.
+  ?'DB_COSMOSDB_OPERATION_TYPE_VALUES.invalid'.
   Invalid
 
-  \#{?DB_COSMOSDB_OPERATIONTYPE => ?'DB_COSMOSDB_OPERATIONTYPE_VALUES.invalid'}.
+  \#{?DB_COSMOSDB_OPERATION_TYPE => ?'DB_COSMOSDB_OPERATION_TYPE_VALUES.invalid'}.
   \#{'db.cosmosdb.operation_type' => Invalid}
   ```
 
   <!-- tabs-close -->
   """
-  @spec db_cosmosdb_operationtype :: :"db.cosmosdb.operation_type"
-  def db_cosmosdb_operationtype do
+  @spec db_cosmosdb_operation_type :: :"db.cosmosdb.operation_type"
+  def db_cosmosdb_operation_type do
     :"db.cosmosdb.operation_type"
   end
 
-  @spec db_cosmosdb_operationtype_values() :: db_cosmosdb_operationtype_values()
-  def db_cosmosdb_operationtype_values() do
+  @spec db_cosmosdb_operation_type_values() :: db_cosmosdb_operation_type_values()
+  def db_cosmosdb_operation_type_values() do
     %{
       :invalid => :Invalid,
       :create => :Create,
@@ -603,20 +603,20 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_requestcharge()
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_request_charge()
       :"db.cosmosdb.request_charge"
 
   ### Erlang
 
   ```erlang
-  ?DB_COSMOSDB_REQUESTCHARGE.
+  ?DB_COSMOSDB_REQUEST_CHARGE.
   'db.cosmosdb.request_charge'
   ```
 
   <!-- tabs-close -->
   """
-  @spec db_cosmosdb_requestcharge :: :"db.cosmosdb.request_charge"
-  def db_cosmosdb_requestcharge do
+  @spec db_cosmosdb_request_charge :: :"db.cosmosdb.request_charge"
+  def db_cosmosdb_request_charge do
     :"db.cosmosdb.request_charge"
   end
 
@@ -630,20 +630,20 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_requestcontentlength()
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_request_content_length()
       :"db.cosmosdb.request_content_length"
 
   ### Erlang
 
   ```erlang
-  ?DB_COSMOSDB_REQUESTCONTENTLENGTH.
+  ?DB_COSMOSDB_REQUEST_CONTENT_LENGTH.
   'db.cosmosdb.request_content_length'
   ```
 
   <!-- tabs-close -->
   """
-  @spec db_cosmosdb_requestcontentlength :: :"db.cosmosdb.request_content_length"
-  def db_cosmosdb_requestcontentlength do
+  @spec db_cosmosdb_request_content_length :: :"db.cosmosdb.request_content_length"
+  def db_cosmosdb_request_content_length do
     :"db.cosmosdb.request_content_length"
   end
 
@@ -662,20 +662,20 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_statuscode()
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_status_code()
       :"db.cosmosdb.status_code"
 
   ### Erlang
 
   ```erlang
-  ?DB_COSMOSDB_STATUSCODE.
+  ?DB_COSMOSDB_STATUS_CODE.
   'db.cosmosdb.status_code'
   ```
 
   <!-- tabs-close -->
   """
-  @spec db_cosmosdb_statuscode :: :"db.cosmosdb.status_code"
-  def db_cosmosdb_statuscode do
+  @spec db_cosmosdb_status_code :: :"db.cosmosdb.status_code"
+  def db_cosmosdb_status_code do
     :"db.cosmosdb.status_code"
   end
 
@@ -694,20 +694,20 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_substatuscode()
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_sub_status_code()
       :"db.cosmosdb.sub_status_code"
 
   ### Erlang
 
   ```erlang
-  ?DB_COSMOSDB_SUBSTATUSCODE.
+  ?DB_COSMOSDB_SUB_STATUS_CODE.
   'db.cosmosdb.sub_status_code'
   ```
 
   <!-- tabs-close -->
   """
-  @spec db_cosmosdb_substatuscode :: :"db.cosmosdb.sub_status_code"
-  def db_cosmosdb_substatuscode do
+  @spec db_cosmosdb_sub_status_code :: :"db.cosmosdb.sub_status_code"
+  def db_cosmosdb_sub_status_code do
     :"db.cosmosdb.sub_status_code"
   end
 
@@ -797,20 +797,20 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_elasticsearch_pathparts()
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_elasticsearch_path_parts()
       :"db.elasticsearch.path_parts"
 
   ### Erlang
 
   ```erlang
-  ?DB_ELASTICSEARCH_PATHPARTS.
+  ?DB_ELASTICSEARCH_PATH_PARTS.
   'db.elasticsearch.path_parts'
   ```
 
   <!-- tabs-close -->
   """
-  @spec db_elasticsearch_pathparts :: :"db.elasticsearch.path_parts"
-  def db_elasticsearch_pathparts do
+  @spec db_elasticsearch_path_parts :: :"db.elasticsearch.path_parts"
+  def db_elasticsearch_path_parts do
     :"db.elasticsearch.path_parts"
   end
 
@@ -825,8 +825,8 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   @deprecated """
   Removed as not used.
   """
-  @spec db_jdbc_driverclassname :: :"db.jdbc.driver_classname"
-  def db_jdbc_driverclassname do
+  @spec db_jdbc_driver_classname :: :"db.jdbc.driver_classname"
+  def db_jdbc_driver_classname do
     :"db.jdbc.driver_classname"
   end
 
@@ -841,8 +841,8 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   @deprecated """
   Deprecated, no replacement at this time.
   """
-  @spec db_mssql_instancename :: :"db.mssql.instance_name"
-  def db_mssql_instancename do
+  @spec db_mssql_instance_name :: :"db.mssql.instance_name"
+  def db_mssql_instance_name do
     :"db.mssql.instance_name"
   end
 
@@ -1012,8 +1012,8 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   @deprecated """
   Replaced by `db.namespace`.
   """
-  @spec db_redis_databaseindex :: :"db.redis.database_index"
-  def db_redis_databaseindex do
+  @spec db_redis_database_index :: :"db.redis.database_index"
+  def db_redis_database_index do
     :"db.redis.database_index"
   end
 

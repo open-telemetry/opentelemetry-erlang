@@ -53,4 +53,4 @@ text_maps:
     "template[double[]]": "[float()]"
     "template[boolean[]]": "[boolean()]"
 
-acronyms: ["iOS", "HTTP", "API", "SDK", "CLI", "URL", "JSON", "XML", "HTML", "TLS", "RPC", "OS", "OCI", "GCP", "FAAS", "DNS", "DB", "AWS" ]
+acronyms: ["iOS", "HTTP", "API", "SDK", "CLI", "URL", "JSON", "XML", "HTML", "TLS", "RPC", "OS", "OCI", "GCP", "FAAS", "DNS", "DB", "AWS", "S3", "K8S" ]

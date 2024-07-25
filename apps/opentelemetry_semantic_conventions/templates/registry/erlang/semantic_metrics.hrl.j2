@@ -1,6 +1,5 @@
 {%- import 'common.j2' as c %}
-{%- set acronyms = c.acronyms() -%}
-{%- set file_name = ctx.output ~ (c.format_acronym(ctx.id | pascal_case, acronyms) | lower) ~ "_metrics.hrl" -%}
+{%- set file_name = ctx.output ~ c.file_name(ctx.id) ~ "_metrics.hrl" -%}
 {{ template.set_file_name(file_name) }}
 %%%------------------------------------------------------------------------
 %% Copyright The OpenTelemetry Authors
@@ -22,5 +21,5 @@
 %% @deprecated {{ metric.deprecated | replace("\n", "\n%%  ") }}
 {%- endif %}
 %% {{ metric.brief | replace("\n", "\n%%  ") }}
--define({{ metric.metric_name | snake_case_const | upper }}, '{{ metric.metric_name }}').
+-define({{ c.attr_name(metric.metric_name) }}, '{{ metric.metric_name }}').
 {% endfor %}

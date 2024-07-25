@@ -19,4 +19,4 @@
 
 
 %% The previous `session.id` for this user, when known.
--define(SESSION_PREVIOUSID, 'session.previous_id').
+-define(SESSION_PREVIOUS_ID, 'session.previous_id').

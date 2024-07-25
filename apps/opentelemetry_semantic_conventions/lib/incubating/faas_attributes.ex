@@ -276,20 +276,20 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invocationid()
+      iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invocation_id()
       :"faas.invocation_id"
 
   ### Erlang
 
   ```erlang
-  ?FAAS_INVOCATIONID.
+  ?FAAS_INVOCATION_ID.
   'faas.invocation_id'
   ```
 
   <!-- tabs-close -->
   """
-  @spec faas_invocationid :: :"faas.invocation_id"
-  def faas_invocationid do
+  @spec faas_invocation_id :: :"faas.invocation_id"
+  def faas_invocation_id do
     :"faas.invocation_id"
   end
 
@@ -313,20 +313,20 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invokedname()
+      iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invoked_name()
       :"faas.invoked_name"
 
   ### Erlang
 
   ```erlang
-  ?FAAS_INVOKEDNAME.
+  ?FAAS_INVOKED_NAME.
   'faas.invoked_name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec faas_invokedname :: :"faas.invoked_name"
-  def faas_invokedname do
+  @spec faas_invoked_name :: :"faas.invoked_name"
+  def faas_invoked_name do
     :"faas.invoked_name"
   end
 
@@ -341,7 +341,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   * `:gcp` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Google Cloud Platform
   * `:tencent_cloud` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Tencent Cloud
   """
-  @type faas_invokedprovider_values() :: %{
+  @type faas_invoked_provider_values() :: %{
           :alibaba_cloud => :alibaba_cloud,
           :aws => :aws,
           :azure => :azure,
@@ -361,37 +361,37 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invokedprovider()
+      iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invoked_provider()
       :"faas.invoked_provider"
       
-      iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invokedprovider_values().alibaba_cloud
+      iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invoked_provider_values().alibaba_cloud
       :alibaba_cloud
       
-      iex> %{OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invokedprovider() => OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invokedprovider_values().alibaba_cloud}
+      iex> %{OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invoked_provider() => OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invoked_provider_values().alibaba_cloud}
       %{:"faas.invoked_provider" => :alibaba_cloud}
 
   ### Erlang
 
   ```erlang
-  ?FAAS_INVOKEDPROVIDER.
+  ?FAAS_INVOKED_PROVIDER.
   'faas.invoked_provider'
 
-  ?'FAAS_INVOKEDPROVIDER_VALUES.alibaba_cloud'.
+  ?'FAAS_INVOKED_PROVIDER_VALUES.alibaba_cloud'.
   alibaba_cloud
 
-  \#{?FAAS_INVOKEDPROVIDER => ?'FAAS_INVOKEDPROVIDER_VALUES.alibaba_cloud'}.
+  \#{?FAAS_INVOKED_PROVIDER => ?'FAAS_INVOKED_PROVIDER_VALUES.alibaba_cloud'}.
   \#{'faas.invoked_provider' => alibaba_cloud}
   ```
 
   <!-- tabs-close -->
   """
-  @spec faas_invokedprovider :: :"faas.invoked_provider"
-  def faas_invokedprovider do
+  @spec faas_invoked_provider :: :"faas.invoked_provider"
+  def faas_invoked_provider do
     :"faas.invoked_provider"
   end
 
-  @spec faas_invokedprovider_values() :: faas_invokedprovider_values()
-  def faas_invokedprovider_values() do
+  @spec faas_invoked_provider_values() :: faas_invoked_provider_values()
+  def faas_invoked_provider_values() do
     %{
       :alibaba_cloud => :alibaba_cloud,
       :aws => :aws,
@@ -421,20 +421,20 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invokedregion()
+      iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invoked_region()
       :"faas.invoked_region"
 
   ### Erlang
 
   ```erlang
-  ?FAAS_INVOKEDREGION.
+  ?FAAS_INVOKED_REGION.
   'faas.invoked_region'
   ```
 
   <!-- tabs-close -->
   """
-  @spec faas_invokedregion :: :"faas.invoked_region"
-  def faas_invokedregion do
+  @spec faas_invoked_region :: :"faas.invoked_region"
+  def faas_invoked_region do
     :"faas.invoked_region"
   end
 
@@ -458,20 +458,20 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_maxmemory()
+      iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_max_memory()
       :"faas.max_memory"
 
   ### Erlang
 
   ```erlang
-  ?FAAS_MAXMEMORY.
+  ?FAAS_MAX_MEMORY.
   'faas.max_memory'
   ```
 
   <!-- tabs-close -->
   """
-  @spec faas_maxmemory :: :"faas.max_memory"
-  def faas_maxmemory do
+  @spec faas_max_memory :: :"faas.max_memory"
+  def faas_max_memory do
     :"faas.max_memory"
   end
 

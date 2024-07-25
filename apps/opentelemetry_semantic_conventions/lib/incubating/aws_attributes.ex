@@ -19,20 +19,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_attributedefinitions()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_attribute_definitions()
       :"aws.dynamodb.attribute_definitions"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_ATTRIBUTEDEFINITIONS.
+  ?AWS_DYNAMODB_ATTRIBUTE_DEFINITIONS.
   'aws.dynamodb.attribute_definitions'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_attributedefinitions :: :"aws.dynamodb.attribute_definitions"
-  def aws_dynamodb_attributedefinitions do
+  @spec aws_dynamodb_attribute_definitions :: :"aws.dynamodb.attribute_definitions"
+  def aws_dynamodb_attribute_definitions do
     :"aws.dynamodb.attribute_definitions"
   end
 
@@ -51,20 +51,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_attributestoget()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_attributes_to_get()
       :"aws.dynamodb.attributes_to_get"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_ATTRIBUTESTOGET.
+  ?AWS_DYNAMODB_ATTRIBUTES_TO_GET.
   'aws.dynamodb.attributes_to_get'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_attributestoget :: :"aws.dynamodb.attributes_to_get"
-  def aws_dynamodb_attributestoget do
+  @spec aws_dynamodb_attributes_to_get :: :"aws.dynamodb.attributes_to_get"
+  def aws_dynamodb_attributes_to_get do
     :"aws.dynamodb.attributes_to_get"
   end
 
@@ -78,20 +78,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_consistentread()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_consistent_read()
       :"aws.dynamodb.consistent_read"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_CONSISTENTREAD.
+  ?AWS_DYNAMODB_CONSISTENT_READ.
   'aws.dynamodb.consistent_read'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_consistentread :: :"aws.dynamodb.consistent_read"
-  def aws_dynamodb_consistentread do
+  @spec aws_dynamodb_consistent_read :: :"aws.dynamodb.consistent_read"
+  def aws_dynamodb_consistent_read do
     :"aws.dynamodb.consistent_read"
   end
 
@@ -110,20 +110,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_consumedcapacity()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_consumed_capacity()
       :"aws.dynamodb.consumed_capacity"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_CONSUMEDCAPACITY.
+  ?AWS_DYNAMODB_CONSUMED_CAPACITY.
   'aws.dynamodb.consumed_capacity'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_consumedcapacity :: :"aws.dynamodb.consumed_capacity"
-  def aws_dynamodb_consumedcapacity do
+  @spec aws_dynamodb_consumed_capacity :: :"aws.dynamodb.consumed_capacity"
+  def aws_dynamodb_consumed_capacity do
     :"aws.dynamodb.consumed_capacity"
   end
 
@@ -174,20 +174,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_exclusivestarttable()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_exclusive_start_table()
       :"aws.dynamodb.exclusive_start_table"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_EXCLUSIVESTARTTABLE.
+  ?AWS_DYNAMODB_EXCLUSIVE_START_TABLE.
   'aws.dynamodb.exclusive_start_table'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_exclusivestarttable :: :"aws.dynamodb.exclusive_start_table"
-  def aws_dynamodb_exclusivestarttable do
+  @spec aws_dynamodb_exclusive_start_table :: :"aws.dynamodb.exclusive_start_table"
+  def aws_dynamodb_exclusive_start_table do
     :"aws.dynamodb.exclusive_start_table"
   end
 
@@ -206,20 +206,21 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_globalsecondaryindexupdates()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_global_secondary_index_updates()
       :"aws.dynamodb.global_secondary_index_updates"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_GLOBALSECONDARYINDEXUPDATES.
+  ?AWS_DYNAMODB_GLOBAL_SECONDARY_INDEX_UPDATES.
   'aws.dynamodb.global_secondary_index_updates'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_globalsecondaryindexupdates :: :"aws.dynamodb.global_secondary_index_updates"
-  def aws_dynamodb_globalsecondaryindexupdates do
+  @spec aws_dynamodb_global_secondary_index_updates ::
+          :"aws.dynamodb.global_secondary_index_updates"
+  def aws_dynamodb_global_secondary_index_updates do
     :"aws.dynamodb.global_secondary_index_updates"
   end
 
@@ -238,20 +239,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_globalsecondaryindexes()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_global_secondary_indexes()
       :"aws.dynamodb.global_secondary_indexes"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_GLOBALSECONDARYINDEXES.
+  ?AWS_DYNAMODB_GLOBAL_SECONDARY_INDEXES.
   'aws.dynamodb.global_secondary_indexes'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_globalsecondaryindexes :: :"aws.dynamodb.global_secondary_indexes"
-  def aws_dynamodb_globalsecondaryindexes do
+  @spec aws_dynamodb_global_secondary_indexes :: :"aws.dynamodb.global_secondary_indexes"
+  def aws_dynamodb_global_secondary_indexes do
     :"aws.dynamodb.global_secondary_indexes"
   end
 
@@ -270,20 +271,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_indexname()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_index_name()
       :"aws.dynamodb.index_name"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_INDEXNAME.
+  ?AWS_DYNAMODB_INDEX_NAME.
   'aws.dynamodb.index_name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_indexname :: :"aws.dynamodb.index_name"
-  def aws_dynamodb_indexname do
+  @spec aws_dynamodb_index_name :: :"aws.dynamodb.index_name"
+  def aws_dynamodb_index_name do
     :"aws.dynamodb.index_name"
   end
 
@@ -302,20 +303,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_itemcollectionmetrics()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_item_collection_metrics()
       :"aws.dynamodb.item_collection_metrics"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_ITEMCOLLECTIONMETRICS.
+  ?AWS_DYNAMODB_ITEM_COLLECTION_METRICS.
   'aws.dynamodb.item_collection_metrics'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_itemcollectionmetrics :: :"aws.dynamodb.item_collection_metrics"
-  def aws_dynamodb_itemcollectionmetrics do
+  @spec aws_dynamodb_item_collection_metrics :: :"aws.dynamodb.item_collection_metrics"
+  def aws_dynamodb_item_collection_metrics do
     :"aws.dynamodb.item_collection_metrics"
   end
 
@@ -366,20 +367,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_localsecondaryindexes()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_local_secondary_indexes()
       :"aws.dynamodb.local_secondary_indexes"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_LOCALSECONDARYINDEXES.
+  ?AWS_DYNAMODB_LOCAL_SECONDARY_INDEXES.
   'aws.dynamodb.local_secondary_indexes'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_localsecondaryindexes :: :"aws.dynamodb.local_secondary_indexes"
-  def aws_dynamodb_localsecondaryindexes do
+  @spec aws_dynamodb_local_secondary_indexes :: :"aws.dynamodb.local_secondary_indexes"
+  def aws_dynamodb_local_secondary_indexes do
     :"aws.dynamodb.local_secondary_indexes"
   end
 
@@ -430,20 +431,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_provisionedreadcapacity()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_provisioned_read_capacity()
       :"aws.dynamodb.provisioned_read_capacity"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_PROVISIONEDREADCAPACITY.
+  ?AWS_DYNAMODB_PROVISIONED_READ_CAPACITY.
   'aws.dynamodb.provisioned_read_capacity'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_provisionedreadcapacity :: :"aws.dynamodb.provisioned_read_capacity"
-  def aws_dynamodb_provisionedreadcapacity do
+  @spec aws_dynamodb_provisioned_read_capacity :: :"aws.dynamodb.provisioned_read_capacity"
+  def aws_dynamodb_provisioned_read_capacity do
     :"aws.dynamodb.provisioned_read_capacity"
   end
 
@@ -462,20 +463,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_provisionedwritecapacity()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_provisioned_write_capacity()
       :"aws.dynamodb.provisioned_write_capacity"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_PROVISIONEDWRITECAPACITY.
+  ?AWS_DYNAMODB_PROVISIONED_WRITE_CAPACITY.
   'aws.dynamodb.provisioned_write_capacity'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_provisionedwritecapacity :: :"aws.dynamodb.provisioned_write_capacity"
-  def aws_dynamodb_provisionedwritecapacity do
+  @spec aws_dynamodb_provisioned_write_capacity :: :"aws.dynamodb.provisioned_write_capacity"
+  def aws_dynamodb_provisioned_write_capacity do
     :"aws.dynamodb.provisioned_write_capacity"
   end
 
@@ -489,20 +490,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_scanforward()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_scan_forward()
       :"aws.dynamodb.scan_forward"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_SCANFORWARD.
+  ?AWS_DYNAMODB_SCAN_FORWARD.
   'aws.dynamodb.scan_forward'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_scanforward :: :"aws.dynamodb.scan_forward"
-  def aws_dynamodb_scanforward do
+  @spec aws_dynamodb_scan_forward :: :"aws.dynamodb.scan_forward"
+  def aws_dynamodb_scan_forward do
     :"aws.dynamodb.scan_forward"
   end
 
@@ -521,20 +522,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_scannedcount()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_scanned_count()
       :"aws.dynamodb.scanned_count"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_SCANNEDCOUNT.
+  ?AWS_DYNAMODB_SCANNED_COUNT.
   'aws.dynamodb.scanned_count'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_scannedcount :: :"aws.dynamodb.scanned_count"
-  def aws_dynamodb_scannedcount do
+  @spec aws_dynamodb_scanned_count :: :"aws.dynamodb.scanned_count"
+  def aws_dynamodb_scanned_count do
     :"aws.dynamodb.scanned_count"
   end
 
@@ -617,20 +618,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_tablecount()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_table_count()
       :"aws.dynamodb.table_count"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_TABLECOUNT.
+  ?AWS_DYNAMODB_TABLE_COUNT.
   'aws.dynamodb.table_count'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_tablecount :: :"aws.dynamodb.table_count"
-  def aws_dynamodb_tablecount do
+  @spec aws_dynamodb_table_count :: :"aws.dynamodb.table_count"
+  def aws_dynamodb_table_count do
     :"aws.dynamodb.table_count"
   end
 
@@ -649,20 +650,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_tablenames()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_table_names()
       :"aws.dynamodb.table_names"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_TABLENAMES.
+  ?AWS_DYNAMODB_TABLE_NAMES.
   'aws.dynamodb.table_names'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_tablenames :: :"aws.dynamodb.table_names"
-  def aws_dynamodb_tablenames do
+  @spec aws_dynamodb_table_names :: :"aws.dynamodb.table_names"
+  def aws_dynamodb_table_names do
     :"aws.dynamodb.table_names"
   end
 
@@ -681,20 +682,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_totalsegments()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_dynamodb_total_segments()
       :"aws.dynamodb.total_segments"
 
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_TOTALSEGMENTS.
+  ?AWS_DYNAMODB_TOTAL_SEGMENTS.
   'aws.dynamodb.total_segments'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_dynamodb_totalsegments :: :"aws.dynamodb.total_segments"
-  def aws_dynamodb_totalsegments do
+  @spec aws_dynamodb_total_segments :: :"aws.dynamodb.total_segments"
+  def aws_dynamodb_total_segments do
     :"aws.dynamodb.total_segments"
   end
 
@@ -1006,20 +1007,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_lambda_invokedarn()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_lambda_invoked_arn()
       :"aws.lambda.invoked_arn"
 
   ### Erlang
 
   ```erlang
-  ?AWS_LAMBDA_INVOKEDARN.
+  ?AWS_LAMBDA_INVOKED_ARN.
   'aws.lambda.invoked_arn'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_lambda_invokedarn :: :"aws.lambda.invoked_arn"
-  def aws_lambda_invokedarn do
+  @spec aws_lambda_invoked_arn :: :"aws.lambda.invoked_arn"
+  def aws_lambda_invoked_arn do
     :"aws.lambda.invoked_arn"
   end
 
@@ -1182,20 +1183,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_requestid()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_request_id()
       :"aws.request_id"
 
   ### Erlang
 
   ```erlang
-  ?AWS_REQUESTID.
+  ?AWS_REQUEST_ID.
   'aws.request_id'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_requestid :: :"aws.request_id"
-  def aws_requestid do
+  @spec aws_request_id :: :"aws.request_id"
+  def aws_request_id do
     :"aws.request_id"
   end
 
@@ -1219,20 +1220,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_s_3_bucket()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_s3_bucket()
       :"aws.s3.bucket"
 
   ### Erlang
 
   ```erlang
-  ?AWS_S_3_BUCKET.
+  ?AWS_S3_BUCKET.
   'aws.s3.bucket'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_s_3_bucket :: :"aws.s3.bucket"
-  def aws_s_3_bucket do
+  @spec aws_s3_bucket :: :"aws.s3.bucket"
+  def aws_s3_bucket do
     :"aws.s3.bucket"
   end
 
@@ -1260,20 +1261,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_s_3_copysource()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_s3_copy_source()
       :"aws.s3.copy_source"
 
   ### Erlang
 
   ```erlang
-  ?AWS_S_3_COPYSOURCE.
+  ?AWS_S3_COPY_SOURCE.
   'aws.s3.copy_source'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_s_3_copysource :: :"aws.s3.copy_source"
-  def aws_s_3_copysource do
+  @spec aws_s3_copy_source :: :"aws.s3.copy_source"
+  def aws_s3_copy_source do
     :"aws.s3.copy_source"
   end
 
@@ -1298,20 +1299,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_s_3_delete()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_s3_delete()
       :"aws.s3.delete"
 
   ### Erlang
 
   ```erlang
-  ?AWS_S_3_DELETE.
+  ?AWS_S3_DELETE.
   'aws.s3.delete'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_s_3_delete :: :"aws.s3.delete"
-  def aws_s_3_delete do
+  @spec aws_s3_delete :: :"aws.s3.delete"
+  def aws_s3_delete do
     :"aws.s3.delete"
   end
 
@@ -1349,20 +1350,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_s_3_key()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_s3_key()
       :"aws.s3.key"
 
   ### Erlang
 
   ```erlang
-  ?AWS_S_3_KEY.
+  ?AWS_S3_KEY.
   'aws.s3.key'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_s_3_key :: :"aws.s3.key"
-  def aws_s_3_key do
+  @spec aws_s3_key :: :"aws.s3.key"
+  def aws_s3_key do
     :"aws.s3.key"
   end
 
@@ -1388,20 +1389,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_s_3_partnumber()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_s3_part_number()
       :"aws.s3.part_number"
 
   ### Erlang
 
   ```erlang
-  ?AWS_S_3_PARTNUMBER.
+  ?AWS_S3_PART_NUMBER.
   'aws.s3.part_number'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_s_3_partnumber :: :"aws.s3.part_number"
-  def aws_s_3_partnumber do
+  @spec aws_s3_part_number :: :"aws.s3.part_number"
+  def aws_s3_part_number do
     :"aws.s3.part_number"
   end
 
@@ -1432,20 +1433,20 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_s_3_uploadid()
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_s3_upload_id()
       :"aws.s3.upload_id"
 
   ### Erlang
 
   ```erlang
-  ?AWS_S_3_UPLOADID.
+  ?AWS_S3_UPLOAD_ID.
   'aws.s3.upload_id'
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_s_3_uploadid :: :"aws.s3.upload_id"
-  def aws_s_3_uploadid do
+  @spec aws_s3_upload_id :: :"aws.s3.upload_id"
+  def aws_s3_upload_id do
     :"aws.s3.upload_id"
   end
 end

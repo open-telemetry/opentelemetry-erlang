@@ -21,7 +21,7 @@
 
 %% Cloud regions often have multiple, isolated locations known as zones to increase availability. Availability zone represents the zone where the resource is running.
 %%  
--define(CLOUD_AVAILABILITYZONE, 'cloud.availability_zone').
+-define(CLOUD_AVAILABILITY_ZONE, 'cloud.availability_zone').
 
 
 %% The cloud platform in use.
@@ -113,4 +113,4 @@
 
 %% Cloud provider-specific native identifier of the monitored cloud resource (e.g. an [ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html) on AWS, a [fully qualified resource ID](https://learn.microsoft.com/rest/api/resources/resources/get-by-id) on Azure, a [full resource name](https://cloud.google.com/apis/design/resource_names#full_resource_name) on GCP)
 %%  
--define(CLOUD_RESOURCEID, 'cloud.resource_id').
+-define(CLOUD_RESOURCE_ID, 'cloud.resource_id').

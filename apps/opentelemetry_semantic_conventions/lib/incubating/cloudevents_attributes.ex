@@ -20,20 +20,20 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudeventsAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.CloudeventsAttributes.cloudevents_eventid()
+      iex> OpenTelemetry.SemConv.Incubating.CloudeventsAttributes.cloudevents_event_id()
       :"cloudevents.event_id"
 
   ### Erlang
 
   ```erlang
-  ?CLOUDEVENTS_EVENTID.
+  ?CLOUDEVENTS_EVENT_ID.
   'cloudevents.event_id'
   ```
 
   <!-- tabs-close -->
   """
-  @spec cloudevents_eventid :: :"cloudevents.event_id"
-  def cloudevents_eventid do
+  @spec cloudevents_event_id :: :"cloudevents.event_id"
+  def cloudevents_event_id do
     :"cloudevents.event_id"
   end
 
@@ -53,20 +53,20 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudeventsAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.CloudeventsAttributes.cloudevents_eventsource()
+      iex> OpenTelemetry.SemConv.Incubating.CloudeventsAttributes.cloudevents_event_source()
       :"cloudevents.event_source"
 
   ### Erlang
 
   ```erlang
-  ?CLOUDEVENTS_EVENTSOURCE.
+  ?CLOUDEVENTS_EVENT_SOURCE.
   'cloudevents.event_source'
   ```
 
   <!-- tabs-close -->
   """
-  @spec cloudevents_eventsource :: :"cloudevents.event_source"
-  def cloudevents_eventsource do
+  @spec cloudevents_event_source :: :"cloudevents.event_source"
+  def cloudevents_event_source do
     :"cloudevents.event_source"
   end
 
@@ -86,20 +86,20 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudeventsAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.CloudeventsAttributes.cloudevents_eventspecversion()
+      iex> OpenTelemetry.SemConv.Incubating.CloudeventsAttributes.cloudevents_event_spec_version()
       :"cloudevents.event_spec_version"
 
   ### Erlang
 
   ```erlang
-  ?CLOUDEVENTS_EVENTSPECVERSION.
+  ?CLOUDEVENTS_EVENT_SPEC_VERSION.
   'cloudevents.event_spec_version'
   ```
 
   <!-- tabs-close -->
   """
-  @spec cloudevents_eventspecversion :: :"cloudevents.event_spec_version"
-  def cloudevents_eventspecversion do
+  @spec cloudevents_event_spec_version :: :"cloudevents.event_spec_version"
+  def cloudevents_event_spec_version do
     :"cloudevents.event_spec_version"
   end
 
@@ -119,20 +119,20 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudeventsAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.CloudeventsAttributes.cloudevents_eventsubject()
+      iex> OpenTelemetry.SemConv.Incubating.CloudeventsAttributes.cloudevents_event_subject()
       :"cloudevents.event_subject"
 
   ### Erlang
 
   ```erlang
-  ?CLOUDEVENTS_EVENTSUBJECT.
+  ?CLOUDEVENTS_EVENT_SUBJECT.
   'cloudevents.event_subject'
   ```
 
   <!-- tabs-close -->
   """
-  @spec cloudevents_eventsubject :: :"cloudevents.event_subject"
-  def cloudevents_eventsubject do
+  @spec cloudevents_event_subject :: :"cloudevents.event_subject"
+  def cloudevents_event_subject do
     :"cloudevents.event_subject"
   end
 
@@ -152,20 +152,20 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudeventsAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.CloudeventsAttributes.cloudevents_eventtype()
+      iex> OpenTelemetry.SemConv.Incubating.CloudeventsAttributes.cloudevents_event_type()
       :"cloudevents.event_type"
 
   ### Erlang
 
   ```erlang
-  ?CLOUDEVENTS_EVENTTYPE.
+  ?CLOUDEVENTS_EVENT_TYPE.
   'cloudevents.event_type'
   ```
 
   <!-- tabs-close -->
   """
-  @spec cloudevents_eventtype :: :"cloudevents.event_type"
-  def cloudevents_eventtype do
+  @spec cloudevents_event_type :: :"cloudevents.event_type"
+  def cloudevents_event_type do
     :"cloudevents.event_type"
   end
 end

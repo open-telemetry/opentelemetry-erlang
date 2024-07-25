@@ -19,20 +19,20 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.OSAttributes.os_buildid()
+      iex> OpenTelemetry.SemConv.Incubating.OSAttributes.os_build_id()
       :"os.build_id"
 
   ### Erlang
 
   ```erlang
-  ?OS_BUILDID.
+  ?OS_BUILD_ID.
   'os.build_id'
   ```
 
   <!-- tabs-close -->
   """
-  @spec os_buildid :: :"os.build_id"
-  def os_buildid do
+  @spec os_build_id :: :"os.build_id"
+  def os_build_id do
     :"os.build_id"
   end
 

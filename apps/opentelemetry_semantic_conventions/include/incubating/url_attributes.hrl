@@ -36,7 +36,7 @@
 
 %% The highest registered url domain, stripped of the subdomain.
 %%  
--define(URL_REGISTEREDDOMAIN, 'url.registered_domain').
+-define(URL_REGISTERED_DOMAIN, 'url.registered_domain').
 
 
 %% The subdomain portion of a fully qualified domain name includes all of the names except the host name under the registered_domain. In a partially qualified domain, or if the qualification level of the full name cannot be determined, subdomain contains all of the names below the registered domain.
@@ -51,4 +51,4 @@
 
 %% The effective top level domain (eTLD), also known as the domain suffix, is the last part of the domain name. For example, the top level domain for example.com is `com`.
 %%  
--define(URL_TOPLEVELDOMAIN, 'url.top_level_domain').
+-define(URL_TOP_LEVEL_DOMAIN, 'url.top_level_domain').

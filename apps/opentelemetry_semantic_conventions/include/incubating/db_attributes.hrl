@@ -16,29 +16,29 @@
 
 %% The consistency level of the query. Based on consistency values from [CQL](https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/dml/dmlConfigConsistency.html).
 %%  
--define(DB_CASSANDRA_CONSISTENCYLEVEL, 'db.cassandra.consistency_level').
+-define(DB_CASSANDRA_CONSISTENCY_LEVEL, 'db.cassandra.consistency_level').
 
--define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.all', 'all').
+-define('DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES.all', 'all').
 
--define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.each_quorum', 'each_quorum').
+-define('DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES.each_quorum', 'each_quorum').
 
--define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.quorum', 'quorum').
+-define('DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES.quorum', 'quorum').
 
--define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.local_quorum', 'local_quorum').
+-define('DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES.local_quorum', 'local_quorum').
 
--define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.one', 'one').
+-define('DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES.one', 'one').
 
--define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.two', 'two').
+-define('DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES.two', 'two').
 
--define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.three', 'three').
+-define('DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES.three', 'three').
 
--define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.local_one', 'local_one').
+-define('DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES.local_one', 'local_one').
 
--define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.any', 'any').
+-define('DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES.any', 'any').
 
--define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.serial', 'serial').
+-define('DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES.serial', 'serial').
 
--define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.local_serial', 'local_serial').
+-define('DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES.local_serial', 'local_serial').
 
 
 
@@ -59,12 +59,12 @@
 
 %% The fetch size used for paging, i.e. how many rows will be returned at once.
 %%  
--define(DB_CASSANDRA_PAGESIZE, 'db.cassandra.page_size').
+-define(DB_CASSANDRA_PAGE_SIZE, 'db.cassandra.page_size').
 
 
 %% The number of times a query was speculatively executed. Not set or `0` if the query was not executed speculatively.
 %%  
--define(DB_CASSANDRA_SPECULATIVEEXECUTIONCOUNT, 'db.cassandra.speculative_execution_count').
+-define(DB_CASSANDRA_SPECULATIVE_EXECUTION_COUNT, 'db.cassandra.speculative_execution_count').
 
 %% @deprecated Replaced by `db.collection.name`.
 %% Deprecated, use `db.collection.name` instead.
@@ -91,19 +91,19 @@
 %% @deprecated "Replaced by `server.address` and `server.port`."
 %%  
 %% Deprecated, use `server.address`, `server.port` attributes instead.
--define(DB_CONNECTIONSTRING, 'db.connection_string').
+-define(DB_CONNECTION_STRING, 'db.connection_string').
 
 
 %% Unique Cosmos client instance id.
--define(DB_COSMOSDB_CLIENTID, 'db.cosmosdb.client_id').
+-define(DB_COSMOSDB_CLIENT_ID, 'db.cosmosdb.client_id').
 
 
 %% Cosmos client connection mode.
--define(DB_COSMOSDB_CONNECTIONMODE, 'db.cosmosdb.connection_mode').
+-define(DB_COSMOSDB_CONNECTION_MODE, 'db.cosmosdb.connection_mode').
 
--define('DB_COSMOSDB_CONNECTIONMODE_VALUES.gateway', 'gateway').
+-define('DB_COSMOSDB_CONNECTION_MODE_VALUES.gateway', 'gateway').
 
--define('DB_COSMOSDB_CONNECTIONMODE_VALUES.direct', 'direct').
+-define('DB_COSMOSDB_CONNECTION_MODE_VALUES.direct', 'direct').
 
 
 %% @deprecated Replaced by `db.collection.name`.
@@ -112,54 +112,54 @@
 
 
 %% CosmosDB Operation Type.
--define(DB_COSMOSDB_OPERATIONTYPE, 'db.cosmosdb.operation_type').
+-define(DB_COSMOSDB_OPERATION_TYPE, 'db.cosmosdb.operation_type').
 
--define('DB_COSMOSDB_OPERATIONTYPE_VALUES.invalid', 'Invalid').
+-define('DB_COSMOSDB_OPERATION_TYPE_VALUES.invalid', 'Invalid').
 
--define('DB_COSMOSDB_OPERATIONTYPE_VALUES.create', 'Create').
+-define('DB_COSMOSDB_OPERATION_TYPE_VALUES.create', 'Create').
 
--define('DB_COSMOSDB_OPERATIONTYPE_VALUES.patch', 'Patch').
+-define('DB_COSMOSDB_OPERATION_TYPE_VALUES.patch', 'Patch').
 
--define('DB_COSMOSDB_OPERATIONTYPE_VALUES.read', 'Read').
+-define('DB_COSMOSDB_OPERATION_TYPE_VALUES.read', 'Read').
 
--define('DB_COSMOSDB_OPERATIONTYPE_VALUES.read_feed', 'ReadFeed').
+-define('DB_COSMOSDB_OPERATION_TYPE_VALUES.read_feed', 'ReadFeed').
 
--define('DB_COSMOSDB_OPERATIONTYPE_VALUES.delete', 'Delete').
+-define('DB_COSMOSDB_OPERATION_TYPE_VALUES.delete', 'Delete').
 
--define('DB_COSMOSDB_OPERATIONTYPE_VALUES.replace', 'Replace').
+-define('DB_COSMOSDB_OPERATION_TYPE_VALUES.replace', 'Replace').
 
--define('DB_COSMOSDB_OPERATIONTYPE_VALUES.execute', 'Execute').
+-define('DB_COSMOSDB_OPERATION_TYPE_VALUES.execute', 'Execute').
 
--define('DB_COSMOSDB_OPERATIONTYPE_VALUES.query', 'Query').
+-define('DB_COSMOSDB_OPERATION_TYPE_VALUES.query', 'Query').
 
--define('DB_COSMOSDB_OPERATIONTYPE_VALUES.head', 'Head').
+-define('DB_COSMOSDB_OPERATION_TYPE_VALUES.head', 'Head').
 
--define('DB_COSMOSDB_OPERATIONTYPE_VALUES.head_feed', 'HeadFeed').
+-define('DB_COSMOSDB_OPERATION_TYPE_VALUES.head_feed', 'HeadFeed').
 
--define('DB_COSMOSDB_OPERATIONTYPE_VALUES.upsert', 'Upsert').
+-define('DB_COSMOSDB_OPERATION_TYPE_VALUES.upsert', 'Upsert').
 
--define('DB_COSMOSDB_OPERATIONTYPE_VALUES.batch', 'Batch').
+-define('DB_COSMOSDB_OPERATION_TYPE_VALUES.batch', 'Batch').
 
--define('DB_COSMOSDB_OPERATIONTYPE_VALUES.query_plan', 'QueryPlan').
+-define('DB_COSMOSDB_OPERATION_TYPE_VALUES.query_plan', 'QueryPlan').
 
--define('DB_COSMOSDB_OPERATIONTYPE_VALUES.execute_javascript', 'ExecuteJavaScript').
+-define('DB_COSMOSDB_OPERATION_TYPE_VALUES.execute_javascript', 'ExecuteJavaScript').
 
 
 
 %% RU consumed for that operation
--define(DB_COSMOSDB_REQUESTCHARGE, 'db.cosmosdb.request_charge').
+-define(DB_COSMOSDB_REQUEST_CHARGE, 'db.cosmosdb.request_charge').
 
 
 %% Request payload size in bytes
--define(DB_COSMOSDB_REQUESTCONTENTLENGTH, 'db.cosmosdb.request_content_length').
+-define(DB_COSMOSDB_REQUEST_CONTENT_LENGTH, 'db.cosmosdb.request_content_length').
 
 
 %% Cosmos DB status code.
--define(DB_COSMOSDB_STATUSCODE, 'db.cosmosdb.status_code').
+-define(DB_COSMOSDB_STATUS_CODE, 'db.cosmosdb.status_code').
 
 
 %% Cosmos DB sub status code.
--define(DB_COSMOSDB_SUBSTATUSCODE, 'db.cosmosdb.sub_status_code').
+-define(DB_COSMOSDB_SUB_STATUS_CODE, 'db.cosmosdb.sub_status_code').
 
 
 %% Represents the identifier of an Elasticsearch cluster.
@@ -174,7 +174,7 @@
 
 %% A dynamic value in the url path.
 %%  
--define(DB_ELASTICSEARCH_PATHPARTS, 'db.elasticsearch.path_parts').
+-define(DB_ELASTICSEARCH_PATH_PARTS, 'db.elasticsearch.path_parts').
 
 %% @deprecated Deprecated, no general replacement at this time. For Elasticsearch, use `db.elasticsearch.node.name` instead.
 %% Deprecated, no general replacement at this time. For Elasticsearch, use `db.elasticsearch.node.name` instead.
@@ -182,7 +182,7 @@
 
 %% @deprecated Removed as not used.
 %% Removed, no replacement at this time.
--define(DB_JDBC_DRIVERCLASSNAME, 'db.jdbc.driver_classname').
+-define(DB_JDBC_DRIVER_CLASSNAME, 'db.jdbc.driver_classname').
 
 %% @deprecated Replaced by `db.collection.name`.
 %% Deprecated, use `db.collection.name` instead.
@@ -190,7 +190,7 @@
 
 %% @deprecated Deprecated, no replacement at this time.
 %% Deprecated, SQL Server instance is now populated as a part of `db.namespace` attribute.
--define(DB_MSSQL_INSTANCENAME, 'db.mssql.instance_name').
+-define(DB_MSSQL_INSTANCE_NAME, 'db.mssql.instance_name').
 
 %% @deprecated Replaced by `db.namespace`.
 %% Deprecated, use `db.namespace` instead.
@@ -222,7 +222,7 @@
 
 %% @deprecated Replaced by `db.namespace`.
 %% Deprecated, use `db.namespace` instead.
--define(DB_REDIS_DATABASEINDEX, 'db.redis.database_index').
+-define(DB_REDIS_DATABASE_INDEX, 'db.redis.database_index').
 
 %% @deprecated Replaced by `db.collection.name`.
 %% Deprecated, use `db.collection.name` instead.

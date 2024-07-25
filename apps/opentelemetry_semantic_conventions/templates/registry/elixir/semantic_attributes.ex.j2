@@ -1,14 +1,13 @@
 {#- waiting on https://github.com/open-telemetry/weaver/pull/207 for split to be available -#}
 
-  {# {{ text | snake_case_const | replace('_', ' ') | split | reject(ctx.id) | join('_') }} #}
+  {# {{ text | snake_case | replace('_', ' ') | split | reject(ctx.id) | join('_') }} #}
 
 {%- import 'common.j2' as c %}
-{%- set acronyms = c.acronyms() -%}
 
-{%- set file_name = ctx.output ~ (c.format_acronym(ctx.id | pascal_case, acronyms) | lower) ~ "_attributes.ex" -%}
+{%- set file_name = ctx.output ~ c.file_name(ctx.id) ~ "_attributes.ex" -%}
 {{ template.set_file_name(file_name) }}
 
-{%- set module_name = c.format_acronym(ctx.id | pascal_case, acronyms) ~ "Attributes" -%}
+{%- set module_name = ctx.id | pascal_case | acronym ~ "Attributes" -%}
 {%- if params.stability == "experimental" -%}
 {%- set module_namespace = "OpenTelemetry.SemConv.Incubating" -%}
 {%- else -%}
@@ -17,7 +16,7 @@
 defmodule {{ module_namespace }}.{{ module_name }} do
   # This is an auto-generated file
   @moduledoc """
-  OpenTelemetry Semantic Conventions for {{ c.format_acronym(ctx.id | title, acronyms) }} attributes.
+  OpenTelemetry Semantic Conventions for {{ ctx.id | title | acronym }} attributes.
   """
 {%- for attribute in ctx.attributes | sort(attribute="name") %}
   {% if attribute.type is mapping %}
@@ -30,7 +29,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   {%- if member is experimental %} ^[e](`m:OpenTelemetry.SemConv#experimental`)^{% endif %}{% if member.brief != none %} - {% if member is deprecated %}**deprecated** ~~{% endif %}{{ member.brief }}{% if member is deprecated %}~~{% endif %}{% endif %}
   {% endfor -%}
   """
-  @type {{ attribute.name | snake_case_const }}_values() :: {{ c.enum_to_map(attribute.type.members) }}
+  @type {{ c.func_name(attribute.name) }}_values() :: {{ c.enum_to_map(attribute.type.members) }}
   {%- endif -%}
  
   {% if attribute is deprecated %}
@@ -77,13 +76,13 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   ### Erlang
 
   ```erlang
-  ?{{ attribute.name | snake_case_const | upper }}.
+  ?{{ c.erl_attr_name(attribute.name) }}.
   '{{ attribute.name }}'
 
-  ?'{{ attribute.name | snake_case_const | upper }}_VALUES.{{ attribute.type.members|first|attr('id') }}'.
+  ?'{{ c.erl_attr_name(attribute.name) }}_VALUES.{{ attribute.type.members|first|attr('id') }}'.
   {{ attribute.type.members|first|attr('value') }}
   
-  {% raw %}\#{{% endraw %}?{{ attribute.name | snake_case_const | upper }} => ?'{{ attribute.name | snake_case_const | upper }}_VALUES.{{ attribute.type.members|first|attr('id') }}'{% raw %}}{% endraw %}.
+  {% raw %}\#{{% endraw %}?{{ c.erl_attr_name(attribute.name) }} => ?'{{ c.erl_attr_name(attribute.name) }}_VALUES.{{ attribute.type.members|first|attr('id') }}'{% raw %}}{% endraw %}.
   {% raw %}\#{{% endraw %}'{{ attribute.name }}' => {{ attribute.type.members|first|attr('value') }}{% raw %}}{% endraw %}
   ```
   {%- else %}
@@ -96,7 +95,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   ### Erlang
 
   ```erlang
-  ?{{ attribute.name | snake_case_const | upper }}.
+  ?{{ c.erl_attr_name(attribute.name) }}.
   '{{ attribute.name }}'
   ```
   {%- endif %}
@@ -110,7 +109,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   end
   
   {%- if attribute.type is mapping %}
-  @spec {{ c.func_name(attribute.name) }}_values() :: {{ attribute.name | snake_case_const }}_values()
+  @spec {{ c.func_name(attribute.name) }}_values() :: {{ c.func_name(attribute.name) }}_values()
   def {{ c.func_name(attribute.name) }}_values() do
   {{ c.enum_to_map(attribute.type.members) }}
   end

@@ -21,12 +21,12 @@
 
 %% All the command arguments (including the command/executable itself) run by the container. [2]
 %%  
--define(CONTAINER_COMMANDARGS, 'container.command_args').
+-define(CONTAINER_COMMAND_ARGS, 'container.command_args').
 
 
 %% The full command run by the container as a single string representing the full command. [2]
 %%  
--define(CONTAINER_COMMANDLINE, 'container.command_line').
+-define(CONTAINER_COMMAND_LINE, 'container.command_line').
 
 
 %% The CPU state for this data point.
@@ -57,7 +57,7 @@
 
 %% Repo digests of the container image as provided by the container runtime.
 %%  
--define(CONTAINER_IMAGE_REPODIGESTS, 'container.image.repo_digests').
+-define(CONTAINER_IMAGE_REPO_DIGESTS, 'container.image.repo_digests').
 
 
 %% Container image tags. An example can be found in [Docker Image Inspect](https://docs.docker.com/engine/api/v1.43/#tag/Image/operation/ImageInspect). Should be only the `<tag>` section of the full name for example from `registry.example.com/my-org/my-image:<tag>`.

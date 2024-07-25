@@ -26,4 +26,4 @@
 
 %% Time and date the release was created
 %%  
--define(HEROKU_RELEASE_CREATIONTIMESTAMP, 'heroku.release.creation_timestamp').
+-define(HEROKU_RELEASE_CREATION_TIMESTAMP, 'heroku.release.creation_timestamp').

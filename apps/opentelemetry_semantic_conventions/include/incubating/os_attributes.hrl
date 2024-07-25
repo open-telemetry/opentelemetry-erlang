@@ -15,7 +15,7 @@
 %%%-------------------------------------------------------------------------
 
 %% Unique identifier for a particular build or compilation of the operating system.
--define(OS_BUILDID, 'os.build_id').
+-define(OS_BUILD_ID, 'os.build_id').
 
 
 %% Human readable (not intended to be parsed) OS version information, like e.g. reported by `ver` or `lsb_release -a` commands.

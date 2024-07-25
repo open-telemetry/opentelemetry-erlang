@@ -160,20 +160,20 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.HTTPAttributes.http_request_methodoriginal()
+      iex> OpenTelemetry.SemConv.HTTPAttributes.http_request_method_original()
       :"http.request.method_original"
 
   ### Erlang
 
   ```erlang
-  ?HTTP_REQUEST_METHODORIGINAL.
+  ?HTTP_REQUEST_METHOD_ORIGINAL.
   'http.request.method_original'
   ```
 
   <!-- tabs-close -->
   """
-  @spec http_request_methodoriginal :: :"http.request.method_original"
-  def http_request_methodoriginal do
+  @spec http_request_method_original :: :"http.request.method_original"
+  def http_request_method_original do
     :"http.request.method_original"
   end
 
@@ -197,20 +197,20 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.HTTPAttributes.http_request_resendcount()
+      iex> OpenTelemetry.SemConv.HTTPAttributes.http_request_resend_count()
       :"http.request.resend_count"
 
   ### Erlang
 
   ```erlang
-  ?HTTP_REQUEST_RESENDCOUNT.
+  ?HTTP_REQUEST_RESEND_COUNT.
   'http.request.resend_count'
   ```
 
   <!-- tabs-close -->
   """
-  @spec http_request_resendcount :: :"http.request.resend_count"
-  def http_request_resendcount do
+  @spec http_request_resend_count :: :"http.request.resend_count"
+  def http_request_resend_count do
     :"http.request.resend_count"
   end
 
@@ -268,20 +268,20 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.HTTPAttributes.http_response_statuscode()
+      iex> OpenTelemetry.SemConv.HTTPAttributes.http_response_status_code()
       :"http.response.status_code"
 
   ### Erlang
 
   ```erlang
-  ?HTTP_RESPONSE_STATUSCODE.
+  ?HTTP_RESPONSE_STATUS_CODE.
   'http.response.status_code'
   ```
 
   <!-- tabs-close -->
   """
-  @spec http_response_statuscode :: :"http.response.status_code"
-  def http_response_statuscode do
+  @spec http_response_status_code :: :"http.response.status_code"
+  def http_response_status_code do
     :"http.response.status_code"
   end
 

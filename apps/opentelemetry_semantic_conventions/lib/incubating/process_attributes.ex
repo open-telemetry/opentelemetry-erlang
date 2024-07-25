@@ -53,20 +53,20 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_commandargs()
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_command_args()
       :"process.command_args"
 
   ### Erlang
 
   ```erlang
-  ?PROCESS_COMMANDARGS.
+  ?PROCESS_COMMAND_ARGS.
   'process.command_args'
   ```
 
   <!-- tabs-close -->
   """
-  @spec process_commandargs :: :"process.command_args"
-  def process_commandargs do
+  @spec process_command_args :: :"process.command_args"
+  def process_command_args do
     :"process.command_args"
   end
 
@@ -86,20 +86,20 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_commandline()
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_command_line()
       :"process.command_line"
 
   ### Erlang
 
   ```erlang
-  ?PROCESS_COMMANDLINE.
+  ?PROCESS_COMMAND_LINE.
   'process.command_line'
   ```
 
   <!-- tabs-close -->
   """
-  @spec process_commandline :: :"process.command_line"
-  def process_commandline do
+  @spec process_command_line :: :"process.command_line"
+  def process_command_line do
     :"process.command_line"
   end
 
@@ -110,7 +110,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   * `:voluntary` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:involuntary` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   """
-  @type process_contextswitchtype_values() :: %{
+  @type process_context_switch_type_values() :: %{
           :voluntary => :voluntary,
           :involuntary => :involuntary
         }
@@ -122,37 +122,37 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_contextswitchtype()
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_context_switch_type()
       :"process.context_switch_type"
       
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_contextswitchtype_values().voluntary
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_context_switch_type_values().voluntary
       :voluntary
       
-      iex> %{OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_contextswitchtype() => OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_contextswitchtype_values().voluntary}
+      iex> %{OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_context_switch_type() => OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_context_switch_type_values().voluntary}
       %{:"process.context_switch_type" => :voluntary}
 
   ### Erlang
 
   ```erlang
-  ?PROCESS_CONTEXTSWITCHTYPE.
+  ?PROCESS_CONTEXT_SWITCH_TYPE.
   'process.context_switch_type'
 
-  ?'PROCESS_CONTEXTSWITCHTYPE_VALUES.voluntary'.
+  ?'PROCESS_CONTEXT_SWITCH_TYPE_VALUES.voluntary'.
   voluntary
 
-  \#{?PROCESS_CONTEXTSWITCHTYPE => ?'PROCESS_CONTEXTSWITCHTYPE_VALUES.voluntary'}.
+  \#{?PROCESS_CONTEXT_SWITCH_TYPE => ?'PROCESS_CONTEXT_SWITCH_TYPE_VALUES.voluntary'}.
   \#{'process.context_switch_type' => voluntary}
   ```
 
   <!-- tabs-close -->
   """
-  @spec process_contextswitchtype :: :"process.context_switch_type"
-  def process_contextswitchtype do
+  @spec process_context_switch_type :: :"process.context_switch_type"
+  def process_context_switch_type do
     :"process.context_switch_type"
   end
 
-  @spec process_contextswitchtype_values() :: process_contextswitchtype_values()
-  def process_contextswitchtype_values() do
+  @spec process_context_switch_type_values() :: process_context_switch_type_values()
+  def process_context_switch_type_values() do
     %{
       :voluntary => :voluntary,
       :involuntary => :involuntary
@@ -401,20 +401,20 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_groupleader_pid()
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_group_leader_pid()
       :"process.group_leader.pid"
 
   ### Erlang
 
   ```erlang
-  ?PROCESS_GROUPLEADER_PID.
+  ?PROCESS_GROUP_LEADER_PID.
   'process.group_leader.pid'
   ```
 
   <!-- tabs-close -->
   """
-  @spec process_groupleader_pid :: :"process.group_leader.pid"
-  def process_groupleader_pid do
+  @spec process_group_leader_pid :: :"process.group_leader.pid"
+  def process_group_leader_pid do
     :"process.group_leader.pid"
   end
 
@@ -487,7 +487,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   * `:major` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:minor` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   """
-  @type process_paging_faulttype_values() :: %{
+  @type process_paging_fault_type_values() :: %{
           :major => :major,
           :minor => :minor
         }
@@ -500,37 +500,37 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_faulttype()
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_fault_type()
       :"process.paging.fault_type"
       
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_faulttype_values().major
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_fault_type_values().major
       :major
       
-      iex> %{OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_faulttype() => OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_faulttype_values().major}
+      iex> %{OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_fault_type() => OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_fault_type_values().major}
       %{:"process.paging.fault_type" => :major}
 
   ### Erlang
 
   ```erlang
-  ?PROCESS_PAGING_FAULTTYPE.
+  ?PROCESS_PAGING_FAULT_TYPE.
   'process.paging.fault_type'
 
-  ?'PROCESS_PAGING_FAULTTYPE_VALUES.major'.
+  ?'PROCESS_PAGING_FAULT_TYPE_VALUES.major'.
   major
 
-  \#{?PROCESS_PAGING_FAULTTYPE => ?'PROCESS_PAGING_FAULTTYPE_VALUES.major'}.
+  \#{?PROCESS_PAGING_FAULT_TYPE => ?'PROCESS_PAGING_FAULT_TYPE_VALUES.major'}.
   \#{'process.paging.fault_type' => major}
   ```
 
   <!-- tabs-close -->
   """
-  @spec process_paging_faulttype :: :"process.paging.fault_type"
-  def process_paging_faulttype do
+  @spec process_paging_fault_type :: :"process.paging.fault_type"
+  def process_paging_fault_type do
     :"process.paging.fault_type"
   end
 
-  @spec process_paging_faulttype_values() :: process_paging_faulttype_values()
-  def process_paging_faulttype_values() do
+  @spec process_paging_fault_type_values() :: process_paging_fault_type_values()
+  def process_paging_fault_type_values() do
     %{
       :major => :major,
       :minor => :minor
@@ -553,20 +553,20 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_parentpid()
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_parent_pid()
       :"process.parent_pid"
 
   ### Erlang
 
   ```erlang
-  ?PROCESS_PARENTPID.
+  ?PROCESS_PARENT_PID.
   'process.parent_pid'
   ```
 
   <!-- tabs-close -->
   """
-  @spec process_parentpid :: :"process.parent_pid"
-  def process_parentpid do
+  @spec process_parent_pid :: :"process.parent_pid"
+  def process_parent_pid do
     :"process.parent_pid"
   end
 
@@ -619,20 +619,20 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_realuser_id()
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_real_user_id()
       :"process.real_user.id"
 
   ### Erlang
 
   ```erlang
-  ?PROCESS_REALUSER_ID.
+  ?PROCESS_REAL_USER_ID.
   'process.real_user.id'
   ```
 
   <!-- tabs-close -->
   """
-  @spec process_realuser_id :: :"process.real_user.id"
-  def process_realuser_id do
+  @spec process_real_user_id :: :"process.real_user.id"
+  def process_real_user_id do
     :"process.real_user.id"
   end
 
@@ -652,20 +652,20 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_realuser_name()
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_real_user_name()
       :"process.real_user.name"
 
   ### Erlang
 
   ```erlang
-  ?PROCESS_REALUSER_NAME.
+  ?PROCESS_REAL_USER_NAME.
   'process.real_user.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec process_realuser_name :: :"process.real_user.name"
-  def process_realuser_name do
+  @spec process_real_user_name :: :"process.real_user.name"
+  def process_real_user_name do
     :"process.real_user.name"
   end
 
@@ -784,20 +784,20 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_saveduser_id()
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_saved_user_id()
       :"process.saved_user.id"
 
   ### Erlang
 
   ```erlang
-  ?PROCESS_SAVEDUSER_ID.
+  ?PROCESS_SAVED_USER_ID.
   'process.saved_user.id'
   ```
 
   <!-- tabs-close -->
   """
-  @spec process_saveduser_id :: :"process.saved_user.id"
-  def process_saveduser_id do
+  @spec process_saved_user_id :: :"process.saved_user.id"
+  def process_saved_user_id do
     :"process.saved_user.id"
   end
 
@@ -817,20 +817,20 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_saveduser_name()
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_saved_user_name()
       :"process.saved_user.name"
 
   ### Erlang
 
   ```erlang
-  ?PROCESS_SAVEDUSER_NAME.
+  ?PROCESS_SAVED_USER_NAME.
   'process.saved_user.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec process_saveduser_name :: :"process.saved_user.name"
-  def process_saveduser_name do
+  @spec process_saved_user_name :: :"process.saved_user.name"
+  def process_saved_user_name do
     :"process.saved_user.name"
   end
 
@@ -850,20 +850,20 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_sessionleader_pid()
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_session_leader_pid()
       :"process.session_leader.pid"
 
   ### Erlang
 
   ```erlang
-  ?PROCESS_SESSIONLEADER_PID.
+  ?PROCESS_SESSION_LEADER_PID.
   'process.session_leader.pid'
   ```
 
   <!-- tabs-close -->
   """
-  @spec process_sessionleader_pid :: :"process.session_leader.pid"
-  def process_sessionleader_pid do
+  @spec process_session_leader_pid :: :"process.session_leader.pid"
+  def process_session_leader_pid do
     :"process.session_leader.pid"
   end
 

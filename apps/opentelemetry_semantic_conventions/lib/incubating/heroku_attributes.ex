@@ -86,20 +86,20 @@ defmodule OpenTelemetry.SemConv.Incubating.HerokuAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.HerokuAttributes.heroku_release_creationtimestamp()
+      iex> OpenTelemetry.SemConv.Incubating.HerokuAttributes.heroku_release_creation_timestamp()
       :"heroku.release.creation_timestamp"
 
   ### Erlang
 
   ```erlang
-  ?HEROKU_RELEASE_CREATIONTIMESTAMP.
+  ?HEROKU_RELEASE_CREATION_TIMESTAMP.
   'heroku.release.creation_timestamp'
   ```
 
   <!-- tabs-close -->
   """
-  @spec heroku_release_creationtimestamp :: :"heroku.release.creation_timestamp"
-  def heroku_release_creationtimestamp do
+  @spec heroku_release_creation_timestamp :: :"heroku.release.creation_timestamp"
+  def heroku_release_creation_timestamp do
     :"heroku.release.creation_timestamp"
   end
 end

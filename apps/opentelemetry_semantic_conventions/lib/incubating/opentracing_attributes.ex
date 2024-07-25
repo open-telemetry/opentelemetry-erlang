@@ -11,7 +11,7 @@ defmodule OpenTelemetry.SemConv.Incubating.OpentracingAttributes do
   * `:child_of` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - The parent Span depends on the child Span in some capacity
   * `:follows_from` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - The parent Span doesn't depend in any way on the result of the child Span
   """
-  @type opentracing_reftype_values() :: %{
+  @type opentracing_ref_type_values() :: %{
           :child_of => :child_of,
           :follows_from => :follows_from
         }
@@ -27,37 +27,37 @@ defmodule OpenTelemetry.SemConv.Incubating.OpentracingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.OpentracingAttributes.opentracing_reftype()
+      iex> OpenTelemetry.SemConv.Incubating.OpentracingAttributes.opentracing_ref_type()
       :"opentracing.ref_type"
       
-      iex> OpenTelemetry.SemConv.Incubating.OpentracingAttributes.opentracing_reftype_values().child_of
+      iex> OpenTelemetry.SemConv.Incubating.OpentracingAttributes.opentracing_ref_type_values().child_of
       :child_of
       
-      iex> %{OpenTelemetry.SemConv.Incubating.OpentracingAttributes.opentracing_reftype() => OpenTelemetry.SemConv.Incubating.OpentracingAttributes.opentracing_reftype_values().child_of}
+      iex> %{OpenTelemetry.SemConv.Incubating.OpentracingAttributes.opentracing_ref_type() => OpenTelemetry.SemConv.Incubating.OpentracingAttributes.opentracing_ref_type_values().child_of}
       %{:"opentracing.ref_type" => :child_of}
 
   ### Erlang
 
   ```erlang
-  ?OPENTRACING_REFTYPE.
+  ?OPENTRACING_REF_TYPE.
   'opentracing.ref_type'
 
-  ?'OPENTRACING_REFTYPE_VALUES.child_of'.
+  ?'OPENTRACING_REF_TYPE_VALUES.child_of'.
   child_of
 
-  \#{?OPENTRACING_REFTYPE => ?'OPENTRACING_REFTYPE_VALUES.child_of'}.
+  \#{?OPENTRACING_REF_TYPE => ?'OPENTRACING_REF_TYPE_VALUES.child_of'}.
   \#{'opentracing.ref_type' => child_of}
   ```
 
   <!-- tabs-close -->
   """
-  @spec opentracing_reftype :: :"opentracing.ref_type"
-  def opentracing_reftype do
+  @spec opentracing_ref_type :: :"opentracing.ref_type"
+  def opentracing_ref_type do
     :"opentracing.ref_type"
   end
 
-  @spec opentracing_reftype_values() :: opentracing_reftype_values()
-  def opentracing_reftype_values() do
+  @spec opentracing_ref_type_values() :: opentracing_ref_type_values()
+  def opentracing_ref_type_values() do
     %{
       :child_of => :child_of,
       :follows_from => :follows_from

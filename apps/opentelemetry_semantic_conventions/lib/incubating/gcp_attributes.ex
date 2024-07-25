@@ -20,20 +20,20 @@ defmodule OpenTelemetry.SemConv.Incubating.GCPAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GCPAttributes.gcp_cloudrun_job_execution()
+      iex> OpenTelemetry.SemConv.Incubating.GCPAttributes.gcp_cloud_run_job_execution()
       :"gcp.cloud_run.job.execution"
 
   ### Erlang
 
   ```erlang
-  ?GCP_CLOUDRUN_JOB_EXECUTION.
+  ?GCP_CLOUD_RUN_JOB_EXECUTION.
   'gcp.cloud_run.job.execution'
   ```
 
   <!-- tabs-close -->
   """
-  @spec gcp_cloudrun_job_execution :: :"gcp.cloud_run.job.execution"
-  def gcp_cloudrun_job_execution do
+  @spec gcp_cloud_run_job_execution :: :"gcp.cloud_run.job.execution"
+  def gcp_cloud_run_job_execution do
     :"gcp.cloud_run.job.execution"
   end
 
@@ -53,20 +53,20 @@ defmodule OpenTelemetry.SemConv.Incubating.GCPAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GCPAttributes.gcp_cloudrun_job_taskindex()
+      iex> OpenTelemetry.SemConv.Incubating.GCPAttributes.gcp_cloud_run_job_task_index()
       :"gcp.cloud_run.job.task_index"
 
   ### Erlang
 
   ```erlang
-  ?GCP_CLOUDRUN_JOB_TASKINDEX.
+  ?GCP_CLOUD_RUN_JOB_TASK_INDEX.
   'gcp.cloud_run.job.task_index'
   ```
 
   <!-- tabs-close -->
   """
-  @spec gcp_cloudrun_job_taskindex :: :"gcp.cloud_run.job.task_index"
-  def gcp_cloudrun_job_taskindex do
+  @spec gcp_cloud_run_job_task_index :: :"gcp.cloud_run.job.task_index"
+  def gcp_cloud_run_job_task_index do
     :"gcp.cloud_run.job.task_index"
   end
 

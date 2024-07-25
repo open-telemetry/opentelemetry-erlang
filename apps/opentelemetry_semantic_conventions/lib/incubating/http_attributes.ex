@@ -7,8 +7,8 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   @deprecated """
   Replaced by `client.address`.
   """
-  @spec http_clientip :: :"http.client_ip"
-  def http_clientip do
+  @spec http_client_ip :: :"http.client_ip"
+  def http_client_ip do
     :"http.client_ip"
   end
 
@@ -197,16 +197,16 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   @deprecated """
   Replaced by `http.request.header.content-length`.
   """
-  @spec http_requestcontentlength :: :"http.request_content_length"
-  def http_requestcontentlength do
+  @spec http_request_content_length :: :"http.request_content_length"
+  def http_request_content_length do
     :"http.request_content_length"
   end
 
   @deprecated """
   Replaced by `http.request.body.size`.
   """
-  @spec http_requestcontentlengthuncompressed :: :"http.request_content_length_uncompressed"
-  def http_requestcontentlengthuncompressed do
+  @spec http_request_content_length_uncompressed :: :"http.request_content_length_uncompressed"
+  def http_request_content_length_uncompressed do
     :"http.request_content_length_uncompressed"
   end
 
@@ -279,16 +279,16 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   @deprecated """
   Replaced by `http.response.header.content-length`.
   """
-  @spec http_responsecontentlength :: :"http.response_content_length"
-  def http_responsecontentlength do
+  @spec http_response_content_length :: :"http.response_content_length"
+  def http_response_content_length do
     :"http.response_content_length"
   end
 
   @deprecated """
   Replace by `http.response.body.size`.
   """
-  @spec http_responsecontentlengthuncompressed :: :"http.response_content_length_uncompressed"
-  def http_responsecontentlengthuncompressed do
+  @spec http_response_content_length_uncompressed :: :"http.response_content_length_uncompressed"
+  def http_response_content_length_uncompressed do
     :"http.response_content_length_uncompressed"
   end
 
@@ -303,16 +303,16 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   @deprecated """
   Replaced by `server.address`.
   """
-  @spec http_servername :: :"http.server_name"
-  def http_servername do
+  @spec http_server_name :: :"http.server_name"
+  def http_server_name do
     :"http.server_name"
   end
 
   @deprecated """
   Replaced by `http.response.status_code`.
   """
-  @spec http_statuscode :: :"http.status_code"
-  def http_statuscode do
+  @spec http_status_code :: :"http.status_code"
+  def http_status_code do
     :"http.status_code"
   end
 
@@ -335,8 +335,8 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   @deprecated """
   Replaced by `user_agent.original`.
   """
-  @spec http_useragent :: :"http.user_agent"
-  def http_useragent do
+  @spec http_user_agent :: :"http.user_agent"
+  def http_user_agent do
     :"http.user_agent"
   end
 end

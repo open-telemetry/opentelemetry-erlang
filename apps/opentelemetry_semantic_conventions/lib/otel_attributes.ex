@@ -75,7 +75,7 @@ defmodule OpenTelemetry.SemConv.OtelAttributes do
   * `:ok` - The operation has been validated by an Application developer or Operator to have completed successfully.
   * `:error` - The operation contains an error.
   """
-  @type otel_statuscode_values() :: %{
+  @type otel_status_code_values() :: %{
           :ok => :OK,
           :error => :ERROR
         }
@@ -87,37 +87,37 @@ defmodule OpenTelemetry.SemConv.OtelAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.OtelAttributes.otel_statuscode()
+      iex> OpenTelemetry.SemConv.OtelAttributes.otel_status_code()
       :"otel.status_code"
       
-      iex> OpenTelemetry.SemConv.OtelAttributes.otel_statuscode_values().ok
+      iex> OpenTelemetry.SemConv.OtelAttributes.otel_status_code_values().ok
       :OK
       
-      iex> %{OpenTelemetry.SemConv.OtelAttributes.otel_statuscode() => OpenTelemetry.SemConv.OtelAttributes.otel_statuscode_values().ok}
+      iex> %{OpenTelemetry.SemConv.OtelAttributes.otel_status_code() => OpenTelemetry.SemConv.OtelAttributes.otel_status_code_values().ok}
       %{:"otel.status_code" => :OK}
 
   ### Erlang
 
   ```erlang
-  ?OTEL_STATUSCODE.
+  ?OTEL_STATUS_CODE.
   'otel.status_code'
 
-  ?'OTEL_STATUSCODE_VALUES.ok'.
+  ?'OTEL_STATUS_CODE_VALUES.ok'.
   OK
 
-  \#{?OTEL_STATUSCODE => ?'OTEL_STATUSCODE_VALUES.ok'}.
+  \#{?OTEL_STATUS_CODE => ?'OTEL_STATUS_CODE_VALUES.ok'}.
   \#{'otel.status_code' => OK}
   ```
 
   <!-- tabs-close -->
   """
-  @spec otel_statuscode :: :"otel.status_code"
-  def otel_statuscode do
+  @spec otel_status_code :: :"otel.status_code"
+  def otel_status_code do
     :"otel.status_code"
   end
 
-  @spec otel_statuscode_values() :: otel_statuscode_values()
-  def otel_statuscode_values() do
+  @spec otel_status_code_values() :: otel_status_code_values()
+  def otel_status_code_values() do
     %{
       :ok => :OK,
       :error => :ERROR
@@ -139,20 +139,20 @@ defmodule OpenTelemetry.SemConv.OtelAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.OtelAttributes.otel_statusdescription()
+      iex> OpenTelemetry.SemConv.OtelAttributes.otel_status_description()
       :"otel.status_description"
 
   ### Erlang
 
   ```erlang
-  ?OTEL_STATUSDESCRIPTION.
+  ?OTEL_STATUS_DESCRIPTION.
   'otel.status_description'
   ```
 
   <!-- tabs-close -->
   """
-  @spec otel_statusdescription :: :"otel.status_description"
-  def otel_statusdescription do
+  @spec otel_status_description :: :"otel.status_description"
+  def otel_status_description do
     :"otel.status_description"
   end
 end
