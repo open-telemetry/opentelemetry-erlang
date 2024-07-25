@@ -46,7 +46,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DiskAttributes do
   ?DISK_IO_DIRECTION.
   'disk.io.direction'
 
-  \#{?DISK_IO_DIRECTION => ?DISK_IO_DIRECTION_VALUES.read}.
+  \#{?DISK_IO_DIRECTION => ?'DISK_IO_DIRECTION_VALUES.read'}.
   \#{'disk.io.direction' => read}
 
   ?'DISK_IO_DIRECTION_VALUES.read'.

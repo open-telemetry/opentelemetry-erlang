@@ -803,7 +803,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ?AWS_ECS_LAUNCHTYPE.
   'aws.ecs.launchtype'
 
-  \#{?AWS_ECS_LAUNCHTYPE => ?AWS_ECS_LAUNCHTYPE_VALUES.ec2}.
+  \#{?AWS_ECS_LAUNCHTYPE => ?'AWS_ECS_LAUNCHTYPE_VALUES.ec2'}.
   \#{'aws.ecs.launchtype' => ec2}
 
   ?'AWS_ECS_LAUNCHTYPE_VALUES.ec2'.

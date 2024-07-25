@@ -169,7 +169,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   ?CLOUD_PLATFORM.
   'cloud.platform'
 
-  \#{?CLOUD_PLATFORM => ?CLOUD_PLATFORM_VALUES.alibaba_cloud_ecs}.
+  \#{?CLOUD_PLATFORM => ?'CLOUD_PLATFORM_VALUES.alibaba_cloud_ecs'}.
   \#{'cloud.platform' => alibaba_cloud_ecs}
 
   ?'CLOUD_PLATFORM_VALUES.alibaba_cloud_ecs'.
@@ -274,7 +274,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   ?CLOUD_PROVIDER.
   'cloud.provider'
 
-  \#{?CLOUD_PROVIDER => ?CLOUD_PROVIDER_VALUES.alibaba_cloud}.
+  \#{?CLOUD_PROVIDER => ?'CLOUD_PROVIDER_VALUES.alibaba_cloud'}.
   \#{'cloud.provider' => alibaba_cloud}
 
   ?'CLOUD_PROVIDER_VALUES.alibaba_cloud'.

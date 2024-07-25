@@ -61,7 +61,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ?DB_CASSANDRA_CONSISTENCYLEVEL.
   'db.cassandra.consistency_level'
 
-  \#{?DB_CASSANDRA_CONSISTENCYLEVEL => ?DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.all}.
+  \#{?DB_CASSANDRA_CONSISTENCYLEVEL => ?'DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.all'}.
   \#{'db.cassandra.consistency_level' => all}
 
   ?'DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.all'.
@@ -343,7 +343,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ?DB_CLIENT_CONNECTIONS_STATE.
   'db.client.connections.state'
 
-  \#{?DB_CLIENT_CONNECTIONS_STATE => ?DB_CLIENT_CONNECTIONS_STATE_VALUES.idle}.
+  \#{?DB_CLIENT_CONNECTIONS_STATE => ?'DB_CLIENT_CONNECTIONS_STATE_VALUES.idle'}.
   \#{'db.client.connections.state' => idle}
 
   ?'DB_CLIENT_CONNECTIONS_STATE_VALUES.idle'.
@@ -488,7 +488,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ?DB_COSMOSDB_CONNECTIONMODE.
   'db.cosmosdb.connection_mode'
 
-  \#{?DB_COSMOSDB_CONNECTIONMODE => ?DB_COSMOSDB_CONNECTIONMODE_VALUES.gateway}.
+  \#{?DB_COSMOSDB_CONNECTIONMODE => ?'DB_COSMOSDB_CONNECTIONMODE_VALUES.gateway'}.
   \#{'db.cosmosdb.connection_mode' => gateway}
 
   ?'DB_COSMOSDB_CONNECTIONMODE_VALUES.gateway'.
@@ -589,7 +589,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ?DB_COSMOSDB_OPERATIONTYPE.
   'db.cosmosdb.operation_type'
 
-  \#{?DB_COSMOSDB_OPERATIONTYPE => ?DB_COSMOSDB_OPERATIONTYPE_VALUES.invalid}.
+  \#{?DB_COSMOSDB_OPERATIONTYPE => ?'DB_COSMOSDB_OPERATIONTYPE_VALUES.invalid'}.
   \#{'db.cosmosdb.operation_type' => Invalid}
 
   ?'DB_COSMOSDB_OPERATIONTYPE_VALUES.invalid'.
@@ -1218,7 +1218,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ?DB_SYSTEM.
   'db.system'
 
-  \#{?DB_SYSTEM => ?DB_SYSTEM_VALUES.other_sql}.
+  \#{?DB_SYSTEM => ?'DB_SYSTEM_VALUES.other_sql'}.
   \#{'db.system' => other_sql}
 
   ?'DB_SYSTEM_VALUES.other_sql'.

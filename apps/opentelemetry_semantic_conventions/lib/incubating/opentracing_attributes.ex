@@ -45,7 +45,7 @@ defmodule OpenTelemetry.SemConv.Incubating.OpentracingAttributes do
   ?OPENTRACING_REFTYPE.
   'opentracing.ref_type'
 
-  \#{?OPENTRACING_REFTYPE => ?OPENTRACING_REFTYPE_VALUES.child_of}.
+  \#{?OPENTRACING_REFTYPE => ?'OPENTRACING_REFTYPE_VALUES.child_of'}.
   \#{'opentracing.ref_type' => child_of}
 
   ?'OPENTRACING_REFTYPE_VALUES.child_of'.

@@ -54,7 +54,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   ?HTTP_CONNECTION_STATE.
   'http.connection.state'
 
-  \#{?HTTP_CONNECTION_STATE => ?HTTP_CONNECTION_STATE_VALUES.active}.
+  \#{?HTTP_CONNECTION_STATE => ?'HTTP_CONNECTION_STATE_VALUES.active'}.
   \#{'http.connection.state' => active}
 
   ?'HTTP_CONNECTION_STATE_VALUES.active'.

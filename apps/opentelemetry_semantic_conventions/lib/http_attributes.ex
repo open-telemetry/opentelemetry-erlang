@@ -118,7 +118,7 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   ?HTTP_REQUEST_METHOD.
   'http.request.method'
 
-  \#{?HTTP_REQUEST_METHOD => ?HTTP_REQUEST_METHOD_VALUES.connect}.
+  \#{?HTTP_REQUEST_METHOD => ?'HTTP_REQUEST_METHOD_VALUES.connect'}.
   \#{'http.request.method' => CONNECT}
 
   ?'HTTP_REQUEST_METHOD_VALUES.connect'.

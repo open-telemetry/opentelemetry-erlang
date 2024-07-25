@@ -158,7 +158,7 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
   ?OS_TYPE.
   'os.type'
 
-  \#{?OS_TYPE => ?OS_TYPE_VALUES.windows}.
+  \#{?OS_TYPE => ?'OS_TYPE_VALUES.windows'}.
   \#{'os.type' => windows}
 
   ?'OS_TYPE_VALUES.windows'.

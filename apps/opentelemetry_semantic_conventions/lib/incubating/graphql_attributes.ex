@@ -115,7 +115,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GraphqlAttributes do
   ?GRAPHQL_OPERATION_TYPE.
   'graphql.operation.type'
 
-  \#{?GRAPHQL_OPERATION_TYPE => ?GRAPHQL_OPERATION_TYPE_VALUES.query}.
+  \#{?GRAPHQL_OPERATION_TYPE => ?'GRAPHQL_OPERATION_TYPE_VALUES.query'}.
   \#{'graphql.operation.type' => query}
 
   ?'GRAPHQL_OPERATION_TYPE_VALUES.query'.

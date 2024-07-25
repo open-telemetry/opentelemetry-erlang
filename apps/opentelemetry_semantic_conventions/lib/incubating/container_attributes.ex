@@ -151,7 +151,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ?CONTAINER_CPU_STATE.
   'container.cpu.state'
 
-  \#{?CONTAINER_CPU_STATE => ?CONTAINER_CPU_STATE_VALUES.user}.
+  \#{?CONTAINER_CPU_STATE => ?'CONTAINER_CPU_STATE_VALUES.user'}.
   \#{'container.cpu.state' => user}
 
   ?'CONTAINER_CPU_STATE_VALUES.user'.

@@ -259,7 +259,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   ?NETWORK_TRANSPORT.
   'network.transport'
 
-  \#{?NETWORK_TRANSPORT => ?NETWORK_TRANSPORT_VALUES.tcp}.
+  \#{?NETWORK_TRANSPORT => ?'NETWORK_TRANSPORT_VALUES.tcp'}.
   \#{'network.transport' => tcp}
 
   ?'NETWORK_TRANSPORT_VALUES.tcp'.
@@ -336,7 +336,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   ?NETWORK_TYPE.
   'network.type'
 
-  \#{?NETWORK_TYPE => ?NETWORK_TYPE_VALUES.ipv4}.
+  \#{?NETWORK_TYPE => ?'NETWORK_TYPE_VALUES.ipv4'}.
   \#{'network.type' => ipv4}
 
   ?'NETWORK_TYPE_VALUES.ipv4'.

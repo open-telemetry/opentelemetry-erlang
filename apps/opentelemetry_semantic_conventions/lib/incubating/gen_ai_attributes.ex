@@ -342,7 +342,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ?GENAI_SYSTEM.
   'gen_ai.system'
 
-  \#{?GENAI_SYSTEM => ?GENAI_SYSTEM_VALUES.openai}.
+  \#{?GENAI_SYSTEM => ?'GENAI_SYSTEM_VALUES.openai'}.
   \#{'gen_ai.system' => openai}
 
   ?'GENAI_SYSTEM_VALUES.openai'.

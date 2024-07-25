@@ -392,7 +392,7 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   ?NETWORK_CONNECTION_SUBTYPE.
   'network.connection.subtype'
 
-  \#{?NETWORK_CONNECTION_SUBTYPE => ?NETWORK_CONNECTION_SUBTYPE_VALUES.gprs}.
+  \#{?NETWORK_CONNECTION_SUBTYPE => ?'NETWORK_CONNECTION_SUBTYPE_VALUES.gprs'}.
   \#{'network.connection.subtype' => gprs}
 
   ?'NETWORK_CONNECTION_SUBTYPE_VALUES.gprs'.
@@ -489,7 +489,7 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   ?NETWORK_CONNECTION_TYPE.
   'network.connection.type'
 
-  \#{?NETWORK_CONNECTION_TYPE => ?NETWORK_CONNECTION_TYPE_VALUES.wifi}.
+  \#{?NETWORK_CONNECTION_TYPE => ?'NETWORK_CONNECTION_TYPE_VALUES.wifi'}.
   \#{'network.connection.type' => wifi}
 
   ?'NETWORK_CONNECTION_TYPE_VALUES.wifi'.
@@ -564,7 +564,7 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   ?NETWORK_IO_DIRECTION.
   'network.io.direction'
 
-  \#{?NETWORK_IO_DIRECTION => ?NETWORK_IO_DIRECTION_VALUES.transmit}.
+  \#{?NETWORK_IO_DIRECTION => ?'NETWORK_IO_DIRECTION_VALUES.transmit'}.
   \#{'network.io.direction' => transmit}
 
   ?'NETWORK_IO_DIRECTION_VALUES.transmit'.

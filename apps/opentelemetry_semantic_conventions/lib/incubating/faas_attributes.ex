@@ -170,7 +170,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ?FAAS_DOCUMENT_OPERATION.
   'faas.document.operation'
 
-  \#{?FAAS_DOCUMENT_OPERATION => ?FAAS_DOCUMENT_OPERATION_VALUES.insert}.
+  \#{?FAAS_DOCUMENT_OPERATION => ?'FAAS_DOCUMENT_OPERATION_VALUES.insert'}.
   \#{'faas.document.operation' => insert}
 
   ?'FAAS_DOCUMENT_OPERATION_VALUES.insert'.
@@ -390,7 +390,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ?FAAS_INVOKEDPROVIDER.
   'faas.invoked_provider'
 
-  \#{?FAAS_INVOKEDPROVIDER => ?FAAS_INVOKEDPROVIDER_VALUES.alibaba_cloud}.
+  \#{?FAAS_INVOKEDPROVIDER => ?'FAAS_INVOKEDPROVIDER_VALUES.alibaba_cloud'}.
   \#{'faas.invoked_provider' => alibaba_cloud}
 
   ?'FAAS_INVOKEDPROVIDER_VALUES.alibaba_cloud'.
@@ -627,7 +627,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ?FAAS_TRIGGER.
   'faas.trigger'
 
-  \#{?FAAS_TRIGGER => ?FAAS_TRIGGER_VALUES.datasource}.
+  \#{?FAAS_TRIGGER => ?'FAAS_TRIGGER_VALUES.datasource'}.
   \#{'faas.trigger' => datasource}
 
   ?'FAAS_TRIGGER_VALUES.datasource'.

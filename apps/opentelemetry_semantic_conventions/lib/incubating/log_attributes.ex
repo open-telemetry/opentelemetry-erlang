@@ -175,7 +175,7 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
   ?LOG_IOSTREAM.
   'log.iostream'
 
-  \#{?LOG_IOSTREAM => ?LOG_IOSTREAM_VALUES.stdout}.
+  \#{?LOG_IOSTREAM => ?'LOG_IOSTREAM_VALUES.stdout'}.
   \#{'log.iostream' => stdout}
 
   ?'LOG_IOSTREAM_VALUES.stdout'.

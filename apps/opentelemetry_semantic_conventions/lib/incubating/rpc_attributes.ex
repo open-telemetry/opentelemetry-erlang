@@ -125,7 +125,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ?RPC_CONNECTRPC_ERRORCODE.
   'rpc.connect_rpc.error_code'
 
-  \#{?RPC_CONNECTRPC_ERRORCODE => ?RPC_CONNECTRPC_ERRORCODE_VALUES.cancelled}.
+  \#{?RPC_CONNECTRPC_ERRORCODE => ?'RPC_CONNECTRPC_ERRORCODE_VALUES.cancelled'}.
   \#{'rpc.connect_rpc.error_code' => cancelled}
 
   ?'RPC_CONNECTRPC_ERRORCODE_VALUES.cancelled'.
@@ -384,7 +384,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ?RPC_GRPC_STATUSCODE.
   'rpc.grpc.status_code'
 
-  \#{?RPC_GRPC_STATUSCODE => ?RPC_GRPC_STATUSCODE_VALUES.ok}.
+  \#{?RPC_GRPC_STATUSCODE => ?'RPC_GRPC_STATUSCODE_VALUES.ok'}.
   \#{'rpc.grpc.status_code' => 0}
 
   ?'RPC_GRPC_STATUSCODE_VALUES.ok'.
@@ -652,7 +652,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ?RPC_MESSAGE_TYPE.
   'rpc.message.type'
 
-  \#{?RPC_MESSAGE_TYPE => ?RPC_MESSAGE_TYPE_VALUES.sent}.
+  \#{?RPC_MESSAGE_TYPE => ?'RPC_MESSAGE_TYPE_VALUES.sent'}.
   \#{'rpc.message.type' => SENT}
 
   ?'RPC_MESSAGE_TYPE_VALUES.sent'.
@@ -824,7 +824,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ?RPC_SYSTEM.
   'rpc.system'
 
-  \#{?RPC_SYSTEM => ?RPC_SYSTEM_VALUES.grpc}.
+  \#{?RPC_SYSTEM => ?'RPC_SYSTEM_VALUES.grpc'}.
   \#{'rpc.system' => grpc}
 
   ?'RPC_SYSTEM_VALUES.grpc'.

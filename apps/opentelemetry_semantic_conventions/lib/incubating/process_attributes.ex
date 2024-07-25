@@ -140,7 +140,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ?PROCESS_CONTEXTSWITCHTYPE.
   'process.context_switch_type'
 
-  \#{?PROCESS_CONTEXTSWITCHTYPE => ?PROCESS_CONTEXTSWITCHTYPE_VALUES.voluntary}.
+  \#{?PROCESS_CONTEXTSWITCHTYPE => ?'PROCESS_CONTEXTSWITCHTYPE_VALUES.voluntary'}.
   \#{'process.context_switch_type' => voluntary}
 
   ?'PROCESS_CONTEXTSWITCHTYPE_VALUES.voluntary'.
@@ -211,7 +211,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ?PROCESS_CPU_STATE.
   'process.cpu.state'
 
-  \#{?PROCESS_CPU_STATE => ?PROCESS_CPU_STATE_VALUES.system}.
+  \#{?PROCESS_CPU_STATE => ?'PROCESS_CPU_STATE_VALUES.system'}.
   \#{'process.cpu.state' => system}
 
   ?'PROCESS_CPU_STATE_VALUES.system'.
@@ -540,7 +540,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ?PROCESS_PAGING_FAULTTYPE.
   'process.paging.fault_type'
 
-  \#{?PROCESS_PAGING_FAULTTYPE => ?PROCESS_PAGING_FAULTTYPE_VALUES.major}.
+  \#{?PROCESS_PAGING_FAULTTYPE => ?'PROCESS_PAGING_FAULTTYPE_VALUES.major'}.
   \#{'process.paging.fault_type' => major}
 
   ?'PROCESS_PAGING_FAULTTYPE_VALUES.major'.

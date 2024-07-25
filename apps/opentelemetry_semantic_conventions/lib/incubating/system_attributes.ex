@@ -88,7 +88,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_CPU_STATE.
   'system.cpu.state'
 
-  \#{?SYSTEM_CPU_STATE => ?SYSTEM_CPU_STATE_VALUES.user}.
+  \#{?SYSTEM_CPU_STATE => ?'SYSTEM_CPU_STATE_VALUES.user'}.
   \#{'system.cpu.state' => user}
 
   ?'SYSTEM_CPU_STATE_VALUES.user'.
@@ -263,7 +263,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_FILESYSTEM_STATE.
   'system.filesystem.state'
 
-  \#{?SYSTEM_FILESYSTEM_STATE => ?SYSTEM_FILESYSTEM_STATE_VALUES.used}.
+  \#{?SYSTEM_FILESYSTEM_STATE => ?'SYSTEM_FILESYSTEM_STATE_VALUES.used'}.
   \#{'system.filesystem.state' => used}
 
   ?'SYSTEM_FILESYSTEM_STATE_VALUES.used'.
@@ -344,7 +344,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_FILESYSTEM_TYPE.
   'system.filesystem.type'
 
-  \#{?SYSTEM_FILESYSTEM_TYPE => ?SYSTEM_FILESYSTEM_TYPE_VALUES.fat32}.
+  \#{?SYSTEM_FILESYSTEM_TYPE => ?'SYSTEM_FILESYSTEM_TYPE_VALUES.fat32'}.
   \#{'system.filesystem.type' => fat32}
 
   ?'SYSTEM_FILESYSTEM_TYPE_VALUES.fat32'.
@@ -426,7 +426,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_MEMORY_STATE.
   'system.memory.state'
 
-  \#{?SYSTEM_MEMORY_STATE => ?SYSTEM_MEMORY_STATE_VALUES.used}.
+  \#{?SYSTEM_MEMORY_STATE => ?'SYSTEM_MEMORY_STATE_VALUES.used'}.
   \#{'system.memory.state' => used}
 
   ?'SYSTEM_MEMORY_STATE_VALUES.used'.
@@ -521,7 +521,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_NETWORK_STATE.
   'system.network.state'
 
-  \#{?SYSTEM_NETWORK_STATE => ?SYSTEM_NETWORK_STATE_VALUES.close}.
+  \#{?SYSTEM_NETWORK_STATE => ?'SYSTEM_NETWORK_STATE_VALUES.close'}.
   \#{'system.network.state' => close}
 
   ?'SYSTEM_NETWORK_STATE_VALUES.close'.
@@ -603,7 +603,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_PAGING_DIRECTION.
   'system.paging.direction'
 
-  \#{?SYSTEM_PAGING_DIRECTION => ?SYSTEM_PAGING_DIRECTION_VALUES.in}.
+  \#{?SYSTEM_PAGING_DIRECTION => ?'SYSTEM_PAGING_DIRECTION_VALUES.in'}.
   \#{'system.paging.direction' => in}
 
   ?'SYSTEM_PAGING_DIRECTION_VALUES.in'.
@@ -675,7 +675,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_PAGING_STATE.
   'system.paging.state'
 
-  \#{?SYSTEM_PAGING_STATE => ?SYSTEM_PAGING_STATE_VALUES.used}.
+  \#{?SYSTEM_PAGING_STATE => ?'SYSTEM_PAGING_STATE_VALUES.used'}.
   \#{'system.paging.state' => used}
 
   ?'SYSTEM_PAGING_STATE_VALUES.used'.
@@ -747,7 +747,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_PAGING_TYPE.
   'system.paging.type'
 
-  \#{?SYSTEM_PAGING_TYPE => ?SYSTEM_PAGING_TYPE_VALUES.major}.
+  \#{?SYSTEM_PAGING_TYPE => ?'SYSTEM_PAGING_TYPE_VALUES.major'}.
   \#{'system.paging.type' => major}
 
   ?'SYSTEM_PAGING_TYPE_VALUES.major'.
@@ -825,7 +825,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_PROCESS_STATUS.
   'system.process.status'
 
-  \#{?SYSTEM_PROCESS_STATUS => ?SYSTEM_PROCESS_STATUS_VALUES.running}.
+  \#{?SYSTEM_PROCESS_STATUS => ?'SYSTEM_PROCESS_STATUS_VALUES.running'}.
   \#{'system.process.status' => running}
 
   ?'SYSTEM_PROCESS_STATUS_VALUES.running'.

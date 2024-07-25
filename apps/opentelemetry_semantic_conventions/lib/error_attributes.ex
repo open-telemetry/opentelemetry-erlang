@@ -69,7 +69,7 @@ defmodule OpenTelemetry.SemConv.ErrorAttributes do
   ?ERROR_TYPE.
   'error.type'
 
-  \#{?ERROR_TYPE => ?ERROR_TYPE_VALUES.other}.
+  \#{?ERROR_TYPE => ?'ERROR_TYPE_VALUES.other'}.
   \#{'error.type' => _OTHER}
 
   ?'ERROR_TYPE_VALUES.other'.

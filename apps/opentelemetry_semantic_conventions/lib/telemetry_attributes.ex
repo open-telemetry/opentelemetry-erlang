@@ -63,7 +63,7 @@ defmodule OpenTelemetry.SemConv.TelemetryAttributes do
   ?TELEMETRY_SDK_LANGUAGE.
   'telemetry.sdk.language'
 
-  \#{?TELEMETRY_SDK_LANGUAGE => ?TELEMETRY_SDK_LANGUAGE_VALUES.cpp}.
+  \#{?TELEMETRY_SDK_LANGUAGE => ?'TELEMETRY_SDK_LANGUAGE_VALUES.cpp'}.
   \#{'telemetry.sdk.language' => cpp}
 
   ?'TELEMETRY_SDK_LANGUAGE_VALUES.cpp'.

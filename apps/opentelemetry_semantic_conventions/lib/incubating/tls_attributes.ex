@@ -566,7 +566,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ?TLS_PROTOCOL_NAME.
   'tls.protocol.name'
 
-  \#{?TLS_PROTOCOL_NAME => ?TLS_PROTOCOL_NAME_VALUES.ssl}.
+  \#{?TLS_PROTOCOL_NAME => ?'TLS_PROTOCOL_NAME_VALUES.ssl'}.
   \#{'tls.protocol.name' => ssl}
 
   ?'TLS_PROTOCOL_NAME_VALUES.ssl'.

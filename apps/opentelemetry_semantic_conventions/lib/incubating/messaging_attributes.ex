@@ -877,7 +877,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ?MESSAGING_OPERATION_TYPE.
   'messaging.operation.type'
 
-  \#{?MESSAGING_OPERATION_TYPE => ?MESSAGING_OPERATION_TYPE_VALUES.publish}.
+  \#{?MESSAGING_OPERATION_TYPE => ?'MESSAGING_OPERATION_TYPE_VALUES.publish'}.
   \#{'messaging.operation.type' => publish}
 
   ?'MESSAGING_OPERATION_TYPE_VALUES.publish'.
@@ -1048,7 +1048,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ?MESSAGING_ROCKETMQ_CONSUMPTIONMODEL.
   'messaging.rocketmq.consumption_model'
 
-  \#{?MESSAGING_ROCKETMQ_CONSUMPTIONMODEL => ?MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES.clustering}.
+  \#{?MESSAGING_ROCKETMQ_CONSUMPTIONMODEL => ?'MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES.clustering'}.
   \#{'messaging.rocketmq.consumption_model' => clustering}
 
   ?'MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES.clustering'.
@@ -1289,7 +1289,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ?MESSAGING_ROCKETMQ_MESSAGE_TYPE.
   'messaging.rocketmq.message.type'
 
-  \#{?MESSAGING_ROCKETMQ_MESSAGE_TYPE => ?MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES.normal}.
+  \#{?MESSAGING_ROCKETMQ_MESSAGE_TYPE => ?'MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES.normal'}.
   \#{'messaging.rocketmq.message.type' => normal}
 
   ?'MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES.normal'.
@@ -1431,7 +1431,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ?MESSAGING_SERVICEBUS_DISPOSITIONSTATUS.
   'messaging.servicebus.disposition_status'
 
-  \#{?MESSAGING_SERVICEBUS_DISPOSITIONSTATUS => ?MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.complete}.
+  \#{?MESSAGING_SERVICEBUS_DISPOSITIONSTATUS => ?'MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.complete'}.
   \#{'messaging.servicebus.disposition_status' => complete}
 
   ?'MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.complete'.
@@ -1588,7 +1588,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ?MESSAGING_SYSTEM.
   'messaging.system'
 
-  \#{?MESSAGING_SYSTEM => ?MESSAGING_SYSTEM_VALUES.activemq}.
+  \#{?MESSAGING_SYSTEM => ?'MESSAGING_SYSTEM_VALUES.activemq'}.
   \#{'messaging.system' => activemq}
 
   ?'MESSAGING_SYSTEM_VALUES.activemq'.

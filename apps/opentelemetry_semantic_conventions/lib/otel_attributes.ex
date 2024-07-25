@@ -105,7 +105,7 @@ defmodule OpenTelemetry.SemConv.OtelAttributes do
   ?OTEL_STATUSCODE.
   'otel.status_code'
 
-  \#{?OTEL_STATUSCODE => ?OTEL_STATUSCODE_VALUES.ok}.
+  \#{?OTEL_STATUSCODE => ?'OTEL_STATUSCODE_VALUES.ok'}.
   \#{'otel.status_code' => OK}
 
   ?'OTEL_STATUSCODE_VALUES.ok'.

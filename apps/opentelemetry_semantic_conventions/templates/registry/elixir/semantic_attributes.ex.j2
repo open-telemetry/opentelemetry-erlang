@@ -84,7 +84,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   ?{{ attribute.name | snake_case_const | upper }}.
   '{{ attribute.name }}'
 
-  {% raw %}\#{{% endraw %}?{{ attribute.name | snake_case_const | upper }} => ?{{ attribute.name | snake_case_const | upper }}_VALUES.{{ attribute.type.members|first|attr('id') }}{% raw %}}{% endraw %}.
+  {% raw %}\#{{% endraw %}?{{ attribute.name | snake_case_const | upper }} => ?'{{ attribute.name | snake_case_const | upper }}_VALUES.{{ attribute.type.members|first|attr('id') }}'{% raw %}}{% endraw %}.
   {% raw %}\#{{% endraw %}'{{ attribute.name }}' => {{ attribute.type.members|first|attr('value') }}{% raw %}}{% endraw %}
 
   ?'{{ attribute.name | snake_case_const | upper }}_VALUES.{{ attribute.type.members|first|attr('id') }}'.
