@@ -45,9 +45,6 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.HostAttributes.host_arch() => OpenTelemetry.SemConv.Incubating.HostAttributes.host_arch_values().amd64}
       %{:"host.arch" => :amd64}
-      
-      iex> OpenTelemetry.SemConv.Incubating.HostAttributes.host_arch_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -55,14 +52,11 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ?HOST_ARCH.
   'host.arch'
 
-  \#{?HOST_ARCH => ?'HOST_ARCH_VALUES.amd64'}.
-  \#{'host.arch' => amd64}
-
   ?'HOST_ARCH_VALUES.amd64'.
   amd64
 
-  ?HOST_ARCH_VALUES(custom_value).
-  custom_value
+  \#{?HOST_ARCH => ?'HOST_ARCH_VALUES.amd64'}.
+  \#{'host.arch' => amd64}
   ```
 
   <!-- tabs-close -->
@@ -84,11 +78,6 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
       :s390x => :s390x,
       :x86 => :x86
     }
-  end
-
-  @spec host_arch_values(atom() | String.t()) :: atom() | String.t()
-  def host_arch_values(custom_value) do
-    custom_value
   end
 
   @doc """

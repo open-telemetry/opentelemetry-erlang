@@ -130,9 +130,6 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_contextswitchtype() => OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_contextswitchtype_values().voluntary}
       %{:"process.context_switch_type" => :voluntary}
-      
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_contextswitchtype_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -140,14 +137,11 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ?PROCESS_CONTEXTSWITCHTYPE.
   'process.context_switch_type'
 
-  \#{?PROCESS_CONTEXTSWITCHTYPE => ?'PROCESS_CONTEXTSWITCHTYPE_VALUES.voluntary'}.
-  \#{'process.context_switch_type' => voluntary}
-
   ?'PROCESS_CONTEXTSWITCHTYPE_VALUES.voluntary'.
   voluntary
 
-  ?PROCESS_CONTEXTSWITCHTYPE_VALUES(custom_value).
-  custom_value
+  \#{?PROCESS_CONTEXTSWITCHTYPE => ?'PROCESS_CONTEXTSWITCHTYPE_VALUES.voluntary'}.
+  \#{'process.context_switch_type' => voluntary}
   ```
 
   <!-- tabs-close -->
@@ -163,11 +157,6 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
       :voluntary => :voluntary,
       :involuntary => :involuntary
     }
-  end
-
-  @spec process_contextswitchtype_values(atom() | String.t()) :: atom() | String.t()
-  def process_contextswitchtype_values(custom_value) do
-    custom_value
   end
 
   @typedoc """
@@ -201,9 +190,6 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_cpu_state() => OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_cpu_state_values().system}
       %{:"process.cpu.state" => :system}
-      
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_cpu_state_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -211,14 +197,11 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ?PROCESS_CPU_STATE.
   'process.cpu.state'
 
-  \#{?PROCESS_CPU_STATE => ?'PROCESS_CPU_STATE_VALUES.system'}.
-  \#{'process.cpu.state' => system}
-
   ?'PROCESS_CPU_STATE_VALUES.system'.
   system
 
-  ?PROCESS_CPU_STATE_VALUES(custom_value).
-  custom_value
+  \#{?PROCESS_CPU_STATE => ?'PROCESS_CPU_STATE_VALUES.system'}.
+  \#{'process.cpu.state' => system}
   ```
 
   <!-- tabs-close -->
@@ -235,11 +218,6 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
       :user => :user,
       :wait => :wait
     }
-  end
-
-  @spec process_cpu_state_values(atom() | String.t()) :: atom() | String.t()
-  def process_cpu_state_values(custom_value) do
-    custom_value
   end
 
   @doc """
@@ -530,9 +508,6 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_faulttype() => OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_faulttype_values().major}
       %{:"process.paging.fault_type" => :major}
-      
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_faulttype_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -540,14 +515,11 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ?PROCESS_PAGING_FAULTTYPE.
   'process.paging.fault_type'
 
-  \#{?PROCESS_PAGING_FAULTTYPE => ?'PROCESS_PAGING_FAULTTYPE_VALUES.major'}.
-  \#{'process.paging.fault_type' => major}
-
   ?'PROCESS_PAGING_FAULTTYPE_VALUES.major'.
   major
 
-  ?PROCESS_PAGING_FAULTTYPE_VALUES(custom_value).
-  custom_value
+  \#{?PROCESS_PAGING_FAULTTYPE => ?'PROCESS_PAGING_FAULTTYPE_VALUES.major'}.
+  \#{'process.paging.fault_type' => major}
   ```
 
   <!-- tabs-close -->
@@ -563,11 +535,6 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
       :major => :major,
       :minor => :minor
     }
-  end
-
-  @spec process_paging_faulttype_values(atom() | String.t()) :: atom() | String.t()
-  def process_paging_faulttype_values(custom_value) do
-    custom_value
   end
 
   @doc """

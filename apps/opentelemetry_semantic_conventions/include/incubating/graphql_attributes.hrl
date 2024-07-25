@@ -31,4 +31,3 @@
 
 -define('GRAPHQL_OPERATION_TYPE_VALUES.subscription', 'subscription').
 
--define(GRAPHQL_OPERATION_TYPE_VALUES(Custom), Custom).

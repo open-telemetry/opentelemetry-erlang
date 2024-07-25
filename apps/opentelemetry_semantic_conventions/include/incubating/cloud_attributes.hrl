@@ -84,7 +84,6 @@
 
 -define('CLOUD_PLATFORM_VALUES.tencent_cloud_scf', 'tencent_cloud_scf').
 
--define(CLOUD_PLATFORM_VALUES(Custom), Custom).
 
 
 %% Name of the cloud provider.
@@ -105,7 +104,6 @@
 
 -define('CLOUD_PROVIDER_VALUES.tencent_cloud', 'tencent_cloud').
 
--define(CLOUD_PROVIDER_VALUES(Custom), Custom).
 
 
 %% The geographical region the resource is running.

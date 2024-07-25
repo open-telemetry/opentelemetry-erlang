@@ -78,9 +78,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_cpu_state() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_cpu_state_values().user}
       %{:"system.cpu.state" => :user}
-      
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_cpu_state_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -88,14 +85,11 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_CPU_STATE.
   'system.cpu.state'
 
-  \#{?SYSTEM_CPU_STATE => ?'SYSTEM_CPU_STATE_VALUES.user'}.
-  \#{'system.cpu.state' => user}
-
   ?'SYSTEM_CPU_STATE_VALUES.user'.
   user
 
-  ?SYSTEM_CPU_STATE_VALUES(custom_value).
-  custom_value
+  \#{?SYSTEM_CPU_STATE => ?'SYSTEM_CPU_STATE_VALUES.user'}.
+  \#{'system.cpu.state' => user}
   ```
 
   <!-- tabs-close -->
@@ -116,11 +110,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       :interrupt => :interrupt,
       :steal => :steal
     }
-  end
-
-  @spec system_cpu_state_values(atom() | String.t()) :: atom() | String.t()
-  def system_cpu_state_values(custom_value) do
-    custom_value
   end
 
   @doc """
@@ -253,9 +242,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_filesystem_state() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_filesystem_state_values().used}
       %{:"system.filesystem.state" => :used}
-      
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_filesystem_state_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -263,14 +249,11 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_FILESYSTEM_STATE.
   'system.filesystem.state'
 
-  \#{?SYSTEM_FILESYSTEM_STATE => ?'SYSTEM_FILESYSTEM_STATE_VALUES.used'}.
-  \#{'system.filesystem.state' => used}
-
   ?'SYSTEM_FILESYSTEM_STATE_VALUES.used'.
   used
 
-  ?SYSTEM_FILESYSTEM_STATE_VALUES(custom_value).
-  custom_value
+  \#{?SYSTEM_FILESYSTEM_STATE => ?'SYSTEM_FILESYSTEM_STATE_VALUES.used'}.
+  \#{'system.filesystem.state' => used}
   ```
 
   <!-- tabs-close -->
@@ -287,11 +270,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       :free => :free,
       :reserved => :reserved
     }
-  end
-
-  @spec system_filesystem_state_values(atom() | String.t()) :: atom() | String.t()
-  def system_filesystem_state_values(custom_value) do
-    custom_value
   end
 
   @typedoc """
@@ -334,9 +312,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_filesystem_type() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_filesystem_type_values().fat32}
       %{:"system.filesystem.type" => :fat32}
-      
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_filesystem_type_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -344,14 +319,11 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_FILESYSTEM_TYPE.
   'system.filesystem.type'
 
-  \#{?SYSTEM_FILESYSTEM_TYPE => ?'SYSTEM_FILESYSTEM_TYPE_VALUES.fat32'}.
-  \#{'system.filesystem.type' => fat32}
-
   ?'SYSTEM_FILESYSTEM_TYPE_VALUES.fat32'.
   fat32
 
-  ?SYSTEM_FILESYSTEM_TYPE_VALUES(custom_value).
-  custom_value
+  \#{?SYSTEM_FILESYSTEM_TYPE => ?'SYSTEM_FILESYSTEM_TYPE_VALUES.fat32'}.
+  \#{'system.filesystem.type' => fat32}
   ```
 
   <!-- tabs-close -->
@@ -371,11 +343,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       :hfsplus => :hfsplus,
       :ext4 => :ext4
     }
-  end
-
-  @spec system_filesystem_type_values(atom() | String.t()) :: atom() | String.t()
-  def system_filesystem_type_values(custom_value) do
-    custom_value
   end
 
   @typedoc """
@@ -416,9 +383,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_memory_state() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_memory_state_values().used}
       %{:"system.memory.state" => :used}
-      
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_memory_state_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -426,14 +390,11 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_MEMORY_STATE.
   'system.memory.state'
 
-  \#{?SYSTEM_MEMORY_STATE => ?'SYSTEM_MEMORY_STATE_VALUES.used'}.
-  \#{'system.memory.state' => used}
-
   ?'SYSTEM_MEMORY_STATE_VALUES.used'.
   used
 
-  ?SYSTEM_MEMORY_STATE_VALUES(custom_value).
-  custom_value
+  \#{?SYSTEM_MEMORY_STATE => ?'SYSTEM_MEMORY_STATE_VALUES.used'}.
+  \#{'system.memory.state' => used}
   ```
 
   <!-- tabs-close -->
@@ -452,11 +413,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       :buffers => :buffers,
       :cached => :cached
     }
-  end
-
-  @spec system_memory_state_values(atom() | String.t()) :: atom() | String.t()
-  def system_memory_state_values(custom_value) do
-    custom_value
   end
 
   @typedoc """
@@ -511,9 +467,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_network_state() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_network_state_values().close}
       %{:"system.network.state" => :close}
-      
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_network_state_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -521,14 +474,11 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_NETWORK_STATE.
   'system.network.state'
 
-  \#{?SYSTEM_NETWORK_STATE => ?'SYSTEM_NETWORK_STATE_VALUES.close'}.
-  \#{'system.network.state' => close}
-
   ?'SYSTEM_NETWORK_STATE_VALUES.close'.
   close
 
-  ?SYSTEM_NETWORK_STATE_VALUES(custom_value).
-  custom_value
+  \#{?SYSTEM_NETWORK_STATE => ?'SYSTEM_NETWORK_STATE_VALUES.close'}.
+  \#{'system.network.state' => close}
   ```
 
   <!-- tabs-close -->
@@ -554,11 +504,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       :syn_sent => :syn_sent,
       :time_wait => :time_wait
     }
-  end
-
-  @spec system_network_state_values(atom() | String.t()) :: atom() | String.t()
-  def system_network_state_values(custom_value) do
-    custom_value
   end
 
   @typedoc """
@@ -593,9 +538,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_direction() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_direction_values().in}
       %{:"system.paging.direction" => :in}
-      
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_direction_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -603,14 +545,11 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_PAGING_DIRECTION.
   'system.paging.direction'
 
-  \#{?SYSTEM_PAGING_DIRECTION => ?'SYSTEM_PAGING_DIRECTION_VALUES.in'}.
-  \#{'system.paging.direction' => in}
-
   ?'SYSTEM_PAGING_DIRECTION_VALUES.in'.
   in
 
-  ?SYSTEM_PAGING_DIRECTION_VALUES(custom_value).
-  custom_value
+  \#{?SYSTEM_PAGING_DIRECTION => ?'SYSTEM_PAGING_DIRECTION_VALUES.in'}.
+  \#{'system.paging.direction' => in}
   ```
 
   <!-- tabs-close -->
@@ -626,11 +565,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       :in => :in,
       :out => :out
     }
-  end
-
-  @spec system_paging_direction_values(atom() | String.t()) :: atom() | String.t()
-  def system_paging_direction_values(custom_value) do
-    custom_value
   end
 
   @typedoc """
@@ -665,9 +599,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_state() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_state_values().used}
       %{:"system.paging.state" => :used}
-      
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_state_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -675,14 +606,11 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_PAGING_STATE.
   'system.paging.state'
 
-  \#{?SYSTEM_PAGING_STATE => ?'SYSTEM_PAGING_STATE_VALUES.used'}.
-  \#{'system.paging.state' => used}
-
   ?'SYSTEM_PAGING_STATE_VALUES.used'.
   used
 
-  ?SYSTEM_PAGING_STATE_VALUES(custom_value).
-  custom_value
+  \#{?SYSTEM_PAGING_STATE => ?'SYSTEM_PAGING_STATE_VALUES.used'}.
+  \#{'system.paging.state' => used}
   ```
 
   <!-- tabs-close -->
@@ -698,11 +626,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       :used => :used,
       :free => :free
     }
-  end
-
-  @spec system_paging_state_values(atom() | String.t()) :: atom() | String.t()
-  def system_paging_state_values(custom_value) do
-    custom_value
   end
 
   @typedoc """
@@ -737,9 +660,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_type() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_type_values().major}
       %{:"system.paging.type" => :major}
-      
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_type_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -747,14 +667,11 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_PAGING_TYPE.
   'system.paging.type'
 
-  \#{?SYSTEM_PAGING_TYPE => ?'SYSTEM_PAGING_TYPE_VALUES.major'}.
-  \#{'system.paging.type' => major}
-
   ?'SYSTEM_PAGING_TYPE_VALUES.major'.
   major
 
-  ?SYSTEM_PAGING_TYPE_VALUES(custom_value).
-  custom_value
+  \#{?SYSTEM_PAGING_TYPE => ?'SYSTEM_PAGING_TYPE_VALUES.major'}.
+  \#{'system.paging.type' => major}
   ```
 
   <!-- tabs-close -->
@@ -770,11 +687,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       :major => :major,
       :minor => :minor
     }
-  end
-
-  @spec system_paging_type_values(atom() | String.t()) :: atom() | String.t()
-  def system_paging_type_values(custom_value) do
-    custom_value
   end
 
   @typedoc """
@@ -815,9 +727,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_process_status() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_process_status_values().running}
       %{:"system.process.status" => :running}
-      
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_process_status_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -825,14 +734,11 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_PROCESS_STATUS.
   'system.process.status'
 
-  \#{?SYSTEM_PROCESS_STATUS => ?'SYSTEM_PROCESS_STATUS_VALUES.running'}.
-  \#{'system.process.status' => running}
-
   ?'SYSTEM_PROCESS_STATUS_VALUES.running'.
   running
 
-  ?SYSTEM_PROCESS_STATUS_VALUES(custom_value).
-  custom_value
+  \#{?SYSTEM_PROCESS_STATUS => ?'SYSTEM_PROCESS_STATUS_VALUES.running'}.
+  \#{'system.process.status' => running}
   ```
 
   <!-- tabs-close -->
@@ -850,11 +756,6 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       :stopped => :stopped,
       :defunct => :defunct
     }
-  end
-
-  @spec system_process_status_values(atom() | String.t()) :: atom() | String.t()
-  def system_process_status_values(custom_value) do
-    custom_value
   end
 
   @typedoc """
@@ -888,10 +789,5 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
       :stopped => :stopped,
       :defunct => :defunct
     }
-  end
-
-  @spec system_processes_status_values(atom() | String.t()) :: atom() | String.t()
-  def system_processes_status_values(custom_value) do
-    custom_value
   end
 end

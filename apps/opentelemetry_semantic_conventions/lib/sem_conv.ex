@@ -48,14 +48,8 @@ defmodule OpenTelemetry.SemConv do
 
   Enum Attribute types define each value in a macro with the attribute name prefixed.
 
-  Enum Attributes allow for a user-supplied value when no pre-defined option exists. To
-  use a custom value, a function macro is provided.
-
-  ```
-  -include_lib("opentelemetry_semantic_conventions/include/incubating/db_attributes.hrl").
-
-  ?DB_SYSTEM("custom").
-  ```
+  Enum Attributes allow for a user-supplied value when no pre-defined option exists. Users
+  may set this value manually while paying attention to the required value type
 
   #### Incubating Attributes & Metrics
 
@@ -96,13 +90,8 @@ defmodule OpenTelemetry.SemConv do
   :postgresql
   ```
 
-  Enum Attributes allow for a user-supplied value when no pre-defined option exists. To
-  use a custom value, a function macro is provided.
-
-  ```
-  iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_system_values(:custom)
-  :custom
-  ```
+  Enum Attributes allow for a user-supplied value when no pre-defined option exists. Users
+  may set this value manually while paying attention to the required value type
 
   #### Incubating Attributes & Metrics
 

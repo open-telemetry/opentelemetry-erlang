@@ -47,11 +47,6 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
     }
   end
 
-  @spec message_type_values(atom() | String.t()) :: atom() | String.t()
-  def message_type_values(custom_value) do
-    custom_value
-  end
-
   @deprecated """
   Replaced by `rpc.message.uncompressed_size`.
   """
@@ -115,9 +110,6 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connectrpc_errorcode() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connectrpc_errorcode_values().cancelled}
       %{:"rpc.connect_rpc.error_code" => :cancelled}
-      
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connectrpc_errorcode_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -125,14 +117,11 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ?RPC_CONNECTRPC_ERRORCODE.
   'rpc.connect_rpc.error_code'
 
-  \#{?RPC_CONNECTRPC_ERRORCODE => ?'RPC_CONNECTRPC_ERRORCODE_VALUES.cancelled'}.
-  \#{'rpc.connect_rpc.error_code' => cancelled}
-
   ?'RPC_CONNECTRPC_ERRORCODE_VALUES.cancelled'.
   cancelled
 
-  ?RPC_CONNECTRPC_ERRORCODE_VALUES(custom_value).
-  custom_value
+  \#{?RPC_CONNECTRPC_ERRORCODE => ?'RPC_CONNECTRPC_ERRORCODE_VALUES.cancelled'}.
+  \#{'rpc.connect_rpc.error_code' => cancelled}
   ```
 
   <!-- tabs-close -->
@@ -162,11 +151,6 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
       :data_loss => :data_loss,
       :unauthenticated => :unauthenticated
     }
-  end
-
-  @spec rpc_connectrpc_errorcode_values(atom() | String.t()) :: atom() | String.t()
-  def rpc_connectrpc_errorcode_values(custom_value) do
-    custom_value
   end
 
   @doc """
@@ -374,9 +358,6 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_statuscode() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_statuscode_values().ok}
       %{:"rpc.grpc.status_code" => 0}
-      
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_statuscode_values(27)
-      27
 
   ### Erlang
 
@@ -384,14 +365,11 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ?RPC_GRPC_STATUSCODE.
   'rpc.grpc.status_code'
 
-  \#{?RPC_GRPC_STATUSCODE => ?'RPC_GRPC_STATUSCODE_VALUES.ok'}.
-  \#{'rpc.grpc.status_code' => 0}
-
   ?'RPC_GRPC_STATUSCODE_VALUES.ok'.
   0
 
-  ?RPC_GRPC_STATUSCODE_VALUES(27).
-  27
+  \#{?RPC_GRPC_STATUSCODE => ?'RPC_GRPC_STATUSCODE_VALUES.ok'}.
+  \#{'rpc.grpc.status_code' => 0}
   ```
 
   <!-- tabs-close -->
@@ -422,11 +400,6 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
       :data_loss => 15,
       :unauthenticated => 16
     }
-  end
-
-  @spec rpc_grpc_statuscode_values(integer()) :: integer()
-  def rpc_grpc_statuscode_values(custom_value) do
-    custom_value
   end
 
   @doc """
@@ -642,9 +615,6 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type_values().sent}
       %{:"rpc.message.type" => :SENT}
-      
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -652,14 +622,11 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ?RPC_MESSAGE_TYPE.
   'rpc.message.type'
 
-  \#{?RPC_MESSAGE_TYPE => ?'RPC_MESSAGE_TYPE_VALUES.sent'}.
-  \#{'rpc.message.type' => SENT}
-
   ?'RPC_MESSAGE_TYPE_VALUES.sent'.
   SENT
 
-  ?RPC_MESSAGE_TYPE_VALUES(custom_value).
-  custom_value
+  \#{?RPC_MESSAGE_TYPE => ?'RPC_MESSAGE_TYPE_VALUES.sent'}.
+  \#{'rpc.message.type' => SENT}
   ```
 
   <!-- tabs-close -->
@@ -675,11 +642,6 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
       :sent => :SENT,
       :received => :RECEIVED
     }
-  end
-
-  @spec rpc_message_type_values(atom() | String.t()) :: atom() | String.t()
-  def rpc_message_type_values(custom_value) do
-    custom_value
   end
 
   @doc """
@@ -814,9 +776,6 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system_values().grpc}
       %{:"rpc.system" => :grpc}
-      
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -824,14 +783,11 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ?RPC_SYSTEM.
   'rpc.system'
 
-  \#{?RPC_SYSTEM => ?'RPC_SYSTEM_VALUES.grpc'}.
-  \#{'rpc.system' => grpc}
-
   ?'RPC_SYSTEM_VALUES.grpc'.
   grpc
 
-  ?RPC_SYSTEM_VALUES(custom_value).
-  custom_value
+  \#{?RPC_SYSTEM => ?'RPC_SYSTEM_VALUES.grpc'}.
+  \#{'rpc.system' => grpc}
   ```
 
   <!-- tabs-close -->
@@ -850,10 +806,5 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
       :apache_dubbo => :apache_dubbo,
       :connect_rpc => :connect_rpc
     }
-  end
-
-  @spec rpc_system_values(atom() | String.t()) :: atom() | String.t()
-  def rpc_system_values(custom_value) do
-    custom_value
   end
 end

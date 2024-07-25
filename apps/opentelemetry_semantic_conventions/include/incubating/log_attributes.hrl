@@ -42,7 +42,6 @@
 
 -define('LOG_IOSTREAM_VALUES.stderr', 'stderr').
 
--define(LOG_IOSTREAM_VALUES(Custom), Custom).
 
 
 %% A unique identifier for the Log Record.

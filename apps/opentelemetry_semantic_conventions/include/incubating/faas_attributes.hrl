@@ -43,7 +43,6 @@
 
 -define('FAAS_DOCUMENT_OPERATION_VALUES.delete', 'delete').
 
--define(FAAS_DOCUMENT_OPERATION_VALUES(Custom), Custom).
 
 
 %% A string containing the time when the data was accessed in the [ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html) format expressed in [UTC](https://www.w3.org/TR/NOTE-datetime).
@@ -80,7 +79,6 @@
 
 -define('FAAS_INVOKEDPROVIDER_VALUES.tencent_cloud', 'tencent_cloud').
 
--define(FAAS_INVOKEDPROVIDER_VALUES(Custom), Custom).
 
 
 %% The cloud region of the invoked function.
@@ -117,7 +115,6 @@
 
 -define('FAAS_TRIGGER_VALUES.other', 'other').
 
--define(FAAS_TRIGGER_VALUES(Custom), Custom).
 
 
 %% The immutable version of the function being executed.

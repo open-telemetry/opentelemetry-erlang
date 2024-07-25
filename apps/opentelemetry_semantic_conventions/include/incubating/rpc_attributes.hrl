@@ -29,7 +29,6 @@
 
 -define('MESSAGE_TYPE_VALUES.received', 'RECEIVED').
 
--define(MESSAGE_TYPE_VALUES(Custom), Custom).
 
 %% @deprecated Replaced by `rpc.message.uncompressed_size`.
 %% Deprecated, use `rpc.message.uncompressed_size` instead.
@@ -71,7 +70,6 @@
 
 -define('RPC_CONNECTRPC_ERRORCODE_VALUES.unauthenticated', 'unauthenticated').
 
--define(RPC_CONNECTRPC_ERRORCODE_VALUES(Custom), Custom).
 
 
 %% Connect request metadata, `<key>` being the normalized Connect Metadata key (lowercase), the value being the metadata values.
@@ -131,7 +129,6 @@
 
 -define('RPC_GRPC_STATUSCODE_VALUES.unauthenticated', '16').
 
--define(RPC_GRPC_STATUSCODE_VALUES(Custom), Custom).
 
 
 %% `error.code` property of response if it is an error response.
@@ -166,7 +163,6 @@
 
 -define('RPC_MESSAGE_TYPE_VALUES.received', 'RECEIVED').
 
--define(RPC_MESSAGE_TYPE_VALUES(Custom), Custom).
 
 
 %% Uncompressed size of the message in bytes.
@@ -194,4 +190,3 @@
 
 -define('RPC_SYSTEM_VALUES.connect_rpc', 'connect_rpc').
 
--define(RPC_SYSTEM_VALUES(Custom), Custom).

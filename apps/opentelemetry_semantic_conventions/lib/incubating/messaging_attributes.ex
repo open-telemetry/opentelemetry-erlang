@@ -867,9 +867,6 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type_values().publish}
       %{:"messaging.operation.type" => :publish}
-      
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -877,14 +874,11 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ?MESSAGING_OPERATION_TYPE.
   'messaging.operation.type'
 
-  \#{?MESSAGING_OPERATION_TYPE => ?'MESSAGING_OPERATION_TYPE_VALUES.publish'}.
-  \#{'messaging.operation.type' => publish}
-
   ?'MESSAGING_OPERATION_TYPE_VALUES.publish'.
   publish
 
-  ?MESSAGING_OPERATION_TYPE_VALUES(custom_value).
-  custom_value
+  \#{?MESSAGING_OPERATION_TYPE => ?'MESSAGING_OPERATION_TYPE_VALUES.publish'}.
+  \#{'messaging.operation.type' => publish}
   ```
 
   <!-- tabs-close -->
@@ -903,11 +897,6 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
       :deliver => :process,
       :settle => :settle
     }
-  end
-
-  @spec messaging_operation_type_values(atom() | String.t()) :: atom() | String.t()
-  def messaging_operation_type_values(custom_value) do
-    custom_value
   end
 
   @doc """
@@ -1038,9 +1027,6 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumptionmodel() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumptionmodel_values().clustering}
       %{:"messaging.rocketmq.consumption_model" => :clustering}
-      
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumptionmodel_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -1048,14 +1034,11 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ?MESSAGING_ROCKETMQ_CONSUMPTIONMODEL.
   'messaging.rocketmq.consumption_model'
 
-  \#{?MESSAGING_ROCKETMQ_CONSUMPTIONMODEL => ?'MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES.clustering'}.
-  \#{'messaging.rocketmq.consumption_model' => clustering}
-
   ?'MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES.clustering'.
   clustering
 
-  ?MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES(custom_value).
-  custom_value
+  \#{?MESSAGING_ROCKETMQ_CONSUMPTIONMODEL => ?'MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES.clustering'}.
+  \#{'messaging.rocketmq.consumption_model' => clustering}
   ```
 
   <!-- tabs-close -->
@@ -1072,11 +1055,6 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
       :clustering => :clustering,
       :broadcasting => :broadcasting
     }
-  end
-
-  @spec messaging_rocketmq_consumptionmodel_values(atom() | String.t()) :: atom() | String.t()
-  def messaging_rocketmq_consumptionmodel_values(custom_value) do
-    custom_value
   end
 
   @doc """
@@ -1279,9 +1257,6 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_type() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_type_values().normal}
       %{:"messaging.rocketmq.message.type" => :normal}
-      
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_type_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -1289,14 +1264,11 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ?MESSAGING_ROCKETMQ_MESSAGE_TYPE.
   'messaging.rocketmq.message.type'
 
-  \#{?MESSAGING_ROCKETMQ_MESSAGE_TYPE => ?'MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES.normal'}.
-  \#{'messaging.rocketmq.message.type' => normal}
-
   ?'MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES.normal'.
   normal
 
-  ?MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES(custom_value).
-  custom_value
+  \#{?MESSAGING_ROCKETMQ_MESSAGE_TYPE => ?'MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES.normal'}.
+  \#{'messaging.rocketmq.message.type' => normal}
   ```
 
   <!-- tabs-close -->
@@ -1314,11 +1286,6 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
       :delay => :delay,
       :transaction => :transaction
     }
-  end
-
-  @spec messaging_rocketmq_message_type_values(atom() | String.t()) :: atom() | String.t()
-  def messaging_rocketmq_message_type_values(custom_value) do
-    custom_value
   end
 
   @doc """
@@ -1421,9 +1388,6 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_dispositionstatus() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_dispositionstatus_values().complete}
       %{:"messaging.servicebus.disposition_status" => :complete}
-      
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_dispositionstatus_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -1431,14 +1395,11 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ?MESSAGING_SERVICEBUS_DISPOSITIONSTATUS.
   'messaging.servicebus.disposition_status'
 
-  \#{?MESSAGING_SERVICEBUS_DISPOSITIONSTATUS => ?'MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.complete'}.
-  \#{'messaging.servicebus.disposition_status' => complete}
-
   ?'MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.complete'.
   complete
 
-  ?MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES(custom_value).
-  custom_value
+  \#{?MESSAGING_SERVICEBUS_DISPOSITIONSTATUS => ?'MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.complete'}.
+  \#{'messaging.servicebus.disposition_status' => complete}
   ```
 
   <!-- tabs-close -->
@@ -1457,11 +1418,6 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
       :dead_letter => :dead_letter,
       :defer => :defer
     }
-  end
-
-  @spec messaging_servicebus_dispositionstatus_values(atom() | String.t()) :: atom() | String.t()
-  def messaging_servicebus_dispositionstatus_values(custom_value) do
-    custom_value
   end
 
   @doc """
@@ -1578,9 +1534,6 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_system() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_system_values().activemq}
       %{:"messaging.system" => :activemq}
-      
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_system_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -1588,14 +1541,11 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ?MESSAGING_SYSTEM.
   'messaging.system'
 
-  \#{?MESSAGING_SYSTEM => ?'MESSAGING_SYSTEM_VALUES.activemq'}.
-  \#{'messaging.system' => activemq}
-
   ?'MESSAGING_SYSTEM_VALUES.activemq'.
   activemq
 
-  ?MESSAGING_SYSTEM_VALUES(custom_value).
-  custom_value
+  \#{?MESSAGING_SYSTEM => ?'MESSAGING_SYSTEM_VALUES.activemq'}.
+  \#{'messaging.system' => activemq}
   ```
 
   <!-- tabs-close -->
@@ -1619,10 +1569,5 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
       :rabbitmq => :rabbitmq,
       :rocketmq => :rocketmq
     }
-  end
-
-  @spec messaging_system_values(atom() | String.t()) :: atom() | String.t()
-  def messaging_system_values(custom_value) do
-    custom_value
   end
 end

@@ -141,9 +141,6 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state() => OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state_values().user}
       %{:"container.cpu.state" => :user}
-      
-      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -151,14 +148,11 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ?CONTAINER_CPU_STATE.
   'container.cpu.state'
 
-  \#{?CONTAINER_CPU_STATE => ?'CONTAINER_CPU_STATE_VALUES.user'}.
-  \#{'container.cpu.state' => user}
-
   ?'CONTAINER_CPU_STATE_VALUES.user'.
   user
 
-  ?CONTAINER_CPU_STATE_VALUES(custom_value).
-  custom_value
+  \#{?CONTAINER_CPU_STATE => ?'CONTAINER_CPU_STATE_VALUES.user'}.
+  \#{'container.cpu.state' => user}
   ```
 
   <!-- tabs-close -->
@@ -175,11 +169,6 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
       :system => :system,
       :kernel => :kernel
     }
-  end
-
-  @spec container_cpu_state_values(atom() | String.t()) :: atom() | String.t()
-  def container_cpu_state_values(custom_value) do
-    custom_value
   end
 
   @doc """

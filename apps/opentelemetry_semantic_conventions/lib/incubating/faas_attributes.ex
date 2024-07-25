@@ -160,9 +160,6 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_document_operation() => OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_document_operation_values().insert}
       %{:"faas.document.operation" => :insert}
-      
-      iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_document_operation_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -170,14 +167,11 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ?FAAS_DOCUMENT_OPERATION.
   'faas.document.operation'
 
-  \#{?FAAS_DOCUMENT_OPERATION => ?'FAAS_DOCUMENT_OPERATION_VALUES.insert'}.
-  \#{'faas.document.operation' => insert}
-
   ?'FAAS_DOCUMENT_OPERATION_VALUES.insert'.
   insert
 
-  ?FAAS_DOCUMENT_OPERATION_VALUES(custom_value).
-  custom_value
+  \#{?FAAS_DOCUMENT_OPERATION => ?'FAAS_DOCUMENT_OPERATION_VALUES.insert'}.
+  \#{'faas.document.operation' => insert}
   ```
 
   <!-- tabs-close -->
@@ -194,11 +188,6 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
       :edit => :edit,
       :delete => :delete
     }
-  end
-
-  @spec faas_document_operation_values(atom() | String.t()) :: atom() | String.t()
-  def faas_document_operation_values(custom_value) do
-    custom_value
   end
 
   @doc """
@@ -380,9 +369,6 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invokedprovider() => OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invokedprovider_values().alibaba_cloud}
       %{:"faas.invoked_provider" => :alibaba_cloud}
-      
-      iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invokedprovider_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -390,14 +376,11 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ?FAAS_INVOKEDPROVIDER.
   'faas.invoked_provider'
 
-  \#{?FAAS_INVOKEDPROVIDER => ?'FAAS_INVOKEDPROVIDER_VALUES.alibaba_cloud'}.
-  \#{'faas.invoked_provider' => alibaba_cloud}
-
   ?'FAAS_INVOKEDPROVIDER_VALUES.alibaba_cloud'.
   alibaba_cloud
 
-  ?FAAS_INVOKEDPROVIDER_VALUES(custom_value).
-  custom_value
+  \#{?FAAS_INVOKEDPROVIDER => ?'FAAS_INVOKEDPROVIDER_VALUES.alibaba_cloud'}.
+  \#{'faas.invoked_provider' => alibaba_cloud}
   ```
 
   <!-- tabs-close -->
@@ -416,11 +399,6 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
       :gcp => :gcp,
       :tencent_cloud => :tencent_cloud
     }
-  end
-
-  @spec faas_invokedprovider_values(atom() | String.t()) :: atom() | String.t()
-  def faas_invokedprovider_values(custom_value) do
-    custom_value
   end
 
   @doc """
@@ -617,9 +595,6 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_trigger() => OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_trigger_values().datasource}
       %{:"faas.trigger" => :datasource}
-      
-      iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_trigger_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -627,14 +602,11 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ?FAAS_TRIGGER.
   'faas.trigger'
 
-  \#{?FAAS_TRIGGER => ?'FAAS_TRIGGER_VALUES.datasource'}.
-  \#{'faas.trigger' => datasource}
-
   ?'FAAS_TRIGGER_VALUES.datasource'.
   datasource
 
-  ?FAAS_TRIGGER_VALUES(custom_value).
-  custom_value
+  \#{?FAAS_TRIGGER => ?'FAAS_TRIGGER_VALUES.datasource'}.
+  \#{'faas.trigger' => datasource}
   ```
 
   <!-- tabs-close -->
@@ -653,11 +625,6 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
       :timer => :timer,
       :other => :other
     }
-  end
-
-  @spec faas_trigger_values(atom() | String.t()) :: atom() | String.t()
-  def faas_trigger_values(custom_value) do
-    custom_value
   end
 
   @doc """

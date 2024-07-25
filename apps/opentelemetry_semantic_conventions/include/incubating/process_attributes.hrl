@@ -36,7 +36,6 @@
 
 -define('PROCESS_CONTEXTSWITCHTYPE_VALUES.involuntary', 'involuntary').
 
--define(PROCESS_CONTEXTSWITCHTYPE_VALUES(Custom), Custom).
 
 
 %% The CPU state of the process.
@@ -49,7 +48,6 @@
 
 -define('PROCESS_CPU_STATE_VALUES.wait', 'wait').
 
--define(PROCESS_CPU_STATE_VALUES(Custom), Custom).
 
 
 %% The date and time the process was created, in ISO 8601 format.
@@ -100,7 +98,6 @@
 
 -define('PROCESS_PAGING_FAULTTYPE_VALUES.minor', 'minor').
 
--define(PROCESS_PAGING_FAULTTYPE_VALUES(Custom), Custom).
 
 
 %% Parent Process identifier (PPID).

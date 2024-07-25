@@ -120,7 +120,6 @@
 
 -define('AWS_ECS_LAUNCHTYPE_VALUES.fargate', 'fargate').
 
--define(AWS_ECS_LAUNCHTYPE_VALUES(Custom), Custom).
 
 
 %% The ARN of a running [ECS task](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-account-settings.html#ecs-resource-ids).

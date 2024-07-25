@@ -165,9 +165,6 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.LogAttributes.log_iostream() => OpenTelemetry.SemConv.Incubating.LogAttributes.log_iostream_values().stdout}
       %{:"log.iostream" => :stdout}
-      
-      iex> OpenTelemetry.SemConv.Incubating.LogAttributes.log_iostream_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -175,14 +172,11 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
   ?LOG_IOSTREAM.
   'log.iostream'
 
-  \#{?LOG_IOSTREAM => ?'LOG_IOSTREAM_VALUES.stdout'}.
-  \#{'log.iostream' => stdout}
-
   ?'LOG_IOSTREAM_VALUES.stdout'.
   stdout
 
-  ?LOG_IOSTREAM_VALUES(custom_value).
-  custom_value
+  \#{?LOG_IOSTREAM => ?'LOG_IOSTREAM_VALUES.stdout'}.
+  \#{'log.iostream' => stdout}
   ```
 
   <!-- tabs-close -->
@@ -198,11 +192,6 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
       :stdout => :stdout,
       :stderr => :stderr
     }
-  end
-
-  @spec log_iostream_values(atom() | String.t()) :: atom() | String.t()
-  def log_iostream_values(custom_value) do
-    custom_value
   end
 
   @doc """

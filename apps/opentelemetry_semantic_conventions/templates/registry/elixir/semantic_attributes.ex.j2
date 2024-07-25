@@ -74,9 +74,6 @@ defmodule {{ module_namespace }}.{{ module_name }} do
       
       iex> {% raw %}%{{% endraw %}{{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}() => {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}_values().{{ attribute.type.members|first|attr('id') }}{% raw %}}{% endraw %}
       {% raw %}%{{% endraw %}{{ c.to_atom(attribute.name) }} => {{ c.enum_value_to_elixir_type(attribute.type.members|first|attr('value')) }}{% raw %}}{% endraw %}
-      
-      iex> {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}_values({{ c.enum_value_return_type_example(attribute.type.members|first|attr('value')) }})
-      {{ c.enum_value_return_type_example(attribute.type.members|first|attr('value')) }}
 
   ### Erlang
 
@@ -84,14 +81,11 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   ?{{ attribute.name | snake_case_const | upper }}.
   '{{ attribute.name }}'
 
-  {% raw %}\#{{% endraw %}?{{ attribute.name | snake_case_const | upper }} => ?'{{ attribute.name | snake_case_const | upper }}_VALUES.{{ attribute.type.members|first|attr('id') }}'{% raw %}}{% endraw %}.
-  {% raw %}\#{{% endraw %}'{{ attribute.name }}' => {{ attribute.type.members|first|attr('value') }}{% raw %}}{% endraw %}
-
   ?'{{ attribute.name | snake_case_const | upper }}_VALUES.{{ attribute.type.members|first|attr('id') }}'.
   {{ attribute.type.members|first|attr('value') }}
   
-  ?{{ attribute.name | snake_case_const | upper }}_VALUES({{ c.erlang_enum_value_return_type_example(attribute.type.members|first|attr('value')) }}).
-  {{ c.erlang_enum_value_return_type_example(attribute.type.members|first|attr('value')) }}
+  {% raw %}\#{{% endraw %}?{{ attribute.name | snake_case_const | upper }} => ?'{{ attribute.name | snake_case_const | upper }}_VALUES.{{ attribute.type.members|first|attr('id') }}'{% raw %}}{% endraw %}.
+  {% raw %}\#{{% endraw %}'{{ attribute.name }}' => {{ attribute.type.members|first|attr('value') }}{% raw %}}{% endraw %}
   ```
   {%- else %}
   
@@ -120,11 +114,6 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   @spec {{ c.func_name(attribute.name) }}_values() :: {{ attribute.name | snake_case_const }}_values()
   def {{ c.func_name(attribute.name) }}_values() do
   {{ c.enum_to_map(attribute.type.members) }}
-  end
-
-  @spec {{ c.func_name(attribute.name) }}_values({{ c.enum_value_return_type(attribute.type.members|first|attr('value')) }}) :: {{ c.enum_value_return_type(attribute.type.members|first|attr('value')) }} 
-  def {{ c.func_name(attribute.name) }}_values(custom_value) do
-    custom_value
   end
   {%- endif %}
 {% endfor %}

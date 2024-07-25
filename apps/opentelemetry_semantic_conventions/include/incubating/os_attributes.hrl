@@ -53,7 +53,6 @@
 
 -define('OS_TYPE_VALUES.z_os', 'z_os').
 
--define(OS_TYPE_VALUES(Custom), Custom).
 
 
 %% The version string of the operating system as defined in [Version Attributes](/docs/resource/README.md#version-attributes).

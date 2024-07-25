@@ -20,4 +20,3 @@
 
 -define('ERROR_TYPE_VALUES.other', '_OTHER').
 
--define(ERROR_TYPE_VALUES(Custom), Custom).

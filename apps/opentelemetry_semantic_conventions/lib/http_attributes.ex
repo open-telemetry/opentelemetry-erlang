@@ -108,9 +108,6 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
       
       iex> %{OpenTelemetry.SemConv.HTTPAttributes.http_request_method() => OpenTelemetry.SemConv.HTTPAttributes.http_request_method_values().connect}
       %{:"http.request.method" => :CONNECT}
-      
-      iex> OpenTelemetry.SemConv.HTTPAttributes.http_request_method_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -118,14 +115,11 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   ?HTTP_REQUEST_METHOD.
   'http.request.method'
 
-  \#{?HTTP_REQUEST_METHOD => ?'HTTP_REQUEST_METHOD_VALUES.connect'}.
-  \#{'http.request.method' => CONNECT}
-
   ?'HTTP_REQUEST_METHOD_VALUES.connect'.
   CONNECT
 
-  ?HTTP_REQUEST_METHOD_VALUES(custom_value).
-  custom_value
+  \#{?HTTP_REQUEST_METHOD => ?'HTTP_REQUEST_METHOD_VALUES.connect'}.
+  \#{'http.request.method' => CONNECT}
   ```
 
   <!-- tabs-close -->
@@ -149,11 +143,6 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
       :trace => :TRACE,
       :other => :_OTHER
     }
-  end
-
-  @spec http_request_method_values(atom() | String.t()) :: atom() | String.t()
-  def http_request_method_values(custom_value) do
-    custom_value
   end
 
   @doc """

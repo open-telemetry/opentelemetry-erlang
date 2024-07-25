@@ -44,9 +44,6 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.HTTPAttributes.http_connection_state() => OpenTelemetry.SemConv.Incubating.HTTPAttributes.http_connection_state_values().active}
       %{:"http.connection.state" => :active}
-      
-      iex> OpenTelemetry.SemConv.Incubating.HTTPAttributes.http_connection_state_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -54,14 +51,11 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   ?HTTP_CONNECTION_STATE.
   'http.connection.state'
 
-  \#{?HTTP_CONNECTION_STATE => ?'HTTP_CONNECTION_STATE_VALUES.active'}.
-  \#{'http.connection.state' => active}
-
   ?'HTTP_CONNECTION_STATE_VALUES.active'.
   active
 
-  ?HTTP_CONNECTION_STATE_VALUES(custom_value).
-  custom_value
+  \#{?HTTP_CONNECTION_STATE => ?'HTTP_CONNECTION_STATE_VALUES.active'}.
+  \#{'http.connection.state' => active}
   ```
 
   <!-- tabs-close -->
@@ -77,11 +71,6 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
       :active => :active,
       :idle => :idle
     }
-  end
-
-  @spec http_connection_state_values(atom() | String.t()) :: atom() | String.t()
-  def http_connection_state_values(custom_value) do
-    custom_value
   end
 
   @typedoc """
@@ -121,11 +110,6 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
       :spdy => :SPDY,
       :quic => :QUIC
     }
-  end
-
-  @spec http_flavor_values(atom() | String.t()) :: atom() | String.t()
-  def http_flavor_values(custom_value) do
-    custom_value
   end
 
   @deprecated """

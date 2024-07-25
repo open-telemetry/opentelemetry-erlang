@@ -59,9 +59,6 @@ defmodule OpenTelemetry.SemConv.ErrorAttributes do
       
       iex> %{OpenTelemetry.SemConv.ErrorAttributes.error_type() => OpenTelemetry.SemConv.ErrorAttributes.error_type_values().other}
       %{:"error.type" => :_OTHER}
-      
-      iex> OpenTelemetry.SemConv.ErrorAttributes.error_type_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -69,14 +66,11 @@ defmodule OpenTelemetry.SemConv.ErrorAttributes do
   ?ERROR_TYPE.
   'error.type'
 
-  \#{?ERROR_TYPE => ?'ERROR_TYPE_VALUES.other'}.
-  \#{'error.type' => _OTHER}
-
   ?'ERROR_TYPE_VALUES.other'.
   _OTHER
 
-  ?ERROR_TYPE_VALUES(custom_value).
-  custom_value
+  \#{?ERROR_TYPE => ?'ERROR_TYPE_VALUES.other'}.
+  \#{'error.type' => _OTHER}
   ```
 
   <!-- tabs-close -->
@@ -91,10 +85,5 @@ defmodule OpenTelemetry.SemConv.ErrorAttributes do
     %{
       :other => :_OTHER
     }
-  end
-
-  @spec error_type_values(atom() | String.t()) :: atom() | String.t()
-  def error_type_values(custom_value) do
-    custom_value
   end
 end

@@ -40,7 +40,6 @@
 
 -define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.local_serial', 'local_serial').
 
--define(DB_CASSANDRA_CONSISTENCYLEVEL_VALUES(Custom), Custom).
 
 
 %% The data center of the coordinating node for a query.
@@ -84,7 +83,6 @@
 
 -define('DB_CLIENT_CONNECTIONS_STATE_VALUES.used', 'used').
 
--define(DB_CLIENT_CONNECTIONS_STATE_VALUES(Custom), Custom).
 
 
 %% The name of a collection (table, container) within the database.
@@ -107,7 +105,6 @@
 
 -define('DB_COSMOSDB_CONNECTIONMODE_VALUES.direct', 'direct').
 
--define(DB_COSMOSDB_CONNECTIONMODE_VALUES(Custom), Custom).
 
 %% @deprecated Replaced by `db.collection.name`.
 %% Deprecated, use `db.collection.name` instead.
@@ -147,7 +144,6 @@
 
 -define('DB_COSMOSDB_OPERATIONTYPE_VALUES.execute_javascript', 'ExecuteJavaScript').
 
--define(DB_COSMOSDB_OPERATIONTYPE_VALUES(Custom), Custom).
 
 
 %% RU consumed for that operation
@@ -344,7 +340,6 @@
 
 -define('DB_SYSTEM_VALUES.trino', 'trino').
 
--define(DB_SYSTEM_VALUES(Custom), Custom).
 
 %% @deprecated No replacement at this time.
 %% Deprecated, no replacement at this time.
@@ -362,4 +357,3 @@
 
 -define('STATE_VALUES.used', 'used').
 
--define(STATE_VALUES(Custom), Custom).

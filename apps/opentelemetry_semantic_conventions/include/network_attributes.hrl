@@ -50,7 +50,6 @@
 
 -define('NETWORK_TRANSPORT_VALUES.unix', 'unix').
 
--define(NETWORK_TRANSPORT_VALUES(Custom), Custom).
 
 
 %% [OSI network layer](https://osi-model.com/network-layer/) or non-OSI equivalent.
@@ -60,4 +59,3 @@
 
 -define('NETWORK_TYPE_VALUES.ipv6', 'ipv6').
 
--define(NETWORK_TYPE_VALUES(Custom), Custom).

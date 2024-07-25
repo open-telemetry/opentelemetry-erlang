@@ -36,9 +36,6 @@ defmodule OpenTelemetry.SemConv.Incubating.DiskAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.DiskAttributes.disk_io_direction() => OpenTelemetry.SemConv.Incubating.DiskAttributes.disk_io_direction_values().read}
       %{:"disk.io.direction" => :read}
-      
-      iex> OpenTelemetry.SemConv.Incubating.DiskAttributes.disk_io_direction_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -46,14 +43,11 @@ defmodule OpenTelemetry.SemConv.Incubating.DiskAttributes do
   ?DISK_IO_DIRECTION.
   'disk.io.direction'
 
-  \#{?DISK_IO_DIRECTION => ?'DISK_IO_DIRECTION_VALUES.read'}.
-  \#{'disk.io.direction' => read}
-
   ?'DISK_IO_DIRECTION_VALUES.read'.
   read
 
-  ?DISK_IO_DIRECTION_VALUES(custom_value).
-  custom_value
+  \#{?DISK_IO_DIRECTION => ?'DISK_IO_DIRECTION_VALUES.read'}.
+  \#{'disk.io.direction' => read}
   ```
 
   <!-- tabs-close -->
@@ -69,10 +63,5 @@ defmodule OpenTelemetry.SemConv.Incubating.DiskAttributes do
       :read => :read,
       :write => :write
     }
-  end
-
-  @spec disk_io_direction_values(atom() | String.t()) :: atom() | String.t()
-  def disk_io_direction_values(custom_value) do
-    custom_value
   end
 end

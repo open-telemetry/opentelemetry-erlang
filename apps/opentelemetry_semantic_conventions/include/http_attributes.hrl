@@ -42,7 +42,6 @@
 
 -define('HTTP_REQUEST_METHOD_VALUES.other', '_OTHER').
 
--define(HTTP_REQUEST_METHOD_VALUES(Custom), Custom).
 
 
 %% Original HTTP method sent by the client in the request line.

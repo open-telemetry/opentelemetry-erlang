@@ -148,9 +148,6 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.OSAttributes.os_type() => OpenTelemetry.SemConv.Incubating.OSAttributes.os_type_values().windows}
       %{:"os.type" => :windows}
-      
-      iex> OpenTelemetry.SemConv.Incubating.OSAttributes.os_type_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -158,14 +155,11 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
   ?OS_TYPE.
   'os.type'
 
-  \#{?OS_TYPE => ?'OS_TYPE_VALUES.windows'}.
-  \#{'os.type' => windows}
-
   ?'OS_TYPE_VALUES.windows'.
   windows
 
-  ?OS_TYPE_VALUES(custom_value).
-  custom_value
+  \#{?OS_TYPE => ?'OS_TYPE_VALUES.windows'}.
+  \#{'os.type' => windows}
   ```
 
   <!-- tabs-close -->
@@ -190,11 +184,6 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
       :solaris => :solaris,
       :z_os => :z_os
     }
-  end
-
-  @spec os_type_values(atom() | String.t()) :: atom() | String.t()
-  def os_type_values(custom_value) do
-    custom_value
   end
 
   @doc """

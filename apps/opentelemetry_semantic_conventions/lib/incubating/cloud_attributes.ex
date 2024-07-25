@@ -159,9 +159,6 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_platform() => OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_platform_values().alibaba_cloud_ecs}
       %{:"cloud.platform" => :alibaba_cloud_ecs}
-      
-      iex> OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_platform_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -169,14 +166,11 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   ?CLOUD_PLATFORM.
   'cloud.platform'
 
-  \#{?CLOUD_PLATFORM => ?'CLOUD_PLATFORM_VALUES.alibaba_cloud_ecs'}.
-  \#{'cloud.platform' => alibaba_cloud_ecs}
-
   ?'CLOUD_PLATFORM_VALUES.alibaba_cloud_ecs'.
   alibaba_cloud_ecs
 
-  ?CLOUD_PLATFORM_VALUES(custom_value).
-  custom_value
+  \#{?CLOUD_PLATFORM => ?'CLOUD_PLATFORM_VALUES.alibaba_cloud_ecs'}.
+  \#{'cloud.platform' => alibaba_cloud_ecs}
   ```
 
   <!-- tabs-close -->
@@ -220,11 +214,6 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
     }
   end
 
-  @spec cloud_platform_values(atom() | String.t()) :: atom() | String.t()
-  def cloud_platform_values(custom_value) do
-    custom_value
-  end
-
   @typedoc """
   Name of the cloud provider.
 
@@ -264,9 +253,6 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_provider() => OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_provider_values().alibaba_cloud}
       %{:"cloud.provider" => :alibaba_cloud}
-      
-      iex> OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_provider_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -274,14 +260,11 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   ?CLOUD_PROVIDER.
   'cloud.provider'
 
-  \#{?CLOUD_PROVIDER => ?'CLOUD_PROVIDER_VALUES.alibaba_cloud'}.
-  \#{'cloud.provider' => alibaba_cloud}
-
   ?'CLOUD_PROVIDER_VALUES.alibaba_cloud'.
   alibaba_cloud
 
-  ?CLOUD_PROVIDER_VALUES(custom_value).
-  custom_value
+  \#{?CLOUD_PROVIDER => ?'CLOUD_PROVIDER_VALUES.alibaba_cloud'}.
+  \#{'cloud.provider' => alibaba_cloud}
   ```
 
   <!-- tabs-close -->
@@ -302,11 +285,6 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
       :ibm_cloud => :ibm_cloud,
       :tencent_cloud => :tencent_cloud
     }
-  end
-
-  @spec cloud_provider_values(atom() | String.t()) :: atom() | String.t()
-  def cloud_provider_values(custom_value) do
-    custom_value
   end
 
   @doc """

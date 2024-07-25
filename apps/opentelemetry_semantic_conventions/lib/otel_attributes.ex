@@ -95,9 +95,6 @@ defmodule OpenTelemetry.SemConv.OtelAttributes do
       
       iex> %{OpenTelemetry.SemConv.OtelAttributes.otel_statuscode() => OpenTelemetry.SemConv.OtelAttributes.otel_statuscode_values().ok}
       %{:"otel.status_code" => :OK}
-      
-      iex> OpenTelemetry.SemConv.OtelAttributes.otel_statuscode_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -105,14 +102,11 @@ defmodule OpenTelemetry.SemConv.OtelAttributes do
   ?OTEL_STATUSCODE.
   'otel.status_code'
 
-  \#{?OTEL_STATUSCODE => ?'OTEL_STATUSCODE_VALUES.ok'}.
-  \#{'otel.status_code' => OK}
-
   ?'OTEL_STATUSCODE_VALUES.ok'.
   OK
 
-  ?OTEL_STATUSCODE_VALUES(custom_value).
-  custom_value
+  \#{?OTEL_STATUSCODE => ?'OTEL_STATUSCODE_VALUES.ok'}.
+  \#{'otel.status_code' => OK}
   ```
 
   <!-- tabs-close -->
@@ -128,11 +122,6 @@ defmodule OpenTelemetry.SemConv.OtelAttributes do
       :ok => :OK,
       :error => :ERROR
     }
-  end
-
-  @spec otel_statuscode_values(atom() | String.t()) :: atom() | String.t()
-  def otel_statuscode_values(custom_value) do
-    custom_value
   end
 
   @doc """

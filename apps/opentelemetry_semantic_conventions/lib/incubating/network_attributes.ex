@@ -98,11 +98,6 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
     }
   end
 
-  @spec net_sock_family_values(atom() | String.t()) :: atom() | String.t()
-  def net_sock_family_values(custom_value) do
-    custom_value
-  end
-
   @deprecated """
   Replaced by `network.local.address`.
   """
@@ -177,11 +172,6 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
       :inproc => :inproc,
       :other => :other
     }
-  end
-
-  @spec net_transport_values(atom() | String.t()) :: atom() | String.t()
-  def net_transport_values(custom_value) do
-    custom_value
   end
 
   @doc """
@@ -382,9 +372,6 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_subtype() => OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_subtype_values().gprs}
       %{:"network.connection.subtype" => :gprs}
-      
-      iex> OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_subtype_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -392,14 +379,11 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   ?NETWORK_CONNECTION_SUBTYPE.
   'network.connection.subtype'
 
-  \#{?NETWORK_CONNECTION_SUBTYPE => ?'NETWORK_CONNECTION_SUBTYPE_VALUES.gprs'}.
-  \#{'network.connection.subtype' => gprs}
-
   ?'NETWORK_CONNECTION_SUBTYPE_VALUES.gprs'.
   gprs
 
-  ?NETWORK_CONNECTION_SUBTYPE_VALUES(custom_value).
-  custom_value
+  \#{?NETWORK_CONNECTION_SUBTYPE => ?'NETWORK_CONNECTION_SUBTYPE_VALUES.gprs'}.
+  \#{'network.connection.subtype' => gprs}
   ```
 
   <!-- tabs-close -->
@@ -434,11 +418,6 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
       :nrnsa => :nrnsa,
       :lte_ca => :lte_ca
     }
-  end
-
-  @spec network_connection_subtype_values(atom() | String.t()) :: atom() | String.t()
-  def network_connection_subtype_values(custom_value) do
-    custom_value
   end
 
   @typedoc """
@@ -479,9 +458,6 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_type() => OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_type_values().wifi}
       %{:"network.connection.type" => :wifi}
-      
-      iex> OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_type_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -489,14 +465,11 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   ?NETWORK_CONNECTION_TYPE.
   'network.connection.type'
 
-  \#{?NETWORK_CONNECTION_TYPE => ?'NETWORK_CONNECTION_TYPE_VALUES.wifi'}.
-  \#{'network.connection.type' => wifi}
-
   ?'NETWORK_CONNECTION_TYPE_VALUES.wifi'.
   wifi
 
-  ?NETWORK_CONNECTION_TYPE_VALUES(custom_value).
-  custom_value
+  \#{?NETWORK_CONNECTION_TYPE => ?'NETWORK_CONNECTION_TYPE_VALUES.wifi'}.
+  \#{'network.connection.type' => wifi}
   ```
 
   <!-- tabs-close -->
@@ -515,11 +488,6 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
       :unavailable => :unavailable,
       :unknown => :unknown
     }
-  end
-
-  @spec network_connection_type_values(atom() | String.t()) :: atom() | String.t()
-  def network_connection_type_values(custom_value) do
-    custom_value
   end
 
   @typedoc """
@@ -554,9 +522,6 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_io_direction() => OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_io_direction_values().transmit}
       %{:"network.io.direction" => :transmit}
-      
-      iex> OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_io_direction_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -564,14 +529,11 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   ?NETWORK_IO_DIRECTION.
   'network.io.direction'
 
-  \#{?NETWORK_IO_DIRECTION => ?'NETWORK_IO_DIRECTION_VALUES.transmit'}.
-  \#{'network.io.direction' => transmit}
-
   ?'NETWORK_IO_DIRECTION_VALUES.transmit'.
   transmit
 
-  ?NETWORK_IO_DIRECTION_VALUES(custom_value).
-  custom_value
+  \#{?NETWORK_IO_DIRECTION => ?'NETWORK_IO_DIRECTION_VALUES.transmit'}.
+  \#{'network.io.direction' => transmit}
   ```
 
   <!-- tabs-close -->
@@ -587,10 +549,5 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
       :transmit => :transmit,
       :receive => :receive
     }
-  end
-
-  @spec network_io_direction_values(atom() | String.t()) :: atom() | String.t()
-  def network_io_direction_values(custom_value) do
-    custom_value
   end
 end

@@ -793,9 +793,6 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_ecs_launchtype() => OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_ecs_launchtype_values().ec2}
       %{:"aws.ecs.launchtype" => :ec2}
-      
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_ecs_launchtype_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -803,14 +800,11 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ?AWS_ECS_LAUNCHTYPE.
   'aws.ecs.launchtype'
 
-  \#{?AWS_ECS_LAUNCHTYPE => ?'AWS_ECS_LAUNCHTYPE_VALUES.ec2'}.
-  \#{'aws.ecs.launchtype' => ec2}
-
   ?'AWS_ECS_LAUNCHTYPE_VALUES.ec2'.
   ec2
 
-  ?AWS_ECS_LAUNCHTYPE_VALUES(custom_value).
-  custom_value
+  \#{?AWS_ECS_LAUNCHTYPE => ?'AWS_ECS_LAUNCHTYPE_VALUES.ec2'}.
+  \#{'aws.ecs.launchtype' => ec2}
   ```
 
   <!-- tabs-close -->
@@ -826,11 +820,6 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
       :ec2 => :ec2,
       :fargate => :fargate
     }
-  end
-
-  @spec aws_ecs_launchtype_values(atom() | String.t()) :: atom() | String.t()
-  def aws_ecs_launchtype_values(custom_value) do
-    custom_value
   end
 
   @doc """

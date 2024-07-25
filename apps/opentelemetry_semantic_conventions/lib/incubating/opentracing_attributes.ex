@@ -35,9 +35,6 @@ defmodule OpenTelemetry.SemConv.Incubating.OpentracingAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.OpentracingAttributes.opentracing_reftype() => OpenTelemetry.SemConv.Incubating.OpentracingAttributes.opentracing_reftype_values().child_of}
       %{:"opentracing.ref_type" => :child_of}
-      
-      iex> OpenTelemetry.SemConv.Incubating.OpentracingAttributes.opentracing_reftype_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -45,14 +42,11 @@ defmodule OpenTelemetry.SemConv.Incubating.OpentracingAttributes do
   ?OPENTRACING_REFTYPE.
   'opentracing.ref_type'
 
-  \#{?OPENTRACING_REFTYPE => ?'OPENTRACING_REFTYPE_VALUES.child_of'}.
-  \#{'opentracing.ref_type' => child_of}
-
   ?'OPENTRACING_REFTYPE_VALUES.child_of'.
   child_of
 
-  ?OPENTRACING_REFTYPE_VALUES(custom_value).
-  custom_value
+  \#{?OPENTRACING_REFTYPE => ?'OPENTRACING_REFTYPE_VALUES.child_of'}.
+  \#{'opentracing.ref_type' => child_of}
   ```
 
   <!-- tabs-close -->
@@ -68,10 +62,5 @@ defmodule OpenTelemetry.SemConv.Incubating.OpentracingAttributes do
       :child_of => :child_of,
       :follows_from => :follows_from
     }
-  end
-
-  @spec opentracing_reftype_values(atom() | String.t()) :: atom() | String.t()
-  def opentracing_reftype_values(custom_value) do
-    custom_value
   end
 end

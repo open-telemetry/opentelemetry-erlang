@@ -51,9 +51,6 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistencylevel() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistencylevel_values().all}
       %{:"db.cassandra.consistency_level" => :all}
-      
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistencylevel_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -61,14 +58,11 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ?DB_CASSANDRA_CONSISTENCYLEVEL.
   'db.cassandra.consistency_level'
 
-  \#{?DB_CASSANDRA_CONSISTENCYLEVEL => ?'DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.all'}.
-  \#{'db.cassandra.consistency_level' => all}
-
   ?'DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.all'.
   all
 
-  ?DB_CASSANDRA_CONSISTENCYLEVEL_VALUES(custom_value).
-  custom_value
+  \#{?DB_CASSANDRA_CONSISTENCYLEVEL => ?'DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.all'}.
+  \#{'db.cassandra.consistency_level' => all}
   ```
 
   <!-- tabs-close -->
@@ -93,11 +87,6 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
       :serial => :serial,
       :local_serial => :local_serial
     }
-  end
-
-  @spec db_cassandra_consistencylevel_values(atom() | String.t()) :: atom() | String.t()
-  def db_cassandra_consistencylevel_values(custom_value) do
-    custom_value
   end
 
   @doc """
@@ -333,9 +322,6 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connections_state() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connections_state_values().idle}
       %{:"db.client.connections.state" => :idle}
-      
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connections_state_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -343,14 +329,11 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ?DB_CLIENT_CONNECTIONS_STATE.
   'db.client.connections.state'
 
-  \#{?DB_CLIENT_CONNECTIONS_STATE => ?'DB_CLIENT_CONNECTIONS_STATE_VALUES.idle'}.
-  \#{'db.client.connections.state' => idle}
-
   ?'DB_CLIENT_CONNECTIONS_STATE_VALUES.idle'.
   idle
 
-  ?DB_CLIENT_CONNECTIONS_STATE_VALUES(custom_value).
-  custom_value
+  \#{?DB_CLIENT_CONNECTIONS_STATE => ?'DB_CLIENT_CONNECTIONS_STATE_VALUES.idle'}.
+  \#{'db.client.connections.state' => idle}
   ```
 
   <!-- tabs-close -->
@@ -366,11 +349,6 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
       :idle => :idle,
       :used => :used
     }
-  end
-
-  @spec db_client_connections_state_values(atom() | String.t()) :: atom() | String.t()
-  def db_client_connections_state_values(custom_value) do
-    custom_value
   end
 
   @doc """
@@ -478,9 +456,6 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connectionmode() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connectionmode_values().gateway}
       %{:"db.cosmosdb.connection_mode" => :gateway}
-      
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connectionmode_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -488,14 +463,11 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ?DB_COSMOSDB_CONNECTIONMODE.
   'db.cosmosdb.connection_mode'
 
-  \#{?DB_COSMOSDB_CONNECTIONMODE => ?'DB_COSMOSDB_CONNECTIONMODE_VALUES.gateway'}.
-  \#{'db.cosmosdb.connection_mode' => gateway}
-
   ?'DB_COSMOSDB_CONNECTIONMODE_VALUES.gateway'.
   gateway
 
-  ?DB_COSMOSDB_CONNECTIONMODE_VALUES(custom_value).
-  custom_value
+  \#{?DB_COSMOSDB_CONNECTIONMODE => ?'DB_COSMOSDB_CONNECTIONMODE_VALUES.gateway'}.
+  \#{'db.cosmosdb.connection_mode' => gateway}
   ```
 
   <!-- tabs-close -->
@@ -511,11 +483,6 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
       :gateway => :gateway,
       :direct => :direct
     }
-  end
-
-  @spec db_cosmosdb_connectionmode_values(atom() | String.t()) :: atom() | String.t()
-  def db_cosmosdb_connectionmode_values(custom_value) do
-    custom_value
   end
 
   @deprecated """
@@ -579,9 +546,6 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operationtype() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operationtype_values().invalid}
       %{:"db.cosmosdb.operation_type" => :Invalid}
-      
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operationtype_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -589,14 +553,11 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ?DB_COSMOSDB_OPERATIONTYPE.
   'db.cosmosdb.operation_type'
 
-  \#{?DB_COSMOSDB_OPERATIONTYPE => ?'DB_COSMOSDB_OPERATIONTYPE_VALUES.invalid'}.
-  \#{'db.cosmosdb.operation_type' => Invalid}
-
   ?'DB_COSMOSDB_OPERATIONTYPE_VALUES.invalid'.
   Invalid
 
-  ?DB_COSMOSDB_OPERATIONTYPE_VALUES(custom_value).
-  custom_value
+  \#{?DB_COSMOSDB_OPERATIONTYPE => ?'DB_COSMOSDB_OPERATIONTYPE_VALUES.invalid'}.
+  \#{'db.cosmosdb.operation_type' => Invalid}
   ```
 
   <!-- tabs-close -->
@@ -625,11 +586,6 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
       :query_plan => :QueryPlan,
       :execute_javascript => :ExecuteJavaScript
     }
-  end
-
-  @spec db_cosmosdb_operationtype_values(atom() | String.t()) :: atom() | String.t()
-  def db_cosmosdb_operationtype_values(custom_value) do
-    custom_value
   end
 
   @doc """
@@ -1208,9 +1164,6 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_system() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_system_values().other_sql}
       %{:"db.system" => :other_sql}
-      
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_system_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -1218,14 +1171,11 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ?DB_SYSTEM.
   'db.system'
 
-  \#{?DB_SYSTEM => ?'DB_SYSTEM_VALUES.other_sql'}.
-  \#{'db.system' => other_sql}
-
   ?'DB_SYSTEM_VALUES.other_sql'.
   other_sql
 
-  ?DB_SYSTEM_VALUES(custom_value).
-  custom_value
+  \#{?DB_SYSTEM => ?'DB_SYSTEM_VALUES.other_sql'}.
+  \#{'db.system' => other_sql}
   ```
 
   <!-- tabs-close -->
@@ -1293,11 +1243,6 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
     }
   end
 
-  @spec db_system_values(atom() | String.t()) :: atom() | String.t()
-  def db_system_values(custom_value) do
-    custom_value
-  end
-
   @deprecated """
   No replacement at this time.
   """
@@ -1339,10 +1284,5 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
       :idle => :idle,
       :used => :used
     }
-  end
-
-  @spec state_values(atom() | String.t()) :: atom() | String.t()
-  def state_values(custom_value) do
-    custom_value
   end
 end

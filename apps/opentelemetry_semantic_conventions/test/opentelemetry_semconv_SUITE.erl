@@ -12,6 +12,5 @@ all() ->
 
 registry_macros(_Config) ->
   ?assertEqual('db.system', ?'DB_SYSTEM'),
-  ?assertEqual('postgresql', ?'DB_SYSTEM_VALUES.postgresql'),
-  ?assertEqual('custom', ?DB_SYSTEM_VALUES('custom')),
+  ?assertEqual('postgresql', ?'DB_SYSTEM_VALUES.postgresql')
   ok.

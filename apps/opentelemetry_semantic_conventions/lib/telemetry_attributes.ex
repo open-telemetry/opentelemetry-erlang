@@ -53,9 +53,6 @@ defmodule OpenTelemetry.SemConv.TelemetryAttributes do
       
       iex> %{OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_language() => OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_language_values().cpp}
       %{:"telemetry.sdk.language" => :cpp}
-      
-      iex> OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_language_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -63,14 +60,11 @@ defmodule OpenTelemetry.SemConv.TelemetryAttributes do
   ?TELEMETRY_SDK_LANGUAGE.
   'telemetry.sdk.language'
 
-  \#{?TELEMETRY_SDK_LANGUAGE => ?'TELEMETRY_SDK_LANGUAGE_VALUES.cpp'}.
-  \#{'telemetry.sdk.language' => cpp}
-
   ?'TELEMETRY_SDK_LANGUAGE_VALUES.cpp'.
   cpp
 
-  ?TELEMETRY_SDK_LANGUAGE_VALUES(custom_value).
-  custom_value
+  \#{?TELEMETRY_SDK_LANGUAGE => ?'TELEMETRY_SDK_LANGUAGE_VALUES.cpp'}.
+  \#{'telemetry.sdk.language' => cpp}
   ```
 
   <!-- tabs-close -->
@@ -96,11 +90,6 @@ defmodule OpenTelemetry.SemConv.TelemetryAttributes do
       :swift => :swift,
       :webjs => :webjs
     }
-  end
-
-  @spec telemetry_sdk_language_values(atom() | String.t()) :: atom() | String.t()
-  def telemetry_sdk_language_values(custom_value) do
-    custom_value
   end
 
   @doc """

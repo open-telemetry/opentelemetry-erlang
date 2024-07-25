@@ -21,4 +21,3 @@
 
 -define('OPENTRACING_REFTYPE_VALUES.follows_from', 'follows_from').
 
--define(OPENTRACING_REFTYPE_VALUES(Custom), Custom).

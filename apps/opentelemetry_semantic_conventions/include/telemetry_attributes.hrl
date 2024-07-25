@@ -42,7 +42,6 @@
 
 -define('TELEMETRY_SDK_LANGUAGE_VALUES.webjs', 'webjs').
 
--define(TELEMETRY_SDK_LANGUAGE_VALUES(Custom), Custom).
 
 
 %% The name of the telemetry SDK as defined above.

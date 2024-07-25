@@ -249,9 +249,6 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
       
       iex> %{OpenTelemetry.SemConv.NetworkAttributes.network_transport() => OpenTelemetry.SemConv.NetworkAttributes.network_transport_values().tcp}
       %{:"network.transport" => :tcp}
-      
-      iex> OpenTelemetry.SemConv.NetworkAttributes.network_transport_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -259,14 +256,11 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   ?NETWORK_TRANSPORT.
   'network.transport'
 
-  \#{?NETWORK_TRANSPORT => ?'NETWORK_TRANSPORT_VALUES.tcp'}.
-  \#{'network.transport' => tcp}
-
   ?'NETWORK_TRANSPORT_VALUES.tcp'.
   tcp
 
-  ?NETWORK_TRANSPORT_VALUES(custom_value).
-  custom_value
+  \#{?NETWORK_TRANSPORT => ?'NETWORK_TRANSPORT_VALUES.tcp'}.
+  \#{'network.transport' => tcp}
   ```
 
   <!-- tabs-close -->
@@ -284,11 +278,6 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
       :pipe => :pipe,
       :unix => :unix
     }
-  end
-
-  @spec network_transport_values(atom() | String.t()) :: atom() | String.t()
-  def network_transport_values(custom_value) do
-    custom_value
   end
 
   @typedoc """
@@ -326,9 +315,6 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
       
       iex> %{OpenTelemetry.SemConv.NetworkAttributes.network_type() => OpenTelemetry.SemConv.NetworkAttributes.network_type_values().ipv4}
       %{:"network.type" => :ipv4}
-      
-      iex> OpenTelemetry.SemConv.NetworkAttributes.network_type_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -336,14 +322,11 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   ?NETWORK_TYPE.
   'network.type'
 
-  \#{?NETWORK_TYPE => ?'NETWORK_TYPE_VALUES.ipv4'}.
-  \#{'network.type' => ipv4}
-
   ?'NETWORK_TYPE_VALUES.ipv4'.
   ipv4
 
-  ?NETWORK_TYPE_VALUES(custom_value).
-  custom_value
+  \#{?NETWORK_TYPE => ?'NETWORK_TYPE_VALUES.ipv4'}.
+  \#{'network.type' => ipv4}
   ```
 
   <!-- tabs-close -->
@@ -359,10 +342,5 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
       :ipv4 => :ipv4,
       :ipv6 => :ipv6
     }
-  end
-
-  @spec network_type_values(atom() | String.t()) :: atom() | String.t()
-  def network_type_values(custom_value) do
-    custom_value
   end
 end

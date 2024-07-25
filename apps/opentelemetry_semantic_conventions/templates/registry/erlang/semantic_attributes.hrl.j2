@@ -25,6 +25,5 @@
 {% for member in attribute.type.members %}
 -define('{{ attribute.name | snake_case_const | upper }}_VALUES.{{ member.id }}', '{{ member.value }}').
 {% endfor %}
--define({{ attribute.name | snake_case_const | upper }}_VALUES(Custom), Custom).
 {%- endif %}
 {% endfor %}

@@ -556,9 +556,6 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
       
       iex> %{OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_protocol_name() => OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_protocol_name_values().ssl}
       %{:"tls.protocol.name" => :ssl}
-      
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_protocol_name_values(:custom_value)
-      :custom_value
 
   ### Erlang
 
@@ -566,14 +563,11 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ?TLS_PROTOCOL_NAME.
   'tls.protocol.name'
 
-  \#{?TLS_PROTOCOL_NAME => ?'TLS_PROTOCOL_NAME_VALUES.ssl'}.
-  \#{'tls.protocol.name' => ssl}
-
   ?'TLS_PROTOCOL_NAME_VALUES.ssl'.
   ssl
 
-  ?TLS_PROTOCOL_NAME_VALUES(custom_value).
-  custom_value
+  \#{?TLS_PROTOCOL_NAME => ?'TLS_PROTOCOL_NAME_VALUES.ssl'}.
+  \#{'tls.protocol.name' => ssl}
   ```
 
   <!-- tabs-close -->
@@ -589,11 +583,6 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
       :ssl => :ssl,
       :tls => :tls
     }
-  end
-
-  @spec tls_protocol_name_values(atom() | String.t()) :: atom() | String.t()
-  def tls_protocol_name_values(custom_value) do
-    custom_value
   end
 
   @doc """
