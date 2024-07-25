@@ -73,14 +73,6 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
     :"messaging.client.id"
   end
 
-  @deprecated """
-  Replaced by `messaging.client.id`.
-  """
-  @spec messaging_clientid :: :"messaging.client_id"
-  def messaging_clientid do
-    :"messaging.client_id"
-  end
-
   @doc """
   A boolean that is true if the message destination is anonymous (could be unnamed or have auto-generated name).
   ### Value type
