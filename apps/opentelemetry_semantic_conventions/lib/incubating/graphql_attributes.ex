@@ -79,7 +79,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GraphqlAttributes do
   * `:mutation` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - GraphQL mutation
   * `:subscription` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - GraphQL subscription
   """
-  @type graphql_operation_type() :: %{
+  @type graphql_operation_type_values() :: %{
           :query => :query,
           :mutation => :mutation,
           :subscription => :subscription
@@ -97,26 +97,43 @@ defmodule OpenTelemetry.SemConv.Incubating.GraphqlAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GraphqlAttributes.graphql_operation_type().query
+      iex> OpenTelemetry.SemConv.Incubating.GraphqlAttributes.graphql_operation_type()
+      :"graphql.operation.type"
+      
+      iex> OpenTelemetry.SemConv.Incubating.GraphqlAttributes.graphql_operation_type_values().query
       :query
       
-      iex> OpenTelemetry.SemConv.Incubating.GraphqlAttributes.graphql_operation_type(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.GraphqlAttributes.graphql_operation_type() => OpenTelemetry.SemConv.Incubating.GraphqlAttributes.graphql_operation_type_values().query}
+      %{:"graphql.operation.type" => :query}
+      
+      iex> OpenTelemetry.SemConv.Incubating.GraphqlAttributes.graphql_operation_type_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'graphql_operation_type.query'.
+  ?GRAPHQL_OPERATION_TYPE.
+  'graphql.operation.type'
+
+  \#{?GRAPHQL_OPERATION_TYPE => ?GRAPHQL_OPERATION_TYPE_VALUES.query}.
+  \#{'graphql.operation.type' => query}
+
+  ?'GRAPHQL_OPERATION_TYPE_VALUES.query'.
   query
 
-  ?graphql_operation_type(custom_value).
+  ?GRAPHQL_OPERATION_TYPE_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec graphql_operation_type() :: graphql_operation_type()
-  def graphql_operation_type() do
+  @spec graphql_operation_type :: :"graphql.operation.type"
+  def graphql_operation_type do
+    :"graphql.operation.type"
+  end
+
+  @spec graphql_operation_type_values() :: graphql_operation_type_values()
+  def graphql_operation_type_values() do
     %{
       :query => :query,
       :mutation => :mutation,
@@ -124,8 +141,8 @@ defmodule OpenTelemetry.SemConv.Incubating.GraphqlAttributes do
     }
   end
 
-  @spec graphql_operation_type(atom() | String.t()) :: atom() | String.t()
-  def graphql_operation_type(custom_value) do
+  @spec graphql_operation_type_values(atom() | String.t()) :: atom() | String.t()
+  def graphql_operation_type_values(custom_value) do
     custom_value
   end
 end

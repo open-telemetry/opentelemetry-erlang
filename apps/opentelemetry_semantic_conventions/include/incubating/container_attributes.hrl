@@ -30,14 +30,15 @@
 
 
 %% The CPU state for this data point.
+-define(CONTAINER_CPU_STATE, 'container.cpu.state').
 
--define('container_cpu_state.user', 'user').
+-define('CONTAINER_CPU_STATE_VALUES.user', 'user').
 
--define('container_cpu_state.system', 'system').
+-define('CONTAINER_CPU_STATE_VALUES.system', 'system').
 
--define('container_cpu_state.kernel', 'kernel').
+-define('CONTAINER_CPU_STATE_VALUES.kernel', 'kernel').
 
--define(container_cpu_state(Custom), Custom).
+-define('CONTAINER_CPU_STATE_VALUES(Custom), Custom).
 
 
 %% Container ID. Usually a UUID, as for example used to [identify Docker containers](https://docs.docker.com/engine/reference/run/#container-identification). The UUID might be abbreviated.

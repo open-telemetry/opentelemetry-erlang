@@ -19,29 +19,31 @@
 
 
 %% State of the HTTP connection in the HTTP connection pool.
+-define(HTTP_CONNECTION_STATE, 'http.connection.state').
 
--define('http_connection_state.active', 'active').
+-define('HTTP_CONNECTION_STATE_VALUES.active', 'active').
 
--define('http_connection_state.idle', 'idle').
+-define('HTTP_CONNECTION_STATE_VALUES.idle', 'idle').
 
--define(http_connection_state(Custom), Custom).
+-define('HTTP_CONNECTION_STATE_VALUES(Custom), Custom).
 
 %% @deprecated Replaced by `network.protocol.name`.
 %% Deprecated, use `network.protocol.name` instead.
+-define(HTTP_FLAVOR, 'http.flavor').
 
--define('http_flavor.http_1_0', '1.0').
+-define('HTTP_FLAVOR_VALUES.http_1_0', '1.0').
 
--define('http_flavor.http_1_1', '1.1').
+-define('HTTP_FLAVOR_VALUES.http_1_1', '1.1').
 
--define('http_flavor.http_2_0', '2.0').
+-define('HTTP_FLAVOR_VALUES.http_2_0', '2.0').
 
--define('http_flavor.http_3_0', '3.0').
+-define('HTTP_FLAVOR_VALUES.http_3_0', '3.0').
 
--define('http_flavor.spdy', 'SPDY').
+-define('HTTP_FLAVOR_VALUES.spdy', 'SPDY').
 
--define('http_flavor.quic', 'QUIC').
+-define('HTTP_FLAVOR_VALUES.quic', 'QUIC').
 
--define(http_flavor(Custom), Custom).
+-define('HTTP_FLAVOR_VALUES(Custom), Custom).
 
 %% @deprecated Replaced by one of `server.address`, `client.address` or `http.request.header.host`, depending on the usage.
 %% Deprecated, use one of `server.address`, `client.address` or `http.request.header.host` instead, depending on the usage.

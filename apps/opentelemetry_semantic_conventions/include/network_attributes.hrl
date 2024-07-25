@@ -40,22 +40,24 @@
 
 %% [OSI transport layer](https://osi-model.com/transport-layer/) or [inter-process communication method](https://wikipedia.org/wiki/Inter-process_communication).
 %%  
+-define(NETWORK_TRANSPORT, 'network.transport').
 
--define('network_transport.tcp', 'tcp').
+-define('NETWORK_TRANSPORT_VALUES.tcp', 'tcp').
 
--define('network_transport.udp', 'udp').
+-define('NETWORK_TRANSPORT_VALUES.udp', 'udp').
 
--define('network_transport.pipe', 'pipe').
+-define('NETWORK_TRANSPORT_VALUES.pipe', 'pipe').
 
--define('network_transport.unix', 'unix').
+-define('NETWORK_TRANSPORT_VALUES.unix', 'unix').
 
--define(network_transport(Custom), Custom).
+-define('NETWORK_TRANSPORT_VALUES(Custom), Custom).
 
 
 %% [OSI network layer](https://osi-model.com/network-layer/) or non-OSI equivalent.
+-define(NETWORK_TYPE, 'network.type').
 
--define('network_type.ipv4', 'ipv4').
+-define('NETWORK_TYPE_VALUES.ipv4', 'ipv4').
 
--define('network_type.ipv6', 'ipv6').
+-define('NETWORK_TYPE_VALUES.ipv6', 'ipv6').
 
--define(network_type(Custom), Custom).
+-define('NETWORK_TYPE_VALUES(Custom), Custom).

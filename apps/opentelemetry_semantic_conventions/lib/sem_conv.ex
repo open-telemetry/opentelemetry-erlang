@@ -54,7 +54,7 @@ defmodule OpenTelemetry.SemConv do
   ```
   -include_lib("opentelemetry_semantic_conventions/include/incubating/db_attributes.hrl").
 
-  ?db_system("custom").
+  ?DB_SYSTEM("custom").
   ```
 
   #### Incubating Attributes & Metrics
@@ -92,7 +92,7 @@ defmodule OpenTelemetry.SemConv do
   To get a particular value, you can use map dot or access patterns. Enum keys are always atoms.
 
   ```
-  iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_system().postgresql
+  iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_system_values().postgresql
   :postgresql
   ```
 
@@ -100,7 +100,7 @@ defmodule OpenTelemetry.SemConv do
   use a custom value, a function macro is provided.
 
   ```
-  iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_system(:custom)
+  iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_system_values(:custom)
   :custom
   ```
 

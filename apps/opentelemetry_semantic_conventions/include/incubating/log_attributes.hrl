@@ -36,12 +36,13 @@
 
 %% The stream associated with the log. See below for a list of well-known values.
 %%  
+-define(LOG_IOSTREAM, 'log.iostream').
 
--define('log_iostream.stdout', 'stdout').
+-define('LOG_IOSTREAM_VALUES.stdout', 'stdout').
 
--define('log_iostream.stderr', 'stderr').
+-define('LOG_IOSTREAM_VALUES.stderr', 'stderr').
 
--define(log_iostream(Custom), Custom).
+-define('LOG_IOSTREAM_VALUES(Custom), Custom).
 
 
 %% A unique identifier for the Log Record.

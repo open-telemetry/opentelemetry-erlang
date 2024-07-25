@@ -19,7 +19,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   * `:active` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - active state.
   * `:idle` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - idle state.
   """
-  @type http_connection_state() :: %{
+  @type http_connection_state_values() :: %{
           :active => :active,
           :idle => :idle
         }
@@ -36,34 +36,51 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.HTTPAttributes.http_connection_state().active
+      iex> OpenTelemetry.SemConv.Incubating.HTTPAttributes.http_connection_state()
+      :"http.connection.state"
+      
+      iex> OpenTelemetry.SemConv.Incubating.HTTPAttributes.http_connection_state_values().active
       :active
       
-      iex> OpenTelemetry.SemConv.Incubating.HTTPAttributes.http_connection_state(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.HTTPAttributes.http_connection_state() => OpenTelemetry.SemConv.Incubating.HTTPAttributes.http_connection_state_values().active}
+      %{:"http.connection.state" => :active}
+      
+      iex> OpenTelemetry.SemConv.Incubating.HTTPAttributes.http_connection_state_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'http_connection_state.active'.
+  ?HTTP_CONNECTION_STATE.
+  'http.connection.state'
+
+  \#{?HTTP_CONNECTION_STATE => ?HTTP_CONNECTION_STATE_VALUES.active}.
+  \#{'http.connection.state' => active}
+
+  ?'HTTP_CONNECTION_STATE_VALUES.active'.
   active
 
-  ?http_connection_state(custom_value).
+  ?HTTP_CONNECTION_STATE_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec http_connection_state() :: http_connection_state()
-  def http_connection_state() do
+  @spec http_connection_state :: :"http.connection.state"
+  def http_connection_state do
+    :"http.connection.state"
+  end
+
+  @spec http_connection_state_values() :: http_connection_state_values()
+  def http_connection_state_values() do
     %{
       :active => :active,
       :idle => :idle
     }
   end
 
-  @spec http_connection_state(atom() | String.t()) :: atom() | String.t()
-  def http_connection_state(custom_value) do
+  @spec http_connection_state_values(atom() | String.t()) :: atom() | String.t()
+  def http_connection_state_values(custom_value) do
     custom_value
   end
 
@@ -78,7 +95,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   * `:spdy` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - SPDY protocol.
   * `:quic` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - QUIC protocol.
   """
-  @type http_flavor() :: %{
+  @type http_flavor_values() :: %{
           :http_1_0 => :"1.0",
           :http_1_1 => :"1.1",
           :http_2_0 => :"2.0",
@@ -89,8 +106,13 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   @deprecated """
   Replaced by `network.protocol.name`.
   """
-  @spec http_flavor() :: http_flavor()
-  def http_flavor() do
+  @spec http_flavor :: :"http.flavor"
+  def http_flavor do
+    :"http.flavor"
+  end
+
+  @spec http_flavor_values() :: http_flavor_values()
+  def http_flavor_values() do
     %{
       :http_1_0 => :"1.0",
       :http_1_1 => :"1.1",
@@ -101,8 +123,8 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
     }
   end
 
-  @spec http_flavor(atom() | String.t()) :: atom() | String.t()
-  def http_flavor(custom_value) do
+  @spec http_flavor_values(atom() | String.t()) :: atom() | String.t()
+  def http_flavor_values(custom_value) do
     custom_value
   end
 

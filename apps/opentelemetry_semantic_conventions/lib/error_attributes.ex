@@ -12,7 +12,7 @@ defmodule OpenTelemetry.SemConv.ErrorAttributes do
   * `:other` - A fallback error value to be used when the instrumentation doesn't define a custom value.
 
   """
-  @type error_type() :: %{
+  @type error_type_values() :: %{
           :other => :_OTHER
         }
   @doc """
@@ -51,33 +51,50 @@ defmodule OpenTelemetry.SemConv.ErrorAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.ErrorAttributes.error_type().other
+      iex> OpenTelemetry.SemConv.ErrorAttributes.error_type()
+      :"error.type"
+      
+      iex> OpenTelemetry.SemConv.ErrorAttributes.error_type_values().other
       :_OTHER
       
-      iex> OpenTelemetry.SemConv.ErrorAttributes.error_type(:custom_value)
+      iex> %{OpenTelemetry.SemConv.ErrorAttributes.error_type() => OpenTelemetry.SemConv.ErrorAttributes.error_type_values().other}
+      %{:"error.type" => :_OTHER}
+      
+      iex> OpenTelemetry.SemConv.ErrorAttributes.error_type_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'error_type.other'.
+  ?ERROR_TYPE.
+  'error.type'
+
+  \#{?ERROR_TYPE => ?ERROR_TYPE_VALUES.other}.
+  \#{'error.type' => _OTHER}
+
+  ?'ERROR_TYPE_VALUES.other'.
   _OTHER
 
-  ?error_type(custom_value).
+  ?ERROR_TYPE_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec error_type() :: error_type()
-  def error_type() do
+  @spec error_type :: :"error.type"
+  def error_type do
+    :"error.type"
+  end
+
+  @spec error_type_values() :: error_type_values()
+  def error_type_values() do
     %{
       :other => :_OTHER
     }
   end
 
-  @spec error_type(atom() | String.t()) :: atom() | String.t()
-  def error_type(custom_value) do
+  @spec error_type_values(atom() | String.t()) :: atom() | String.t()
+  def error_type_values(custom_value) do
     custom_value
   end
 end

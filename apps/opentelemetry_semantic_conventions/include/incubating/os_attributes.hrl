@@ -29,30 +29,31 @@
 
 %% The operating system type.
 %%  
+-define(OS_TYPE, 'os.type').
 
--define('os_type.windows', 'windows').
+-define('OS_TYPE_VALUES.windows', 'windows').
 
--define('os_type.linux', 'linux').
+-define('OS_TYPE_VALUES.linux', 'linux').
 
--define('os_type.darwin', 'darwin').
+-define('OS_TYPE_VALUES.darwin', 'darwin').
 
--define('os_type.freebsd', 'freebsd').
+-define('OS_TYPE_VALUES.freebsd', 'freebsd').
 
--define('os_type.netbsd', 'netbsd').
+-define('OS_TYPE_VALUES.netbsd', 'netbsd').
 
--define('os_type.openbsd', 'openbsd').
+-define('OS_TYPE_VALUES.openbsd', 'openbsd').
 
--define('os_type.dragonflybsd', 'dragonflybsd').
+-define('OS_TYPE_VALUES.dragonflybsd', 'dragonflybsd').
 
--define('os_type.hpux', 'hpux').
+-define('OS_TYPE_VALUES.hpux', 'hpux').
 
--define('os_type.aix', 'aix').
+-define('OS_TYPE_VALUES.aix', 'aix').
 
--define('os_type.solaris', 'solaris').
+-define('OS_TYPE_VALUES.solaris', 'solaris').
 
--define('os_type.z_os', 'z_os').
+-define('OS_TYPE_VALUES.z_os', 'z_os').
 
--define(os_type(Custom), Custom).
+-define('OS_TYPE_VALUES(Custom), Custom).
 
 
 %% The version string of the operating system as defined in [Version Attributes](/docs/resource/README.md#version-attributes).

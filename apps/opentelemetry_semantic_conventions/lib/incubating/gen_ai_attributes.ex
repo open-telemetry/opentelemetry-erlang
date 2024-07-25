@@ -304,7 +304,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Enum Values
   * `:openai` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - OpenAI
   """
-  @type genai_system() :: %{
+  @type genai_system_values() :: %{
           :openai => :openai
         }
   @doc """
@@ -324,33 +324,50 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_system().openai
+      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_system()
+      :"gen_ai.system"
+      
+      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_system_values().openai
       :openai
       
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_system(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_system() => OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_system_values().openai}
+      %{:"gen_ai.system" => :openai}
+      
+      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.genai_system_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'genai_system.openai'.
+  ?GENAI_SYSTEM.
+  'gen_ai.system'
+
+  \#{?GENAI_SYSTEM => ?GENAI_SYSTEM_VALUES.openai}.
+  \#{'gen_ai.system' => openai}
+
+  ?'GENAI_SYSTEM_VALUES.openai'.
   openai
 
-  ?genai_system(custom_value).
+  ?GENAI_SYSTEM_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec genai_system() :: genai_system()
-  def genai_system() do
+  @spec genai_system :: :"gen_ai.system"
+  def genai_system do
+    :"gen_ai.system"
+  end
+
+  @spec genai_system_values() :: genai_system_values()
+  def genai_system_values() do
     %{
       :openai => :openai
     }
   end
 
-  @spec genai_system(atom() | String.t()) :: atom() | String.t()
-  def genai_system(custom_value) do
+  @spec genai_system_values(atom() | String.t()) :: atom() | String.t()
+  def genai_system_values(custom_value) do
     custom_value
   end
 

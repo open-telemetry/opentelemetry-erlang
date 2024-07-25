@@ -213,7 +213,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   * `:pipe` - Named or anonymous pipe.
   * `:unix` - Unix domain socket
   """
-  @type network_transport() :: %{
+  @type network_transport_values() :: %{
           :tcp => :tcp,
           :udp => :udp,
           :pipe => :pipe,
@@ -241,26 +241,43 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.NetworkAttributes.network_transport().tcp
+      iex> OpenTelemetry.SemConv.NetworkAttributes.network_transport()
+      :"network.transport"
+      
+      iex> OpenTelemetry.SemConv.NetworkAttributes.network_transport_values().tcp
       :tcp
       
-      iex> OpenTelemetry.SemConv.NetworkAttributes.network_transport(:custom_value)
+      iex> %{OpenTelemetry.SemConv.NetworkAttributes.network_transport() => OpenTelemetry.SemConv.NetworkAttributes.network_transport_values().tcp}
+      %{:"network.transport" => :tcp}
+      
+      iex> OpenTelemetry.SemConv.NetworkAttributes.network_transport_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'network_transport.tcp'.
+  ?NETWORK_TRANSPORT.
+  'network.transport'
+
+  \#{?NETWORK_TRANSPORT => ?NETWORK_TRANSPORT_VALUES.tcp}.
+  \#{'network.transport' => tcp}
+
+  ?'NETWORK_TRANSPORT_VALUES.tcp'.
   tcp
 
-  ?network_transport(custom_value).
+  ?NETWORK_TRANSPORT_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec network_transport() :: network_transport()
-  def network_transport() do
+  @spec network_transport :: :"network.transport"
+  def network_transport do
+    :"network.transport"
+  end
+
+  @spec network_transport_values() :: network_transport_values()
+  def network_transport_values() do
     %{
       :tcp => :tcp,
       :udp => :udp,
@@ -269,8 +286,8 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
     }
   end
 
-  @spec network_transport(atom() | String.t()) :: atom() | String.t()
-  def network_transport(custom_value) do
+  @spec network_transport_values(atom() | String.t()) :: atom() | String.t()
+  def network_transport_values(custom_value) do
     custom_value
   end
 
@@ -281,7 +298,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   * `:ipv4` - IPv4
   * `:ipv6` - IPv6
   """
-  @type network_type() :: %{
+  @type network_type_values() :: %{
           :ipv4 => :ipv4,
           :ipv6 => :ipv6
         }
@@ -301,34 +318,51 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.NetworkAttributes.network_type().ipv4
+      iex> OpenTelemetry.SemConv.NetworkAttributes.network_type()
+      :"network.type"
+      
+      iex> OpenTelemetry.SemConv.NetworkAttributes.network_type_values().ipv4
       :ipv4
       
-      iex> OpenTelemetry.SemConv.NetworkAttributes.network_type(:custom_value)
+      iex> %{OpenTelemetry.SemConv.NetworkAttributes.network_type() => OpenTelemetry.SemConv.NetworkAttributes.network_type_values().ipv4}
+      %{:"network.type" => :ipv4}
+      
+      iex> OpenTelemetry.SemConv.NetworkAttributes.network_type_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'network_type.ipv4'.
+  ?NETWORK_TYPE.
+  'network.type'
+
+  \#{?NETWORK_TYPE => ?NETWORK_TYPE_VALUES.ipv4}.
+  \#{'network.type' => ipv4}
+
+  ?'NETWORK_TYPE_VALUES.ipv4'.
   ipv4
 
-  ?network_type(custom_value).
+  ?NETWORK_TYPE_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec network_type() :: network_type()
-  def network_type() do
+  @spec network_type :: :"network.type"
+  def network_type do
+    :"network.type"
+  end
+
+  @spec network_type_values() :: network_type_values()
+  def network_type_values() do
     %{
       :ipv4 => :ipv4,
       :ipv6 => :ipv6
     }
   end
 
-  @spec network_type(atom() | String.t()) :: atom() | String.t()
-  def network_type(custom_value) do
+  @spec network_type_values(atom() | String.t()) :: atom() | String.t()
+  def network_type_values(custom_value) do
     custom_value
   end
 end

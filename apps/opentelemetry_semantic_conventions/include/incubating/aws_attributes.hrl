@@ -114,12 +114,13 @@
 
 %% The [launch type](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_types.html) for an ECS task.
 %%  
+-define(AWS_ECS_LAUNCHTYPE, 'aws.ecs.launchtype').
 
--define('aws_ecs_launchtype.ec2', 'ec2').
+-define('AWS_ECS_LAUNCHTYPE_VALUES.ec2', 'ec2').
 
--define('aws_ecs_launchtype.fargate', 'fargate').
+-define('AWS_ECS_LAUNCHTYPE_VALUES.fargate', 'fargate').
 
--define(aws_ecs_launchtype(Custom), Custom).
+-define('AWS_ECS_LAUNCHTYPE_VALUES(Custom), Custom).
 
 
 %% The ARN of a running [ECS task](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-account-settings.html#ecs-resource-ids).

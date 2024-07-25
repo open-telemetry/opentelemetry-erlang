@@ -47,14 +47,15 @@
 
 %% @deprecated Split to `network.transport` and `network.type`.
 %% Deprecated, use `network.transport` and `network.type`.
+-define(NET_SOCK_FAMILY, 'net.sock.family').
 
--define('net_sock_family.inet', 'inet').
+-define('NET_SOCK_FAMILY_VALUES.inet', 'inet').
 
--define('net_sock_family.inet6', 'inet6').
+-define('NET_SOCK_FAMILY_VALUES.inet6', 'inet6').
 
--define('net_sock_family.unix', 'unix').
+-define('NET_SOCK_FAMILY_VALUES.unix', 'unix').
 
--define(net_sock_family(Custom), Custom).
+-define('NET_SOCK_FAMILY_VALUES(Custom), Custom).
 
 %% @deprecated Replaced by `network.local.address`.
 %% Deprecated, use `network.local.address`.
@@ -78,18 +79,19 @@
 
 %% @deprecated Replaced by `network.transport`.
 %% Deprecated, use `network.transport`.
+-define(NET_TRANSPORT, 'net.transport').
 
--define('net_transport.ip_tcp', 'ip_tcp').
+-define('NET_TRANSPORT_VALUES.ip_tcp', 'ip_tcp').
 
--define('net_transport.ip_udp', 'ip_udp').
+-define('NET_TRANSPORT_VALUES.ip_udp', 'ip_udp').
 
--define('net_transport.pipe', 'pipe').
+-define('NET_TRANSPORT_VALUES.pipe', 'pipe').
 
--define('net_transport.inproc', 'inproc').
+-define('NET_TRANSPORT_VALUES.inproc', 'inproc').
 
--define('net_transport.other', 'other').
+-define('NET_TRANSPORT_VALUES.other', 'other').
 
--define(net_transport(Custom), Custom).
+-define('NET_TRANSPORT_VALUES(Custom), Custom).
 
 
 %% The ISO 3166-1 alpha-2 2-character country code associated with the mobile carrier network.
@@ -109,71 +111,74 @@
 
 
 %% This describes more details regarding the connection.type. It may be the type of cell technology connection, but it could be used for describing details about a wifi connection.
+-define(NETWORK_CONNECTION_SUBTYPE, 'network.connection.subtype').
 
--define('network_connection_subtype.gprs', 'gprs').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.gprs', 'gprs').
 
--define('network_connection_subtype.edge', 'edge').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.edge', 'edge').
 
--define('network_connection_subtype.umts', 'umts').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.umts', 'umts').
 
--define('network_connection_subtype.cdma', 'cdma').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.cdma', 'cdma').
 
--define('network_connection_subtype.evdo_0', 'evdo_0').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.evdo_0', 'evdo_0').
 
--define('network_connection_subtype.evdo_a', 'evdo_a').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.evdo_a', 'evdo_a').
 
--define('network_connection_subtype.cdma2000_1xrtt', 'cdma2000_1xrtt').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.cdma2000_1xrtt', 'cdma2000_1xrtt').
 
--define('network_connection_subtype.hsdpa', 'hsdpa').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.hsdpa', 'hsdpa').
 
--define('network_connection_subtype.hsupa', 'hsupa').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.hsupa', 'hsupa').
 
--define('network_connection_subtype.hspa', 'hspa').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.hspa', 'hspa').
 
--define('network_connection_subtype.iden', 'iden').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.iden', 'iden').
 
--define('network_connection_subtype.evdo_b', 'evdo_b').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.evdo_b', 'evdo_b').
 
--define('network_connection_subtype.lte', 'lte').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.lte', 'lte').
 
--define('network_connection_subtype.ehrpd', 'ehrpd').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.ehrpd', 'ehrpd').
 
--define('network_connection_subtype.hspap', 'hspap').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.hspap', 'hspap').
 
--define('network_connection_subtype.gsm', 'gsm').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.gsm', 'gsm').
 
--define('network_connection_subtype.td_scdma', 'td_scdma').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.td_scdma', 'td_scdma').
 
--define('network_connection_subtype.iwlan', 'iwlan').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.iwlan', 'iwlan').
 
--define('network_connection_subtype.nr', 'nr').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.nr', 'nr').
 
--define('network_connection_subtype.nrnsa', 'nrnsa').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.nrnsa', 'nrnsa').
 
--define('network_connection_subtype.lte_ca', 'lte_ca').
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES.lte_ca', 'lte_ca').
 
--define(network_connection_subtype(Custom), Custom).
+-define('NETWORK_CONNECTION_SUBTYPE_VALUES(Custom), Custom).
 
 
 %% The internet connection type.
+-define(NETWORK_CONNECTION_TYPE, 'network.connection.type').
 
--define('network_connection_type.wifi', 'wifi').
+-define('NETWORK_CONNECTION_TYPE_VALUES.wifi', 'wifi').
 
--define('network_connection_type.wired', 'wired').
+-define('NETWORK_CONNECTION_TYPE_VALUES.wired', 'wired').
 
--define('network_connection_type.cell', 'cell').
+-define('NETWORK_CONNECTION_TYPE_VALUES.cell', 'cell').
 
--define('network_connection_type.unavailable', 'unavailable').
+-define('NETWORK_CONNECTION_TYPE_VALUES.unavailable', 'unavailable').
 
--define('network_connection_type.unknown', 'unknown').
+-define('NETWORK_CONNECTION_TYPE_VALUES.unknown', 'unknown').
 
--define(network_connection_type(Custom), Custom).
+-define('NETWORK_CONNECTION_TYPE_VALUES(Custom), Custom).
 
 
 %% The network IO operation direction.
+-define(NETWORK_IO_DIRECTION, 'network.io.direction').
 
--define('network_io_direction.transmit', 'transmit').
+-define('NETWORK_IO_DIRECTION_VALUES.transmit', 'transmit').
 
--define('network_io_direction.receive', 'receive').
+-define('NETWORK_IO_DIRECTION_VALUES.receive', 'receive').
 
--define(network_io_direction(Custom), Custom).
+-define('NETWORK_IO_DIRECTION_VALUES(Custom), Custom).

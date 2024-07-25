@@ -19,22 +19,23 @@
 
 
 %% The state of the CPU
+-define(SYSTEM_CPU_STATE, 'system.cpu.state').
 
--define('system_cpu_state.user', 'user').
+-define('SYSTEM_CPU_STATE_VALUES.user', 'user').
 
--define('system_cpu_state.system', 'system').
+-define('SYSTEM_CPU_STATE_VALUES.system', 'system').
 
--define('system_cpu_state.nice', 'nice').
+-define('SYSTEM_CPU_STATE_VALUES.nice', 'nice').
 
--define('system_cpu_state.idle', 'idle').
+-define('SYSTEM_CPU_STATE_VALUES.idle', 'idle').
 
--define('system_cpu_state.iowait', 'iowait').
+-define('SYSTEM_CPU_STATE_VALUES.iowait', 'iowait').
 
--define('system_cpu_state.interrupt', 'interrupt').
+-define('SYSTEM_CPU_STATE_VALUES.interrupt', 'interrupt').
 
--define('system_cpu_state.steal', 'steal').
+-define('SYSTEM_CPU_STATE_VALUES.steal', 'steal').
 
--define(system_cpu_state(Custom), Custom).
+-define('SYSTEM_CPU_STATE_VALUES(Custom), Custom).
 
 
 %% The device identifier
@@ -50,126 +51,135 @@
 
 
 %% The filesystem state
+-define(SYSTEM_FILESYSTEM_STATE, 'system.filesystem.state').
 
--define('system_filesystem_state.used', 'used').
+-define('SYSTEM_FILESYSTEM_STATE_VALUES.used', 'used').
 
--define('system_filesystem_state.free', 'free').
+-define('SYSTEM_FILESYSTEM_STATE_VALUES.free', 'free').
 
--define('system_filesystem_state.reserved', 'reserved').
+-define('SYSTEM_FILESYSTEM_STATE_VALUES.reserved', 'reserved').
 
--define(system_filesystem_state(Custom), Custom).
+-define('SYSTEM_FILESYSTEM_STATE_VALUES(Custom), Custom).
 
 
 %% The filesystem type
+-define(SYSTEM_FILESYSTEM_TYPE, 'system.filesystem.type').
 
--define('system_filesystem_type.fat32', 'fat32').
+-define('SYSTEM_FILESYSTEM_TYPE_VALUES.fat32', 'fat32').
 
--define('system_filesystem_type.exfat', 'exfat').
+-define('SYSTEM_FILESYSTEM_TYPE_VALUES.exfat', 'exfat').
 
--define('system_filesystem_type.ntfs', 'ntfs').
+-define('SYSTEM_FILESYSTEM_TYPE_VALUES.ntfs', 'ntfs').
 
--define('system_filesystem_type.refs', 'refs').
+-define('SYSTEM_FILESYSTEM_TYPE_VALUES.refs', 'refs').
 
--define('system_filesystem_type.hfsplus', 'hfsplus').
+-define('SYSTEM_FILESYSTEM_TYPE_VALUES.hfsplus', 'hfsplus').
 
--define('system_filesystem_type.ext4', 'ext4').
+-define('SYSTEM_FILESYSTEM_TYPE_VALUES.ext4', 'ext4').
 
--define(system_filesystem_type(Custom), Custom).
+-define('SYSTEM_FILESYSTEM_TYPE_VALUES(Custom), Custom).
 
 
 %% The memory state
+-define(SYSTEM_MEMORY_STATE, 'system.memory.state').
 
--define('system_memory_state.used', 'used').
+-define('SYSTEM_MEMORY_STATE_VALUES.used', 'used').
 
--define('system_memory_state.free', 'free').
+-define('SYSTEM_MEMORY_STATE_VALUES.free', 'free').
 
--define('system_memory_state.shared', 'shared').
+-define('SYSTEM_MEMORY_STATE_VALUES.shared', 'shared').
 
--define('system_memory_state.buffers', 'buffers').
+-define('SYSTEM_MEMORY_STATE_VALUES.buffers', 'buffers').
 
--define('system_memory_state.cached', 'cached').
+-define('SYSTEM_MEMORY_STATE_VALUES.cached', 'cached').
 
--define(system_memory_state(Custom), Custom).
+-define('SYSTEM_MEMORY_STATE_VALUES(Custom), Custom).
 
 
 %% A stateless protocol MUST NOT set this attribute
+-define(SYSTEM_NETWORK_STATE, 'system.network.state').
 
--define('system_network_state.close', 'close').
+-define('SYSTEM_NETWORK_STATE_VALUES.close', 'close').
 
--define('system_network_state.close_wait', 'close_wait').
+-define('SYSTEM_NETWORK_STATE_VALUES.close_wait', 'close_wait').
 
--define('system_network_state.closing', 'closing').
+-define('SYSTEM_NETWORK_STATE_VALUES.closing', 'closing').
 
--define('system_network_state.delete', 'delete').
+-define('SYSTEM_NETWORK_STATE_VALUES.delete', 'delete').
 
--define('system_network_state.established', 'established').
+-define('SYSTEM_NETWORK_STATE_VALUES.established', 'established').
 
--define('system_network_state.fin_wait_1', 'fin_wait_1').
+-define('SYSTEM_NETWORK_STATE_VALUES.fin_wait_1', 'fin_wait_1').
 
--define('system_network_state.fin_wait_2', 'fin_wait_2').
+-define('SYSTEM_NETWORK_STATE_VALUES.fin_wait_2', 'fin_wait_2').
 
--define('system_network_state.last_ack', 'last_ack').
+-define('SYSTEM_NETWORK_STATE_VALUES.last_ack', 'last_ack').
 
--define('system_network_state.listen', 'listen').
+-define('SYSTEM_NETWORK_STATE_VALUES.listen', 'listen').
 
--define('system_network_state.syn_recv', 'syn_recv').
+-define('SYSTEM_NETWORK_STATE_VALUES.syn_recv', 'syn_recv').
 
--define('system_network_state.syn_sent', 'syn_sent').
+-define('SYSTEM_NETWORK_STATE_VALUES.syn_sent', 'syn_sent').
 
--define('system_network_state.time_wait', 'time_wait').
+-define('SYSTEM_NETWORK_STATE_VALUES.time_wait', 'time_wait').
 
--define(system_network_state(Custom), Custom).
+-define('SYSTEM_NETWORK_STATE_VALUES(Custom), Custom).
 
 
 %% The paging access direction
+-define(SYSTEM_PAGING_DIRECTION, 'system.paging.direction').
 
--define('system_paging_direction.in', 'in').
+-define('SYSTEM_PAGING_DIRECTION_VALUES.in', 'in').
 
--define('system_paging_direction.out', 'out').
+-define('SYSTEM_PAGING_DIRECTION_VALUES.out', 'out').
 
--define(system_paging_direction(Custom), Custom).
+-define('SYSTEM_PAGING_DIRECTION_VALUES(Custom), Custom).
 
 
 %% The memory paging state
+-define(SYSTEM_PAGING_STATE, 'system.paging.state').
 
--define('system_paging_state.used', 'used').
+-define('SYSTEM_PAGING_STATE_VALUES.used', 'used').
 
--define('system_paging_state.free', 'free').
+-define('SYSTEM_PAGING_STATE_VALUES.free', 'free').
 
--define(system_paging_state(Custom), Custom).
+-define('SYSTEM_PAGING_STATE_VALUES(Custom), Custom).
 
 
 %% The memory paging type
+-define(SYSTEM_PAGING_TYPE, 'system.paging.type').
 
--define('system_paging_type.major', 'major').
+-define('SYSTEM_PAGING_TYPE_VALUES.major', 'major').
 
--define('system_paging_type.minor', 'minor').
+-define('SYSTEM_PAGING_TYPE_VALUES.minor', 'minor').
 
--define(system_paging_type(Custom), Custom).
+-define('SYSTEM_PAGING_TYPE_VALUES(Custom), Custom).
 
 
 %% The process state, e.g., [Linux Process State Codes](https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES)
 %%  
+-define(SYSTEM_PROCESS_STATUS, 'system.process.status').
 
--define('system_process_status.running', 'running').
+-define('SYSTEM_PROCESS_STATUS_VALUES.running', 'running').
 
--define('system_process_status.sleeping', 'sleeping').
+-define('SYSTEM_PROCESS_STATUS_VALUES.sleeping', 'sleeping').
 
--define('system_process_status.stopped', 'stopped').
+-define('SYSTEM_PROCESS_STATUS_VALUES.stopped', 'stopped').
 
--define('system_process_status.defunct', 'defunct').
+-define('SYSTEM_PROCESS_STATUS_VALUES.defunct', 'defunct').
 
--define(system_process_status(Custom), Custom).
+-define('SYSTEM_PROCESS_STATUS_VALUES(Custom), Custom).
 
 %% @deprecated Replaced by `system.process.status`.
 %% Deprecated, use `system.process.status` instead.
+-define(SYSTEM_PROCESSES_STATUS, 'system.processes.status').
 
--define('system_processes_status.running', 'running').
+-define('SYSTEM_PROCESSES_STATUS_VALUES.running', 'running').
 
--define('system_processes_status.sleeping', 'sleeping').
+-define('SYSTEM_PROCESSES_STATUS_VALUES.sleeping', 'sleeping').
 
--define('system_processes_status.stopped', 'stopped').
+-define('SYSTEM_PROCESSES_STATUS_VALUES.stopped', 'stopped').
 
--define('system_processes_status.defunct', 'defunct').
+-define('SYSTEM_PROCESSES_STATUS_VALUES.defunct', 'defunct').
 
--define(system_processes_status(Custom), Custom).
+-define('SYSTEM_PROCESSES_STATUS_VALUES(Custom), Custom).

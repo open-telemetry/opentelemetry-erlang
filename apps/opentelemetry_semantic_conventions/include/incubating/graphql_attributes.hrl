@@ -23,11 +23,12 @@
 
 
 %% The type of the operation being executed.
+-define(GRAPHQL_OPERATION_TYPE, 'graphql.operation.type').
 
--define('graphql_operation_type.query', 'query').
+-define('GRAPHQL_OPERATION_TYPE_VALUES.query', 'query').
 
--define('graphql_operation_type.mutation', 'mutation').
+-define('GRAPHQL_OPERATION_TYPE_VALUES.mutation', 'mutation').
 
--define('graphql_operation_type.subscription', 'subscription').
+-define('GRAPHQL_OPERATION_TYPE_VALUES.subscription', 'subscription').
 
--define(graphql_operation_type(Custom), Custom).
+-define('GRAPHQL_OPERATION_TYPE_VALUES(Custom), Custom).

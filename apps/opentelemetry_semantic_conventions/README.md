@@ -46,7 +46,7 @@ use a custom value, a function macro is provided.
 ```
 -include_lib("opentelemetry_semantic_conventions/include/incubating/db_attributes.hrl").
 
-?db_system("custom").
+?DB_SYSTEM("custom").
 ```
 
 #### Incubating Attributes & Metrics

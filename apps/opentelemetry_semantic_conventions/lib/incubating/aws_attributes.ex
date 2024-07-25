@@ -772,7 +772,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   * `:ec2` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:fargate` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   """
-  @type aws_ecs_launchtype() :: %{
+  @type aws_ecs_launchtype_values() :: %{
           :ec2 => :ec2,
           :fargate => :fargate
         }
@@ -785,34 +785,51 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_ecs_launchtype().ec2
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_ecs_launchtype()
+      :"aws.ecs.launchtype"
+      
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_ecs_launchtype_values().ec2
       :ec2
       
-      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_ecs_launchtype(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_ecs_launchtype() => OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_ecs_launchtype_values().ec2}
+      %{:"aws.ecs.launchtype" => :ec2}
+      
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_ecs_launchtype_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'aws_ecs_launchtype.ec2'.
+  ?AWS_ECS_LAUNCHTYPE.
+  'aws.ecs.launchtype'
+
+  \#{?AWS_ECS_LAUNCHTYPE => ?AWS_ECS_LAUNCHTYPE_VALUES.ec2}.
+  \#{'aws.ecs.launchtype' => ec2}
+
+  ?'AWS_ECS_LAUNCHTYPE_VALUES.ec2'.
   ec2
 
-  ?aws_ecs_launchtype(custom_value).
+  ?AWS_ECS_LAUNCHTYPE_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec aws_ecs_launchtype() :: aws_ecs_launchtype()
-  def aws_ecs_launchtype() do
+  @spec aws_ecs_launchtype :: :"aws.ecs.launchtype"
+  def aws_ecs_launchtype do
+    :"aws.ecs.launchtype"
+  end
+
+  @spec aws_ecs_launchtype_values() :: aws_ecs_launchtype_values()
+  def aws_ecs_launchtype_values() do
     %{
       :ec2 => :ec2,
       :fargate => :fargate
     }
   end
 
-  @spec aws_ecs_launchtype(atom() | String.t()) :: atom() | String.t()
-  def aws_ecs_launchtype(custom_value) do
+  @spec aws_ecs_launchtype_values(atom() | String.t()) :: atom() | String.t()
+  def aws_ecs_launchtype_values(custom_value) do
     custom_value
   end
 

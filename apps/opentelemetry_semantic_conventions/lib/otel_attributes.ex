@@ -75,7 +75,7 @@ defmodule OpenTelemetry.SemConv.OtelAttributes do
   * `:ok` - The operation has been validated by an Application developer or Operator to have completed successfully.
   * `:error` - The operation contains an error.
   """
-  @type otel_statuscode() :: %{
+  @type otel_statuscode_values() :: %{
           :ok => :OK,
           :error => :ERROR
         }
@@ -87,34 +87,51 @@ defmodule OpenTelemetry.SemConv.OtelAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.OtelAttributes.otel_statuscode().ok
+      iex> OpenTelemetry.SemConv.OtelAttributes.otel_statuscode()
+      :"otel.status_code"
+      
+      iex> OpenTelemetry.SemConv.OtelAttributes.otel_statuscode_values().ok
       :OK
       
-      iex> OpenTelemetry.SemConv.OtelAttributes.otel_statuscode(:custom_value)
+      iex> %{OpenTelemetry.SemConv.OtelAttributes.otel_statuscode() => OpenTelemetry.SemConv.OtelAttributes.otel_statuscode_values().ok}
+      %{:"otel.status_code" => :OK}
+      
+      iex> OpenTelemetry.SemConv.OtelAttributes.otel_statuscode_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'otel_statuscode.ok'.
+  ?OTEL_STATUSCODE.
+  'otel.status_code'
+
+  \#{?OTEL_STATUSCODE => ?OTEL_STATUSCODE_VALUES.ok}.
+  \#{'otel.status_code' => OK}
+
+  ?'OTEL_STATUSCODE_VALUES.ok'.
   OK
 
-  ?otel_statuscode(custom_value).
+  ?OTEL_STATUSCODE_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec otel_statuscode() :: otel_statuscode()
-  def otel_statuscode() do
+  @spec otel_statuscode :: :"otel.status_code"
+  def otel_statuscode do
+    :"otel.status_code"
+  end
+
+  @spec otel_statuscode_values() :: otel_statuscode_values()
+  def otel_statuscode_values() do
     %{
       :ok => :OK,
       :error => :ERROR
     }
   end
 
-  @spec otel_statuscode(atom() | String.t()) :: atom() | String.t()
-  def otel_statuscode(custom_value) do
+  @spec otel_statuscode_values(atom() | String.t()) :: atom() | String.t()
+  def otel_statuscode_values(custom_value) do
     custom_value
   end
 

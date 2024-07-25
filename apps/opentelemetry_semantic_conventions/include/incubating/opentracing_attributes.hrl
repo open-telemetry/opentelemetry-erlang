@@ -15,9 +15,10 @@
 %%%-------------------------------------------------------------------------
 
 %% Parent-child Reference type
+-define(OPENTRACING_REFTYPE, 'opentracing.ref_type').
 
--define('opentracing_reftype.child_of', 'child_of').
+-define('OPENTRACING_REFTYPE_VALUES.child_of', 'child_of').
 
--define('opentracing_reftype.follows_from', 'follows_from').
+-define('OPENTRACING_REFTYPE_VALUES.follows_from', 'follows_from').
 
--define(opentracing_reftype(Custom), Custom).
+-define('OPENTRACING_REFTYPE_VALUES(Custom), Custom).

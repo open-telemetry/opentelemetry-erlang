@@ -142,18 +142,19 @@
 
 %% A string identifying the type of the messaging operation.
 %%  
+-define(MESSAGING_OPERATION_TYPE, 'messaging.operation.type').
 
--define('messaging_operation_type.publish', 'publish').
+-define('MESSAGING_OPERATION_TYPE_VALUES.publish', 'publish').
 
--define('messaging_operation_type.create', 'create').
+-define('MESSAGING_OPERATION_TYPE_VALUES.create', 'create').
 
--define('messaging_operation_type.receive', 'receive').
+-define('MESSAGING_OPERATION_TYPE_VALUES.receive', 'receive').
 
--define('messaging_operation_type.deliver', 'process').
+-define('MESSAGING_OPERATION_TYPE_VALUES.deliver', 'process').
 
--define('messaging_operation_type.settle', 'settle').
+-define('MESSAGING_OPERATION_TYPE_VALUES.settle', 'settle').
 
--define(messaging_operation_type(Custom), Custom).
+-define('MESSAGING_OPERATION_TYPE_VALUES(Custom), Custom).
 
 
 %% RabbitMQ message routing key.
@@ -173,12 +174,13 @@
 
 %% Model of message consumption. This only applies to consumer spans.
 %%  
+-define(MESSAGING_ROCKETMQ_CONSUMPTIONMODEL, 'messaging.rocketmq.consumption_model').
 
--define('messaging_rocketmq_consumptionmodel.clustering', 'clustering').
+-define('MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES.clustering', 'clustering').
 
--define('messaging_rocketmq_consumptionmodel.broadcasting', 'broadcasting').
+-define('MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES.broadcasting', 'broadcasting').
 
--define(messaging_rocketmq_consumptionmodel(Custom), Custom).
+-define('MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES(Custom), Custom).
 
 
 %% The delay time level for delay message, which determines the message delay time.
@@ -208,16 +210,17 @@
 
 %% Type of message.
 %%  
+-define(MESSAGING_ROCKETMQ_MESSAGE_TYPE, 'messaging.rocketmq.message.type').
 
--define('messaging_rocketmq_message_type.normal', 'normal').
+-define('MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES.normal', 'normal').
 
--define('messaging_rocketmq_message_type.fifo', 'fifo').
+-define('MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES.fifo', 'fifo').
 
--define('messaging_rocketmq_message_type.delay', 'delay').
+-define('MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES.delay', 'delay').
 
--define('messaging_rocketmq_message_type.transaction', 'transaction').
+-define('MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES.transaction', 'transaction').
 
--define(messaging_rocketmq_message_type(Custom), Custom).
+-define('MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES(Custom), Custom).
 
 
 %% Namespace of RocketMQ resources, resources in different namespaces are individual.
@@ -232,16 +235,17 @@
 
 %% Describes the [settlement type](https://learn.microsoft.com/azure/service-bus-messaging/message-transfers-locks-settlement#peeklock).
 %%  
+-define(MESSAGING_SERVICEBUS_DISPOSITIONSTATUS, 'messaging.servicebus.disposition_status').
 
--define('messaging_servicebus_dispositionstatus.complete', 'complete').
+-define('MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.complete', 'complete').
 
--define('messaging_servicebus_dispositionstatus.abandon', 'abandon').
+-define('MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.abandon', 'abandon').
 
--define('messaging_servicebus_dispositionstatus.dead_letter', 'dead_letter').
+-define('MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.dead_letter', 'dead_letter').
 
--define('messaging_servicebus_dispositionstatus.defer', 'defer').
+-define('MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.defer', 'defer').
 
--define(messaging_servicebus_dispositionstatus(Custom), Custom).
+-define('MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES(Custom), Custom).
 
 
 %% Number of deliveries that have been attempted for this message.
@@ -255,25 +259,26 @@
 
 
 %% The messaging system as identified by the client instrumentation.
+-define(MESSAGING_SYSTEM, 'messaging.system').
 
--define('messaging_system.activemq', 'activemq').
+-define('MESSAGING_SYSTEM_VALUES.activemq', 'activemq').
 
--define('messaging_system.aws_sqs', 'aws_sqs').
+-define('MESSAGING_SYSTEM_VALUES.aws_sqs', 'aws_sqs').
 
--define('messaging_system.eventgrid', 'eventgrid').
+-define('MESSAGING_SYSTEM_VALUES.eventgrid', 'eventgrid').
 
--define('messaging_system.eventhubs', 'eventhubs').
+-define('MESSAGING_SYSTEM_VALUES.eventhubs', 'eventhubs').
 
--define('messaging_system.servicebus', 'servicebus').
+-define('MESSAGING_SYSTEM_VALUES.servicebus', 'servicebus').
 
--define('messaging_system.gcp_pubsub', 'gcp_pubsub').
+-define('MESSAGING_SYSTEM_VALUES.gcp_pubsub', 'gcp_pubsub').
 
--define('messaging_system.jms', 'jms').
+-define('MESSAGING_SYSTEM_VALUES.jms', 'jms').
 
--define('messaging_system.kafka', 'kafka').
+-define('MESSAGING_SYSTEM_VALUES.kafka', 'kafka').
 
--define('messaging_system.rabbitmq', 'rabbitmq').
+-define('MESSAGING_SYSTEM_VALUES.rabbitmq', 'rabbitmq').
 
--define('messaging_system.rocketmq', 'rocketmq').
+-define('MESSAGING_SYSTEM_VALUES.rocketmq', 'rocketmq').
 
--define(messaging_system(Custom), Custom).
+-define('MESSAGING_SYSTEM_VALUES(Custom), Custom).

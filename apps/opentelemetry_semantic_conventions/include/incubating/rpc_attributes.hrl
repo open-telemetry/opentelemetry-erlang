@@ -23,12 +23,13 @@
 
 %% @deprecated Replaced by `rpc.message.type`.
 %% Deprecated, use `rpc.message.type` instead.
+-define(MESSAGE_TYPE, 'message.type').
 
--define('message_type.sent', 'SENT').
+-define('MESSAGE_TYPE_VALUES.sent', 'SENT').
 
--define('message_type.received', 'RECEIVED').
+-define('MESSAGE_TYPE_VALUES.received', 'RECEIVED').
 
--define(message_type(Custom), Custom).
+-define('MESSAGE_TYPE_VALUES(Custom), Custom).
 
 %% @deprecated Replaced by `rpc.message.uncompressed_size`.
 %% Deprecated, use `rpc.message.uncompressed_size` instead.
@@ -36,40 +37,41 @@
 
 
 %% The [error codes](https://connect.build/docs/protocol/#error-codes) of the Connect request. Error codes are always string values.
+-define(RPC_CONNECTRPC_ERRORCODE, 'rpc.connect_rpc.error_code').
 
--define('rpc_connectrpc_errorcode.cancelled', 'cancelled').
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES.cancelled', 'cancelled').
 
--define('rpc_connectrpc_errorcode.unknown', 'unknown').
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES.unknown', 'unknown').
 
--define('rpc_connectrpc_errorcode.invalid_argument', 'invalid_argument').
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES.invalid_argument', 'invalid_argument').
 
--define('rpc_connectrpc_errorcode.deadline_exceeded', 'deadline_exceeded').
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES.deadline_exceeded', 'deadline_exceeded').
 
--define('rpc_connectrpc_errorcode.not_found', 'not_found').
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES.not_found', 'not_found').
 
--define('rpc_connectrpc_errorcode.already_exists', 'already_exists').
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES.already_exists', 'already_exists').
 
--define('rpc_connectrpc_errorcode.permission_denied', 'permission_denied').
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES.permission_denied', 'permission_denied').
 
--define('rpc_connectrpc_errorcode.resource_exhausted', 'resource_exhausted').
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES.resource_exhausted', 'resource_exhausted').
 
--define('rpc_connectrpc_errorcode.failed_precondition', 'failed_precondition').
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES.failed_precondition', 'failed_precondition').
 
--define('rpc_connectrpc_errorcode.aborted', 'aborted').
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES.aborted', 'aborted').
 
--define('rpc_connectrpc_errorcode.out_of_range', 'out_of_range').
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES.out_of_range', 'out_of_range').
 
--define('rpc_connectrpc_errorcode.unimplemented', 'unimplemented').
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES.unimplemented', 'unimplemented').
 
--define('rpc_connectrpc_errorcode.internal', 'internal').
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES.internal', 'internal').
 
--define('rpc_connectrpc_errorcode.unavailable', 'unavailable').
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES.unavailable', 'unavailable').
 
--define('rpc_connectrpc_errorcode.data_loss', 'data_loss').
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES.data_loss', 'data_loss').
 
--define('rpc_connectrpc_errorcode.unauthenticated', 'unauthenticated').
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES.unauthenticated', 'unauthenticated').
 
--define(rpc_connectrpc_errorcode(Custom), Custom).
+-define('RPC_CONNECTRPC_ERRORCODE_VALUES(Custom), Custom).
 
 
 %% Connect request metadata, `<key>` being the normalized Connect Metadata key (lowercase), the value being the metadata values.
@@ -93,42 +95,43 @@
 
 
 %% The [numeric status code](https://github.com/grpc/grpc/blob/v1.33.2/doc/statuscodes.md) of the gRPC request.
+-define(RPC_GRPC_STATUSCODE, 'rpc.grpc.status_code').
 
--define('rpc_grpc_statuscode.ok', '0').
+-define('RPC_GRPC_STATUSCODE_VALUES.ok', '0').
 
--define('rpc_grpc_statuscode.cancelled', '1').
+-define('RPC_GRPC_STATUSCODE_VALUES.cancelled', '1').
 
--define('rpc_grpc_statuscode.unknown', '2').
+-define('RPC_GRPC_STATUSCODE_VALUES.unknown', '2').
 
--define('rpc_grpc_statuscode.invalid_argument', '3').
+-define('RPC_GRPC_STATUSCODE_VALUES.invalid_argument', '3').
 
--define('rpc_grpc_statuscode.deadline_exceeded', '4').
+-define('RPC_GRPC_STATUSCODE_VALUES.deadline_exceeded', '4').
 
--define('rpc_grpc_statuscode.not_found', '5').
+-define('RPC_GRPC_STATUSCODE_VALUES.not_found', '5').
 
--define('rpc_grpc_statuscode.already_exists', '6').
+-define('RPC_GRPC_STATUSCODE_VALUES.already_exists', '6').
 
--define('rpc_grpc_statuscode.permission_denied', '7').
+-define('RPC_GRPC_STATUSCODE_VALUES.permission_denied', '7').
 
--define('rpc_grpc_statuscode.resource_exhausted', '8').
+-define('RPC_GRPC_STATUSCODE_VALUES.resource_exhausted', '8').
 
--define('rpc_grpc_statuscode.failed_precondition', '9').
+-define('RPC_GRPC_STATUSCODE_VALUES.failed_precondition', '9').
 
--define('rpc_grpc_statuscode.aborted', '10').
+-define('RPC_GRPC_STATUSCODE_VALUES.aborted', '10').
 
--define('rpc_grpc_statuscode.out_of_range', '11').
+-define('RPC_GRPC_STATUSCODE_VALUES.out_of_range', '11').
 
--define('rpc_grpc_statuscode.unimplemented', '12').
+-define('RPC_GRPC_STATUSCODE_VALUES.unimplemented', '12').
 
--define('rpc_grpc_statuscode.internal', '13').
+-define('RPC_GRPC_STATUSCODE_VALUES.internal', '13').
 
--define('rpc_grpc_statuscode.unavailable', '14').
+-define('RPC_GRPC_STATUSCODE_VALUES.unavailable', '14').
 
--define('rpc_grpc_statuscode.data_loss', '15').
+-define('RPC_GRPC_STATUSCODE_VALUES.data_loss', '15').
 
--define('rpc_grpc_statuscode.unauthenticated', '16').
+-define('RPC_GRPC_STATUSCODE_VALUES.unauthenticated', '16').
 
--define(rpc_grpc_statuscode(Custom), Custom).
+-define('RPC_GRPC_STATUSCODE_VALUES(Custom), Custom).
 
 
 %% `error.code` property of response if it is an error response.
@@ -157,12 +160,13 @@
 
 
 %% Whether this is a received or sent message.
+-define(RPC_MESSAGE_TYPE, 'rpc.message.type').
 
--define('rpc_message_type.sent', 'SENT').
+-define('RPC_MESSAGE_TYPE_VALUES.sent', 'SENT').
 
--define('rpc_message_type.received', 'RECEIVED').
+-define('RPC_MESSAGE_TYPE_VALUES.received', 'RECEIVED').
 
--define(rpc_message_type(Custom), Custom).
+-define('RPC_MESSAGE_TYPE_VALUES(Custom), Custom).
 
 
 %% Uncompressed size of the message in bytes.
@@ -178,15 +182,16 @@
 
 
 %% A string identifying the remoting system. See below for a list of well-known identifiers.
+-define(RPC_SYSTEM, 'rpc.system').
 
--define('rpc_system.grpc', 'grpc').
+-define('RPC_SYSTEM_VALUES.grpc', 'grpc').
 
--define('rpc_system.java_rmi', 'java_rmi').
+-define('RPC_SYSTEM_VALUES.java_rmi', 'java_rmi').
 
--define('rpc_system.dotnet_wcf', 'dotnet_wcf').
+-define('RPC_SYSTEM_VALUES.dotnet_wcf', 'dotnet_wcf').
 
--define('rpc_system.apache_dubbo', 'apache_dubbo').
+-define('RPC_SYSTEM_VALUES.apache_dubbo', 'apache_dubbo').
 
--define('rpc_system.connect_rpc', 'connect_rpc').
+-define('RPC_SYSTEM_VALUES.connect_rpc', 'connect_rpc').
 
--define(rpc_system(Custom), Custom).
+-define('RPC_SYSTEM_VALUES(Custom), Custom).

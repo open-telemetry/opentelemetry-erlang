@@ -115,7 +115,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   * `:system` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - When CPU is used by the system (host OS)
   * `:kernel` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - When tasks of the cgroup are in kernel mode (Linux). When all container processes are in kernel mode (Windows).
   """
-  @type container_cpu_state() :: %{
+  @type container_cpu_state_values() :: %{
           :user => :user,
           :system => :system,
           :kernel => :kernel
@@ -133,26 +133,43 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state().user
+      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state()
+      :"container.cpu.state"
+      
+      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state_values().user
       :user
       
-      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state() => OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state_values().user}
+      %{:"container.cpu.state" => :user}
+      
+      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'container_cpu_state.user'.
+  ?CONTAINER_CPU_STATE.
+  'container.cpu.state'
+
+  \#{?CONTAINER_CPU_STATE => ?CONTAINER_CPU_STATE_VALUES.user}.
+  \#{'container.cpu.state' => user}
+
+  ?'CONTAINER_CPU_STATE_VALUES.user'.
   user
 
-  ?container_cpu_state(custom_value).
+  ?CONTAINER_CPU_STATE_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec container_cpu_state() :: container_cpu_state()
-  def container_cpu_state() do
+  @spec container_cpu_state :: :"container.cpu.state"
+  def container_cpu_state do
+    :"container.cpu.state"
+  end
+
+  @spec container_cpu_state_values() :: container_cpu_state_values()
+  def container_cpu_state_values() do
     %{
       :user => :user,
       :system => :system,
@@ -160,8 +177,8 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
     }
   end
 
-  @spec container_cpu_state(atom() | String.t()) :: atom() | String.t()
-  def container_cpu_state(custom_value) do
+  @spec container_cpu_state_values(atom() | String.t()) :: atom() | String.t()
+  def container_cpu_state_values(custom_value) do
     custom_value
   end
 

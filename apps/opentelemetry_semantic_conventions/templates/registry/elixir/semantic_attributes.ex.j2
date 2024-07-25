@@ -31,7 +31,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   {%- if member is experimental %} ^[e](`m:OpenTelemetry.SemConv#experimental`)^{% endif %}{% if member.brief != none %} - {% if member is deprecated %}**deprecated** ~~{% endif %}{{ member.brief }}{% if member is deprecated %}~~{% endif %}{% endif %}
   {% endfor -%}
   """
-  @type {{ attribute.name | snake_case_const }}() :: {{ c.enum_to_map(attribute.type.members) }}
+  @type {{ attribute.name | snake_case_const }}_values() :: {{ c.enum_to_map(attribute.type.members) }}
   {%- endif -%}
  
   {% if attribute is deprecated %}
@@ -66,19 +66,31 @@ defmodule {{ module_namespace }}.{{ module_name }} do
 
   ### Elixir
 
-      iex> {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}().{{ attribute.type.members|first|attr('id') }}
+      iex> {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}()
+      {{ c.to_atom(attribute.name) }}
+      
+      iex> {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}_values().{{ attribute.type.members|first|attr('id') }}
       {{ c.enum_value_to_elixir_type(attribute.type.members|first|attr('value')) }}
       
-      iex> {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}({{ c.enum_value_return_type_example(attribute.type.members|first|attr('value')) }})
+      iex> {% raw %}%{{% endraw %}{{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}() => {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}_values().{{ attribute.type.members|first|attr('id') }}{% raw %}}{% endraw %}
+      {% raw %}%{{% endraw %}{{ c.to_atom(attribute.name) }} => {{ c.enum_value_to_elixir_type(attribute.type.members|first|attr('value')) }}{% raw %}}{% endraw %}
+      
+      iex> {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}_values({{ c.enum_value_return_type_example(attribute.type.members|first|attr('value')) }})
       {{ c.enum_value_return_type_example(attribute.type.members|first|attr('value')) }}
 
   ### Erlang
 
   ```erlang
-  ?'{{ attribute.name | snake_case_const }}.{{ attribute.type.members|first|attr('id') }}'.
+  ?{{ attribute.name | snake_case_const | upper }}.
+  '{{ attribute.name }}'
+
+  {% raw %}\#{{% endraw %}?{{ attribute.name | snake_case_const | upper }} => ?{{ attribute.name | snake_case_const | upper }}_VALUES.{{ attribute.type.members|first|attr('id') }}{% raw %}}{% endraw %}.
+  {% raw %}\#{{% endraw %}'{{ attribute.name }}' => {{ attribute.type.members|first|attr('value') }}{% raw %}}{% endraw %}
+
+  ?'{{ attribute.name | snake_case_const | upper }}_VALUES.{{ attribute.type.members|first|attr('id') }}'.
   {{ attribute.type.members|first|attr('value') }}
   
-  ?{{ attribute.name | snake_case_const }}({{ c.erlang_enum_value_return_type_example(attribute.type.members|first|attr('value')) }}).
+  ?{{ attribute.name | snake_case_const | upper }}_VALUES({{ c.erlang_enum_value_return_type_example(attribute.type.members|first|attr('value')) }}).
   {{ c.erlang_enum_value_return_type_example(attribute.type.members|first|attr('value')) }}
   ```
   {%- else %}
@@ -99,20 +111,19 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   <!-- tabs-close -->
   """
   {%- endif %}
-
-  {%- if not(attribute.type is mapping) %}
   @spec {{ c.func_name(attribute.name) }} :: {{ c.to_atom(attribute.name) }}
   def {{ c.func_name(attribute.name) }} do
     {{ c.to_atom(attribute.name) }}
   end
-  {%- else %}
-  @spec {{ c.func_name(attribute.name) }}() :: {{ attribute.name | snake_case_const }}()
-  def {{ c.func_name(attribute.name) }}() do
+  
+  {%- if attribute.type is mapping %}
+  @spec {{ c.func_name(attribute.name) }}_values() :: {{ attribute.name | snake_case_const }}_values()
+  def {{ c.func_name(attribute.name) }}_values() do
   {{ c.enum_to_map(attribute.type.members) }}
   end
 
-  @spec {{ c.func_name(attribute.name) }}({{ c.enum_value_return_type(attribute.type.members|first|attr('value')) }}) :: {{ c.enum_value_return_type(attribute.type.members|first|attr('value')) }} 
-  def {{ c.func_name(attribute.name) }}(custom_value) do
+  @spec {{ c.func_name(attribute.name) }}_values({{ c.enum_value_return_type(attribute.type.members|first|attr('value')) }}) :: {{ c.enum_value_return_type(attribute.type.members|first|attr('value')) }} 
+  def {{ c.func_name(attribute.name) }}_values(custom_value) do
     custom_value
   end
   {%- endif %}

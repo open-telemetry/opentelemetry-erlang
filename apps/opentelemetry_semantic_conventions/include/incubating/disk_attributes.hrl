@@ -15,9 +15,10 @@
 %%%-------------------------------------------------------------------------
 
 %% The disk IO operation direction.
+-define(DISK_IO_DIRECTION, 'disk.io.direction').
 
--define('disk_io_direction.read', 'read').
+-define('DISK_IO_DIRECTION_VALUES.read', 'read').
 
--define('disk_io_direction.write', 'write').
+-define('DISK_IO_DIRECTION_VALUES.write', 'write').
 
--define(disk_io_direction(Custom), Custom).
+-define('DISK_IO_DIRECTION_VALUES(Custom), Custom).

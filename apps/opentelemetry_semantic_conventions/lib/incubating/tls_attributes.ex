@@ -535,7 +535,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   * `:ssl` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:tls` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   """
-  @type tls_protocol_name() :: %{
+  @type tls_protocol_name_values() :: %{
           :ssl => :ssl,
           :tls => :tls
         }
@@ -548,34 +548,51 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_protocol_name().ssl
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_protocol_name()
+      :"tls.protocol.name"
+      
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_protocol_name_values().ssl
       :ssl
       
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_protocol_name(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_protocol_name() => OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_protocol_name_values().ssl}
+      %{:"tls.protocol.name" => :ssl}
+      
+      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_protocol_name_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'tls_protocol_name.ssl'.
+  ?TLS_PROTOCOL_NAME.
+  'tls.protocol.name'
+
+  \#{?TLS_PROTOCOL_NAME => ?TLS_PROTOCOL_NAME_VALUES.ssl}.
+  \#{'tls.protocol.name' => ssl}
+
+  ?'TLS_PROTOCOL_NAME_VALUES.ssl'.
   ssl
 
-  ?tls_protocol_name(custom_value).
+  ?TLS_PROTOCOL_NAME_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec tls_protocol_name() :: tls_protocol_name()
-  def tls_protocol_name() do
+  @spec tls_protocol_name :: :"tls.protocol.name"
+  def tls_protocol_name do
+    :"tls.protocol.name"
+  end
+
+  @spec tls_protocol_name_values() :: tls_protocol_name_values()
+  def tls_protocol_name_values() do
     %{
       :ssl => :ssl,
       :tls => :tls
     }
   end
 
-  @spec tls_protocol_name(atom() | String.t()) :: atom() | String.t()
-  def tls_protocol_name(custom_value) do
+  @spec tls_protocol_name_values(atom() | String.t()) :: atom() | String.t()
+  def tls_protocol_name_values(custom_value) do
     custom_value
   end
 

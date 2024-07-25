@@ -840,7 +840,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   * `:settle` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - One or more messages are settled.
 
   """
-  @type messaging_operation_type() :: %{
+  @type messaging_operation_type_values() :: %{
           :publish => :publish,
           :create => :create,
           :receive => :receive,
@@ -859,26 +859,43 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type().publish
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type()
+      :"messaging.operation.type"
+      
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type_values().publish
       :publish
       
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type_values().publish}
+      %{:"messaging.operation.type" => :publish}
+      
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'messaging_operation_type.publish'.
+  ?MESSAGING_OPERATION_TYPE.
+  'messaging.operation.type'
+
+  \#{?MESSAGING_OPERATION_TYPE => ?MESSAGING_OPERATION_TYPE_VALUES.publish}.
+  \#{'messaging.operation.type' => publish}
+
+  ?'MESSAGING_OPERATION_TYPE_VALUES.publish'.
   publish
 
-  ?messaging_operation_type(custom_value).
+  ?MESSAGING_OPERATION_TYPE_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_operation_type() :: messaging_operation_type()
-  def messaging_operation_type() do
+  @spec messaging_operation_type :: :"messaging.operation.type"
+  def messaging_operation_type do
+    :"messaging.operation.type"
+  end
+
+  @spec messaging_operation_type_values() :: messaging_operation_type_values()
+  def messaging_operation_type_values() do
     %{
       :publish => :publish,
       :create => :create,
@@ -888,8 +905,8 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
     }
   end
 
-  @spec messaging_operation_type(atom() | String.t()) :: atom() | String.t()
-  def messaging_operation_type(custom_value) do
+  @spec messaging_operation_type_values(atom() | String.t()) :: atom() | String.t()
+  def messaging_operation_type_values(custom_value) do
     custom_value
   end
 
@@ -1000,7 +1017,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   * `:clustering` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Clustering consumption model
   * `:broadcasting` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Broadcasting consumption model
   """
-  @type messaging_rocketmq_consumptionmodel() :: %{
+  @type messaging_rocketmq_consumptionmodel_values() :: %{
           :clustering => :clustering,
           :broadcasting => :broadcasting
         }
@@ -1013,34 +1030,52 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumptionmodel().clustering
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumptionmodel()
+      :"messaging.rocketmq.consumption_model"
+      
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumptionmodel_values().clustering
       :clustering
       
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumptionmodel(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumptionmodel() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumptionmodel_values().clustering}
+      %{:"messaging.rocketmq.consumption_model" => :clustering}
+      
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumptionmodel_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'messaging_rocketmq_consumptionmodel.clustering'.
+  ?MESSAGING_ROCKETMQ_CONSUMPTIONMODEL.
+  'messaging.rocketmq.consumption_model'
+
+  \#{?MESSAGING_ROCKETMQ_CONSUMPTIONMODEL => ?MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES.clustering}.
+  \#{'messaging.rocketmq.consumption_model' => clustering}
+
+  ?'MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES.clustering'.
   clustering
 
-  ?messaging_rocketmq_consumptionmodel(custom_value).
+  ?MESSAGING_ROCKETMQ_CONSUMPTIONMODEL_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_rocketmq_consumptionmodel() :: messaging_rocketmq_consumptionmodel()
-  def messaging_rocketmq_consumptionmodel() do
+  @spec messaging_rocketmq_consumptionmodel :: :"messaging.rocketmq.consumption_model"
+  def messaging_rocketmq_consumptionmodel do
+    :"messaging.rocketmq.consumption_model"
+  end
+
+  @spec messaging_rocketmq_consumptionmodel_values() ::
+          messaging_rocketmq_consumptionmodel_values()
+  def messaging_rocketmq_consumptionmodel_values() do
     %{
       :clustering => :clustering,
       :broadcasting => :broadcasting
     }
   end
 
-  @spec messaging_rocketmq_consumptionmodel(atom() | String.t()) :: atom() | String.t()
-  def messaging_rocketmq_consumptionmodel(custom_value) do
+  @spec messaging_rocketmq_consumptionmodel_values(atom() | String.t()) :: atom() | String.t()
+  def messaging_rocketmq_consumptionmodel_values(custom_value) do
     custom_value
   end
 
@@ -1221,7 +1256,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   * `:delay` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Delay message
   * `:transaction` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Transaction message
   """
-  @type messaging_rocketmq_message_type() :: %{
+  @type messaging_rocketmq_message_type_values() :: %{
           :normal => :normal,
           :fifo => :fifo,
           :delay => :delay,
@@ -1236,26 +1271,43 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_type().normal
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_type()
+      :"messaging.rocketmq.message.type"
+      
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_type_values().normal
       :normal
       
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_type(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_type() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_type_values().normal}
+      %{:"messaging.rocketmq.message.type" => :normal}
+      
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_type_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'messaging_rocketmq_message_type.normal'.
+  ?MESSAGING_ROCKETMQ_MESSAGE_TYPE.
+  'messaging.rocketmq.message.type'
+
+  \#{?MESSAGING_ROCKETMQ_MESSAGE_TYPE => ?MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES.normal}.
+  \#{'messaging.rocketmq.message.type' => normal}
+
+  ?'MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES.normal'.
   normal
 
-  ?messaging_rocketmq_message_type(custom_value).
+  ?MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_rocketmq_message_type() :: messaging_rocketmq_message_type()
-  def messaging_rocketmq_message_type() do
+  @spec messaging_rocketmq_message_type :: :"messaging.rocketmq.message.type"
+  def messaging_rocketmq_message_type do
+    :"messaging.rocketmq.message.type"
+  end
+
+  @spec messaging_rocketmq_message_type_values() :: messaging_rocketmq_message_type_values()
+  def messaging_rocketmq_message_type_values() do
     %{
       :normal => :normal,
       :fifo => :fifo,
@@ -1264,8 +1316,8 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
     }
   end
 
-  @spec messaging_rocketmq_message_type(atom() | String.t()) :: atom() | String.t()
-  def messaging_rocketmq_message_type(custom_value) do
+  @spec messaging_rocketmq_message_type_values(atom() | String.t()) :: atom() | String.t()
+  def messaging_rocketmq_message_type_values(custom_value) do
     custom_value
   end
 
@@ -1346,7 +1398,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   * `:dead_letter` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Message is sent to dead letter queue
   * `:defer` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Message is deferred
   """
-  @type messaging_servicebus_dispositionstatus() :: %{
+  @type messaging_servicebus_dispositionstatus_values() :: %{
           :complete => :complete,
           :abandon => :abandon,
           :dead_letter => :dead_letter,
@@ -1361,26 +1413,44 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_dispositionstatus().complete
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_dispositionstatus()
+      :"messaging.servicebus.disposition_status"
+      
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_dispositionstatus_values().complete
       :complete
       
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_dispositionstatus(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_dispositionstatus() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_dispositionstatus_values().complete}
+      %{:"messaging.servicebus.disposition_status" => :complete}
+      
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_dispositionstatus_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'messaging_servicebus_dispositionstatus.complete'.
+  ?MESSAGING_SERVICEBUS_DISPOSITIONSTATUS.
+  'messaging.servicebus.disposition_status'
+
+  \#{?MESSAGING_SERVICEBUS_DISPOSITIONSTATUS => ?MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.complete}.
+  \#{'messaging.servicebus.disposition_status' => complete}
+
+  ?'MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES.complete'.
   complete
 
-  ?messaging_servicebus_dispositionstatus(custom_value).
+  ?MESSAGING_SERVICEBUS_DISPOSITIONSTATUS_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_servicebus_dispositionstatus() :: messaging_servicebus_dispositionstatus()
-  def messaging_servicebus_dispositionstatus() do
+  @spec messaging_servicebus_dispositionstatus :: :"messaging.servicebus.disposition_status"
+  def messaging_servicebus_dispositionstatus do
+    :"messaging.servicebus.disposition_status"
+  end
+
+  @spec messaging_servicebus_dispositionstatus_values() ::
+          messaging_servicebus_dispositionstatus_values()
+  def messaging_servicebus_dispositionstatus_values() do
     %{
       :complete => :complete,
       :abandon => :abandon,
@@ -1389,8 +1459,8 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
     }
   end
 
-  @spec messaging_servicebus_dispositionstatus(atom() | String.t()) :: atom() | String.t()
-  def messaging_servicebus_dispositionstatus(custom_value) do
+  @spec messaging_servicebus_dispositionstatus_values(atom() | String.t()) :: atom() | String.t()
+  def messaging_servicebus_dispositionstatus_values(custom_value) do
     custom_value
   end
 
@@ -1476,7 +1546,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   * `:rabbitmq` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - RabbitMQ
   * `:rocketmq` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache RocketMQ
   """
-  @type messaging_system() :: %{
+  @type messaging_system_values() :: %{
           :activemq => :activemq,
           :aws_sqs => :aws_sqs,
           :eventgrid => :eventgrid,
@@ -1500,26 +1570,43 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_system().activemq
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_system()
+      :"messaging.system"
+      
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_system_values().activemq
       :activemq
       
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_system(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_system() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_system_values().activemq}
+      %{:"messaging.system" => :activemq}
+      
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_system_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'messaging_system.activemq'.
+  ?MESSAGING_SYSTEM.
+  'messaging.system'
+
+  \#{?MESSAGING_SYSTEM => ?MESSAGING_SYSTEM_VALUES.activemq}.
+  \#{'messaging.system' => activemq}
+
+  ?'MESSAGING_SYSTEM_VALUES.activemq'.
   activemq
 
-  ?messaging_system(custom_value).
+  ?MESSAGING_SYSTEM_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec messaging_system() :: messaging_system()
-  def messaging_system() do
+  @spec messaging_system :: :"messaging.system"
+  def messaging_system do
+    :"messaging.system"
+  end
+
+  @spec messaging_system_values() :: messaging_system_values()
+  def messaging_system_values() do
     %{
       :activemq => :activemq,
       :aws_sqs => :aws_sqs,
@@ -1534,8 +1621,8 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
     }
   end
 
-  @spec messaging_system(atom() | String.t()) :: atom() | String.t()
-  def messaging_system(custom_value) do
+  @spec messaging_system_values(atom() | String.t()) :: atom() | String.t()
+  def messaging_system_values(custom_value) do
     custom_value
   end
 end

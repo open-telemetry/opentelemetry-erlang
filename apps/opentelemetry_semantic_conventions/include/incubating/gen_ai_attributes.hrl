@@ -51,10 +51,11 @@
 
 
 %% The Generative AI product as identified by the client instrumentation.
+-define(GENAI_SYSTEM, 'gen_ai.system').
 
--define('genai_system.openai', 'openai').
+-define('GENAI_SYSTEM_VALUES.openai', 'openai').
 
--define(genai_system(Custom), Custom).
+-define('GENAI_SYSTEM_VALUES(Custom), Custom).
 
 
 %% The number of tokens used in the LLM response (completion).

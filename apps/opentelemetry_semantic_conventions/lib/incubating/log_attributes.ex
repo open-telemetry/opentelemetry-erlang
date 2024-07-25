@@ -144,7 +144,7 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
   * `:stdout` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Logs from stdout stream
   * `:stderr` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Events from stderr stream
   """
-  @type log_iostream() :: %{
+  @type log_iostream_values() :: %{
           :stdout => :stdout,
           :stderr => :stderr
         }
@@ -157,34 +157,51 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.LogAttributes.log_iostream().stdout
+      iex> OpenTelemetry.SemConv.Incubating.LogAttributes.log_iostream()
+      :"log.iostream"
+      
+      iex> OpenTelemetry.SemConv.Incubating.LogAttributes.log_iostream_values().stdout
       :stdout
       
-      iex> OpenTelemetry.SemConv.Incubating.LogAttributes.log_iostream(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.LogAttributes.log_iostream() => OpenTelemetry.SemConv.Incubating.LogAttributes.log_iostream_values().stdout}
+      %{:"log.iostream" => :stdout}
+      
+      iex> OpenTelemetry.SemConv.Incubating.LogAttributes.log_iostream_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'log_iostream.stdout'.
+  ?LOG_IOSTREAM.
+  'log.iostream'
+
+  \#{?LOG_IOSTREAM => ?LOG_IOSTREAM_VALUES.stdout}.
+  \#{'log.iostream' => stdout}
+
+  ?'LOG_IOSTREAM_VALUES.stdout'.
   stdout
 
-  ?log_iostream(custom_value).
+  ?LOG_IOSTREAM_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec log_iostream() :: log_iostream()
-  def log_iostream() do
+  @spec log_iostream :: :"log.iostream"
+  def log_iostream do
+    :"log.iostream"
+  end
+
+  @spec log_iostream_values() :: log_iostream_values()
+  def log_iostream_values() do
     %{
       :stdout => :stdout,
       :stderr => :stderr
     }
   end
 
-  @spec log_iostream(atom() | String.t()) :: atom() | String.t()
-  def log_iostream(custom_value) do
+  @spec log_iostream_values(atom() | String.t()) :: atom() | String.t()
+  def log_iostream_values(custom_value) do
     custom_value
   end
 

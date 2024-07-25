@@ -35,14 +35,15 @@
 
 
 %% Describes the type of the operation that was performed on the data.
+-define(FAAS_DOCUMENT_OPERATION, 'faas.document.operation').
 
--define('faas_document_operation.insert', 'insert').
+-define('FAAS_DOCUMENT_OPERATION_VALUES.insert', 'insert').
 
--define('faas_document_operation.edit', 'edit').
+-define('FAAS_DOCUMENT_OPERATION_VALUES.edit', 'edit').
 
--define('faas_document_operation.delete', 'delete').
+-define('FAAS_DOCUMENT_OPERATION_VALUES.delete', 'delete').
 
--define(faas_document_operation(Custom), Custom).
+-define('FAAS_DOCUMENT_OPERATION_VALUES(Custom), Custom).
 
 
 %% A string containing the time when the data was accessed in the [ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html) format expressed in [UTC](https://www.w3.org/TR/NOTE-datetime).
@@ -67,18 +68,19 @@
 
 %% The cloud provider of the invoked function.
 %%  
+-define(FAAS_INVOKEDPROVIDER, 'faas.invoked_provider').
 
--define('faas_invokedprovider.alibaba_cloud', 'alibaba_cloud').
+-define('FAAS_INVOKEDPROVIDER_VALUES.alibaba_cloud', 'alibaba_cloud').
 
--define('faas_invokedprovider.aws', 'aws').
+-define('FAAS_INVOKEDPROVIDER_VALUES.aws', 'aws').
 
--define('faas_invokedprovider.azure', 'azure').
+-define('FAAS_INVOKEDPROVIDER_VALUES.azure', 'azure').
 
--define('faas_invokedprovider.gcp', 'gcp').
+-define('FAAS_INVOKEDPROVIDER_VALUES.gcp', 'gcp').
 
--define('faas_invokedprovider.tencent_cloud', 'tencent_cloud').
+-define('FAAS_INVOKEDPROVIDER_VALUES.tencent_cloud', 'tencent_cloud').
 
--define(faas_invokedprovider(Custom), Custom).
+-define('FAAS_INVOKEDPROVIDER_VALUES(Custom), Custom).
 
 
 %% The cloud region of the invoked function.
@@ -103,18 +105,19 @@
 
 %% Type of the trigger which caused this function invocation.
 %%  
+-define(FAAS_TRIGGER, 'faas.trigger').
 
--define('faas_trigger.datasource', 'datasource').
+-define('FAAS_TRIGGER_VALUES.datasource', 'datasource').
 
--define('faas_trigger.http', 'http').
+-define('FAAS_TRIGGER_VALUES.http', 'http').
 
--define('faas_trigger.pubsub', 'pubsub').
+-define('FAAS_TRIGGER_VALUES.pubsub', 'pubsub').
 
--define('faas_trigger.timer', 'timer').
+-define('FAAS_TRIGGER_VALUES.timer', 'timer').
 
--define('faas_trigger.other', 'other').
+-define('FAAS_TRIGGER_VALUES.other', 'other').
 
--define(faas_trigger(Custom), Custom).
+-define('FAAS_TRIGGER_VALUES(Custom), Custom).
 
 
 %% The immutable version of the function being executed.

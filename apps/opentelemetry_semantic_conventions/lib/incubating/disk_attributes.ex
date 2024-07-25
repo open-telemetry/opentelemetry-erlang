@@ -11,7 +11,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DiskAttributes do
   * `:read` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:write` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   """
-  @type disk_io_direction() :: %{
+  @type disk_io_direction_values() :: %{
           :read => :read,
           :write => :write
         }
@@ -28,34 +28,51 @@ defmodule OpenTelemetry.SemConv.Incubating.DiskAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.DiskAttributes.disk_io_direction().read
+      iex> OpenTelemetry.SemConv.Incubating.DiskAttributes.disk_io_direction()
+      :"disk.io.direction"
+      
+      iex> OpenTelemetry.SemConv.Incubating.DiskAttributes.disk_io_direction_values().read
       :read
       
-      iex> OpenTelemetry.SemConv.Incubating.DiskAttributes.disk_io_direction(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.DiskAttributes.disk_io_direction() => OpenTelemetry.SemConv.Incubating.DiskAttributes.disk_io_direction_values().read}
+      %{:"disk.io.direction" => :read}
+      
+      iex> OpenTelemetry.SemConv.Incubating.DiskAttributes.disk_io_direction_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'disk_io_direction.read'.
+  ?DISK_IO_DIRECTION.
+  'disk.io.direction'
+
+  \#{?DISK_IO_DIRECTION => ?DISK_IO_DIRECTION_VALUES.read}.
+  \#{'disk.io.direction' => read}
+
+  ?'DISK_IO_DIRECTION_VALUES.read'.
   read
 
-  ?disk_io_direction(custom_value).
+  ?DISK_IO_DIRECTION_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec disk_io_direction() :: disk_io_direction()
-  def disk_io_direction() do
+  @spec disk_io_direction :: :"disk.io.direction"
+  def disk_io_direction do
+    :"disk.io.direction"
+  end
+
+  @spec disk_io_direction_values() :: disk_io_direction_values()
+  def disk_io_direction_values() do
     %{
       :read => :read,
       :write => :write
     }
   end
 
-  @spec disk_io_direction(atom() | String.t()) :: atom() | String.t()
-  def disk_io_direction(custom_value) do
+  @spec disk_io_direction_values(atom() | String.t()) :: atom() | String.t()
+  def disk_io_direction_values(custom_value) do
     custom_value
   end
 end

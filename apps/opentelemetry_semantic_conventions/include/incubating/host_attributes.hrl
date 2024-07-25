@@ -16,24 +16,25 @@
 
 %% The CPU architecture the host system is running on.
 %%  
+-define(HOST_ARCH, 'host.arch').
 
--define('host_arch.amd64', 'amd64').
+-define('HOST_ARCH_VALUES.amd64', 'amd64').
 
--define('host_arch.arm32', 'arm32').
+-define('HOST_ARCH_VALUES.arm32', 'arm32').
 
--define('host_arch.arm64', 'arm64').
+-define('HOST_ARCH_VALUES.arm64', 'arm64').
 
--define('host_arch.ia64', 'ia64').
+-define('HOST_ARCH_VALUES.ia64', 'ia64').
 
--define('host_arch.ppc32', 'ppc32').
+-define('HOST_ARCH_VALUES.ppc32', 'ppc32').
 
--define('host_arch.ppc64', 'ppc64').
+-define('HOST_ARCH_VALUES.ppc64', 'ppc64').
 
--define('host_arch.s390x', 's390x').
+-define('HOST_ARCH_VALUES.s390x', 's390x').
 
--define('host_arch.x86', 'x86').
+-define('HOST_ARCH_VALUES.x86', 'x86').
 
--define(host_arch(Custom), Custom).
+-define('HOST_ARCH_VALUES(Custom), Custom).
 
 
 %% The amount of level 2 memory cache available to the processor (in Bytes).

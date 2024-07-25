@@ -118,7 +118,7 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
   * `:solaris` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - SunOS, Oracle Solaris
   * `:z_os` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - IBM z/OS
   """
-  @type os_type() :: %{
+  @type os_type_values() :: %{
           :windows => :windows,
           :linux => :linux,
           :darwin => :darwin,
@@ -140,26 +140,43 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.OSAttributes.os_type().windows
+      iex> OpenTelemetry.SemConv.Incubating.OSAttributes.os_type()
+      :"os.type"
+      
+      iex> OpenTelemetry.SemConv.Incubating.OSAttributes.os_type_values().windows
       :windows
       
-      iex> OpenTelemetry.SemConv.Incubating.OSAttributes.os_type(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.OSAttributes.os_type() => OpenTelemetry.SemConv.Incubating.OSAttributes.os_type_values().windows}
+      %{:"os.type" => :windows}
+      
+      iex> OpenTelemetry.SemConv.Incubating.OSAttributes.os_type_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'os_type.windows'.
+  ?OS_TYPE.
+  'os.type'
+
+  \#{?OS_TYPE => ?OS_TYPE_VALUES.windows}.
+  \#{'os.type' => windows}
+
+  ?'OS_TYPE_VALUES.windows'.
   windows
 
-  ?os_type(custom_value).
+  ?OS_TYPE_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec os_type() :: os_type()
-  def os_type() do
+  @spec os_type :: :"os.type"
+  def os_type do
+    :"os.type"
+  end
+
+  @spec os_type_values() :: os_type_values()
+  def os_type_values() do
     %{
       :windows => :windows,
       :linux => :linux,
@@ -175,8 +192,8 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
     }
   end
 
-  @spec os_type(atom() | String.t()) :: atom() | String.t()
-  def os_type(custom_value) do
+  @spec os_type_values(atom() | String.t()) :: atom() | String.t()
+  def os_type_values(custom_value) do
     custom_value
   end
 

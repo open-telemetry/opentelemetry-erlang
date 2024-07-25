@@ -22,7 +22,7 @@ defmodule OpenTelemetry.SemConv.TelemetryAttributes do
   * `:swift`
   * `:webjs`
   """
-  @type telemetry_sdk_language() :: %{
+  @type telemetry_sdk_language_values() :: %{
           :cpp => :cpp,
           :dotnet => :dotnet,
           :erlang => :erlang,
@@ -45,26 +45,43 @@ defmodule OpenTelemetry.SemConv.TelemetryAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_language().cpp
+      iex> OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_language()
+      :"telemetry.sdk.language"
+      
+      iex> OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_language_values().cpp
       :cpp
       
-      iex> OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_language(:custom_value)
+      iex> %{OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_language() => OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_language_values().cpp}
+      %{:"telemetry.sdk.language" => :cpp}
+      
+      iex> OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_language_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'telemetry_sdk_language.cpp'.
+  ?TELEMETRY_SDK_LANGUAGE.
+  'telemetry.sdk.language'
+
+  \#{?TELEMETRY_SDK_LANGUAGE => ?TELEMETRY_SDK_LANGUAGE_VALUES.cpp}.
+  \#{'telemetry.sdk.language' => cpp}
+
+  ?'TELEMETRY_SDK_LANGUAGE_VALUES.cpp'.
   cpp
 
-  ?telemetry_sdk_language(custom_value).
+  ?TELEMETRY_SDK_LANGUAGE_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec telemetry_sdk_language() :: telemetry_sdk_language()
-  def telemetry_sdk_language() do
+  @spec telemetry_sdk_language :: :"telemetry.sdk.language"
+  def telemetry_sdk_language do
+    :"telemetry.sdk.language"
+  end
+
+  @spec telemetry_sdk_language_values() :: telemetry_sdk_language_values()
+  def telemetry_sdk_language_values() do
     %{
       :cpp => :cpp,
       :dotnet => :dotnet,
@@ -81,8 +98,8 @@ defmodule OpenTelemetry.SemConv.TelemetryAttributes do
     }
   end
 
-  @spec telemetry_sdk_language(atom() | String.t()) :: atom() | String.t()
-  def telemetry_sdk_language(custom_value) do
+  @spec telemetry_sdk_language_values(atom() | String.t()) :: atom() | String.t()
+  def telemetry_sdk_language_values(custom_value) do
     custom_value
   end
 

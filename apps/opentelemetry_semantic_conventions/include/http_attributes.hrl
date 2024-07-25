@@ -20,28 +20,29 @@
 
 
 %% HTTP request method.
+-define(HTTP_REQUEST_METHOD, 'http.request.method').
 
--define('http_request_method.connect', 'CONNECT').
+-define('HTTP_REQUEST_METHOD_VALUES.connect', 'CONNECT').
 
--define('http_request_method.delete', 'DELETE').
+-define('HTTP_REQUEST_METHOD_VALUES.delete', 'DELETE').
 
--define('http_request_method.get', 'GET').
+-define('HTTP_REQUEST_METHOD_VALUES.get', 'GET').
 
--define('http_request_method.head', 'HEAD').
+-define('HTTP_REQUEST_METHOD_VALUES.head', 'HEAD').
 
--define('http_request_method.options', 'OPTIONS').
+-define('HTTP_REQUEST_METHOD_VALUES.options', 'OPTIONS').
 
--define('http_request_method.patch', 'PATCH').
+-define('HTTP_REQUEST_METHOD_VALUES.patch', 'PATCH').
 
--define('http_request_method.post', 'POST').
+-define('HTTP_REQUEST_METHOD_VALUES.post', 'POST').
 
--define('http_request_method.put', 'PUT').
+-define('HTTP_REQUEST_METHOD_VALUES.put', 'PUT').
 
--define('http_request_method.trace', 'TRACE').
+-define('HTTP_REQUEST_METHOD_VALUES.trace', 'TRACE').
 
--define('http_request_method.other', '_OTHER').
+-define('HTTP_REQUEST_METHOD_VALUES.other', '_OTHER').
 
--define(http_request_method(Custom), Custom).
+-define('HTTP_REQUEST_METHOD_VALUES(Custom), Custom).
 
 
 %% Original HTTP method sent by the client in the request line.

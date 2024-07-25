@@ -27,23 +27,28 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   * `:sent` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:received` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   """
-  @type message_type() :: %{
+  @type message_type_values() :: %{
           :sent => :SENT,
           :received => :RECEIVED
         }
   @deprecated """
   Replaced by `rpc.message.type`.
   """
-  @spec message_type() :: message_type()
-  def message_type() do
+  @spec message_type :: :"message.type"
+  def message_type do
+    :"message.type"
+  end
+
+  @spec message_type_values() :: message_type_values()
+  def message_type_values() do
     %{
       :sent => :SENT,
       :received => :RECEIVED
     }
   end
 
-  @spec message_type(atom() | String.t()) :: atom() | String.t()
-  def message_type(custom_value) do
+  @spec message_type_values(atom() | String.t()) :: atom() | String.t()
+  def message_type_values(custom_value) do
     custom_value
   end
 
@@ -76,7 +81,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   * `:data_loss` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:unauthenticated` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   """
-  @type rpc_connectrpc_errorcode() :: %{
+  @type rpc_connectrpc_errorcode_values() :: %{
           :cancelled => :cancelled,
           :unknown => :unknown,
           :invalid_argument => :invalid_argument,
@@ -102,26 +107,43 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connectrpc_errorcode().cancelled
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connectrpc_errorcode()
+      :"rpc.connect_rpc.error_code"
+      
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connectrpc_errorcode_values().cancelled
       :cancelled
       
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connectrpc_errorcode(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connectrpc_errorcode() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connectrpc_errorcode_values().cancelled}
+      %{:"rpc.connect_rpc.error_code" => :cancelled}
+      
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connectrpc_errorcode_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'rpc_connectrpc_errorcode.cancelled'.
+  ?RPC_CONNECTRPC_ERRORCODE.
+  'rpc.connect_rpc.error_code'
+
+  \#{?RPC_CONNECTRPC_ERRORCODE => ?RPC_CONNECTRPC_ERRORCODE_VALUES.cancelled}.
+  \#{'rpc.connect_rpc.error_code' => cancelled}
+
+  ?'RPC_CONNECTRPC_ERRORCODE_VALUES.cancelled'.
   cancelled
 
-  ?rpc_connectrpc_errorcode(custom_value).
+  ?RPC_CONNECTRPC_ERRORCODE_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec rpc_connectrpc_errorcode() :: rpc_connectrpc_errorcode()
-  def rpc_connectrpc_errorcode() do
+  @spec rpc_connectrpc_errorcode :: :"rpc.connect_rpc.error_code"
+  def rpc_connectrpc_errorcode do
+    :"rpc.connect_rpc.error_code"
+  end
+
+  @spec rpc_connectrpc_errorcode_values() :: rpc_connectrpc_errorcode_values()
+  def rpc_connectrpc_errorcode_values() do
     %{
       :cancelled => :cancelled,
       :unknown => :unknown,
@@ -142,8 +164,8 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
     }
   end
 
-  @spec rpc_connectrpc_errorcode(atom() | String.t()) :: atom() | String.t()
-  def rpc_connectrpc_errorcode(custom_value) do
+  @spec rpc_connectrpc_errorcode_values(atom() | String.t()) :: atom() | String.t()
+  def rpc_connectrpc_errorcode_values(custom_value) do
     custom_value
   end
 
@@ -317,7 +339,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   * `:data_loss` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - DATA_LOSS
   * `:unauthenticated` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - UNAUTHENTICATED
   """
-  @type rpc_grpc_statuscode() :: %{
+  @type rpc_grpc_statuscode_values() :: %{
           :ok => 0,
           :cancelled => 1,
           :unknown => 2,
@@ -344,26 +366,43 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_statuscode().ok
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_statuscode()
+      :"rpc.grpc.status_code"
+      
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_statuscode_values().ok
       0
       
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_statuscode(27)
+      iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_statuscode() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_statuscode_values().ok}
+      %{:"rpc.grpc.status_code" => 0}
+      
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_statuscode_values(27)
       27
 
   ### Erlang
 
   ```erlang
-  ?'rpc_grpc_statuscode.ok'.
+  ?RPC_GRPC_STATUSCODE.
+  'rpc.grpc.status_code'
+
+  \#{?RPC_GRPC_STATUSCODE => ?RPC_GRPC_STATUSCODE_VALUES.ok}.
+  \#{'rpc.grpc.status_code' => 0}
+
+  ?'RPC_GRPC_STATUSCODE_VALUES.ok'.
   0
 
-  ?rpc_grpc_statuscode(27).
+  ?RPC_GRPC_STATUSCODE_VALUES(27).
   27
   ```
 
   <!-- tabs-close -->
   """
-  @spec rpc_grpc_statuscode() :: rpc_grpc_statuscode()
-  def rpc_grpc_statuscode() do
+  @spec rpc_grpc_statuscode :: :"rpc.grpc.status_code"
+  def rpc_grpc_statuscode do
+    :"rpc.grpc.status_code"
+  end
+
+  @spec rpc_grpc_statuscode_values() :: rpc_grpc_statuscode_values()
+  def rpc_grpc_statuscode_values() do
     %{
       :ok => 0,
       :cancelled => 1,
@@ -385,8 +424,8 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
     }
   end
 
-  @spec rpc_grpc_statuscode(integer()) :: integer()
-  def rpc_grpc_statuscode(custom_value) do
+  @spec rpc_grpc_statuscode_values(integer()) :: integer()
+  def rpc_grpc_statuscode_values(custom_value) do
     custom_value
   end
 
@@ -583,7 +622,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   * `:sent` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:received` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   """
-  @type rpc_message_type() :: %{
+  @type rpc_message_type_values() :: %{
           :sent => :SENT,
           :received => :RECEIVED
         }
@@ -595,34 +634,51 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type().sent
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type()
+      :"rpc.message.type"
+      
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type_values().sent
       :SENT
       
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type_values().sent}
+      %{:"rpc.message.type" => :SENT}
+      
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'rpc_message_type.sent'.
+  ?RPC_MESSAGE_TYPE.
+  'rpc.message.type'
+
+  \#{?RPC_MESSAGE_TYPE => ?RPC_MESSAGE_TYPE_VALUES.sent}.
+  \#{'rpc.message.type' => SENT}
+
+  ?'RPC_MESSAGE_TYPE_VALUES.sent'.
   SENT
 
-  ?rpc_message_type(custom_value).
+  ?RPC_MESSAGE_TYPE_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec rpc_message_type() :: rpc_message_type()
-  def rpc_message_type() do
+  @spec rpc_message_type :: :"rpc.message.type"
+  def rpc_message_type do
+    :"rpc.message.type"
+  end
+
+  @spec rpc_message_type_values() :: rpc_message_type_values()
+  def rpc_message_type_values() do
     %{
       :sent => :SENT,
       :received => :RECEIVED
     }
   end
 
-  @spec rpc_message_type(atom() | String.t()) :: atom() | String.t()
-  def rpc_message_type(custom_value) do
+  @spec rpc_message_type_values(atom() | String.t()) :: atom() | String.t()
+  def rpc_message_type_values(custom_value) do
     custom_value
   end
 
@@ -735,7 +791,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   * `:apache_dubbo` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache Dubbo
   * `:connect_rpc` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Connect RPC
   """
-  @type rpc_system() :: %{
+  @type rpc_system_values() :: %{
           :grpc => :grpc,
           :java_rmi => :java_rmi,
           :dotnet_wcf => :dotnet_wcf,
@@ -750,26 +806,43 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system().grpc
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system()
+      :"rpc.system"
+      
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system_values().grpc
       :grpc
       
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system_values().grpc}
+      %{:"rpc.system" => :grpc}
+      
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'rpc_system.grpc'.
+  ?RPC_SYSTEM.
+  'rpc.system'
+
+  \#{?RPC_SYSTEM => ?RPC_SYSTEM_VALUES.grpc}.
+  \#{'rpc.system' => grpc}
+
+  ?'RPC_SYSTEM_VALUES.grpc'.
   grpc
 
-  ?rpc_system(custom_value).
+  ?RPC_SYSTEM_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec rpc_system() :: rpc_system()
-  def rpc_system() do
+  @spec rpc_system :: :"rpc.system"
+  def rpc_system do
+    :"rpc.system"
+  end
+
+  @spec rpc_system_values() :: rpc_system_values()
+  def rpc_system_values() do
     %{
       :grpc => :grpc,
       :java_rmi => :java_rmi,
@@ -779,8 +852,8 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
     }
   end
 
-  @spec rpc_system(atom() | String.t()) :: atom() | String.t()
-  def rpc_system(custom_value) do
+  @spec rpc_system_values(atom() | String.t()) :: atom() | String.t()
+  def rpc_system_values(custom_value) do
     custom_value
   end
 end

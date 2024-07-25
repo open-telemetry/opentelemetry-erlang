@@ -16,30 +16,31 @@
 
 %% The consistency level of the query. Based on consistency values from [CQL](https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/dml/dmlConfigConsistency.html).
 %%  
+-define(DB_CASSANDRA_CONSISTENCYLEVEL, 'db.cassandra.consistency_level').
 
--define('db_cassandra_consistencylevel.all', 'all').
+-define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.all', 'all').
 
--define('db_cassandra_consistencylevel.each_quorum', 'each_quorum').
+-define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.each_quorum', 'each_quorum').
 
--define('db_cassandra_consistencylevel.quorum', 'quorum').
+-define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.quorum', 'quorum').
 
--define('db_cassandra_consistencylevel.local_quorum', 'local_quorum').
+-define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.local_quorum', 'local_quorum').
 
--define('db_cassandra_consistencylevel.one', 'one').
+-define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.one', 'one').
 
--define('db_cassandra_consistencylevel.two', 'two').
+-define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.two', 'two').
 
--define('db_cassandra_consistencylevel.three', 'three').
+-define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.three', 'three').
 
--define('db_cassandra_consistencylevel.local_one', 'local_one').
+-define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.local_one', 'local_one').
 
--define('db_cassandra_consistencylevel.any', 'any').
+-define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.any', 'any').
 
--define('db_cassandra_consistencylevel.serial', 'serial').
+-define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.serial', 'serial').
 
--define('db_cassandra_consistencylevel.local_serial', 'local_serial').
+-define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES.local_serial', 'local_serial').
 
--define(db_cassandra_consistencylevel(Custom), Custom).
+-define('DB_CASSANDRA_CONSISTENCYLEVEL_VALUES(Custom), Custom).
 
 
 %% The data center of the coordinating node for a query.
@@ -77,12 +78,13 @@
 
 
 %% The state of a connection in the pool
+-define(DB_CLIENT_CONNECTIONS_STATE, 'db.client.connections.state').
 
--define('db_client_connections_state.idle', 'idle').
+-define('DB_CLIENT_CONNECTIONS_STATE_VALUES.idle', 'idle').
 
--define('db_client_connections_state.used', 'used').
+-define('DB_CLIENT_CONNECTIONS_STATE_VALUES.used', 'used').
 
--define(db_client_connections_state(Custom), Custom).
+-define('DB_CLIENT_CONNECTIONS_STATE_VALUES(Custom), Custom).
 
 
 %% The name of a collection (table, container) within the database.
@@ -99,12 +101,13 @@
 
 
 %% Cosmos client connection mode.
+-define(DB_COSMOSDB_CONNECTIONMODE, 'db.cosmosdb.connection_mode').
 
--define('db_cosmosdb_connectionmode.gateway', 'gateway').
+-define('DB_COSMOSDB_CONNECTIONMODE_VALUES.gateway', 'gateway').
 
--define('db_cosmosdb_connectionmode.direct', 'direct').
+-define('DB_COSMOSDB_CONNECTIONMODE_VALUES.direct', 'direct').
 
--define(db_cosmosdb_connectionmode(Custom), Custom).
+-define('DB_COSMOSDB_CONNECTIONMODE_VALUES(Custom), Custom).
 
 %% @deprecated Replaced by `db.collection.name`.
 %% Deprecated, use `db.collection.name` instead.
@@ -112,38 +115,39 @@
 
 
 %% CosmosDB Operation Type.
+-define(DB_COSMOSDB_OPERATIONTYPE, 'db.cosmosdb.operation_type').
 
--define('db_cosmosdb_operationtype.invalid', 'Invalid').
+-define('DB_COSMOSDB_OPERATIONTYPE_VALUES.invalid', 'Invalid').
 
--define('db_cosmosdb_operationtype.create', 'Create').
+-define('DB_COSMOSDB_OPERATIONTYPE_VALUES.create', 'Create').
 
--define('db_cosmosdb_operationtype.patch', 'Patch').
+-define('DB_COSMOSDB_OPERATIONTYPE_VALUES.patch', 'Patch').
 
--define('db_cosmosdb_operationtype.read', 'Read').
+-define('DB_COSMOSDB_OPERATIONTYPE_VALUES.read', 'Read').
 
--define('db_cosmosdb_operationtype.read_feed', 'ReadFeed').
+-define('DB_COSMOSDB_OPERATIONTYPE_VALUES.read_feed', 'ReadFeed').
 
--define('db_cosmosdb_operationtype.delete', 'Delete').
+-define('DB_COSMOSDB_OPERATIONTYPE_VALUES.delete', 'Delete').
 
--define('db_cosmosdb_operationtype.replace', 'Replace').
+-define('DB_COSMOSDB_OPERATIONTYPE_VALUES.replace', 'Replace').
 
--define('db_cosmosdb_operationtype.execute', 'Execute').
+-define('DB_COSMOSDB_OPERATIONTYPE_VALUES.execute', 'Execute').
 
--define('db_cosmosdb_operationtype.query', 'Query').
+-define('DB_COSMOSDB_OPERATIONTYPE_VALUES.query', 'Query').
 
--define('db_cosmosdb_operationtype.head', 'Head').
+-define('DB_COSMOSDB_OPERATIONTYPE_VALUES.head', 'Head').
 
--define('db_cosmosdb_operationtype.head_feed', 'HeadFeed').
+-define('DB_COSMOSDB_OPERATIONTYPE_VALUES.head_feed', 'HeadFeed').
 
--define('db_cosmosdb_operationtype.upsert', 'Upsert').
+-define('DB_COSMOSDB_OPERATIONTYPE_VALUES.upsert', 'Upsert').
 
--define('db_cosmosdb_operationtype.batch', 'Batch').
+-define('DB_COSMOSDB_OPERATIONTYPE_VALUES.batch', 'Batch').
 
--define('db_cosmosdb_operationtype.query_plan', 'QueryPlan').
+-define('DB_COSMOSDB_OPERATIONTYPE_VALUES.query_plan', 'QueryPlan').
 
--define('db_cosmosdb_operationtype.execute_javascript', 'ExecuteJavaScript').
+-define('DB_COSMOSDB_OPERATIONTYPE_VALUES.execute_javascript', 'ExecuteJavaScript').
 
--define(db_cosmosdb_operationtype(Custom), Custom).
+-define('DB_COSMOSDB_OPERATIONTYPE_VALUES(Custom), Custom).
 
 
 %% RU consumed for that operation
@@ -234,112 +238,113 @@
 
 
 %% The database management system (DBMS) product as identified by the client instrumentation.
+-define(DB_SYSTEM, 'db.system').
 
--define('db_system.other_sql', 'other_sql').
+-define('DB_SYSTEM_VALUES.other_sql', 'other_sql').
 
--define('db_system.mssql', 'mssql').
+-define('DB_SYSTEM_VALUES.mssql', 'mssql').
 
--define('db_system.mssqlcompact', 'mssqlcompact').
+-define('DB_SYSTEM_VALUES.mssqlcompact', 'mssqlcompact').
 
--define('db_system.mysql', 'mysql').
+-define('DB_SYSTEM_VALUES.mysql', 'mysql').
 
--define('db_system.oracle', 'oracle').
+-define('DB_SYSTEM_VALUES.oracle', 'oracle').
 
--define('db_system.db2', 'db2').
+-define('DB_SYSTEM_VALUES.db2', 'db2').
 
--define('db_system.postgresql', 'postgresql').
+-define('DB_SYSTEM_VALUES.postgresql', 'postgresql').
 
--define('db_system.redshift', 'redshift').
+-define('DB_SYSTEM_VALUES.redshift', 'redshift').
 
--define('db_system.hive', 'hive').
+-define('DB_SYSTEM_VALUES.hive', 'hive').
 
--define('db_system.cloudscape', 'cloudscape').
+-define('DB_SYSTEM_VALUES.cloudscape', 'cloudscape').
 
--define('db_system.hsqldb', 'hsqldb').
+-define('DB_SYSTEM_VALUES.hsqldb', 'hsqldb').
 
--define('db_system.progress', 'progress').
+-define('DB_SYSTEM_VALUES.progress', 'progress').
 
--define('db_system.maxdb', 'maxdb').
+-define('DB_SYSTEM_VALUES.maxdb', 'maxdb').
 
--define('db_system.hanadb', 'hanadb').
+-define('DB_SYSTEM_VALUES.hanadb', 'hanadb').
 
--define('db_system.ingres', 'ingres').
+-define('DB_SYSTEM_VALUES.ingres', 'ingres').
 
--define('db_system.firstsql', 'firstsql').
+-define('DB_SYSTEM_VALUES.firstsql', 'firstsql').
 
--define('db_system.edb', 'edb').
+-define('DB_SYSTEM_VALUES.edb', 'edb').
 
--define('db_system.cache', 'cache').
+-define('DB_SYSTEM_VALUES.cache', 'cache').
 
--define('db_system.adabas', 'adabas').
+-define('DB_SYSTEM_VALUES.adabas', 'adabas').
 
--define('db_system.firebird', 'firebird').
+-define('DB_SYSTEM_VALUES.firebird', 'firebird').
 
--define('db_system.derby', 'derby').
+-define('DB_SYSTEM_VALUES.derby', 'derby').
 
--define('db_system.filemaker', 'filemaker').
+-define('DB_SYSTEM_VALUES.filemaker', 'filemaker').
 
--define('db_system.informix', 'informix').
+-define('DB_SYSTEM_VALUES.informix', 'informix').
 
--define('db_system.instantdb', 'instantdb').
+-define('DB_SYSTEM_VALUES.instantdb', 'instantdb').
 
--define('db_system.interbase', 'interbase').
+-define('DB_SYSTEM_VALUES.interbase', 'interbase').
 
--define('db_system.mariadb', 'mariadb').
+-define('DB_SYSTEM_VALUES.mariadb', 'mariadb').
 
--define('db_system.netezza', 'netezza').
+-define('DB_SYSTEM_VALUES.netezza', 'netezza').
 
--define('db_system.pervasive', 'pervasive').
+-define('DB_SYSTEM_VALUES.pervasive', 'pervasive').
 
--define('db_system.pointbase', 'pointbase').
+-define('DB_SYSTEM_VALUES.pointbase', 'pointbase').
 
--define('db_system.sqlite', 'sqlite').
+-define('DB_SYSTEM_VALUES.sqlite', 'sqlite').
 
--define('db_system.sybase', 'sybase').
+-define('DB_SYSTEM_VALUES.sybase', 'sybase').
 
--define('db_system.teradata', 'teradata').
+-define('DB_SYSTEM_VALUES.teradata', 'teradata').
 
--define('db_system.vertica', 'vertica').
+-define('DB_SYSTEM_VALUES.vertica', 'vertica').
 
--define('db_system.h2', 'h2').
+-define('DB_SYSTEM_VALUES.h2', 'h2').
 
--define('db_system.coldfusion', 'coldfusion').
+-define('DB_SYSTEM_VALUES.coldfusion', 'coldfusion').
 
--define('db_system.cassandra', 'cassandra').
+-define('DB_SYSTEM_VALUES.cassandra', 'cassandra').
 
--define('db_system.hbase', 'hbase').
+-define('DB_SYSTEM_VALUES.hbase', 'hbase').
 
--define('db_system.mongodb', 'mongodb').
+-define('DB_SYSTEM_VALUES.mongodb', 'mongodb').
 
--define('db_system.redis', 'redis').
+-define('DB_SYSTEM_VALUES.redis', 'redis').
 
--define('db_system.couchbase', 'couchbase').
+-define('DB_SYSTEM_VALUES.couchbase', 'couchbase').
 
--define('db_system.couchdb', 'couchdb').
+-define('DB_SYSTEM_VALUES.couchdb', 'couchdb').
 
--define('db_system.cosmosdb', 'cosmosdb').
+-define('DB_SYSTEM_VALUES.cosmosdb', 'cosmosdb').
 
--define('db_system.dynamodb', 'dynamodb').
+-define('DB_SYSTEM_VALUES.dynamodb', 'dynamodb').
 
--define('db_system.neo4j', 'neo4j').
+-define('DB_SYSTEM_VALUES.neo4j', 'neo4j').
 
--define('db_system.geode', 'geode').
+-define('DB_SYSTEM_VALUES.geode', 'geode').
 
--define('db_system.elasticsearch', 'elasticsearch').
+-define('DB_SYSTEM_VALUES.elasticsearch', 'elasticsearch').
 
--define('db_system.memcached', 'memcached').
+-define('DB_SYSTEM_VALUES.memcached', 'memcached').
 
--define('db_system.cockroachdb', 'cockroachdb').
+-define('DB_SYSTEM_VALUES.cockroachdb', 'cockroachdb').
 
--define('db_system.opensearch', 'opensearch').
+-define('DB_SYSTEM_VALUES.opensearch', 'opensearch').
 
--define('db_system.clickhouse', 'clickhouse').
+-define('DB_SYSTEM_VALUES.clickhouse', 'clickhouse').
 
--define('db_system.spanner', 'spanner').
+-define('DB_SYSTEM_VALUES.spanner', 'spanner').
 
--define('db_system.trino', 'trino').
+-define('DB_SYSTEM_VALUES.trino', 'trino').
 
--define(db_system(Custom), Custom).
+-define('DB_SYSTEM_VALUES(Custom), Custom).
 
 %% @deprecated No replacement at this time.
 %% Deprecated, no replacement at this time.
@@ -351,9 +356,10 @@
 
 %% @deprecated Replaced by `db.client.connections.state`.
 %% Deprecated, use `db.client.connections.state` instead.
+-define(STATE, 'state').
 
--define('state.idle', 'idle').
+-define('STATE_VALUES.idle', 'idle').
 
--define('state.used', 'used').
+-define('STATE_VALUES.used', 'used').
 
--define(state(Custom), Custom).
+-define('STATE_VALUES(Custom), Custom).

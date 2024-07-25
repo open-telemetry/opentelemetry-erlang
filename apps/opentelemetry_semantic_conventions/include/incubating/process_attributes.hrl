@@ -30,24 +30,26 @@
 
 
 %% Specifies whether the context switches for this data point were voluntary or involuntary.
+-define(PROCESS_CONTEXTSWITCHTYPE, 'process.context_switch_type').
 
--define('process_contextswitchtype.voluntary', 'voluntary').
+-define('PROCESS_CONTEXTSWITCHTYPE_VALUES.voluntary', 'voluntary').
 
--define('process_contextswitchtype.involuntary', 'involuntary').
+-define('PROCESS_CONTEXTSWITCHTYPE_VALUES.involuntary', 'involuntary').
 
--define(process_contextswitchtype(Custom), Custom).
+-define('PROCESS_CONTEXTSWITCHTYPE_VALUES(Custom), Custom).
 
 
 %% The CPU state of the process.
 %%  
+-define(PROCESS_CPU_STATE, 'process.cpu.state').
 
--define('process_cpu_state.system', 'system').
+-define('PROCESS_CPU_STATE_VALUES.system', 'system').
 
--define('process_cpu_state.user', 'user').
+-define('PROCESS_CPU_STATE_VALUES.user', 'user').
 
--define('process_cpu_state.wait', 'wait').
+-define('PROCESS_CPU_STATE_VALUES.wait', 'wait').
 
--define(process_cpu_state(Custom), Custom).
+-define('PROCESS_CPU_STATE_VALUES(Custom), Custom).
 
 
 %% The date and time the process was created, in ISO 8601 format.
@@ -92,12 +94,13 @@
 
 %% The type of page fault for this data point. Type `major` is for major/hard page faults, and `minor` is for minor/soft page faults.
 %%  
+-define(PROCESS_PAGING_FAULTTYPE, 'process.paging.fault_type').
 
--define('process_paging_faulttype.major', 'major').
+-define('PROCESS_PAGING_FAULTTYPE_VALUES.major', 'major').
 
--define('process_paging_faulttype.minor', 'minor').
+-define('PROCESS_PAGING_FAULTTYPE_VALUES.minor', 'minor').
 
--define(process_paging_faulttype(Custom), Custom).
+-define('PROCESS_PAGING_FAULTTYPE_VALUES(Custom), Custom).
 
 
 %% Parent Process identifier (PPID).

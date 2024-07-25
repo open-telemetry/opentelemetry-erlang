@@ -18,7 +18,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   * `:s390x` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - IBM z/Architecture
   * `:x86` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 32-bit x86
   """
-  @type host_arch() :: %{
+  @type host_arch_values() :: %{
           :amd64 => :amd64,
           :arm32 => :arm32,
           :arm64 => :arm64,
@@ -37,26 +37,43 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.HostAttributes.host_arch().amd64
+      iex> OpenTelemetry.SemConv.Incubating.HostAttributes.host_arch()
+      :"host.arch"
+      
+      iex> OpenTelemetry.SemConv.Incubating.HostAttributes.host_arch_values().amd64
       :amd64
       
-      iex> OpenTelemetry.SemConv.Incubating.HostAttributes.host_arch(:custom_value)
+      iex> %{OpenTelemetry.SemConv.Incubating.HostAttributes.host_arch() => OpenTelemetry.SemConv.Incubating.HostAttributes.host_arch_values().amd64}
+      %{:"host.arch" => :amd64}
+      
+      iex> OpenTelemetry.SemConv.Incubating.HostAttributes.host_arch_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'host_arch.amd64'.
+  ?HOST_ARCH.
+  'host.arch'
+
+  \#{?HOST_ARCH => ?HOST_ARCH_VALUES.amd64}.
+  \#{'host.arch' => amd64}
+
+  ?'HOST_ARCH_VALUES.amd64'.
   amd64
 
-  ?host_arch(custom_value).
+  ?HOST_ARCH_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec host_arch() :: host_arch()
-  def host_arch() do
+  @spec host_arch :: :"host.arch"
+  def host_arch do
+    :"host.arch"
+  end
+
+  @spec host_arch_values() :: host_arch_values()
+  def host_arch_values() do
     %{
       :amd64 => :amd64,
       :arm32 => :arm32,
@@ -69,8 +86,8 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
     }
   end
 
-  @spec host_arch(atom() | String.t()) :: atom() | String.t()
-  def host_arch(custom_value) do
+  @spec host_arch_values(atom() | String.t()) :: atom() | String.t()
+  def host_arch_values(custom_value) do
     custom_value
   end
 

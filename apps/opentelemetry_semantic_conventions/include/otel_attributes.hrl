@@ -23,12 +23,13 @@
 
 
 %% Name of the code, either "OK" or "ERROR". MUST NOT be set if the status code is UNSET.
+-define(OTEL_STATUSCODE, 'otel.status_code').
 
--define('otel_statuscode.ok', 'OK').
+-define('OTEL_STATUSCODE_VALUES.ok', 'OK').
 
--define('otel_statuscode.error', 'ERROR').
+-define('OTEL_STATUSCODE_VALUES.error', 'ERROR').
 
--define(otel_statuscode(Custom), Custom).
+-define('OTEL_STATUSCODE_VALUES(Custom), Custom).
 
 
 %% Description of the Status if it has a value, otherwise not set.

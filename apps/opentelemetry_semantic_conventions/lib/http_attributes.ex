@@ -58,7 +58,7 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   * `:trace` - TRACE method.
   * `:other` - Any HTTP method that the instrumentation has no prior knowledge of.
   """
-  @type http_request_method() :: %{
+  @type http_request_method_values() :: %{
           :connect => :CONNECT,
           :delete => :DELETE,
           :get => :GET,
@@ -100,26 +100,43 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.HTTPAttributes.http_request_method().connect
+      iex> OpenTelemetry.SemConv.HTTPAttributes.http_request_method()
+      :"http.request.method"
+      
+      iex> OpenTelemetry.SemConv.HTTPAttributes.http_request_method_values().connect
       :CONNECT
       
-      iex> OpenTelemetry.SemConv.HTTPAttributes.http_request_method(:custom_value)
+      iex> %{OpenTelemetry.SemConv.HTTPAttributes.http_request_method() => OpenTelemetry.SemConv.HTTPAttributes.http_request_method_values().connect}
+      %{:"http.request.method" => :CONNECT}
+      
+      iex> OpenTelemetry.SemConv.HTTPAttributes.http_request_method_values(:custom_value)
       :custom_value
 
   ### Erlang
 
   ```erlang
-  ?'http_request_method.connect'.
+  ?HTTP_REQUEST_METHOD.
+  'http.request.method'
+
+  \#{?HTTP_REQUEST_METHOD => ?HTTP_REQUEST_METHOD_VALUES.connect}.
+  \#{'http.request.method' => CONNECT}
+
+  ?'HTTP_REQUEST_METHOD_VALUES.connect'.
   CONNECT
 
-  ?http_request_method(custom_value).
+  ?HTTP_REQUEST_METHOD_VALUES(custom_value).
   custom_value
   ```
 
   <!-- tabs-close -->
   """
-  @spec http_request_method() :: http_request_method()
-  def http_request_method() do
+  @spec http_request_method :: :"http.request.method"
+  def http_request_method do
+    :"http.request.method"
+  end
+
+  @spec http_request_method_values() :: http_request_method_values()
+  def http_request_method_values() do
     %{
       :connect => :CONNECT,
       :delete => :DELETE,
@@ -134,8 +151,8 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
     }
   end
 
-  @spec http_request_method(atom() | String.t()) :: atom() | String.t()
-  def http_request_method(custom_value) do
+  @spec http_request_method_values(atom() | String.t()) :: atom() | String.t()
+  def http_request_method_values(custom_value) do
     custom_value
   end
 
