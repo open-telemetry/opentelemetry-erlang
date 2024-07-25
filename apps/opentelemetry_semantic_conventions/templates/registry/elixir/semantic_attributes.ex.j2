@@ -5,8 +5,7 @@
 {%- import 'common.j2' as c %}
 {%- set acronyms = c.acronyms() -%}
 
-{%- set file_name = ctx.output + ctx.id | snake_case ~ "_attributes.ex" -%}
-{%- set module_name = (ctx.id | pascal_case) -%}
+{%- set file_name = ctx.output ~ (c.format_acronym(ctx.id | pascal_case, acronyms) | lower) ~ "_attributes.ex" -%}
 {{ template.set_file_name(file_name) }}
 
 {%- set module_name = c.format_acronym(ctx.id | pascal_case, acronyms) ~ "Attributes" -%}

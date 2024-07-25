@@ -4,8 +4,7 @@
 
 {%- import 'common.j2' as c %}
 {%- set acronyms = c.acronyms() -%}
-{%- set file_name = ctx.output ~ ctx.id | snake_case ~ "_metrics.ex" -%}
-{%- set module_name = c.format_acronym(ctx.id | pascal_case, acronyms) ~ "Metrics" -%}
+{%- set file_name = ctx.output ~ (c.format_acronym(ctx.id | pascal_case, acronyms) | lower) ~ "_metrics.ex" -%}
 {%- set trim_blocks = true %}
 {%- set trim_lstrip_blocks = true %}
 {{ template.set_file_name(file_name) }}

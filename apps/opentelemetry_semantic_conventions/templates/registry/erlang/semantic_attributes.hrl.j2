@@ -1,4 +1,6 @@
-{%- set file_name = ctx.output + ctx.id | snake_case ~ "_attributes.hrl" -%}
+{%- import 'common.j2' as c %}
+{%- set acronyms = c.acronyms() -%}
+{%- set file_name = ctx.output ~ (c.format_acronym(ctx.id | pascal_case, acronyms) | lower) ~ "_attributes.hrl" -%}
 {{ template.set_file_name(file_name) }}
 %%%------------------------------------------------------------------------
 %% Copyright The OpenTelemetry Authors
