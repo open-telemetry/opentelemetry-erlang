@@ -42,7 +42,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   ### Erlang
 
   ```erlang
-  ?{{ metric.metric_name | snake_case | upper }}.
+  ?'{{ metric.metric_name | snake_case | upper }}'.
   '{{ metric.metric_name }}'
   ```
 

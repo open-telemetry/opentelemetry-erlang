@@ -16,34 +16,34 @@
 
 %% The basename of the file.
 %%  
--define(LOG_FILE_NAME, 'log.file.name').
+-define('LOG_FILE_NAME', 'log.file.name').
 
 
 %% The basename of the file, with symlinks resolved.
 %%  
--define(LOG_FILE_NAME_RESOLVED, 'log.file.name_resolved').
+-define('LOG_FILE_NAME_RESOLVED', 'log.file.name_resolved').
 
 
 %% The full path to the file.
 %%  
--define(LOG_FILE_PATH, 'log.file.path').
+-define('LOG_FILE_PATH', 'log.file.path').
 
 
 %% The full path to the file, with symlinks resolved.
 %%  
--define(LOG_FILE_PATH_RESOLVED, 'log.file.path_resolved').
+-define('LOG_FILE_PATH_RESOLVED', 'log.file.path_resolved').
 
 
 %% The stream associated with the log. See below for a list of well-known values.
 %%  
--define(LOG_IOSTREAM, 'log.iostream').
+-define('LOG_IOSTREAM', 'log.iostream').
 
--define('LOG_IOSTREAM_VALUES.stdout', 'stdout').
+-define('LOG_IOSTREAM_VALUES_STDOUT', 'stdout').
 
--define('LOG_IOSTREAM_VALUES.stderr', 'stderr').
+-define('LOG_IOSTREAM_VALUES_STDERR', 'stderr').
 
 
 
 %% A unique identifier for the Log Record.
 %%  
--define(LOG_RECORD_UID, 'log.record.uid').
+-define('LOG_RECORD_UID', 'log.record.uid').

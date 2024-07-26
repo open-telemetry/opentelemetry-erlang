@@ -25,7 +25,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_ATTRIBUTE_DEFINITIONS.
+  ?'AWS_DYNAMODB_ATTRIBUTE_DEFINITIONS'.
   'aws.dynamodb.attribute_definitions'
   ```
 
@@ -57,7 +57,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_ATTRIBUTES_TO_GET.
+  ?'AWS_DYNAMODB_ATTRIBUTES_TO_GET'.
   'aws.dynamodb.attributes_to_get'
   ```
 
@@ -84,7 +84,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_CONSISTENT_READ.
+  ?'AWS_DYNAMODB_CONSISTENT_READ'.
   'aws.dynamodb.consistent_read'
   ```
 
@@ -116,7 +116,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_CONSUMED_CAPACITY.
+  ?'AWS_DYNAMODB_CONSUMED_CAPACITY'.
   'aws.dynamodb.consumed_capacity'
   ```
 
@@ -148,7 +148,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_COUNT.
+  ?'AWS_DYNAMODB_COUNT'.
   'aws.dynamodb.count'
   ```
 
@@ -180,7 +180,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_EXCLUSIVE_START_TABLE.
+  ?'AWS_DYNAMODB_EXCLUSIVE_START_TABLE'.
   'aws.dynamodb.exclusive_start_table'
   ```
 
@@ -212,7 +212,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_GLOBAL_SECONDARY_INDEX_UPDATES.
+  ?'AWS_DYNAMODB_GLOBAL_SECONDARY_INDEX_UPDATES'.
   'aws.dynamodb.global_secondary_index_updates'
   ```
 
@@ -245,7 +245,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_GLOBAL_SECONDARY_INDEXES.
+  ?'AWS_DYNAMODB_GLOBAL_SECONDARY_INDEXES'.
   'aws.dynamodb.global_secondary_indexes'
   ```
 
@@ -277,7 +277,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_INDEX_NAME.
+  ?'AWS_DYNAMODB_INDEX_NAME'.
   'aws.dynamodb.index_name'
   ```
 
@@ -309,7 +309,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_ITEM_COLLECTION_METRICS.
+  ?'AWS_DYNAMODB_ITEM_COLLECTION_METRICS'.
   'aws.dynamodb.item_collection_metrics'
   ```
 
@@ -341,7 +341,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_LIMIT.
+  ?'AWS_DYNAMODB_LIMIT'.
   'aws.dynamodb.limit'
   ```
 
@@ -373,7 +373,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_LOCAL_SECONDARY_INDEXES.
+  ?'AWS_DYNAMODB_LOCAL_SECONDARY_INDEXES'.
   'aws.dynamodb.local_secondary_indexes'
   ```
 
@@ -405,7 +405,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_PROJECTION.
+  ?'AWS_DYNAMODB_PROJECTION'.
   'aws.dynamodb.projection'
   ```
 
@@ -437,7 +437,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_PROVISIONED_READ_CAPACITY.
+  ?'AWS_DYNAMODB_PROVISIONED_READ_CAPACITY'.
   'aws.dynamodb.provisioned_read_capacity'
   ```
 
@@ -469,7 +469,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_PROVISIONED_WRITE_CAPACITY.
+  ?'AWS_DYNAMODB_PROVISIONED_WRITE_CAPACITY'.
   'aws.dynamodb.provisioned_write_capacity'
   ```
 
@@ -496,7 +496,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_SCAN_FORWARD.
+  ?'AWS_DYNAMODB_SCAN_FORWARD'.
   'aws.dynamodb.scan_forward'
   ```
 
@@ -528,7 +528,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_SCANNED_COUNT.
+  ?'AWS_DYNAMODB_SCANNED_COUNT'.
   'aws.dynamodb.scanned_count'
   ```
 
@@ -560,7 +560,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_SEGMENT.
+  ?'AWS_DYNAMODB_SEGMENT'.
   'aws.dynamodb.segment'
   ```
 
@@ -592,7 +592,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_SELECT.
+  ?'AWS_DYNAMODB_SELECT'.
   'aws.dynamodb.select'
   ```
 
@@ -624,7 +624,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_TABLE_COUNT.
+  ?'AWS_DYNAMODB_TABLE_COUNT'.
   'aws.dynamodb.table_count'
   ```
 
@@ -656,7 +656,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_TABLE_NAMES.
+  ?'AWS_DYNAMODB_TABLE_NAMES'.
   'aws.dynamodb.table_names'
   ```
 
@@ -688,7 +688,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_DYNAMODB_TOTAL_SEGMENTS.
+  ?'AWS_DYNAMODB_TOTAL_SEGMENTS'.
   'aws.dynamodb.total_segments'
   ```
 
@@ -721,7 +721,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_ECS_CLUSTER_ARN.
+  ?'AWS_ECS_CLUSTER_ARN'.
   'aws.ecs.cluster.arn'
   ```
 
@@ -754,7 +754,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_ECS_CONTAINER_ARN.
+  ?'AWS_ECS_CONTAINER_ARN'.
   'aws.ecs.container.arn'
   ```
 
@@ -798,13 +798,13 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_ECS_LAUNCHTYPE.
+  ?'AWS_ECS_LAUNCHTYPE'.
   'aws.ecs.launchtype'
 
-  ?'AWS_ECS_LAUNCHTYPE_VALUES.ec2'.
+  ?'AWS_ECS_LAUNCHTYPE_VALUES_EC_2'.
   ec2
 
-  \#{?AWS_ECS_LAUNCHTYPE => ?'AWS_ECS_LAUNCHTYPE_VALUES.ec2'}.
+  \#{?AWS_ECS_LAUNCHTYPE => ?'AWS_ECS_LAUNCHTYPE_VALUES_EC_2'}.
   \#{'aws.ecs.launchtype' => ec2}
   ```
 
@@ -845,7 +845,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_ECS_TASK_ARN.
+  ?'AWS_ECS_TASK_ARN'.
   'aws.ecs.task.arn'
   ```
 
@@ -878,7 +878,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_ECS_TASK_FAMILY.
+  ?'AWS_ECS_TASK_FAMILY'.
   'aws.ecs.task.family'
   ```
 
@@ -911,7 +911,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_ECS_TASK_ID.
+  ?'AWS_ECS_TASK_ID'.
   'aws.ecs.task.id'
   ```
 
@@ -944,7 +944,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_ECS_TASK_REVISION.
+  ?'AWS_ECS_TASK_REVISION'.
   'aws.ecs.task.revision'
   ```
 
@@ -977,7 +977,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_EKS_CLUSTER_ARN.
+  ?'AWS_EKS_CLUSTER_ARN'.
   'aws.eks.cluster.arn'
   ```
 
@@ -1013,7 +1013,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_LAMBDA_INVOKED_ARN.
+  ?'AWS_LAMBDA_INVOKED_ARN'.
   'aws.lambda.invoked_arn'
   ```
 
@@ -1050,7 +1050,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_LOG_GROUP_ARNS.
+  ?'AWS_LOG_GROUP_ARNS'.
   'aws.log.group.arns'
   ```
 
@@ -1087,7 +1087,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_LOG_GROUP_NAMES.
+  ?'AWS_LOG_GROUP_NAMES'.
   'aws.log.group.names'
   ```
 
@@ -1124,7 +1124,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_LOG_STREAM_ARNS.
+  ?'AWS_LOG_STREAM_ARNS'.
   'aws.log.stream.arns'
   ```
 
@@ -1157,7 +1157,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_LOG_STREAM_NAMES.
+  ?'AWS_LOG_STREAM_NAMES'.
   'aws.log.stream.names'
   ```
 
@@ -1189,7 +1189,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_REQUEST_ID.
+  ?'AWS_REQUEST_ID'.
   'aws.request_id'
   ```
 
@@ -1226,7 +1226,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_S3_BUCKET.
+  ?'AWS_S3_BUCKET'.
   'aws.s3.bucket'
   ```
 
@@ -1267,7 +1267,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_S3_COPY_SOURCE.
+  ?'AWS_S3_COPY_SOURCE'.
   'aws.s3.copy_source'
   ```
 
@@ -1305,7 +1305,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_S3_DELETE.
+  ?'AWS_S3_DELETE'.
   'aws.s3.delete'
   ```
 
@@ -1356,7 +1356,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_S3_KEY.
+  ?'AWS_S3_KEY'.
   'aws.s3.key'
   ```
 
@@ -1395,7 +1395,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_S3_PART_NUMBER.
+  ?'AWS_S3_PART_NUMBER'.
   'aws.s3.part_number'
   ```
 
@@ -1439,7 +1439,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Erlang
 
   ```erlang
-  ?AWS_S3_UPLOAD_ID.
+  ?'AWS_S3_UPLOAD_ID'.
   'aws.s3.upload_id'
   ```
 

@@ -26,7 +26,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GCPAttributes do
   ### Erlang
 
   ```erlang
-  ?GCP_CLOUD_RUN_JOB_EXECUTION.
+  ?'GCP_CLOUD_RUN_JOB_EXECUTION'.
   'gcp.cloud_run.job.execution'
   ```
 
@@ -59,7 +59,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GCPAttributes do
   ### Erlang
 
   ```erlang
-  ?GCP_CLOUD_RUN_JOB_TASK_INDEX.
+  ?'GCP_CLOUD_RUN_JOB_TASK_INDEX'.
   'gcp.cloud_run.job.task_index'
   ```
 
@@ -92,7 +92,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GCPAttributes do
   ### Erlang
 
   ```erlang
-  ?GCP_GCE_INSTANCE_HOSTNAME.
+  ?'GCP_GCE_INSTANCE_HOSTNAME'.
   'gcp.gce.instance.hostname'
   ```
 
@@ -125,7 +125,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GCPAttributes do
   ### Erlang
 
   ```erlang
-  ?GCP_GCE_INSTANCE_NAME.
+  ?'GCP_GCE_INSTANCE_NAME'.
   'gcp.gce.instance.name'
   ```
 

@@ -16,14 +16,14 @@
 
 %% Unique identifier for the application
 %%  
--define(HEROKU_APP_ID, 'heroku.app.id').
+-define('HEROKU_APP_ID', 'heroku.app.id').
 
 
 %% Commit hash for the current release
 %%  
--define(HEROKU_RELEASE_COMMIT, 'heroku.release.commit').
+-define('HEROKU_RELEASE_COMMIT', 'heroku.release.commit').
 
 
 %% Time and date the release was created
 %%  
--define(HEROKU_RELEASE_CREATION_TIMESTAMP, 'heroku.release.creation_timestamp').
+-define('HEROKU_RELEASE_CREATION_TIMESTAMP', 'heroku.release.creation_timestamp').

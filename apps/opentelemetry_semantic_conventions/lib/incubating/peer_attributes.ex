@@ -26,7 +26,7 @@ defmodule OpenTelemetry.SemConv.Incubating.PeerAttributes do
   ### Erlang
 
   ```erlang
-  ?PEER_SERVICE.
+  ?'PEER_SERVICE'.
   'peer.service'
   ```
 

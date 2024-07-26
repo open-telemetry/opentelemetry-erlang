@@ -25,7 +25,7 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
   ### Erlang
 
   ```erlang
-  ?OS_BUILD_ID.
+  ?'OS_BUILD_ID'.
   'os.build_id'
   ```
 
@@ -58,7 +58,7 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
   ### Erlang
 
   ```erlang
-  ?OS_DESCRIPTION.
+  ?'OS_DESCRIPTION'.
   'os.description'
   ```
 
@@ -90,7 +90,7 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
   ### Erlang
 
   ```erlang
-  ?OS_NAME.
+  ?'OS_NAME'.
   'os.name'
   ```
 
@@ -152,13 +152,13 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
   ### Erlang
 
   ```erlang
-  ?OS_TYPE.
+  ?'OS_TYPE'.
   'os.type'
 
-  ?'OS_TYPE_VALUES.windows'.
+  ?'OS_TYPE_VALUES_WINDOWS'.
   windows
 
-  \#{?OS_TYPE => ?'OS_TYPE_VALUES.windows'}.
+  \#{?OS_TYPE => ?'OS_TYPE_VALUES_WINDOWS'}.
   \#{'os.type' => windows}
   ```
 
@@ -208,7 +208,7 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
   ### Erlang
 
   ```erlang
-  ?OS_VERSION.
+  ?'OS_VERSION'.
   'os.version'
   ```
 

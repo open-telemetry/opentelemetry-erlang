@@ -26,7 +26,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FileAttributes do
   ### Erlang
 
   ```erlang
-  ?FILE_DIRECTORY.
+  ?'FILE_DIRECTORY'.
   'file.directory'
   ```
 
@@ -63,7 +63,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FileAttributes do
   ### Erlang
 
   ```erlang
-  ?FILE_EXTENSION.
+  ?'FILE_EXTENSION'.
   'file.extension'
   ```
 
@@ -96,7 +96,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FileAttributes do
   ### Erlang
 
   ```erlang
-  ?FILE_NAME.
+  ?'FILE_NAME'.
   'file.name'
   ```
 
@@ -129,7 +129,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FileAttributes do
   ### Erlang
 
   ```erlang
-  ?FILE_PATH.
+  ?'FILE_PATH'.
   'file.path'
   ```
 
@@ -157,7 +157,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FileAttributes do
   ### Erlang
 
   ```erlang
-  ?FILE_SIZE.
+  ?'FILE_SIZE'.
   'file.size'
   ```
 

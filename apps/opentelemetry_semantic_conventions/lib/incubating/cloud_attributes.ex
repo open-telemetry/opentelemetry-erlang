@@ -26,7 +26,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   ### Erlang
 
   ```erlang
-  ?CLOUD_ACCOUNT_ID.
+  ?'CLOUD_ACCOUNT_ID'.
   'cloud.account.id'
   ```
 
@@ -63,7 +63,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   ### Erlang
 
   ```erlang
-  ?CLOUD_AVAILABILITY_ZONE.
+  ?'CLOUD_AVAILABILITY_ZONE'.
   'cloud.availability_zone'
   ```
 
@@ -163,13 +163,13 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   ### Erlang
 
   ```erlang
-  ?CLOUD_PLATFORM.
+  ?'CLOUD_PLATFORM'.
   'cloud.platform'
 
-  ?'CLOUD_PLATFORM_VALUES.alibaba_cloud_ecs'.
+  ?'CLOUD_PLATFORM_VALUES_ALIBABA_CLOUD_ECS'.
   alibaba_cloud_ecs
 
-  \#{?CLOUD_PLATFORM => ?'CLOUD_PLATFORM_VALUES.alibaba_cloud_ecs'}.
+  \#{?CLOUD_PLATFORM => ?'CLOUD_PLATFORM_VALUES_ALIBABA_CLOUD_ECS'}.
   \#{'cloud.platform' => alibaba_cloud_ecs}
   ```
 
@@ -257,13 +257,13 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   ### Erlang
 
   ```erlang
-  ?CLOUD_PROVIDER.
+  ?'CLOUD_PROVIDER'.
   'cloud.provider'
 
-  ?'CLOUD_PROVIDER_VALUES.alibaba_cloud'.
+  ?'CLOUD_PROVIDER_VALUES_ALIBABA_CLOUD'.
   alibaba_cloud
 
-  \#{?CLOUD_PROVIDER => ?'CLOUD_PROVIDER_VALUES.alibaba_cloud'}.
+  \#{?CLOUD_PROVIDER => ?'CLOUD_PROVIDER_VALUES_ALIBABA_CLOUD'}.
   \#{'cloud.provider' => alibaba_cloud}
   ```
 
@@ -313,7 +313,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   ### Erlang
 
   ```erlang
-  ?CLOUD_REGION.
+  ?'CLOUD_REGION'.
   'cloud.region'
   ```
 
@@ -366,7 +366,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   ### Erlang
 
   ```erlang
-  ?CLOUD_RESOURCE_ID.
+  ?'CLOUD_RESOURCE_ID'.
   'cloud.resource_id'
   ```
 

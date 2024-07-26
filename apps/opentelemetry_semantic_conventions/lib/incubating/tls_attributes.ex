@@ -30,7 +30,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_CIPHER.
+  ?'TLS_CIPHER'.
   'tls.cipher'
   ```
 
@@ -63,7 +63,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_CERTIFICATE.
+  ?'TLS_CLIENT_CERTIFICATE'.
   'tls.client.certificate'
   ```
 
@@ -96,7 +96,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_CERTIFICATE_CHAIN.
+  ?'TLS_CLIENT_CERTIFICATE_CHAIN'.
   'tls.client.certificate_chain'
   ```
 
@@ -129,7 +129,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_HASH_MD5.
+  ?'TLS_CLIENT_HASH_MD5'.
   'tls.client.hash.md5'
   ```
 
@@ -162,7 +162,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_HASH_SHA1.
+  ?'TLS_CLIENT_HASH_SHA1'.
   'tls.client.hash.sha1'
   ```
 
@@ -195,7 +195,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_HASH_SHA256.
+  ?'TLS_CLIENT_HASH_SHA256'.
   'tls.client.hash.sha256'
   ```
 
@@ -227,7 +227,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_ISSUER.
+  ?'TLS_CLIENT_ISSUER'.
   'tls.client.issuer'
   ```
 
@@ -259,7 +259,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_JA3.
+  ?'TLS_CLIENT_JA3'.
   'tls.client.ja3'
   ```
 
@@ -291,7 +291,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_NOT_AFTER.
+  ?'TLS_CLIENT_NOT_AFTER'.
   'tls.client.not_after'
   ```
 
@@ -323,7 +323,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_NOT_BEFORE.
+  ?'TLS_CLIENT_NOT_BEFORE'.
   'tls.client.not_before'
   ```
 
@@ -355,7 +355,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_SERVER_NAME.
+  ?'TLS_CLIENT_SERVER_NAME'.
   'tls.client.server_name'
   ```
 
@@ -387,7 +387,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_SUBJECT.
+  ?'TLS_CLIENT_SUBJECT'.
   'tls.client.subject'
   ```
 
@@ -419,7 +419,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_CLIENT_SUPPORTED_CIPHERS.
+  ?'TLS_CLIENT_SUPPORTED_CIPHERS'.
   'tls.client.supported_ciphers'
   ```
 
@@ -451,7 +451,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_CURVE.
+  ?'TLS_CURVE'.
   'tls.curve'
   ```
 
@@ -483,7 +483,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_ESTABLISHED.
+  ?'TLS_ESTABLISHED'.
   'tls.established'
   ```
 
@@ -516,7 +516,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_NEXT_PROTOCOL.
+  ?'TLS_NEXT_PROTOCOL'.
   'tls.next_protocol'
   ```
 
@@ -560,13 +560,13 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_PROTOCOL_NAME.
+  ?'TLS_PROTOCOL_NAME'.
   'tls.protocol.name'
 
-  ?'TLS_PROTOCOL_NAME_VALUES.ssl'.
+  ?'TLS_PROTOCOL_NAME_VALUES_SSL'.
   ssl
 
-  \#{?TLS_PROTOCOL_NAME => ?'TLS_PROTOCOL_NAME_VALUES.ssl'}.
+  \#{?TLS_PROTOCOL_NAME => ?'TLS_PROTOCOL_NAME_VALUES_SSL'}.
   \#{'tls.protocol.name' => ssl}
   ```
 
@@ -607,7 +607,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_PROTOCOL_VERSION.
+  ?'TLS_PROTOCOL_VERSION'.
   'tls.protocol.version'
   ```
 
@@ -639,7 +639,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_RESUMED.
+  ?'TLS_RESUMED'.
   'tls.resumed'
   ```
 
@@ -672,7 +672,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_CERTIFICATE.
+  ?'TLS_SERVER_CERTIFICATE'.
   'tls.server.certificate'
   ```
 
@@ -705,7 +705,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_CERTIFICATE_CHAIN.
+  ?'TLS_SERVER_CERTIFICATE_CHAIN'.
   'tls.server.certificate_chain'
   ```
 
@@ -738,7 +738,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_HASH_MD5.
+  ?'TLS_SERVER_HASH_MD5'.
   'tls.server.hash.md5'
   ```
 
@@ -771,7 +771,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_HASH_SHA1.
+  ?'TLS_SERVER_HASH_SHA1'.
   'tls.server.hash.sha1'
   ```
 
@@ -804,7 +804,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_HASH_SHA256.
+  ?'TLS_SERVER_HASH_SHA256'.
   'tls.server.hash.sha256'
   ```
 
@@ -836,7 +836,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_ISSUER.
+  ?'TLS_SERVER_ISSUER'.
   'tls.server.issuer'
   ```
 
@@ -868,7 +868,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_JA3S.
+  ?'TLS_SERVER_JA3S'.
   'tls.server.ja3s'
   ```
 
@@ -900,7 +900,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_NOT_AFTER.
+  ?'TLS_SERVER_NOT_AFTER'.
   'tls.server.not_after'
   ```
 
@@ -932,7 +932,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_NOT_BEFORE.
+  ?'TLS_SERVER_NOT_BEFORE'.
   'tls.server.not_before'
   ```
 
@@ -964,7 +964,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Erlang
 
   ```erlang
-  ?TLS_SERVER_SUBJECT.
+  ?'TLS_SERVER_SUBJECT'.
   'tls.server.subject'
   ```
 

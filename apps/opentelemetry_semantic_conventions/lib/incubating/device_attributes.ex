@@ -30,7 +30,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DeviceAttributes do
   ### Erlang
 
   ```erlang
-  ?DEVICE_ID.
+  ?'DEVICE_ID'.
   'device.id'
   ```
 
@@ -67,7 +67,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DeviceAttributes do
   ### Erlang
 
   ```erlang
-  ?DEVICE_MANUFACTURER.
+  ?'DEVICE_MANUFACTURER'.
   'device.manufacturer'
   ```
 
@@ -104,7 +104,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DeviceAttributes do
   ### Erlang
 
   ```erlang
-  ?DEVICE_MODEL_IDENTIFIER.
+  ?'DEVICE_MODEL_IDENTIFIER'.
   'device.model.identifier'
   ```
 
@@ -141,7 +141,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DeviceAttributes do
   ### Erlang
 
   ```erlang
-  ?DEVICE_MODEL_NAME.
+  ?'DEVICE_MODEL_NAME'.
   'device.model.name'
   ```
 

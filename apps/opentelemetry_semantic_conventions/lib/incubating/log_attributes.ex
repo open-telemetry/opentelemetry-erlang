@@ -26,7 +26,7 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
   ### Erlang
 
   ```erlang
-  ?LOG_FILE_NAME.
+  ?'LOG_FILE_NAME'.
   'log.file.name'
   ```
 
@@ -59,7 +59,7 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
   ### Erlang
 
   ```erlang
-  ?LOG_FILE_NAME_RESOLVED.
+  ?'LOG_FILE_NAME_RESOLVED'.
   'log.file.name_resolved'
   ```
 
@@ -92,7 +92,7 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
   ### Erlang
 
   ```erlang
-  ?LOG_FILE_PATH.
+  ?'LOG_FILE_PATH'.
   'log.file.path'
   ```
 
@@ -125,7 +125,7 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
   ### Erlang
 
   ```erlang
-  ?LOG_FILE_PATH_RESOLVED.
+  ?'LOG_FILE_PATH_RESOLVED'.
   'log.file.path_resolved'
   ```
 
@@ -169,13 +169,13 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
   ### Erlang
 
   ```erlang
-  ?LOG_IOSTREAM.
+  ?'LOG_IOSTREAM'.
   'log.iostream'
 
-  ?'LOG_IOSTREAM_VALUES.stdout'.
+  ?'LOG_IOSTREAM_VALUES_STDOUT'.
   stdout
 
-  \#{?LOG_IOSTREAM => ?'LOG_IOSTREAM_VALUES.stdout'}.
+  \#{?LOG_IOSTREAM => ?'LOG_IOSTREAM_VALUES_STDOUT'}.
   \#{'log.iostream' => stdout}
   ```
 
@@ -221,7 +221,7 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
   ### Erlang
 
   ```erlang
-  ?LOG_RECORD_UID.
+  ?'LOG_RECORD_UID'.
   'log.record.uid'
   ```
 

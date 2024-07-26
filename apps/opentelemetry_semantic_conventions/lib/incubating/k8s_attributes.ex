@@ -26,7 +26,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_CLUSTER_NAME.
+  ?'K8S_CLUSTER_NAME'.
   'k8s.cluster.name'
   ```
 
@@ -84,7 +84,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_CLUSTER_UID.
+  ?'K8S_CLUSTER_UID'.
   'k8s.cluster.uid'
   ```
 
@@ -117,7 +117,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_CONTAINER_NAME.
+  ?'K8S_CONTAINER_NAME'.
   'k8s.container.name'
   ```
 
@@ -145,7 +145,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_CONTAINER_RESTART_COUNT.
+  ?'K8S_CONTAINER_RESTART_COUNT'.
   'k8s.container.restart_count'
   ```
 
@@ -178,7 +178,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_CONTAINER_STATUS_LAST_TERMINATED_REASON.
+  ?'K8S_CONTAINER_STATUS_LAST_TERMINATED_REASON'.
   'k8s.container.status.last_terminated_reason'
   ```
 
@@ -212,7 +212,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_CRONJOB_NAME.
+  ?'K8S_CRONJOB_NAME'.
   'k8s.cronjob.name'
   ```
 
@@ -245,7 +245,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_CRONJOB_UID.
+  ?'K8S_CRONJOB_UID'.
   'k8s.cronjob.uid'
   ```
 
@@ -278,7 +278,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_DAEMONSET_NAME.
+  ?'K8S_DAEMONSET_NAME'.
   'k8s.daemonset.name'
   ```
 
@@ -311,7 +311,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_DAEMONSET_UID.
+  ?'K8S_DAEMONSET_UID'.
   'k8s.daemonset.uid'
   ```
 
@@ -344,7 +344,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_DEPLOYMENT_NAME.
+  ?'K8S_DEPLOYMENT_NAME'.
   'k8s.deployment.name'
   ```
 
@@ -377,7 +377,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_DEPLOYMENT_UID.
+  ?'K8S_DEPLOYMENT_UID'.
   'k8s.deployment.uid'
   ```
 
@@ -410,7 +410,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_JOB_NAME.
+  ?'K8S_JOB_NAME'.
   'k8s.job.name'
   ```
 
@@ -443,7 +443,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_JOB_UID.
+  ?'K8S_JOB_UID'.
   'k8s.job.uid'
   ```
 
@@ -476,7 +476,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_NAMESPACE_NAME.
+  ?'K8S_NAMESPACE_NAME'.
   'k8s.namespace.name'
   ```
 
@@ -509,7 +509,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_NODE_NAME.
+  ?'K8S_NODE_NAME'.
   'k8s.node.name'
   ```
 
@@ -542,7 +542,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_NODE_UID.
+  ?'K8S_NODE_UID'.
   'k8s.node.uid'
   ```
 
@@ -575,7 +575,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_POD_ANNOTATION.
+  ?'K8S_POD_ANNOTATION'.
   'k8s.pod.annotation'
   ```
 
@@ -608,7 +608,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_POD_LABEL.
+  ?'K8S_POD_LABEL'.
   'k8s.pod.label'
   ```
 
@@ -649,7 +649,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_POD_NAME.
+  ?'K8S_POD_NAME'.
   'k8s.pod.name'
   ```
 
@@ -682,7 +682,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_POD_UID.
+  ?'K8S_POD_UID'.
   'k8s.pod.uid'
   ```
 
@@ -715,7 +715,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_REPLICASET_NAME.
+  ?'K8S_REPLICASET_NAME'.
   'k8s.replicaset.name'
   ```
 
@@ -748,7 +748,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_REPLICASET_UID.
+  ?'K8S_REPLICASET_UID'.
   'k8s.replicaset.uid'
   ```
 
@@ -781,7 +781,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_STATEFULSET_NAME.
+  ?'K8S_STATEFULSET_NAME'.
   'k8s.statefulset.name'
   ```
 
@@ -814,7 +814,7 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   ### Erlang
 
   ```erlang
-  ?K8S_STATEFULSET_UID.
+  ?'K8S_STATEFULSET_UID'.
   'k8s.statefulset.uid'
   ```
 

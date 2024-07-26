@@ -18,7 +18,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   ### Erlang
 
   ```erlang
-  ?PROCESS_CONTEXT_SWITCHES.
+  ?'PROCESS_CONTEXT_SWITCHES'.
   'process.context_switches'
   ```
 
@@ -45,7 +45,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   ### Erlang
 
   ```erlang
-  ?PROCESS_CPU_TIME.
+  ?'PROCESS_CPU_TIME'.
   'process.cpu.time'
   ```
 
@@ -72,7 +72,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   ### Erlang
 
   ```erlang
-  ?PROCESS_CPU_UTILIZATION.
+  ?'PROCESS_CPU_UTILIZATION'.
   'process.cpu.utilization'
   ```
 
@@ -99,7 +99,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   ### Erlang
 
   ```erlang
-  ?PROCESS_DISK_IO.
+  ?'PROCESS_DISK_IO'.
   'process.disk.io'
   ```
 
@@ -126,7 +126,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   ### Erlang
 
   ```erlang
-  ?PROCESS_MEMORY_USAGE.
+  ?'PROCESS_MEMORY_USAGE'.
   'process.memory.usage'
   ```
 
@@ -153,7 +153,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   ### Erlang
 
   ```erlang
-  ?PROCESS_MEMORY_VIRTUAL.
+  ?'PROCESS_MEMORY_VIRTUAL'.
   'process.memory.virtual'
   ```
 
@@ -180,7 +180,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   ### Erlang
 
   ```erlang
-  ?PROCESS_NETWORK_IO.
+  ?'PROCESS_NETWORK_IO'.
   'process.network.io'
   ```
 
@@ -207,7 +207,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   ### Erlang
 
   ```erlang
-  ?PROCESS_OPEN_FILE_DESCRIPTOR_COUNT.
+  ?'PROCESS_OPEN_FILE_DESCRIPTOR_COUNT'.
   'process.open_file_descriptor.count'
   ```
 
@@ -234,7 +234,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   ### Erlang
 
   ```erlang
-  ?PROCESS_PAGING_FAULTS.
+  ?'PROCESS_PAGING_FAULTS'.
   'process.paging.faults'
   ```
 
@@ -261,7 +261,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   ### Erlang
 
   ```erlang
-  ?PROCESS_THREAD_COUNT.
+  ?'PROCESS_THREAD_COUNT'.
   'process.thread.count'
   ```
 

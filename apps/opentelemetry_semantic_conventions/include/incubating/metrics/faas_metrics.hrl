@@ -15,36 +15,36 @@
 %%%-------------------------------------------------------------------------
 
 %% Number of invocation cold starts
--define(FAAS_COLDSTARTS, 'faas.coldstarts').
+-define('FAAS_COLDSTARTS', 'faas.coldstarts').
 
 
 %% Distribution of CPU usage per invocation
--define(FAAS_CPU_USAGE, 'faas.cpu_usage').
+-define('FAAS_CPU_USAGE', 'faas.cpu_usage').
 
 
 %% Number of invocation errors
--define(FAAS_ERRORS, 'faas.errors').
+-define('FAAS_ERRORS', 'faas.errors').
 
 
 %% Measures the duration of the function's initialization, such as a cold start
--define(FAAS_INIT_DURATION, 'faas.init_duration').
+-define('FAAS_INIT_DURATION', 'faas.init_duration').
 
 
 %% Number of successful invocations
--define(FAAS_INVOCATIONS, 'faas.invocations').
+-define('FAAS_INVOCATIONS', 'faas.invocations').
 
 
 %% Measures the duration of the function's logic execution
--define(FAAS_INVOKE_DURATION, 'faas.invoke_duration').
+-define('FAAS_INVOKE_DURATION', 'faas.invoke_duration').
 
 
 %% Distribution of max memory usage per invocation
--define(FAAS_MEM_USAGE, 'faas.mem_usage').
+-define('FAAS_MEM_USAGE', 'faas.mem_usage').
 
 
 %% Distribution of net I/O usage per invocation
--define(FAAS_NET_IO, 'faas.net_io').
+-define('FAAS_NET_IO', 'faas.net_io').
 
 
 %% Number of invocation timeouts
--define(FAAS_TIMEOUTS, 'faas.timeouts').
+-define('FAAS_TIMEOUTS', 'faas.timeouts').

@@ -25,7 +25,7 @@ defmodule OpenTelemetry.SemConv.OtelAttributes do
   ### Erlang
 
   ```erlang
-  ?OTEL_SCOPE_NAME.
+  ?'OTEL_SCOPE_NAME'.
   'otel.scope.name'
   ```
 
@@ -57,7 +57,7 @@ defmodule OpenTelemetry.SemConv.OtelAttributes do
   ### Erlang
 
   ```erlang
-  ?OTEL_SCOPE_VERSION.
+  ?'OTEL_SCOPE_VERSION'.
   'otel.scope.version'
   ```
 
@@ -99,13 +99,13 @@ defmodule OpenTelemetry.SemConv.OtelAttributes do
   ### Erlang
 
   ```erlang
-  ?OTEL_STATUS_CODE.
+  ?'OTEL_STATUS_CODE'.
   'otel.status_code'
 
-  ?'OTEL_STATUS_CODE_VALUES.ok'.
+  ?'OTEL_STATUS_CODE_VALUES_OK'.
   OK
 
-  \#{?OTEL_STATUS_CODE => ?'OTEL_STATUS_CODE_VALUES.ok'}.
+  \#{?OTEL_STATUS_CODE => ?'OTEL_STATUS_CODE_VALUES_OK'}.
   \#{'otel.status_code' => OK}
   ```
 
@@ -145,7 +145,7 @@ defmodule OpenTelemetry.SemConv.OtelAttributes do
   ### Erlang
 
   ```erlang
-  ?OTEL_STATUS_DESCRIPTION.
+  ?'OTEL_STATUS_DESCRIPTION'.
   'otel.status_description'
   ```
 

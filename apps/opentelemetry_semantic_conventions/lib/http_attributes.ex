@@ -32,7 +32,7 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   ### Erlang
 
   ```erlang
-  ?HTTP_REQUEST_HEADER.
+  ?'HTTP_REQUEST_HEADER'.
   'http.request.header'
   ```
 
@@ -112,13 +112,13 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   ### Erlang
 
   ```erlang
-  ?HTTP_REQUEST_METHOD.
+  ?'HTTP_REQUEST_METHOD'.
   'http.request.method'
 
-  ?'HTTP_REQUEST_METHOD_VALUES.connect'.
+  ?'HTTP_REQUEST_METHOD_VALUES_CONNECT'.
   CONNECT
 
-  \#{?HTTP_REQUEST_METHOD => ?'HTTP_REQUEST_METHOD_VALUES.connect'}.
+  \#{?HTTP_REQUEST_METHOD => ?'HTTP_REQUEST_METHOD_VALUES_CONNECT'}.
   \#{'http.request.method' => CONNECT}
   ```
 
@@ -166,7 +166,7 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   ### Erlang
 
   ```erlang
-  ?HTTP_REQUEST_METHOD_ORIGINAL.
+  ?'HTTP_REQUEST_METHOD_ORIGINAL'.
   'http.request.method_original'
   ```
 
@@ -203,7 +203,7 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   ### Erlang
 
   ```erlang
-  ?HTTP_REQUEST_RESEND_COUNT.
+  ?'HTTP_REQUEST_RESEND_COUNT'.
   'http.request.resend_count'
   ```
 
@@ -242,7 +242,7 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   ### Erlang
 
   ```erlang
-  ?HTTP_RESPONSE_HEADER.
+  ?'HTTP_RESPONSE_HEADER'.
   'http.response.header'
   ```
 
@@ -274,7 +274,7 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   ### Erlang
 
   ```erlang
-  ?HTTP_RESPONSE_STATUS_CODE.
+  ?'HTTP_RESPONSE_STATUS_CODE'.
   'http.response.status_code'
   ```
 
@@ -312,7 +312,7 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   ### Erlang
 
   ```erlang
-  ?HTTP_ROUTE.
+  ?'HTTP_ROUTE'.
   'http.route'
   ```
 

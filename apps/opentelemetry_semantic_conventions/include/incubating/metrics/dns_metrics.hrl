@@ -15,4 +15,4 @@
 %%%-------------------------------------------------------------------------
 
 %% Measures the time taken to perform a DNS lookup.
--define(DNS_LOOKUP_DURATION, 'dns.lookup.duration').
+-define('DNS_LOOKUP_DURATION', 'dns.lookup.duration').

@@ -195,7 +195,7 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   ### Erlang
 
   ```erlang
-  ?NETWORK_CARRIER_ICC.
+  ?'NETWORK_CARRIER_ICC'.
   'network.carrier.icc'
   ```
 
@@ -227,7 +227,7 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   ### Erlang
 
   ```erlang
-  ?NETWORK_CARRIER_MCC.
+  ?'NETWORK_CARRIER_MCC'.
   'network.carrier.mcc'
   ```
 
@@ -259,7 +259,7 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   ### Erlang
 
   ```erlang
-  ?NETWORK_CARRIER_MNC.
+  ?'NETWORK_CARRIER_MNC'.
   'network.carrier.mnc'
   ```
 
@@ -291,7 +291,7 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   ### Erlang
 
   ```erlang
-  ?NETWORK_CARRIER_NAME.
+  ?'NETWORK_CARRIER_NAME'.
   'network.carrier.name'
   ```
 
@@ -376,13 +376,13 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   ### Erlang
 
   ```erlang
-  ?NETWORK_CONNECTION_SUBTYPE.
+  ?'NETWORK_CONNECTION_SUBTYPE'.
   'network.connection.subtype'
 
-  ?'NETWORK_CONNECTION_SUBTYPE_VALUES.gprs'.
+  ?'NETWORK_CONNECTION_SUBTYPE_VALUES_GPRS'.
   gprs
 
-  \#{?NETWORK_CONNECTION_SUBTYPE => ?'NETWORK_CONNECTION_SUBTYPE_VALUES.gprs'}.
+  \#{?NETWORK_CONNECTION_SUBTYPE => ?'NETWORK_CONNECTION_SUBTYPE_VALUES_GPRS'}.
   \#{'network.connection.subtype' => gprs}
   ```
 
@@ -462,13 +462,13 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   ### Erlang
 
   ```erlang
-  ?NETWORK_CONNECTION_TYPE.
+  ?'NETWORK_CONNECTION_TYPE'.
   'network.connection.type'
 
-  ?'NETWORK_CONNECTION_TYPE_VALUES.wifi'.
+  ?'NETWORK_CONNECTION_TYPE_VALUES_WIFI'.
   wifi
 
-  \#{?NETWORK_CONNECTION_TYPE => ?'NETWORK_CONNECTION_TYPE_VALUES.wifi'}.
+  \#{?NETWORK_CONNECTION_TYPE => ?'NETWORK_CONNECTION_TYPE_VALUES_WIFI'}.
   \#{'network.connection.type' => wifi}
   ```
 
@@ -526,13 +526,13 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   ### Erlang
 
   ```erlang
-  ?NETWORK_IO_DIRECTION.
+  ?'NETWORK_IO_DIRECTION'.
   'network.io.direction'
 
-  ?'NETWORK_IO_DIRECTION_VALUES.transmit'.
+  ?'NETWORK_IO_DIRECTION_VALUES_TRANSMIT'.
   transmit
 
-  \#{?NETWORK_IO_DIRECTION => ?'NETWORK_IO_DIRECTION_VALUES.transmit'}.
+  \#{?NETWORK_IO_DIRECTION => ?'NETWORK_IO_DIRECTION_VALUES_TRANSMIT'}.
   \#{'network.io.direction' => transmit}
   ```
 

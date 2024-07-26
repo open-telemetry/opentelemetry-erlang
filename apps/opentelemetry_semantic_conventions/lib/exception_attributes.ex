@@ -39,7 +39,7 @@ defmodule OpenTelemetry.SemConv.ExceptionAttributes do
   ### Erlang
 
   ```erlang
-  ?EXCEPTION_ESCAPED.
+  ?'EXCEPTION_ESCAPED'.
   'exception.escaped'
   ```
 
@@ -71,7 +71,7 @@ defmodule OpenTelemetry.SemConv.ExceptionAttributes do
   ### Erlang
 
   ```erlang
-  ?EXCEPTION_MESSAGE.
+  ?'EXCEPTION_MESSAGE'.
   'exception.message'
   ```
 
@@ -104,7 +104,7 @@ defmodule OpenTelemetry.SemConv.ExceptionAttributes do
   ### Erlang
 
   ```erlang
-  ?EXCEPTION_STACKTRACE.
+  ?'EXCEPTION_STACKTRACE'.
   'exception.stacktrace'
   ```
 
@@ -137,7 +137,7 @@ defmodule OpenTelemetry.SemConv.ExceptionAttributes do
   ### Erlang
 
   ```erlang
-  ?EXCEPTION_TYPE.
+  ?'EXCEPTION_TYPE'.
   'exception.type'
   ```
 

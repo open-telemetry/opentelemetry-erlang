@@ -29,7 +29,7 @@ defmodule OpenTelemetry.SemConv.ClientAttributes do
   ### Erlang
 
   ```erlang
-  ?CLIENT_ADDRESS.
+  ?'CLIENT_ADDRESS'.
   'client.address'
   ```
 
@@ -65,7 +65,7 @@ defmodule OpenTelemetry.SemConv.ClientAttributes do
   ### Erlang
 
   ```erlang
-  ?CLIENT_PORT.
+  ?'CLIENT_PORT'.
   'client.port'
   ```
 

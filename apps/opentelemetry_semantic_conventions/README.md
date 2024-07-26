@@ -78,7 +78,7 @@ Enum Attributes allow for a user-supplied value when no pre-defined option exist
 may set this value manually while paying attention to the required value type
 
 ```
-iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_system().postgresql
+iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_system_values().postgresql
 :postgresql
 ```
 

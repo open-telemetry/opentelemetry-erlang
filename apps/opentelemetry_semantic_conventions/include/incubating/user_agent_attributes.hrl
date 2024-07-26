@@ -16,9 +16,9 @@
 
 %% Name of the user-agent extracted from original. Usually refers to the browser's name.
 %%  
--define(USER_AGENT_NAME, 'user_agent.name').
+-define('USER_AGENT_NAME', 'user_agent.name').
 
 
 %% Version of the user-agent extracted from original. Usually refers to the browser's version
 %%  
--define(USER_AGENT_VERSION, 'user_agent.version').
+-define('USER_AGENT_VERSION', 'user_agent.version').

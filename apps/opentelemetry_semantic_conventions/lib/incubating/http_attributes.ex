@@ -48,13 +48,13 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   ### Erlang
 
   ```erlang
-  ?HTTP_CONNECTION_STATE.
+  ?'HTTP_CONNECTION_STATE'.
   'http.connection.state'
 
-  ?'HTTP_CONNECTION_STATE_VALUES.active'.
+  ?'HTTP_CONNECTION_STATE_VALUES_ACTIVE'.
   active
 
-  \#{?HTTP_CONNECTION_STATE => ?'HTTP_CONNECTION_STATE_VALUES.active'}.
+  \#{?HTTP_CONNECTION_STATE => ?'HTTP_CONNECTION_STATE_VALUES_ACTIVE'}.
   \#{'http.connection.state' => active}
   ```
 
@@ -150,7 +150,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   ### Erlang
 
   ```erlang
-  ?HTTP_REQUEST_BODY_SIZE.
+  ?'HTTP_REQUEST_BODY_SIZE'.
   'http.request.body.size'
   ```
 
@@ -183,7 +183,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   ### Erlang
 
   ```erlang
-  ?HTTP_REQUEST_SIZE.
+  ?'HTTP_REQUEST_SIZE'.
   'http.request.size'
   ```
 
@@ -232,7 +232,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   ### Erlang
 
   ```erlang
-  ?HTTP_RESPONSE_BODY_SIZE.
+  ?'HTTP_RESPONSE_BODY_SIZE'.
   'http.response.body.size'
   ```
 
@@ -265,7 +265,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   ### Erlang
 
   ```erlang
-  ?HTTP_RESPONSE_SIZE.
+  ?'HTTP_RESPONSE_SIZE'.
   'http.response.size'
   ```
 

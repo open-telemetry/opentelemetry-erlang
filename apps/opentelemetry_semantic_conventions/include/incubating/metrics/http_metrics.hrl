@@ -15,32 +15,32 @@
 %%%-------------------------------------------------------------------------
 
 %% Number of active HTTP requests.
--define(HTTP_CLIENT_ACTIVE_REQUESTS, 'http.client.active_requests').
+-define('HTTP_CLIENT_ACTIVE_REQUESTS', 'http.client.active_requests').
 
 
 %% The duration of the successfully established outbound HTTP connections.
--define(HTTP_CLIENT_CONNECTION_DURATION, 'http.client.connection.duration').
+-define('HTTP_CLIENT_CONNECTION_DURATION', 'http.client.connection.duration').
 
 
 %% Number of outbound HTTP connections that are currently active or idle on the client.
--define(HTTP_CLIENT_OPEN_CONNECTIONS, 'http.client.open_connections').
+-define('HTTP_CLIENT_OPEN_CONNECTIONS', 'http.client.open_connections').
 
 
 %% Size of HTTP client request bodies.
--define(HTTP_CLIENT_REQUEST_BODY_SIZE, 'http.client.request.body.size').
+-define('HTTP_CLIENT_REQUEST_BODY_SIZE', 'http.client.request.body.size').
 
 
 %% Size of HTTP client response bodies.
--define(HTTP_CLIENT_RESPONSE_BODY_SIZE, 'http.client.response.body.size').
+-define('HTTP_CLIENT_RESPONSE_BODY_SIZE', 'http.client.response.body.size').
 
 
 %% Number of active HTTP server requests.
--define(HTTP_SERVER_ACTIVE_REQUESTS, 'http.server.active_requests').
+-define('HTTP_SERVER_ACTIVE_REQUESTS', 'http.server.active_requests').
 
 
 %% Size of HTTP server request bodies.
--define(HTTP_SERVER_REQUEST_BODY_SIZE, 'http.server.request.body.size').
+-define('HTTP_SERVER_REQUEST_BODY_SIZE', 'http.server.request.body.size').
 
 
 %% Size of HTTP server response bodies.
--define(HTTP_SERVER_RESPONSE_BODY_SIZE, 'http.server.response.body.size').
+-define('HTTP_SERVER_RESPONSE_BODY_SIZE', 'http.server.response.body.size').

@@ -30,7 +30,7 @@ defmodule OpenTelemetry.SemConv.ServiceAttributes do
   ### Erlang
 
   ```erlang
-  ?SERVICE_NAME.
+  ?'SERVICE_NAME'.
   'service.name'
   ```
 
@@ -63,7 +63,7 @@ defmodule OpenTelemetry.SemConv.ServiceAttributes do
   ### Erlang
 
   ```erlang
-  ?SERVICE_VERSION.
+  ?'SERVICE_VERSION'.
   'service.version'
   ```
 

@@ -63,13 +63,13 @@ defmodule OpenTelemetry.SemConv.ErrorAttributes do
   ### Erlang
 
   ```erlang
-  ?ERROR_TYPE.
+  ?'ERROR_TYPE'.
   'error.type'
 
-  ?'ERROR_TYPE_VALUES.other'.
+  ?'ERROR_TYPE_VALUES_OTHER'.
   _OTHER
 
-  \#{?ERROR_TYPE => ?'ERROR_TYPE_VALUES.other'}.
+  \#{?ERROR_TYPE => ?'ERROR_TYPE_VALUES_OTHER'}.
   \#{'error.type' => _OTHER}
   ```
 

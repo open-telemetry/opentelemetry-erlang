@@ -55,7 +55,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ServiceAttributes do
   ### Erlang
 
   ```erlang
-  ?SERVICE_INSTANCE_ID.
+  ?'SERVICE_INSTANCE_ID'.
   'service.instance.id'
   ```
 
@@ -92,7 +92,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ServiceAttributes do
   ### Erlang
 
   ```erlang
-  ?SERVICE_NAMESPACE.
+  ?'SERVICE_NAMESPACE'.
   'service.namespace'
   ```
 

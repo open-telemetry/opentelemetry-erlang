@@ -30,7 +30,7 @@ defmodule OpenTelemetry.SemConv.Incubating.EventAttributes do
   ### Erlang
 
   ```erlang
-  ?EVENT_NAME.
+  ?'EVENT_NAME'.
   'event.name'
   ```
 

@@ -25,7 +25,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FeatureFlagAttributes do
   ### Erlang
 
   ```erlang
-  ?FEATURE_FLAG_KEY.
+  ?'FEATURE_FLAG_KEY'.
   'feature_flag.key'
   ```
 
@@ -57,7 +57,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FeatureFlagAttributes do
   ### Erlang
 
   ```erlang
-  ?FEATURE_FLAG_PROVIDER_NAME.
+  ?'FEATURE_FLAG_PROVIDER_NAME'.
   'feature_flag.provider_name'
   ```
 
@@ -100,7 +100,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FeatureFlagAttributes do
   ### Erlang
 
   ```erlang
-  ?FEATURE_FLAG_VARIANT.
+  ?'FEATURE_FLAG_VARIANT'.
   'feature_flag.variant'
   ```
 

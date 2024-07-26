@@ -26,7 +26,7 @@ defmodule OpenTelemetry.SemConv.UserAgentAttributes do
   ### Erlang
 
   ```erlang
-  ?USER_AGENT_ORIGINAL.
+  ?'USER_AGENT_ORIGINAL'.
   'user_agent.original'
   ```
 

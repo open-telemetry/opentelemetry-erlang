@@ -25,7 +25,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   ### Erlang
 
   ```erlang
-  ?NETWORK_LOCAL_ADDRESS.
+  ?'NETWORK_LOCAL_ADDRESS'.
   'network.local.address'
   ```
 
@@ -57,7 +57,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   ### Erlang
 
   ```erlang
-  ?NETWORK_LOCAL_PORT.
+  ?'NETWORK_LOCAL_PORT'.
   'network.local.port'
   ```
 
@@ -89,7 +89,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   ### Erlang
 
   ```erlang
-  ?NETWORK_PEER_ADDRESS.
+  ?'NETWORK_PEER_ADDRESS'.
   'network.peer.address'
   ```
 
@@ -121,7 +121,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   ### Erlang
 
   ```erlang
-  ?NETWORK_PEER_PORT.
+  ?'NETWORK_PEER_PORT'.
   'network.peer.port'
   ```
 
@@ -156,7 +156,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   ### Erlang
 
   ```erlang
-  ?NETWORK_PROTOCOL_NAME.
+  ?'NETWORK_PROTOCOL_NAME'.
   'network.protocol.name'
   ```
 
@@ -192,7 +192,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   ### Erlang
 
   ```erlang
-  ?NETWORK_PROTOCOL_VERSION.
+  ?'NETWORK_PROTOCOL_VERSION'.
   'network.protocol.version'
   ```
 
@@ -253,13 +253,13 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   ### Erlang
 
   ```erlang
-  ?NETWORK_TRANSPORT.
+  ?'NETWORK_TRANSPORT'.
   'network.transport'
 
-  ?'NETWORK_TRANSPORT_VALUES.tcp'.
+  ?'NETWORK_TRANSPORT_VALUES_TCP'.
   tcp
 
-  \#{?NETWORK_TRANSPORT => ?'NETWORK_TRANSPORT_VALUES.tcp'}.
+  \#{?NETWORK_TRANSPORT => ?'NETWORK_TRANSPORT_VALUES_TCP'}.
   \#{'network.transport' => tcp}
   ```
 
@@ -319,13 +319,13 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   ### Erlang
 
   ```erlang
-  ?NETWORK_TYPE.
+  ?'NETWORK_TYPE'.
   'network.type'
 
-  ?'NETWORK_TYPE_VALUES.ipv4'.
+  ?'NETWORK_TYPE_VALUES_IPV_4'.
   ipv4
 
-  \#{?NETWORK_TYPE => ?'NETWORK_TYPE_VALUES.ipv4'}.
+  \#{?NETWORK_TYPE => ?'NETWORK_TYPE_VALUES_IPV_4'}.
   \#{'network.type' => ipv4}
   ```
 

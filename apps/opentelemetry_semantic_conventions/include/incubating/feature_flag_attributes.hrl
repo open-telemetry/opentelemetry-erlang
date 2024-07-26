@@ -15,13 +15,13 @@
 %%%-------------------------------------------------------------------------
 
 %% The unique identifier of the feature flag.
--define(FEATURE_FLAG_KEY, 'feature_flag.key').
+-define('FEATURE_FLAG_KEY', 'feature_flag.key').
 
 
 %% The name of the service provider that performs the flag evaluation.
--define(FEATURE_FLAG_PROVIDER_NAME, 'feature_flag.provider_name').
+-define('FEATURE_FLAG_PROVIDER_NAME', 'feature_flag.provider_name').
 
 
 %% SHOULD be a semantic identifier for a value. If one is unavailable, a stringified version of the value can be used.
 %%  
--define(FEATURE_FLAG_VARIANT, 'feature_flag.variant').
+-define('FEATURE_FLAG_VARIANT', 'feature_flag.variant').

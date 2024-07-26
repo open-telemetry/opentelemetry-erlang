@@ -16,7 +16,7 @@
 
 %% Describes a class of error the operation ended with.
 %%  
--define(ERROR_TYPE, 'error.type').
+-define('ERROR_TYPE', 'error.type').
 
--define('ERROR_TYPE_VALUES.other', '_OTHER').
+-define('ERROR_TYPE_VALUES_OTHER', '_OTHER').
 

@@ -15,19 +15,19 @@
 %%%-------------------------------------------------------------------------
 
 %% The GraphQL document being executed.
--define(GRAPHQL_DOCUMENT, 'graphql.document').
+-define('GRAPHQL_DOCUMENT', 'graphql.document').
 
 
 %% The name of the operation being executed.
--define(GRAPHQL_OPERATION_NAME, 'graphql.operation.name').
+-define('GRAPHQL_OPERATION_NAME', 'graphql.operation.name').
 
 
 %% The type of the operation being executed.
--define(GRAPHQL_OPERATION_TYPE, 'graphql.operation.type').
+-define('GRAPHQL_OPERATION_TYPE', 'graphql.operation.type').
 
--define('GRAPHQL_OPERATION_TYPE_VALUES.query', 'query').
+-define('GRAPHQL_OPERATION_TYPE_VALUES_QUERY', 'query').
 
--define('GRAPHQL_OPERATION_TYPE_VALUES.mutation', 'mutation').
+-define('GRAPHQL_OPERATION_TYPE_VALUES_MUTATION', 'mutation').
 
--define('GRAPHQL_OPERATION_TYPE_VALUES.subscription', 'subscription').
+-define('GRAPHQL_OPERATION_TYPE_VALUES_SUBSCRIPTION', 'subscription').
 

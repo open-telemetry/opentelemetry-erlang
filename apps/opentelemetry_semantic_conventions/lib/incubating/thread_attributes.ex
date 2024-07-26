@@ -26,7 +26,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ThreadAttributes do
   ### Erlang
 
   ```erlang
-  ?THREAD_ID.
+  ?'THREAD_ID'.
   'thread.id'
   ```
 
@@ -59,7 +59,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ThreadAttributes do
   ### Erlang
 
   ```erlang
-  ?THREAD_NAME.
+  ?'THREAD_NAME'.
   'thread.name'
   ```
 

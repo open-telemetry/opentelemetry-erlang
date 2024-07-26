@@ -18,7 +18,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.MessagingMetrics do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_PROCESS_DURATION.
+  ?'MESSAGING_PROCESS_DURATION'.
   'messaging.process.duration'
   ```
 
@@ -45,7 +45,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.MessagingMetrics do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_PROCESS_MESSAGES.
+  ?'MESSAGING_PROCESS_MESSAGES'.
   'messaging.process.messages'
   ```
 
@@ -72,7 +72,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.MessagingMetrics do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_PUBLISH_DURATION.
+  ?'MESSAGING_PUBLISH_DURATION'.
   'messaging.publish.duration'
   ```
 
@@ -99,7 +99,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.MessagingMetrics do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_PUBLISH_MESSAGES.
+  ?'MESSAGING_PUBLISH_MESSAGES'.
   'messaging.publish.messages'
   ```
 
@@ -126,7 +126,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.MessagingMetrics do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_RECEIVE_DURATION.
+  ?'MESSAGING_RECEIVE_DURATION'.
   'messaging.receive.duration'
   ```
 
@@ -153,7 +153,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.MessagingMetrics do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_RECEIVE_MESSAGES.
+  ?'MESSAGING_RECEIVE_MESSAGES'.
   'messaging.receive.messages'
   ```
 

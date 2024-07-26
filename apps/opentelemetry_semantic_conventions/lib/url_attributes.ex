@@ -26,7 +26,7 @@ defmodule OpenTelemetry.SemConv.URLAttributes do
   ### Erlang
 
   ```erlang
-  ?URL_FRAGMENT.
+  ?'URL_FRAGMENT'.
   'url.fragment'
   ```
 
@@ -64,7 +64,7 @@ defmodule OpenTelemetry.SemConv.URLAttributes do
   ### Erlang
 
   ```erlang
-  ?URL_FULL.
+  ?'URL_FULL'.
   'url.full'
   ```
 
@@ -101,7 +101,7 @@ defmodule OpenTelemetry.SemConv.URLAttributes do
   ### Erlang
 
   ```erlang
-  ?URL_PATH.
+  ?'URL_PATH'.
   'url.path'
   ```
 
@@ -138,7 +138,7 @@ defmodule OpenTelemetry.SemConv.URLAttributes do
   ### Erlang
 
   ```erlang
-  ?URL_QUERY.
+  ?'URL_QUERY'.
   'url.query'
   ```
 
@@ -171,7 +171,7 @@ defmodule OpenTelemetry.SemConv.URLAttributes do
   ### Erlang
 
   ```erlang
-  ?URL_SCHEME.
+  ?'URL_SCHEME'.
   'url.scheme'
   ```
 

@@ -26,7 +26,7 @@ defmodule OpenTelemetry.SemConv.Incubating.WebengineAttributes do
   ### Erlang
 
   ```erlang
-  ?WEBENGINE_DESCRIPTION.
+  ?'WEBENGINE_DESCRIPTION'.
   'webengine.description'
   ```
 
@@ -59,7 +59,7 @@ defmodule OpenTelemetry.SemConv.Incubating.WebengineAttributes do
   ### Erlang
 
   ```erlang
-  ?WEBENGINE_NAME.
+  ?'WEBENGINE_NAME'.
   'webengine.name'
   ```
 
@@ -92,7 +92,7 @@ defmodule OpenTelemetry.SemConv.Incubating.WebengineAttributes do
   ### Erlang
 
   ```erlang
-  ?WEBENGINE_VERSION.
+  ?'WEBENGINE_VERSION'.
   'webengine.version'
   ```
 

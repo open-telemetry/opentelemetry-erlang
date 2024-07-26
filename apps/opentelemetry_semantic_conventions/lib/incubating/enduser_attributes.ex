@@ -26,7 +26,7 @@ defmodule OpenTelemetry.SemConv.Incubating.EnduserAttributes do
   ### Erlang
 
   ```erlang
-  ?ENDUSER_ID.
+  ?'ENDUSER_ID'.
   'enduser.id'
   ```
 
@@ -58,7 +58,7 @@ defmodule OpenTelemetry.SemConv.Incubating.EnduserAttributes do
   ### Erlang
 
   ```erlang
-  ?ENDUSER_ROLE.
+  ?'ENDUSER_ROLE'.
   'enduser.role'
   ```
 
@@ -91,7 +91,7 @@ defmodule OpenTelemetry.SemConv.Incubating.EnduserAttributes do
   ### Erlang
 
   ```erlang
-  ?ENDUSER_SCOPE.
+  ?'ENDUSER_SCOPE'.
   'enduser.scope'
   ```
 

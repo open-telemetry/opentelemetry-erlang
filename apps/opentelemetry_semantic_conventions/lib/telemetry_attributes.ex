@@ -57,13 +57,13 @@ defmodule OpenTelemetry.SemConv.TelemetryAttributes do
   ### Erlang
 
   ```erlang
-  ?TELEMETRY_SDK_LANGUAGE.
+  ?'TELEMETRY_SDK_LANGUAGE'.
   'telemetry.sdk.language'
 
-  ?'TELEMETRY_SDK_LANGUAGE_VALUES.cpp'.
+  ?'TELEMETRY_SDK_LANGUAGE_VALUES_CPP'.
   cpp
 
-  \#{?TELEMETRY_SDK_LANGUAGE => ?'TELEMETRY_SDK_LANGUAGE_VALUES.cpp'}.
+  \#{?TELEMETRY_SDK_LANGUAGE => ?'TELEMETRY_SDK_LANGUAGE_VALUES_CPP'}.
   \#{'telemetry.sdk.language' => cpp}
   ```
 
@@ -123,7 +123,7 @@ defmodule OpenTelemetry.SemConv.TelemetryAttributes do
   ### Erlang
 
   ```erlang
-  ?TELEMETRY_SDK_NAME.
+  ?'TELEMETRY_SDK_NAME'.
   'telemetry.sdk.name'
   ```
 
@@ -156,7 +156,7 @@ defmodule OpenTelemetry.SemConv.TelemetryAttributes do
   ### Erlang
 
   ```erlang
-  ?TELEMETRY_SDK_VERSION.
+  ?'TELEMETRY_SDK_VERSION'.
   'telemetry.sdk.version'
   ```
 

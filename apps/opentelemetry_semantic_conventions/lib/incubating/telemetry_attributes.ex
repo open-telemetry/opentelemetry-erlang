@@ -31,7 +31,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TelemetryAttributes do
   ### Erlang
 
   ```erlang
-  ?TELEMETRY_DISTRO_NAME.
+  ?'TELEMETRY_DISTRO_NAME'.
   'telemetry.distro.name'
   ```
 
@@ -64,7 +64,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TelemetryAttributes do
   ### Erlang
 
   ```erlang
-  ?TELEMETRY_DISTRO_VERSION.
+  ?'TELEMETRY_DISTRO_VERSION'.
   'telemetry.distro.version'
   ```
 

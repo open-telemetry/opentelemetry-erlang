@@ -26,7 +26,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HerokuAttributes do
   ### Erlang
 
   ```erlang
-  ?HEROKU_APP_ID.
+  ?'HEROKU_APP_ID'.
   'heroku.app.id'
   ```
 
@@ -59,7 +59,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HerokuAttributes do
   ### Erlang
 
   ```erlang
-  ?HEROKU_RELEASE_COMMIT.
+  ?'HEROKU_RELEASE_COMMIT'.
   'heroku.release.commit'
   ```
 
@@ -92,7 +92,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HerokuAttributes do
   ### Erlang
 
   ```erlang
-  ?HEROKU_RELEASE_CREATION_TIMESTAMP.
+  ?'HEROKU_RELEASE_CREATION_TIMESTAMP'.
   'heroku.release.creation_timestamp'
   ```
 

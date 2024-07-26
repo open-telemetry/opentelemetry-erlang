@@ -29,7 +29,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_BATCH_MESSAGE_COUNT.
+  ?'MESSAGING_BATCH_MESSAGE_COUNT'.
   'messaging.batch.message_count'
   ```
 
@@ -62,7 +62,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_CLIENT_ID.
+  ?'MESSAGING_CLIENT_ID'.
   'messaging.client.id'
   ```
 
@@ -89,7 +89,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_DESTINATION_ANONYMOUS.
+  ?'MESSAGING_DESTINATION_ANONYMOUS'.
   'messaging.destination.anonymous'
   ```
 
@@ -126,7 +126,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_DESTINATION_NAME.
+  ?'MESSAGING_DESTINATION_NAME'.
   'messaging.destination.name'
   ```
 
@@ -159,7 +159,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_DESTINATION_PARTITION_ID.
+  ?'MESSAGING_DESTINATION_PARTITION_ID'.
   'messaging.destination.partition.id'
   ```
 
@@ -195,7 +195,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_DESTINATION_TEMPLATE.
+  ?'MESSAGING_DESTINATION_TEMPLATE'.
   'messaging.destination.template'
   ```
 
@@ -222,7 +222,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_DESTINATION_TEMPORARY.
+  ?'MESSAGING_DESTINATION_TEMPORARY'.
   'messaging.destination.temporary'
   ```
 
@@ -249,7 +249,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_DESTINATION_PUBLISH_ANONYMOUS.
+  ?'MESSAGING_DESTINATION_PUBLISH_ANONYMOUS'.
   'messaging.destination_publish.anonymous'
   ```
 
@@ -286,7 +286,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_DESTINATION_PUBLISH_NAME.
+  ?'MESSAGING_DESTINATION_PUBLISH_NAME'.
   'messaging.destination_publish.name'
   ```
 
@@ -319,7 +319,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_EVENTHUBS_CONSUMER_GROUP.
+  ?'MESSAGING_EVENTHUBS_CONSUMER_GROUP'.
   'messaging.eventhubs.consumer.group'
   ```
 
@@ -352,7 +352,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_EVENTHUBS_MESSAGE_ENQUEUED_TIME.
+  ?'MESSAGING_EVENTHUBS_MESSAGE_ENQUEUED_TIME'.
   'messaging.eventhubs.message.enqueued_time'
   ```
 
@@ -385,7 +385,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_GCP_PUBSUB_MESSAGE_ACK_DEADLINE.
+  ?'MESSAGING_GCP_PUBSUB_MESSAGE_ACK_DEADLINE'.
   'messaging.gcp_pubsub.message.ack_deadline'
   ```
 
@@ -418,7 +418,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_GCP_PUBSUB_MESSAGE_ACK_ID.
+  ?'MESSAGING_GCP_PUBSUB_MESSAGE_ACK_ID'.
   'messaging.gcp_pubsub.message.ack_id'
   ```
 
@@ -451,7 +451,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_GCP_PUBSUB_MESSAGE_DELIVERY_ATTEMPT.
+  ?'MESSAGING_GCP_PUBSUB_MESSAGE_DELIVERY_ATTEMPT'.
   'messaging.gcp_pubsub.message.delivery_attempt'
   ```
 
@@ -485,7 +485,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_GCP_PUBSUB_MESSAGE_ORDERING_KEY.
+  ?'MESSAGING_GCP_PUBSUB_MESSAGE_ORDERING_KEY'.
   'messaging.gcp_pubsub.message.ordering_key'
   ```
 
@@ -518,7 +518,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_KAFKA_CONSUMER_GROUP.
+  ?'MESSAGING_KAFKA_CONSUMER_GROUP'.
   'messaging.kafka.consumer.group'
   ```
 
@@ -563,7 +563,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_KAFKA_MESSAGE_KEY.
+  ?'MESSAGING_KAFKA_MESSAGE_KEY'.
   'messaging.kafka.message.key'
   ```
 
@@ -596,7 +596,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_KAFKA_MESSAGE_OFFSET.
+  ?'MESSAGING_KAFKA_MESSAGE_OFFSET'.
   'messaging.kafka.message.offset'
   ```
 
@@ -623,7 +623,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_KAFKA_MESSAGE_TOMBSTONE.
+  ?'MESSAGING_KAFKA_MESSAGE_TOMBSTONE'.
   'messaging.kafka.message.tombstone'
   ```
 
@@ -661,7 +661,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_MESSAGE_BODY_SIZE.
+  ?'MESSAGING_MESSAGE_BODY_SIZE'.
   'messaging.message.body.size'
   ```
 
@@ -694,7 +694,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_MESSAGE_CONVERSATION_ID.
+  ?'MESSAGING_MESSAGE_CONVERSATION_ID'.
   'messaging.message.conversation_id'
   ```
 
@@ -732,7 +732,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_MESSAGE_ENVELOPE_SIZE.
+  ?'MESSAGING_MESSAGE_ENVELOPE_SIZE'.
   'messaging.message.envelope.size'
   ```
 
@@ -764,7 +764,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_MESSAGE_ID.
+  ?'MESSAGING_MESSAGE_ID'.
   'messaging.message.id'
   ```
 
@@ -805,7 +805,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_OPERATION_NAME.
+  ?'MESSAGING_OPERATION_NAME'.
   'messaging.operation.name'
   ```
 
@@ -863,13 +863,13 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_OPERATION_TYPE.
+  ?'MESSAGING_OPERATION_TYPE'.
   'messaging.operation.type'
 
-  ?'MESSAGING_OPERATION_TYPE_VALUES.publish'.
+  ?'MESSAGING_OPERATION_TYPE_VALUES_PUBLISH'.
   publish
 
-  \#{?MESSAGING_OPERATION_TYPE => ?'MESSAGING_OPERATION_TYPE_VALUES.publish'}.
+  \#{?MESSAGING_OPERATION_TYPE => ?'MESSAGING_OPERATION_TYPE_VALUES_PUBLISH'}.
   \#{'messaging.operation.type' => publish}
   ```
 
@@ -913,7 +913,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_RABBITMQ_DESTINATION_ROUTING_KEY.
+  ?'MESSAGING_RABBITMQ_DESTINATION_ROUTING_KEY'.
   'messaging.rabbitmq.destination.routing_key'
   ```
 
@@ -947,7 +947,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_RABBITMQ_MESSAGE_DELIVERY_TAG.
+  ?'MESSAGING_RABBITMQ_MESSAGE_DELIVERY_TAG'.
   'messaging.rabbitmq.message.delivery_tag'
   ```
 
@@ -980,7 +980,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_ROCKETMQ_CLIENT_GROUP.
+  ?'MESSAGING_ROCKETMQ_CLIENT_GROUP'.
   'messaging.rocketmq.client_group'
   ```
 
@@ -1024,13 +1024,13 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_ROCKETMQ_CONSUMPTION_MODEL.
+  ?'MESSAGING_ROCKETMQ_CONSUMPTION_MODEL'.
   'messaging.rocketmq.consumption_model'
 
-  ?'MESSAGING_ROCKETMQ_CONSUMPTION_MODEL_VALUES.clustering'.
+  ?'MESSAGING_ROCKETMQ_CONSUMPTION_MODEL_VALUES_CLUSTERING'.
   clustering
 
-  \#{?MESSAGING_ROCKETMQ_CONSUMPTION_MODEL => ?'MESSAGING_ROCKETMQ_CONSUMPTION_MODEL_VALUES.clustering'}.
+  \#{?MESSAGING_ROCKETMQ_CONSUMPTION_MODEL => ?'MESSAGING_ROCKETMQ_CONSUMPTION_MODEL_VALUES_CLUSTERING'}.
   \#{'messaging.rocketmq.consumption_model' => clustering}
   ```
 
@@ -1072,7 +1072,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_ROCKETMQ_MESSAGE_DELAY_TIME_LEVEL.
+  ?'MESSAGING_ROCKETMQ_MESSAGE_DELAY_TIME_LEVEL'.
   'messaging.rocketmq.message.delay_time_level'
   ```
 
@@ -1106,7 +1106,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_ROCKETMQ_MESSAGE_DELIVERY_TIMESTAMP.
+  ?'MESSAGING_ROCKETMQ_MESSAGE_DELIVERY_TIMESTAMP'.
   'messaging.rocketmq.message.delivery_timestamp'
   ```
 
@@ -1140,7 +1140,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_ROCKETMQ_MESSAGE_GROUP.
+  ?'MESSAGING_ROCKETMQ_MESSAGE_GROUP'.
   'messaging.rocketmq.message.group'
   ```
 
@@ -1173,7 +1173,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_ROCKETMQ_MESSAGE_KEYS.
+  ?'MESSAGING_ROCKETMQ_MESSAGE_KEYS'.
   'messaging.rocketmq.message.keys'
   ```
 
@@ -1206,7 +1206,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_ROCKETMQ_MESSAGE_TAG.
+  ?'MESSAGING_ROCKETMQ_MESSAGE_TAG'.
   'messaging.rocketmq.message.tag'
   ```
 
@@ -1254,13 +1254,13 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_ROCKETMQ_MESSAGE_TYPE.
+  ?'MESSAGING_ROCKETMQ_MESSAGE_TYPE'.
   'messaging.rocketmq.message.type'
 
-  ?'MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES.normal'.
+  ?'MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES_NORMAL'.
   normal
 
-  \#{?MESSAGING_ROCKETMQ_MESSAGE_TYPE => ?'MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES.normal'}.
+  \#{?MESSAGING_ROCKETMQ_MESSAGE_TYPE => ?'MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES_NORMAL'}.
   \#{'messaging.rocketmq.message.type' => normal}
   ```
 
@@ -1303,7 +1303,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_ROCKETMQ_NAMESPACE.
+  ?'MESSAGING_ROCKETMQ_NAMESPACE'.
   'messaging.rocketmq.namespace'
   ```
 
@@ -1336,7 +1336,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_SERVICEBUS_DESTINATION_SUBSCRIPTION_NAME.
+  ?'MESSAGING_SERVICEBUS_DESTINATION_SUBSCRIPTION_NAME'.
   'messaging.servicebus.destination.subscription_name'
   ```
 
@@ -1385,13 +1385,13 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_SERVICEBUS_DISPOSITION_STATUS.
+  ?'MESSAGING_SERVICEBUS_DISPOSITION_STATUS'.
   'messaging.servicebus.disposition_status'
 
-  ?'MESSAGING_SERVICEBUS_DISPOSITION_STATUS_VALUES.complete'.
+  ?'MESSAGING_SERVICEBUS_DISPOSITION_STATUS_VALUES_COMPLETE'.
   complete
 
-  \#{?MESSAGING_SERVICEBUS_DISPOSITION_STATUS => ?'MESSAGING_SERVICEBUS_DISPOSITION_STATUS_VALUES.complete'}.
+  \#{?MESSAGING_SERVICEBUS_DISPOSITION_STATUS => ?'MESSAGING_SERVICEBUS_DISPOSITION_STATUS_VALUES_COMPLETE'}.
   \#{'messaging.servicebus.disposition_status' => complete}
   ```
 
@@ -1435,7 +1435,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_SERVICEBUS_MESSAGE_DELIVERY_COUNT.
+  ?'MESSAGING_SERVICEBUS_MESSAGE_DELIVERY_COUNT'.
   'messaging.servicebus.message.delivery_count'
   ```
 
@@ -1469,7 +1469,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_SERVICEBUS_MESSAGE_ENQUEUED_TIME.
+  ?'MESSAGING_SERVICEBUS_MESSAGE_ENQUEUED_TIME'.
   'messaging.servicebus.message.enqueued_time'
   ```
 
@@ -1532,13 +1532,13 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Erlang
 
   ```erlang
-  ?MESSAGING_SYSTEM.
+  ?'MESSAGING_SYSTEM'.
   'messaging.system'
 
-  ?'MESSAGING_SYSTEM_VALUES.activemq'.
+  ?'MESSAGING_SYSTEM_VALUES_ACTIVEMQ'.
   activemq
 
-  \#{?MESSAGING_SYSTEM => ?'MESSAGING_SYSTEM_VALUES.activemq'}.
+  \#{?MESSAGING_SYSTEM => ?'MESSAGING_SYSTEM_VALUES_ACTIVEMQ'}.
   \#{'messaging.system' => activemq}
   ```
 

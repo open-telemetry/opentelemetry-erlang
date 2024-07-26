@@ -31,7 +31,7 @@ defmodule OpenTelemetry.SemConv.Incubating.OCIAttributes do
   ### Erlang
 
   ```erlang
-  ?OCI_MANIFEST_DIGEST.
+  ?'OCI_MANIFEST_DIGEST'.
   'oci.manifest.digest'
   ```
 

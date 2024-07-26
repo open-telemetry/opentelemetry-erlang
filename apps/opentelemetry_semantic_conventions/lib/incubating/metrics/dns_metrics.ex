@@ -18,7 +18,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DNSMetrics do
   ### Erlang
 
   ```erlang
-  ?DNS_LOOKUP_DURATION.
+  ?'DNS_LOOKUP_DURATION'.
   'dns.lookup.duration'
   ```
 

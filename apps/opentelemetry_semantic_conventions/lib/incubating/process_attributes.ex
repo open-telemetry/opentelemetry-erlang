@@ -26,7 +26,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_COMMAND.
+  ?'PROCESS_COMMAND'.
   'process.command'
   ```
 
@@ -59,7 +59,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_COMMAND_ARGS.
+  ?'PROCESS_COMMAND_ARGS'.
   'process.command_args'
   ```
 
@@ -92,7 +92,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_COMMAND_LINE.
+  ?'PROCESS_COMMAND_LINE'.
   'process.command_line'
   ```
 
@@ -134,13 +134,13 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_CONTEXT_SWITCH_TYPE.
+  ?'PROCESS_CONTEXT_SWITCH_TYPE'.
   'process.context_switch_type'
 
-  ?'PROCESS_CONTEXT_SWITCH_TYPE_VALUES.voluntary'.
+  ?'PROCESS_CONTEXT_SWITCH_TYPE_VALUES_VOLUNTARY'.
   voluntary
 
-  \#{?PROCESS_CONTEXT_SWITCH_TYPE => ?'PROCESS_CONTEXT_SWITCH_TYPE_VALUES.voluntary'}.
+  \#{?PROCESS_CONTEXT_SWITCH_TYPE => ?'PROCESS_CONTEXT_SWITCH_TYPE_VALUES_VOLUNTARY'}.
   \#{'process.context_switch_type' => voluntary}
   ```
 
@@ -194,13 +194,13 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_CPU_STATE.
+  ?'PROCESS_CPU_STATE'.
   'process.cpu.state'
 
-  ?'PROCESS_CPU_STATE_VALUES.system'.
+  ?'PROCESS_CPU_STATE_VALUES_SYSTEM'.
   system
 
-  \#{?PROCESS_CPU_STATE => ?'PROCESS_CPU_STATE_VALUES.system'}.
+  \#{?PROCESS_CPU_STATE => ?'PROCESS_CPU_STATE_VALUES_SYSTEM'}.
   \#{'process.cpu.state' => system}
   ```
 
@@ -242,7 +242,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_CREATION_TIME.
+  ?'PROCESS_CREATION_TIME'.
   'process.creation.time'
   ```
 
@@ -275,7 +275,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_EXECUTABLE_NAME.
+  ?'PROCESS_EXECUTABLE_NAME'.
   'process.executable.name'
   ```
 
@@ -308,7 +308,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_EXECUTABLE_PATH.
+  ?'PROCESS_EXECUTABLE_PATH'.
   'process.executable.path'
   ```
 
@@ -341,7 +341,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_EXIT_CODE.
+  ?'PROCESS_EXIT_CODE'.
   'process.exit.code'
   ```
 
@@ -374,7 +374,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_EXIT_TIME.
+  ?'PROCESS_EXIT_TIME'.
   'process.exit.time'
   ```
 
@@ -407,7 +407,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_GROUP_LEADER_PID.
+  ?'PROCESS_GROUP_LEADER_PID'.
   'process.group_leader.pid'
   ```
 
@@ -435,7 +435,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_INTERACTIVE.
+  ?'PROCESS_INTERACTIVE'.
   'process.interactive'
   ```
 
@@ -468,7 +468,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_OWNER.
+  ?'PROCESS_OWNER'.
   'process.owner'
   ```
 
@@ -512,13 +512,13 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_PAGING_FAULT_TYPE.
+  ?'PROCESS_PAGING_FAULT_TYPE'.
   'process.paging.fault_type'
 
-  ?'PROCESS_PAGING_FAULT_TYPE_VALUES.major'.
+  ?'PROCESS_PAGING_FAULT_TYPE_VALUES_MAJOR'.
   major
 
-  \#{?PROCESS_PAGING_FAULT_TYPE => ?'PROCESS_PAGING_FAULT_TYPE_VALUES.major'}.
+  \#{?PROCESS_PAGING_FAULT_TYPE => ?'PROCESS_PAGING_FAULT_TYPE_VALUES_MAJOR'}.
   \#{'process.paging.fault_type' => major}
   ```
 
@@ -559,7 +559,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_PARENT_PID.
+  ?'PROCESS_PARENT_PID'.
   'process.parent_pid'
   ```
 
@@ -592,7 +592,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_PID.
+  ?'PROCESS_PID'.
   'process.pid'
   ```
 
@@ -625,7 +625,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_REAL_USER_ID.
+  ?'PROCESS_REAL_USER_ID'.
   'process.real_user.id'
   ```
 
@@ -658,7 +658,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_REAL_USER_NAME.
+  ?'PROCESS_REAL_USER_NAME'.
   'process.real_user.name'
   ```
 
@@ -691,7 +691,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_RUNTIME_DESCRIPTION.
+  ?'PROCESS_RUNTIME_DESCRIPTION'.
   'process.runtime.description'
   ```
 
@@ -724,7 +724,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_RUNTIME_NAME.
+  ?'PROCESS_RUNTIME_NAME'.
   'process.runtime.name'
   ```
 
@@ -757,7 +757,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_RUNTIME_VERSION.
+  ?'PROCESS_RUNTIME_VERSION'.
   'process.runtime.version'
   ```
 
@@ -790,7 +790,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_SAVED_USER_ID.
+  ?'PROCESS_SAVED_USER_ID'.
   'process.saved_user.id'
   ```
 
@@ -823,7 +823,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_SAVED_USER_NAME.
+  ?'PROCESS_SAVED_USER_NAME'.
   'process.saved_user.name'
   ```
 
@@ -856,7 +856,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_SESSION_LEADER_PID.
+  ?'PROCESS_SESSION_LEADER_PID'.
   'process.session_leader.pid'
   ```
 
@@ -889,7 +889,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_USER_ID.
+  ?'PROCESS_USER_ID'.
   'process.user.id'
   ```
 
@@ -922,7 +922,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_USER_NAME.
+  ?'PROCESS_USER_NAME'.
   'process.user.name'
   ```
 
@@ -959,7 +959,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Erlang
 
   ```erlang
-  ?PROCESS_VPID.
+  ?'PROCESS_VPID'.
   'process.vpid'
   ```
 

@@ -15,16 +15,16 @@
 %%%-------------------------------------------------------------------------
 
 %% Total CPU time consumed
--define(CONTAINER_CPU_TIME, 'container.cpu.time').
+-define('CONTAINER_CPU_TIME', 'container.cpu.time').
 
 
 %% Disk bytes for the container.
--define(CONTAINER_DISK_IO, 'container.disk.io').
+-define('CONTAINER_DISK_IO', 'container.disk.io').
 
 
 %% Memory usage of the container.
--define(CONTAINER_MEMORY_USAGE, 'container.memory.usage').
+-define('CONTAINER_MEMORY_USAGE', 'container.memory.usage').
 
 
 %% Network bytes for the container.
--define(CONTAINER_NETWORK_IO, 'container.network.io').
+-define('CONTAINER_NETWORK_IO', 'container.network.io').

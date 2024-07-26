@@ -29,7 +29,7 @@ defmodule OpenTelemetry.SemConv.Incubating.BrowserAttributes do
   ### Erlang
 
   ```erlang
-  ?BROWSER_BRANDS.
+  ?'BROWSER_BRANDS'.
   'browser.brands'
   ```
 
@@ -65,7 +65,7 @@ defmodule OpenTelemetry.SemConv.Incubating.BrowserAttributes do
   ### Erlang
 
   ```erlang
-  ?BROWSER_LANGUAGE.
+  ?'BROWSER_LANGUAGE'.
   'browser.language'
   ```
 
@@ -96,7 +96,7 @@ defmodule OpenTelemetry.SemConv.Incubating.BrowserAttributes do
   ### Erlang
 
   ```erlang
-  ?BROWSER_MOBILE.
+  ?'BROWSER_MOBILE'.
   'browser.mobile'
   ```
 
@@ -133,7 +133,7 @@ defmodule OpenTelemetry.SemConv.Incubating.BrowserAttributes do
   ### Erlang
 
   ```erlang
-  ?BROWSER_PLATFORM.
+  ?'BROWSER_PLATFORM'.
   'browser.platform'
   ```
 

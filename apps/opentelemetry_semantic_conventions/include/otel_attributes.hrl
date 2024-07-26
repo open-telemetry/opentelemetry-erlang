@@ -15,21 +15,21 @@
 %%%-------------------------------------------------------------------------
 
 %% The name of the instrumentation scope - (`InstrumentationScope.Name` in OTLP).
--define(OTEL_SCOPE_NAME, 'otel.scope.name').
+-define('OTEL_SCOPE_NAME', 'otel.scope.name').
 
 
 %% The version of the instrumentation scope - (`InstrumentationScope.Version` in OTLP).
--define(OTEL_SCOPE_VERSION, 'otel.scope.version').
+-define('OTEL_SCOPE_VERSION', 'otel.scope.version').
 
 
 %% Name of the code, either "OK" or "ERROR". MUST NOT be set if the status code is UNSET.
--define(OTEL_STATUS_CODE, 'otel.status_code').
+-define('OTEL_STATUS_CODE', 'otel.status_code').
 
--define('OTEL_STATUS_CODE_VALUES.ok', 'OK').
+-define('OTEL_STATUS_CODE_VALUES_OK', 'OK').
 
--define('OTEL_STATUS_CODE_VALUES.error', 'ERROR').
+-define('OTEL_STATUS_CODE_VALUES_ERROR', 'ERROR').
 
 
 
 %% Description of the Status if it has a value, otherwise not set.
--define(OTEL_STATUS_DESCRIPTION, 'otel.status_description').
+-define('OTEL_STATUS_DESCRIPTION', 'otel.status_description').

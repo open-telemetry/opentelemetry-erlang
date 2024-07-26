@@ -16,39 +16,39 @@
 
 %% The language of the telemetry SDK.
 %%  
--define(TELEMETRY_SDK_LANGUAGE, 'telemetry.sdk.language').
+-define('TELEMETRY_SDK_LANGUAGE', 'telemetry.sdk.language').
 
--define('TELEMETRY_SDK_LANGUAGE_VALUES.cpp', 'cpp').
+-define('TELEMETRY_SDK_LANGUAGE_VALUES_CPP', 'cpp').
 
--define('TELEMETRY_SDK_LANGUAGE_VALUES.dotnet', 'dotnet').
+-define('TELEMETRY_SDK_LANGUAGE_VALUES_DOTNET', 'dotnet').
 
--define('TELEMETRY_SDK_LANGUAGE_VALUES.erlang', 'erlang').
+-define('TELEMETRY_SDK_LANGUAGE_VALUES_ERLANG', 'erlang').
 
--define('TELEMETRY_SDK_LANGUAGE_VALUES.go', 'go').
+-define('TELEMETRY_SDK_LANGUAGE_VALUES_GO', 'go').
 
--define('TELEMETRY_SDK_LANGUAGE_VALUES.java', 'java').
+-define('TELEMETRY_SDK_LANGUAGE_VALUES_JAVA', 'java').
 
--define('TELEMETRY_SDK_LANGUAGE_VALUES.nodejs', 'nodejs').
+-define('TELEMETRY_SDK_LANGUAGE_VALUES_NODEJS', 'nodejs').
 
--define('TELEMETRY_SDK_LANGUAGE_VALUES.php', 'php').
+-define('TELEMETRY_SDK_LANGUAGE_VALUES_PHP', 'php').
 
--define('TELEMETRY_SDK_LANGUAGE_VALUES.python', 'python').
+-define('TELEMETRY_SDK_LANGUAGE_VALUES_PYTHON', 'python').
 
--define('TELEMETRY_SDK_LANGUAGE_VALUES.ruby', 'ruby').
+-define('TELEMETRY_SDK_LANGUAGE_VALUES_RUBY', 'ruby').
 
--define('TELEMETRY_SDK_LANGUAGE_VALUES.rust', 'rust').
+-define('TELEMETRY_SDK_LANGUAGE_VALUES_RUST', 'rust').
 
--define('TELEMETRY_SDK_LANGUAGE_VALUES.swift', 'swift').
+-define('TELEMETRY_SDK_LANGUAGE_VALUES_SWIFT', 'swift').
 
--define('TELEMETRY_SDK_LANGUAGE_VALUES.webjs', 'webjs').
+-define('TELEMETRY_SDK_LANGUAGE_VALUES_WEBJS', 'webjs').
 
 
 
 %% The name of the telemetry SDK as defined above.
 %%  
--define(TELEMETRY_SDK_NAME, 'telemetry.sdk.name').
+-define('TELEMETRY_SDK_NAME', 'telemetry.sdk.name').
 
 
 %% The version string of the telemetry SDK.
 %%  
--define(TELEMETRY_SDK_VERSION, 'telemetry.sdk.version').
+-define('TELEMETRY_SDK_VERSION', 'telemetry.sdk.version').
