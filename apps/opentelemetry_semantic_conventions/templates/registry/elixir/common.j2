@@ -7,7 +7,7 @@
 {%- endmacro -%}
 
 {%- macro file_name(id) -%}
-  {{ id | pascal_case | acronym | lower }}
+  {{ id | acronym | replace(".", "_") | lower }}
 {%- endmacro -%}
 
 {%- macro to_atom(text) -%}
