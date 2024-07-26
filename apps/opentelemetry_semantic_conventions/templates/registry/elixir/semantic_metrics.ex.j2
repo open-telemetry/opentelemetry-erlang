@@ -1,14 +1,10 @@
-{#- waiting on https://github.com/open-telemetry/weaver/pull/207 for split to be available -#}
-
-  {# {{ text | snake_case | replace('_', ' ') | split | reject(ctx.id) | join('_') }} #}
-
 {%- import 'common.j2' as c %}
-{%- set file_name = ctx.output ~ (ctx.id | pascal_case | acronym | lower) ~ "_metrics.hrl" -%}
+{%- set file_name = ctx.output ~ c.file_name(ctx.id) ~ "_metrics.ex" -%}
 {%- set trim_blocks = true %}
 {%- set trim_lstrip_blocks = true %}
 {{ template.set_file_name(file_name) }}
 
-{%- set module_name = c.format_acronym(ctx.id | pascal_case, acronyms) ~ "Metrics" -%}
+{%- set module_name = ctx.id | pascal_case | acronym ~ "Metrics" -%}
 {%- if params.stability == "experimental" -%}
 {%- set module_namespace = "OpenTelemetry.SemConv.Incubating.Metrics" -%}
 {%- else -%}
@@ -17,7 +13,7 @@
 defmodule {{ module_namespace }}.{{ module_name }} do
   # This is an auto-generated file
   @moduledoc """
-  OpenTelemetry Semantic Conventions for {{ c.format_acronym(ctx.id | title, acronyms) }} metrics.
+  OpenTelemetry Semantic Conventions for {{ ctx.id | title | acronym }} metrics.
   """
 {%- for metric in ctx.metrics | sort(attribute="metric_name") %}
   {% if metric is deprecated %}

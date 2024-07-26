@@ -1,7 +1,3 @@
-{#- waiting on https://github.com/open-telemetry/weaver/pull/207 for split to be available -#}
-
-  {# {{ text | snake_case | replace('_', ' ') | split | reject(ctx.id) | join('_') }} #}
-
 {%- import 'common.j2' as c %}
 
 {%- set file_name = ctx.output ~ c.file_name(ctx.id) ~ "_attributes.ex" -%}
