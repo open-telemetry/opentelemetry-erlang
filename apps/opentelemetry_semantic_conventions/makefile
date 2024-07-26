@@ -1,10 +1,22 @@
 SEMCON_VERSION = 1.26.0
 
-.PHONY: setup clean checkout generate
+.PHONY: setup clean-all checkout generate
 
-clean:
+clean-all: clean-semconv clean-elixir clean-erlang
+
+clean-semconv:
 	rm -rf semtmp
 	rm -rf guides/
+
+clean-elixir:
+	rm -rf lib/attributes
+	rm -rf lib/incubating
+	rm -rf lib/metrics
+
+clean-erlang:
+	rm -rf include/attributes
+	rm -rf include/incubating
+	rm -rf include/metrics
 
 setup:
 	curl --proto '=https' --tlsv1.2 -LsSf https://github.com/open-telemetry/weaver/releases/download/v0.7.0/weaver-installer.sh | sh
