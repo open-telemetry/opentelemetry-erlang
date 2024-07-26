@@ -5,7 +5,7 @@
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 
--include("incubating/db_attributes.hrl").
+-include("incubating/attributes/db_attributes.hrl").
 
 all() ->
   [registry_macros].

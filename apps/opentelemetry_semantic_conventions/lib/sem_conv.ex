@@ -35,7 +35,7 @@ defmodule OpenTelemetry.SemConv do
   need:
 
   ```
-  -include_lib("opentelemetry_semantic_conventions/include/url_attributes.hrl").
+  -include_lib("opentelemetry_semantic_conventions/include/attributes/url_attributes.hrl").
   ```
 
   You can then use the macros for the attribute keys:
@@ -61,7 +61,7 @@ defmodule OpenTelemetry.SemConv do
   attributes of both stability levels will have two header files in this case.
 
   ```
-  -include_lib("opentelemetry_semantic_conventions/include/incubating/url_attributes.hrl").
+  -include_lib("opentelemetry_semantic_conventions/include/incubating/attributes/url_attributes.hrl").
   ```
 
   You can then use the macros for the experimental attribute keys:

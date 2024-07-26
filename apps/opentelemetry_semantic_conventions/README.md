@@ -27,7 +27,7 @@ For Erlang include the semantic conventions header for the particular kind you
 need:
 
 ```
--include_lib("opentelemetry_semantic_conventions/include/url_attributes.hrl").
+-include_lib("opentelemetry_semantic_conventions/include/attributes/url_attributes.hrl").
 ```
 
 You can then use the macros for the attribute keys:
@@ -53,7 +53,7 @@ attributes are contained in an incubating header. Attribute groups containing
 attributes of both stability levels will have two header files in this case.
 
 ```
--include_lib("opentelemetry_semantic_conventions/include/incubating/url_attributes.hrl").
+-include_lib("opentelemetry_semantic_conventions/include/incubating/attributes/url_attributes.hrl").
 ```
 
 You can then use the macros for the experimental attribute keys:
@@ -82,13 +82,8 @@ iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_system_values().postgresql
 :postgresql
 ```
 
-Enum Attributes allow for a user-supplied value when no pre-defined option exists. To
-use a custom value, a function macro is provided.
-
-```
-iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_system(:custom)
-:custom
-```
+Enum Attributes allow for a user-supplied value when no pre-defined option exists. Users
+may set this value manually while paying attention to the required value type
 
 #### Incubating Attributes
 
