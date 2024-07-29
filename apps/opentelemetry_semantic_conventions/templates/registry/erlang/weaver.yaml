@@ -15,6 +15,7 @@ templates:
       | map({ 
         id: .[0].group_id,
         attributes: [.[].attributes[] | select(.stability == $stability) | (select( .name as $id | any( $excluded_attrs[]; . == $id ) | not ))] | sort_by(.id),
+        all_attributes: [.[].attributes[]],
         output: $output + "/attributes/"
       })
       | map(select( .id as $id | any( $excluded[]; . == $id) | not ))

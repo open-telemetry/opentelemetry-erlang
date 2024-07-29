@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include("attributes/network_attributes.hrl").
+
 %% @deprecated Replaced by `network.local.address`.
 %% Deprecated, use `network.local.address`.
 -define('NET_HOST_IP', 'net.host.ip').

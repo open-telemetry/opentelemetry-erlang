@@ -3,6 +3,19 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   @moduledoc """
   OpenTelemetry Semantic Conventions for HTTP attributes.
   """
+  defdelegate http_request_header(), to: OpenTelemetry.SemConv.HTTPAttributes
+
+  defdelegate http_request_method(), to: OpenTelemetry.SemConv.HTTPAttributes
+
+  defdelegate http_request_method_original(), to: OpenTelemetry.SemConv.HTTPAttributes
+
+  defdelegate http_request_resend_count(), to: OpenTelemetry.SemConv.HTTPAttributes
+
+  defdelegate http_response_header(), to: OpenTelemetry.SemConv.HTTPAttributes
+
+  defdelegate http_response_status_code(), to: OpenTelemetry.SemConv.HTTPAttributes
+
+  defdelegate http_route(), to: OpenTelemetry.SemConv.HTTPAttributes
 
   @deprecated """
   Replaced by `client.address`.

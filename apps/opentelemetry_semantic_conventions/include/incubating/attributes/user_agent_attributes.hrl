@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include("attributes/user_agent_attributes.hrl").
+
 
 %% Name of the user-agent extracted from original. Usually refers to the browser's name.
 %%  

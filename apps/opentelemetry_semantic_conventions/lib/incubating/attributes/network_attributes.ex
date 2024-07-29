@@ -3,6 +3,21 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   @moduledoc """
   OpenTelemetry Semantic Conventions for Network attributes.
   """
+  defdelegate network_local_address(), to: OpenTelemetry.SemConv.NetworkAttributes
+
+  defdelegate network_local_port(), to: OpenTelemetry.SemConv.NetworkAttributes
+
+  defdelegate network_peer_address(), to: OpenTelemetry.SemConv.NetworkAttributes
+
+  defdelegate network_peer_port(), to: OpenTelemetry.SemConv.NetworkAttributes
+
+  defdelegate network_protocol_name(), to: OpenTelemetry.SemConv.NetworkAttributes
+
+  defdelegate network_protocol_version(), to: OpenTelemetry.SemConv.NetworkAttributes
+
+  defdelegate network_transport(), to: OpenTelemetry.SemConv.NetworkAttributes
+
+  defdelegate network_type(), to: OpenTelemetry.SemConv.NetworkAttributes
 
   @deprecated """
   Replaced by `network.local.address`.

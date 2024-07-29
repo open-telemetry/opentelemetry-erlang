@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include("attributes/url_attributes.hrl").
+
 
 %% Domain extracted from the `url.full`, such as "opentelemetry.io".
 %%  

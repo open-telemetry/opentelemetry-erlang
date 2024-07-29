@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include("attributes/http_attributes.hrl").
+
 %% @deprecated Replaced by `client.address`.
 %% Deprecated, use `client.address` instead.
 -define('HTTP_CLIENT_IP', 'http.client_ip').

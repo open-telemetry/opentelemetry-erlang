@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include("attributes/service_attributes.hrl").
+
 
 %% The string ID of the service instance.
 %%  

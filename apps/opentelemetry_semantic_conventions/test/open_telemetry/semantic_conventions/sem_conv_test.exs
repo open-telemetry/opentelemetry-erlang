@@ -26,4 +26,9 @@ defmodule OpenTelemetry.SemConvTest do
       System.delete_env("OTEL_SEMCONV_STABILITY_OPT_IN")
     end
   end
+
+  test "stable attrs are delegated in incubating module" do
+    assert SemConv.Incubating.HTTPAttributes.http_route() ==
+             SemConv.HTTPAttributes.http_route()
+  end
 end

@@ -3,6 +3,9 @@ defmodule OpenTelemetry.SemConv.Incubating.ServiceAttributes do
   @moduledoc """
   OpenTelemetry Semantic Conventions for Service attributes.
   """
+  defdelegate service_name(), to: OpenTelemetry.SemConv.ServiceAttributes
+
+  defdelegate service_version(), to: OpenTelemetry.SemConv.ServiceAttributes
 
   @doc """
   The string ID of the service instance.

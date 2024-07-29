@@ -3,6 +3,11 @@ defmodule OpenTelemetry.SemConv.Incubating.TelemetryAttributes do
   @moduledoc """
   OpenTelemetry Semantic Conventions for Telemetry attributes.
   """
+  defdelegate telemetry_sdk_language(), to: OpenTelemetry.SemConv.TelemetryAttributes
+
+  defdelegate telemetry_sdk_name(), to: OpenTelemetry.SemConv.TelemetryAttributes
+
+  defdelegate telemetry_sdk_version(), to: OpenTelemetry.SemConv.TelemetryAttributes
 
   @doc """
   The name of the auto instrumentation agent or distribution, if used.

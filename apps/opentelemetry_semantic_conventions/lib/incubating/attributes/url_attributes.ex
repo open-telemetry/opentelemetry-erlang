@@ -3,6 +3,15 @@ defmodule OpenTelemetry.SemConv.Incubating.URLAttributes do
   @moduledoc """
   OpenTelemetry Semantic Conventions for URL attributes.
   """
+  defdelegate url_fragment(), to: OpenTelemetry.SemConv.URLAttributes
+
+  defdelegate url_full(), to: OpenTelemetry.SemConv.URLAttributes
+
+  defdelegate url_path(), to: OpenTelemetry.SemConv.URLAttributes
+
+  defdelegate url_query(), to: OpenTelemetry.SemConv.URLAttributes
+
+  defdelegate url_scheme(), to: OpenTelemetry.SemConv.URLAttributes
 
   @doc """
   Domain extracted from the `url.full`, such as "opentelemetry.io".

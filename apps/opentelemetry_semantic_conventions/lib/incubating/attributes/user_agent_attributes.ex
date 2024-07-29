@@ -3,6 +3,7 @@ defmodule OpenTelemetry.SemConv.Incubating.UserAgentAttributes do
   @moduledoc """
   OpenTelemetry Semantic Conventions for User_Agent attributes.
   """
+  defdelegate user_agent_original(), to: OpenTelemetry.SemConv.UserAgentAttributes
 
   @doc """
   Name of the user-agent extracted from original. Usually refers to the browser's name.

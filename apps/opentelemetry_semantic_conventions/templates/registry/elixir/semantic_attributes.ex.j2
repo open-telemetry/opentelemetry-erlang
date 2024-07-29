@@ -4,16 +4,25 @@
 {{ template.set_file_name(file_name) }}
 
 {%- set module_name = ctx.id | pascal_case | acronym ~ "Attributes" -%}
+{%- set incubating_module_namespace = "OpenTelemetry.SemConv.Incubating" -%}
+{%- set stable_module_namespace = "OpenTelemetry.SemConv" -%}
 {%- if params.stability == "experimental" -%}
-{%- set module_namespace = "OpenTelemetry.SemConv.Incubating" -%}
+{%- set module_namespace = incubating_module_namespace -%}
 {%- else -%}
-{%- set module_namespace = "OpenTelemetry.SemConv" -%}
+{%- set module_namespace = stable_module_namespace -%}
 {%- endif -%}
 defmodule {{ module_namespace }}.{{ module_name }} do
   # This is an auto-generated file
   @moduledoc """
   OpenTelemetry Semantic Conventions for {{ ctx.id | title | acronym }} attributes.
   """
+{%- if params.stability == "experimental" and (ctx.all_attributes | length) > (ctx.attributes | length) %}
+{%- for attribute in ctx.all_attributes | sort(attribute="name") %}
+  {%- if attribute is stable %}
+  defdelegate {{ c.func_name(attribute.name) }}(), to: {{ stable_module_namespace }}.{{ module_name }}
+  {% endif -%}
+{% endfor %}
+{% endif -%}
 {%- for attribute in ctx.attributes | sort(attribute="name") %}
   {% if attribute.type is mapping %}
   @typedoc """
