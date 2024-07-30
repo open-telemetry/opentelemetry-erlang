@@ -1,0 +1,45 @@
+{%- macro attr_name(text) -%}
+  {{ text | acronym | replace(".", "_") | upper }}
+{%- endmacro -%}
+
+{%- macro file_name(id) -%}
+  {{ id | acronym | replace(".", "_") | lower }}
+{%- endmacro -%}
+
+{%- macro to_atom(text) -%}
+{% if text | split_id | length > 1 -%}:"{{ text }}"{%- else -%}:{{ text }}{%- endif %}
+{%- endmacro -%}
+
+{%- macro enum_value_return_type(value) -%}
+  {%- if value is string -%}
+  atom() | String.t()
+  {%- elif value is integer -%}
+  integer()
+  {%- else -%}
+  NOT_MAPPED
+  {%- endif -%}
+{%- endmacro -%}
+
+{%- macro enum_value_return_type_example(value) -%}
+  {%- if value is string -%}
+  :custom_value
+  {%- elif value is integer -%}
+  27
+  {%- else -%}
+  NOT_MAPPED
+  {%- endif -%}
+{%- endmacro -%}
+
+{%- macro erlang_enum_value_return_type_example(value) -%}
+  {%- if value is string -%}
+  custom_value
+  {%- elif value is integer -%}
+  27
+  {%- else -%}
+  NOT_MAPPED
+  {%- endif -%}
+{%- endmacro -%}
+
+{%- macro strong_reqs(string) -%}
+  {{ string | replace(" MUST ", " **MUST** ") | replace(" MUST NOT ", " **MUST NOT** ") | replace(" SHOULD ", " **SHOULD** ") | replace(" SHOULD NOT ", " **SHOULD NOT** ") |  replace(" MAY ", " **MAY** ") | replace(" NOT ", " **NOT** ") }}
+{%- endmacro -%}

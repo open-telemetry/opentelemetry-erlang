@@ -19,3 +19,4 @@ rebar3.crashdump
 *~
 doc
 !_index.md
+guides
