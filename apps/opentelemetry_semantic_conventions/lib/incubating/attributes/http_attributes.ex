@@ -7,6 +7,8 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
 
   defdelegate http_request_method(), to: OpenTelemetry.SemConv.HTTPAttributes
 
+  defdelegate http_request_method_values(), to: OpenTelemetry.SemConv.HTTPAttributes
+
   defdelegate http_request_method_original(), to: OpenTelemetry.SemConv.HTTPAttributes
 
   defdelegate http_request_resend_count(), to: OpenTelemetry.SemConv.HTTPAttributes

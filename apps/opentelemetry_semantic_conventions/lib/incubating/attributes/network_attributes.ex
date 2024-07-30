@@ -17,7 +17,11 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
 
   defdelegate network_transport(), to: OpenTelemetry.SemConv.NetworkAttributes
 
+  defdelegate network_transport_values(), to: OpenTelemetry.SemConv.NetworkAttributes
+
   defdelegate network_type(), to: OpenTelemetry.SemConv.NetworkAttributes
+
+  defdelegate network_type_values(), to: OpenTelemetry.SemConv.NetworkAttributes
 
   @deprecated """
   Replaced by `network.local.address`.

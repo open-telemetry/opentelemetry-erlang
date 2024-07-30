@@ -5,6 +5,8 @@ defmodule OpenTelemetry.SemConv.Incubating.TelemetryAttributes do
   """
   defdelegate telemetry_sdk_language(), to: OpenTelemetry.SemConv.TelemetryAttributes
 
+  defdelegate telemetry_sdk_language_values(), to: OpenTelemetry.SemConv.TelemetryAttributes
+
   defdelegate telemetry_sdk_name(), to: OpenTelemetry.SemConv.TelemetryAttributes
 
   defdelegate telemetry_sdk_version(), to: OpenTelemetry.SemConv.TelemetryAttributes

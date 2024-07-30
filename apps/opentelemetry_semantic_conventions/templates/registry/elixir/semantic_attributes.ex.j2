@@ -20,6 +20,9 @@ defmodule {{ module_namespace }}.{{ module_name }} do
 {%- for attribute in ctx.all_attributes | sort(attribute="name") %}
   {%- if attribute is stable %}
   defdelegate {{ c.func_name(attribute.name) }}(), to: {{ stable_module_namespace }}.{{ module_name }}
+  {% if attribute.type is mapping %}
+  defdelegate {{ c.func_name(attribute.name) }}_values(), to: {{ stable_module_namespace }}.{{ module_name }}
+  {% endif -%}
   {% endif -%}
 {% endfor %}
 {% endif -%}
