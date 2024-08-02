@@ -24,6 +24,7 @@ start(_StartType, _StartArgs) ->
     {ok, Pid}.
 
 stop(_State) ->
+    _ = opentelemetry_experimental:cleanup_persistent_terms(),
     ok.
 
 %% internal functions

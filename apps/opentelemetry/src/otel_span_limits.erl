@@ -25,7 +25,8 @@
          event_count_limit/0,
          link_count_limit/0,
          attribute_per_event_limit/0,
-         attribute_per_link_limit/0]).
+         attribute_per_link_limit/0,
+         cleanup_persistent_terms/0]).
 
 -include("otel_span.hrl").
 
@@ -33,7 +34,7 @@
 
 -spec get() -> #span_limits{}.
 get() ->
-    persistent_term:get(?SPAN_LIMITS_KEY).
+    persistent_term:get(?SPAN_LIMITS_KEY, #span_limits{}).
 
 -spec set(otel_configuration:t()) -> ok.
 set(#{attribute_count_limit := AttributeCountLimit,
@@ -80,3 +81,6 @@ get_limit(attribute_per_event_limit, #span_limits{attribute_per_event_limit=Attr
     AttributePerEventLimit;
 get_limit(attribute_per_link_limit, #span_limits{attribute_per_link_limit=AttributePerLinkLimit}) ->
     AttributePerLinkLimit.
+
+cleanup_persistent_terms() ->
+    otel_utils:cleanup_persistent_terms(?MODULE).
