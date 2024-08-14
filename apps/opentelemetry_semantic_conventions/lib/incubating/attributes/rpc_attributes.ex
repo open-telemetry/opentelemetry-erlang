@@ -104,10 +104,10 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connect_rpc_error_code()
       :"rpc.connect_rpc.error_code"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connect_rpc_error_code_values().cancelled
       :cancelled
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connect_rpc_error_code() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connect_rpc_error_code_values().cancelled}
       %{:"rpc.connect_rpc.error_code" => :cancelled}
 
@@ -118,10 +118,10 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   'rpc.connect_rpc.error_code'
 
   ?'RPC_CONNECT_RPC_ERROR_CODE_VALUES_CANCELLED'.
-  cancelled
+  'cancelled'
 
-  \#{?RPC_CONNECT_RPC_ERROR_CODE => ?'RPC_CONNECT_RPC_ERROR_CODE_VALUES_CANCELLED'}.
-  \#{'rpc.connect_rpc.error_code' => cancelled}
+  \#{?'RPC_CONNECT_RPC_ERROR_CODE' => ?'RPC_CONNECT_RPC_ERROR_CODE_VALUES_CANCELLED'}.
+  \#{'rpc.connect_rpc.error_code' => 'cancelled'}
   ```
 
   <!-- tabs-close -->
@@ -352,10 +352,10 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_status_code()
       :"rpc.grpc.status_code"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_status_code_values().ok
       0
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_status_code() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_status_code_values().ok}
       %{:"rpc.grpc.status_code" => 0}
 
@@ -366,10 +366,10 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   'rpc.grpc.status_code'
 
   ?'RPC_GRPC_STATUS_CODE_VALUES_OK'.
-  0
+  '0'
 
-  \#{?RPC_GRPC_STATUS_CODE => ?'RPC_GRPC_STATUS_CODE_VALUES_OK'}.
-  \#{'rpc.grpc.status_code' => 0}
+  \#{?'RPC_GRPC_STATUS_CODE' => ?'RPC_GRPC_STATUS_CODE_VALUES_OK'}.
+  \#{'rpc.grpc.status_code' => '0'}
   ```
 
   <!-- tabs-close -->
@@ -609,10 +609,10 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type()
       :"rpc.message.type"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type_values().sent
       :SENT
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type_values().sent}
       %{:"rpc.message.type" => :SENT}
 
@@ -623,10 +623,10 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   'rpc.message.type'
 
   ?'RPC_MESSAGE_TYPE_VALUES_SENT'.
-  SENT
+  'SENT'
 
-  \#{?RPC_MESSAGE_TYPE => ?'RPC_MESSAGE_TYPE_VALUES_SENT'}.
-  \#{'rpc.message.type' => SENT}
+  \#{?'RPC_MESSAGE_TYPE' => ?'RPC_MESSAGE_TYPE_VALUES_SENT'}.
+  \#{'rpc.message.type' => 'SENT'}
   ```
 
   <!-- tabs-close -->
@@ -770,10 +770,10 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system()
       :"rpc.system"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system_values().grpc
       :grpc
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system_values().grpc}
       %{:"rpc.system" => :grpc}
 
@@ -784,10 +784,10 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   'rpc.system'
 
   ?'RPC_SYSTEM_VALUES_GRPC'.
-  grpc
+  'grpc'
 
-  \#{?RPC_SYSTEM => ?'RPC_SYSTEM_VALUES_GRPC'}.
-  \#{'rpc.system' => grpc}
+  \#{?'RPC_SYSTEM' => ?'RPC_SYSTEM_VALUES_GRPC'}.
+  \#{'rpc.system' => 'grpc'}
   ```
 
   <!-- tabs-close -->

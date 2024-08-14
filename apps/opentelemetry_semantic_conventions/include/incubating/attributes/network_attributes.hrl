@@ -13,7 +13,7 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
--include("attributes/network_attributes.hrl").
+-include_lib("opentelemetry_semantic_conventions/include/attributes/network_attributes.hrl").
 
 %% @deprecated Replaced by `network.local.address`.
 %% Deprecated, use `network.local.address`.

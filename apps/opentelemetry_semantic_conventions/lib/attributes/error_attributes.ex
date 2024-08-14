@@ -53,10 +53,10 @@ defmodule OpenTelemetry.SemConv.ErrorAttributes do
 
       iex> OpenTelemetry.SemConv.ErrorAttributes.error_type()
       :"error.type"
-      
+
       iex> OpenTelemetry.SemConv.ErrorAttributes.error_type_values().other
       :_OTHER
-      
+
       iex> %{OpenTelemetry.SemConv.ErrorAttributes.error_type() => OpenTelemetry.SemConv.ErrorAttributes.error_type_values().other}
       %{:"error.type" => :_OTHER}
 
@@ -67,10 +67,10 @@ defmodule OpenTelemetry.SemConv.ErrorAttributes do
   'error.type'
 
   ?'ERROR_TYPE_VALUES_OTHER'.
-  _OTHER
+  '_OTHER'
 
-  \#{?ERROR_TYPE => ?'ERROR_TYPE_VALUES_OTHER'}.
-  \#{'error.type' => _OTHER}
+  \#{?'ERROR_TYPE' => ?'ERROR_TYPE_VALUES_OTHER'}.
+  \#{'error.type' => '_OTHER'}
   ```
 
   <!-- tabs-close -->

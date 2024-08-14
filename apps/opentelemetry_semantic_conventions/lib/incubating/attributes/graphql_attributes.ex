@@ -99,10 +99,10 @@ defmodule OpenTelemetry.SemConv.Incubating.GraphqlAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.GraphqlAttributes.graphql_operation_type()
       :"graphql.operation.type"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.GraphqlAttributes.graphql_operation_type_values().query
       :query
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.GraphqlAttributes.graphql_operation_type() => OpenTelemetry.SemConv.Incubating.GraphqlAttributes.graphql_operation_type_values().query}
       %{:"graphql.operation.type" => :query}
 
@@ -113,10 +113,10 @@ defmodule OpenTelemetry.SemConv.Incubating.GraphqlAttributes do
   'graphql.operation.type'
 
   ?'GRAPHQL_OPERATION_TYPE_VALUES_QUERY'.
-  query
+  'query'
 
-  \#{?GRAPHQL_OPERATION_TYPE => ?'GRAPHQL_OPERATION_TYPE_VALUES_QUERY'}.
-  \#{'graphql.operation.type' => query}
+  \#{?'GRAPHQL_OPERATION_TYPE' => ?'GRAPHQL_OPERATION_TYPE_VALUES_QUERY'}.
+  \#{'graphql.operation.type' => 'query'}
   ```
 
   <!-- tabs-close -->

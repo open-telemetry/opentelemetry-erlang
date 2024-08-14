@@ -13,7 +13,7 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
--include("attributes/messaging_attributes.hrl").
+-include_lib("opentelemetry_semantic_conventions/include/attributes/messaging_attributes.hrl").
 
 
 %% The number of messages sent, received, or processed in the scope of the batching operation.

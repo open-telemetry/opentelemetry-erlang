@@ -53,10 +53,10 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.HTTPAttributes.http_connection_state()
       :"http.connection.state"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.HTTPAttributes.http_connection_state_values().active
       :active
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.HTTPAttributes.http_connection_state() => OpenTelemetry.SemConv.Incubating.HTTPAttributes.http_connection_state_values().active}
       %{:"http.connection.state" => :active}
 
@@ -67,10 +67,10 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   'http.connection.state'
 
   ?'HTTP_CONNECTION_STATE_VALUES_ACTIVE'.
-  active
+  'active'
 
-  \#{?HTTP_CONNECTION_STATE => ?'HTTP_CONNECTION_STATE_VALUES_ACTIVE'}.
-  \#{'http.connection.state' => active}
+  \#{?'HTTP_CONNECTION_STATE' => ?'HTTP_CONNECTION_STATE_VALUES_ACTIVE'}.
+  \#{'http.connection.state' => 'active'}
   ```
 
   <!-- tabs-close -->

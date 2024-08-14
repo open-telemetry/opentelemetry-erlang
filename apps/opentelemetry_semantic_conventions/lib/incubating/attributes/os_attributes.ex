@@ -142,10 +142,10 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.OSAttributes.os_type()
       :"os.type"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.OSAttributes.os_type_values().windows
       :windows
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.OSAttributes.os_type() => OpenTelemetry.SemConv.Incubating.OSAttributes.os_type_values().windows}
       %{:"os.type" => :windows}
 
@@ -156,10 +156,10 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
   'os.type'
 
   ?'OS_TYPE_VALUES_WINDOWS'.
-  windows
+  'windows'
 
-  \#{?OS_TYPE => ?'OS_TYPE_VALUES_WINDOWS'}.
-  \#{'os.type' => windows}
+  \#{?'OS_TYPE' => ?'OS_TYPE_VALUES_WINDOWS'}.
+  \#{'os.type' => 'windows'}
   ```
 
   <!-- tabs-close -->

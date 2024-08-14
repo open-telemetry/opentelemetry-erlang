@@ -39,10 +39,10 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.HostAttributes.host_arch()
       :"host.arch"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.HostAttributes.host_arch_values().amd64
       :amd64
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.HostAttributes.host_arch() => OpenTelemetry.SemConv.Incubating.HostAttributes.host_arch_values().amd64}
       %{:"host.arch" => :amd64}
 
@@ -53,10 +53,10 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   'host.arch'
 
   ?'HOST_ARCH_VALUES_AMD_64'.
-  amd64
+  'amd64'
 
-  \#{?HOST_ARCH => ?'HOST_ARCH_VALUES_AMD_64'}.
-  \#{'host.arch' => amd64}
+  \#{?'HOST_ARCH' => ?'HOST_ARCH_VALUES_AMD_64'}.
+  \#{'host.arch' => 'amd64'}
   ```
 
   <!-- tabs-close -->

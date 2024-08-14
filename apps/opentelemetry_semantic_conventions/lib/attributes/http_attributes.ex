@@ -102,10 +102,10 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
 
       iex> OpenTelemetry.SemConv.HTTPAttributes.http_request_method()
       :"http.request.method"
-      
+
       iex> OpenTelemetry.SemConv.HTTPAttributes.http_request_method_values().connect
       :CONNECT
-      
+
       iex> %{OpenTelemetry.SemConv.HTTPAttributes.http_request_method() => OpenTelemetry.SemConv.HTTPAttributes.http_request_method_values().connect}
       %{:"http.request.method" => :CONNECT}
 
@@ -116,10 +116,10 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   'http.request.method'
 
   ?'HTTP_REQUEST_METHOD_VALUES_CONNECT'.
-  CONNECT
+  'CONNECT'
 
-  \#{?HTTP_REQUEST_METHOD => ?'HTTP_REQUEST_METHOD_VALUES_CONNECT'}.
-  \#{'http.request.method' => CONNECT}
+  \#{?'HTTP_REQUEST_METHOD' => ?'HTTP_REQUEST_METHOD_VALUES_CONNECT'}.
+  \#{'http.request.method' => 'CONNECT'}
   ```
 
   <!-- tabs-close -->

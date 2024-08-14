@@ -153,10 +153,10 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_platform()
       :"cloud.platform"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_platform_values().alibaba_cloud_ecs
       :alibaba_cloud_ecs
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_platform() => OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_platform_values().alibaba_cloud_ecs}
       %{:"cloud.platform" => :alibaba_cloud_ecs}
 
@@ -167,10 +167,10 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   'cloud.platform'
 
   ?'CLOUD_PLATFORM_VALUES_ALIBABA_CLOUD_ECS'.
-  alibaba_cloud_ecs
+  'alibaba_cloud_ecs'
 
-  \#{?CLOUD_PLATFORM => ?'CLOUD_PLATFORM_VALUES_ALIBABA_CLOUD_ECS'}.
-  \#{'cloud.platform' => alibaba_cloud_ecs}
+  \#{?'CLOUD_PLATFORM' => ?'CLOUD_PLATFORM_VALUES_ALIBABA_CLOUD_ECS'}.
+  \#{'cloud.platform' => 'alibaba_cloud_ecs'}
   ```
 
   <!-- tabs-close -->
@@ -247,10 +247,10 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_provider()
       :"cloud.provider"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_provider_values().alibaba_cloud
       :alibaba_cloud
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_provider() => OpenTelemetry.SemConv.Incubating.CloudAttributes.cloud_provider_values().alibaba_cloud}
       %{:"cloud.provider" => :alibaba_cloud}
 
@@ -261,10 +261,10 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   'cloud.provider'
 
   ?'CLOUD_PROVIDER_VALUES_ALIBABA_CLOUD'.
-  alibaba_cloud
+  'alibaba_cloud'
 
-  \#{?CLOUD_PROVIDER => ?'CLOUD_PROVIDER_VALUES_ALIBABA_CLOUD'}.
-  \#{'cloud.provider' => alibaba_cloud}
+  \#{?'CLOUD_PROVIDER' => ?'CLOUD_PROVIDER_VALUES_ALIBABA_CLOUD'}.
+  \#{'cloud.provider' => 'alibaba_cloud'}
   ```
 
   <!-- tabs-close -->

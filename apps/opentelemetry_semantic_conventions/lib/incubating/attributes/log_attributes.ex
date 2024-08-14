@@ -159,10 +159,10 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.LogAttributes.log_iostream()
       :"log.iostream"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.LogAttributes.log_iostream_values().stdout
       :stdout
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.LogAttributes.log_iostream() => OpenTelemetry.SemConv.Incubating.LogAttributes.log_iostream_values().stdout}
       %{:"log.iostream" => :stdout}
 
@@ -173,10 +173,10 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
   'log.iostream'
 
   ?'LOG_IOSTREAM_VALUES_STDOUT'.
-  stdout
+  'stdout'
 
-  \#{?LOG_IOSTREAM => ?'LOG_IOSTREAM_VALUES_STDOUT'}.
-  \#{'log.iostream' => stdout}
+  \#{?'LOG_IOSTREAM' => ?'LOG_IOSTREAM_VALUES_STDOUT'}.
+  \#{'log.iostream' => 'stdout'}
   ```
 
   <!-- tabs-close -->

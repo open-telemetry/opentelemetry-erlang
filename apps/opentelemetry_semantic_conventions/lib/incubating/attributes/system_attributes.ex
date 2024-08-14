@@ -72,10 +72,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_cpu_state()
       :"system.cpu.state"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_cpu_state_values().user
       :user
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_cpu_state() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_cpu_state_values().user}
       %{:"system.cpu.state" => :user}
 
@@ -86,10 +86,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   'system.cpu.state'
 
   ?'SYSTEM_CPU_STATE_VALUES_USER'.
-  user
+  'user'
 
-  \#{?SYSTEM_CPU_STATE => ?'SYSTEM_CPU_STATE_VALUES_USER'}.
-  \#{'system.cpu.state' => user}
+  \#{?'SYSTEM_CPU_STATE' => ?'SYSTEM_CPU_STATE_VALUES_USER'}.
+  \#{'system.cpu.state' => 'user'}
   ```
 
   <!-- tabs-close -->
@@ -236,10 +236,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_filesystem_state()
       :"system.filesystem.state"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_filesystem_state_values().used
       :used
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_filesystem_state() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_filesystem_state_values().used}
       %{:"system.filesystem.state" => :used}
 
@@ -250,10 +250,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   'system.filesystem.state'
 
   ?'SYSTEM_FILESYSTEM_STATE_VALUES_USED'.
-  used
+  'used'
 
-  \#{?SYSTEM_FILESYSTEM_STATE => ?'SYSTEM_FILESYSTEM_STATE_VALUES_USED'}.
-  \#{'system.filesystem.state' => used}
+  \#{?'SYSTEM_FILESYSTEM_STATE' => ?'SYSTEM_FILESYSTEM_STATE_VALUES_USED'}.
+  \#{'system.filesystem.state' => 'used'}
   ```
 
   <!-- tabs-close -->
@@ -306,10 +306,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_filesystem_type()
       :"system.filesystem.type"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_filesystem_type_values().fat32
       :fat32
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_filesystem_type() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_filesystem_type_values().fat32}
       %{:"system.filesystem.type" => :fat32}
 
@@ -320,10 +320,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   'system.filesystem.type'
 
   ?'SYSTEM_FILESYSTEM_TYPE_VALUES_FAT_32'.
-  fat32
+  'fat32'
 
-  \#{?SYSTEM_FILESYSTEM_TYPE => ?'SYSTEM_FILESYSTEM_TYPE_VALUES_FAT_32'}.
-  \#{'system.filesystem.type' => fat32}
+  \#{?'SYSTEM_FILESYSTEM_TYPE' => ?'SYSTEM_FILESYSTEM_TYPE_VALUES_FAT_32'}.
+  \#{'system.filesystem.type' => 'fat32'}
   ```
 
   <!-- tabs-close -->
@@ -377,10 +377,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_memory_state()
       :"system.memory.state"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_memory_state_values().used
       :used
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_memory_state() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_memory_state_values().used}
       %{:"system.memory.state" => :used}
 
@@ -391,10 +391,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   'system.memory.state'
 
   ?'SYSTEM_MEMORY_STATE_VALUES_USED'.
-  used
+  'used'
 
-  \#{?SYSTEM_MEMORY_STATE => ?'SYSTEM_MEMORY_STATE_VALUES_USED'}.
-  \#{'system.memory.state' => used}
+  \#{?'SYSTEM_MEMORY_STATE' => ?'SYSTEM_MEMORY_STATE_VALUES_USED'}.
+  \#{'system.memory.state' => 'used'}
   ```
 
   <!-- tabs-close -->
@@ -461,10 +461,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_network_state()
       :"system.network.state"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_network_state_values().close
       :close
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_network_state() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_network_state_values().close}
       %{:"system.network.state" => :close}
 
@@ -475,10 +475,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   'system.network.state'
 
   ?'SYSTEM_NETWORK_STATE_VALUES_CLOSE'.
-  close
+  'close'
 
-  \#{?SYSTEM_NETWORK_STATE => ?'SYSTEM_NETWORK_STATE_VALUES_CLOSE'}.
-  \#{'system.network.state' => close}
+  \#{?'SYSTEM_NETWORK_STATE' => ?'SYSTEM_NETWORK_STATE_VALUES_CLOSE'}.
+  \#{'system.network.state' => 'close'}
   ```
 
   <!-- tabs-close -->
@@ -532,10 +532,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_direction()
       :"system.paging.direction"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_direction_values().in
       :in
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_direction() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_direction_values().in}
       %{:"system.paging.direction" => :in}
 
@@ -546,10 +546,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   'system.paging.direction'
 
   ?'SYSTEM_PAGING_DIRECTION_VALUES_IN'.
-  in
+  'in'
 
-  \#{?SYSTEM_PAGING_DIRECTION => ?'SYSTEM_PAGING_DIRECTION_VALUES_IN'}.
-  \#{'system.paging.direction' => in}
+  \#{?'SYSTEM_PAGING_DIRECTION' => ?'SYSTEM_PAGING_DIRECTION_VALUES_IN'}.
+  \#{'system.paging.direction' => 'in'}
   ```
 
   <!-- tabs-close -->
@@ -593,10 +593,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_state()
       :"system.paging.state"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_state_values().used
       :used
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_state() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_state_values().used}
       %{:"system.paging.state" => :used}
 
@@ -607,10 +607,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   'system.paging.state'
 
   ?'SYSTEM_PAGING_STATE_VALUES_USED'.
-  used
+  'used'
 
-  \#{?SYSTEM_PAGING_STATE => ?'SYSTEM_PAGING_STATE_VALUES_USED'}.
-  \#{'system.paging.state' => used}
+  \#{?'SYSTEM_PAGING_STATE' => ?'SYSTEM_PAGING_STATE_VALUES_USED'}.
+  \#{'system.paging.state' => 'used'}
   ```
 
   <!-- tabs-close -->
@@ -654,10 +654,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_type()
       :"system.paging.type"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_type_values().major
       :major
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_type() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_type_values().major}
       %{:"system.paging.type" => :major}
 
@@ -668,10 +668,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   'system.paging.type'
 
   ?'SYSTEM_PAGING_TYPE_VALUES_MAJOR'.
-  major
+  'major'
 
-  \#{?SYSTEM_PAGING_TYPE => ?'SYSTEM_PAGING_TYPE_VALUES_MAJOR'}.
-  \#{'system.paging.type' => major}
+  \#{?'SYSTEM_PAGING_TYPE' => ?'SYSTEM_PAGING_TYPE_VALUES_MAJOR'}.
+  \#{'system.paging.type' => 'major'}
   ```
 
   <!-- tabs-close -->
@@ -721,10 +721,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_process_status()
       :"system.process.status"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_process_status_values().running
       :running
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_process_status() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_process_status_values().running}
       %{:"system.process.status" => :running}
 
@@ -735,10 +735,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   'system.process.status'
 
   ?'SYSTEM_PROCESS_STATUS_VALUES_RUNNING'.
-  running
+  'running'
 
-  \#{?SYSTEM_PROCESS_STATUS => ?'SYSTEM_PROCESS_STATUS_VALUES_RUNNING'}.
-  \#{'system.process.status' => running}
+  \#{?'SYSTEM_PROCESS_STATUS' => ?'SYSTEM_PROCESS_STATUS_VALUES_RUNNING'}.
+  \#{'system.process.status' => 'running'}
   ```
 
   <!-- tabs-close -->

@@ -39,7 +39,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   """
   @type {{ c.func_name(attribute.name) }}_values() :: {{ c.enum_to_map(attribute.type.members) }}
   {%- endif -%}
- 
+
   {% if attribute is deprecated %}
   @deprecated """
   {{ attribute.deprecated | replace("\n", "\n  ") }}
@@ -74,10 +74,10 @@ defmodule {{ module_namespace }}.{{ module_name }} do
 
       iex> {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}()
       {{ c.to_atom(attribute.name) }}
-      
+
       iex> {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}_values().{{ attribute.type.members|first|attr('id') }}
       {{ c.enum_value_to_elixir_type(attribute.type.members|first|attr('value')) }}
-      
+
       iex> {% raw %}%{{% endraw %}{{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}() => {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}_values().{{ attribute.type.members|first|attr('id') }}{% raw %}}{% endraw %}
       {% raw %}%{{% endraw %}{{ c.to_atom(attribute.name) }} => {{ c.enum_value_to_elixir_type(attribute.type.members|first|attr('value')) }}{% raw %}}{% endraw %}
 
@@ -88,13 +88,13 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   '{{ attribute.name }}'
 
   ?'{{ c.erl_attr_name(attribute.name) }}_VALUES_{{ attribute.type.members|first|attr('id') | screaming_snake_case }}'.
-  {{ attribute.type.members|first|attr('value') }}
-  
-  {% raw %}\#{{% endraw %}?{{ c.erl_attr_name(attribute.name) }} => ?'{{ c.erl_attr_name(attribute.name) }}_VALUES_{{ attribute.type.members|first|attr('id') | screaming_snake_case }}'{% raw %}}{% endraw %}.
-  {% raw %}\#{{% endraw %}'{{ attribute.name }}' => {{ attribute.type.members|first|attr('value') }}{% raw %}}{% endraw %}
+  '{{ attribute.type.members|first|attr('value') }}'
+
+  {% raw %}\#{{% endraw %}?'{{ c.erl_attr_name(attribute.name) }}' => ?'{{ c.erl_attr_name(attribute.name) }}_VALUES_{{ attribute.type.members|first|attr('id') | screaming_snake_case }}'{% raw %}}{% endraw %}.
+  {% raw %}\#{{% endraw %}'{{ attribute.name }}' => '{{ attribute.type.members|first|attr('value') }}'{% raw %}}{% endraw %}
   ```
   {%- else %}
-  
+
   ### Elixir
 
       iex> {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}()
@@ -115,7 +115,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   def {{ c.func_name(attribute.name) }} do
     {{ c.to_atom(attribute.name) }}
   end
-  
+
   {%- if attribute.type is mapping %}
   @spec {{ c.func_name(attribute.name) }}_values() :: {{ c.func_name(attribute.name) }}_values()
   def {{ c.func_name(attribute.name) }}_values() do

@@ -326,10 +326,10 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_system()
       :"gen_ai.system"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_system_values().openai
       :openai
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_system() => OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_system_values().openai}
       %{:"gen_ai.system" => :openai}
 
@@ -340,10 +340,10 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   'gen_ai.system'
 
   ?'GEN_AI_SYSTEM_VALUES_OPENAI'.
-  openai
+  'openai'
 
-  \#{?GEN_AI_SYSTEM => ?'GEN_AI_SYSTEM_VALUES_OPENAI'}.
-  \#{'gen_ai.system' => openai}
+  \#{?'GEN_AI_SYSTEM' => ?'GEN_AI_SYSTEM_VALUES_OPENAI'}.
+  \#{'gen_ai.system' => 'openai'}
   ```
 
   <!-- tabs-close -->

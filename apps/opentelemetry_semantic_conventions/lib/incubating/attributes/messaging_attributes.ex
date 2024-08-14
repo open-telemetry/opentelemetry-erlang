@@ -853,10 +853,10 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type()
       :"messaging.operation.type"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type_values().publish
       :publish
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type_values().publish}
       %{:"messaging.operation.type" => :publish}
 
@@ -867,10 +867,10 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   'messaging.operation.type'
 
   ?'MESSAGING_OPERATION_TYPE_VALUES_PUBLISH'.
-  publish
+  'publish'
 
-  \#{?MESSAGING_OPERATION_TYPE => ?'MESSAGING_OPERATION_TYPE_VALUES_PUBLISH'}.
-  \#{'messaging.operation.type' => publish}
+  \#{?'MESSAGING_OPERATION_TYPE' => ?'MESSAGING_OPERATION_TYPE_VALUES_PUBLISH'}.
+  \#{'messaging.operation.type' => 'publish'}
   ```
 
   <!-- tabs-close -->
@@ -1014,10 +1014,10 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumption_model()
       :"messaging.rocketmq.consumption_model"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumption_model_values().clustering
       :clustering
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumption_model() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_consumption_model_values().clustering}
       %{:"messaging.rocketmq.consumption_model" => :clustering}
 
@@ -1028,10 +1028,10 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   'messaging.rocketmq.consumption_model'
 
   ?'MESSAGING_ROCKETMQ_CONSUMPTION_MODEL_VALUES_CLUSTERING'.
-  clustering
+  'clustering'
 
-  \#{?MESSAGING_ROCKETMQ_CONSUMPTION_MODEL => ?'MESSAGING_ROCKETMQ_CONSUMPTION_MODEL_VALUES_CLUSTERING'}.
-  \#{'messaging.rocketmq.consumption_model' => clustering}
+  \#{?'MESSAGING_ROCKETMQ_CONSUMPTION_MODEL' => ?'MESSAGING_ROCKETMQ_CONSUMPTION_MODEL_VALUES_CLUSTERING'}.
+  \#{'messaging.rocketmq.consumption_model' => 'clustering'}
   ```
 
   <!-- tabs-close -->
@@ -1244,10 +1244,10 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_type()
       :"messaging.rocketmq.message.type"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_type_values().normal
       :normal
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_type() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_message_type_values().normal}
       %{:"messaging.rocketmq.message.type" => :normal}
 
@@ -1258,10 +1258,10 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   'messaging.rocketmq.message.type'
 
   ?'MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES_NORMAL'.
-  normal
+  'normal'
 
-  \#{?MESSAGING_ROCKETMQ_MESSAGE_TYPE => ?'MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES_NORMAL'}.
-  \#{'messaging.rocketmq.message.type' => normal}
+  \#{?'MESSAGING_ROCKETMQ_MESSAGE_TYPE' => ?'MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUES_NORMAL'}.
+  \#{'messaging.rocketmq.message.type' => 'normal'}
   ```
 
   <!-- tabs-close -->
@@ -1375,10 +1375,10 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_disposition_status()
       :"messaging.servicebus.disposition_status"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_disposition_status_values().complete
       :complete
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_disposition_status() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_disposition_status_values().complete}
       %{:"messaging.servicebus.disposition_status" => :complete}
 
@@ -1389,10 +1389,10 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   'messaging.servicebus.disposition_status'
 
   ?'MESSAGING_SERVICEBUS_DISPOSITION_STATUS_VALUES_COMPLETE'.
-  complete
+  'complete'
 
-  \#{?MESSAGING_SERVICEBUS_DISPOSITION_STATUS => ?'MESSAGING_SERVICEBUS_DISPOSITION_STATUS_VALUES_COMPLETE'}.
-  \#{'messaging.servicebus.disposition_status' => complete}
+  \#{?'MESSAGING_SERVICEBUS_DISPOSITION_STATUS' => ?'MESSAGING_SERVICEBUS_DISPOSITION_STATUS_VALUES_COMPLETE'}.
+  \#{'messaging.servicebus.disposition_status' => 'complete'}
   ```
 
   <!-- tabs-close -->
@@ -1522,10 +1522,10 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_system()
       :"messaging.system"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_system_values().activemq
       :activemq
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_system() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_system_values().activemq}
       %{:"messaging.system" => :activemq}
 
@@ -1536,10 +1536,10 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   'messaging.system'
 
   ?'MESSAGING_SYSTEM_VALUES_ACTIVEMQ'.
-  activemq
+  'activemq'
 
-  \#{?MESSAGING_SYSTEM => ?'MESSAGING_SYSTEM_VALUES_ACTIVEMQ'}.
-  \#{'messaging.system' => activemq}
+  \#{?'MESSAGING_SYSTEM' => ?'MESSAGING_SYSTEM_VALUES_ACTIVEMQ'}.
+  \#{'messaging.system' => 'activemq'}
   ```
 
   <!-- tabs-close -->

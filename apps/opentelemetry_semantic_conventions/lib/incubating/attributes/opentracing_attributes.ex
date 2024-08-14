@@ -29,10 +29,10 @@ defmodule OpenTelemetry.SemConv.Incubating.OpentracingAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.OpentracingAttributes.opentracing_ref_type()
       :"opentracing.ref_type"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.OpentracingAttributes.opentracing_ref_type_values().child_of
       :child_of
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.OpentracingAttributes.opentracing_ref_type() => OpenTelemetry.SemConv.Incubating.OpentracingAttributes.opentracing_ref_type_values().child_of}
       %{:"opentracing.ref_type" => :child_of}
 
@@ -43,10 +43,10 @@ defmodule OpenTelemetry.SemConv.Incubating.OpentracingAttributes do
   'opentracing.ref_type'
 
   ?'OPENTRACING_REF_TYPE_VALUES_CHILD_OF'.
-  child_of
+  'child_of'
 
-  \#{?OPENTRACING_REF_TYPE => ?'OPENTRACING_REF_TYPE_VALUES_CHILD_OF'}.
-  \#{'opentracing.ref_type' => child_of}
+  \#{?'OPENTRACING_REF_TYPE' => ?'OPENTRACING_REF_TYPE_VALUES_CHILD_OF'}.
+  \#{'opentracing.ref_type' => 'child_of'}
   ```
 
   <!-- tabs-close -->

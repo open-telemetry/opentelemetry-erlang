@@ -89,10 +89,10 @@ defmodule OpenTelemetry.SemConv.OtelAttributes do
 
       iex> OpenTelemetry.SemConv.OtelAttributes.otel_status_code()
       :"otel.status_code"
-      
+
       iex> OpenTelemetry.SemConv.OtelAttributes.otel_status_code_values().ok
       :OK
-      
+
       iex> %{OpenTelemetry.SemConv.OtelAttributes.otel_status_code() => OpenTelemetry.SemConv.OtelAttributes.otel_status_code_values().ok}
       %{:"otel.status_code" => :OK}
 
@@ -103,10 +103,10 @@ defmodule OpenTelemetry.SemConv.OtelAttributes do
   'otel.status_code'
 
   ?'OTEL_STATUS_CODE_VALUES_OK'.
-  OK
+  'OK'
 
-  \#{?OTEL_STATUS_CODE => ?'OTEL_STATUS_CODE_VALUES_OK'}.
-  \#{'otel.status_code' => OK}
+  \#{?'OTEL_STATUS_CODE' => ?'OTEL_STATUS_CODE_VALUES_OK'}.
+  \#{'otel.status_code' => 'OK'}
   ```
 
   <!-- tabs-close -->

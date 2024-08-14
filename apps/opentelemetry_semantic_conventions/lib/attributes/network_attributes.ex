@@ -243,10 +243,10 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
 
       iex> OpenTelemetry.SemConv.NetworkAttributes.network_transport()
       :"network.transport"
-      
+
       iex> OpenTelemetry.SemConv.NetworkAttributes.network_transport_values().tcp
       :tcp
-      
+
       iex> %{OpenTelemetry.SemConv.NetworkAttributes.network_transport() => OpenTelemetry.SemConv.NetworkAttributes.network_transport_values().tcp}
       %{:"network.transport" => :tcp}
 
@@ -257,10 +257,10 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   'network.transport'
 
   ?'NETWORK_TRANSPORT_VALUES_TCP'.
-  tcp
+  'tcp'
 
-  \#{?NETWORK_TRANSPORT => ?'NETWORK_TRANSPORT_VALUES_TCP'}.
-  \#{'network.transport' => tcp}
+  \#{?'NETWORK_TRANSPORT' => ?'NETWORK_TRANSPORT_VALUES_TCP'}.
+  \#{'network.transport' => 'tcp'}
   ```
 
   <!-- tabs-close -->
@@ -309,10 +309,10 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
 
       iex> OpenTelemetry.SemConv.NetworkAttributes.network_type()
       :"network.type"
-      
+
       iex> OpenTelemetry.SemConv.NetworkAttributes.network_type_values().ipv4
       :ipv4
-      
+
       iex> %{OpenTelemetry.SemConv.NetworkAttributes.network_type() => OpenTelemetry.SemConv.NetworkAttributes.network_type_values().ipv4}
       %{:"network.type" => :ipv4}
 
@@ -323,10 +323,10 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   'network.type'
 
   ?'NETWORK_TYPE_VALUES_IPV_4'.
-  ipv4
+  'ipv4'
 
-  \#{?NETWORK_TYPE => ?'NETWORK_TYPE_VALUES_IPV_4'}.
-  \#{'network.type' => ipv4}
+  \#{?'NETWORK_TYPE' => ?'NETWORK_TYPE_VALUES_IPV_4'}.
+  \#{'network.type' => 'ipv4'}
   ```
 
   <!-- tabs-close -->

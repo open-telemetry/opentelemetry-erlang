@@ -385,10 +385,10 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_subtype()
       :"network.connection.subtype"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_subtype_values().gprs
       :gprs
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_subtype() => OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_subtype_values().gprs}
       %{:"network.connection.subtype" => :gprs}
 
@@ -399,10 +399,10 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   'network.connection.subtype'
 
   ?'NETWORK_CONNECTION_SUBTYPE_VALUES_GPRS'.
-  gprs
+  'gprs'
 
-  \#{?NETWORK_CONNECTION_SUBTYPE => ?'NETWORK_CONNECTION_SUBTYPE_VALUES_GPRS'}.
-  \#{'network.connection.subtype' => gprs}
+  \#{?'NETWORK_CONNECTION_SUBTYPE' => ?'NETWORK_CONNECTION_SUBTYPE_VALUES_GPRS'}.
+  \#{'network.connection.subtype' => 'gprs'}
   ```
 
   <!-- tabs-close -->
@@ -471,10 +471,10 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_type()
       :"network.connection.type"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_type_values().wifi
       :wifi
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_type() => OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_type_values().wifi}
       %{:"network.connection.type" => :wifi}
 
@@ -485,10 +485,10 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   'network.connection.type'
 
   ?'NETWORK_CONNECTION_TYPE_VALUES_WIFI'.
-  wifi
+  'wifi'
 
-  \#{?NETWORK_CONNECTION_TYPE => ?'NETWORK_CONNECTION_TYPE_VALUES_WIFI'}.
-  \#{'network.connection.type' => wifi}
+  \#{?'NETWORK_CONNECTION_TYPE' => ?'NETWORK_CONNECTION_TYPE_VALUES_WIFI'}.
+  \#{'network.connection.type' => 'wifi'}
   ```
 
   <!-- tabs-close -->
@@ -535,10 +535,10 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_io_direction()
       :"network.io.direction"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_io_direction_values().transmit
       :transmit
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_io_direction() => OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_io_direction_values().transmit}
       %{:"network.io.direction" => :transmit}
 
@@ -549,10 +549,10 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   'network.io.direction'
 
   ?'NETWORK_IO_DIRECTION_VALUES_TRANSMIT'.
-  transmit
+  'transmit'
 
-  \#{?NETWORK_IO_DIRECTION => ?'NETWORK_IO_DIRECTION_VALUES_TRANSMIT'}.
-  \#{'network.io.direction' => transmit}
+  \#{?'NETWORK_IO_DIRECTION' => ?'NETWORK_IO_DIRECTION_VALUES_TRANSMIT'}.
+  \#{'network.io.direction' => 'transmit'}
   ```
 
   <!-- tabs-close -->

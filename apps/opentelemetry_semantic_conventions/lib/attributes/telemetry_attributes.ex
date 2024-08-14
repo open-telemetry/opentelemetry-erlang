@@ -47,10 +47,10 @@ defmodule OpenTelemetry.SemConv.TelemetryAttributes do
 
       iex> OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_language()
       :"telemetry.sdk.language"
-      
+
       iex> OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_language_values().cpp
       :cpp
-      
+
       iex> %{OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_language() => OpenTelemetry.SemConv.TelemetryAttributes.telemetry_sdk_language_values().cpp}
       %{:"telemetry.sdk.language" => :cpp}
 
@@ -61,10 +61,10 @@ defmodule OpenTelemetry.SemConv.TelemetryAttributes do
   'telemetry.sdk.language'
 
   ?'TELEMETRY_SDK_LANGUAGE_VALUES_CPP'.
-  cpp
+  'cpp'
 
-  \#{?TELEMETRY_SDK_LANGUAGE => ?'TELEMETRY_SDK_LANGUAGE_VALUES_CPP'}.
-  \#{'telemetry.sdk.language' => cpp}
+  \#{?'TELEMETRY_SDK_LANGUAGE' => ?'TELEMETRY_SDK_LANGUAGE_VALUES_CPP'}.
+  \#{'telemetry.sdk.language' => 'cpp'}
   ```
 
   <!-- tabs-close -->

@@ -16,7 +16,7 @@
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
 {%- if params.stability == "experimental" and (ctx.all_attributes | length) > (ctx.attributes | length) %}
--include("attributes/{{ c.file_name(ctx.id) }}_attributes.hrl").
+-include_lib("opentelemetry_semantic_conventions/include/attributes/{{ c.file_name(ctx.id) }}_attributes.hrl").
 {% endif -%}
 {%- for attribute in ctx.attributes | sort(attribute="name") %}
 {% if attribute is deprecated -%}

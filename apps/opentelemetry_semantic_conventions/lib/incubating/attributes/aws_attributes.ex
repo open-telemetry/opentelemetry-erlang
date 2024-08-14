@@ -788,10 +788,10 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_ecs_launchtype()
       :"aws.ecs.launchtype"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_ecs_launchtype_values().ec2
       :ec2
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_ecs_launchtype() => OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_ecs_launchtype_values().ec2}
       %{:"aws.ecs.launchtype" => :ec2}
 
@@ -802,10 +802,10 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   'aws.ecs.launchtype'
 
   ?'AWS_ECS_LAUNCHTYPE_VALUES_EC_2'.
-  ec2
+  'ec2'
 
-  \#{?AWS_ECS_LAUNCHTYPE => ?'AWS_ECS_LAUNCHTYPE_VALUES_EC_2'}.
-  \#{'aws.ecs.launchtype' => ec2}
+  \#{?'AWS_ECS_LAUNCHTYPE' => ?'AWS_ECS_LAUNCHTYPE_VALUES_EC_2'}.
+  \#{'aws.ecs.launchtype' => 'ec2'}
   ```
 
   <!-- tabs-close -->

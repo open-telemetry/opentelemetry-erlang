@@ -135,10 +135,10 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state()
       :"container.cpu.state"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state_values().user
       :user
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state() => OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state_values().user}
       %{:"container.cpu.state" => :user}
 
@@ -149,10 +149,10 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   'container.cpu.state'
 
   ?'CONTAINER_CPU_STATE_VALUES_USER'.
-  user
+  'user'
 
-  \#{?CONTAINER_CPU_STATE => ?'CONTAINER_CPU_STATE_VALUES_USER'}.
-  \#{'container.cpu.state' => user}
+  \#{?'CONTAINER_CPU_STATE' => ?'CONTAINER_CPU_STATE_VALUES_USER'}.
+  \#{'container.cpu.state' => 'user'}
   ```
 
   <!-- tabs-close -->

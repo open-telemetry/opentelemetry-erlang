@@ -13,7 +13,7 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
--include("attributes/telemetry_attributes.hrl").
+-include_lib("opentelemetry_semantic_conventions/include/attributes/telemetry_attributes.hrl").
 
 
 %% The name of the auto instrumentation agent or distribution, if used.

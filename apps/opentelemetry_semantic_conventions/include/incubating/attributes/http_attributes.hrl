@@ -13,7 +13,7 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
--include("attributes/http_attributes.hrl").
+-include_lib("opentelemetry_semantic_conventions/include/attributes/http_attributes.hrl").
 
 %% @deprecated Replaced by `client.address`.
 %% Deprecated, use `client.address` instead.

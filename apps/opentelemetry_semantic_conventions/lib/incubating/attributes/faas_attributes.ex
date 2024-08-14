@@ -154,10 +154,10 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_document_operation()
       :"faas.document.operation"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_document_operation_values().insert
       :insert
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_document_operation() => OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_document_operation_values().insert}
       %{:"faas.document.operation" => :insert}
 
@@ -168,10 +168,10 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   'faas.document.operation'
 
   ?'FAAS_DOCUMENT_OPERATION_VALUES_INSERT'.
-  insert
+  'insert'
 
-  \#{?FAAS_DOCUMENT_OPERATION => ?'FAAS_DOCUMENT_OPERATION_VALUES_INSERT'}.
-  \#{'faas.document.operation' => insert}
+  \#{?'FAAS_DOCUMENT_OPERATION' => ?'FAAS_DOCUMENT_OPERATION_VALUES_INSERT'}.
+  \#{'faas.document.operation' => 'insert'}
   ```
 
   <!-- tabs-close -->
@@ -363,10 +363,10 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invoked_provider()
       :"faas.invoked_provider"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invoked_provider_values().alibaba_cloud
       :alibaba_cloud
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invoked_provider() => OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_invoked_provider_values().alibaba_cloud}
       %{:"faas.invoked_provider" => :alibaba_cloud}
 
@@ -377,10 +377,10 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   'faas.invoked_provider'
 
   ?'FAAS_INVOKED_PROVIDER_VALUES_ALIBABA_CLOUD'.
-  alibaba_cloud
+  'alibaba_cloud'
 
-  \#{?FAAS_INVOKED_PROVIDER => ?'FAAS_INVOKED_PROVIDER_VALUES_ALIBABA_CLOUD'}.
-  \#{'faas.invoked_provider' => alibaba_cloud}
+  \#{?'FAAS_INVOKED_PROVIDER' => ?'FAAS_INVOKED_PROVIDER_VALUES_ALIBABA_CLOUD'}.
+  \#{'faas.invoked_provider' => 'alibaba_cloud'}
   ```
 
   <!-- tabs-close -->
@@ -589,10 +589,10 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_trigger()
       :"faas.trigger"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_trigger_values().datasource
       :datasource
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_trigger() => OpenTelemetry.SemConv.Incubating.FAASAttributes.faas_trigger_values().datasource}
       %{:"faas.trigger" => :datasource}
 
@@ -603,10 +603,10 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   'faas.trigger'
 
   ?'FAAS_TRIGGER_VALUES_DATASOURCE'.
-  datasource
+  'datasource'
 
-  \#{?FAAS_TRIGGER => ?'FAAS_TRIGGER_VALUES_DATASOURCE'}.
-  \#{'faas.trigger' => datasource}
+  \#{?'FAAS_TRIGGER' => ?'FAAS_TRIGGER_VALUES_DATASOURCE'}.
+  \#{'faas.trigger' => 'datasource'}
   ```
 
   <!-- tabs-close -->

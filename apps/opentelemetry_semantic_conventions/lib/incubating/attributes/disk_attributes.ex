@@ -30,10 +30,10 @@ defmodule OpenTelemetry.SemConv.Incubating.DiskAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.DiskAttributes.disk_io_direction()
       :"disk.io.direction"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.DiskAttributes.disk_io_direction_values().read
       :read
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.DiskAttributes.disk_io_direction() => OpenTelemetry.SemConv.Incubating.DiskAttributes.disk_io_direction_values().read}
       %{:"disk.io.direction" => :read}
 
@@ -44,10 +44,10 @@ defmodule OpenTelemetry.SemConv.Incubating.DiskAttributes do
   'disk.io.direction'
 
   ?'DISK_IO_DIRECTION_VALUES_READ'.
-  read
+  'read'
 
-  \#{?DISK_IO_DIRECTION => ?'DISK_IO_DIRECTION_VALUES_READ'}.
-  \#{'disk.io.direction' => read}
+  \#{?'DISK_IO_DIRECTION' => ?'DISK_IO_DIRECTION_VALUES_READ'}.
+  \#{'disk.io.direction' => 'read'}
   ```
 
   <!-- tabs-close -->

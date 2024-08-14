@@ -550,10 +550,10 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_protocol_name()
       :"tls.protocol.name"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_protocol_name_values().ssl
       :ssl
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_protocol_name() => OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_protocol_name_values().ssl}
       %{:"tls.protocol.name" => :ssl}
 
@@ -564,10 +564,10 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   'tls.protocol.name'
 
   ?'TLS_PROTOCOL_NAME_VALUES_SSL'.
-  ssl
+  'ssl'
 
-  \#{?TLS_PROTOCOL_NAME => ?'TLS_PROTOCOL_NAME_VALUES_SSL'}.
-  \#{'tls.protocol.name' => ssl}
+  \#{?'TLS_PROTOCOL_NAME' => ?'TLS_PROTOCOL_NAME_VALUES_SSL'}.
+  \#{'tls.protocol.name' => 'ssl'}
   ```
 
   <!-- tabs-close -->

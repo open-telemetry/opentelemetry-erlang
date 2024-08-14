@@ -124,10 +124,10 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_context_switch_type()
       :"process.context_switch_type"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_context_switch_type_values().voluntary
       :voluntary
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_context_switch_type() => OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_context_switch_type_values().voluntary}
       %{:"process.context_switch_type" => :voluntary}
 
@@ -138,10 +138,10 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   'process.context_switch_type'
 
   ?'PROCESS_CONTEXT_SWITCH_TYPE_VALUES_VOLUNTARY'.
-  voluntary
+  'voluntary'
 
-  \#{?PROCESS_CONTEXT_SWITCH_TYPE => ?'PROCESS_CONTEXT_SWITCH_TYPE_VALUES_VOLUNTARY'}.
-  \#{'process.context_switch_type' => voluntary}
+  \#{?'PROCESS_CONTEXT_SWITCH_TYPE' => ?'PROCESS_CONTEXT_SWITCH_TYPE_VALUES_VOLUNTARY'}.
+  \#{'process.context_switch_type' => 'voluntary'}
   ```
 
   <!-- tabs-close -->
@@ -184,10 +184,10 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_cpu_state()
       :"process.cpu.state"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_cpu_state_values().system
       :system
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_cpu_state() => OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_cpu_state_values().system}
       %{:"process.cpu.state" => :system}
 
@@ -198,10 +198,10 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   'process.cpu.state'
 
   ?'PROCESS_CPU_STATE_VALUES_SYSTEM'.
-  system
+  'system'
 
-  \#{?PROCESS_CPU_STATE => ?'PROCESS_CPU_STATE_VALUES_SYSTEM'}.
-  \#{'process.cpu.state' => system}
+  \#{?'PROCESS_CPU_STATE' => ?'PROCESS_CPU_STATE_VALUES_SYSTEM'}.
+  \#{'process.cpu.state' => 'system'}
   ```
 
   <!-- tabs-close -->
@@ -502,10 +502,10 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_fault_type()
       :"process.paging.fault_type"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_fault_type_values().major
       :major
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_fault_type() => OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_fault_type_values().major}
       %{:"process.paging.fault_type" => :major}
 
@@ -516,10 +516,10 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   'process.paging.fault_type'
 
   ?'PROCESS_PAGING_FAULT_TYPE_VALUES_MAJOR'.
-  major
+  'major'
 
-  \#{?PROCESS_PAGING_FAULT_TYPE => ?'PROCESS_PAGING_FAULT_TYPE_VALUES_MAJOR'}.
-  \#{'process.paging.fault_type' => major}
+  \#{?'PROCESS_PAGING_FAULT_TYPE' => ?'PROCESS_PAGING_FAULT_TYPE_VALUES_MAJOR'}.
+  \#{'process.paging.fault_type' => 'major'}
   ```
 
   <!-- tabs-close -->

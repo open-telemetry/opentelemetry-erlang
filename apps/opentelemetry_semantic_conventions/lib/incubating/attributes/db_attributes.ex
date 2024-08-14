@@ -45,10 +45,10 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistency_level()
       :"db.cassandra.consistency_level"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistency_level_values().all
       :all
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistency_level() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistency_level_values().all}
       %{:"db.cassandra.consistency_level" => :all}
 
@@ -59,10 +59,10 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   'db.cassandra.consistency_level'
 
   ?'DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES_ALL'.
-  all
+  'all'
 
-  \#{?DB_CASSANDRA_CONSISTENCY_LEVEL => ?'DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES_ALL'}.
-  \#{'db.cassandra.consistency_level' => all}
+  \#{?'DB_CASSANDRA_CONSISTENCY_LEVEL' => ?'DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES_ALL'}.
+  \#{'db.cassandra.consistency_level' => 'all'}
   ```
 
   <!-- tabs-close -->
@@ -316,10 +316,10 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connections_state()
       :"db.client.connections.state"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connections_state_values().idle
       :idle
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connections_state() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connections_state_values().idle}
       %{:"db.client.connections.state" => :idle}
 
@@ -330,10 +330,10 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   'db.client.connections.state'
 
   ?'DB_CLIENT_CONNECTIONS_STATE_VALUES_IDLE'.
-  idle
+  'idle'
 
-  \#{?DB_CLIENT_CONNECTIONS_STATE => ?'DB_CLIENT_CONNECTIONS_STATE_VALUES_IDLE'}.
-  \#{'db.client.connections.state' => idle}
+  \#{?'DB_CLIENT_CONNECTIONS_STATE' => ?'DB_CLIENT_CONNECTIONS_STATE_VALUES_IDLE'}.
+  \#{'db.client.connections.state' => 'idle'}
   ```
 
   <!-- tabs-close -->
@@ -450,10 +450,10 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connection_mode()
       :"db.cosmosdb.connection_mode"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connection_mode_values().gateway
       :gateway
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connection_mode() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connection_mode_values().gateway}
       %{:"db.cosmosdb.connection_mode" => :gateway}
 
@@ -464,10 +464,10 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   'db.cosmosdb.connection_mode'
 
   ?'DB_COSMOSDB_CONNECTION_MODE_VALUES_GATEWAY'.
-  gateway
+  'gateway'
 
-  \#{?DB_COSMOSDB_CONNECTION_MODE => ?'DB_COSMOSDB_CONNECTION_MODE_VALUES_GATEWAY'}.
-  \#{'db.cosmosdb.connection_mode' => gateway}
+  \#{?'DB_COSMOSDB_CONNECTION_MODE' => ?'DB_COSMOSDB_CONNECTION_MODE_VALUES_GATEWAY'}.
+  \#{'db.cosmosdb.connection_mode' => 'gateway'}
   ```
 
   <!-- tabs-close -->
@@ -540,10 +540,10 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operation_type()
       :"db.cosmosdb.operation_type"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operation_type_values().invalid
       :Invalid
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operation_type() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operation_type_values().invalid}
       %{:"db.cosmosdb.operation_type" => :Invalid}
 
@@ -554,10 +554,10 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   'db.cosmosdb.operation_type'
 
   ?'DB_COSMOSDB_OPERATION_TYPE_VALUES_INVALID'.
-  Invalid
+  'Invalid'
 
-  \#{?DB_COSMOSDB_OPERATION_TYPE => ?'DB_COSMOSDB_OPERATION_TYPE_VALUES_INVALID'}.
-  \#{'db.cosmosdb.operation_type' => Invalid}
+  \#{?'DB_COSMOSDB_OPERATION_TYPE' => ?'DB_COSMOSDB_OPERATION_TYPE_VALUES_INVALID'}.
+  \#{'db.cosmosdb.operation_type' => 'Invalid'}
   ```
 
   <!-- tabs-close -->
@@ -1158,10 +1158,10 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
       iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_system()
       :"db.system"
-      
+
       iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_system_values().other_sql
       :other_sql
-      
+
       iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_system() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_system_values().other_sql}
       %{:"db.system" => :other_sql}
 
@@ -1172,10 +1172,10 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   'db.system'
 
   ?'DB_SYSTEM_VALUES_OTHER_SQL'.
-  other_sql
+  'other_sql'
 
-  \#{?DB_SYSTEM => ?'DB_SYSTEM_VALUES_OTHER_SQL'}.
-  \#{'db.system' => other_sql}
+  \#{?'DB_SYSTEM' => ?'DB_SYSTEM_VALUES_OTHER_SQL'}.
+  \#{'db.system' => 'other_sql'}
   ```
 
   <!-- tabs-close -->
