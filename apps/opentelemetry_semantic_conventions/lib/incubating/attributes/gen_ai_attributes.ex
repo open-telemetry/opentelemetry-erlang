@@ -28,7 +28,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Erlang
 
   ```erlang
-  ?'GEN_AI_COMPLETION'.
+  ?GEN_AI_COMPLETION.
   'gen_ai.completion'
   ```
 
@@ -63,7 +63,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Erlang
 
   ```erlang
-  ?'GEN_AI_PROMPT'.
+  ?GEN_AI_PROMPT.
   'gen_ai.prompt'
   ```
 
@@ -95,7 +95,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Erlang
 
   ```erlang
-  ?'GEN_AI_REQUEST_MAX_TOKENS'.
+  ?GEN_AI_REQUEST_MAX_TOKENS.
   'gen_ai.request.max_tokens'
   ```
 
@@ -127,7 +127,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Erlang
 
   ```erlang
-  ?'GEN_AI_REQUEST_MODEL'.
+  ?GEN_AI_REQUEST_MODEL.
   'gen_ai.request.model'
   ```
 
@@ -159,7 +159,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Erlang
 
   ```erlang
-  ?'GEN_AI_REQUEST_TEMPERATURE'.
+  ?GEN_AI_REQUEST_TEMPERATURE.
   'gen_ai.request.temperature'
   ```
 
@@ -191,7 +191,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Erlang
 
   ```erlang
-  ?'GEN_AI_REQUEST_TOP_P'.
+  ?GEN_AI_REQUEST_TOP_P.
   'gen_ai.request.top_p'
   ```
 
@@ -223,7 +223,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Erlang
 
   ```erlang
-  ?'GEN_AI_RESPONSE_FINISH_REASONS'.
+  ?GEN_AI_RESPONSE_FINISH_REASONS.
   'gen_ai.response.finish_reasons'
   ```
 
@@ -255,7 +255,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Erlang
 
   ```erlang
-  ?'GEN_AI_RESPONSE_ID'.
+  ?GEN_AI_RESPONSE_ID.
   'gen_ai.response.id'
   ```
 
@@ -287,7 +287,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Erlang
 
   ```erlang
-  ?'GEN_AI_RESPONSE_MODEL'.
+  ?GEN_AI_RESPONSE_MODEL.
   'gen_ai.response.model'
   ```
 
@@ -336,13 +336,13 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Erlang
 
   ```erlang
-  ?'GEN_AI_SYSTEM'.
+  ?GEN_AI_SYSTEM.
   'gen_ai.system'
 
-  ?'GEN_AI_SYSTEM_VALUES_OPENAI'.
+  ?GEN_AI_SYSTEM_VALUES_OPENAI.
   'openai'
 
-  \#{?'GEN_AI_SYSTEM' => ?'GEN_AI_SYSTEM_VALUES_OPENAI'}.
+  \#{?GEN_AI_SYSTEM => ?GEN_AI_SYSTEM_VALUES_OPENAI}.
   \#{'gen_ai.system' => 'openai'}
   ```
 
@@ -381,7 +381,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Erlang
 
   ```erlang
-  ?'GEN_AI_USAGE_COMPLETION_TOKENS'.
+  ?GEN_AI_USAGE_COMPLETION_TOKENS.
   'gen_ai.usage.completion_tokens'
   ```
 
@@ -413,7 +413,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Erlang
 
   ```erlang
-  ?'GEN_AI_USAGE_PROMPT_TOKENS'.
+  ?GEN_AI_USAGE_PROMPT_TOKENS.
   'gen_ai.usage.prompt_tokens'
   ```
 

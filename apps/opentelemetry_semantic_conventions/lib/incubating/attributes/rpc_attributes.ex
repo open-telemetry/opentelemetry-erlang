@@ -114,13 +114,13 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_CONNECT_RPC_ERROR_CODE'.
+  ?RPC_CONNECT_RPC_ERROR_CODE.
   'rpc.connect_rpc.error_code'
 
-  ?'RPC_CONNECT_RPC_ERROR_CODE_VALUES_CANCELLED'.
+  ?RPC_CONNECT_RPC_ERROR_CODE_VALUES_CANCELLED.
   'cancelled'
 
-  \#{?'RPC_CONNECT_RPC_ERROR_CODE' => ?'RPC_CONNECT_RPC_ERROR_CODE_VALUES_CANCELLED'}.
+  \#{?RPC_CONNECT_RPC_ERROR_CODE => ?RPC_CONNECT_RPC_ERROR_CODE_VALUES_CANCELLED}.
   \#{'rpc.connect_rpc.error_code' => 'cancelled'}
   ```
 
@@ -179,7 +179,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_CONNECT_RPC_REQUEST_METADATA'.
+  ?RPC_CONNECT_RPC_REQUEST_METADATA.
   'rpc.connect_rpc.request.metadata'
   ```
 
@@ -216,7 +216,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_CONNECT_RPC_RESPONSE_METADATA'.
+  ?RPC_CONNECT_RPC_RESPONSE_METADATA.
   'rpc.connect_rpc.response.metadata'
   ```
 
@@ -253,7 +253,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_GRPC_REQUEST_METADATA'.
+  ?RPC_GRPC_REQUEST_METADATA.
   'rpc.grpc.request.metadata'
   ```
 
@@ -290,7 +290,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_GRPC_RESPONSE_METADATA'.
+  ?RPC_GRPC_RESPONSE_METADATA.
   'rpc.grpc.response.metadata'
   ```
 
@@ -362,13 +362,13 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_GRPC_STATUS_CODE'.
+  ?RPC_GRPC_STATUS_CODE.
   'rpc.grpc.status_code'
 
-  ?'RPC_GRPC_STATUS_CODE_VALUES_OK'.
+  ?RPC_GRPC_STATUS_CODE_VALUES_OK.
   '0'
 
-  \#{?'RPC_GRPC_STATUS_CODE' => ?'RPC_GRPC_STATUS_CODE_VALUES_OK'}.
+  \#{?RPC_GRPC_STATUS_CODE => ?RPC_GRPC_STATUS_CODE_VALUES_OK}.
   \#{'rpc.grpc.status_code' => '0'}
   ```
 
@@ -423,7 +423,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_JSONRPC_ERROR_CODE'.
+  ?RPC_JSONRPC_ERROR_CODE.
   'rpc.jsonrpc.error_code'
   ```
 
@@ -455,7 +455,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_JSONRPC_ERROR_MESSAGE'.
+  ?RPC_JSONRPC_ERROR_MESSAGE.
   'rpc.jsonrpc.error_message'
   ```
 
@@ -488,7 +488,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_JSONRPC_REQUEST_ID'.
+  ?RPC_JSONRPC_REQUEST_ID.
   'rpc.jsonrpc.request_id'
   ```
 
@@ -520,7 +520,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_JSONRPC_VERSION'.
+  ?RPC_JSONRPC_VERSION.
   'rpc.jsonrpc.version'
   ```
 
@@ -547,7 +547,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_MESSAGE_COMPRESSED_SIZE'.
+  ?RPC_MESSAGE_COMPRESSED_SIZE.
   'rpc.message.compressed_size'
   ```
 
@@ -577,7 +577,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_MESSAGE_ID'.
+  ?RPC_MESSAGE_ID.
   'rpc.message.id'
   ```
 
@@ -619,13 +619,13 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_MESSAGE_TYPE'.
+  ?RPC_MESSAGE_TYPE.
   'rpc.message.type'
 
-  ?'RPC_MESSAGE_TYPE_VALUES_SENT'.
+  ?RPC_MESSAGE_TYPE_VALUES_SENT.
   'SENT'
 
-  \#{?'RPC_MESSAGE_TYPE' => ?'RPC_MESSAGE_TYPE_VALUES_SENT'}.
+  \#{?RPC_MESSAGE_TYPE => ?RPC_MESSAGE_TYPE_VALUES_SENT}.
   \#{'rpc.message.type' => 'SENT'}
   ```
 
@@ -660,7 +660,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_MESSAGE_UNCOMPRESSED_SIZE'.
+  ?RPC_MESSAGE_UNCOMPRESSED_SIZE.
   'rpc.message.uncompressed_size'
   ```
 
@@ -696,7 +696,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_METHOD'.
+  ?RPC_METHOD.
   'rpc.method'
   ```
 
@@ -732,7 +732,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_SERVICE'.
+  ?RPC_SERVICE.
   'rpc.service'
   ```
 
@@ -780,13 +780,13 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   ### Erlang
 
   ```erlang
-  ?'RPC_SYSTEM'.
+  ?RPC_SYSTEM.
   'rpc.system'
 
-  ?'RPC_SYSTEM_VALUES_GRPC'.
+  ?RPC_SYSTEM_VALUES_GRPC.
   'grpc'
 
-  \#{?'RPC_SYSTEM' => ?'RPC_SYSTEM_VALUES_GRPC'}.
+  \#{?RPC_SYSTEM => ?RPC_SYSTEM_VALUES_GRPC}.
   \#{'rpc.system' => 'grpc'}
   ```
 

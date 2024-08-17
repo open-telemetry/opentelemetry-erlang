@@ -29,7 +29,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DNSAttributes do
   ### Erlang
 
   ```erlang
-  ?'DNS_QUESTION_NAME'.
+  ?DNS_QUESTION_NAME.
   'dns.question.name'
   ```
 

@@ -18,7 +18,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   ### Erlang
 
   ```erlang
-  ?'FAAS_COLDSTARTS'.
+  ?FAAS_COLDSTARTS.
   'faas.coldstarts'
   ```
 
@@ -45,7 +45,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   ### Erlang
 
   ```erlang
-  ?'FAAS_CPU_USAGE'.
+  ?FAAS_CPU_USAGE.
   'faas.cpu_usage'
   ```
 
@@ -72,7 +72,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   ### Erlang
 
   ```erlang
-  ?'FAAS_ERRORS'.
+  ?FAAS_ERRORS.
   'faas.errors'
   ```
 
@@ -99,7 +99,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   ### Erlang
 
   ```erlang
-  ?'FAAS_INIT_DURATION'.
+  ?FAAS_INIT_DURATION.
   'faas.init_duration'
   ```
 
@@ -126,7 +126,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   ### Erlang
 
   ```erlang
-  ?'FAAS_INVOCATIONS'.
+  ?FAAS_INVOCATIONS.
   'faas.invocations'
   ```
 
@@ -153,7 +153,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   ### Erlang
 
   ```erlang
-  ?'FAAS_INVOKE_DURATION'.
+  ?FAAS_INVOKE_DURATION.
   'faas.invoke_duration'
   ```
 
@@ -180,7 +180,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   ### Erlang
 
   ```erlang
-  ?'FAAS_MEM_USAGE'.
+  ?FAAS_MEM_USAGE.
   'faas.mem_usage'
   ```
 
@@ -207,7 +207,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   ### Erlang
 
   ```erlang
-  ?'FAAS_NET_IO'.
+  ?FAAS_NET_IO.
   'faas.net_io'
   ```
 
@@ -234,7 +234,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   ### Erlang
 
   ```erlang
-  ?'FAAS_TIMEOUTS'.
+  ?FAAS_TIMEOUTS.
   'faas.timeouts'
   ```
 

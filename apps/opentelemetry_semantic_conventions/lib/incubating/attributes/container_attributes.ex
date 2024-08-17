@@ -30,7 +30,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Erlang
 
   ```erlang
-  ?'CONTAINER_COMMAND'.
+  ?CONTAINER_COMMAND.
   'container.command'
   ```
 
@@ -63,7 +63,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Erlang
 
   ```erlang
-  ?'CONTAINER_COMMAND_ARGS'.
+  ?CONTAINER_COMMAND_ARGS.
   'container.command_args'
   ```
 
@@ -96,7 +96,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Erlang
 
   ```erlang
-  ?'CONTAINER_COMMAND_LINE'.
+  ?CONTAINER_COMMAND_LINE.
   'container.command_line'
   ```
 
@@ -145,13 +145,13 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Erlang
 
   ```erlang
-  ?'CONTAINER_CPU_STATE'.
+  ?CONTAINER_CPU_STATE.
   'container.cpu.state'
 
-  ?'CONTAINER_CPU_STATE_VALUES_USER'.
+  ?CONTAINER_CPU_STATE_VALUES_USER.
   'user'
 
-  \#{?'CONTAINER_CPU_STATE' => ?'CONTAINER_CPU_STATE_VALUES_USER'}.
+  \#{?CONTAINER_CPU_STATE => ?CONTAINER_CPU_STATE_VALUES_USER}.
   \#{'container.cpu.state' => 'user'}
   ```
 
@@ -193,7 +193,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Erlang
 
   ```erlang
-  ?'CONTAINER_ID'.
+  ?CONTAINER_ID.
   'container.id'
   ```
 
@@ -232,7 +232,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Erlang
 
   ```erlang
-  ?'CONTAINER_IMAGE_ID'.
+  ?CONTAINER_IMAGE_ID.
   'container.image.id'
   ```
 
@@ -265,7 +265,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Erlang
 
   ```erlang
-  ?'CONTAINER_IMAGE_NAME'.
+  ?CONTAINER_IMAGE_NAME.
   'container.image.name'
   ```
 
@@ -302,7 +302,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Erlang
 
   ```erlang
-  ?'CONTAINER_IMAGE_REPO_DIGESTS'.
+  ?CONTAINER_IMAGE_REPO_DIGESTS.
   'container.image.repo_digests'
   ```
 
@@ -335,7 +335,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Erlang
 
   ```erlang
-  ?'CONTAINER_IMAGE_TAGS'.
+  ?CONTAINER_IMAGE_TAGS.
   'container.image.tags'
   ```
 
@@ -368,7 +368,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Erlang
 
   ```erlang
-  ?'CONTAINER_LABEL'.
+  ?CONTAINER_LABEL.
   'container.label'
   ```
 
@@ -409,7 +409,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Erlang
 
   ```erlang
-  ?'CONTAINER_NAME'.
+  ?CONTAINER_NAME.
   'container.name'
   ```
 
@@ -442,7 +442,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Erlang
 
   ```erlang
-  ?'CONTAINER_RUNTIME'.
+  ?CONTAINER_RUNTIME.
   'container.runtime'
   ```
 

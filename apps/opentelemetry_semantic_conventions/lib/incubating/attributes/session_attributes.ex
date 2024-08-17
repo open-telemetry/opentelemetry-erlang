@@ -25,7 +25,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SessionAttributes do
   ### Erlang
 
   ```erlang
-  ?'SESSION_ID'.
+  ?SESSION_ID.
   'session.id'
   ```
 
@@ -57,7 +57,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SessionAttributes do
   ### Erlang
 
   ```erlang
-  ?'SESSION_PREVIOUS_ID'.
+  ?SESSION_PREVIOUS_ID.
   'session.previous_id'
   ```
 

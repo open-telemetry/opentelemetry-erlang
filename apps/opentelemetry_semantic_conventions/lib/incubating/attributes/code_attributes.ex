@@ -26,7 +26,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CodeAttributes do
   ### Erlang
 
   ```erlang
-  ?'CODE_COLUMN'.
+  ?CODE_COLUMN.
   'code.column'
   ```
 
@@ -59,7 +59,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CodeAttributes do
   ### Erlang
 
   ```erlang
-  ?'CODE_FILEPATH'.
+  ?CODE_FILEPATH.
   'code.filepath'
   ```
 
@@ -92,7 +92,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CodeAttributes do
   ### Erlang
 
   ```erlang
-  ?'CODE_FUNCTION'.
+  ?CODE_FUNCTION.
   'code.function'
   ```
 
@@ -125,7 +125,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CodeAttributes do
   ### Erlang
 
   ```erlang
-  ?'CODE_LINENO'.
+  ?CODE_LINENO.
   'code.lineno'
   ```
 
@@ -158,7 +158,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CodeAttributes do
   ### Erlang
 
   ```erlang
-  ?'CODE_NAMESPACE'.
+  ?CODE_NAMESPACE.
   'code.namespace'
   ```
 
@@ -191,7 +191,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CodeAttributes do
   ### Erlang
 
   ```erlang
-  ?'CODE_STACKTRACE'.
+  ?CODE_STACKTRACE.
   'code.stacktrace'
   ```
 

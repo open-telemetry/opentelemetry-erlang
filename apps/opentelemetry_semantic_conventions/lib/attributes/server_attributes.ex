@@ -29,7 +29,7 @@ defmodule OpenTelemetry.SemConv.ServerAttributes do
   ### Erlang
 
   ```erlang
-  ?'SERVER_ADDRESS'.
+  ?SERVER_ADDRESS.
   'server.address'
   ```
 
@@ -65,7 +65,7 @@ defmodule OpenTelemetry.SemConv.ServerAttributes do
   ### Erlang
 
   ```erlang
-  ?'SERVER_PORT'.
+  ?SERVER_PORT.
   'server.port'
   ```
 

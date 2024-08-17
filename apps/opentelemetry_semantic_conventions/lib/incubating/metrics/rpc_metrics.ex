@@ -25,7 +25,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Erlang
 
   ```erlang
-  ?'RPC_CLIENT_DURATION'.
+  ?RPC_CLIENT_DURATION.
   'rpc.client.duration'
   ```
 
@@ -56,7 +56,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Erlang
 
   ```erlang
-  ?'RPC_CLIENT_REQUEST_SIZE'.
+  ?RPC_CLIENT_REQUEST_SIZE.
   'rpc.client.request.size'
   ```
 
@@ -89,7 +89,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Erlang
 
   ```erlang
-  ?'RPC_CLIENT_REQUESTS_PER_RPC'.
+  ?RPC_CLIENT_REQUESTS_PER_RPC.
   'rpc.client.requests_per_rpc'
   ```
 
@@ -120,7 +120,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Erlang
 
   ```erlang
-  ?'RPC_CLIENT_RESPONSE_SIZE'.
+  ?RPC_CLIENT_RESPONSE_SIZE.
   'rpc.client.response.size'
   ```
 
@@ -153,7 +153,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Erlang
 
   ```erlang
-  ?'RPC_CLIENT_RESPONSES_PER_RPC'.
+  ?RPC_CLIENT_RESPONSES_PER_RPC.
   'rpc.client.responses_per_rpc'
   ```
 
@@ -187,7 +187,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Erlang
 
   ```erlang
-  ?'RPC_SERVER_DURATION'.
+  ?RPC_SERVER_DURATION.
   'rpc.server.duration'
   ```
 
@@ -218,7 +218,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Erlang
 
   ```erlang
-  ?'RPC_SERVER_REQUEST_SIZE'.
+  ?RPC_SERVER_REQUEST_SIZE.
   'rpc.server.request.size'
   ```
 
@@ -251,7 +251,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Erlang
 
   ```erlang
-  ?'RPC_SERVER_REQUESTS_PER_RPC'.
+  ?RPC_SERVER_REQUESTS_PER_RPC.
   'rpc.server.requests_per_rpc'
   ```
 
@@ -282,7 +282,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Erlang
 
   ```erlang
-  ?'RPC_SERVER_RESPONSE_SIZE'.
+  ?RPC_SERVER_RESPONSE_SIZE.
   'rpc.server.response.size'
   ```
 
@@ -315,7 +315,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.RPCMetrics do
   ### Erlang
 
   ```erlang
-  ?'RPC_SERVER_RESPONSES_PER_RPC'.
+  ?RPC_SERVER_RESPONSES_PER_RPC.
   'rpc.server.responses_per_rpc'
   ```
 

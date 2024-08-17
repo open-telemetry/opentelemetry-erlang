@@ -84,13 +84,13 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   ### Erlang
 
   ```erlang
-  ?'{{ c.erl_attr_name(attribute.name) }}'.
+  ?{{ c.erl_attr_name(attribute.name) }}.
   '{{ attribute.name }}'
 
-  ?'{{ c.erl_attr_name(attribute.name) }}_VALUES_{{ attribute.type.members|first|attr('id') | screaming_snake_case }}'.
+  ?{{ c.erl_attr_name(attribute.name) }}_VALUES_{{ attribute.type.members|first|attr('id') | screaming_snake_case }}.
   '{{ attribute.type.members|first|attr('value') }}'
 
-  {% raw %}\#{{% endraw %}?'{{ c.erl_attr_name(attribute.name) }}' => ?'{{ c.erl_attr_name(attribute.name) }}_VALUES_{{ attribute.type.members|first|attr('id') | screaming_snake_case }}'{% raw %}}{% endraw %}.
+  {% raw %}\#{{% endraw %}?{{ c.erl_attr_name(attribute.name) }} => ?{{ c.erl_attr_name(attribute.name) }}_VALUES_{{ attribute.type.members|first|attr('id') | screaming_snake_case }}{% raw %}}{% endraw %}.
   {% raw %}\#{{% endraw %}'{{ attribute.name }}' => '{{ attribute.type.members|first|attr('value') }}'{% raw %}}{% endraw %}
   ```
   {%- else %}
@@ -103,7 +103,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   ### Erlang
 
   ```erlang
-  ?'{{ c.erl_attr_name(attribute.name) }}'.
+  ?{{ c.erl_attr_name(attribute.name) }}.
   '{{ attribute.name }}'
   ```
   {%- endif %}

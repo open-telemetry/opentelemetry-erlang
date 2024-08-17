@@ -18,7 +18,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   ### Erlang
 
   ```erlang
-  ?'DB_CLIENT_CONNECTION_COUNT'.
+  ?DB_CLIENT_CONNECTION_COUNT.
   'db.client.connection.count'
   ```
 
@@ -45,7 +45,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   ### Erlang
 
   ```erlang
-  ?'DB_CLIENT_CONNECTION_CREATE_TIME'.
+  ?DB_CLIENT_CONNECTION_CREATE_TIME.
   'db.client.connection.create_time'
   ```
 
@@ -72,7 +72,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   ### Erlang
 
   ```erlang
-  ?'DB_CLIENT_CONNECTION_IDLE_MAX'.
+  ?DB_CLIENT_CONNECTION_IDLE_MAX.
   'db.client.connection.idle.max'
   ```
 
@@ -99,7 +99,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   ### Erlang
 
   ```erlang
-  ?'DB_CLIENT_CONNECTION_IDLE_MIN'.
+  ?DB_CLIENT_CONNECTION_IDLE_MIN.
   'db.client.connection.idle.min'
   ```
 
@@ -126,7 +126,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   ### Erlang
 
   ```erlang
-  ?'DB_CLIENT_CONNECTION_MAX'.
+  ?DB_CLIENT_CONNECTION_MAX.
   'db.client.connection.max'
   ```
 
@@ -153,7 +153,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   ### Erlang
 
   ```erlang
-  ?'DB_CLIENT_CONNECTION_PENDING_REQUESTS'.
+  ?DB_CLIENT_CONNECTION_PENDING_REQUESTS.
   'db.client.connection.pending_requests'
   ```
 
@@ -180,7 +180,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   ### Erlang
 
   ```erlang
-  ?'DB_CLIENT_CONNECTION_TIMEOUTS'.
+  ?DB_CLIENT_CONNECTION_TIMEOUTS.
   'db.client.connection.timeouts'
   ```
 
@@ -207,7 +207,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   ### Erlang
 
   ```erlang
-  ?'DB_CLIENT_CONNECTION_USE_TIME'.
+  ?DB_CLIENT_CONNECTION_USE_TIME.
   'db.client.connection.use_time'
   ```
 
@@ -234,7 +234,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   ### Erlang
 
   ```erlang
-  ?'DB_CLIENT_CONNECTION_WAIT_TIME'.
+  ?DB_CLIENT_CONNECTION_WAIT_TIME.
   'db.client.connection.wait_time'
   ```
 
@@ -342,7 +342,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   ### Erlang
 
   ```erlang
-  ?'DB_CLIENT_OPERATION_DURATION'.
+  ?DB_CLIENT_OPERATION_DURATION.
   'db.client.operation.duration'
   ```
 

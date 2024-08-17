@@ -36,7 +36,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DeploymentAttributes do
   ### Erlang
 
   ```erlang
-  ?'DEPLOYMENT_ENVIRONMENT'.
+  ?DEPLOYMENT_ENVIRONMENT.
   'deployment.environment'
   ```
 

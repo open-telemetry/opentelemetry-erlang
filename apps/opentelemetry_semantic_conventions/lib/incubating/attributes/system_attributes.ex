@@ -25,7 +25,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_CPU_LOGICAL_NUMBER'.
+  ?SYSTEM_CPU_LOGICAL_NUMBER.
   'system.cpu.logical_number'
   ```
 
@@ -82,13 +82,13 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_CPU_STATE'.
+  ?SYSTEM_CPU_STATE.
   'system.cpu.state'
 
-  ?'SYSTEM_CPU_STATE_VALUES_USER'.
+  ?SYSTEM_CPU_STATE_VALUES_USER.
   'user'
 
-  \#{?'SYSTEM_CPU_STATE' => ?'SYSTEM_CPU_STATE_VALUES_USER'}.
+  \#{?SYSTEM_CPU_STATE => ?SYSTEM_CPU_STATE_VALUES_USER}.
   \#{'system.cpu.state' => 'user'}
   ```
 
@@ -133,7 +133,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_DEVICE'.
+  ?SYSTEM_DEVICE.
   'system.device'
   ```
 
@@ -165,7 +165,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_FILESYSTEM_MODE'.
+  ?SYSTEM_FILESYSTEM_MODE.
   'system.filesystem.mode'
   ```
 
@@ -197,7 +197,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_FILESYSTEM_MOUNTPOINT'.
+  ?SYSTEM_FILESYSTEM_MOUNTPOINT.
   'system.filesystem.mountpoint'
   ```
 
@@ -246,13 +246,13 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_FILESYSTEM_STATE'.
+  ?SYSTEM_FILESYSTEM_STATE.
   'system.filesystem.state'
 
-  ?'SYSTEM_FILESYSTEM_STATE_VALUES_USED'.
+  ?SYSTEM_FILESYSTEM_STATE_VALUES_USED.
   'used'
 
-  \#{?'SYSTEM_FILESYSTEM_STATE' => ?'SYSTEM_FILESYSTEM_STATE_VALUES_USED'}.
+  \#{?SYSTEM_FILESYSTEM_STATE => ?SYSTEM_FILESYSTEM_STATE_VALUES_USED}.
   \#{'system.filesystem.state' => 'used'}
   ```
 
@@ -316,13 +316,13 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_FILESYSTEM_TYPE'.
+  ?SYSTEM_FILESYSTEM_TYPE.
   'system.filesystem.type'
 
-  ?'SYSTEM_FILESYSTEM_TYPE_VALUES_FAT_32'.
+  ?SYSTEM_FILESYSTEM_TYPE_VALUES_FAT_32.
   'fat32'
 
-  \#{?'SYSTEM_FILESYSTEM_TYPE' => ?'SYSTEM_FILESYSTEM_TYPE_VALUES_FAT_32'}.
+  \#{?SYSTEM_FILESYSTEM_TYPE => ?SYSTEM_FILESYSTEM_TYPE_VALUES_FAT_32}.
   \#{'system.filesystem.type' => 'fat32'}
   ```
 
@@ -387,13 +387,13 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_MEMORY_STATE'.
+  ?SYSTEM_MEMORY_STATE.
   'system.memory.state'
 
-  ?'SYSTEM_MEMORY_STATE_VALUES_USED'.
+  ?SYSTEM_MEMORY_STATE_VALUES_USED.
   'used'
 
-  \#{?'SYSTEM_MEMORY_STATE' => ?'SYSTEM_MEMORY_STATE_VALUES_USED'}.
+  \#{?SYSTEM_MEMORY_STATE => ?SYSTEM_MEMORY_STATE_VALUES_USED}.
   \#{'system.memory.state' => 'used'}
   ```
 
@@ -471,13 +471,13 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_NETWORK_STATE'.
+  ?SYSTEM_NETWORK_STATE.
   'system.network.state'
 
-  ?'SYSTEM_NETWORK_STATE_VALUES_CLOSE'.
+  ?SYSTEM_NETWORK_STATE_VALUES_CLOSE.
   'close'
 
-  \#{?'SYSTEM_NETWORK_STATE' => ?'SYSTEM_NETWORK_STATE_VALUES_CLOSE'}.
+  \#{?SYSTEM_NETWORK_STATE => ?SYSTEM_NETWORK_STATE_VALUES_CLOSE}.
   \#{'system.network.state' => 'close'}
   ```
 
@@ -542,13 +542,13 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_PAGING_DIRECTION'.
+  ?SYSTEM_PAGING_DIRECTION.
   'system.paging.direction'
 
-  ?'SYSTEM_PAGING_DIRECTION_VALUES_IN'.
+  ?SYSTEM_PAGING_DIRECTION_VALUES_IN.
   'in'
 
-  \#{?'SYSTEM_PAGING_DIRECTION' => ?'SYSTEM_PAGING_DIRECTION_VALUES_IN'}.
+  \#{?SYSTEM_PAGING_DIRECTION => ?SYSTEM_PAGING_DIRECTION_VALUES_IN}.
   \#{'system.paging.direction' => 'in'}
   ```
 
@@ -603,13 +603,13 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_PAGING_STATE'.
+  ?SYSTEM_PAGING_STATE.
   'system.paging.state'
 
-  ?'SYSTEM_PAGING_STATE_VALUES_USED'.
+  ?SYSTEM_PAGING_STATE_VALUES_USED.
   'used'
 
-  \#{?'SYSTEM_PAGING_STATE' => ?'SYSTEM_PAGING_STATE_VALUES_USED'}.
+  \#{?SYSTEM_PAGING_STATE => ?SYSTEM_PAGING_STATE_VALUES_USED}.
   \#{'system.paging.state' => 'used'}
   ```
 
@@ -664,13 +664,13 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_PAGING_TYPE'.
+  ?SYSTEM_PAGING_TYPE.
   'system.paging.type'
 
-  ?'SYSTEM_PAGING_TYPE_VALUES_MAJOR'.
+  ?SYSTEM_PAGING_TYPE_VALUES_MAJOR.
   'major'
 
-  \#{?'SYSTEM_PAGING_TYPE' => ?'SYSTEM_PAGING_TYPE_VALUES_MAJOR'}.
+  \#{?SYSTEM_PAGING_TYPE => ?SYSTEM_PAGING_TYPE_VALUES_MAJOR}.
   \#{'system.paging.type' => 'major'}
   ```
 
@@ -731,13 +731,13 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_PROCESS_STATUS'.
+  ?SYSTEM_PROCESS_STATUS.
   'system.process.status'
 
-  ?'SYSTEM_PROCESS_STATUS_VALUES_RUNNING'.
+  ?SYSTEM_PROCESS_STATUS_VALUES_RUNNING.
   'running'
 
-  \#{?'SYSTEM_PROCESS_STATUS' => ?'SYSTEM_PROCESS_STATUS_VALUES_RUNNING'}.
+  \#{?SYSTEM_PROCESS_STATUS => ?SYSTEM_PROCESS_STATUS_VALUES_RUNNING}.
   \#{'system.process.status' => 'running'}
   ```
 

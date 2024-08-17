@@ -26,7 +26,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
 
   Instrument: `{{ metric.instrument }}`
   Unit: `{{ metric.unit }}`
-  
+
   {%- if metric.note %}
   ### Notes
 
@@ -42,7 +42,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   ### Erlang
 
   ```erlang
-  ?'{{ metric.metric_name | snake_case | upper }}'.
+  ?{{ metric.metric_name | snake_case | upper }}.
   '{{ metric.metric_name }}'
   ```
 

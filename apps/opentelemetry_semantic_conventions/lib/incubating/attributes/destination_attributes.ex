@@ -29,7 +29,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DestinationAttributes do
   ### Erlang
 
   ```erlang
-  ?'DESTINATION_ADDRESS'.
+  ?DESTINATION_ADDRESS.
   'destination.address'
   ```
 
@@ -61,7 +61,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DestinationAttributes do
   ### Erlang
 
   ```erlang
-  ?'DESTINATION_PORT'.
+  ?DESTINATION_PORT.
   'destination.port'
   ```
 

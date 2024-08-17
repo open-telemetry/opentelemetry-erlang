@@ -15,47 +15,47 @@
 %%%-------------------------------------------------------------------------
 
 %% Local address of the network connection - IP address or Unix domain socket name.
--define('NETWORK_LOCAL_ADDRESS', 'network.local.address').
+-define(NETWORK_LOCAL_ADDRESS, 'network.local.address').
 
 
 %% Local port number of the network connection.
--define('NETWORK_LOCAL_PORT', 'network.local.port').
+-define(NETWORK_LOCAL_PORT, 'network.local.port').
 
 
 %% Peer address of the network connection - IP address or Unix domain socket name.
--define('NETWORK_PEER_ADDRESS', 'network.peer.address').
+-define(NETWORK_PEER_ADDRESS, 'network.peer.address').
 
 
 %% Peer port number of the network connection.
--define('NETWORK_PEER_PORT', 'network.peer.port').
+-define(NETWORK_PEER_PORT, 'network.peer.port').
 
 
 %% [OSI application layer](https://osi-model.com/application-layer/) or non-OSI equivalent.
--define('NETWORK_PROTOCOL_NAME', 'network.protocol.name').
+-define(NETWORK_PROTOCOL_NAME, 'network.protocol.name').
 
 
 %% The actual version of the protocol used for network communication.
--define('NETWORK_PROTOCOL_VERSION', 'network.protocol.version').
+-define(NETWORK_PROTOCOL_VERSION, 'network.protocol.version').
 
 
 %% [OSI transport layer](https://osi-model.com/transport-layer/) or [inter-process communication method](https://wikipedia.org/wiki/Inter-process_communication).
 %%  
--define('NETWORK_TRANSPORT', 'network.transport').
+-define(NETWORK_TRANSPORT, 'network.transport').
 
--define('NETWORK_TRANSPORT_VALUES_TCP', 'tcp').
+-define(NETWORK_TRANSPORT_VALUES_TCP, 'tcp').
 
--define('NETWORK_TRANSPORT_VALUES_UDP', 'udp').
+-define(NETWORK_TRANSPORT_VALUES_UDP, 'udp').
 
--define('NETWORK_TRANSPORT_VALUES_PIPE', 'pipe').
+-define(NETWORK_TRANSPORT_VALUES_PIPE, 'pipe').
 
--define('NETWORK_TRANSPORT_VALUES_UNIX', 'unix').
+-define(NETWORK_TRANSPORT_VALUES_UNIX, 'unix').
 
 
 
 %% [OSI network layer](https://osi-model.com/network-layer/) or non-OSI equivalent.
--define('NETWORK_TYPE', 'network.type').
+-define(NETWORK_TYPE, 'network.type').
 
--define('NETWORK_TYPE_VALUES_IPV_4', 'ipv4').
+-define(NETWORK_TYPE_VALUES_IPV_4, 'ipv4').
 
--define('NETWORK_TYPE_VALUES_IPV_6', 'ipv6').
+-define(NETWORK_TYPE_VALUES_IPV_6, 'ipv6').
 

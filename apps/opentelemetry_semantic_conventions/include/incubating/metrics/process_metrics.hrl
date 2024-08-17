@@ -15,40 +15,40 @@
 %%%-------------------------------------------------------------------------
 
 %% Number of times the process has been context switched.
--define('PROCESS_CONTEXT_SWITCHES', 'process.context_switches').
+-define(PROCESS_CONTEXT_SWITCHES, 'process.context_switches').
 
 
 %% Total CPU seconds broken down by different states.
--define('PROCESS_CPU_TIME', 'process.cpu.time').
+-define(PROCESS_CPU_TIME, 'process.cpu.time').
 
 
 %% Difference in process.cpu.time since the last measurement, divided by the elapsed time and number of CPUs available to the process.
--define('PROCESS_CPU_UTILIZATION', 'process.cpu.utilization').
+-define(PROCESS_CPU_UTILIZATION, 'process.cpu.utilization').
 
 
 %% Disk bytes transferred.
--define('PROCESS_DISK_IO', 'process.disk.io').
+-define(PROCESS_DISK_IO, 'process.disk.io').
 
 
 %% The amount of physical memory in use.
--define('PROCESS_MEMORY_USAGE', 'process.memory.usage').
+-define(PROCESS_MEMORY_USAGE, 'process.memory.usage').
 
 
 %% The amount of committed virtual memory.
--define('PROCESS_MEMORY_VIRTUAL', 'process.memory.virtual').
+-define(PROCESS_MEMORY_VIRTUAL, 'process.memory.virtual').
 
 
 %% Network bytes transferred.
--define('PROCESS_NETWORK_IO', 'process.network.io').
+-define(PROCESS_NETWORK_IO, 'process.network.io').
 
 
 %% Number of file descriptors in use by the process.
--define('PROCESS_OPEN_FILE_DESCRIPTOR_COUNT', 'process.open_file_descriptor.count').
+-define(PROCESS_OPEN_FILE_DESCRIPTOR_COUNT, 'process.open_file_descriptor.count').
 
 
 %% Number of page faults the process has made.
--define('PROCESS_PAGING_FAULTS', 'process.paging.faults').
+-define(PROCESS_PAGING_FAULTS, 'process.paging.faults').
 
 
 %% Process threads count.
--define('PROCESS_THREAD_COUNT', 'process.thread.count').
+-define(PROCESS_THREAD_COUNT, 'process.thread.count').

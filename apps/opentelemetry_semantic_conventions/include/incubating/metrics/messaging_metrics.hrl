@@ -15,24 +15,24 @@
 %%%-------------------------------------------------------------------------
 
 %% Measures the duration of process operation.
--define('MESSAGING_PROCESS_DURATION', 'messaging.process.duration').
+-define(MESSAGING_PROCESS_DURATION, 'messaging.process.duration').
 
 
 %% Measures the number of processed messages.
--define('MESSAGING_PROCESS_MESSAGES', 'messaging.process.messages').
+-define(MESSAGING_PROCESS_MESSAGES, 'messaging.process.messages').
 
 
 %% Measures the duration of publish operation.
--define('MESSAGING_PUBLISH_DURATION', 'messaging.publish.duration').
+-define(MESSAGING_PUBLISH_DURATION, 'messaging.publish.duration').
 
 
 %% Measures the number of published messages.
--define('MESSAGING_PUBLISH_MESSAGES', 'messaging.publish.messages').
+-define(MESSAGING_PUBLISH_MESSAGES, 'messaging.publish.messages').
 
 
 %% Measures the duration of receive operation.
--define('MESSAGING_RECEIVE_DURATION', 'messaging.receive.duration').
+-define(MESSAGING_RECEIVE_DURATION, 'messaging.receive.duration').
 
 
 %% Measures the number of received messages.
--define('MESSAGING_RECEIVE_MESSAGES', 'messaging.receive.messages').
+-define(MESSAGING_RECEIVE_MESSAGES, 'messaging.receive.messages').

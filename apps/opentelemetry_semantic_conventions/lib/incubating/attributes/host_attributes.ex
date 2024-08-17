@@ -49,13 +49,13 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Erlang
 
   ```erlang
-  ?'HOST_ARCH'.
+  ?HOST_ARCH.
   'host.arch'
 
-  ?'HOST_ARCH_VALUES_AMD_64'.
+  ?HOST_ARCH_VALUES_AMD_64.
   'amd64'
 
-  \#{?'HOST_ARCH' => ?'HOST_ARCH_VALUES_AMD_64'}.
+  \#{?HOST_ARCH => ?HOST_ARCH_VALUES_AMD_64}.
   \#{'host.arch' => 'amd64'}
   ```
 
@@ -102,7 +102,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Erlang
 
   ```erlang
-  ?'HOST_CPU_CACHE_L2_SIZE'.
+  ?HOST_CPU_CACHE_L2_SIZE.
   'host.cpu.cache.l2.size'
   ```
 
@@ -135,7 +135,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Erlang
 
   ```erlang
-  ?'HOST_CPU_FAMILY'.
+  ?HOST_CPU_FAMILY.
   'host.cpu.family'
   ```
 
@@ -168,7 +168,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Erlang
 
   ```erlang
-  ?'HOST_CPU_MODEL_ID'.
+  ?HOST_CPU_MODEL_ID.
   'host.cpu.model.id'
   ```
 
@@ -201,7 +201,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Erlang
 
   ```erlang
-  ?'HOST_CPU_MODEL_NAME'.
+  ?HOST_CPU_MODEL_NAME.
   'host.cpu.model.name'
   ```
 
@@ -234,7 +234,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Erlang
 
   ```erlang
-  ?'HOST_CPU_STEPPING'.
+  ?HOST_CPU_STEPPING.
   'host.cpu.stepping'
   ```
 
@@ -271,7 +271,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Erlang
 
   ```erlang
-  ?'HOST_CPU_VENDOR_ID'.
+  ?HOST_CPU_VENDOR_ID.
   'host.cpu.vendor.id'
   ```
 
@@ -304,7 +304,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Erlang
 
   ```erlang
-  ?'HOST_ID'.
+  ?HOST_ID.
   'host.id'
   ```
 
@@ -337,7 +337,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Erlang
 
   ```erlang
-  ?'HOST_IMAGE_ID'.
+  ?HOST_IMAGE_ID.
   'host.image.id'
   ```
 
@@ -370,7 +370,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Erlang
 
   ```erlang
-  ?'HOST_IMAGE_NAME'.
+  ?HOST_IMAGE_NAME.
   'host.image.name'
   ```
 
@@ -403,7 +403,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Erlang
 
   ```erlang
-  ?'HOST_IMAGE_VERSION'.
+  ?HOST_IMAGE_VERSION.
   'host.image.version'
   ```
 
@@ -440,7 +440,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Erlang
 
   ```erlang
-  ?'HOST_IP'.
+  ?HOST_IP.
   'host.ip'
   ```
 
@@ -477,7 +477,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Erlang
 
   ```erlang
-  ?'HOST_MAC'.
+  ?HOST_MAC.
   'host.mac'
   ```
 
@@ -510,7 +510,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Erlang
 
   ```erlang
-  ?'HOST_NAME'.
+  ?HOST_NAME.
   'host.name'
   ```
 
@@ -543,7 +543,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Erlang
 
   ```erlang
-  ?'HOST_TYPE'.
+  ?HOST_TYPE.
   'host.type'
   ```
 

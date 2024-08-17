@@ -55,13 +55,13 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_CASSANDRA_CONSISTENCY_LEVEL'.
+  ?DB_CASSANDRA_CONSISTENCY_LEVEL.
   'db.cassandra.consistency_level'
 
-  ?'DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES_ALL'.
+  ?DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES_ALL.
   'all'
 
-  \#{?'DB_CASSANDRA_CONSISTENCY_LEVEL' => ?'DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES_ALL'}.
+  \#{?DB_CASSANDRA_CONSISTENCY_LEVEL => ?DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES_ALL}.
   \#{'db.cassandra.consistency_level' => 'all'}
   ```
 
@@ -111,7 +111,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_CASSANDRA_COORDINATOR_DC'.
+  ?DB_CASSANDRA_COORDINATOR_DC.
   'db.cassandra.coordinator.dc'
   ```
 
@@ -144,7 +144,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_CASSANDRA_COORDINATOR_ID'.
+  ?DB_CASSANDRA_COORDINATOR_ID.
   'db.cassandra.coordinator.id'
   ```
 
@@ -172,7 +172,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_CASSANDRA_IDEMPOTENCE'.
+  ?DB_CASSANDRA_IDEMPOTENCE.
   'db.cassandra.idempotence'
   ```
 
@@ -205,7 +205,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_CASSANDRA_PAGE_SIZE'.
+  ?DB_CASSANDRA_PAGE_SIZE.
   'db.cassandra.page_size'
   ```
 
@@ -238,7 +238,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_CASSANDRA_SPECULATIVE_EXECUTION_COUNT'.
+  ?DB_CASSANDRA_SPECULATIVE_EXECUTION_COUNT.
   'db.cassandra.speculative_execution_count'
   ```
 
@@ -279,7 +279,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_CLIENT_CONNECTIONS_POOL_NAME'.
+  ?DB_CLIENT_CONNECTIONS_POOL_NAME.
   'db.client.connections.pool.name'
   ```
 
@@ -326,13 +326,13 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_CLIENT_CONNECTIONS_STATE'.
+  ?DB_CLIENT_CONNECTIONS_STATE.
   'db.client.connections.state'
 
-  ?'DB_CLIENT_CONNECTIONS_STATE_VALUES_IDLE'.
+  ?DB_CLIENT_CONNECTIONS_STATE_VALUES_IDLE.
   'idle'
 
-  \#{?'DB_CLIENT_CONNECTIONS_STATE' => ?'DB_CLIENT_CONNECTIONS_STATE_VALUES_IDLE'}.
+  \#{?DB_CLIENT_CONNECTIONS_STATE => ?DB_CLIENT_CONNECTIONS_STATE_VALUES_IDLE}.
   \#{'db.client.connections.state' => 'idle'}
   ```
 
@@ -377,7 +377,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_COLLECTION_NAME'.
+  ?DB_COLLECTION_NAME.
   'db.collection.name'
   ```
 
@@ -418,7 +418,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_COSMOSDB_CLIENT_ID'.
+  ?DB_COSMOSDB_CLIENT_ID.
   'db.cosmosdb.client_id'
   ```
 
@@ -460,13 +460,13 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_COSMOSDB_CONNECTION_MODE'.
+  ?DB_COSMOSDB_CONNECTION_MODE.
   'db.cosmosdb.connection_mode'
 
-  ?'DB_COSMOSDB_CONNECTION_MODE_VALUES_GATEWAY'.
+  ?DB_COSMOSDB_CONNECTION_MODE_VALUES_GATEWAY.
   'gateway'
 
-  \#{?'DB_COSMOSDB_CONNECTION_MODE' => ?'DB_COSMOSDB_CONNECTION_MODE_VALUES_GATEWAY'}.
+  \#{?DB_COSMOSDB_CONNECTION_MODE => ?DB_COSMOSDB_CONNECTION_MODE_VALUES_GATEWAY}.
   \#{'db.cosmosdb.connection_mode' => 'gateway'}
   ```
 
@@ -550,13 +550,13 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_COSMOSDB_OPERATION_TYPE'.
+  ?DB_COSMOSDB_OPERATION_TYPE.
   'db.cosmosdb.operation_type'
 
-  ?'DB_COSMOSDB_OPERATION_TYPE_VALUES_INVALID'.
+  ?DB_COSMOSDB_OPERATION_TYPE_VALUES_INVALID.
   'Invalid'
 
-  \#{?'DB_COSMOSDB_OPERATION_TYPE' => ?'DB_COSMOSDB_OPERATION_TYPE_VALUES_INVALID'}.
+  \#{?DB_COSMOSDB_OPERATION_TYPE => ?DB_COSMOSDB_OPERATION_TYPE_VALUES_INVALID}.
   \#{'db.cosmosdb.operation_type' => 'Invalid'}
   ```
 
@@ -609,7 +609,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_COSMOSDB_REQUEST_CHARGE'.
+  ?DB_COSMOSDB_REQUEST_CHARGE.
   'db.cosmosdb.request_charge'
   ```
 
@@ -636,7 +636,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_COSMOSDB_REQUEST_CONTENT_LENGTH'.
+  ?DB_COSMOSDB_REQUEST_CONTENT_LENGTH.
   'db.cosmosdb.request_content_length'
   ```
 
@@ -668,7 +668,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_COSMOSDB_STATUS_CODE'.
+  ?DB_COSMOSDB_STATUS_CODE.
   'db.cosmosdb.status_code'
   ```
 
@@ -700,7 +700,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_COSMOSDB_SUB_STATUS_CODE'.
+  ?DB_COSMOSDB_SUB_STATUS_CODE.
   'db.cosmosdb.sub_status_code'
   ```
 
@@ -733,7 +733,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_ELASTICSEARCH_CLUSTER_NAME'.
+  ?DB_ELASTICSEARCH_CLUSTER_NAME.
   'db.elasticsearch.cluster.name'
   ```
 
@@ -766,7 +766,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_ELASTICSEARCH_NODE_NAME'.
+  ?DB_ELASTICSEARCH_NODE_NAME.
   'db.elasticsearch.node.name'
   ```
 
@@ -803,7 +803,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_ELASTICSEARCH_PATH_PARTS'.
+  ?DB_ELASTICSEARCH_PATH_PARTS.
   'db.elasticsearch.path_parts'
   ```
 
@@ -882,7 +882,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_NAMESPACE'.
+  ?DB_NAMESPACE.
   'db.namespace'
   ```
 
@@ -927,7 +927,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_OPERATION_NAME'.
+  ?DB_OPERATION_NAME.
   'db.operation.name'
   ```
 
@@ -965,7 +965,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_QUERY_PARAMETER'.
+  ?DB_QUERY_PARAMETER.
   'db.query.parameter'
   ```
 
@@ -998,7 +998,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_QUERY_TEXT'.
+  ?DB_QUERY_TEXT.
   'db.query.text'
   ```
 
@@ -1168,13 +1168,13 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Erlang
 
   ```erlang
-  ?'DB_SYSTEM'.
+  ?DB_SYSTEM.
   'db.system'
 
-  ?'DB_SYSTEM_VALUES_OTHER_SQL'.
+  ?DB_SYSTEM_VALUES_OTHER_SQL.
   'other_sql'
 
-  \#{?'DB_SYSTEM' => ?'DB_SYSTEM_VALUES_OTHER_SQL'}.
+  \#{?DB_SYSTEM => ?DB_SYSTEM_VALUES_OTHER_SQL}.
   \#{'db.system' => 'other_sql'}
   ```
 

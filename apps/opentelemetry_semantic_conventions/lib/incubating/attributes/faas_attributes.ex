@@ -21,7 +21,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ### Erlang
 
   ```erlang
-  ?'FAAS_COLDSTART'.
+  ?FAAS_COLDSTART.
   'faas.coldstart'
   ```
 
@@ -54,7 +54,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ### Erlang
 
   ```erlang
-  ?'FAAS_CRON'.
+  ?FAAS_CRON.
   'faas.cron'
   ```
 
@@ -87,7 +87,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ### Erlang
 
   ```erlang
-  ?'FAAS_DOCUMENT_COLLECTION'.
+  ?FAAS_DOCUMENT_COLLECTION.
   'faas.document.collection'
   ```
 
@@ -120,7 +120,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ### Erlang
 
   ```erlang
-  ?'FAAS_DOCUMENT_NAME'.
+  ?FAAS_DOCUMENT_NAME.
   'faas.document.name'
   ```
 
@@ -164,13 +164,13 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ### Erlang
 
   ```erlang
-  ?'FAAS_DOCUMENT_OPERATION'.
+  ?FAAS_DOCUMENT_OPERATION.
   'faas.document.operation'
 
-  ?'FAAS_DOCUMENT_OPERATION_VALUES_INSERT'.
+  ?FAAS_DOCUMENT_OPERATION_VALUES_INSERT.
   'insert'
 
-  \#{?'FAAS_DOCUMENT_OPERATION' => ?'FAAS_DOCUMENT_OPERATION_VALUES_INSERT'}.
+  \#{?FAAS_DOCUMENT_OPERATION => ?FAAS_DOCUMENT_OPERATION_VALUES_INSERT}.
   \#{'faas.document.operation' => 'insert'}
   ```
 
@@ -212,7 +212,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ### Erlang
 
   ```erlang
-  ?'FAAS_DOCUMENT_TIME'.
+  ?FAAS_DOCUMENT_TIME.
   'faas.document.time'
   ```
 
@@ -249,7 +249,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ### Erlang
 
   ```erlang
-  ?'FAAS_INSTANCE'.
+  ?FAAS_INSTANCE.
   'faas.instance'
   ```
 
@@ -282,7 +282,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ### Erlang
 
   ```erlang
-  ?'FAAS_INVOCATION_ID'.
+  ?FAAS_INVOCATION_ID.
   'faas.invocation_id'
   ```
 
@@ -319,7 +319,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ### Erlang
 
   ```erlang
-  ?'FAAS_INVOKED_NAME'.
+  ?FAAS_INVOKED_NAME.
   'faas.invoked_name'
   ```
 
@@ -373,13 +373,13 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ### Erlang
 
   ```erlang
-  ?'FAAS_INVOKED_PROVIDER'.
+  ?FAAS_INVOKED_PROVIDER.
   'faas.invoked_provider'
 
-  ?'FAAS_INVOKED_PROVIDER_VALUES_ALIBABA_CLOUD'.
+  ?FAAS_INVOKED_PROVIDER_VALUES_ALIBABA_CLOUD.
   'alibaba_cloud'
 
-  \#{?'FAAS_INVOKED_PROVIDER' => ?'FAAS_INVOKED_PROVIDER_VALUES_ALIBABA_CLOUD'}.
+  \#{?FAAS_INVOKED_PROVIDER => ?FAAS_INVOKED_PROVIDER_VALUES_ALIBABA_CLOUD}.
   \#{'faas.invoked_provider' => 'alibaba_cloud'}
   ```
 
@@ -427,7 +427,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ### Erlang
 
   ```erlang
-  ?'FAAS_INVOKED_REGION'.
+  ?FAAS_INVOKED_REGION.
   'faas.invoked_region'
   ```
 
@@ -464,7 +464,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ### Erlang
 
   ```erlang
-  ?'FAAS_MAX_MEMORY'.
+  ?FAAS_MAX_MEMORY.
   'faas.max_memory'
   ```
 
@@ -516,7 +516,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ### Erlang
 
   ```erlang
-  ?'FAAS_NAME'.
+  ?FAAS_NAME.
   'faas.name'
   ```
 
@@ -549,7 +549,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ### Erlang
 
   ```erlang
-  ?'FAAS_TIME'.
+  ?FAAS_TIME.
   'faas.time'
   ```
 
@@ -599,13 +599,13 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ### Erlang
 
   ```erlang
-  ?'FAAS_TRIGGER'.
+  ?FAAS_TRIGGER.
   'faas.trigger'
 
-  ?'FAAS_TRIGGER_VALUES_DATASOURCE'.
+  ?FAAS_TRIGGER_VALUES_DATASOURCE.
   'datasource'
 
-  \#{?'FAAS_TRIGGER' => ?'FAAS_TRIGGER_VALUES_DATASOURCE'}.
+  \#{?FAAS_TRIGGER => ?FAAS_TRIGGER_VALUES_DATASOURCE}.
   \#{'faas.trigger' => 'datasource'}
   ```
 
@@ -660,7 +660,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   ### Erlang
 
   ```erlang
-  ?'FAAS_VERSION'.
+  ?FAAS_VERSION.
   'faas.version'
   ```
 

@@ -29,7 +29,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SourceAttributes do
   ### Erlang
 
   ```erlang
-  ?'SOURCE_ADDRESS'.
+  ?SOURCE_ADDRESS.
   'source.address'
   ```
 
@@ -61,7 +61,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SourceAttributes do
   ### Erlang
 
   ```erlang
-  ?'SOURCE_PORT'.
+  ?SOURCE_PORT.
   'source.port'
   ```
 

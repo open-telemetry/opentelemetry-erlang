@@ -26,7 +26,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudeventsAttributes do
   ### Erlang
 
   ```erlang
-  ?'CLOUDEVENTS_EVENT_ID'.
+  ?CLOUDEVENTS_EVENT_ID.
   'cloudevents.event_id'
   ```
 
@@ -59,7 +59,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudeventsAttributes do
   ### Erlang
 
   ```erlang
-  ?'CLOUDEVENTS_EVENT_SOURCE'.
+  ?CLOUDEVENTS_EVENT_SOURCE.
   'cloudevents.event_source'
   ```
 
@@ -92,7 +92,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudeventsAttributes do
   ### Erlang
 
   ```erlang
-  ?'CLOUDEVENTS_EVENT_SPEC_VERSION'.
+  ?CLOUDEVENTS_EVENT_SPEC_VERSION.
   'cloudevents.event_spec_version'
   ```
 
@@ -125,7 +125,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudeventsAttributes do
   ### Erlang
 
   ```erlang
-  ?'CLOUDEVENTS_EVENT_SUBJECT'.
+  ?CLOUDEVENTS_EVENT_SUBJECT.
   'cloudevents.event_subject'
   ```
 
@@ -158,7 +158,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudeventsAttributes do
   ### Erlang
 
   ```erlang
-  ?'CLOUDEVENTS_EVENT_TYPE'.
+  ?CLOUDEVENTS_EVENT_TYPE.
   'cloudevents.event_type'
   ```
 

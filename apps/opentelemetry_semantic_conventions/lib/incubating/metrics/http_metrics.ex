@@ -18,7 +18,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   ### Erlang
 
   ```erlang
-  ?'HTTP_CLIENT_ACTIVE_REQUESTS'.
+  ?HTTP_CLIENT_ACTIVE_REQUESTS.
   'http.client.active_requests'
   ```
 
@@ -45,7 +45,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   ### Erlang
 
   ```erlang
-  ?'HTTP_CLIENT_CONNECTION_DURATION'.
+  ?HTTP_CLIENT_CONNECTION_DURATION.
   'http.client.connection.duration'
   ```
 
@@ -72,7 +72,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   ### Erlang
 
   ```erlang
-  ?'HTTP_CLIENT_OPEN_CONNECTIONS'.
+  ?HTTP_CLIENT_OPEN_CONNECTIONS.
   'http.client.open_connections'
   ```
 
@@ -103,7 +103,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   ### Erlang
 
   ```erlang
-  ?'HTTP_CLIENT_REQUEST_BODY_SIZE'.
+  ?HTTP_CLIENT_REQUEST_BODY_SIZE.
   'http.client.request.body.size'
   ```
 
@@ -134,7 +134,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   ### Erlang
 
   ```erlang
-  ?'HTTP_CLIENT_RESPONSE_BODY_SIZE'.
+  ?HTTP_CLIENT_RESPONSE_BODY_SIZE.
   'http.client.response.body.size'
   ```
 
@@ -161,7 +161,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   ### Erlang
 
   ```erlang
-  ?'HTTP_SERVER_ACTIVE_REQUESTS'.
+  ?HTTP_SERVER_ACTIVE_REQUESTS.
   'http.server.active_requests'
   ```
 
@@ -192,7 +192,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   ### Erlang
 
   ```erlang
-  ?'HTTP_SERVER_REQUEST_BODY_SIZE'.
+  ?HTTP_SERVER_REQUEST_BODY_SIZE.
   'http.server.request.body.size'
   ```
 
@@ -223,7 +223,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.HTTPMetrics do
   ### Erlang
 
   ```erlang
-  ?'HTTP_SERVER_RESPONSE_BODY_SIZE'.
+  ?HTTP_SERVER_RESPONSE_BODY_SIZE.
   'http.server.response.body.size'
   ```
 

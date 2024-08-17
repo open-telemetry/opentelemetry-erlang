@@ -22,7 +22,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ContainerMetrics do
   ### Erlang
 
   ```erlang
-  ?'CONTAINER_CPU_TIME'.
+  ?CONTAINER_CPU_TIME.
   'container.cpu.time'
   ```
 
@@ -53,7 +53,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ContainerMetrics do
   ### Erlang
 
   ```erlang
-  ?'CONTAINER_DISK_IO'.
+  ?CONTAINER_DISK_IO.
   'container.disk.io'
   ```
 
@@ -84,7 +84,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ContainerMetrics do
   ### Erlang
 
   ```erlang
-  ?'CONTAINER_MEMORY_USAGE'.
+  ?CONTAINER_MEMORY_USAGE.
   'container.memory.usage'
   ```
 
@@ -115,7 +115,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ContainerMetrics do
   ### Erlang
 
   ```erlang
-  ?'CONTAINER_NETWORK_IO'.
+  ?CONTAINER_NETWORK_IO.
   'container.network.io'
   ```
 

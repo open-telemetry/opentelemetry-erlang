@@ -28,7 +28,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GraphqlAttributes do
   ### Erlang
 
   ```erlang
-  ?'GRAPHQL_DOCUMENT'.
+  ?GRAPHQL_DOCUMENT.
   'graphql.document'
   ```
 
@@ -60,7 +60,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GraphqlAttributes do
   ### Erlang
 
   ```erlang
-  ?'GRAPHQL_OPERATION_NAME'.
+  ?GRAPHQL_OPERATION_NAME.
   'graphql.operation.name'
   ```
 
@@ -109,13 +109,13 @@ defmodule OpenTelemetry.SemConv.Incubating.GraphqlAttributes do
   ### Erlang
 
   ```erlang
-  ?'GRAPHQL_OPERATION_TYPE'.
+  ?GRAPHQL_OPERATION_TYPE.
   'graphql.operation.type'
 
-  ?'GRAPHQL_OPERATION_TYPE_VALUES_QUERY'.
+  ?GRAPHQL_OPERATION_TYPE_VALUES_QUERY.
   'query'
 
-  \#{?'GRAPHQL_OPERATION_TYPE' => ?'GRAPHQL_OPERATION_TYPE_VALUES_QUERY'}.
+  \#{?GRAPHQL_OPERATION_TYPE => ?GRAPHQL_OPERATION_TYPE_VALUES_QUERY}.
   \#{'graphql.operation.type' => 'query'}
   ```
 

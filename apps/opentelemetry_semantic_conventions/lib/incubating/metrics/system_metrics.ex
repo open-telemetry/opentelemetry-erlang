@@ -18,7 +18,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_CPU_FREQUENCY'.
+  ?SYSTEM_CPU_FREQUENCY.
   'system.cpu.frequency'
   ```
 
@@ -45,7 +45,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_CPU_LOGICAL_COUNT'.
+  ?SYSTEM_CPU_LOGICAL_COUNT.
   'system.cpu.logical.count'
   ```
 
@@ -72,7 +72,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_CPU_PHYSICAL_COUNT'.
+  ?SYSTEM_CPU_PHYSICAL_COUNT.
   'system.cpu.physical.count'
   ```
 
@@ -99,7 +99,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_CPU_TIME'.
+  ?SYSTEM_CPU_TIME.
   'system.cpu.time'
   ```
 
@@ -126,7 +126,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_CPU_UTILIZATION'.
+  ?SYSTEM_CPU_UTILIZATION.
   'system.cpu.utilization'
   ```
 
@@ -153,7 +153,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_DISK_IO'.
+  ?SYSTEM_DISK_IO.
   'system.disk.io'
   ```
 
@@ -189,7 +189,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_DISK_IO_TIME'.
+  ?SYSTEM_DISK_IO_TIME.
   'system.disk.io_time'
   ```
 
@@ -216,7 +216,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_DISK_MERGED'.
+  ?SYSTEM_DISK_MERGED.
   'system.disk.merged'
   ```
 
@@ -250,7 +250,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_DISK_OPERATION_TIME'.
+  ?SYSTEM_DISK_OPERATION_TIME.
   'system.disk.operation_time'
   ```
 
@@ -277,7 +277,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_DISK_OPERATIONS'.
+  ?SYSTEM_DISK_OPERATIONS.
   'system.disk.operations'
   ```
 
@@ -304,7 +304,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_FILESYSTEM_USAGE'.
+  ?SYSTEM_FILESYSTEM_USAGE.
   'system.filesystem.usage'
   ```
 
@@ -331,7 +331,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_FILESYSTEM_UTILIZATION'.
+  ?SYSTEM_FILESYSTEM_UTILIZATION.
   'system.filesystem.utilization'
   ```
 
@@ -366,7 +366,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_LINUX_MEMORY_AVAILABLE'.
+  ?SYSTEM_LINUX_MEMORY_AVAILABLE.
   'system.linux.memory.available'
   ```
 
@@ -397,7 +397,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_MEMORY_LIMIT'.
+  ?SYSTEM_MEMORY_LIMIT.
   'system.memory.limit'
   ```
 
@@ -429,7 +429,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_MEMORY_SHARED'.
+  ?SYSTEM_MEMORY_SHARED.
   'system.memory.shared'
   ```
 
@@ -461,7 +461,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_MEMORY_USAGE'.
+  ?SYSTEM_MEMORY_USAGE.
   'system.memory.usage'
   ```
 
@@ -488,7 +488,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_MEMORY_UTILIZATION'.
+  ?SYSTEM_MEMORY_UTILIZATION.
   'system.memory.utilization'
   ```
 
@@ -515,7 +515,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_NETWORK_CONNECTIONS'.
+  ?SYSTEM_NETWORK_CONNECTIONS.
   'system.network.connections'
   ```
 
@@ -550,7 +550,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_NETWORK_DROPPED'.
+  ?SYSTEM_NETWORK_DROPPED.
   'system.network.dropped'
   ```
 
@@ -585,7 +585,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_NETWORK_ERRORS'.
+  ?SYSTEM_NETWORK_ERRORS.
   'system.network.errors'
   ```
 
@@ -612,7 +612,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_NETWORK_IO'.
+  ?SYSTEM_NETWORK_IO.
   'system.network.io'
   ```
 
@@ -639,7 +639,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_NETWORK_PACKETS'.
+  ?SYSTEM_NETWORK_PACKETS.
   'system.network.packets'
   ```
 
@@ -666,7 +666,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_PAGING_FAULTS'.
+  ?SYSTEM_PAGING_FAULTS.
   'system.paging.faults'
   ```
 
@@ -693,7 +693,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_PAGING_OPERATIONS'.
+  ?SYSTEM_PAGING_OPERATIONS.
   'system.paging.operations'
   ```
 
@@ -720,7 +720,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_PAGING_USAGE'.
+  ?SYSTEM_PAGING_USAGE.
   'system.paging.usage'
   ```
 
@@ -747,7 +747,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_PAGING_UTILIZATION'.
+  ?SYSTEM_PAGING_UTILIZATION.
   'system.paging.utilization'
   ```
 
@@ -774,7 +774,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_PROCESS_COUNT'.
+  ?SYSTEM_PROCESS_COUNT.
   'system.process.count'
   ```
 
@@ -801,7 +801,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   ### Erlang
 
   ```erlang
-  ?'SYSTEM_PROCESS_CREATED'.
+  ?SYSTEM_PROCESS_CREATED.
   'system.process.created'
   ```
 

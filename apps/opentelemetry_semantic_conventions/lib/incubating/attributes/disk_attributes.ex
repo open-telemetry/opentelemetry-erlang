@@ -40,13 +40,13 @@ defmodule OpenTelemetry.SemConv.Incubating.DiskAttributes do
   ### Erlang
 
   ```erlang
-  ?'DISK_IO_DIRECTION'.
+  ?DISK_IO_DIRECTION.
   'disk.io.direction'
 
-  ?'DISK_IO_DIRECTION_VALUES_READ'.
+  ?DISK_IO_DIRECTION_VALUES_READ.
   'read'
 
-  \#{?'DISK_IO_DIRECTION' => ?'DISK_IO_DIRECTION_VALUES_READ'}.
+  \#{?DISK_IO_DIRECTION => ?DISK_IO_DIRECTION_VALUES_READ}.
   \#{'disk.io.direction' => 'read'}
   ```
 

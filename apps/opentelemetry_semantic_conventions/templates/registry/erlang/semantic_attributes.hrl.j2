@@ -23,10 +23,10 @@
 %% @deprecated {{ attribute.deprecated | replace("\n", "\n%%  ") }}
 {%- endif %}
 %% {{ attribute.brief | replace("\n", "\n%%  ") }}
--define('{{ c.attr_name(attribute.name) }}', '{{ attribute.name }}').
+-define({{ c.attr_name(attribute.name) }}, '{{ attribute.name }}').
 {%- if attribute.type is mapping %}
 {% for member in attribute.type.members %}
--define('{{ c.attr_name(attribute.name) }}_VALUES_{{ member.id | screaming_snake_case }}', '{{ member.value }}').
+-define({{ c.attr_name(attribute.name) }}_VALUES_{{ member.id | screaming_snake_case }}, '{{ member.value }}').
 {% endfor %}
 {%- endif %}
 {% endfor %}

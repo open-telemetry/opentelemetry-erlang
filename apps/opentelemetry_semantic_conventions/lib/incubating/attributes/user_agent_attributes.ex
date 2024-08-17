@@ -31,7 +31,7 @@ defmodule OpenTelemetry.SemConv.Incubating.UserAgentAttributes do
   ### Erlang
 
   ```erlang
-  ?'USER_AGENT_NAME'.
+  ?USER_AGENT_NAME.
   'user_agent.name'
   ```
 
@@ -68,7 +68,7 @@ defmodule OpenTelemetry.SemConv.Incubating.UserAgentAttributes do
   ### Erlang
 
   ```erlang
-  ?'USER_AGENT_VERSION'.
+  ?USER_AGENT_VERSION.
   'user_agent.version'
   ```
 

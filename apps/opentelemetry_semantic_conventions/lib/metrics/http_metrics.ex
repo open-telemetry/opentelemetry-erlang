@@ -18,7 +18,7 @@ defmodule OpenTelemetry.SemConv.Metrics.HTTPMetrics do
   ### Erlang
 
   ```erlang
-  ?'HTTP_CLIENT_REQUEST_DURATION'.
+  ?HTTP_CLIENT_REQUEST_DURATION.
   'http.client.request.duration'
   ```
 
@@ -45,7 +45,7 @@ defmodule OpenTelemetry.SemConv.Metrics.HTTPMetrics do
   ### Erlang
 
   ```erlang
-  ?'HTTP_SERVER_REQUEST_DURATION'.
+  ?HTTP_SERVER_REQUEST_DURATION.
   'http.server.request.duration'
   ```
 

@@ -39,7 +39,7 @@ defmodule OpenTelemetry.SemConv.Incubating.URLAttributes do
   ### Erlang
 
   ```erlang
-  ?'URL_DOMAIN'.
+  ?URL_DOMAIN.
   'url.domain'
   ```
 
@@ -76,7 +76,7 @@ defmodule OpenTelemetry.SemConv.Incubating.URLAttributes do
   ### Erlang
 
   ```erlang
-  ?'URL_EXTENSION'.
+  ?URL_EXTENSION.
   'url.extension'
   ```
 
@@ -114,7 +114,7 @@ defmodule OpenTelemetry.SemConv.Incubating.URLAttributes do
   ### Erlang
 
   ```erlang
-  ?'URL_ORIGINAL'.
+  ?URL_ORIGINAL.
   'url.original'
   ```
 
@@ -147,7 +147,7 @@ defmodule OpenTelemetry.SemConv.Incubating.URLAttributes do
   ### Erlang
 
   ```erlang
-  ?'URL_PORT'.
+  ?URL_PORT.
   'url.port'
   ```
 
@@ -184,7 +184,7 @@ defmodule OpenTelemetry.SemConv.Incubating.URLAttributes do
   ### Erlang
 
   ```erlang
-  ?'URL_REGISTERED_DOMAIN'.
+  ?URL_REGISTERED_DOMAIN.
   'url.registered_domain'
   ```
 
@@ -221,7 +221,7 @@ defmodule OpenTelemetry.SemConv.Incubating.URLAttributes do
   ### Erlang
 
   ```erlang
-  ?'URL_SUBDOMAIN'.
+  ?URL_SUBDOMAIN.
   'url.subdomain'
   ```
 
@@ -254,7 +254,7 @@ defmodule OpenTelemetry.SemConv.Incubating.URLAttributes do
   ### Erlang
 
   ```erlang
-  ?'URL_TEMPLATE'.
+  ?URL_TEMPLATE.
   'url.template'
   ```
 
@@ -291,7 +291,7 @@ defmodule OpenTelemetry.SemConv.Incubating.URLAttributes do
   ### Erlang
 
   ```erlang
-  ?'URL_TOP_LEVEL_DOMAIN'.
+  ?URL_TOP_LEVEL_DOMAIN.
   'url.top_level_domain'
   ```
 

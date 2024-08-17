@@ -39,13 +39,13 @@ defmodule OpenTelemetry.SemConv.Incubating.OpentracingAttributes do
   ### Erlang
 
   ```erlang
-  ?'OPENTRACING_REF_TYPE'.
+  ?OPENTRACING_REF_TYPE.
   'opentracing.ref_type'
 
-  ?'OPENTRACING_REF_TYPE_VALUES_CHILD_OF'.
+  ?OPENTRACING_REF_TYPE_VALUES_CHILD_OF.
   'child_of'
 
-  \#{?'OPENTRACING_REF_TYPE' => ?'OPENTRACING_REF_TYPE_VALUES_CHILD_OF'}.
+  \#{?OPENTRACING_REF_TYPE => ?OPENTRACING_REF_TYPE_VALUES_CHILD_OF}.
   \#{'opentracing.ref_type' => 'child_of'}
   ```
 

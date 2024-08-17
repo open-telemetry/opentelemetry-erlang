@@ -15,8 +15,8 @@
 %%%-------------------------------------------------------------------------
 
 %% Duration of HTTP client requests.
--define('HTTP_CLIENT_REQUEST_DURATION', 'http.client.request.duration').
+-define(HTTP_CLIENT_REQUEST_DURATION, 'http.client.request.duration').
 
 
 %% Duration of HTTP server requests.
--define('HTTP_SERVER_REQUEST_DURATION', 'http.server.request.duration').
+-define(HTTP_SERVER_REQUEST_DURATION, 'http.server.request.duration').
