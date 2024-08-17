@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Collector
-        run: docker-compose up -d
+        run: docker compose up -d
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp_version }}
