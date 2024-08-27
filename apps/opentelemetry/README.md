@@ -194,7 +194,6 @@ in the Resource.
 |:-------------------------------|:--------------------------|:-----------------------------------------------|:----------------|
 | OTEL_RESOURCE_DETECTORS        | resource_detectors        | [otel_resource_env_var, otel_resource_app_env] | list of modules |
 | OTEL_RESOURCE_DETECTOR_TIMEOUT | resource_detector_timeout | 5000                                           | integer         |
-|                                |                           |                                                |                 |
     
 The default detectors read resource attributes from the OS environment variable
 `OTEL_RESOURCE_ATTRIBUTES` and Application environment variable `resource`.
@@ -209,11 +208,11 @@ length limit are truncated.
 | OS                                     | Application                  | Default  | Type                    |
 |:---------------------------------------|:-----------------------------|:---------|:------------------------|
 | OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT        | attribute_count_limit        | 128      | integer                 |
-| OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT | attribute_value_length_limit | infinity | integer &#124; infinity |
+| OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT | attribute_value_length_limit | infinity | integer \| infinity     |
 | OTEL_SPAN_EVENT_COUNT_LIMIT            | event_count_limit            | 128      | integer                 |
 | OTEL_SPAN_LINK_COUNT_LIMIT             | link_count_limit             | 128      | integer                 |
 | OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT       | attribute_per_event_limit    | 128      | integer                 |
-| OTEL_LINK_ATTRIBUTE_COUNT_LIMIT        | attribute_per_link_limit     | 128      | integer                 
+| OTEL_LINK_ATTRIBUTE_COUNT_LIMIT        | attribute_per_link_limit     | 128      | integer                 |
 
 Read more in the specification about [Span
 limits](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/sdk.md#span-limits)
@@ -232,12 +231,12 @@ attribute `finished_by_sweeper` with value `true` to the Span before calling
 
 The sweeper's configuration is a map under environment key `sweeper`.
 
-| OS                             | Application  | Default | Type                                                                 |
-|:-------------------------------|:-------------|:---------|:-----------------------------------------------------------------------------|
-| OTEL_SPAN_SWEEPER_INTERVAL     | interval     | 600000   | integer &#124; infinity                                                      |
-| OTEL_SPAN_SWEEPER_STRATEGY     | strategy     | drop     | drop &#124; end_span &#124; failed_attribute_and_end_span &#124; fun/1 |
-| OTEL_SPAN_SWEEPER_SPAN_TTL     | span_ttl     | 1800000  | integer &#124; infinity                                                      |
-| OTEL_SPAN_SWEEPER_STORAGE_SIZE | storage_size | infinity | integer &#124; infinity                                                      |
+| OS                             | Application  | Default | Type                                                        |
+|:-------------------------------|:-------------|:---------|:-----------------------------------------------------------|
+| OTEL_SPAN_SWEEPER_INTERVAL     | interval     | 600000   | integer \| infinity                                        |
+| OTEL_SPAN_SWEEPER_STRATEGY     | strategy     | drop     | drop \| end_span \| failed_attribute_and_end_span \| fun/1 |
+| OTEL_SPAN_SWEEPER_SPAN_TTL     | span_ttl     | 1800000  | integer \| infinity                                        |
+| OTEL_SPAN_SWEEPER_STORAGE_SIZE | storage_size | infinity | integer \| infinity                                        |
 
 ## Contributing
 
