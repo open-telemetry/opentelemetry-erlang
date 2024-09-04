@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   adding to the
   attributes](https://github.com/open-telemetry/opentelemetry-erlang/pull/737)
 
+## API 1.3.1 - 2024-09-03
+
+### Fixes
+
+- [Fix dialyzer warning when starting a span by adding
+  `otel_span:start_config`](https://github.com/open-telemetry/opentelemetry-erlang/pull/717)
+
 ## Experimental API 0.5.1 - 2024-03-18
 
 ### Added
