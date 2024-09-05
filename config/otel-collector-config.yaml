@@ -20,7 +20,7 @@ exporters:
       insecure: true
 
   debug:
-    verbosity: debug
+    verbosity: detailed
     sampling_initial: 1
     sampling_thereafter: 1
 extensions:
