@@ -146,7 +146,7 @@ defmodule OpenTelemetry.Span do
        Exception.format_stacktrace(trace)}
     ]
 
-    add_event(span_ctx, "exception", exception_attributes ++ attributes)
+    add_event(span_ctx, :exception, exception_attributes ++ attributes)
   end
 
   def record_exception(_, _, _, _), do: false
