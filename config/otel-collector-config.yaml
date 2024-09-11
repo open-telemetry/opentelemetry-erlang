@@ -19,8 +19,8 @@ exporters:
     tls:
       insecure: true
 
-  logging:
-    loglevel: debug
+  debug:
+    verbosity: detailed
     sampling_initial: 1
     sampling_thereafter: 1
 extensions:
@@ -31,12 +31,12 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [logging, zipkin, otlp/jaeger]
+      exporters: [debug, zipkin, otlp/jaeger]
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [logging]
+      exporters: [debug]
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [logging]
+      exporters: [debug]
