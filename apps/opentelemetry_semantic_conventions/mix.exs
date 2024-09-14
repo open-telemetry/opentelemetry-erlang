@@ -38,7 +38,7 @@ defmodule OpenTelemetry.SemanticConventions.MixProject do
 
   defp load_app do
     {:ok, [{:application, name, desc}]} =
-      :file.consult('src/opentelemetry_semantic_conventions.app.src')
+      :file.consult(~c"src/opentelemetry_semantic_conventions.app.src")
 
     {name, desc}
   end
