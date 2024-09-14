@@ -28,8 +28,8 @@
 %%  
 -define(CONTAINER_COMMAND_LINE, 'container.command_line').
 
-
-%% The CPU state for this data point.
+%% @deprecated Replaced by `cpu.mode`
+%% Deprecated, use `cpu.mode` instead.
 -define(CONTAINER_CPU_STATE, 'container.cpu.state').
 
 -define(CONTAINER_CPU_STATE_VALUES_USER, 'user').

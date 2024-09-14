@@ -37,7 +37,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   end
 
   @typedoc """
-  The state of the CPU
+  Deprecated, use `cpu.mode` instead.
 
   ### Enum Values
   * `:user` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
@@ -57,42 +57,8 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
           :interrupt => :interrupt,
           :steal => :steal
         }
-  @doc """
-  The state of the CPU
-
-  ### Examples
-
-  ```
-  ["idle", "interrupt"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_cpu_state()
-      :"system.cpu.state"
-
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_cpu_state_values().user
-      :user
-
-      iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_cpu_state() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_cpu_state_values().user}
-      %{:"system.cpu.state" => :user}
-
-  ### Erlang
-
-  ```erlang
-  ?SYSTEM_CPU_STATE.
-  'system.cpu.state'
-
-  ?SYSTEM_CPU_STATE_VALUES_USER.
-  'user'
-
-  \#{?SYSTEM_CPU_STATE => ?SYSTEM_CPU_STATE_VALUES_USER}.
-  \#{'system.cpu.state' => 'user'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `cpu.mode`
   """
   @spec system_cpu_state :: :"system.cpu.state"
   def system_cpu_state do
@@ -319,10 +285,10 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   ?SYSTEM_FILESYSTEM_TYPE.
   'system.filesystem.type'
 
-  ?SYSTEM_FILESYSTEM_TYPE_VALUES_FAT_32.
+  ?SYSTEM_FILESYSTEM_TYPE_VALUES_FAT32.
   'fat32'
 
-  \#{?SYSTEM_FILESYSTEM_TYPE => ?SYSTEM_FILESYSTEM_TYPE_VALUES_FAT_32}.
+  \#{?SYSTEM_FILESYSTEM_TYPE => ?SYSTEM_FILESYSTEM_TYPE_VALUES_FAT32}.
   \#{'system.filesystem.type' => 'fat32'}
   ```
 

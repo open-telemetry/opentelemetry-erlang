@@ -14,6 +14,10 @@
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
 
+%% Identifies the Google Cloud service for which the official client library is intended.
+-define(GCP_CLIENT_SERVICE, 'gcp.client.service').
+
+
 %% The name of the Cloud Run [execution](https://cloud.google.com/run/docs/managing/job-executions) being run for the Job, as set by the [`CLOUD_RUN_EXECUTION`](https://cloud.google.com/run/docs/container-contract#jobs-env-vars) environment variable.
 %%  
 -define(GCP_CLOUD_RUN_JOB_EXECUTION, 'gcp.cloud_run.job.execution').

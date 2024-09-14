@@ -13,32 +13,23 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
-%% @deprecated Deprecated, use `deployment.environment.name` instead.
-%% 'Deprecated, use `deployment.environment.name` instead.'
-%%  
--define(DEPLOYMENT_ENVIRONMENT, 'deployment.environment').
 
+%% The mode of the CPU
+-define(CPU_MODE, 'cpu.mode').
 
-%% Name of the [deployment environment](https://wikipedia.org/wiki/Deployment_environment) (aka deployment tier).
-%%  
--define(DEPLOYMENT_ENVIRONMENT_NAME, 'deployment.environment.name').
+-define(CPU_MODE_VALUES_USER, 'user').
 
+-define(CPU_MODE_VALUES_SYSTEM, 'system').
 
-%% The id of the deployment.
-%%  
--define(DEPLOYMENT_ID, 'deployment.id').
+-define(CPU_MODE_VALUES_NICE, 'nice').
 
+-define(CPU_MODE_VALUES_IDLE, 'idle').
 
-%% The name of the deployment.
-%%  
--define(DEPLOYMENT_NAME, 'deployment.name').
+-define(CPU_MODE_VALUES_IOWAIT, 'iowait').
 
+-define(CPU_MODE_VALUES_INTERRUPT, 'interrupt').
 
-%% The status of the deployment.
-%%  
--define(DEPLOYMENT_STATUS, 'deployment.status').
+-define(CPU_MODE_VALUES_STEAL, 'steal').
 
--define(DEPLOYMENT_STATUS_VALUES_FAILED, 'failed').
-
--define(DEPLOYMENT_STATUS_VALUES_SUCCEEDED, 'succeeded').
+-define(CPU_MODE_VALUES_KERNEL, 'kernel').
 

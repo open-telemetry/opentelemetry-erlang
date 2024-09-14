@@ -258,7 +258,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   end
 
   @doc """
-  The name of the connection pool; unique within the instrumented application. In case the connection pool implementation doesn't provide a name, instrumentation should use a combination of `server.address` and `server.port` attributes formatted as `server.address:server.port`.
+  The name of the connection pool; unique within the instrumented application. In case the connection pool implementation doesn't provide a name, instrumentation **SHOULD** use a combination of parameters that would make the name unique, for example, combining attributes `server.address`, `server.port`, and `db.namespace`, formatted as `server.address:server.port/db.namespace`. Instrumentations that generate connection pool name following different patterns **SHOULD** document it.
 
   ### Value type
 
@@ -273,21 +273,21 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connections_pool_name()
-      :"db.client.connections.pool.name"
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connection_pool_name()
+      :"db.client.connection.pool.name"
 
   ### Erlang
 
   ```erlang
-  ?DB_CLIENT_CONNECTIONS_POOL_NAME.
-  'db.client.connections.pool.name'
+  ?DB_CLIENT_CONNECTION_POOL_NAME.
+  'db.client.connection.pool.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec db_client_connections_pool_name :: :"db.client.connections.pool.name"
-  def db_client_connections_pool_name do
-    :"db.client.connections.pool.name"
+  @spec db_client_connection_pool_name :: :"db.client.connection.pool.name"
+  def db_client_connection_pool_name do
+    :"db.client.connection.pool.name"
   end
 
   @typedoc """
@@ -297,7 +297,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   * `:idle` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:used` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   """
-  @type db_client_connections_state_values() :: %{
+  @type db_client_connection_state_values() :: %{
           :idle => :idle,
           :used => :used
         }
@@ -314,29 +314,64 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connections_state()
-      :"db.client.connections.state"
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connection_state()
+      :"db.client.connection.state"
 
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connections_state_values().idle
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connection_state_values().idle
       :idle
 
-      iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connections_state() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connections_state_values().idle}
-      %{:"db.client.connections.state" => :idle}
+      iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connection_state() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_client_connection_state_values().idle}
+      %{:"db.client.connection.state" => :idle}
 
   ### Erlang
 
   ```erlang
-  ?DB_CLIENT_CONNECTIONS_STATE.
-  'db.client.connections.state'
+  ?DB_CLIENT_CONNECTION_STATE.
+  'db.client.connection.state'
 
-  ?DB_CLIENT_CONNECTIONS_STATE_VALUES_IDLE.
+  ?DB_CLIENT_CONNECTION_STATE_VALUES_IDLE.
   'idle'
 
-  \#{?DB_CLIENT_CONNECTIONS_STATE => ?DB_CLIENT_CONNECTIONS_STATE_VALUES_IDLE}.
-  \#{'db.client.connections.state' => 'idle'}
+  \#{?DB_CLIENT_CONNECTION_STATE => ?DB_CLIENT_CONNECTION_STATE_VALUES_IDLE}.
+  \#{'db.client.connection.state' => 'idle'}
   ```
 
   <!-- tabs-close -->
+  """
+  @spec db_client_connection_state :: :"db.client.connection.state"
+  def db_client_connection_state do
+    :"db.client.connection.state"
+  end
+
+  @spec db_client_connection_state_values() :: db_client_connection_state_values()
+  def db_client_connection_state_values() do
+    %{
+      :idle => :idle,
+      :used => :used
+    }
+  end
+
+  @deprecated """
+  Replaced by `db.client.connection.pool.name`.
+  """
+  @spec db_client_connections_pool_name :: :"db.client.connections.pool.name"
+  def db_client_connections_pool_name do
+    :"db.client.connections.pool.name"
+  end
+
+  @typedoc """
+  Deprecated, use `db.client.connection.state` instead.
+
+  ### Enum Values
+  * `:idle` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:used` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  """
+  @type db_client_connections_state_values() :: %{
+          :idle => :idle,
+          :used => :used
+        }
+  @deprecated """
+  Replaced by `db.client.connection.state`.
   """
   @spec db_client_connections_state :: :"db.client.connections.state"
   def db_client_connections_state do
@@ -358,8 +393,9 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   Value must be of type `atom() | String.t()`.
   ### Notes
 
-  If the collection name is parsed from the query, it **SHOULD** match the value provided in the query and may be qualified with the schema and database name.
   It is RECOMMENDED to capture the value as provided by the application without attempting to do any case normalization.
+  If the collection name is parsed from the query text, it **SHOULD** be the first collection name found in the query and it **SHOULD** match the value provided in the query text including any schema and database name prefix.
+  For batch operations, if the individual operations are known to have the same collection name then that collection name **SHOULD** be used, otherwise `db.collection.name` **SHOULD** **NOT** be captured.
 
   ### Examples
 
@@ -711,33 +747,8 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
     :"db.cosmosdb.sub_status_code"
   end
 
-  @doc """
-  Represents the identifier of an Elasticsearch cluster.
-
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Examples
-
-  ```
-  ["e9106fc68e3044f0b1475b04bf4ffd5f"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_elasticsearch_cluster_name()
-      :"db.elasticsearch.cluster.name"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_ELASTICSEARCH_CLUSTER_NAME.
-  'db.elasticsearch.cluster.name'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `db.namespace`.
   """
   @spec db_elasticsearch_cluster_name :: :"db.elasticsearch.cluster.name"
   def db_elasticsearch_cluster_name do
@@ -902,6 +913,42 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   end
 
   @doc """
+  The number of queries included in a [batch operation](/docs/database/database-spans.md#batch-operations).
+  ### Value type
+
+  Value must be of type `integer()`.
+  ### Notes
+
+  Operations are only considered batches when they contain two or more operations, and so `db.operation.batch.size` **SHOULD** never be `1`.
+
+  ### Examples
+
+  ```
+  [2, 3, 4]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_operation_batch_size()
+      :"db.operation.batch.size"
+
+  ### Erlang
+
+  ```erlang
+  ?DB_OPERATION_BATCH_SIZE.
+  'db.operation.batch.size'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec db_operation_batch_size :: :"db.operation.batch.size"
+  def db_operation_batch_size do
+    :"db.operation.batch.size"
+  end
+
+  @doc """
   The name of the operation or command being executed.
 
   ### Value type
@@ -910,6 +957,8 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Notes
 
   It is RECOMMENDED to capture the value as provided by the application without attempting to do any case normalization.
+  If the operation name is parsed from the query text, it **SHOULD** be the first operation name found in the query.
+  For batch operations, if the individual operations are known to have the same operation name then that operation name **SHOULD** be used prepended by `BATCH `, otherwise `db.operation.name` **SHOULD** be `BATCH` or some other database system specific term if more applicable.
 
   ### Examples
 
@@ -939,7 +988,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   end
 
   @doc """
-  The query parameters used in `db.query.text`, with `<key>` being the parameter name, and the attribute value being the parameter value.
+  A query parameter used in `db.query.text`, with `<key>` being the parameter name, and the attribute value being a string representation of the parameter value.
 
   ### Value type
 
@@ -982,6 +1031,12 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   ### Value type
 
   Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  For sanitization see [Sanitization of `db.query.text`](../../docs/database/database-spans.md#sanitization-of-dbquerytext).
+  For batch operations, if the individual operations are known to have the same query text then that query text **SHOULD** be used, otherwise all of the individual query texts **SHOULD** be concatenated with separator `; ` or some other database system specific separator if more applicable.
+  Even though parameterized query text can potentially have sensitive data, by using a parameterized query the user is giving a strong signal that any sensitive data will be passed as parameter values, and the benefit to observability of capturing the static part of the query text by default outweighs the risk.
+
   ### Examples
 
   ```
@@ -1038,111 +1093,115 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
 
   ### Enum Values
   * `:other_sql` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Some other SQL database. Fallback only. See notes.
-  * `:mssql` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Microsoft SQL Server
-  * `:mssqlcompact` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Microsoft SQL Server Compact
-  * `:mysql` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - MySQL
-  * `:oracle` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Oracle Database
-  * `:db2` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - IBM Db2
-  * `:postgresql` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - PostgreSQL
-  * `:redshift` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Amazon Redshift
-  * `:hive` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache Hive
-  * `:cloudscape` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Cloudscape
-  * `:hsqldb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - HyperSQL DataBase
-  * `:progress` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Progress Database
-  * `:maxdb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - SAP MaxDB
-  * `:hanadb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - SAP HANA
-  * `:ingres` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Ingres
-  * `:firstsql` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - FirstSQL
-  * `:edb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - EnterpriseDB
-  * `:cache` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - InterSystems Caché
   * `:adabas` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Adabas (Adaptable Database System)
-  * `:firebird` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Firebird
+  * `:cache` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - **deprecated** ~~Deprecated, use `intersystems_cache` instead.~~
+  * `:intersystems_cache` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - InterSystems Caché
+  * `:cassandra` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache Cassandra
+  * `:clickhouse` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - ClickHouse
+  * `:cloudscape` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - **deprecated** ~~Deprecated, use `other_sql` instead.~~
+  * `:cockroachdb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - CockroachDB
+  * `:coldfusion` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - **deprecated** ~~Deprecated, no replacement at this time.~~
+  * `:cosmosdb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Microsoft Azure Cosmos DB
+  * `:couchbase` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Couchbase
+  * `:couchdb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - CouchDB
+  * `:db2` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - IBM Db2
   * `:derby` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache Derby
+  * `:dynamodb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Amazon DynamoDB
+  * `:edb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - EnterpriseDB
+  * `:elasticsearch` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Elasticsearch
   * `:filemaker` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - FileMaker
+  * `:firebird` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Firebird
+  * `:firstsql` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - **deprecated** ~~Deprecated, use `other_sql` instead.~~
+  * `:geode` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache Geode
+  * `:h2` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - H2
+  * `:hanadb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - SAP HANA
+  * `:hbase` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache HBase
+  * `:hive` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache Hive
+  * `:hsqldb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - HyperSQL DataBase
+  * `:influxdb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - InfluxDB
   * `:informix` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Informix
+  * `:ingres` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Ingres
   * `:instantdb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - InstantDB
   * `:interbase` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - InterBase
   * `:mariadb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - MariaDB
+  * `:maxdb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - SAP MaxDB
+  * `:memcached` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Memcached
+  * `:mongodb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - MongoDB
+  * `:mssql` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Microsoft SQL Server
+  * `:mssqlcompact` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - **deprecated** ~~Deprecated, Microsoft SQL Server Compact is discontinued.~~
+  * `:mysql` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - MySQL
+  * `:neo4j` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Neo4j
   * `:netezza` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Netezza
+  * `:opensearch` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - OpenSearch
+  * `:oracle` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Oracle Database
   * `:pervasive` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Pervasive PSQL
   * `:pointbase` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - PointBase
+  * `:postgresql` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - PostgreSQL
+  * `:progress` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Progress Database
+  * `:redis` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Redis
+  * `:redshift` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Amazon Redshift
+  * `:spanner` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Cloud Spanner
   * `:sqlite` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - SQLite
   * `:sybase` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Sybase
   * `:teradata` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Teradata
-  * `:vertica` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Vertica
-  * `:h2` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - H2
-  * `:coldfusion` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - ColdFusion IMQ
-  * `:cassandra` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache Cassandra
-  * `:hbase` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache HBase
-  * `:mongodb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - MongoDB
-  * `:redis` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Redis
-  * `:couchbase` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Couchbase
-  * `:couchdb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - CouchDB
-  * `:cosmosdb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Microsoft Azure Cosmos DB
-  * `:dynamodb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Amazon DynamoDB
-  * `:neo4j` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Neo4j
-  * `:geode` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache Geode
-  * `:elasticsearch` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Elasticsearch
-  * `:memcached` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Memcached
-  * `:cockroachdb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - CockroachDB
-  * `:opensearch` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - OpenSearch
-  * `:clickhouse` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - ClickHouse
-  * `:spanner` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Cloud Spanner
   * `:trino` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Trino
+  * `:vertica` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Vertica
   """
   @type db_system_values() :: %{
           :other_sql => :other_sql,
-          :mssql => :mssql,
-          :mssqlcompact => :mssqlcompact,
-          :mysql => :mysql,
-          :oracle => :oracle,
-          :db2 => :db2,
-          :postgresql => :postgresql,
-          :redshift => :redshift,
-          :hive => :hive,
-          :cloudscape => :cloudscape,
-          :hsqldb => :hsqldb,
-          :progress => :progress,
-          :maxdb => :maxdb,
-          :hanadb => :hanadb,
-          :ingres => :ingres,
-          :firstsql => :firstsql,
-          :edb => :edb,
-          :cache => :cache,
           :adabas => :adabas,
-          :firebird => :firebird,
+          :cache => :cache,
+          :intersystems_cache => :intersystems_cache,
+          :cassandra => :cassandra,
+          :clickhouse => :clickhouse,
+          :cloudscape => :cloudscape,
+          :cockroachdb => :cockroachdb,
+          :coldfusion => :coldfusion,
+          :cosmosdb => :cosmosdb,
+          :couchbase => :couchbase,
+          :couchdb => :couchdb,
+          :db2 => :db2,
           :derby => :derby,
+          :dynamodb => :dynamodb,
+          :edb => :edb,
+          :elasticsearch => :elasticsearch,
           :filemaker => :filemaker,
+          :firebird => :firebird,
+          :firstsql => :firstsql,
+          :geode => :geode,
+          :h2 => :h2,
+          :hanadb => :hanadb,
+          :hbase => :hbase,
+          :hive => :hive,
+          :hsqldb => :hsqldb,
+          :influxdb => :influxdb,
           :informix => :informix,
+          :ingres => :ingres,
           :instantdb => :instantdb,
           :interbase => :interbase,
           :mariadb => :mariadb,
+          :maxdb => :maxdb,
+          :memcached => :memcached,
+          :mongodb => :mongodb,
+          :mssql => :mssql,
+          :mssqlcompact => :mssqlcompact,
+          :mysql => :mysql,
+          :neo4j => :neo4j,
           :netezza => :netezza,
+          :opensearch => :opensearch,
+          :oracle => :oracle,
           :pervasive => :pervasive,
           :pointbase => :pointbase,
+          :postgresql => :postgresql,
+          :progress => :progress,
+          :redis => :redis,
+          :redshift => :redshift,
+          :spanner => :spanner,
           :sqlite => :sqlite,
           :sybase => :sybase,
           :teradata => :teradata,
-          :vertica => :vertica,
-          :h2 => :h2,
-          :coldfusion => :coldfusion,
-          :cassandra => :cassandra,
-          :hbase => :hbase,
-          :mongodb => :mongodb,
-          :redis => :redis,
-          :couchbase => :couchbase,
-          :couchdb => :couchdb,
-          :cosmosdb => :cosmosdb,
-          :dynamodb => :dynamodb,
-          :neo4j => :neo4j,
-          :geode => :geode,
-          :elasticsearch => :elasticsearch,
-          :memcached => :memcached,
-          :cockroachdb => :cockroachdb,
-          :opensearch => :opensearch,
-          :clickhouse => :clickhouse,
-          :spanner => :spanner,
-          :trino => :trino
+          :trino => :trino,
+          :vertica => :vertica
         }
   @doc """
   The database management system (DBMS) product as identified by the client instrumentation.
@@ -1189,57 +1248,59 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   def db_system_values() do
     %{
       :other_sql => :other_sql,
-      :mssql => :mssql,
-      :mssqlcompact => :mssqlcompact,
-      :mysql => :mysql,
-      :oracle => :oracle,
-      :db2 => :db2,
-      :postgresql => :postgresql,
-      :redshift => :redshift,
-      :hive => :hive,
-      :cloudscape => :cloudscape,
-      :hsqldb => :hsqldb,
-      :progress => :progress,
-      :maxdb => :maxdb,
-      :hanadb => :hanadb,
-      :ingres => :ingres,
-      :firstsql => :firstsql,
-      :edb => :edb,
-      :cache => :cache,
       :adabas => :adabas,
-      :firebird => :firebird,
+      :cache => :cache,
+      :intersystems_cache => :intersystems_cache,
+      :cassandra => :cassandra,
+      :clickhouse => :clickhouse,
+      :cloudscape => :cloudscape,
+      :cockroachdb => :cockroachdb,
+      :coldfusion => :coldfusion,
+      :cosmosdb => :cosmosdb,
+      :couchbase => :couchbase,
+      :couchdb => :couchdb,
+      :db2 => :db2,
       :derby => :derby,
+      :dynamodb => :dynamodb,
+      :edb => :edb,
+      :elasticsearch => :elasticsearch,
       :filemaker => :filemaker,
+      :firebird => :firebird,
+      :firstsql => :firstsql,
+      :geode => :geode,
+      :h2 => :h2,
+      :hanadb => :hanadb,
+      :hbase => :hbase,
+      :hive => :hive,
+      :hsqldb => :hsqldb,
+      :influxdb => :influxdb,
       :informix => :informix,
+      :ingres => :ingres,
       :instantdb => :instantdb,
       :interbase => :interbase,
       :mariadb => :mariadb,
+      :maxdb => :maxdb,
+      :memcached => :memcached,
+      :mongodb => :mongodb,
+      :mssql => :mssql,
+      :mssqlcompact => :mssqlcompact,
+      :mysql => :mysql,
+      :neo4j => :neo4j,
       :netezza => :netezza,
+      :opensearch => :opensearch,
+      :oracle => :oracle,
       :pervasive => :pervasive,
       :pointbase => :pointbase,
+      :postgresql => :postgresql,
+      :progress => :progress,
+      :redis => :redis,
+      :redshift => :redshift,
+      :spanner => :spanner,
       :sqlite => :sqlite,
       :sybase => :sybase,
       :teradata => :teradata,
-      :vertica => :vertica,
-      :h2 => :h2,
-      :coldfusion => :coldfusion,
-      :cassandra => :cassandra,
-      :hbase => :hbase,
-      :mongodb => :mongodb,
-      :redis => :redis,
-      :couchbase => :couchbase,
-      :couchdb => :couchdb,
-      :cosmosdb => :cosmosdb,
-      :dynamodb => :dynamodb,
-      :neo4j => :neo4j,
-      :geode => :geode,
-      :elasticsearch => :elasticsearch,
-      :memcached => :memcached,
-      :cockroachdb => :cockroachdb,
-      :opensearch => :opensearch,
-      :clickhouse => :clickhouse,
-      :spanner => :spanner,
-      :trino => :trino
+      :trino => :trino,
+      :vertica => :vertica
     }
   end
 
@@ -1252,7 +1313,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   end
 
   @deprecated """
-  Replaced by `db.client.connections.pool.name`.
+  Replaced by `db.client.connection.pool.name`.
   """
   @spec pool_name :: :"pool.name"
   def pool_name do
@@ -1260,7 +1321,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   end
 
   @typedoc """
-  Deprecated, use `db.client.connections.state` instead.
+  Deprecated, use `db.client.connection.state` instead.
 
   ### Enum Values
   * `:idle` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
@@ -1271,7 +1332,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
           :used => :used
         }
   @deprecated """
-  Replaced by `db.client.connections.state`.
+  Replaced by `db.client.connection.state`.
   """
   @spec state :: :state
   def state do

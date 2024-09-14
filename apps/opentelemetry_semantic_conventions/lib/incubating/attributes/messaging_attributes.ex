@@ -74,6 +74,43 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   end
 
   @doc """
+  The name of the consumer group with which a consumer is associated.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  Semantic conventions for individual messaging systems **SHOULD** document whether `messaging.consumer.group.name` is applicable and what it means in the context of that system.
+
+  ### Examples
+
+  ```
+  ["my-group", "indexer"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_consumer_group_name()
+      :"messaging.consumer.group.name"
+
+  ### Erlang
+
+  ```erlang
+  ?MESSAGING_CONSUMER_GROUP_NAME.
+  'messaging.consumer.group.name'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec messaging_consumer_group_name :: :"messaging.consumer.group.name"
+  def messaging_consumer_group_name do
+    :"messaging.consumer.group.name"
+  end
+
+  @doc """
   A boolean that is true if the message destination is anonymous (could be unnamed or have auto-generated name).
   ### Value type
 
@@ -171,6 +208,42 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   end
 
   @doc """
+  The name of the destination subscription from which a message is consumed.
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  Semantic conventions for individual messaging systems **SHOULD** document whether `messaging.destination.subscription.name` is applicable and what it means in the context of that system.
+
+  ### Examples
+
+  ```
+  ["subscription-a"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_destination_subscription_name()
+      :"messaging.destination.subscription.name"
+
+  ### Erlang
+
+  ```erlang
+  ?MESSAGING_DESTINATION_SUBSCRIPTION_NAME.
+  'messaging.destination.subscription.name'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec messaging_destination_subscription_name :: :"messaging.destination.subscription.name"
+  def messaging_destination_subscription_name do
+    :"messaging.destination.subscription.name"
+  end
+
+  @doc """
   Low cardinality representation of the messaging destination name
   ### Value type
 
@@ -233,97 +306,25 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
     :"messaging.destination.temporary"
   end
 
-  @doc """
-  A boolean that is true if the publish message destination is anonymous (could be unnamed or have auto-generated name).
-  ### Value type
-
-  Value must be of type `boolean()`.
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_destination_publish_anonymous()
-      :"messaging.destination_publish.anonymous"
-
-  ### Erlang
-
-  ```erlang
-  ?MESSAGING_DESTINATION_PUBLISH_ANONYMOUS.
-  'messaging.destination_publish.anonymous'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  No replacement at this time.
   """
   @spec messaging_destination_publish_anonymous :: :"messaging.destination_publish.anonymous"
   def messaging_destination_publish_anonymous do
     :"messaging.destination_publish.anonymous"
   end
 
-  @doc """
-  The name of the original destination the message was published to
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Notes
-
-  The name **SHOULD** uniquely identify a specific queue, topic, or other entity within the broker. If
-  the broker doesn't have such notion, the original destination name **SHOULD** uniquely identify the broker.
-
-  ### Examples
-
-  ```
-  ["MyQueue", "MyTopic"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_destination_publish_name()
-      :"messaging.destination_publish.name"
-
-  ### Erlang
-
-  ```erlang
-  ?MESSAGING_DESTINATION_PUBLISH_NAME.
-  'messaging.destination_publish.name'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  No replacement at this time.
   """
   @spec messaging_destination_publish_name :: :"messaging.destination_publish.name"
   def messaging_destination_publish_name do
     :"messaging.destination_publish.name"
   end
 
-  @doc """
-  The name of the consumer group the event consumer is associated with.
+  @deprecated """
+  Replaced by `messaging.consumer.group.name`.
 
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Examples
-
-  ```
-  indexer
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_eventhubs_consumer_group()
-      :"messaging.eventhubs.consumer.group"
-
-  ### Erlang
-
-  ```erlang
-  ?MESSAGING_EVENTHUBS_CONSUMER_GROUP.
-  'messaging.eventhubs.consumer.group'
-  ```
-
-  <!-- tabs-close -->
   """
   @spec messaging_eventhubs_consumer_group :: :"messaging.eventhubs.consumer.group"
   def messaging_eventhubs_consumer_group do
@@ -496,33 +497,9 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
     :"messaging.gcp_pubsub.message.ordering_key"
   end
 
-  @doc """
-  Name of the Kafka Consumer Group that is handling the message. Only applies to consumers, not producers.
+  @deprecated """
+  Replaced by `messaging.consumer.group.name`.
 
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Examples
-
-  ```
-  my-group
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_kafka_consumer_group()
-      :"messaging.kafka.consumer.group"
-
-  ### Erlang
-
-  ```erlang
-  ?MESSAGING_KAFKA_CONSUMER_GROUP.
-  'messaging.kafka.consumer.group'
-  ```
-
-  <!-- tabs-close -->
   """
   @spec messaging_kafka_consumer_group :: :"messaging.kafka.consumer.group"
   def messaging_kafka_consumer_group do
@@ -574,33 +551,9 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
     :"messaging.kafka.message.key"
   end
 
-  @doc """
-  The offset of a record in the corresponding Kafka partition.
+  @deprecated """
+  Replaced by `messaging.kafka.offset`.
 
-  ### Value type
-
-  Value must be of type `integer()`.
-  ### Examples
-
-  ```
-  42
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_kafka_message_offset()
-      :"messaging.kafka.message.offset"
-
-  ### Erlang
-
-  ```erlang
-  ?MESSAGING_KAFKA_MESSAGE_OFFSET.
-  'messaging.kafka.message.offset'
-  ```
-
-  <!-- tabs-close -->
   """
   @spec messaging_kafka_message_offset :: :"messaging.kafka.message.offset"
   def messaging_kafka_message_offset do
@@ -632,6 +585,39 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   @spec messaging_kafka_message_tombstone :: :"messaging.kafka.message.tombstone"
   def messaging_kafka_message_tombstone do
     :"messaging.kafka.message.tombstone"
+  end
+
+  @doc """
+  The offset of a record in the corresponding Kafka partition.
+
+  ### Value type
+
+  Value must be of type `integer()`.
+  ### Examples
+
+  ```
+  42
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_kafka_offset()
+      :"messaging.kafka.offset"
+
+  ### Erlang
+
+  ```erlang
+  ?MESSAGING_KAFKA_OFFSET.
+  'messaging.kafka.offset'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec messaging_kafka_offset :: :"messaging.kafka.offset"
+  def messaging_kafka_offset do
+    :"messaging.kafka.offset"
   end
 
   @doc """
@@ -827,17 +813,19 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   * `:receive` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - One or more messages are requested by a consumer. This operation refers to pull-based scenarios, where consumers explicitly call methods of messaging SDKs to receive messages.
 
-  * `:deliver` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - One or more messages are delivered to or processed by a consumer.
+  * `:process` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - One or more messages are processed by a consumer.
 
   * `:settle` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - One or more messages are settled.
 
+  * `:deliver` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - **deprecated** ~~Deprecated. Use `process` instead.~~
   """
   @type messaging_operation_type_values() :: %{
           :publish => :publish,
           :create => :create,
           :receive => :receive,
-          :deliver => :process,
-          :settle => :settle
+          :process => :process,
+          :settle => :settle,
+          :deliver => :deliver
         }
   @doc """
   A string identifying the type of the messaging operation.
@@ -886,8 +874,9 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
       :publish => :publish,
       :create => :create,
       :receive => :receive,
-      :deliver => :process,
-      :settle => :settle
+      :process => :process,
+      :settle => :settle,
+      :deliver => :deliver
     }
   end
 
@@ -958,33 +947,9 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
     :"messaging.rabbitmq.message.delivery_tag"
   end
 
-  @doc """
-  Name of the RocketMQ producer/consumer group that is handling the message. The client type is identified by the SpanKind.
+  @deprecated """
+  Replaced by `messaging.consumer.group.name` on the consumer spans. No replacement for producer spans.
 
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Examples
-
-  ```
-  myConsumerGroup
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_rocketmq_client_group()
-      :"messaging.rocketmq.client_group"
-
-  ### Erlang
-
-  ```erlang
-  ?MESSAGING_ROCKETMQ_CLIENT_GROUP.
-  'messaging.rocketmq.client_group'
-  ```
-
-  <!-- tabs-close -->
   """
   @spec messaging_rocketmq_client_group :: :"messaging.rocketmq.client_group"
   def messaging_rocketmq_client_group do
@@ -1314,33 +1279,9 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
     :"messaging.rocketmq.namespace"
   end
 
-  @doc """
-  The name of the subscription in the topic messages are received from.
+  @deprecated """
+  Replaced by `messaging.servicebus.destination.subscription_name`.
 
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Examples
-
-  ```
-  mySubscription
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_servicebus_destination_subscription_name()
-      :"messaging.servicebus.destination.subscription_name"
-
-  ### Erlang
-
-  ```erlang
-  ?MESSAGING_SERVICEBUS_DESTINATION_SUBSCRIPTION_NAME.
-  'messaging.servicebus.destination.subscription_name'
-  ```
-
-  <!-- tabs-close -->
   """
   @spec messaging_servicebus_destination_subscription_name ::
           :"messaging.servicebus.destination.subscription_name"
@@ -1495,6 +1436,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   * `:kafka` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache Kafka
   * `:rabbitmq` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - RabbitMQ
   * `:rocketmq` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache RocketMQ
+  * `:pulsar` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache Pulsar
   """
   @type messaging_system_values() :: %{
           :activemq => :activemq,
@@ -1506,7 +1448,8 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
           :jms => :jms,
           :kafka => :kafka,
           :rabbitmq => :rabbitmq,
-          :rocketmq => :rocketmq
+          :rocketmq => :rocketmq,
+          :pulsar => :pulsar
         }
   @doc """
   The messaging system as identified by the client instrumentation.
@@ -1561,7 +1504,8 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
       :jms => :jms,
       :kafka => :kafka,
       :rabbitmq => :rabbitmq,
-      :rocketmq => :rocketmq
+      :rocketmq => :rocketmq,
+      :pulsar => :pulsar
     }
   end
 end

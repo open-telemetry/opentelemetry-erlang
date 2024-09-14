@@ -44,6 +44,11 @@
 
 
 
+%% The complete orignal Log Record.
+%%  
+-define(LOG_RECORD_ORIGINAL, 'log.record.original').
+
+
 %% A unique identifier for the Log Record.
 %%  
 -define(LOG_RECORD_UID, 'log.record.uid').

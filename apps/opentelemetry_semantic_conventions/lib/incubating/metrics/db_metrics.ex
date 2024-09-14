@@ -332,6 +332,10 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
 
   Instrument: `histogram`
   Unit: `s`
+  ### Notes
+
+  Batch operations **SHOULD** be recorded as a single operation.
+
 
   <!-- tabs-open -->
   ### Elixir

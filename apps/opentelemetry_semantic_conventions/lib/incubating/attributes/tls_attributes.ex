@@ -334,32 +334,8 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
     :"tls.client.not_before"
   end
 
-  @doc """
-  Also called an SNI, this tells the server which hostname to which the client is attempting to connect to.
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Examples
-
-  ```
-  ["opentelemetry.io"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.TLSAttributes.tls_client_server_name()
-      :"tls.client.server_name"
-
-  ### Erlang
-
-  ```erlang
-  ?TLS_CLIENT_SERVER_NAME.
-  'tls.client.server_name'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `server.address.
   """
   @spec tls_client_server_name :: :"tls.client.server_name"
   def tls_client_server_name do
@@ -406,7 +382,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Examples
 
   ```
-  ["\"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384\", \"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384\", \"...\""]
+  ["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "..."]
   ```
 
   <!-- tabs-open -->

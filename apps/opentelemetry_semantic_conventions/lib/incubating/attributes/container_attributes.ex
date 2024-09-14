@@ -108,7 +108,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   end
 
   @typedoc """
-  The CPU state for this data point.
+  Deprecated, use `cpu.mode` instead.
 
   ### Enum Values
   * `:user` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - When tasks of the cgroup are in user mode (Linux). When all container processes are in user mode (Windows).
@@ -120,42 +120,8 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
           :system => :system,
           :kernel => :kernel
         }
-  @doc """
-  The CPU state for this data point.
-
-  ### Examples
-
-  ```
-  ["user", "kernel"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state()
-      :"container.cpu.state"
-
-      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state_values().user
-      :user
-
-      iex> %{OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state() => OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_cpu_state_values().user}
-      %{:"container.cpu.state" => :user}
-
-  ### Erlang
-
-  ```erlang
-  ?CONTAINER_CPU_STATE.
-  'container.cpu.state'
-
-  ?CONTAINER_CPU_STATE_VALUES_USER.
-  'user'
-
-  \#{?CONTAINER_CPU_STATE => ?CONTAINER_CPU_STATE_VALUES_USER}.
-  \#{'container.cpu.state' => 'user'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `cpu.mode`
   """
   @spec container_cpu_state :: :"container.cpu.state"
   def container_cpu_state do

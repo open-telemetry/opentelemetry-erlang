@@ -59,8 +59,8 @@
 %% Date/Time indicating when client certificate is first considered valid.
 -define(TLS_CLIENT_NOT_BEFORE, 'tls.client.not_before').
 
-
-%% Also called an SNI, this tells the server which hostname to which the client is attempting to connect to.
+%% @deprecated Replaced by `server.address.
+%% Deprecated, use `server.address` instead.
 -define(TLS_CLIENT_SERVER_NAME, 'tls.client.server_name').
 
 

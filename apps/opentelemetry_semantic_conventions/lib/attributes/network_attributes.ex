@@ -212,12 +212,14 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   * `:udp` - UDP
   * `:pipe` - Named or anonymous pipe.
   * `:unix` - Unix domain socket
+  * `:quic` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - QUIC
   """
   @type network_transport_values() :: %{
           :tcp => :tcp,
           :udp => :udp,
           :pipe => :pipe,
-          :unix => :unix
+          :unix => :unix,
+          :quic => :quic
         }
   @doc """
   [OSI transport layer](https://osi-model.com/transport-layer/) or [inter-process communication method](https://wikipedia.org/wiki/Inter-process_communication).
@@ -276,7 +278,8 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
       :tcp => :tcp,
       :udp => :udp,
       :pipe => :pipe,
-      :unix => :unix
+      :unix => :unix,
+      :quic => :quic
     }
   end
 
@@ -322,10 +325,10 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   ?NETWORK_TYPE.
   'network.type'
 
-  ?NETWORK_TYPE_VALUES_IPV_4.
+  ?NETWORK_TYPE_VALUES_IPV4.
   'ipv4'
 
-  \#{?NETWORK_TYPE => ?NETWORK_TYPE_VALUES_IPV_4}.
+  \#{?NETWORK_TYPE => ?NETWORK_TYPE_VALUES_IPV4}.
   \#{'network.type' => 'ipv4'}
   ```
 

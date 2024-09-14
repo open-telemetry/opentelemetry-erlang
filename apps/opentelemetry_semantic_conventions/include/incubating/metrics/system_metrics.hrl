@@ -66,6 +66,10 @@
 -define(SYSTEM_LINUX_MEMORY_AVAILABLE, 'system.linux.memory.available').
 
 
+%% Reports the memory used by the Linux kernel for managing caches of frequently used objects.
+-define(SYSTEM_LINUX_MEMORY_SLAB_USAGE, 'system.linux.memory.slab.usage').
+
+
 %% Total memory available in the system.
 -define(SYSTEM_MEMORY_LIMIT, 'system.memory.limit').
 

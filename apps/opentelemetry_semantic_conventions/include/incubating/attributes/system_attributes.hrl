@@ -17,8 +17,8 @@
 %% The logical CPU number [0..n-1]
 -define(SYSTEM_CPU_LOGICAL_NUMBER, 'system.cpu.logical_number').
 
-
-%% The state of the CPU
+%% @deprecated Replaced by `cpu.mode`
+%% Deprecated, use `cpu.mode` instead.
 -define(SYSTEM_CPU_STATE, 'system.cpu.state').
 
 -define(SYSTEM_CPU_STATE_VALUES_USER, 'user').
@@ -63,7 +63,7 @@
 %% The filesystem type
 -define(SYSTEM_FILESYSTEM_TYPE, 'system.filesystem.type').
 
--define(SYSTEM_FILESYSTEM_TYPE_VALUES_FAT_32, 'fat32').
+-define(SYSTEM_FILESYSTEM_TYPE_VALUES_FAT32, 'fat32').
 
 -define(SYSTEM_FILESYSTEM_TYPE_VALUES_EXFAT, 'exfat').
 
@@ -73,7 +73,7 @@
 
 -define(SYSTEM_FILESYSTEM_TYPE_VALUES_HFSPLUS, 'hfsplus').
 
--define(SYSTEM_FILESYSTEM_TYPE_VALUES_EXT_4, 'ext4').
+-define(SYSTEM_FILESYSTEM_TYPE_VALUES_EXT4, 'ext4').
 
 
 

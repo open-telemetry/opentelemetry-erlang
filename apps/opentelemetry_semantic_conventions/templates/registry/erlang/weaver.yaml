@@ -1,6 +1,6 @@
 params:
   stability: "stable"
-  excluded: ["android", "aspnetcore", "dotnet", "go", "ios", "jvm", "kestrel", "nodejs", "signalr", "v8js"]
+  excluded: ["android", "artifact", "aspnetcore", "cicd", "cpu", "dotnet", "go", "ios", "jvm", "kestrel", "linux", "nodejs", "signalr", "test", "vcs", "veigthjs", "v8js"]
   excluded_attrs: ["messaging.client_id"]
   
 templates:

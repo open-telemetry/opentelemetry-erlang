@@ -160,8 +160,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   end
 
   @typedoc """
-  The CPU state of the process.
-
+  Deprecated, use `cpu.mode` instead.
 
   ### Enum Values
   * `:system` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
@@ -173,38 +172,8 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
           :user => :user,
           :wait => :wait
         }
-  @doc """
-  The CPU state of the process.
-
-
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_cpu_state()
-      :"process.cpu.state"
-
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_cpu_state_values().system
-      :system
-
-      iex> %{OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_cpu_state() => OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_cpu_state_values().system}
-      %{:"process.cpu.state" => :system}
-
-  ### Erlang
-
-  ```erlang
-  ?PROCESS_CPU_STATE.
-  'process.cpu.state'
-
-  ?PROCESS_CPU_STATE_VALUES_SYSTEM.
-  'system'
-
-  \#{?PROCESS_CPU_STATE => ?PROCESS_CPU_STATE_VALUES_SYSTEM}.
-  \#{'process.cpu.state' => 'system'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `cpu.mode`
   """
   @spec process_cpu_state :: :"process.cpu.state"
   def process_cpu_state do
@@ -703,7 +672,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   end
 
   @doc """
-  The name of the runtime of this process. For compiled native binaries, this **SHOULD** be the name of the compiler.
+  The name of the runtime of this process.
 
   ### Value type
 

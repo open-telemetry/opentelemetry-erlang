@@ -116,7 +116,7 @@
 %%  
 -define(AWS_ECS_LAUNCHTYPE, 'aws.ecs.launchtype').
 
--define(AWS_ECS_LAUNCHTYPE_VALUES_EC_2, 'ec2').
+-define(AWS_ECS_LAUNCHTYPE_VALUES_EC2, 'ec2').
 
 -define(AWS_ECS_LAUNCHTYPE_VALUES_FARGATE, 'fargate').
 

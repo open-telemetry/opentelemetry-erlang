@@ -18,21 +18,21 @@
 %%  
 -define(HOST_ARCH, 'host.arch').
 
--define(HOST_ARCH_VALUES_AMD_64, 'amd64').
+-define(HOST_ARCH_VALUES_AMD64, 'amd64').
 
--define(HOST_ARCH_VALUES_ARM_32, 'arm32').
+-define(HOST_ARCH_VALUES_ARM32, 'arm32').
 
--define(HOST_ARCH_VALUES_ARM_64, 'arm64').
+-define(HOST_ARCH_VALUES_ARM64, 'arm64').
 
--define(HOST_ARCH_VALUES_IA_64, 'ia64').
+-define(HOST_ARCH_VALUES_IA64, 'ia64').
 
--define(HOST_ARCH_VALUES_PPC_32, 'ppc32').
+-define(HOST_ARCH_VALUES_PPC32, 'ppc32').
 
--define(HOST_ARCH_VALUES_PPC_64, 'ppc64').
+-define(HOST_ARCH_VALUES_PPC64, 'ppc64').
 
--define(HOST_ARCH_VALUES_S_390_X, 's390x').
+-define(HOST_ARCH_VALUES_S390X, 's390x').
 
--define(HOST_ARCH_VALUES_X_86, 'x86').
+-define(HOST_ARCH_VALUES_X86, 'x86').
 
 
 

@@ -50,12 +50,14 @@
 
 -define(NETWORK_TRANSPORT_VALUES_UNIX, 'unix').
 
+-define(NETWORK_TRANSPORT_VALUES_QUIC, 'quic').
+
 
 
 %% [OSI network layer](https://osi-model.com/network-layer/) or non-OSI equivalent.
 -define(NETWORK_TYPE, 'network.type').
 
--define(NETWORK_TYPE_VALUES_IPV_4, 'ipv4').
+-define(NETWORK_TYPE_VALUES_IPV4, 'ipv4').
 
--define(NETWORK_TYPE_VALUES_IPV_6, 'ipv6').
+-define(NETWORK_TYPE_VALUES_IPV6, 'ipv6').
 

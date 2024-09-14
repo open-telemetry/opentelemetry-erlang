@@ -13,32 +13,32 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
-%% @deprecated Deprecated, use `deployment.environment.name` instead.
-%% 'Deprecated, use `deployment.environment.name` instead.'
+
+%% User email address.
 %%  
--define(DEPLOYMENT_ENVIRONMENT, 'deployment.environment').
+-define(USER_EMAIL, 'user.email').
 
 
-%% Name of the [deployment environment](https://wikipedia.org/wiki/Deployment_environment) (aka deployment tier).
+%% User's full name
 %%  
--define(DEPLOYMENT_ENVIRONMENT_NAME, 'deployment.environment.name').
+-define(USER_FULL_NAME, 'user.full_name').
 
 
-%% The id of the deployment.
+%% Unique user hash to correlate information for a user in anonymized form.
 %%  
--define(DEPLOYMENT_ID, 'deployment.id').
+-define(USER_HASH, 'user.hash').
 
 
-%% The name of the deployment.
+%% Unique identifier of the user.
 %%  
--define(DEPLOYMENT_NAME, 'deployment.name').
+-define(USER_ID, 'user.id').
 
 
-%% The status of the deployment.
+%% Short name or login/username of the user.
 %%  
--define(DEPLOYMENT_STATUS, 'deployment.status').
+-define(USER_NAME, 'user.name').
 
--define(DEPLOYMENT_STATUS_VALUES_FAILED, 'failed').
 
--define(DEPLOYMENT_STATUS_VALUES_SUCCEEDED, 'succeeded').
-
+%% Array of user roles at the time of the event.
+%%  
+-define(USER_ROLES, 'user.roles').

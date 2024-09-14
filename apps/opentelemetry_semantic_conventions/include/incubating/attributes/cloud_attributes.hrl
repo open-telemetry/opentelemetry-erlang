@@ -34,7 +34,7 @@
 
 -define(CLOUD_PLATFORM_VALUES_ALIBABA_CLOUD_OPENSHIFT, 'alibaba_cloud_openshift').
 
--define(CLOUD_PLATFORM_VALUES_AWS_EC_2, 'aws_ec2').
+-define(CLOUD_PLATFORM_VALUES_AWS_EC2, 'aws_ec2').
 
 -define(CLOUD_PLATFORM_VALUES_AWS_ECS, 'aws_ecs').
 

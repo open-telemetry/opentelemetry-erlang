@@ -37,9 +37,8 @@
 -define(PROCESS_CONTEXT_SWITCH_TYPE_VALUES_INVOLUNTARY, 'involuntary').
 
 
-
-%% The CPU state of the process.
-%%  
+%% @deprecated Replaced by `cpu.mode`
+%% Deprecated, use `cpu.mode` instead.
 -define(PROCESS_CPU_STATE, 'process.cpu.state').
 
 -define(PROCESS_CPU_STATE_VALUES_SYSTEM, 'system').
@@ -125,7 +124,7 @@
 -define(PROCESS_RUNTIME_DESCRIPTION, 'process.runtime.description').
 
 
-%% The name of the runtime of this process. For compiled native binaries, this SHOULD be the name of the compiler.
+%% The name of the runtime of this process.
 %%  
 -define(PROCESS_RUNTIME_NAME, 'process.runtime.name').
 

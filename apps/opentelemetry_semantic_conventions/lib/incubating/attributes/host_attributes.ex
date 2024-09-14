@@ -52,10 +52,10 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ?HOST_ARCH.
   'host.arch'
 
-  ?HOST_ARCH_VALUES_AMD_64.
+  ?HOST_ARCH_VALUES_AMD64.
   'amd64'
 
-  \#{?HOST_ARCH => ?HOST_ARCH_VALUES_AMD_64}.
+  \#{?HOST_ARCH => ?HOST_ARCH_VALUES_AMD64}.
   \#{'host.arch' => 'amd64'}
   ```
 

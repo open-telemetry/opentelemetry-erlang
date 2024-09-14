@@ -195,6 +195,43 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
   end
 
   @doc """
+  The complete orignal Log Record.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  This value **MAY** be added when processing a Log Record which was originally transmitted as a string or equivalent data type AND the Body field of the Log Record does not contain the same value. (e.g. a syslog or a log record read from a file.)
+
+  ### Examples
+
+  ```
+  ["77 <86>1 2015-08-06T21:58:59.694Z 192.168.2.133 inactive - - - Something happened", "[INFO] 8/3/24 12:34:56 Something happened"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.LogAttributes.log_record_original()
+      :"log.record.original"
+
+  ### Erlang
+
+  ```erlang
+  ?LOG_RECORD_ORIGINAL.
+  'log.record.original'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec log_record_original :: :"log.record.original"
+  def log_record_original do
+    :"log.record.original"
+  end
+
+  @doc """
   A unique identifier for the Log Record.
 
   ### Value type

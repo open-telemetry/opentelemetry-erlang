@@ -25,6 +25,11 @@
 -define(MESSAGING_CLIENT_ID, 'messaging.client.id').
 
 
+%% The name of the consumer group with which a consumer is associated.
+%%  
+-define(MESSAGING_CONSUMER_GROUP_NAME, 'messaging.consumer.group.name').
+
+
 %% A boolean that is true if the message destination is anonymous (could be unnamed or have auto-generated name).
 -define(MESSAGING_DESTINATION_ANONYMOUS, 'messaging.destination.anonymous').
 
@@ -38,6 +43,10 @@
 -define(MESSAGING_DESTINATION_PARTITION_ID, 'messaging.destination.partition.id').
 
 
+%% The name of the destination subscription from which a message is consumed.
+-define(MESSAGING_DESTINATION_SUBSCRIPTION_NAME, 'messaging.destination.subscription.name').
+
+
 %% Low cardinality representation of the messaging destination name
 -define(MESSAGING_DESTINATION_TEMPLATE, 'messaging.destination.template').
 
@@ -45,16 +54,17 @@
 %% A boolean that is true if the message destination is temporary and might not exist anymore after messages are processed.
 -define(MESSAGING_DESTINATION_TEMPORARY, 'messaging.destination.temporary').
 
-
-%% A boolean that is true if the publish message destination is anonymous (could be unnamed or have auto-generated name).
+%% @deprecated No replacement at this time.
+%% Deprecated, no replacement at this time.
 -define(MESSAGING_DESTINATION_PUBLISH_ANONYMOUS, 'messaging.destination_publish.anonymous').
 
-
-%% The name of the original destination the message was published to
+%% @deprecated No replacement at this time.
+%% Deprecated, no replacement at this time.
 -define(MESSAGING_DESTINATION_PUBLISH_NAME, 'messaging.destination_publish.name').
 
-
-%% The name of the consumer group the event consumer is associated with.
+%% @deprecated Replaced by `messaging.consumer.group.name`.
+%%  
+%% Deprecated, use `messaging.consumer.group.name` instead.
 %%  
 -define(MESSAGING_EVENTHUBS_CONSUMER_GROUP, 'messaging.eventhubs.consumer.group').
 
@@ -83,8 +93,9 @@
 %%  
 -define(MESSAGING_GCP_PUBSUB_MESSAGE_ORDERING_KEY, 'messaging.gcp_pubsub.message.ordering_key').
 
-
-%% Name of the Kafka Consumer Group that is handling the message. Only applies to consumers, not producers.
+%% @deprecated Replaced by `messaging.consumer.group.name`.
+%%  
+%% Deprecated, use `messaging.consumer.group.name` instead.
 %%  
 -define(MESSAGING_KAFKA_CONSUMER_GROUP, 'messaging.kafka.consumer.group').
 
@@ -98,14 +109,20 @@
 %%  
 -define(MESSAGING_KAFKA_MESSAGE_KEY, 'messaging.kafka.message.key').
 
-
-%% The offset of a record in the corresponding Kafka partition.
+%% @deprecated Replaced by `messaging.kafka.offset`.
+%%  
+%% Deprecated, use `messaging.kafka.offset` instead.
 %%  
 -define(MESSAGING_KAFKA_MESSAGE_OFFSET, 'messaging.kafka.message.offset').
 
 
 %% A boolean that is true if the message is a tombstone.
 -define(MESSAGING_KAFKA_MESSAGE_TOMBSTONE, 'messaging.kafka.message.tombstone').
+
+
+%% The offset of a record in the corresponding Kafka partition.
+%%  
+-define(MESSAGING_KAFKA_OFFSET, 'messaging.kafka.offset').
 
 
 %% The size of the message body in bytes.
@@ -147,9 +164,11 @@
 
 -define(MESSAGING_OPERATION_TYPE_VALUES_RECEIVE, 'receive').
 
--define(MESSAGING_OPERATION_TYPE_VALUES_DELIVER, 'process').
+-define(MESSAGING_OPERATION_TYPE_VALUES_PROCESS, 'process').
 
 -define(MESSAGING_OPERATION_TYPE_VALUES_SETTLE, 'settle').
+
+-define(MESSAGING_OPERATION_TYPE_VALUES_DELIVER, 'deliver').
 
 
 
@@ -162,8 +181,9 @@
 %%  
 -define(MESSAGING_RABBITMQ_MESSAGE_DELIVERY_TAG, 'messaging.rabbitmq.message.delivery_tag').
 
-
-%% Name of the RocketMQ producer/consumer group that is handling the message. The client type is identified by the SpanKind.
+%% @deprecated Replaced by `messaging.consumer.group.name` on the consumer spans. No replacement for producer spans.
+%%  
+%% Deprecated, use `messaging.consumer.group.name` instead.
 %%  
 -define(MESSAGING_ROCKETMQ_CLIENT_GROUP, 'messaging.rocketmq.client_group').
 
@@ -221,8 +241,9 @@
 %%  
 -define(MESSAGING_ROCKETMQ_NAMESPACE, 'messaging.rocketmq.namespace').
 
-
-%% The name of the subscription in the topic messages are received from.
+%% @deprecated Replaced by `messaging.servicebus.destination.subscription_name`.
+%%  
+%% Deprecated, use `messaging.servicebus.destination.subscription_name` instead.
 %%  
 -define(MESSAGING_SERVICEBUS_DESTINATION_SUBSCRIPTION_NAME, 'messaging.servicebus.destination.subscription_name').
 
@@ -273,4 +294,6 @@
 -define(MESSAGING_SYSTEM_VALUES_RABBITMQ, 'rabbitmq').
 
 -define(MESSAGING_SYSTEM_VALUES_ROCKETMQ, 'rocketmq').
+
+-define(MESSAGING_SYSTEM_VALUES_PULSAR, 'pulsar').
 

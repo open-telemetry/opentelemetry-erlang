@@ -13,32 +13,22 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
-%% @deprecated Deprecated, use `deployment.environment.name` instead.
-%% 'Deprecated, use `deployment.environment.name` instead.'
-%%  
--define(DEPLOYMENT_ENVIRONMENT, 'deployment.environment').
+
+%% GenAI operation duration
+-define(GEN_AI_CLIENT_OPERATION_DURATION, 'gen_ai.client.operation.duration').
 
 
-%% Name of the [deployment environment](https://wikipedia.org/wiki/Deployment_environment) (aka deployment tier).
-%%  
--define(DEPLOYMENT_ENVIRONMENT_NAME, 'deployment.environment.name').
+%% Measures number of input and output tokens used
+-define(GEN_AI_CLIENT_TOKEN_USAGE, 'gen_ai.client.token.usage').
 
 
-%% The id of the deployment.
-%%  
--define(DEPLOYMENT_ID, 'deployment.id').
+%% Generative AI server request duration such as time-to-last byte or last output token
+-define(GEN_AI_SERVER_REQUEST_DURATION, 'gen_ai.server.request.duration').
 
 
-%% The name of the deployment.
-%%  
--define(DEPLOYMENT_NAME, 'deployment.name').
+%% Time per output token generated after the first token for successful responses
+-define(GEN_AI_SERVER_TIME_PER_OUTPUT_TOKEN, 'gen_ai.server.time_per_output_token').
 
 
-%% The status of the deployment.
-%%  
--define(DEPLOYMENT_STATUS, 'deployment.status').
-
--define(DEPLOYMENT_STATUS_VALUES_FAILED, 'failed').
-
--define(DEPLOYMENT_STATUS_VALUES_SUCCEEDED, 'succeeded').
-
+%% Time to generate first token for successful responses
+-define(GEN_AI_SERVER_TIME_TO_FIRST_TOKEN, 'gen_ai.server.time_to_first_token').

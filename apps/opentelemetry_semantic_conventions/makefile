@@ -1,4 +1,4 @@
-SEMCON_VERSION = 1.26.0
+SEMCON_VERSION = 1.27.0
 
 .PHONY: setup clean-all checkout generate
 
@@ -19,7 +19,7 @@ clean-erlang:
 	rm -rf include/metrics
 
 setup:
-	curl --proto '=https' --tlsv1.2 -LsSf https://github.com/open-telemetry/weaver/releases/download/v0.7.0/weaver-installer.sh | sh
+	curl --proto '=https' --tlsv1.2 -LsSf https://github.com/open-telemetry/weaver/releases/download/v0.9.2/weaver-installer.sh | sh
 
 checkout:
 	mkdir semtmp

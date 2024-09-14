@@ -5,6 +5,42 @@ defmodule OpenTelemetry.SemConv.Incubating.GCPAttributes do
   """
 
   @doc """
+  Identifies the Google Cloud service for which the official client library is intended.
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  Intended to be a stable identifier for Google Cloud client libraries that is uniform across implementation languages. The value should be derived from the canonical service domain for the service; for example, 'foo.googleapis.com' should result in a value of 'foo'.
+
+  ### Examples
+
+  ```
+  ["appengine", "run", "firestore", "alloydb", "spanner"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.GCPAttributes.gcp_client_service()
+      :"gcp.client.service"
+
+  ### Erlang
+
+  ```erlang
+  ?GCP_CLIENT_SERVICE.
+  'gcp.client.service'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec gcp_client_service :: :"gcp.client.service"
+  def gcp_client_service do
+    :"gcp.client.service"
+  end
+
+  @doc """
   The name of the Cloud Run [execution](https://cloud.google.com/run/docs/managing/job-executions) being run for the Job, as set by the [`CLOUD_RUN_EXECUTION`](https://cloud.google.com/run/docs/container-contract#jobs-env-vars) environment variable.
 
   ### Value type
