@@ -12,6 +12,7 @@ clean-elixir:
 	rm -rf lib/attributes
 	rm -rf lib/incubating
 	rm -rf lib/metrics
+	rm -rf doc
 
 clean-erlang:
 	rm -rf include/attributes
@@ -28,6 +29,7 @@ checkout:
 	  git checkout v$(SEMCON_VERSION) && \
 	  cp -r docs ../guides
 	rm -rf guides/docs
+	rm -f $(addprefix guides/attributes-registry/, android.md aspnetcore.md dotnet.md go.md ios.md jvm.md kestrel.md nodejs.md signalr.md v8js.md veightjs.md webengine.md)
 
 generate: generate-elixir generate-erlang format-and-test
 
