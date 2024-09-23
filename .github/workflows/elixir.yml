@@ -3,10 +3,12 @@ name: Elixir
 on:
   pull_request:
     branches:
-      - 'main'
+      - "main"
+    types: [opened, reopened, synchronize, labeled]
+
   push:
     branches:
-      - 'main'
+      - "main"
 
 jobs:
   format:
@@ -15,9 +17,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
-          otp-version: '26.1.2'
-          elixir-version: '1.15.7'
-          version-type: 'strict'
+          otp-version: "26.1.2"
+          elixir-version: "1.15.7"
+          version-type: "strict"
       - uses: actions/cache@v4
         name: Cache
         with:
@@ -34,9 +36,9 @@ jobs:
     name: Test SDK on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['26.1.2', '24.3.4.14']
-        elixir_version: ['1.15.7', '1.12.3']
-        rebar3_version: ['3.22.1']
+        otp_version: ["26.1.2", "24.3.4.14"]
+        elixir_version: ["1.15.7", "1.12.3"]
+        rebar3_version: ["3.22.1"]
         os: [ubuntu-20.04]
         exclude:
           - elixir_version: "1.12.3"
@@ -51,7 +53,7 @@ jobs:
           otp-version: ${{ matrix.otp_version }}
           elixir-version: ${{ matrix.elixir_version }}
           rebar3-version: ${{ matrix.rebar3_version }}
-          version-type: 'strict'
+          version-type: "strict"
       - name: Compile
         run: rebar3 as test compile
       - name: ExUnit
@@ -62,9 +64,9 @@ jobs:
     name: Test API on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['26.1.2', '24.3.4.14']
-        elixir_version: ['1.15.7', '1.12.3']
-        rebar3_version: ['3.22.1']
+        otp_version: ["26.1.2", "24.3.4.14"]
+        elixir_version: ["1.15.7", "1.12.3"]
+        rebar3_version: ["3.22.1"]
         os: [ubuntu-20.04]
         exclude:
           - elixir_version: "1.12.3"
@@ -82,7 +84,7 @@ jobs:
           otp-version: ${{ matrix.otp_version }}
           elixir-version: ${{ matrix.elixir_version }}
           rebar3-version: ${{ matrix.rebar3_version }}
-          version-type: 'strict'
+          version-type: "strict"
       - uses: actions/cache@v4
         name: Cache
         with:
@@ -108,9 +110,9 @@ jobs:
     name: Dialyze on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ['26.1.2']
-        elixir_version: ['1.15.7']
-        rebar_version: ['3.22.1']
+        otp_version: ["26.1.2"]
+        elixir_version: ["1.15.7"]
+        rebar_version: ["3.22.1"]
         os: [ubuntu-20.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
@@ -124,7 +126,7 @@ jobs:
         with:
           otp-version: ${{ matrix.otp_version }}
           elixir-version: ${{ matrix.elixir_version }}
-          version-type: 'strict'
+          version-type: "strict"
       - uses: actions/cache@v4
         name: Cache
         with:
@@ -138,3 +140,46 @@ jobs:
         name: Deps
       - run: mix dialyzer
         name: Dialyzer
+
+  semconv_tests:
+    runs-on: ${{ matrix.os }}
+    if: (contains(github.event.pull_request.labels.*.name, 'language-elixir') && contains(github.event.pull_request.labels.*.name, 'scope-semconv'))
+    name: Test SemConv on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
+    strategy:
+      matrix:
+        otp_version: ["26.1.2", "24.3.4.14"]
+        elixir_version: ["1.15.7", "1.12.3"]
+        rebar3_version: ["3.22.1"]
+        os: [ubuntu-20.04]
+        exclude:
+          - elixir_version: "1.12.3"
+          - otp_version: "26.1.2"
+    defaults:
+      run:
+        working-directory: apps/opentelemetry_semantic_conventions
+    env:
+      OTP_VERSION: ${{ matrix.otp_version }}
+      ELIXIR_VERSION: ${{ matrix.elixir_version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ matrix.otp_version }}
+          elixir-version: ${{ matrix.elixir_version }}
+          rebar3-version: ${{ matrix.rebar3_version }}
+          version-type: "strict"
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/deps
+            ~/_build
+          key: ${{ runner.os }}-test-${{ matrix.otp_version }}-${{ matrix.elixir_version }}-${{ hashFiles('**/mix.lock') }}
+
+      - name: Get and compile deps
+        if: steps.deps-cache.outputs.cache-hit != 'true'
+        run: |
+          mix deps.get
+          mix deps.compile
+      - name: ExUnit
+        run: mix test

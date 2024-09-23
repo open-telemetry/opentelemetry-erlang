@@ -1,6 +1,6 @@
 {application, opentelemetry_semantic_conventions,
  [{description, "Macros defining the keys of OpenTelemetry semantic conventions"},
-  {vsn, "0.2.0"},
+  {vsn, "1.27.0"},
   {registered, []},
   {applications,
    [kernel,
