@@ -41,7 +41,6 @@
          end_span/2]).
 
 -include("opentelemetry.hrl").
--include_lib("opentelemetry_semantic_conventions/include/trace.hrl").
 
 -define(is_recording(SpanCtx), SpanCtx =/= undefined andalso SpanCtx#span_ctx.is_recording =:= true).
 
@@ -222,8 +221,8 @@ record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) when is_list(Attr
 record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) when is_map(Attributes) ->
     {ok, ExceptionType} = otel_utils:format_binary_string("~0tP:~0tP", [Class, 10, Term, 10], [{chars_limit, 50}]),
     {ok, StacktraceString} = otel_utils:format_binary_string("~0tP", [Stacktrace, 10], [{chars_limit, 50}]),
-    ExceptionAttributes = #{?EXCEPTION_TYPE => ExceptionType,
-                            ?EXCEPTION_STACKTRACE => StacktraceString},
+    ExceptionAttributes = #{'exception.type' => ExceptionType,
+                            'exception.stacktrace' => StacktraceString},
     add_event(SpanCtx, 'exception', maps:merge(ExceptionAttributes, Attributes));
 record_exception(_, _, _, _, _) ->
     false.
@@ -240,9 +239,9 @@ record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) when is_
 record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) when is_map(Attributes) ->
     {ok, ExceptionType} = otel_utils:format_binary_string("~0tP:~0tP", [Class, 10, Term, 10], [{chars_limit, 50}]),
     {ok, StacktraceString} = otel_utils:format_binary_string("~0tP", [Stacktrace, 10], [{chars_limit, 50}]),
-    ExceptionAttributes = #{?EXCEPTION_TYPE => ExceptionType,
-                            ?EXCEPTION_STACKTRACE => StacktraceString,
-                            ?EXCEPTION_MESSAGE => Message},
+    ExceptionAttributes = #{'exception.type' => ExceptionType,
+                            'exception.stacktrace' => StacktraceString,
+                            'exception.message' => Message},
     add_event(SpanCtx, 'exception', maps:merge(ExceptionAttributes, Attributes));
 record_exception(_, _, _, _, _, _) ->
     false.

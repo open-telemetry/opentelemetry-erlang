@@ -10,6 +10,7 @@
     opentelemetry_api_experimental,
     opentelemetry
    ]},
+  {exclude_paths, ["rebar.lock"]},
   {env,[]},
   {modules, []},
 
