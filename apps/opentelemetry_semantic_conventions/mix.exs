@@ -70,6 +70,7 @@ defmodule OpenTelemetry.SemanticConventions.MixProject do
 
   defp package() do
     [
+      name: "opentelemetry_semantic_conventions",
       description: "OpenTelemetry Semantic Conventions",
       build_tools: ["rebar3", "mix"],
       files: ~w(lib mix.exs README.md LICENSE rebar.config include src),
