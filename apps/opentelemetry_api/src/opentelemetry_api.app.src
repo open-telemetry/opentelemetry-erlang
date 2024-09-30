@@ -6,6 +6,7 @@
    [kernel,
     stdlib
    ]},
+  {exclude_paths, ["rebar.lock"]},
   {env,[]},
   {modules, []},
 
