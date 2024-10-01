@@ -38,6 +38,8 @@ init(Opts) ->
 
 export(undefined, _Metrics, _Resource) ->
     ok;
+export(_, [], _Resource) ->
+    ok;
 export({ExporterModule, Config}, Metrics, Resource) ->
     ExporterModule:export(Metrics, Resource, Config).
 
