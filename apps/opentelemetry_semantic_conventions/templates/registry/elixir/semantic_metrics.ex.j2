@@ -1,0 +1,58 @@
+{%- import 'common.j2' as c %}
+{%- set file_name = ctx.output ~ c.file_name(ctx.id) ~ "_metrics.ex" -%}
+{%- set trim_blocks = true %}
+{%- set trim_lstrip_blocks = true %}
+{{ template.set_file_name(file_name) }}
+
+{%- set module_name = ctx.id | pascal_case | acronym ~ "Metrics" -%}
+{%- if params.stability == "experimental" -%}
+{%- set module_namespace = "OpenTelemetry.SemConv.Incubating.Metrics" -%}
+{%- else -%}
+{%- set module_namespace = "OpenTelemetry.SemConv.Metrics" -%}
+{%- endif -%}
+defmodule {{ module_namespace }}.{{ module_name }} do
+  # This is an auto-generated file
+  @moduledoc """
+  OpenTelemetry Semantic Conventions for {{ ctx.id | title | acronym }} metrics.
+  """
+{%- for metric in ctx.metrics | sort(attribute="metric_name") %}
+  {% if metric is deprecated %}
+  @deprecated """
+  {{ metric.deprecated | replace("\n", "\n  ") }}
+  """
+  {%- else -%}
+  @doc """
+  {{ c.strong_reqs(metric.brief | replace("\n", "\n  ")) }}
+
+  Instrument: `{{ metric.instrument }}`
+  Unit: `{{ metric.unit }}`
+
+  {%- if metric.note %}
+  ### Notes
+
+  {{ c.strong_reqs(metric.note | replace("\n", "\n  ")) }}
+  {%- endif %}
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> {{ module_namespace }}.{{ module_name }}.{{ c.func_name(metric.metric_name) }}()
+      {{ c.to_atom(metric.metric_name) }}
+
+  ### Erlang
+
+  ```erlang
+  ?{{ c.erl_attr_name(metric.metric_name) }}.
+  '{{ metric.metric_name }}'
+  ```
+
+  <!-- tabs-close -->
+  """
+  {%- endif %}
+
+  @spec {{ c.func_name(metric.metric_name) }} :: {{ c.to_atom(metric.metric_name) }}
+  def {{ c.func_name(metric.metric_name) }} do
+    {{ c.to_atom(metric.metric_name) }}
+  end
+{% endfor %}
+end

@@ -11,6 +11,7 @@
     tls_certificate_check,
     opentelemetry_api
    ]},
+  {exclude_paths, ["rebar.lock"]},
   {env,[]},
   {modules, []},
 

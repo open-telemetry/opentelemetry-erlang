@@ -13,5 +13,8 @@ scope-api:
 scope-sdk:
   - apps/opentelemetry/**
 
+scope-semconv:
+  - apps/opentelemetry_semantic_conventions/**
+
 scope-ci:
   - .github/workflows/**

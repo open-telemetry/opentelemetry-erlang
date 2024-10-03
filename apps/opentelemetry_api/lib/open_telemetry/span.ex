@@ -29,8 +29,6 @@ defmodule OpenTelemetry.Span do
   - A Status (`t:OpenTelemetry.status/0`)
   """
 
-  require OpenTelemetry.SemanticConventions.Trace
-
   @type start_opts() :: :otel_span.start_opts()
   @type start_config() :: :otel_span.start_config()
 
@@ -140,13 +138,12 @@ defmodule OpenTelemetry.Span do
     exception_type = to_string(exception.__struct__)
 
     exception_attributes = [
-      {OpenTelemetry.SemanticConventions.Trace.exception_type(), exception_type},
-      {OpenTelemetry.SemanticConventions.Trace.exception_message(), Exception.message(exception)},
-      {OpenTelemetry.SemanticConventions.Trace.exception_stacktrace(),
-       Exception.format_stacktrace(trace)}
+      {:"exception.type", exception_type},
+      {:"exception.message", Exception.message(exception)},
+      {:"exception.stacktrace", Exception.format_stacktrace(trace)}
     ]
 
-    add_event(span_ctx, "exception", exception_attributes ++ attributes)
+    add_event(span_ctx, :exception, exception_attributes ++ attributes)
   end
 
   def record_exception(_, _, _, _), do: false

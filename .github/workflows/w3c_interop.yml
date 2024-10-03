@@ -11,7 +11,7 @@ on:
 jobs:
   interop_tests:
     name: Run W3C Trace Context Interop Tests
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - uses: erlef/setup-beam@v1

@@ -259,7 +259,7 @@ defmodule OtelTests do
                             :infinity,
                             0,
                             [
-                              {:event, _, "exception", ^attributes}
+                              {:event, _, :exception, ^attributes}
                             ]
                           }
                         )}
