@@ -20,7 +20,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["26.1.2", "25.3.2.7", "24.3.4.14"]
+        otp_version: ["27.1", "26.1.2", "25.3.2.7", "24.3.4.14"]
         rebar3_version: ["3.22.1"]
         os: [ubuntu-20.04]
         include:
