@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## Exporter 
+## Exporter 1.8.0 - 2024-10-05
 
 ### Fixes
 
@@ -17,6 +17,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   an attribute you must convert with `unicode:characters_to_binary` before
   adding to the
   attributes](https://github.com/open-telemetry/opentelemetry-erlang/pull/737)
+
+## API 1.4.0 - 2024-10-05
+
+### Changes
+
+- [Hard code semconv 0.2 values](https://github.com/open-telemetry/opentelemetry-erlang/pull/780)
+
+## SDK 1.5.0 - 2024-10-05
+
+### Changes
+
+- [Fix invalid warning log causing FORMATTER
+  CRASH](https://github.com/open-telemetry/opentelemetry-erlang/pull/774)
+- [Hard code semconv 0.2 values](https://github.com/open-telemetry/opentelemetry-erlang/pull/780)
 
 ## API 1.3.1 - 2024-09-03
 

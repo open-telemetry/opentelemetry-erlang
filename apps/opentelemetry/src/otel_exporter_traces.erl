@@ -38,8 +38,8 @@
 init(Opts) ->
     otel_exporter:init(Opts).
 
-export({ExporterModule, Config}, Metrics, Resource) ->
-    ExporterModule:export(Metrics, Resource, Config).
+export({ExporterModule, Config}, SpansTid, Resource) ->
+    ExporterModule:export(SpansTid, Resource, Config).
 
 shutdown(Exporter) ->
     otel_exporter:shutdown(Exporter).
