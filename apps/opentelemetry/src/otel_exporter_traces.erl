@@ -39,7 +39,7 @@ init(Opts) ->
     otel_exporter:init(Opts).
 
 export({ExporterModule, Config}, SpansTid, Resource) ->
-    ExporterModule:export(traces, SpansTid, Resource, Config).
+    ExporterModule:export(SpansTid, Resource, Config).
 
 shutdown(Exporter) ->
     otel_exporter:shutdown(Exporter).

@@ -679,6 +679,9 @@ multiple_tracer_providers(_Config) ->
     receive
         {span, Span} ->
             ?assertEqual(<<"span-1">>, Span#span.name)
+    after
+        1000 ->
+            ct:fail(failed)
     end,
 
     %% now a span with the tracer from the non-global tracer provider
