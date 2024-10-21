@@ -187,8 +187,11 @@ configuration(_Config) ->
         %% test all supported protocols
         application:unset_env(opentelemetry_exporter, otlp_protocol),
         os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
+        %% regression test for issue #788
+        os:putenv("OTEL_EXPORTER_OTLP_TRACES_PROTOCOL", "grpc"),
         ?assertMatch(#{protocol := grpc},
                      otel_exporter_traces_otlp:merge_with_environment(#{})),
+        os:unsetenv("OTEL_EXPORTER_OTLP_TRACES_PROTOCOL"),
 
         %% the specification defines the value as "http/protobuf"
         %% https://github.com/open-telemetry/opentelemetry-specification/blob/82707fd9f7b1266f1246b02ff3e00bebdee6b538/specification/protocol/exporter.md#specify-protocol
