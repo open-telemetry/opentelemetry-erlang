@@ -271,7 +271,7 @@ add_service_instance(Resource) ->
                     case erlang:node() of
                         nonode@nohost ->
                             ServiceInstanceId = otel_id_generator:generate_trace_id(),
-                            ServiceInstanceResource = otel_resource:create([{'service.instance.id', unicode:characters_to_binary(ServiceInstanceId)}]),
+                            ServiceInstanceResource = otel_resource:create([{'service.instance.id', integer_to_binary(ServiceInstanceId)}]),
                             otel_resource:merge(ServiceInstanceResource, Resource);
                         ServiceInstance ->
                             ServiceInstance1 = erlang:atom_to_binary(ServiceInstance, utf8),
@@ -290,7 +290,7 @@ add_service_instance(Resource) ->
             end;
         ServiceInstance ->
             ServiceInstanceResource = otel_resource:create([{'service.instance.id',
-                                                            unicode:characters_to_binary(ServiceInstance)}]),
+                                                                        otel_utils:assert_to_binary(ServiceInstance)}]),
             otel_resource:merge(ServiceInstanceResource, Resource)
     end.
 
