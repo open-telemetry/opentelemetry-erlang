@@ -27,7 +27,7 @@
 
 <p align="center">
   <a href="https://github.com/open-telemetry/opentelemetry-erlang/actions">
-    <img src="https://img.shields.io/github/workflow/status/open-telemetry/opentelemetry-erlang/Erlang?style=for-the-badge" alt="GitHub Workflow Status" />
+    <img src="https://img.shields.io/github/actions/workflow/status/open-telemetry/opentelemetry-erlang/erlang.yml?style=for-the-badge&branch=main" alt="GitHub Workflow Status" />
   </a>
   <img src="https://img.shields.io/codecov/c/github/open-telemetry/opentelemetry-erlang?style=for-the-badge" alt="Codecov" />
 </p>
