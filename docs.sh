@@ -11,8 +11,8 @@ rebar3 compile
 rebar3 edoc
 sdk_version=1.5.0
 api_version=1.4.0
-exp_sdk_version=0.5.1
-exp_api_version=0.5.1
+exp_sdk_version=0.6.0
+exp_api_version=0.5.2
 otlp_version=1.8.0
 zipkin_version=1.1.0
 semconv_version=0.2.0
