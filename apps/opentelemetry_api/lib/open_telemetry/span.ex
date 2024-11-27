@@ -121,7 +121,7 @@ defmodule OpenTelemetry.Span do
   defdelegate add_events(span_ctx, events), to: :otel_span
 
   @doc """
-  Record an exception as an event, following the semantics convetions for exceptions.
+  Record an exception as an event, following the semantic conventions for exceptions.
 
   If trace is not provided, the stacktrace is retrieved from `Process.info/2`
   """
