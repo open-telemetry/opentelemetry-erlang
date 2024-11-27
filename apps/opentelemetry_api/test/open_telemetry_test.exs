@@ -7,11 +7,12 @@ defmodule OpenTelemetryTest do
   require OpenTelemetry.Ctx, as: Ctx
 
   require Record
-  @fields Record.extract(:span_ctx, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
-  Record.defrecordp(:span_ctx, @fields)
+  Record.defrecordp(:span_ctx, Record.extract(:span_ctx, from_lib: "opentelemetry_api/include/opentelemetry.hrl"))
+  Record.defrecordp(:status, Record.extract(:status, from_lib: "opentelemetry_api/include/opentelemetry.hrl"))
 
-  @fields Record.extract(:status, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
-  Record.defrecordp(:status, @fields)
+  setup_all do
+    :otel_tracer_test.set_default()
+  end
 
   test "current_span tracks last set_span" do
     span_ctx1 = Tracer.start_span("span-1")
@@ -103,8 +104,8 @@ defmodule OpenTelemetryTest do
     Tracer.with_span "span-1" do
       span = Tracer.current_span_ctx()
 
-      assert Span.hex_trace_id(span) == "00000000000000000000000000000000"
-      assert Span.hex_span_id(span) == "0000000000000000"
+      assert Span.hex_trace_id(span) =~ ~r/[0-9a-f]{32}/
+      assert Span.hex_span_id(span) =~ ~r/[0-9a-f]{16}/
     end
   end
 
@@ -143,5 +144,16 @@ defmodule OpenTelemetryTest do
     # return to the context in the pdict before the attach
     Ctx.detach(token)
     assert %{"a" => {"b", []}} = Baggage.get_all()
+  end
+
+  test "Span.record_exception" do
+    Tracer.with_span("exceptional span") do
+      Tracer.record_exception(%RuntimeError{message: "too awesome"})
+    end
+
+    assert_received {:add_event, _span_ctx, :exception, attributes}
+    assert %{"exception.type": "RuntimeError", "exception.stacktrace": stacktrace, "exception.message": "too awesome"} = attributes
+    assert is_binary(stacktrace)
+    assert String.contains?(stacktrace, "\n")
   end
 end
