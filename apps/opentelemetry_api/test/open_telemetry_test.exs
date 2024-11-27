@@ -7,8 +7,10 @@ defmodule OpenTelemetryTest do
   require OpenTelemetry.Ctx, as: Ctx
 
   require Record
-  Record.defrecordp(:span_ctx, Record.extract(:span_ctx, from_lib: "opentelemetry_api/include/opentelemetry.hrl"))
-  Record.defrecordp(:status, Record.extract(:status, from_lib: "opentelemetry_api/include/opentelemetry.hrl"))
+
+  @otel_include "opentelemetry_api/include/opentelemetry.hrl"
+  Record.defrecordp(:span_ctx, Record.extract(:span_ctx, from_lib: @otel_include))
+  Record.defrecordp(:status, Record.extract(:status, from_lib: @otel_include))
 
   setup_all do
     :otel_tracer_test.set_default()
@@ -147,12 +149,18 @@ defmodule OpenTelemetryTest do
   end
 
   test "Span.record_exception" do
-    Tracer.with_span("exceptional span") do
+    Tracer.with_span "exceptional span" do
       Tracer.record_exception(%RuntimeError{message: "too awesome"})
     end
 
     assert_received {:add_event, _span_ctx, :exception, attributes}
-    assert %{"exception.type": "RuntimeError", "exception.stacktrace": stacktrace, "exception.message": "too awesome"} = attributes
+
+    assert %{
+             "exception.type": "RuntimeError",
+             "exception.stacktrace": stacktrace,
+             "exception.message": "too awesome"
+           } = attributes
+
     assert is_binary(stacktrace)
     assert String.contains?(stacktrace, "\n")
   end
