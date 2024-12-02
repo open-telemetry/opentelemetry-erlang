@@ -22,7 +22,7 @@ jobs:
       matrix:
         otp_version: ["27.1", "26.1.2", "25.3.2.7", "24.3.4.14"]
         rebar3_version: ["3.22.1"]
-        os: [ubuntu-20.04]
+        os: [ubuntu-24.04]
         include:
           - otp_version: "23.3.4.19"
             rebar3_version: "3.17.0"
@@ -95,7 +95,7 @@ jobs:
       matrix:
         otp_version: ["26.1.2"]
         rebar3_version: ["3.22.1"]
-        os: [ubuntu-20.04]
+        os: [ubuntu-24.04]
     steps:
       - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
@@ -123,7 +123,7 @@ jobs:
       matrix:
         otp_version: ["26.1.2"]
         rebar3_version: ["3.22.1"]
-        os: [ubuntu-20.04]
+        os: [ubuntu-24.04]
     steps:
       - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
@@ -156,7 +156,7 @@ jobs:
       matrix:
         otp_version: ["26.1.2", "24.3.4.14"]
         rebar3_version: ["3.22.1"]
-        os: [ubuntu-20.04]
+        os: [ubuntu-24.04]
     defaults:
       run:
         working-directory: apps/opentelemetry_semantic_conventions
