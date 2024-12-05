@@ -41,6 +41,7 @@ defmodule OtelTests do
                       name: "span-1",
                       attributes: span_attributes
                     )}
+
     assert {"attr-1", "value-1"} in :otel_attributes.map(span_attributes)
     assert {"attr-2", "value-2"} in :otel_attributes.map(span_attributes)
   end
@@ -63,6 +64,7 @@ defmodule OtelTests do
                       parent_span_id: ^parent_span_id,
                       attributes: span_attributes
                     )}
+
     assert {"attr-1", "value-1"} in :otel_attributes.map(span_attributes)
     assert {"attr-2", "value-2"} in :otel_attributes.map(span_attributes)
   end
@@ -73,7 +75,11 @@ defmodule OtelTests do
     end
 
     assert_receive {:span, span(name: "span-1", attributes: span_attributes)}
-    assert {:"code.function", "test use Tracer includes code attributes/1"} in :otel_attributes.map(span_attributes)
+
+    assert {:"code.function", "test use Tracer includes code attributes/1"} in :otel_attributes.map(
+             span_attributes
+           )
+
     assert {:"code.lineno", 71} in :otel_attributes.map(span_attributes)
   end
 
@@ -89,6 +95,7 @@ defmodule OtelTests do
                       name: "span-2",
                       attributes: span_attributes
                     )}
+
     assert {"attr-1", "value-1"} in :otel_attributes.map(span_attributes)
     assert {"attr-2", "value-2"} in :otel_attributes.map(span_attributes)
   end
@@ -203,6 +210,7 @@ defmodule OtelTests do
                       parent_span_id: :undefined,
                       attributes: span_attributes
                     )}
+
     assert {"attr-1", "value-1"} in :otel_attributes.map(span_attributes)
     assert {"attr-2", "value-2"} in :otel_attributes.map(span_attributes)
 
@@ -251,8 +259,15 @@ defmodule OtelTests do
                             ]
                           }
                         )}
-        assert {:"exception.type", "Elixir.RuntimeError"} in :otel_attributes.map(exception_attributes)
-        assert {:"exception.message", "my error message"} in :otel_attributes.map(exception_attributes)
+
+        assert {:"exception.type", "Elixir.RuntimeError"} in :otel_attributes.map(
+                 exception_attributes
+               )
+
+        assert {:"exception.message", "my error message"} in :otel_attributes.map(
+                 exception_attributes
+               )
+
         assert {:"exception.stacktrace", stacktrace} in :otel_attributes.map(exception_attributes)
     end
   end
