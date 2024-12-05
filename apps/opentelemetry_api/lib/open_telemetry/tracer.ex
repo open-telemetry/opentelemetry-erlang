@@ -248,10 +248,6 @@ defmodule OpenTelemetry.Tracer do
   def merge_start_opts(start_opts, builtin_attributes) do
     start_opts
     |> Map.new()
-    |> Map.update(:attributes, builtin_attributes, fn specified_attributes ->
-      specified_attributes
-      |> Map.new(fn {k, v} -> {to_string(k), v} end)
-      |> Map.merge(builtin_attributes)
-    end)
+    |> Map.update(:attributes, builtin_attributes, &Map.merge(&1, builtin_attributes))
   end
 end

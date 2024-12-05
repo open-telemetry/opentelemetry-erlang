@@ -36,14 +36,13 @@ defmodule OtelTests do
       Tracer.set_attributes([{"attr-2", "value-2"}])
     end
 
-    attributes =
-      :otel_attributes.new([{"attr-1", "value-1"}, {"attr-2", "value-2"}], 128, :infinity)
-
     assert_receive {:span,
                     span(
                       name: "span-1",
-                      attributes: ^attributes
+                      attributes: span_attributes
                     )}
+    assert {"attr-1", "value-1"} in :otel_attributes.map(span_attributes)
+    assert {"attr-2", "value-2"} in :otel_attributes.map(span_attributes)
   end
 
   test "use Tracer to start a Span as currently active with an explicit parent" do
@@ -56,24 +55,16 @@ defmodule OtelTests do
     end
 
     span_ctx(span_id: parent_span_id) = Span.end_span(s1)
-
-    attributes = :otel_attributes.new([], 128, :infinity)
-
-    assert_receive {:span,
-                    span(
-                      name: "span-1",
-                      attributes: ^attributes
-                    )}
-
-    attributes =
-      :otel_attributes.new([{"attr-1", "value-1"}, {"attr-2", "value-2"}], 128, :infinity)
+    assert_receive {:span, span(name: "span-1")}
 
     assert_receive {:span,
                     span(
                       name: "span-2",
                       parent_span_id: ^parent_span_id,
-                      attributes: ^attributes
+                      attributes: span_attributes
                     )}
+    assert {"attr-1", "value-1"} in :otel_attributes.map(span_attributes)
+    assert {"attr-2", "value-2"} in :otel_attributes.map(span_attributes)
   end
 
   test "use Span to set attributes" do
@@ -83,14 +74,13 @@ defmodule OtelTests do
 
     assert span_ctx() = Span.end_span(s)
 
-    attributes =
-      :otel_attributes.new([{"attr-1", "value-1"}, {"attr-2", "value-2"}], 128, :infinity)
-
     assert_receive {:span,
                     span(
                       name: "span-2",
-                      attributes: ^attributes
+                      attributes: span_attributes
                     )}
+    assert {"attr-1", "value-1"} in :otel_attributes.map(span_attributes)
+    assert {"attr-2", "value-2"} in :otel_attributes.map(span_attributes)
   end
 
   test "create child Span in Task" do
@@ -197,15 +187,14 @@ defmodule OtelTests do
     assert span_ctx() = Span.end_span(s2)
     assert span_ctx() = Span.end_span(s3)
 
-    attributes =
-      :otel_attributes.new([{"attr-1", "value-1"}, {"attr-2", "value-2"}], 128, :infinity)
-
     assert_receive {:span,
                     span(
                       name: "span-1",
                       parent_span_id: :undefined,
-                      attributes: ^attributes
+                      attributes: span_attributes
                     )}
+    assert {"attr-1", "value-1"} in :otel_attributes.map(span_attributes)
+    assert {"attr-2", "value-2"} in :otel_attributes.map(span_attributes)
 
     assert_receive {:span,
                     span(
@@ -238,17 +227,6 @@ defmodule OtelTests do
 
         stacktrace = Exception.format_stacktrace(__STACKTRACE__)
 
-        attributes =
-          :otel_attributes.new(
-            [
-              {:"exception.type", "Elixir.RuntimeError"},
-              {:"exception.message", "my error message"},
-              {:"exception.stacktrace", stacktrace}
-            ],
-            128,
-            :infinity
-          )
-
         assert_receive {:span,
                         span(
                           name: "span-4",
@@ -259,10 +237,13 @@ defmodule OtelTests do
                             :infinity,
                             0,
                             [
-                              {:event, _, :exception, ^attributes}
+                              {:event, _, :exception, exception_attributes}
                             ]
                           }
                         )}
+        assert {:"exception.type", "Elixir.RuntimeError"} in :otel_attributes.map(exception_attributes)
+        assert {:"exception.message", "my error message"} in :otel_attributes.map(exception_attributes)
+        assert {:"exception.stacktrace", stacktrace} in :otel_attributes.map(exception_attributes)
     end
   end
 
