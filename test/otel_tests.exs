@@ -67,6 +67,16 @@ defmodule OtelTests do
     assert {"attr-2", "value-2"} in :otel_attributes.map(span_attributes)
   end
 
+  test "use Tracer includes code attributes" do
+    Tracer.with_span "span-1" do
+      :ok
+    end
+
+    assert_receive {:span, span(name: "span-1", attributes: span_attributes)}
+    assert {:"code.function", "test use Tracer includes code attributes/1"} in :otel_attributes.map(span_attributes)
+    assert {:"code.lineno", 71} in :otel_attributes.map(span_attributes)
+  end
+
   test "use Span to set attributes" do
     s = Tracer.start_span("span-2")
     Span.set_attribute(s, "attr-1", "value-1")
