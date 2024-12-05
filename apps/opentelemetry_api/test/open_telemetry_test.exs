@@ -151,6 +151,6 @@ defmodule OpenTelemetryTest do
     assert attributes[:"code.filepath"] =~ "open_telemetry_test.exs"
     assert attributes[:"code.function"] =~ "from_macro_env/1"
     assert attributes[:"code.lineno"] == 149
-    assert attributes[:"code.namespace"] == "Elixir.OpenTelemetryTest"
+    assert attributes[:"code.namespace"] == "OpenTelemetryTest"
   end
 end

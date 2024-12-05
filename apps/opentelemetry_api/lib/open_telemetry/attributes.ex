@@ -64,7 +64,7 @@ defmodule OpenTelemetry.Attributes do
 
     %{
       @code_function => function_arty,
-      @code_namespace => to_string(env.module),
+      @code_namespace => inspect(env.module),
       @code_filepath => env.file,
       @code_lineno => env.line
     }
