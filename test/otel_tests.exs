@@ -80,7 +80,7 @@ defmodule OtelTests do
              span_attributes
            )
 
-    assert {:"code.lineno", 71} in :otel_attributes.map(span_attributes)
+    assert {:"code.lineno", 73} in :otel_attributes.map(span_attributes)
   end
 
   test "use Span to set attributes" do
