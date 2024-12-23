@@ -47,6 +47,6 @@ add(Ctx, Instrument=#instrument{module=Module}, Number, Attributes) ->
 add(Ctx, Meter, Name, Number) ->
     otel_meter:record(Ctx, Meter, Name, Number).
 
--spec add(otel_ctx:t(), otel_meter:t(), otel_instrument:name(), pos_integer() |float(), opentelemetry:attributes_map()) -> ok.
+-spec add(otel_ctx:t(), otel_meter:t(), otel_instrument:name() | otel_instrument:t(), pos_integer() |float(), opentelemetry:attributes_map()) -> ok.
 add(Ctx, Meter, Name, Number, Attributes) ->
     otel_meter:record(Ctx, Meter, Name, Number, Attributes).
