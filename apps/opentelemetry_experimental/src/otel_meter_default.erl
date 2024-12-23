@@ -45,6 +45,16 @@ create_instrument(Meter, Name, Kind, Opts) ->
     _ = otel_meter_server:add_instrument(Provider, Instrument),
     Instrument.
 
+
+-spec create_named_instrument(otel_meter:t(), otel_instrument:name(), otel_instrument:kind(), otel_instrument:opts()) -> otel_instrument:t().
+create_named_instrument(Meter, Name, Kind, Opts) ->
+    validate_name(Name),
+    ValidatedOpts = validate_opts(Name, Kind, Opts),
+    Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
+        otel_instrument:new(?MODULE, Meter, Kind, Name, ValidatedOpts),
+    _ = otel_meter_server:add_named_instrument(Provider, Name, Instrument),
+    Instrument.
+
 lookup_instrument({_, Meter=#meter{instruments_tab=InstrumentsTab}}, Name) ->
     otel_metrics_tables:lookup_instrument(InstrumentsTab, Meter, Name).
 

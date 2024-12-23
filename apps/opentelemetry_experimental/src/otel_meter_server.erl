@@ -41,6 +41,7 @@
          get_readers/1,
          add_instrument/1,
          add_instrument/2,
+         add_named_instrument/3,
          register_callback/3,
          register_callback/4,
          add_view/2,
@@ -123,6 +124,10 @@ add_instrument(Instrument) ->
 -spec add_instrument(atom(), otel_instrument:t()) -> boolean().
 add_instrument(Provider, Instrument) ->
     gen_server:call(Provider, {add_instrument, Instrument}).
+
+-spec add_named_instrument(atom(), otel_instrument:name(), otel_instrument:t()) -> boolean().
+add_named_instrument(Provider, Name, Instrument) ->
+    gen_server:call(Provider, {add_named_instrument, Name, Instrument}).
 
 add_metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) ->
     add_metric_reader(?GLOBAL_METER_PROVIDER_REG_NAME, ReaderId, ReaderPid,
@@ -253,6 +258,15 @@ handle_call({add_instrument, Instrument}, _From, State=#state{readers=Readers,
                                                               exemplar_filter=ExemplarFilter}) ->
     _ = add_instrument_(InstrumentsTab, CallbacksTab, StreamsTab, Instrument, Views, Readers, ExemplarsEnabled, ExemplarFilter),
     {reply, ok, State};
+handle_call({add_named_instrument, Name, Instrument}, _From, State=#state{readers=Readers,
+                                                                          views=Views,
+                                                                          instruments_tab=InstrumentsTab,
+                                                                          callbacks_tab=CallbacksTab,
+                                                                          streams_tab=StreamsTab,
+                                                                          exemplars_enabled=ExemplarsEnabled,
+                                                                          exemplar_filter=ExemplarFilter}) ->
+    _ = add_instrument_(InstrumentsTab, CallbacksTab, StreamsTab, Name, Instrument, Views, Readers, ExemplarsEnabled, ExemplarFilter),
+    {reply, ok, State};
 handle_call({register_callback, Instruments, Callback, CallbackArgs}, _From, State=#state{readers=Readers,
                                                                                           callbacks_tab=CallbacksTab}) ->
     _ = register_callback_(CallbacksTab, Instruments, Callback, CallbackArgs, Readers),
@@ -321,6 +335,16 @@ new_view(ViewConfig) ->
 add_instrument_(InstrumentsTab, CallbacksTab, StreamsTab,
                 Instrument=#instrument{meter={_, Meter=#meter{}},
                                        name=Name}, Views, Readers, ExemplarsEnabled, ExemplarFilter) ->
+    case otel_metrics_tables:insert_instrument(InstrumentsTab, Meter, Name, Instrument) of
+        true ->
+            update_streams_(Instrument, CallbacksTab, StreamsTab, Views, Readers, ExemplarsEnabled, ExemplarFilter);
+        false ->
+            ?LOG_INFO("Instrument ~p already created. Ignoring attempt to create Instrument with the same name in the same Meter.", [Name]),
+            ok
+    end.
+
+add_instrument_(InstrumentsTab, CallbacksTab, StreamsTab,
+                Name, Instrument=#instrument{meter={_, Meter=#meter{}}}, Views, Readers, ExemplarsEnabled, ExemplarFilter) ->
     case otel_metrics_tables:insert_instrument(InstrumentsTab, Meter, Name, Instrument) of
         true ->
             update_streams_(Instrument, CallbacksTab, StreamsTab, Views, Readers, ExemplarsEnabled, ExemplarFilter);
