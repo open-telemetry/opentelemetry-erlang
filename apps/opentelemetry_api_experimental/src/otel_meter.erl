@@ -18,6 +18,7 @@
 -module(otel_meter).
 
 -export([create_counter/3,
+         create_named_counter/3,
          create_histogram/3,
          create_updown_counter/3,
 
@@ -69,6 +70,13 @@
       Opts :: otel_instrument:opts().
 create_counter(Meter, Name, Opts) ->
     create_instrument(Meter, Name, ?KIND_COUNTER, Opts).
+
+-spec create_named_counter(Meter, Name, Opts) -> otel_instrument:t() when
+      Meter :: t(),
+      Name :: otel_instrument:name(),
+      Opts :: otel_instrument:opts().
+create_named_counter(Meter, Name, Opts) ->
+    create_named_instrument(Meter, Name, ?KIND_COUNTER, Opts).
 
 -spec create_updown_counter(Meter, Name, Opts) -> otel_instrument:t() when
       Meter :: t(),
@@ -145,6 +153,9 @@ scope(Meter={Module, _}) ->
       Opts :: otel_instrument:opts().
 create_instrument(Meter={Module, _}, Name, Kind, Opts) ->
     Module:create_instrument(Meter, Name, Kind, Opts).
+
+create_named_instrument(Meter={Module, _}, Name, Kind, Opts) ->
+    Module:create_named_instrument(Meter, Name, Kind, Opts).
 
 -spec create_instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts) -> otel_instrument:t() when
       Meter :: t(),

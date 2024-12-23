@@ -10,6 +10,9 @@
 -define(create_counter(Name, Opts),
         otel_meter:create_counter(?current_meter, Name, Opts)).
 
+-define(create_named_counter(Name, Opts),
+        otel_meter:create_named_counter(?current_meter, Name, Opts)).
+
 -define(create_observable_counter(Name, Callback, CallbackArgs, Opts),
         otel_meter:create_observable_counter(?current_meter, Name, Callback, CallbackArgs, Opts)).
 
@@ -29,16 +32,11 @@
 %% up the meter to use to resolve the instrument name. But if an Instrument record is
 %% given then the meter lookup can be skipped.
 
--define(counter_add(NameOrInstrument, Number, Attributes),
-        case is_atom(NameOrInstrument) of 
-            true -> 
-                otel_counter:add(otel_ctx:get_current(), ?current_meter, NameOrInstrument, Number, Attributes); 
-            false -> 
-                otel_counter:add(otel_ctx:get_current(), NameOrInstrument, Number, Attributes) 
-        end).
+-define(named_counter_add(Name, Number, Attributes),
+        otel_counter:add(otel_ctx:get_current(), ?current_meter, Name, Number, Attributes)).
 
--define(counter_add(NameOrInstrument, Number),
-        ?counter_add(NameOrInstrument, Number, #{})).
+-define(counter_add(Instrument, Number, Attributes),
+        otel_counter:add(otel_ctx:get_current(), Instrument, Number, Attributes)).
 
 -define(updown_counter_add(NameOrInstrument, Number, Attributes),
         case is_atom(NameOrInstrument) of 

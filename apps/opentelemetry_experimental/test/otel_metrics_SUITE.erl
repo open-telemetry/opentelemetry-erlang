@@ -407,16 +407,16 @@ float_counter(_Config) ->
 
     Ctx = otel_ctx:new(),
 
-    ?assertEqual(ok, ?counter_add(CounterName, 10.3, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, ?counter_add(CounterName, 5.5, #{<<"c">> => <<"b">>})),
-    ?assertEqual(ok, ?counter_add(CounterName, 5, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, ?named_counter_add(CounterName, 10.3, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, ?named_counter_add(CounterName, 5.5, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, ?named_counter_add(CounterName, 5, #{<<"c">> => <<"b">>})),
 
     %% without attributes
-    ?assertEqual(ok, ?counter_add(CounterName, 1.2)),
+    ?assertEqual(ok, ?named_counter_add(CounterName, 1.2, #{})),
     ?assertEqual(ok, otel_counter:add(Ctx, Counter, 2.1)),
 
     %% negative values are discarded
-    ?assertEqual(ok, ?counter_add(CounterName, -2, #{<<"c">> => <<"b">>})),
+    ?assertEqual(ok, ?named_counter_add(CounterName, -2, #{<<"c">> => <<"b">>})),
     ?assertEqual(ok, otel_counter:add(Ctx, Counter, -2)),
 
     otel_meter_server:force_flush(),
