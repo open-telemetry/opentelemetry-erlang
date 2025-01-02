@@ -8,7 +8,7 @@ defmodule OpenTelemetry.SemanticConventions.MixProject do
       app: app,
       version: to_string(Keyword.fetch!(desc, :vsn)),
       description: to_string(Keyword.fetch!(desc, :description)),
-      elixir: "~> 1.8",
+      elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: [
         {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
@@ -38,7 +38,7 @@ defmodule OpenTelemetry.SemanticConventions.MixProject do
 
   defp load_app do
     {:ok, [{:application, name, desc}]} =
-      :file.consult('src/opentelemetry_semantic_conventions.app.src')
+      :file.consult(~c'src/opentelemetry_semantic_conventions.app.src')
 
     {name, desc}
   end
