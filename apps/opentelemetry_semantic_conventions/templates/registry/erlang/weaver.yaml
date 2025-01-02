@@ -1,0 +1,59 @@
+params:
+  stability: "stable"
+  excluded: ["android", "aspnetcore", "dotnet", "go", "ios", "jvm", "kestrel", "nodejs", "signalr", "v8js", "veightjs", "webengine"]
+  excluded_attrs: ["messaging.client_id"]
+  
+templates:
+  - pattern: semantic_attributes.hrl.j2
+    filter: >
+      .groups
+      | map(select(.type == "attribute_group"))
+      | map(select(.id | startswith("registry.")))
+      | map({ id: .id, group_id: .id | split(".") | .[1], attributes: .attributes})
+      | map(select([.attributes[] | select(.stability == $stability)] | any))
+      | group_by(.group_id)
+      | map({ 
+        id: .[0].group_id,
+        attributes: [.[].attributes[] | select(.stability == $stability) | (select( .name as $id | any( $excluded_attrs[]; . == $id ) | not ))] | sort_by(.id),
+        all_attributes: [.[].attributes[]],
+        output: $output + "/attributes/"
+      })
+      | map(select( .id as $id | any( $excluded[]; . == $id) | not ))
+      | map(select(.attributes | length > 0))
+    application_mode: each
+  - pattern: semantic_metrics.hrl.j2
+    filter: >
+      .groups
+      | map(select(.type == "metric"))
+      | map(select(.stability == $stability))
+      | map({ id: .id, group_id: .id | split(".") | .[1], brief, unit, stability, deprecated, instrument, metric_name, note})
+      | group_by(.group_id)
+      | map({
+        id: .[0].group_id,
+        metrics: . | sort_by(.metric_name),
+        output: $output + "/metrics/"
+      })
+      | map(select( .id as $id | any( $excluded[]; . == $id) | not ))
+      | map(select(.metrics | length > 0))
+    application_mode: each
+
+acronyms: ["iOS", "HTTP", "API", "SDK", "CLI", "URL", "JSON", "XML", "HTML", "TLS", "RPC", "OS", "OCI", "GCP", "FAAS", "DNS", "DB", "AWS", "S3", "K8S" ]
+
+text_maps:
+  erlang_types:
+    "int": "integer()"
+    "int[]": "[integer()]"
+    "double": "float()"
+    "double[]": "[float()]"
+    "boolean": "boolean()"
+    "boolean[]": "[boolean()]"
+    "string": "atom() | binary()"
+    "string[]": "[atom() | binary()]"
+    "template[int]": "integer()"
+    "template[double]": "float()"
+    "template[boolean]": "boolean()"
+    "template[string]": "atom() | binary()"
+    "template[string[]]": "[atom() | binary()]"
+    "template[int[]]": "[integer()]"
+    "template[double[]]": "[float()]"
+    "template[boolean[]]": "[boolean()]"

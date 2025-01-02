@@ -73,16 +73,7 @@ to_any_value(Value) when is_map(Value) ->
 to_any_value(Value) when is_tuple(Value) ->
     #{value => {array_value, to_array_value(tuple_to_list(Value))}};
 to_any_value(Value) when is_list(Value) ->
-    try unicode:characters_to_binary(Value) of
-        {Failure, _, _} when Failure =:= error ;
-                             Failure =:= incomplete ->
-            to_array_or_kvlist(Value);
-        String ->
-            #{value => {string_value, String}}
-    catch
-        _:_ ->
-            to_array_or_kvlist(Value)
-    end;
+    to_array_or_kvlist(Value);
 to_any_value(Value) ->
     #{value => {string_value, to_binary(io_lib:format("~p", [Value]))}}.
 

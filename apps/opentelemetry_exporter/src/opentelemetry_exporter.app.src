@@ -1,6 +1,6 @@
 {application, opentelemetry_exporter,
  [{description, "OpenTelemetry Protocol Exporter"},
-  {vsn, "1.7.0"},
+  {vsn, "1.8.0"},
   {registered, []},
   {applications,
    [kernel,
@@ -11,6 +11,7 @@
     tls_certificate_check,
     opentelemetry_api
    ]},
+  {exclude_paths, ["rebar.lock"]},
   {env,[]},
   {modules, []},
 

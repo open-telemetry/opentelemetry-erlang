@@ -116,7 +116,7 @@ aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
         1 ->
             otel_metric_exemplar_reservoir:offer(Ctx, ExemplarReservoir, ExemplarsTab, Key, Value, DroppedAttributes),
             true;
-        N ->
+        _N ->
             false
     end.
 

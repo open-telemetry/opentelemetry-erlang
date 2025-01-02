@@ -23,13 +23,13 @@
 %% {text_map_propagators, [trace_context, baggage]},
 %% '''
 %%
-%% The propagators are then used at the points that cross service
-%% communication is performed. By default `inject' and `extract' work on a
-%% generic list of 2-tuple's with binary string keys and values. A user
-%% defined function for setting a key/value in the carrier and for getting
-%% the value of a key from a carrier can be passed as an argument. For
-%% example, injecting and extracting to and from Hackney headers could be
-%% done with <a href="https://github.com/benoitc/hackney">Hackney</a> specific functions:
+%% The propagators are then used at the points that cross-service
+%% communication is performed. By default, {@link inject/3} and {@link extract/3} work on a
+%% generic list of 2-tuple's with binary string keys and values. You can pass (as an argument)
+%% a user-defined function for setting a key/value in the carrier and for getting
+%% the value of a key. For example, injecting and extracting to and from
+%% <a href="https://github.com/benoitc/hackney">Hackney</a> headers could be
+%% done with Hackney-specific functions:
 %%
 %% ```
 %% set_header(Key, Value, Headers) ->
@@ -37,10 +37,11 @@
 %%
 %% some_fun_calling_hackney() ->
 %%   Headers = otel_propagator_text_map:inject(opentelemetry:get_text_map_injector(), hackney_headers:new(), fun set_header/2),
-%%   ...
+%%   %% ...
 %% '''
 %%
-%% An example of extraction in an <a href="https://github.com/elli-lib/elli">Elli</a> request handler:
+%% An example of extraction in an <a href="https://github.com/elli-lib/elli">Elli</a> request
+%% handler:
 %%
 %% ```
 %% get_header(Req, Key) ->
@@ -48,7 +49,7 @@
 %%
 %% handle(Req, _Args) ->
 %%   otel_propagator_text_map:extract(Req, fun get_header/2),
-%%   ...
+%%   %% ...
 %%   {ok, [], <<"hello world">>}.
 %% '''
 %% @end
@@ -111,75 +112,100 @@
               carrier_keys/0,
               propagator_options/0]).
 
+%% @private
 -spec fields(otel_propagator:t()) -> [field_key()].
 fields(Propagator) when is_atom(Propagator) ->
     Propagator:fields([]);
 fields({Module, Options}) ->
     Module:fields(Options).
 
+%% @doc Injects `Carrier' into the current context using the current TextMap Propagator.
+%%
+%% @see inject/2
 -spec inject(otel_propagator:carrier()) -> otel_propagator:carrier().
 inject(Carrier) ->
     Propagator = opentelemetry:get_text_map_injector(),
     inject(Propagator, Carrier, fun default_carrier_set/3).
 
+%% @doc Injects `Carrier' into the current context using the provided `Propagator'.
+%%
+%% By default, the `Carrier' is set using the a default carrier set function.
+%% @see inject/3
 -spec inject(otel_propagator:t(), otel_propagator:carrier()) -> otel_propagator:carrier().
 inject(Propagator, Carrier) ->
     inject(Propagator, Carrier, fun default_carrier_set/3).
 
+%% @doc Injects `Carrier' (through `CarrierSetFun') into the current
+%% context using the provided `Propagator'.
 -spec inject(otel_propagator:t(), otel_propagator:carrier(), fun()) -> otel_propagator:carrier().
 inject(Propagator, Carrier, CarrierSetFun) ->
     Context = otel_ctx:get_current(),
     inject_from(Context, Propagator, Carrier, CarrierSetFun).
 
+%% @equiv inject_from(Context, opentelemetry:get_text_map_injector(), Carrier)
 -spec inject_from(otel_ctx:t(), otel_propagator:carrier()) -> otel_propagator:carrier().
 inject_from(Context, Carrier) ->
     Propagator = opentelemetry:get_text_map_injector(),
     inject_from(Context, Propagator, Carrier, fun default_carrier_set/3).
 
+%% @equiv inject_from(Context, Propagator, Carrier, fun default_carrier_set/3)
 -spec inject_from(otel_ctx:t(), otel_propagator:t(), otel_propagator:carrier()) -> otel_propagator:carrier().
 inject_from(Context, Propagator, Carrier) ->
     inject_from(Context, Propagator, Carrier, fun default_carrier_set/3).
 
+%% @doc Injects `Carrier' (through `CarrierSetFun') into the given
+%% `Context' using the provided propagator `Propagator'.
 -spec inject_from(otel_ctx:t(), otel_propagator:t(), otel_propagator:carrier(), fun()) -> otel_propagator:carrier().
-inject_from(Context, Module, Carrier, CarrierSetFun) when is_atom(Module) ->
-     Module:inject(Context, Carrier, CarrierSetFun, []);
-inject_from(Context, {Module, Options}, Carrier, CarrierSetFun) ->
-     Module:inject(Context, Carrier, CarrierSetFun, Options).
+inject_from(Context, Propagator, Carrier, CarrierSetFun) when is_atom(Propagator) ->
+     Propagator:inject(Context, Carrier, CarrierSetFun, []);
+inject_from(Context, {Propagator, Options}, Carrier, CarrierSetFun) ->
+     Propagator:inject(Context, Carrier, CarrierSetFun, Options).
 
+%% @doc Extracts the current context from the provided `Carrier' using the current
+%% TextMap Propagator.
 -spec extract(otel_propagator:carrier()) -> otel_ctx:token().
 extract(Carrier) ->
     Propagator = opentelemetry:get_text_map_extractor(),
     extract(Propagator, Carrier, fun default_carrier_keys/1, fun default_carrier_get/2).
 
+%% @doc Extracts the current context from the provided `Carrier' using the
+%% given `Propagator'.
 -spec extract(otel_propagator:t(), otel_propagator:carrier()) -> otel_ctx:token().
 extract(Propagator, Carrier) ->
     extract(Propagator, Carrier, fun default_carrier_keys/1, fun default_carrier_get/2).
 
+%% @doc Extracts the current context from the provided `Carrier' using the
+%% given `Propagator' and functions to get all the keys and get the keys from the carrier.
 -spec extract(otel_propagator:t(), otel_propagator:carrier(), fun(), fun()) -> otel_ctx:token().
 extract(Propagator, Carrier, CarrierKeysFun, CarrierGetFun) ->
     Context = otel_ctx:get_current(),
     Context1 = extract_to(Context, Propagator, Carrier, CarrierKeysFun, CarrierGetFun),
     otel_ctx:attach(Context1).
 
+%% @equiv extract_to(Context, opentelemetry:get_text_map_extractor(), Carrier)
 -spec extract_to(otel_ctx:t(), otel_propagator:carrier()) -> otel_ctx:t().
 extract_to(Context, Carrier) ->
     Propagator = opentelemetry:get_text_map_extractor(),
     extract_to(Context, Propagator, Carrier, fun default_carrier_keys/1, fun default_carrier_get/2).
 
+%% @equiv extract_to(Context, Propagator, Carrier, fun default_carrier_keys/1, fun default_carrier_get/2)
 -spec extract_to(otel_ctx:t(), otel_propagator:t(), otel_propagator:carrier()) -> otel_ctx:t().
 extract_to(Context, Propagator, Carrier) ->
     extract_to(Context, Propagator, Carrier, fun default_carrier_keys/1, fun default_carrier_get/2).
 
+%% @doc Extracts the current context from the provided `Carrier' using the
+%% given `Propagator' and functions to get all the keys and get the keys from the carrier.
 -spec extract_to(otel_ctx:t(), otel_propagator:t(), otel_propagator:carrier(), fun(), fun()) -> otel_ctx:t().
-extract_to(Context, Module, Carrier, CarrierKeysFun, CarrierGetFun) when is_atom(Module) ->
-    Module:extract(Context, Carrier, CarrierKeysFun, CarrierGetFun, []);
-extract_to(Context, {Module, Options}, Carrier, CarrierKeysFun, CarrierGetFun) ->
-    Module:extract(Context, Carrier, CarrierKeysFun, CarrierGetFun, Options).
+extract_to(Context, Propagator, Carrier, CarrierKeysFun, CarrierGetFun) when is_atom(Propagator) ->
+    Propagator:extract(Context, Carrier, CarrierKeysFun, CarrierGetFun, []);
+extract_to(Context, {Propagator, Options}, Carrier, CarrierKeysFun, CarrierGetFun) ->
+    Propagator:extract(Context, Carrier, CarrierKeysFun, CarrierGetFun, Options).
 
 %% case-insensitive finding of a key string in a list of ASCII strings
 %% if there are multiple entries in the list for the same key the values
 %% will be combined and separated by commas. This is the method defined
 %% in RFC7230 for HTTP headers.
+%% @private
 -spec default_carrier_get(field_key(), default_text_map_carrier()) -> field_value() | undefined.
 default_carrier_get(Key, List) ->
     default_carrier_get(Key, List, []).
@@ -197,6 +223,7 @@ default_carrier_get(Key, [{H, V} | Rest], Result) ->
     end.
 
 %% case-insensitive ASCII string based lists:keyreplace
+%% @private
 -spec default_carrier_set(field_key(), field_value(), default_text_map_carrier())
                          -> default_text_map_carrier().
 default_carrier_set(Key, Value, []) ->
@@ -209,6 +236,7 @@ default_carrier_set(Key, Value, [{H, _}=Elem | Rest]) ->
             [Elem | default_carrier_set(Key, Value, Rest)]
     end.
 
+%% @private
 -spec default_carrier_keys(default_text_map_carrier()) -> [field_key()].
 default_carrier_keys([]) ->
     [];

@@ -44,7 +44,7 @@ defmodule OpenTelemetryExperimental.MixProject do
     end)
     |> Enum.concat([
       {:cmark, "~> 0.10", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.32", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.35", only: :dev, runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:covertool, ">= 0.0.0", only: :test}
     ])
@@ -64,14 +64,14 @@ defmodule OpenTelemetryExperimental.MixProject do
   end
 
   defp load_config do
-    {:ok, config} = :file.consult('rebar.config')
+    {:ok, config} = :file.consult(~c"rebar.config")
 
     config
   end
 
   defp load_app do
     {:ok, [{:application, name, desc}]} =
-      :file.consult('src/opentelemetry_api_experimental.app.src')
+      :file.consult(~c"src/opentelemetry_api_experimental.app.src")
 
     {name, desc}
   end

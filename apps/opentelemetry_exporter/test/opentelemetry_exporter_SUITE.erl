@@ -14,7 +14,7 @@ all() ->
      {group, grpc}, {group, grpc_gzip}].
 
 groups() ->
-    [{functional, [], [configuration, span_round_trip, ets_instrumentation_info]},
+    [{functional, [], [configuration, span_round_trip, ets_instrumentation_info, to_attributes]},
      {grpc, [], [verify_export]},
      {grpc_gzip, [], [verify_export]},
      {http_protobuf, [], [verify_export, user_agent]},
@@ -187,8 +187,11 @@ configuration(_Config) ->
         %% test all supported protocols
         application:unset_env(opentelemetry_exporter, otlp_protocol),
         os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
+        %% regression test for issue #788
+        os:putenv("OTEL_EXPORTER_OTLP_TRACES_PROTOCOL", "grpc"),
         ?assertMatch(#{protocol := grpc},
                      otel_exporter_traces_otlp:merge_with_environment(#{})),
+        os:unsetenv("OTEL_EXPORTER_OTLP_TRACES_PROTOCOL"),
 
         %% the specification defines the value as "http/protobuf"
         %% https://github.com/open-telemetry/opentelemetry-specification/blob/82707fd9f7b1266f1246b02ff3e00bebdee6b538/specification/protocol/exporter.md#specify-protocol
@@ -331,6 +334,32 @@ span_round_trip(_Config) ->
                  maps:with([trace_id, span_id], PbSpan1)),
 
     ok.
+
+%% test conversion of attributes to the map representation of the OTLP protobuf
+to_attributes(_Config) ->
+    %% this tests the removal of support for iolists as values in attributes
+    %% a list of strings remains a list when converted to OTLP instead of being
+    %% flattened into a string value
+    Attributes = otel_attributes:new(#{world => [<<"hello">>, <<"there">>],
+                                      charlist => "ints"}, 100, 100),
+    Converted = otel_otlp_common:to_attributes(Attributes),
+
+    ?assertMatch([#{value :=
+                        #{value :=
+                              {array_value,
+                               #{values :=
+                                     [#{value := {int_value,105}},
+                                      #{value := {int_value,110}},
+                                      #{value := {int_value,116}},
+                                      #{value := {int_value,115}}]}}},
+                    key := <<"charlist">>},
+                  #{value :=
+                        #{value :=
+                              {array_value,
+                               #{values :=
+                                     [#{value := {string_value,<<"hello">>}},
+                                      #{value := {string_value,<<"there">>}}]}}},
+                    key := <<"world">>}], lists:sort(Converted)).
 
 %% insert a couple spans and export to locally running otel collector
 verify_export(Config) ->

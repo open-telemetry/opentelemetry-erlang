@@ -36,14 +36,22 @@
 
 -include_lib("kernel/include/logger.hrl").
 
+
+%% @doc Create a new Composite TextMap Propagator.
+%%
+%% The `Propagators' list is a list of atoms that represent the <i>suffix</i>
+%% of the module name of the TextMap Propagator to be used.
+-spec create([otel_propagator:builtin()]) -> otel_propagator:t().
 create(Propagators) ->
     {?MODULE, otel_propagator:builtins_to_modules(Propagators)}.
 
+%% @private
 fields(Propagators) ->
     lists:flatmap(fun(Propagator) ->
                           otel_propagator_text_map:fields(Propagator)
                   end, Propagators).
 
+%% @private
 -spec inject(Context, Carrier, CarrierSetFun, Injectors) -> Carrier
               when Context :: otel_ctx:t(),
                    Carrier :: otel_propagator:carrier(),
@@ -52,6 +60,7 @@ fields(Propagators) ->
 inject(Context, Carrier, CarrierSetFun, Injectors) ->
     run_injectors(Context, Injectors, Carrier, CarrierSetFun).
 
+%% @private
 -spec extract(Context, Carrier, CarrierKeysFun, CarrierGetFun, Extractors) -> Context
               when Context :: otel_ctx:t(),
                    Carrier :: otel_propagator:carrier(),
@@ -85,6 +94,7 @@ run_injectors(Context, Injectors, Carrier, Setter) when is_list(Injectors) ->
                         end
                 end, Carrier, otel_propagator:builtins_to_modules(Injectors)).
 
+%% @private
 report_cb(#{extractor := Propagator, carrier := _Carrier,
             class := Class, exception := Exception, stacktrace := StackTrace}) ->
     {"text map propagator failed to extract from carrier: propagator=~ts exception=~ts",

@@ -1,0 +1,126 @@
+{%- import 'common.j2' as c %}
+
+{%- set file_name = ctx.output ~ c.file_name(ctx.id) ~ "_attributes.ex" -%}
+{{ template.set_file_name(file_name) }}
+
+{%- set module_name = ctx.id | pascal_case | acronym ~ "Attributes" -%}
+{%- set incubating_module_namespace = "OpenTelemetry.SemConv.Incubating" -%}
+{%- set stable_module_namespace = "OpenTelemetry.SemConv" -%}
+{%- if params.stability == "experimental" -%}
+{%- set module_namespace = incubating_module_namespace -%}
+{%- else -%}
+{%- set module_namespace = stable_module_namespace -%}
+{%- endif -%}
+defmodule {{ module_namespace }}.{{ module_name }} do
+  # This is an auto-generated file
+  @moduledoc """
+  OpenTelemetry Semantic Conventions for {{ ctx.id | title | acronym }} attributes.
+  """
+{%- if params.stability == "experimental" and (ctx.all_attributes | length) > (ctx.attributes | length) %}
+{%- for attribute in ctx.all_attributes | sort(attribute="name") %}
+  {%- if attribute is stable %}
+  defdelegate {{ c.func_name(attribute.name) }}(), to: {{ stable_module_namespace }}.{{ module_name }}
+  {% if attribute.type is mapping %}
+  defdelegate {{ c.func_name(attribute.name) }}_values(), to: {{ stable_module_namespace }}.{{ module_name }}
+  {% endif -%}
+  {% endif -%}
+{% endfor %}
+{% endif -%}
+{%- for attribute in ctx.attributes | sort(attribute="name") %}
+  {% if attribute.type is mapping %}
+  @typedoc """
+  {{ c.strong_reqs(attribute.brief) }}
+
+  ### Enum Values
+  {% for member in attribute.type.members -%}
+  * `{{ c.to_atom(member.id) }}`
+  {%- if member is experimental %} ^[e](`m:OpenTelemetry.SemConv#experimental`)^{% endif %}{% if member.brief != none %} - {% if member is deprecated %}**deprecated** ~~{% endif %}{{ member.brief }}{% if member is deprecated %}~~{% endif %}{% endif %}
+  {% endfor -%}
+  """
+  @type {{ c.func_name(attribute.name) }}_values() :: {{ c.enum_to_map(attribute.type.members) }}
+  {%- endif -%}
+
+  {% if attribute is deprecated %}
+  @deprecated """
+  {{ attribute.deprecated | replace("\n", "\n  ") }}
+  """
+  {%- endif -%}
+  {% if not(attribute is deprecated) %}
+  @doc """
+  {{ c.strong_reqs(attribute.brief | replace("\n", "\n  ")) }}
+  {% if (attribute.type is simple_type) or (attribute.type is template_type) -%}
+  ### Value type
+
+  Value must be of type `{{ attribute.type | map_text("elixir_types") }}`.
+  {%- endif %}
+  {%- if attribute.note %}
+  ### Notes
+
+  {{ c.strong_reqs(attribute.note | replace("\n", "\n  ")) }}
+  {%- endif %}
+  {%- if attribute.examples %}
+  ### Examples
+
+  ```
+  {{ attribute.examples }}
+  ```
+
+  {%- endif %}
+
+  <!-- tabs-open -->
+  {%- if attribute.type is mapping %}
+
+  ### Elixir
+
+      iex> {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}()
+      {{ c.to_atom(attribute.name) }}
+
+      iex> {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}_values().{{ attribute.type.members|first|attr('id') }}
+      {{ c.enum_value_to_elixir_type(attribute.type.members|first|attr('value')) }}
+
+      iex> {% raw %}%{{% endraw %}{{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}() => {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}_values().{{ attribute.type.members|first|attr('id') }}{% raw %}}{% endraw %}
+      {% raw %}%{{% endraw %}{{ c.to_atom(attribute.name) }} => {{ c.enum_value_to_elixir_type(attribute.type.members|first|attr('value')) }}{% raw %}}{% endraw %}
+
+  ### Erlang
+
+  ```erlang
+  ?{{ c.erl_attr_name(attribute.name) }}.
+  '{{ attribute.name }}'
+
+  ?{{ c.erl_attr_name(attribute.name) }}_VALUES_{{ attribute.type.members|first|attr('id') | screaming_snake_case }}.
+  '{{ attribute.type.members|first|attr('value') }}'
+
+  {% raw %}\#{{% endraw %}?{{ c.erl_attr_name(attribute.name) }} => ?{{ c.erl_attr_name(attribute.name) }}_VALUES_{{ attribute.type.members|first|attr('id') | screaming_snake_case }}{% raw %}}{% endraw %}.
+  {% raw %}\#{{% endraw %}'{{ attribute.name }}' => '{{ attribute.type.members|first|attr('value') }}'{% raw %}}{% endraw %}
+  ```
+  {%- else %}
+
+  ### Elixir
+
+      iex> {{ module_namespace }}.{{ module_name }}.{{ c.func_name(attribute.name) }}()
+      {{ c.to_atom(attribute.name) }}
+
+  ### Erlang
+
+  ```erlang
+  ?{{ c.erl_attr_name(attribute.name) }}.
+  '{{ attribute.name }}'
+  ```
+  {%- endif %}
+
+  <!-- tabs-close -->
+  """
+  {%- endif %}
+  @spec {{ c.func_name(attribute.name) }} :: {{ c.to_atom(attribute.name) }}
+  def {{ c.func_name(attribute.name) }} do
+    {{ c.to_atom(attribute.name) }}
+  end
+
+  {%- if attribute.type is mapping %}
+  @spec {{ c.func_name(attribute.name) }}_values() :: {{ c.func_name(attribute.name) }}_values()
+  def {{ c.func_name(attribute.name) }}_values() do
+  {{ c.enum_to_map(attribute.type.members) }}
+  end
+  {%- endif %}
+{% endfor %}
+end

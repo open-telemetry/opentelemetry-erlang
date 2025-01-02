@@ -46,7 +46,6 @@
 -type detector() :: module() | {module(), term()}.
 
 -include_lib("kernel/include/logger.hrl").
--include_lib("opentelemetry_semantic_conventions/include/resource.hrl").
 
 -record(data, {resource         :: otel_resource:t(),
                detectors        :: [detector()],
@@ -175,7 +174,7 @@ spawn_detector(Module, Ref) ->
 
 default_resource_attributes(Resource) ->
     ProgName = prog_name(),
-    ProcessResource = otel_resource:create([{?PROCESS_EXECUTABLE_NAME, ProgName} | process_attributes()]),
+    ProcessResource = otel_resource:create([{'process.executable.name', ProgName} | process_attributes()]),
     Resource1 = otel_resource:merge(ProcessResource, Resource),
     Resource2 = add_service_name(Resource1, ProgName),
     Resource3 = add_service_instance(Resource2),
@@ -184,9 +183,9 @@ default_resource_attributes(Resource) ->
 process_attributes() ->
     OtpVsn = otp_vsn(),
     ErtsVsn = erts_vsn(),
-    [{?PROCESS_RUNTIME_NAME, unicode:characters_to_binary(emulator())},
-     {?PROCESS_RUNTIME_VERSION, unicode:characters_to_binary(ErtsVsn)},
-     {?PROCESS_RUNTIME_DESCRIPTION, unicode:characters_to_binary(runtime_description(OtpVsn, ErtsVsn))}].
+    [{'process.runtime.name', unicode:characters_to_binary(emulator())},
+     {'process.runtime.version', unicode:characters_to_binary(ErtsVsn)},
+     {'process.runtime.description', unicode:characters_to_binary(runtime_description(OtpVsn, ErtsVsn))}].
 
 runtime_description(OtpVsn, ErtsVsn) ->
     io_lib:format("Erlang/OTP ~s erts-~s", [OtpVsn, ErtsVsn]).
@@ -240,7 +239,7 @@ release_name() ->
 add_service_name(Resource, ProgName) ->
     case os:getenv("OTEL_SERVICE_NAME") of
         false ->
-            case otel_resource:is_key(?SERVICE_NAME, Resource) of
+            case otel_resource:is_key('service.name', Resource) of
                 false ->
                     ServiceResource = service_release_name(ProgName),
                     otel_resource:merge(ServiceResource, Resource);
@@ -256,7 +255,7 @@ add_service_name(Resource, ProgName) ->
                     ServiceResource = service_release_name(ProgName),
                     otel_resource:merge(ServiceResource, Resource);
                 BinaryString ->
-                    ServiceNameResource = otel_resource:create([{?SERVICE_NAME, BinaryString}]),
+                    ServiceNameResource = otel_resource:create([{'service.name', BinaryString}]),
                     otel_resource:merge(ServiceNameResource, Resource)
             end
     end.
@@ -267,22 +266,22 @@ add_service_name(Resource, ProgName) ->
 add_service_instance(Resource) ->
     case os:getenv("OTEL_SERVICE_INSTANCE") of
         false ->
-            case otel_resource:is_key(?SERVICE_INSTANCE_ID, Resource) of
+            case otel_resource:is_key('service.instance.id', Resource) of
                 false ->
                     case erlang:node() of
                         nonode@nohost ->
                             ServiceInstanceId = otel_id_generator:generate_trace_id(),
-                            ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE_ID, ServiceInstanceId}]),
+                            ServiceInstanceResource = otel_resource:create([{'service.instance.id', ServiceInstanceId}]),
                             otel_resource:merge(ServiceInstanceResource, Resource);
                         ServiceInstance ->
                             ServiceInstance1 = erlang:atom_to_binary(ServiceInstance, utf8),
                             case binary:match(ServiceInstance1, <<"@localhost">>) of
                                 nomatch ->
-                                    ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE_ID, ServiceInstance1}]),
+                                    ServiceInstanceResource = otel_resource:create([{'service.instance.id', ServiceInstance1}]),
                                     otel_resource:merge(ServiceInstanceResource, Resource);
                                 _Match ->
                                     ServiceInstanceId = otel_id_generator:generate_trace_id(),
-                                    ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE_ID, ServiceInstanceId}]),
+                                    ServiceInstanceResource = otel_resource:create([{'service.instance.id', ServiceInstanceId}]),
                                     otel_resource:merge(ServiceInstanceResource, Resource)
                             end
                     end;
@@ -290,7 +289,7 @@ add_service_instance(Resource) ->
                     Resource
             end;
         ServiceInstance ->
-            ServiceInstanceResource = otel_resource:create([{?SERVICE_INSTANCE_ID,
+            ServiceInstanceResource = otel_resource:create([{'service.instance.id',
                                                              otel_utils:assert_to_binary(ServiceInstance)}]),
             otel_resource:merge(ServiceInstanceResource, Resource)
     end.
@@ -298,21 +297,21 @@ add_service_instance(Resource) ->
 service_release_name(ProgName) ->
     case find_release() of
         {RelName, RelVsn} when RelName =/= false ->
-            otel_resource:create([{?SERVICE_NAME, RelName} |
+            otel_resource:create([{'service.name', RelName} |
                                   case RelVsn of
                                       false -> [];
-                                      _ -> [{?SERVICE_VERSION, RelVsn}]
+                                      _ -> [{'service.version', RelVsn}]
                                   end]);
         _ ->
-            otel_resource:create([{?SERVICE_NAME, <<"unknown_service:", ProgName/binary>>}])
+            otel_resource:create([{'service.name', <<"unknown_service:", ProgName/binary>>}])
     end.
 
 add_telemetry_info(Resource) ->
     {ok, LibraryVsn} = application:get_key(opentelemetry, vsn),
     LibraryName = <<"opentelemetry">>,
     LibraryLanguage = <<"erlang">>,
-    ResourceAttributes = [{?TELEMETRY_SDK_NAME, LibraryName},
-                          {?TELEMETRY_SDK_LANGUAGE, LibraryLanguage},
-                          {?TELEMETRY_SDK_VERSION, LibraryVsn}],
+    ResourceAttributes = [{'telemetry.sdk.name', LibraryName},
+                          {'telemetry.sdk.language', LibraryLanguage},
+                          {'telemetry.sdk.version', LibraryVsn}],
     TelemetryInfoResource = otel_resource:create(ResourceAttributes),
     otel_resource:merge(TelemetryInfoResource, Resource).

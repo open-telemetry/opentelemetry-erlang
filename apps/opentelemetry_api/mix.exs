@@ -11,7 +11,6 @@ defmodule OpenTelemetry.MixProject do
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: [
-        {:opentelemetry_semantic_conventions, "~> 0.2"},
         {:eqwalizer_support,
          git: "https://github.com/whatsapp/eqwalizer.git",
          branch: "main",

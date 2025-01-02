@@ -9,11 +9,11 @@ set -e
 
 rebar3 compile
 rebar3 edoc
-sdk_version=1.4.0
-api_version=1.3.0
+sdk_version=1.5.0
+api_version=1.4.0
 exp_sdk_version=0.5.1
 exp_api_version=0.5.1
-otlp_version=1.7.0
+otlp_version=1.8.0
 zipkin_version=1.1.0
 semconv_version=0.2.0
 

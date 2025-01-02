@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Exporter 1.8.0 - 2024-10-05
+
+### Fixes
+
+- [BREAKING: Fixes support for attribute values that are lists when the elements
+  are strings. Lists of strings in attribute values are no longer flattened but
+  remain lists. Meaning to use an Erlang charlist string or iolist as a value in
+  an attribute you must convert with `unicode:characters_to_binary` before
+  adding to the
+  attributes](https://github.com/open-telemetry/opentelemetry-erlang/pull/737)
+
+## API 1.4.0 - 2024-10-05
+
+### Changes
+
+- [Hard code semconv 0.2 values](https://github.com/open-telemetry/opentelemetry-erlang/pull/780)
+
+## SDK 1.5.0 - 2024-10-05
+
+### Changes
+
+- [Fix invalid warning log causing FORMATTER
+  CRASH](https://github.com/open-telemetry/opentelemetry-erlang/pull/774)
+- [Hard code semconv 0.2 values](https://github.com/open-telemetry/opentelemetry-erlang/pull/780)
+
+## API 1.3.1 - 2024-09-03
+
+### Fixes
+
+- [Fix dialyzer warning when starting a span by adding
+  `otel_span:start_config`](https://github.com/open-telemetry/opentelemetry-erlang/pull/717)
+
 ## Experimental API 0.5.1 - 2024-03-18
 
 ### Added
@@ -73,8 +105,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [Add `instrument_unit` to view criteria](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
 - [Validate instrument name](https://github.com/open-telemetry/opentelemetry-erlang/pull/604)
-- [Handle `explict_bucket_boundaries` advisory parameter](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
-- [Rename `boundaries` to `explict_bucket_boundaries` in histogram explicit aggregation options](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
+- [Handle `explicit_bucket_boundaries` advisory parameter](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
+- [Rename `boundaries` to `explicit_bucket_boundaries` in histogram explicit aggregation options](https://github.com/open-telemetry/opentelemetry-erlang/pull/628)
 - [Allow creating wildcard views](https://github.com/open-telemetry/opentelemetry-erlang/pull/624)
 - [Exemplars support](https://github.com/open-telemetry/opentelemetry-erlang/pull/692)
 - [Metric
@@ -484,9 +516,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Attribute values now validate against what is allowable per the specification
   rather than allowing anything the protobuf could encode. This may be breaking
   to some users who were relying on the incorrect behavior, such as allowing
-  dictionaries or non-homogenous lists/tuples. The one exception we have
+  dictionaries or non-homogeneous lists/tuples. The one exception we have
   kept is continuing to allow atoms in place of binaries for performance.
-- Attribute values of type list/tuple must be homogenous.
+- Attribute values of type list/tuple must be homogeneous.
 - Span start opts are now validated. Previously, opts underwent no validations.
 - Event and link attributes are now validated. Previously only span attributes
   were validated.

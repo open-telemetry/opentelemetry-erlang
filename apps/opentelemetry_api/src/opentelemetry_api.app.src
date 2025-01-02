@@ -1,11 +1,12 @@
 {application, opentelemetry_api,
  [{description, "OpenTelemetry API"},
-  {vsn, "1.3.0"},
+  {vsn, "1.4.0"},
   {registered, []},
   {applications,
    [kernel,
     stdlib
    ]},
+  {exclude_paths, ["rebar.lock"]},
   {env,[]},
   {modules, []},
 
