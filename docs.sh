@@ -17,6 +17,8 @@ otlp_version=1.8.0
 zipkin_version=1.1.0
 semconv_version=0.2.0
 
+mix escript.install hex ex_doc
+
 ex_doc "opentelemetry" $sdk_version "_build/default/lib/opentelemetry/ebin" \
   --source-ref v${sdk_version} \
   --config apps/opentelemetry/docs.config $@ \
