@@ -15,7 +15,6 @@ exp_sdk_version=0.5.1
 exp_api_version=0.5.1
 otlp_version=1.8.0
 zipkin_version=1.1.0
-semconv_version=0.2.0
 
 mix escript.install hex ex_doc
 
@@ -57,11 +56,3 @@ ex_doc "opentelemetry_api_experimental" $api_version "apps/opentelemetry_api_exp
   --config apps/opentelemetry_api_experimental/docs.config $@ \
   --output "apps/opentelemetry_api_experimental/doc"
 
-pushd apps/opentelemetry_semantic_conventions/
-mix deps.get
-mix compile
-popd
-ex_doc "opentelemetry_semantic_conventions" $semconv_version "apps/opentelemetry_semantic_conventions/_build/dev/lib/opentelemetry_semantic_conventions/ebin" \
-  --source-ref v${semconv_version} \
-  --config apps/opentelemetry_semantic_conventions/docs.config $@ \
-  --output "apps/opentelemetry_semantic_conventions/doc"
