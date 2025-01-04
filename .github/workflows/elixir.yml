@@ -17,8 +17,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
-          otp-version: "26.1.2"
-          elixir-version: "1.15.7"
+          otp-version: "27.2"
+          elixir-version: "1.18.1"
           version-type: "strict"
       - uses: actions/cache@v4
         name: Cache
@@ -36,13 +36,13 @@ jobs:
     name: Test SDK on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["26.1.2", "24.3.4.14"]
-        elixir_version: ["1.15.7", "1.12.3"]
-        rebar3_version: ["3.22.1"]
+        otp_version: ["27.2", "25.3.2.16"]
+        elixir_version: ["1.18.1", "1.14.5"]
+        rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
         exclude:
-          - elixir_version: "1.12.3"
-          - otp_version: "26.1.2"
+          - elixir_version: "1.14.5"
+          - otp_version: "27.2"
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir_version }}
@@ -64,13 +64,13 @@ jobs:
     name: Test API on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["26.1.2", "24.3.4.14"]
-        elixir_version: ["1.15.7", "1.12.3"]
-        rebar3_version: ["3.22.1"]
+        otp_version: ["27.2", "25.3.2.16"]
+        elixir_version: ["1.18.1", "1.14.5"]
+        rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
         exclude:
-          - elixir_version: "1.12.3"
-          - otp_version: "26.1.2"
+          - elixir_version: "1.14.5"
+          - otp_version: "27.2"
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir_version }}
@@ -110,9 +110,9 @@ jobs:
     name: Dialyze on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["26.1.2"]
-        elixir_version: ["1.15.7"]
-        rebar_version: ["3.22.1"]
+        otp_version: ["27.2"]
+        elixir_version: ["1.18.1"]
+        rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
@@ -147,13 +147,13 @@ jobs:
     name: Test SemConv on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["26.1.2", "24.3.4.14"]
-        elixir_version: ["1.15.7", "1.12.3"]
-        rebar3_version: ["3.22.1"]
+        otp_version: ["27.2", "25.3.2.16"]
+        elixir_version: ["1.18.1", "1.14.5"]
+        rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
         exclude:
-          - elixir_version: "1.12.3"
-          - otp_version: "26.1.2"
+          - elixir_version: "1.14.5"
+          - otp_version: "27.2"
     defaults:
       run:
         working-directory: apps/opentelemetry_semantic_conventions
