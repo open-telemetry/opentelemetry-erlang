@@ -20,13 +20,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["27.1", "26.1.2", "25.3.2.7", "24.3.4.14"]
-        rebar3_version: ["3.22.1"]
+        otp_version: ["27.2", "26.2.5.6", "25.3.2.16"]
+        rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
-        include:
-          - otp_version: "23.3.4.19"
-            rebar3_version: "3.17.0"
-            os: ubuntu-20.04
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
     steps:
@@ -93,8 +89,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["26.1.2"]
-        rebar3_version: ["3.22.1"]
+        otp_version: ["27.2"]
+        rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
     steps:
       - uses: actions/checkout@v4
@@ -121,8 +117,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["26.1.2"]
-        rebar3_version: ["3.22.1"]
+        otp_version: ["27.2"]
+        rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
     steps:
       - uses: actions/checkout@v4
@@ -154,8 +150,8 @@ jobs:
     name: Test SemConv on (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["26.1.2", "24.3.4.14"]
-        rebar3_version: ["3.22.1"]
+        otp_version: ["27.2", "25.3.2.16"]
+        rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
     defaults:
       run:
