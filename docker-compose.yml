@@ -1,7 +1,7 @@
 version: "3"
 services:
   otel:
-    image: otel/opentelemetry-collector-contrib:0.116.1
+    image: otel/opentelemetry-collector-contrib:0.117.0
     command: ["--config=/conf/otel-collector-config.yaml"]
     privileged: true
     ports:
