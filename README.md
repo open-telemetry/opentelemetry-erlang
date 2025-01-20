@@ -86,7 +86,7 @@ default implementation of the API that must be optional.
 
 When instrumenting a project, your application should only depend on the
 [OpenTelemetry API](https://hex.pm/packages/opentelemetry_api) application,
-found in directory `apps/opentelemetry_api` of this repo.  The API is published as
+found in directory `apps/opentelemetry_api` of this repo. The API is published as
 the Hex package [opentelemetry_api](https://hex.pm/packages/opentelemetry_api).
 
 The SDK implementation, found under `apps/opentelemetry` and Hex package
@@ -95,7 +95,7 @@ OTP Release along with an exporter.
 
 Example of Release configuration in `rebar.config`:
 
-``` erlang
+```erlang
 {relx, [{release, {my_instrumented_release, "0.1.0"},
          [opentelemetry_exporter,
 	      {opentelemetry, temporary},
@@ -107,7 +107,7 @@ Example of Release configuration in `rebar.config`:
 Example configuration for [mix's Release
 task](https://hexdocs.pm/mix/Mix.Tasks.Release.html):
 
-``` elixir
+```elixir
 def project do
   [
     releases: [
@@ -121,14 +121,14 @@ def project do
 end
 ```
 
-Note that you also need  to add `opentelemetry_exporter` before your other `opentelemetry` dependencies in `mix.exs`,
+Note that you also need to add `opentelemetry_exporter` before your other `opentelemetry` dependencies in `mix.exs`,
 so that it starts before `opentelemetry` does.
 
 In the above example `opentelemetry_exporter` is listed first, ensuring that all of its
 dependencies are booted before `opentelemetry` attempts to start the
 exporter. `opentelemetry` is set to `temporary` so that if the `opentelemetry`
 application crashes, or is shutdown, it does not terminate the other
-applications in the project -- `opentelemetry_exporter` does not not need to be
+applications in the project -- `opentelemetry_exporter` does not need to be
 `temporary` because it does not have a startup and supervision tree. This is
 optional; the `opentelemetry` application purposely sticks to `permanent` for
 the processes started by the root supervisor to leave it up to the end user
@@ -149,14 +149,13 @@ Applications are kept in a single repository, under the directory `apps`, either
 blocks below show how the git repo for the API and/or SDK
 Applications can be used in rebar3 and mix.
 
-``` erlang
+```erlang
 {opentelemetry_api, {git_subdir, "http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry_api"}},
-{opentelemetry, {git_subdir, "http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"},
-"apps/opentelemetry"}},
+{opentelemetry, {git_subdir, "http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry"}},
 {opentelemetry_exporter, {git_subdir, "http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry_exporter"}}
 ```
 
-``` elixir
+```elixir
 {:opentelemetry_api, github: "open-telemetry/opentelemetry-erlang", sparse:
 "apps/opentelemetry_api", override: true},
 {:opentelemetry, github: "open-telemetry/opentelemetry-erlang", sparse:
@@ -175,7 +174,7 @@ it is included the override is necessary.
 
 Running benchmarks is done with [benchee](https://github.com/bencheeorg/benchee). Benchmark functions are stored in modules, under `samples/`. To run them, open a rebar3 shell in the `bench` profile:
 
-``` shell
+```shell
 $ rebar3 as bench shell
 
 > otel_benchmarks:run().
@@ -184,7 +183,7 @@ $ rebar3 as bench shell
 If an Elixir script is wanted for the benchmarks they could be run (after
 running `rebar3 as bench compile`) as follows:
 
-``` shell
+```shell
 $ ERL_AFLAGS="-pa ./_build/bench/extras/samples/" ERL_LIBS=_build/bench/lib/ mix run --no-mix-exs samples/run.exs
 ```
 
@@ -192,7 +191,7 @@ $ ERL_AFLAGS="-pa ./_build/bench/extras/samples/" ERL_LIBS=_build/bench/lib/ mix
 
 Start the interop web server in a shell:
 
-``` shell
+```shell
 $ rebar3 as interop shell
 
 > w3c_trace_context_interop:start().
@@ -200,7 +199,7 @@ $ rebar3 as interop shell
 
 Then, clone the [W3C Trace Context repo](https://github.com/w3c/trace-context) and run the tests:
 
-``` shell
+```shell
 $ cd test
 $ python3 test.py http://127.0.0.1:5000/test
 ```
@@ -216,7 +215,7 @@ Approvers ([@open-telemetry/erlang-approvers](https://github.com/orgs/open-telem
 - [Łukasz Jan Niemier](https://github.com/hauleth)
 - [Iliia Khaprov](https://github.com/deadtrickster), [VMWare](https://www.vmware.com/)
 
-*Find more about the approver role in [community repository](https://github.com/open-telemetry/community/blob/master/community-membership.md#approver).*
+_Find more about the approver role in [community repository](https://github.com/open-telemetry/community/blob/master/community-membership.md#approver)._
 
 Maintainers ([@open-telemetry/erlang-maintainers](https://github.com/orgs/open-telemetry/teams/erlang-maintainers)):
 
@@ -225,7 +224,7 @@ Maintainers ([@open-telemetry/erlang-maintainers](https://github.com/orgs/open-t
 - [Łukasz Jan Niemier](https://github.com/hauleth)
 - [Iliia Khaprov](https://github.com/deadtrickster), [VMWare](https://www.vmware.com/)
 
-*Find more about the maintainer role in [community repository](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer).*
+_Find more about the maintainer role in [community repository](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer)._
 
 ### Thanks to all the people who have contributed
 

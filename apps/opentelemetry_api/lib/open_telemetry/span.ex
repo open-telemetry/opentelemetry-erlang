@@ -27,6 +27,8 @@ defmodule OpenTelemetry.Span do
   - A list of Links to other Spans (`t:OpenTelemetry.link/0`)
   - A list of timestamped Events (`t:OpenTelemetry.event/0`)
   - A Status (`t:OpenTelemetry.status/0`)
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#span)
   """
 
   @type start_opts() :: :otel_span.start_opts()
@@ -67,6 +69,8 @@ defmodule OpenTelemetry.Span do
   child Spans that may exist of this Span.
 
   The Span Context is returned with `is_recording` set to `false`.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#end)
   """
   defdelegate end_span(span_ctx), to: :otel_span
 
@@ -75,21 +79,29 @@ defmodule OpenTelemetry.Span do
   child Spans that may exist of this Span.
 
   The Span Context is returned with `is_recording` set to `false`.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#end)
   """
   defdelegate end_span(span_ctx, timestamp), to: :otel_span
 
   @doc """
+  Returns whether this Span is recording information like events, attributes, status, etc.
 
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#isrecording)
   """
   defdelegate is_recording(span_ctx), to: :otel_span
 
   @doc """
+  Returns true if the SpanContext has a non-zero TraceId and SpanId.
 
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#isvalid)
   """
   defdelegate is_valid(span_ctx), to: :otel_span
 
   @doc """
   Set an attribute with key and value on the currently active Span.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#set-attributes)
   """
   @spec set_attribute(
           OpenTelemetry.span_ctx(),
@@ -100,12 +112,16 @@ defmodule OpenTelemetry.Span do
 
   @doc """
   Add a list of attributes to the currently active Span.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#set-attributes)
   """
   @spec set_attributes(OpenTelemetry.span_ctx(), OpenTelemetry.attributes_map()) :: boolean()
   defdelegate set_attributes(span_ctx, attributes), to: :otel_span
 
   @doc """
   Add an event to the currently active Span.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#add-events)
   """
   @spec add_event(
           OpenTelemetry.span_ctx(),
@@ -116,6 +132,8 @@ defmodule OpenTelemetry.Span do
 
   @doc """
   Add a list of events to the currently active Span.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#add-events)
   """
   @spec add_events(OpenTelemetry.span_ctx(), [OpenTelemetry.event()]) :: boolean()
   defdelegate add_events(span_ctx, events), to: :otel_span
@@ -130,6 +148,8 @@ defmodule OpenTelemetry.Span do
   Record an exception as an event, following the semantics convetions for exceptions.
 
   If trace is not provided, the stacktrace is retrieved from `Process.info/2`
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#record-exception)
   """
   @spec record_exception(OpenTelemetry.span_ctx(), Exception.t()) :: boolean()
   def record_exception(span_ctx, exception, trace \\ nil, attributes \\ [])
@@ -154,6 +174,8 @@ defmodule OpenTelemetry.Span do
   If used, this will override the default Span Status, which is `:unset`.
   Valid statuses are `:ok`, or `:error`. Calling this will also set the
   `status_code` attribute to `1`(`:ok`), or `2`(`:error`).
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#set-status)
   """
   @spec set_status(OpenTelemetry.span_ctx(), OpenTelemetry.status()) :: boolean()
   defdelegate set_status(span_ctx, status), to: :otel_span
@@ -166,10 +188,12 @@ defmodule OpenTelemetry.Span do
   logic will be implemented before the Span creation for performance reasons. Thus the name
   update may interfere with this logic.
 
-  The function name is called UpdateName to differentiate this function from the regular
+  The function name is called update_name to differentiate this function from the regular
   property setter. It emphasizes that this operation signifies a major change for a Span
   and may lead to re-calculation of sampling or filtering decisions made previously
   depending on the implementation.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#updatename)
   """
   @spec update_name(OpenTelemetry.span_ctx(), OpenTelemetry.span_name()) :: boolean()
   defdelegate update_name(span_ctx, name), to: :otel_span
