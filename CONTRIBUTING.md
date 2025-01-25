@@ -11,11 +11,15 @@ This guide aims to assist contributors in setting up their local development env
 To work with this repository, you'll need the following tools and dependencies:
 
 - **Erlang/OTP Version** :
-  -Erlang/OTP 25+
   
-If using the Elixir API:
+- We support the latest major release plus the prior two releases, aligning with Ericsson’s version support policy for Erlang itself.  
+- For a definitive list of supported versions, refer to the [erlang.yml](.github/workflows/erlang.yml) file in this repository.  
 
--Elixir 1.13+
+  
+If using the Elixir API:  
+
+same as above
+
 
 - **Operating System Requirements**: TBD (Any OS-specific instructions).
 
