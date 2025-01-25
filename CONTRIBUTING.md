@@ -11,7 +11,7 @@ This guide aims to assist contributors in setting up their local development env
 To work with this repository, you'll need the following tools and dependencies:
 
 - **Erlang/OTP Version** :
-  -Erlang/OTP 23+ (With best effort for OTP 22 support)
+  -Erlang/OTP 25+
   
 If using the Elixir API:
 
