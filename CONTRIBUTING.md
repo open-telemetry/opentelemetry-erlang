@@ -28,7 +28,7 @@ Refer to the official [Erlang Installation Guide](https://www.erlang.org/downloa
 ```bash
 
 git clone https://github.com/open-telemetry/opentelemetry-erlang.git
-cd erlang
+cd opentelemetry-erlang
 ```
 
 ### Install Dependencies
