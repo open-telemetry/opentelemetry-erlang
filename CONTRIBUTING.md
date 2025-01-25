@@ -18,8 +18,9 @@ To work with this repository, you'll need the following tools and dependencies:
   
 If using the Elixir API:  
 
-same as above
+-Elixir 1.14+
 
+- For a definitive list of supported versions, refer to the [erlang.yml](.github/workflows/erlang.yml) file in this repository.
 
 - **Operating System Requirements**: TBD (Any OS-specific instructions).
 
