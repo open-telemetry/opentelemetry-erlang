@@ -14,12 +14,16 @@ defmodule OpenTelemetry.Tracer do
       Tracer.with_span "span-1" do
         ... do something ...
       end
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#tracer)
   """
 
   @doc """
   Starts a new span and does not make it the current active span of the current process.
 
   The current active Span is used as the parent of the created Span.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#span-creation)
   """
   defmacro start_span(name, opts \\ quote(do: %{})) do
     quote bind_quoted: [name: name, start_opts: opts] do
@@ -35,6 +39,8 @@ defmodule OpenTelemetry.Tracer do
   Starts a new span and does not make it the current active span of the current process.
 
   The current active Span is used as the parent of the created Span.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#span-creation)
   """
   defmacro start_span(ctx, name, opts) do
     quote bind_quoted: [ctx: ctx, name: name, start_opts: opts] do
@@ -49,6 +55,8 @@ defmodule OpenTelemetry.Tracer do
 
   @doc """
   Takes a `t:OpenTelemetry.span_ctx/0` and the Tracer sets it to the currently active Span.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#get-context)
   """
   def set_current_span(span_ctx) do
     :otel_tracer.set_current_span(span_ctx)
@@ -57,6 +65,8 @@ defmodule OpenTelemetry.Tracer do
   @doc """
   Takes a `t:OpenTelemetry.Ctx.t/0` and the `t:OpenTelemetry.span_ctx/0` and the Tracer sets
   it to the current span in the pass Context.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#get-context)
   """
   def set_current_span(ctx, span_ctx) do
     :otel_tracer.set_current_span(ctx, span_ctx)
@@ -68,6 +78,8 @@ defmodule OpenTelemetry.Tracer do
   before the block.
 
   See `start_span/2` and `end_span/0`.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#span-creation)
   """
   defmacro with_span(name, start_opts \\ quote(do: %{}), do: block) do
     quote do
@@ -86,6 +98,8 @@ defmodule OpenTelemetry.Tracer do
   before the block.
 
   See `start_span/2` and `end_span/0`.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#span-creation)
   """
   defmacro with_span(ctx, name, start_opts, do: block) do
     quote do
@@ -101,6 +115,8 @@ defmodule OpenTelemetry.Tracer do
 
   @doc """
   Returns the currently active `t:OpenTelemetry.span_ctx/0`.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#get-context)
   """
   def current_span_ctx() do
     :otel_tracer.current_span_ctx()
@@ -108,6 +124,8 @@ defmodule OpenTelemetry.Tracer do
 
   @doc """
   Returns the `t:OpenTelemetry.span_ctx/0` active in Context `ctx`.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#get-context)
   """
   def current_span_ctx(ctx) do
     :otel_tracer.current_span_ctx(ctx)
@@ -120,6 +138,8 @@ defmodule OpenTelemetry.Tracer do
   To end a specific span, see `OpenTelemetry.Span.end_span/1`.
 
   The Span in the current Context has its `is_recording` set to `false`.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#end)
   """
   @spec end_span(:opentelemetry.timestamp() | :undefined) ::
           :opentelemetry.span_ctx() | :undefined
@@ -131,6 +151,8 @@ defmodule OpenTelemetry.Tracer do
 
   @doc """
   Set an attribute with key and value on the currently active Span.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#set-attributes)
   """
   @spec set_attribute(OpenTelemetry.attribute_key(), OpenTelemetry.attribute_value()) :: boolean()
   def set_attribute(key, value) do
@@ -143,6 +165,8 @@ defmodule OpenTelemetry.Tracer do
 
   @doc """
   Add a list of attributes to the currently active Span.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#set-attributes)
   """
   @spec set_attributes(OpenTelemetry.attributes_map()) :: boolean()
   def set_attributes(attributes) do
@@ -151,6 +175,8 @@ defmodule OpenTelemetry.Tracer do
 
   @doc """
   Add an event to the currently active Span.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#add-events)
   """
   @spec add_event(OpenTelemetry.event_name(), OpenTelemetry.attributes_map()) :: boolean()
   def add_event(event, attributes) do
@@ -163,6 +189,8 @@ defmodule OpenTelemetry.Tracer do
 
   @doc """
   Add a list of events to the currently active Span.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#add-events)
   """
   @spec add_events([OpenTelemetry.event()]) :: boolean()
   def add_events(events) do
@@ -173,6 +201,8 @@ defmodule OpenTelemetry.Tracer do
   Record an exception as an event, following the semantics convetions for exceptions.
 
   If trace is not provided, the stacktrace is retrieved from `Process.info/2`
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#record-exception)
   """
   @spec record_exception(Exception.t()) :: boolean()
   def record_exception(exception, trace \\ nil, attributes \\ []) do
@@ -188,6 +218,8 @@ defmodule OpenTelemetry.Tracer do
   Creates and sets the Status of the currently active Span.
 
   If used, this will override the default Span Status, which is `:unset`.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#set-status)
   """
   @spec set_status(OpenTelemetry.status_code(), String.t()) :: boolean()
   def set_status(code, message) do
@@ -198,6 +230,8 @@ defmodule OpenTelemetry.Tracer do
   Sets the Status of the currently active Span.
 
   If used, this will override the default Span Status, which is `:unset`.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#set-status)
   """
   @spec set_status(OpenTelemetry.status()) :: boolean()
   def set_status(status) do
@@ -212,10 +246,12 @@ defmodule OpenTelemetry.Tracer do
   logic will be implemented before the Span creation for performance reasons. Thus the name
   update may interfere with this logic.
 
-  The function name is called UpdateName to differentiate this function from the regular
+  The function name is called update_name to differentiate this function from the regular
   property setter. It emphasizes that this operation signifies a major change for a Span
   and may lead to re-calculation of sampling or filtering decisions made previously
   depending on the implementation.
+
+  See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#updatename)
   """
   @spec update_name(String.t()) :: boolean()
   def update_name(name) do
