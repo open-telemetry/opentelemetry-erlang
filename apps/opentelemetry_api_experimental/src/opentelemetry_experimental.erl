@@ -23,7 +23,8 @@
          set_default_meter/1,
          set_default_meter/2,
          get_meter/0,
-         get_meter/1]).
+         get_meter/1,
+         cleanup_persistent_terms/0]).
 
 -include_lib("kernel/include/logger.hrl").
 -include("otel_meter.hrl").
@@ -118,3 +119,6 @@ set_meter(Name, Vsn, SchemaUrl, Meter) ->
       Meter:: meter().
 set_meter(MeterProvider, Name, Vsn, SchemaUrl, Meter) ->
     opentelemetry:verify_and_set_term(Meter, ?METER_KEY(MeterProvider, {Name, Vsn, SchemaUrl}), otel_meter).
+
+cleanup_persistent_terms() ->
+    otel_utils:cleanup_persistent_terms(?MODULE).
