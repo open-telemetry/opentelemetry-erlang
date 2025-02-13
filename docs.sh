@@ -41,17 +41,15 @@ ex_doc "opentelemetry_zipkin" $zipkin_version "_build/default/lib/opentelemetry_
 pushd apps/opentelemetry_api
 mix deps.get
 mix compile
+rebar3 edoc
+mix docs
 popd
-ex_doc "opentelemetry_api" $api_version "apps/opentelemetry_api/_build/dev/lib/opentelemetry_api/ebin" \
-  --source-ref v${api_version} \
-  --config apps/opentelemetry_api/docs.config $@ \
-  --output "apps/opentelemetry_api/doc"
 
 pushd apps/opentelemetry_api_experimental
 mix deps.get
 mix compile
 popd
-ex_doc "opentelemetry_api_experimental" $api_version "apps/opentelemetry_api_experimental/_build/dev/lib/opentelemetry_api_experimental/ebin" \
+ex_doc "opentelemetry_api_experimental" $exp_api_version "apps/opentelemetry_api_experimental/_build/dev/lib/opentelemetry_api_experimental/ebin" \
   --source-ref v${exp_api_version} \
   --config apps/opentelemetry_api_experimental/docs.config $@ \
   --output "apps/opentelemetry_api_experimental/doc"
