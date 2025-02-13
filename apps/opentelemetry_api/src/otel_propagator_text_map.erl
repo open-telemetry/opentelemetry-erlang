@@ -24,7 +24,7 @@
 %% '''
 %%
 %% The propagators are then used at the points that cross-service
-%% communication is performed. By default, {@link inject/3} and {@link extract/3} work on a
+%% communication is performed. By default, {@link inject/2} and {@link extract/2} work on a
 %% generic list of 2-tuple's with binary string keys and values. You can pass (as an argument)
 %% a user-defined function for setting a key/value in the carrier and for getting
 %% the value of a key. For example, injecting and extracting to and from
