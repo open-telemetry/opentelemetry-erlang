@@ -44,7 +44,7 @@ defmodule OpenTelemetryExperimental.MixProject do
     end)
     |> Enum.concat([
       {:cmark, "~> 0.10", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.36", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.37", only: :dev, runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:covertool, ">= 0.0.0", only: :test}
     ])
