@@ -26,29 +26,10 @@ If using the Elixir API:
 
 Refer to the official [Erlang Installation Guide](https://www.erlang.org/downloads) for setting up Erlang.
 
-
-## Worflow
-
-### Clone the Repository
-```bash
-
-git clone https://github.com/open-telemetry/opentelemetry-erlang.git
-cd opentelemetry-erlang
-```
-
-### Install Dependencies
-TBD (Provide commands or steps to install required dependencies).
-
 ## Local Run/Build
 
 ### Run the Application
 TBD (Add instructions for starting the application locally).
-
-### Build the Project
-
-TBD (Add commands or instructions to build the project locally).
-
-- Update placeholders in the configuration file with relevant values: TBD.
 
 ## Testing
 
@@ -64,8 +45,6 @@ TBD (Explain how to interpret test results, if applicable).
 ## Contribution Rules
 Please review the [OpenTelemetry Specification](https://opentelemetry.io/docs/specs/otel/) for details on coding standards, commit message formatting, and the contribution process.
 
-If you encounter any issues or have questions, feel free to open an issue or reach out to the maintainers.
-
-
 ## Further Help
-- Links to communication platforms like Slack or Discord: **TBD**
+
+If you encounter any issues or have questions, feel free to open an issue or reach out to the maintainers.
