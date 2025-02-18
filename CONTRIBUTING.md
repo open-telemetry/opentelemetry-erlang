@@ -3,7 +3,7 @@
 ## Introduction
 Welcome to the Erlang Repository! 🎉
 
-This guide aims to assist contributors in setting up their local development environment. While some sections are complete, others contain placeholders (`TBD`) where input from the maintainers is required. Feel free to suggest improvements or raise questions in your contributions.
+This guide aims to assist contributors in setting up their local development environment. Feel free to suggest improvements or raise questions in your contributions.
 
 ## Pre-requisites
 
@@ -16,17 +16,16 @@ To work with this repository, you'll need the following tools and dependencies:
 
 If using the Elixir API:  
 
--Elixir 1.14+
+* Elixir 1.14+
 
-- For a definitive list of supported versions, refer to the [erlang.yml](.github/workflows/erlang.yml) file in this repository.
+* For a definitive list of supported versions, refer to the [erlang.yml](.github/workflows/erlang.yml) file in this repository.
 
-- **Operating System Requirements**: TBD (Any OS-specific instructions).
-
-Refer to the official [Erlang Installation Guide](https://www.erlang.org/downloads) for setting up Erlang.
+* Refer to the official [Erlang Installation Guide](https://www.erlang.org/downloads) for setting up Erlang.
 
 ## Contribution Rules
 Please review the [OpenTelemetry Specification](https://opentelemetry.io/docs/specs/otel/) for details on coding standards, commit message formatting, and the contribution process.
 
 ## Further Help
 
-If you encounter any issues or have questions, feel free to open an issue or reach out to the maintainers.
+* If you encounter any issues or have questions, feel free to open an issue or reach out to the maintainers.
+* Join our [slack](https://cloud-native.slack.com/archives/C01N75YMZCN) channel also for further help and discussions
