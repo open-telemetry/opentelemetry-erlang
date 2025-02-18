@@ -18,7 +18,7 @@ If using the Elixir API:
 
 * Elixir 1.14+
 
-* For a definitive list of supported versions, refer to the [erlang.yml](.github/workflows/erlang.yml) file in this repository.
+* For a definitive list of supported versions, refer to the [elixir.yml](.github/workflows/elixir.yml) file in this repository.
 
 * Refer to the official [Erlang Installation Guide](https://www.erlang.org/downloads) for setting up Erlang.
 
