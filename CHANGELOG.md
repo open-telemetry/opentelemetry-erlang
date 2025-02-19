@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Experimental API 0.5.2 - 2024-11-22
+
+### Added
+
+- [Hard code semconv values](https://github.com/open-telemetry/opentelemetry-erlang/pull/780)
+
+## Experimental SDK 0.6.0 - 2024-11-22
+
+### Added
+
+- [move metrics and logs to separate exporter modules from
+  traces](https://github.com/open-telemetry/opentelemetry-erlang/pull/720)
+- [make the console metric exporter handle all
+  values](https://github.com/open-telemetry/opentelemetry-erlang/pull/709)
+
+### Fixes
+
+- [metric exporter: nothing to do for an empty list of
+  metrics](https://github.com/open-telemetry/opentelemetry-erlang/pull/782)
+- [Hard code semconv
+  values](https://github.com/open-telemetry/opentelemetry-erlang/pull/780)
+- [removed old unused otel_metric_exporter
+  module](https://github.com/open-telemetry/opentelemetry-erlang/pull/715)
+  
 ## Exporter 1.8.0 - 2024-10-05
 
 ### Fixes
