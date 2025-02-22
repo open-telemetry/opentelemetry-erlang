@@ -24,6 +24,15 @@ Supported aggregators:
 - last value: `otel_aggregation_last_value`
 - explicit bucket histogram: `otel_aggregation_histogram_explicit`
 
+Default aggregators for instruments:
+
+- counter: sum
+- updown counter: sum
+- histogram: explicit bucket histogram
+- observable counter: sum
+- observable updown counter: sum
+- observable gauge: last value
+
 ## View
 
 Views allow the user to define which instruments to process and how to process

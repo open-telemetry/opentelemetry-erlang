@@ -16,6 +16,18 @@ of instruments and calls to record data points with them.
 
 ### Instrument Creation
 
+#### Supported Instruments
+
+There are 3 synchronous instrument types and 3 observable instruments that are
+tied to a callback function:
+
+- counter
+- updown counter
+- histogram
+- observable counter
+- observable updown counter
+- observable gauge
+
 #### Macros
 
 The header `otel_meter.hrl` contains macros for working with Instruments. This
