@@ -84,7 +84,7 @@
 
 -define(DEFAULT_MAX_QUEUE_SIZE, 2048).
 -define(DEFAULT_SCHEDULED_DELAY_MS, timer:seconds(5)).
--define(DEFAULT_EXPORTER_TIMEOUT_MS, timer:minutes(5)).
+-define(DEFAULT_EXPORTER_TIMEOUT_MS, timer:seconds(30)).
 -define(DEFAULT_CHECK_TABLE_SIZE_MS, timer:seconds(1)).
 
 -define(ENABLED_KEY(RegName), {?MODULE, enabled_key, RegName}).
