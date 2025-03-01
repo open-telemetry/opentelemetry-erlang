@@ -42,7 +42,6 @@ Below is example creation found in the [`dice_roll_elli` example]():
 ?create_counter(?ROLL_COUNTER, #{description => <<"The number of rolls by roll value.">>,
                                  unit => '1'}).
 ```
-
 ### Instrument Recording
 
 Measurements are taken on an instrument through recordings. Each type of
@@ -59,6 +58,9 @@ counter with an attribute:
 ```erlang
 ?counter_add(?ROLL_COUNTER, 1, #{'roll.value' => Roll}),
 ```
+
+See the Experimental SDK's `README.md` for how to setup Views for aggregation
+and then the exporting of metrics.
 
 ## Details
 
@@ -105,15 +107,14 @@ To record measurements an instrument must first be created. Each instrument kind
 has a `?create_<kind>` macro in Erlang for creation:
  
 ```erlang
-RequestCounter = ?create_counter(app_request_counter, #{description => ~"Count of number of requests"})
+_RequestCounter = ?create_counter(app_request_counter, #{description => ~"Count of number of requests"})
 ```
 
 Now the instrument can be used to record measurements either by passing the
-variable `RequestCounter` or using the atom name `app_request_counter`:
+atom name `app_request_counter`:
 
 ```erlang
 ?counter_add(app_request_counter, 5, #{<<"a">> => <<"b">>}),
-?counter_add(RequestCounter, 5, #{<<"a">> => <<"b">>})
 ```
 
 For synchronous instruments the available macros are:

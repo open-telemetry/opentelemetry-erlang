@@ -19,12 +19,7 @@
 -module(otel_updown_counter).
 
 -export([create/3,
-         add/3,
-         add/4,
          add/5]).
-
--include("otel_metrics.hrl").
--include_lib("kernel/include/logger.hrl").
 
 -spec create(Meter, Name, Opts) -> otel_instrument:t() when
       Meter :: otel_meter:t(),
@@ -33,21 +28,7 @@
 create(Meter, Name, Opts) ->
     otel_meter:create_updown_counter(Meter, Name, Opts).
 
--spec add(otel_ctx:t(), otel_instrument:t(), number()) -> ok.
-add(Ctx, Instrument=#instrument{module=Module}, Number) ->
-    Module:record(Ctx, Instrument, Number).
-
--spec add(
-        otel_ctx:t(),
-        otel_meter:t() | otel_instrument:t(),
-        otel_instrument:name() | number(),
-        number() | opentelemetry:attributes_map()) -> ok.
-add(Ctx, Instrument=#instrument{module=Module}, Number, Attributes) ->
-    Module:record(Ctx, Instrument, Number, Attributes);
-
-add(Ctx, Meter, Name, Number) ->
-    otel_meter:record(Ctx, Meter, Name, Number).
-
--spec add(otel_ctx:t(), otel_meter:t(), otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok.
+-spec add(otel_ctx:t(), otel_meter:t(), otel_instrument:name(), number(),
+          opentelemetry:attributes_map()) -> ok | false.
 add(Ctx, Meter, Name, Number, Attributes) ->
     otel_meter:record(Ctx, Meter, Name, Number, Attributes).

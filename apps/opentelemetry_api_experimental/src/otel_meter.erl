@@ -18,7 +18,6 @@
 -module(otel_meter).
 
 -export([create_counter/3,
-         create_named_counter/3,
          create_histogram/3,
          create_updown_counter/3,
 
@@ -35,7 +34,6 @@
 
          lookup_instrument/2,
 
-         record/4,
          record/5]).
 
 -include("otel_metrics.hrl").
@@ -70,13 +68,6 @@
       Opts :: otel_instrument:opts().
 create_counter(Meter, Name, Opts) ->
     create_instrument(Meter, Name, ?KIND_COUNTER, Opts).
-
--spec create_named_counter(Meter, Name, Opts) -> otel_instrument:t() when
-      Meter :: t(),
-      Name :: otel_instrument:name(),
-      Opts :: otel_instrument:opts().
-create_named_counter(Meter, Name, Opts) ->
-    create_named_instrument(Meter, Name, ?KIND_COUNTER, Opts).
 
 -spec create_updown_counter(Meter, Name, Opts) -> otel_instrument:t() when
       Meter :: t(),
@@ -154,9 +145,6 @@ scope(Meter={Module, _}) ->
 create_instrument(Meter={Module, _}, Name, Kind, Opts) ->
     Module:create_instrument(Meter, Name, Kind, Opts).
 
-create_named_instrument(Meter={Module, _}, Name, Kind, Opts) ->
-    Module:create_named_instrument(Meter, Name, Kind, Opts).
-
 -spec create_instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts) -> otel_instrument:t() when
       Meter :: t(),
       Name :: otel_instrument:name(),
@@ -167,7 +155,7 @@ create_named_instrument(Meter={Module, _}, Name, Kind, Opts) ->
 create_instrument(Meter={Module, _}, Name, Kind, Callback, CallbackArgs, Opts) ->
     Module:create_instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts).
 
--spec lookup_instrument(Meter, Name) -> otel_instrument:t() when
+-spec lookup_instrument(Meter, Name) -> otel_instrument:t() | undefined when
       Meter :: t(),
       Name :: otel_instrument:name().
 lookup_instrument(Meter={Module, _}, Name) ->
@@ -181,8 +169,13 @@ lookup_instrument(Meter={Module, _}, Name) ->
 register_callback(Meter={Module, _}, Instruments, Callback, CallbackArgs) ->
     Module:register_callback(Meter, Instruments, Callback, CallbackArgs).
 
-record(Ctx, Meter={Module, _}, Name, Number) ->
-    Module:record(Ctx, Meter, Name, Number).
-
-record(Ctx, Meter={Module, _}, Name, Number, Attributes) ->
-    Module:record(Ctx, Meter, Name, Number, Attributes).
+-spec record(Ctx, Meter, Name, Number, Attributes) -> ok | false when
+      Ctx :: otel_ctx:t(),
+      Meter :: otel_meter:t(),
+      Name :: otel_instrument:name(),
+      Number :: number(),
+      Attributes :: opentelemetry:attributes_map().
+record(Ctx, {Module, Meter}, Name, Number, Attributes) when is_atom(Name) ->
+    Module:record(Ctx, Meter, Name, Number, Attributes);
+record(_, _, _, _, _) ->
+    false.

@@ -20,8 +20,6 @@
 -module(otel_histogram).
 
 -export([create/3,
-         record/3,
-         record/4,
          record/5]).
 
 -include("otel_metrics.hrl").
@@ -33,21 +31,10 @@
 create(Meter, Name, Opts) ->
     otel_meter:create_histogram(Meter, Name, Opts).
 
--spec record(otel_ctx:t(), otel_instrument:t(), pos_integer() | float()) -> ok.
-record(Ctx, Instrument=#instrument{module=Module}, Number) ->
-    Module:record(Ctx, Instrument, Number).
-
--spec record(
-        otel_ctx:t(),
-        otel_meter:t() | otel_instrument:t(),
-        otel_instrument:name() | pos_integer() | float(),
-        pos_integer() | float() | opentelemetry:attributes_map()) -> ok.
-record(Ctx, Instrument=#instrument{module=Module}, Number, Attributes) ->
-    Module:record(Ctx, Instrument, Number, Attributes);
-
-record(Ctx, Meter, Name, Number) ->
-    otel_meter:record(Ctx, Meter, Name, Number).
-
--spec record(otel_ctx:t(), otel_meter:t(), otel_instrument:name(), pos_integer() | float(), opentelemetry:attributes_map()) -> ok.
+-spec record(otel_ctx:t(),
+             otel_meter:t(),
+             otel_instrument:name(),
+             pos_integer() | float(),
+             opentelemetry:attributes_map()) -> ok | false.
 record(Ctx, Meter, Name, Number, Attributes) ->
     otel_meter:record(Ctx, Meter, Name, Number, Attributes).
