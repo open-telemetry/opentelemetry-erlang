@@ -37,8 +37,6 @@
          update_name/2]).
 
 %% since `span_ctx' and `span' are in the API the `span_sdk' has to be term()
--eqwalizer({nowarn_function, end_span/1}).
--eqwalizer({nowarn_function, end_span/2}).
 -eqwalizer({nowarn_function, get_ctx/1}).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").

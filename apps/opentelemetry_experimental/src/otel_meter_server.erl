@@ -41,7 +41,6 @@
          get_readers/1,
          add_instrument/1,
          add_instrument/2,
-         add_named_instrument/3,
          register_callback/3,
          register_callback/4,
          add_view/2,
@@ -125,10 +124,6 @@ add_instrument(Instrument) ->
 add_instrument(Provider, Instrument) ->
     gen_server:call(Provider, {add_instrument, Instrument}).
 
--spec add_named_instrument(atom(), otel_instrument:name(), otel_instrument:t()) -> boolean().
-add_named_instrument(Provider, Name, Instrument) ->
-    gen_server:call(Provider, {add_named_instrument, Name, Instrument}).
-
 add_metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) ->
     add_metric_reader(?GLOBAL_METER_PROVIDER_REG_NAME, ReaderId, ReaderPid,
                       DefaultAggregationMapping, Temporality).
@@ -162,11 +157,11 @@ add_view(Name, Criteria, Config) ->
 add_view(Provider, Name, Criteria, Config) ->
     gen_server:call(Provider, {add_view, Name, Criteria, Config}).
 
--spec record(otel_ctx:t(), #meter{}, otel_instrument:t() | otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok.
-record(Ctx, Meter, Name, Number, Attributes) when is_atom(Name) ->
+-spec record(otel_ctx:t(), #meter{}, otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok | false.
+record(Ctx, Meter, Name, Number, Attributes) when Name =/= undefined ->
     handle_measurement(Ctx, Meter, Name, Number, Attributes);
-record(Ctx, Meter, #instrument{name=Name}, Number, Attributes) ->
-    handle_measurement(Ctx, Meter, Name, Number, Attributes).
+record(_, _, _, _, _) ->
+    false.
 
 -spec force_flush() -> ok.
 force_flush() ->
@@ -184,6 +179,7 @@ init([Name, RegName, Resource, Config]) ->
     ExemplarsTab = otel_metrics_tables:exemplars_tab(RegName),
 
     Meter = #meter{module=otel_meter_default,
+                   instrumentation_scope=opentelemetry:instrumentation_scope(<<>>, <<>>, <<>>),
                    instruments_tab=InstrumentsTab,
                    provider=RegName,
                    streams_tab=StreamsTab,
@@ -258,15 +254,6 @@ handle_call({add_instrument, Instrument}, _From, State=#state{readers=Readers,
                                                               exemplar_filter=ExemplarFilter}) ->
     _ = add_instrument_(InstrumentsTab, CallbacksTab, StreamsTab, Instrument, Views, Readers, ExemplarsEnabled, ExemplarFilter),
     {reply, ok, State};
-handle_call({add_named_instrument, Name, Instrument}, _From, State=#state{readers=Readers,
-                                                                          views=Views,
-                                                                          instruments_tab=InstrumentsTab,
-                                                                          callbacks_tab=CallbacksTab,
-                                                                          streams_tab=StreamsTab,
-                                                                          exemplars_enabled=ExemplarsEnabled,
-                                                                          exemplar_filter=ExemplarFilter}) ->
-    _ = add_instrument_(InstrumentsTab, CallbacksTab, StreamsTab, Name, Instrument, Views, Readers, ExemplarsEnabled, ExemplarFilter),
-    {reply, ok, State};
 handle_call({register_callback, Instruments, Callback, CallbackArgs}, _From, State=#state{readers=Readers,
                                                                                           callbacks_tab=CallbacksTab}) ->
     _ = register_callback_(CallbacksTab, Instruments, Callback, CallbackArgs, Readers),
@@ -335,16 +322,6 @@ new_view(ViewConfig) ->
 add_instrument_(InstrumentsTab, CallbacksTab, StreamsTab,
                 Instrument=#instrument{meter={_, Meter=#meter{}},
                                        name=Name}, Views, Readers, ExemplarsEnabled, ExemplarFilter) ->
-    case otel_metrics_tables:insert_instrument(InstrumentsTab, Meter, Name, Instrument) of
-        true ->
-            update_streams_(Instrument, CallbacksTab, StreamsTab, Views, Readers, ExemplarsEnabled, ExemplarFilter);
-        false ->
-            ?LOG_INFO("Instrument ~p already created. Ignoring attempt to create Instrument with the same name in the same Meter.", [Name]),
-            ok
-    end.
-
-add_instrument_(InstrumentsTab, CallbacksTab, StreamsTab,
-                Name, Instrument=#instrument{meter={_, Meter=#meter{}}}, Views, Readers, ExemplarsEnabled, ExemplarFilter) ->
     case otel_metrics_tables:insert_instrument(InstrumentsTab, Meter, Name, Instrument) of
         true ->
             update_streams_(Instrument, CallbacksTab, StreamsTab, Views, Readers, ExemplarsEnabled, ExemplarFilter);
@@ -465,7 +442,7 @@ stream_for_reader(Instrument=#instrument{kind=Kind}, Stream, View,
 %% the Reader's mapping of Instrument Kind to Aggregation was merged with the
 %% global default, so any missing Kind entries are filled in from the global
 %% mapping in `otel_aggregation'
--spec aggregation_module(otel_instrument:t(), otel_view:t(), reader()) -> module().
+-spec aggregation_module(otel_instrument:t(), otel_view:t() | undefined, reader()) -> module().
 aggregation_module(#instrument{kind=Kind}, undefined,
                    #reader{default_aggregation_mapping=ReaderAggregationMapping}) ->
     maps:get(Kind, ReaderAggregationMapping);
