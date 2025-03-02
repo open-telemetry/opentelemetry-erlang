@@ -106,7 +106,7 @@ defmodule OtelMetricTests do
 
   test "create Histogram with macros" do
     Histogram.create(:histogram_a, %{unit: "1", description: "some histogram_a"})
-    Histogram.record(:histogram_a, 1)
+    Histogram.record(:histogram_a, 1, %{})
 
     :otel_meter_server.force_flush()
 
@@ -140,7 +140,7 @@ defmodule OtelMetricTests do
                         )
                     )}
 
-    Histogram.record(:histogram_a, 10)
+    Histogram.record(:histogram_a, 10, %{})
 
     :otel_meter_server.force_flush()
 
