@@ -19,7 +19,7 @@ defmodule OpenTelemetry.MixProject do
          runtime: false},
         {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
         {:covertool, ">= 0.0.0", only: :test},
-        {:ex_doc, "~> 0.37", only: :dev, runtime: false},
+        {:ex_doc, "~> 0.37", only: :dev, runtime: false}
       ],
       name: "OpenTelemetry API",
       test_coverage: [tool: :covertool],
@@ -34,28 +34,31 @@ defmodule OpenTelemetry.MixProject do
       homepage_url: "https://github.com/open-telemetry/opentelemetry-erlang",
       docs: [
         main: "readme",
-        source_url_pattern: "https://github.com/open-telemetry/opentelemetry-erlang/blob/main/apps/opentelemetry_api/%{path}#L%{line}",
+        source_url_pattern:
+          "https://github.com/open-telemetry/opentelemetry-erlang/blob/main/apps/opentelemetry_api/%{path}#L%{line}",
         extras: ["README.md", "LICENSE"],
         groups_for_modules: [
-          "Context": [:otel_ctx,
-                      OpenTelemetry.Ctx],
-          "Baggage": [:otel_baggage,
-                      OpenTelemetry.Baggage],
-          "Tracer": [:otel_tracer,
-                     :otel_tracer_noop,
-                     :otel_tracer_provider,
-                     :otel_tracestate,
-                     OpenTelemetry.Tracer,
-                     OpenTelemetry.Span],
-          "Propagators": [:otel_propagator,
-                          :otel_propagator_baggage,
-                          :otel_propagator_b3,
-                          :otel_propagator_b3multi,
-                          :otel_propagator_b3single,
-                          :otel_propagator_text_map,
-                          :otel_propagator_text_map_composite,
-                          :otel_propagator_text_map_noop,
-                          :otel_propagator_trace_context]
+          Context: [:otel_ctx, OpenTelemetry.Ctx],
+          Baggage: [:otel_baggage, OpenTelemetry.Baggage],
+          Tracer: [
+            :otel_tracer,
+            :otel_tracer_noop,
+            :otel_tracer_provider,
+            :otel_tracestate,
+            OpenTelemetry.Tracer,
+            OpenTelemetry.Span
+          ],
+          Propagators: [
+            :otel_propagator,
+            :otel_propagator_baggage,
+            :otel_propagator_b3,
+            :otel_propagator_b3multi,
+            :otel_propagator_b3single,
+            :otel_propagator_text_map,
+            :otel_propagator_text_map_composite,
+            :otel_propagator_text_map_noop,
+            :otel_propagator_trace_context
+          ]
         ]
       ]
     ]
