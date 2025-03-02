@@ -49,6 +49,8 @@
               criteria/0,
               config/0]).
 
+-eqwalizer({nowarn_function, maybe_init_meter/3}).
+
 -include_lib("opentelemetry_api/include/gradualizer.hrl").
 
 %% ignore dialyzer warnings in functions using matchspecs or related to those that do
@@ -181,6 +183,7 @@ criteria_to_instrument_matchspec(_) ->
     ets:match_spec_compile([{#instrument{_='_'}, [], [true]}]).
 
 maybe_init_meter(#instrument{meter='_'}) ->
+    %% eqwalizer:ignore using ignore as an ets matchspec workaround
     {'_', #meter{instrumentation_scope=#instrumentation_scope{_='_'},
                  _='_'}}.
 

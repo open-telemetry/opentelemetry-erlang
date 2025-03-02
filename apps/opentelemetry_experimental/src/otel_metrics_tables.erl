@@ -93,6 +93,7 @@ foreach_instrument(InstrumentsTab, Fun) ->
 -spec lookup_instrument(ets:table(), #meter{}, otel_instrument:name())
                        -> otel_instrument:t() | undefined.
 lookup_instrument(InstrumentsTab, Meter, Name) ->
+    ct:pal("TAB ~p ~p", [{Meter, Name}, ets:tab2list(InstrumentsTab)]),
     try ets:lookup_element(InstrumentsTab, {Meter, Name}, 2) of
         Instrument ->
             Instrument

@@ -21,8 +21,8 @@
 %%%-------------------------------------------------------------------------
 -module(otel_meter_provider).
 
--export([get_meter/3,
-         get_meter/4,
+-export([get_meter/1,
+         get_meter/2,
          resource/0,
          resource/1,
          force_flush/0,
@@ -33,23 +33,19 @@
 
 -type meter() :: term().
 
--spec get_meter(Name, Vsn, SchemaUrl) -> Meter when
-      Name :: atom(),
-      Vsn :: unicode:chardata() | undefined,
-      SchemaUrl :: uri_string:uri_string() | undefined,
+-spec get_meter(InstrumentationScope) -> Meter when
+      InstrumentationScope :: opentelemetry:instrumentation_scope(),
       Meter:: {module(), meter()}.
-get_meter(Name, Vsn, SchemaUrl) ->
-    get_meter(?GLOBAL_METER_PROVIDER_NAME, Name, Vsn, SchemaUrl).
+get_meter(InstrumentationScope) ->
+    get_meter(?GLOBAL_METER_PROVIDER_NAME, InstrumentationScope).
 
--spec get_meter(ServerRef, Name, Vsn, SchemaUrl) -> Meter when
+-spec get_meter(ServerRef, InstrumentationScope) -> Meter when
       ServerRef :: atom() | pid(),
-      Name :: atom(),
-      Vsn :: unicode:chardata() | undefined,
-      SchemaUrl :: uri_string:uri_string() | undefined,
+      InstrumentationScope :: opentelemetry:instrumentation_scope(),
       Meter:: {module(), meter()}.
-get_meter(ServerRef, Name, Vsn, SchemaUrl) ->
+get_meter(ServerRef, InstrumentationScope) ->
     try
-        gen_server:call(maybe_to_reg_name(ServerRef), {get_meter, Name, Vsn, SchemaUrl})
+        gen_server:call(maybe_to_reg_name(ServerRef), {get_meter, InstrumentationScope})
     catch exit:{noproc, _} ->
             %% ignore get_meter because no SDK has been included and started
             {otel_meter_noop, []}

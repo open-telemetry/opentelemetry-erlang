@@ -18,23 +18,18 @@
 -module(opentelemetry_experimental).
 
 -export([set_meter/2,
-         set_meter/4,
-         set_meter/5,
          set_default_meter/1,
          set_default_meter/2,
          get_meter/0,
          get_meter/1]).
 
--include_lib("kernel/include/logger.hrl").
 -include("otel_meter.hrl").
--include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
 -export_type([meter/0]).
 
 -type meter() :: {module(), term()}.
 
--define(METER_KEY(Name), {?MODULE, meter, Name}).
--define(METER_KEY(MeterProvider, Name), {?MODULE, MeterProvider, meter, Name}).
+-define(METER_KEY(MeterProvider, Scope), {?MODULE, MeterProvider, meter, Scope}).
 -define(DEFAULT_METER_KEY(MeterProvider), ?METER_KEY(MeterProvider, '$__default_meter')).
 
 -spec set_default_meter(meter()) -> boolean().
@@ -53,68 +48,41 @@ get_meter() ->
 get_meter_(MeterProvider) ->
     persistent_term:get(?DEFAULT_METER_KEY(MeterProvider), {otel_meter_noop, []}).
 
--spec get_meter(Name) -> Meter when
-      Name :: atom() | {atom(), Vsn, SchemaUrl},
-      Vsn :: unicode:chardata() | undefined,
-      SchemaUrl :: uri_string:uri_string() | undefined,
+-spec get_meter(InstrumentationScope) -> Meter when
+      InstrumentationScope :: '$__default_meter' | opentelemetry:instrumentation_scope(),
       Meter:: meter().
 get_meter('$__default_meter') ->
     get_meter();
-get_meter(#instrumentation_scope{name=Name,
-                                 version=Vsn,
-                                 schema_url=SchemaUrl}) ->
-    get_meter(Name, Vsn, SchemaUrl);
-get_meter({Name, Vsn, SchemaUrl}) ->
-    get_meter(Name, Vsn, SchemaUrl);
-get_meter(Name) ->
-    get_meter(Name, undefined, undefined).
+get_meter(InstrumentationScope) ->
+    get_meter(?GLOBAL_METER_PROVIDER_NAME, InstrumentationScope).
 
--spec get_meter(Name, Vsn, SchemaUrl) -> Meter when
-      Name :: atom(),
-      Vsn :: unicode:chardata() | undefined,
-      SchemaUrl :: uri_string:uri_string() | undefined,
-      Meter:: meter().
-get_meter(Name, Vsn, SchemaUrl) ->
-    get_meter(?GLOBAL_METER_PROVIDER_NAME, Name, Vsn, SchemaUrl).
-
--spec get_meter(MeterProvider, Name, Vsn, SchemaUrl) -> Meter when
+-spec get_meter(MeterProvider, InstrumentationScope) -> Meter when
       MeterProvider :: atom() | pid(),
-      Name :: atom(),
-      Vsn :: unicode:chardata() | undefined,
-      SchemaUrl :: uri_string:uri_string() | undefined,
+      InstrumentationScope :: opentelemetry:instrumentation_scope(),
       Meter:: meter().
-get_meter(MeterProvider, Name, Vsn, SchemaUrl) ->
+get_meter(MeterProvider, InstrumentationScope) ->
     %% check cache and then use provider to get the meter if it isn't cached yet
-    case persistent_term:get(?METER_KEY(MeterProvider, {Name, Vsn, SchemaUrl}), undefined) of
+    case persistent_term:get(?METER_KEY(MeterProvider, InstrumentationScope), undefined) of
         undefined ->
-            VsnBin = opentelemetry:vsn_to_binary(Vsn),
-            Meter = otel_meter_provider:get_meter(MeterProvider, Name, VsnBin, SchemaUrl),
+            Meter = otel_meter_provider:get_meter(MeterProvider, InstrumentationScope),
 
             %% cache the meter
-            _ = set_meter(Name, Vsn, SchemaUrl, Meter),
+            _ = set_meter(InstrumentationScope, Meter),
 
             Meter;
         Meter ->
             Meter
     end.
 
--spec set_meter(atom(), meter()) -> boolean().
-set_meter(Name, Meter) ->
-    set_meter(Name, <<>>, undefined, Meter).
-
--spec set_meter(Name, Vsn, SchemaUrl, Meter) -> boolean() when
-      Name :: atom(),
-      Vsn :: unicode:chardata() | undefined,
-      SchemaUrl :: uri_string:uri_string() | undefined,
+-spec set_meter(InstrumentationScope, Meter) -> boolean() when
+      InstrumentationScope :: opentelemetry:instrumentation_scope(),
       Meter:: meter().
-set_meter(Name, Vsn, SchemaUrl, Meter) ->
-    set_meter(?GLOBAL_METER_PROVIDER_NAME, Name, Vsn, SchemaUrl, Meter).
+set_meter(InstrumentationScope, Meter) ->
+    set_meter(?GLOBAL_METER_PROVIDER_NAME, InstrumentationScope, Meter).
 
--spec set_meter(MeterProvider, Name, Vsn, SchemaUrl, Meter) -> boolean() when
+-spec set_meter(MeterProvider, InstrumentationScope, Meter) -> boolean() when
       MeterProvider :: atom(),
-      Name :: atom(),
-      Vsn :: unicode:chardata() | undefined,
-      SchemaUrl :: uri_string:uri_string() | undefined,
+      InstrumentationScope :: opentelemetry:instrumentation_scope(),
       Meter:: meter().
-set_meter(MeterProvider, Name, Vsn, SchemaUrl, Meter) ->
-    opentelemetry:verify_and_set_term(Meter, ?METER_KEY(MeterProvider, {Name, Vsn, SchemaUrl}), otel_meter).
+set_meter(MeterProvider, InstrumentationScope, Meter) ->
+    opentelemetry:verify_and_set_term(Meter, ?METER_KEY(MeterProvider, InstrumentationScope), otel_meter).

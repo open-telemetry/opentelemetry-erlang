@@ -83,21 +83,16 @@ to_proto(#span{trace_id=TraceId,
       trace_id                 => <<TraceId:128>>,
       span_id                  => <<SpanId:64>>,
       parent_span_id           => ParentSpanId,
-      %% eqwalizer:ignore have to have tracestate as type '_' for matchspecs
       trace_state              => otel_tracestate:encode_header(TraceState),
       kind                     => to_otlp_kind(Kind),
-      %% eqwalizer:ignore have to allow value '$2' for matchspecs
       start_time_unix_nano     => opentelemetry:timestamp_to_nano(StartTime),
-      %% eqwalizer:ignore have to allow value '_' for matchspecs
       end_time_unix_nano       => opentelemetry:timestamp_to_nano(EndTime),
-      %% eqwalizer:ignore have to allow value '_' for matchspecs
       attributes               => otel_otlp_common:to_attributes(Attributes),
       dropped_attributes_count => otel_attributes:dropped(Attributes),
       events                   => to_events(otel_events:list(TimedEvents)),
       dropped_events_count     => otel_events:dropped(TimedEvents),
       links                    => to_links(otel_links:list(Links)),
       dropped_links_count      => otel_links:dropped(Links),
-      %% eqwalizer:ignore have to allow value '_' for matchspecs
       status                   => to_status(Status)}.
 
 -spec to_status(opentelemetry:status() | undefined) -> opentelemetry_exporter_trace_service_pb:status().
