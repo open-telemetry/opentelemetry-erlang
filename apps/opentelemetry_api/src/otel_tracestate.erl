@@ -115,7 +115,7 @@ update(Key, Value, Tracestate=#tracestate{members=TracestateList}) ->
             Tracestate
     end.
 
--spec decode_header(string() | undefined) -> t().
+-spec decode_header(unicode:latin1_binary() | undefined) -> t().
 decode_header(undefined) ->
     new();
 decode_header(Value) ->

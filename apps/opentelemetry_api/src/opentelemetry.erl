@@ -394,7 +394,7 @@ link(_, _) ->
       TraceId :: trace_id(),
       SpanId :: span_id(),
       Attributes :: attributes_map(),
-      TraceState :: otel_tracestate:t() | otel_tracestate:members().
+      TraceState :: otel_tracestate:t().
 link(TraceId, SpanId, Attributes, TraceState) when is_integer(TraceId),
                                                    is_integer(SpanId),
                                                    (is_list(Attributes) orelse is_map(Attributes)) ->
