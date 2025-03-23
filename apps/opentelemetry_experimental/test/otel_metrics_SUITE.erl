@@ -1200,7 +1200,7 @@ multi_instrument_callback(_Config) ->
 
     ok.
 
-multi_instrument_callback_macro(_Config) ->
+multi_instrument_callback_macros(_Config) ->
     CounterName = a_observable_counter,
     CounterDesc = <<"observable counter description">>,
 
@@ -1211,8 +1211,8 @@ multi_instrument_callback_macro(_Config) ->
 
     ?assert(otel_meter_server:add_view(#{instrument_name => CounterName}, #{aggregation_module => otel_aggregation_sum})),
 
-    Counter = ?observable_counter_create(CounterName, #{description => CounterDesc, unit => Unit}),
-    Gauge = ?observable_gauge_create(GaugeName, #{description => GaugeDesc, unit => Unit}),
+    Counter = ?create_observable_counter(CounterName, #{description => CounterDesc, unit => Unit}),
+    Gauge = ?create_observable_gauge(GaugeName, #{description => GaugeDesc, unit => Unit}),
 
     ?register_callback([Counter, Gauge],
                        fun(_) ->

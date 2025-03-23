@@ -5,11 +5,6 @@ Signals still in experimental status in the Erlang/Elixir SDK.
 
 # Metrics
 
-There are a number of pieces that work together to make Metrics work in
-OpenTelemetry. There are defaults you can use for everything except the Reader
-and Exporter. Without configuring a Reader (which takes an Exporter) there will
-be no metrics exported from the node.
-
 ## Aggregation
 
 Aggregations are how measurements over a period of time are combined into either
@@ -19,10 +14,11 @@ through configuration to the Reader to override the default.
 
 Supported aggregators:
 
-- sum: `otel_aggregation_sum`
-- drop: `otel_aggregation_drop`
-- last value: `otel_aggregation_last_value`
-- explicit bucket histogram: `otel_aggregation_histogram_explicit`
+- sum (`otel_aggregation_sum`): Collects the arithmetic sum of the Measurement values.
+- drop (`otel_aggregation_drop`): Ignore Measurement values.
+- last value (`otel_aggregation_last_value`): Collects only the value and timestamp of the last Measurement.
+- explicit bucket histogram (`otel_aggregation_histogram_explicit`): Collects a
+  histogram with static bucket boundaries.
 
 Default aggregators for instruments:
 

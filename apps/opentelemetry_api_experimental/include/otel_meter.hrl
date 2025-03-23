@@ -13,17 +13,26 @@
 -define(create_observable_counter(Name, Callback, CallbackArgs, Opts),
         otel_meter:create_observable_counter(?current_meter, Name, Callback, CallbackArgs, Opts)).
 
+-define(create_observable_counter(Name, Opts),
+        otel_meter:create_observable_counter(?current_meter, Name, Opts)).
+
 -define(create_histogram(Name, Opts),
         otel_meter:create_histogram(?current_meter, Name, Opts)).
 
 -define(create_observable_gauge(Name, Callback, CallbackArgs, Opts),
         otel_meter:create_observable_gauge(?current_meter, Name, Callback, CallbackArgs, Opts)).
 
+-define(create_observable_gauge(Name, Opts),
+        otel_meter:create_observable_gauge(?current_meter, Name, Opts)).
+
 -define(create_updown_counter(Name, Opts),
         otel_meter:create_updown_counter(?current_meter, Name, Opts)).
 
 -define(create_observable_updowncounter(Name, Callback, CallbackArgs, Opts),
         otel_meter:create_observable_updowncounter(?current_meter, Name, Callback, CallbackArgs, Opts)).
+
+-define(create_observable_updowncounter(Name, Opts),
+        otel_meter:create_observable_updowncounter(?current_meter, Name, Opts)).
 
 %% To support only using an atom name of an instrument the macro must support looking
 %% up the meter to use to resolve the instrument name. But if an Instrument record is
