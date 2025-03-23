@@ -111,7 +111,8 @@ all() ->
     [default_view, provider_test, view_creation_test, wildcard_view, counter_add, multiple_readers,
      explicit_histograms, delta_explicit_histograms, delta_counter, cumulative_counter,
      kill_reader, kill_server, observable_counter, observable_updown_counter, observable_gauge,
-     multi_instrument_callback, using_macros, float_counter, float_updown_counter, float_histogram,
+     multi_instrument_callback, multi_instrument_callback_macros,
+     using_macros, float_counter, float_updown_counter, float_histogram,
      sync_filtered_attributes, async_filtered_attributes, delta_observable_counter,
      bad_observable_return, default_resource, histogram_aggregation_options, advisory_params,
      sync_delta_histogram, async_cumulative_page_faults, async_delta_page_faults,
@@ -1191,6 +1192,33 @@ multi_instrument_callback(_Config) ->
                                          [{CounterName, [{4, #{<<"a">> => <<"b">>}}]},
                                           {GaugeName, [{5, #{<<"a">> => <<"b">>}}]}]
                                  end, []),
+
+    otel_meter_server:force_flush(),
+
+    ?assertSumReceive(CounterName, CounterDesc, Unit, [{4, #{<<"a">> => <<"b">>}}]),
+    ?assertLastValueReceive(GaugeName, GaugeDesc, Unit, [{5, #{<<"a">> => <<"b">>}}]),
+
+    ok.
+
+multi_instrument_callback_macro(_Config) ->
+    CounterName = a_observable_counter,
+    CounterDesc = <<"observable counter description">>,
+
+    GaugeName = a_observable_gauge,
+    GaugeDesc = <<"observable gauge description">>,
+
+    Unit = kb,
+
+    ?assert(otel_meter_server:add_view(#{instrument_name => CounterName}, #{aggregation_module => otel_aggregation_sum})),
+
+    Counter = ?observable_counter_create(CounterName, #{description => CounterDesc, unit => Unit}),
+    Gauge = ?observable_gauge_create(GaugeName, #{description => GaugeDesc, unit => Unit}),
+
+    ?register_callback([Counter, Gauge],
+                       fun(_) ->
+                               [{CounterName, [{4, #{<<"a">> => <<"b">>}}]},
+                                {GaugeName, [{5, #{<<"a">> => <<"b">>}}]}]
+                       end, []),
 
     otel_meter_server:force_flush(),
 

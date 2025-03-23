@@ -37,3 +37,6 @@
 
 -define(histogram_record(Name, Number, Attributes),
         otel_histogram:record(otel_ctx:get_current(), ?current_meter, Name, Number, Attributes)).
+
+-define(register_callback(Instruments, Callback, CallbackArgs),
+        otel_meter:register_callback(?current_meter, Instruments, Callback, CallbackArgs)).
