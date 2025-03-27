@@ -5,7 +5,7 @@
 -record(meter,
         {
          module                  :: module() | '_',
-         instrumentation_scope   :: opentelemetry:instrumentation_scope() | undefined,
+         instrumentation_scope   :: opentelemetry:instrumentation_scope(),
          provider                :: atom() | '_',
          instruments_tab         :: ets:table() | '_',
          streams_tab             :: ets:table() | '_',

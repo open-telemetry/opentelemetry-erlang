@@ -25,9 +25,7 @@
          register_callback/4,
          scope/1]).
 
--export([record/3,
-         record/4,
-         record/5]).
+-export([record/5]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("kernel/include/logger.hrl").
@@ -62,7 +60,7 @@ register_callback({_, #meter{provider=Provider}}, Instruments, Callback, Callbac
 register_callback(_, _, _, _) ->
     ok.
 
--spec scope({module(), #meter{}} | #meter{}) -> opentelemetry:instrumentation_scope() | undefined.
+-spec scope({module(), #meter{}} | #meter{}) -> opentelemetry:instrumentation_scope().
 scope({_, #meter{instrumentation_scope=Scope}}) ->
     Scope;
 scope(#meter{instrumentation_scope=Scope}) ->
@@ -114,14 +112,5 @@ validate_explicit_bucket_boundaries(Name, Value) ->
 
 %%
 
-record(Ctx, Instrument=#instrument{}, Number) ->
-    record(Ctx, Instrument, Number, #{}).
-
-record(Ctx, Meter={_, #meter{}}, NameOrInstrument, Number) ->
-    record(Ctx, Meter, NameOrInstrument, Number, #{});
-
-record(Ctx, Instrument=#instrument{meter={_, Meter=#meter{}}}, Number, Attributes) ->
-    otel_meter_server:record(Ctx, Meter, Instrument, Number, Attributes).
-
-record(Ctx, {_, Meter}, NameOrInstrument, Number, Attributes) ->
-    otel_meter_server:record(Ctx, Meter, NameOrInstrument, Number, Attributes).
+record(Ctx, Meter, Name, Number, Attributes) ->
+    otel_meter_server:record(Ctx, Meter, Name, Number, Attributes).
