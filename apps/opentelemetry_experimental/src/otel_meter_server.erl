@@ -157,11 +157,11 @@ add_view(Name, Criteria, Config) ->
 add_view(Provider, Name, Criteria, Config) ->
     gen_server:call(Provider, {add_view, Name, Criteria, Config}).
 
--spec record(otel_ctx:t(), #meter{}, otel_instrument:t() | otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok.
-record(Ctx, Meter, Name, Number, Attributes) when is_atom(Name) ->
+-spec record(otel_ctx:t(), #meter{}, otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok | false.
+record(Ctx, Meter, Name, Number, Attributes) when Name =/= undefined ->
     handle_measurement(Ctx, Meter, Name, Number, Attributes);
-record(Ctx, Meter, #instrument{name=Name}, Number, Attributes) ->
-    handle_measurement(Ctx, Meter, Name, Number, Attributes).
+record(_, _, _, _, _) ->
+    false.
 
 -spec force_flush() -> ok.
 force_flush() ->
@@ -179,6 +179,7 @@ init([Name, RegName, Resource, Config]) ->
     ExemplarsTab = otel_metrics_tables:exemplars_tab(RegName),
 
     Meter = #meter{module=otel_meter_default,
+                   instrumentation_scope=opentelemetry:instrumentation_scope(<<>>, <<>>, <<>>),
                    instruments_tab=InstrumentsTab,
                    provider=RegName,
                    streams_tab=StreamsTab,
@@ -441,7 +442,7 @@ stream_for_reader(Instrument=#instrument{kind=Kind}, Stream, View,
 %% the Reader's mapping of Instrument Kind to Aggregation was merged with the
 %% global default, so any missing Kind entries are filled in from the global
 %% mapping in `otel_aggregation'
--spec aggregation_module(otel_instrument:t(), otel_view:t(), reader()) -> module().
+-spec aggregation_module(otel_instrument:t(), otel_view:t() | undefined, reader()) -> module().
 aggregation_module(#instrument{kind=Kind}, undefined,
                    #reader{default_aggregation_mapping=ReaderAggregationMapping}) ->
     maps:get(Kind, ReaderAggregationMapping);
