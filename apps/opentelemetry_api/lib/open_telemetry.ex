@@ -63,7 +63,6 @@ defmodule OpenTelemetry do
   """
   @type hex_span_id() :: :opentelemetry.hex_span_id()
 
-
   @type attribute_key() :: :opentelemetry.attribute_key()
   @type attribute_value() :: :opentelemetry.attribute_value()
 
