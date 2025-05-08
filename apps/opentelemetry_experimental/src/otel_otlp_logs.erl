@@ -96,7 +96,7 @@ log_record(#{level := Level,
           otel_trace_flags := TraceFlagsHex} ->
             TraceFlags = case TraceFlagsHex of
                 <<_:0, _/binary>> when byte_size(TraceFlagsHex) == 2 ->
-                    binary:decode_unsigned(TraceFlagsHex, 16);
+                    erlang:binary_to_integer(TraceFlagsHex, 16);
                 _ -> 0
             end,
             #{trace_id => TraceId,
