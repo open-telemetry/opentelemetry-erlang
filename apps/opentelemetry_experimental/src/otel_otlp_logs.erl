@@ -89,14 +89,26 @@ log_record(#{level := Level,
     DroppedAttributesCount = maps:size(Attributes) - length(Attributes1),
     Flags = 0,
 
-    LogRecord = case  Metadata of
-                    #{otel_trace_id := TraceId,
-                      otel_span_id := SpanId} ->
-                        #{trace_id => TraceId,
-                          span_id => SpanId};
-                    _ ->
-                        #{}
-                end,
+    %% Note: otel_trace_id and otel_span_id from hex_span_ctx are now binaries, not charlists.
+    LogRecord = case Metadata of
+        #{otel_trace_id := TraceId,
+          otel_span_id := SpanId,
+          otel_trace_flags := TraceFlagsHex} ->
+            TraceFlags = case TraceFlagsHex of
+                <<_:0, _/binary>> when byte_size(TraceFlagsHex) == 2 ->
+                    binary:decode_unsigned(TraceFlagsHex, 16);
+                _ -> 0
+            end,
+            #{trace_id => TraceId,
+              span_id => SpanId,
+              trace_flags => TraceFlags};
+        #{otel_trace_id := TraceId,
+          otel_span_id := SpanId} ->
+            #{trace_id => TraceId,
+              span_id => SpanId};
+        _ ->
+            #{}
+    end,
 
 
 
