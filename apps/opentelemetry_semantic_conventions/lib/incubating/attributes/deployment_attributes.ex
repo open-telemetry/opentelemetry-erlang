@@ -25,8 +25,8 @@ defmodule OpenTelemetry.SemConv.Incubating.DeploymentAttributes do
   This implies that resources carrying the following attribute combinations **MUST** be
   considered to be identifying the same service:
 
-  * `service.name=frontend`, `deployment.environment.name=production`
-  * `service.name=frontend`, `deployment.environment.name=staging`.
+  - `service.name=frontend`, `deployment.environment.name=production`
+  - `service.name=frontend`, `deployment.environment.name=staging`.
 
   ### Examples
 
