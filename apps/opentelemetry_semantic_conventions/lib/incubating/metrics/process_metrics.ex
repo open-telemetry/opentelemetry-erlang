@@ -7,7 +7,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   Number of times the process has been context switched.
 
   Instrument: `counter`
-  Unit: `{count}`
+  Unit: `{context_switch}`
 
   <!-- tabs-open -->
   ### Elixir
@@ -196,7 +196,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   Number of file descriptors in use by the process.
 
   Instrument: `updowncounter`
-  Unit: `{count}`
+  Unit: `{file_descriptor}`
 
   <!-- tabs-open -->
   ### Elixir
@@ -271,5 +271,37 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   @spec process_thread_count :: :"process.thread.count"
   def process_thread_count do
     :"process.thread.count"
+  end
+
+  @doc """
+  The time the process has been running.
+
+  Instrument: `gauge`
+  Unit: `s`
+  ### Notes
+
+  Instrumentations **SHOULD** use a gauge with type `double` and measure uptime in seconds as a floating point number with the highest precision available.
+  The actual accuracy would depend on the instrumentation and operating system.
+
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics.process_uptime()
+      :"process.uptime"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_UPTIME.
+  'process.uptime'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec process_uptime :: :"process.uptime"
+  def process_uptime do
+    :"process.uptime"
   end
 end

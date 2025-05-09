@@ -63,7 +63,6 @@
 -define(MESSAGING_DESTINATION_PUBLISH_NAME, 'messaging.destination_publish.name').
 
 %% @deprecated Replaced by `messaging.consumer.group.name`.
-%%  
 %% Deprecated, use `messaging.consumer.group.name` instead.
 %%  
 -define(MESSAGING_EVENTHUBS_CONSUMER_GROUP, 'messaging.eventhubs.consumer.group').
@@ -94,7 +93,6 @@
 -define(MESSAGING_GCP_PUBSUB_MESSAGE_ORDERING_KEY, 'messaging.gcp_pubsub.message.ordering_key').
 
 %% @deprecated Replaced by `messaging.consumer.group.name`.
-%%  
 %% Deprecated, use `messaging.consumer.group.name` instead.
 %%  
 -define(MESSAGING_KAFKA_CONSUMER_GROUP, 'messaging.kafka.consumer.group').
@@ -110,7 +108,6 @@
 -define(MESSAGING_KAFKA_MESSAGE_KEY, 'messaging.kafka.message.key').
 
 %% @deprecated Replaced by `messaging.kafka.offset`.
-%%  
 %% Deprecated, use `messaging.kafka.offset` instead.
 %%  
 -define(MESSAGING_KAFKA_MESSAGE_OFFSET, 'messaging.kafka.message.offset').
@@ -158,9 +155,9 @@
 %%  
 -define(MESSAGING_OPERATION_TYPE, 'messaging.operation.type').
 
--define(MESSAGING_OPERATION_TYPE_VALUES_PUBLISH, 'publish').
-
 -define(MESSAGING_OPERATION_TYPE_VALUES_CREATE, 'create').
+
+-define(MESSAGING_OPERATION_TYPE_VALUES_SEND, 'send').
 
 -define(MESSAGING_OPERATION_TYPE_VALUES_RECEIVE, 'receive').
 
@@ -169,6 +166,8 @@
 -define(MESSAGING_OPERATION_TYPE_VALUES_SETTLE, 'settle').
 
 -define(MESSAGING_OPERATION_TYPE_VALUES_DELIVER, 'deliver').
+
+-define(MESSAGING_OPERATION_TYPE_VALUES_PUBLISH, 'publish').
 
 
 
@@ -182,7 +181,6 @@
 -define(MESSAGING_RABBITMQ_MESSAGE_DELIVERY_TAG, 'messaging.rabbitmq.message.delivery_tag').
 
 %% @deprecated Replaced by `messaging.consumer.group.name` on the consumer spans. No replacement for producer spans.
-%%  
 %% Deprecated, use `messaging.consumer.group.name` instead.
 %%  
 -define(MESSAGING_ROCKETMQ_CLIENT_GROUP, 'messaging.rocketmq.client_group').
@@ -241,9 +239,8 @@
 %%  
 -define(MESSAGING_ROCKETMQ_NAMESPACE, 'messaging.rocketmq.namespace').
 
-%% @deprecated Replaced by `messaging.servicebus.destination.subscription_name`.
-%%  
-%% Deprecated, use `messaging.servicebus.destination.subscription_name` instead.
+%% @deprecated Replaced by `messaging.destination.subscription.name`.
+%% Deprecated, use `messaging.destination.subscription.name` instead.
 %%  
 -define(MESSAGING_SERVICEBUS_DESTINATION_SUBSCRIPTION_NAME, 'messaging.servicebus.destination.subscription_name').
 

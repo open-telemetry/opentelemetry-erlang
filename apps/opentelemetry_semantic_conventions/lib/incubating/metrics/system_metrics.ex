@@ -3,26 +3,9 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   @moduledoc """
   OpenTelemetry Semantic Conventions for System metrics.
   """
-  @doc """
-  Reports the current frequency of the CPU in Hz
 
-  Instrument: `gauge`
-  Unit: `{Hz}`
-
-  <!-- tabs-open -->
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_cpu_frequency()
-      :"system.cpu.frequency"
-
-  ### Erlang
-
-  ```erlang
-  ?SYSTEM_CPU_FREQUENCY.
-  'system.cpu.frequency'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `cpu.frequency`.
   """
 
   @spec system_cpu_frequency :: :"system.cpu.frequency"
@@ -35,6 +18,9 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
 
   Instrument: `updowncounter`
   Unit: `{cpu}`
+  ### Notes
+
+  Calculated by multiplying the number of sockets by the number of cores per socket, and then by the number of threads per core
 
   <!-- tabs-open -->
   ### Elixir
@@ -62,6 +48,9 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
 
   Instrument: `updowncounter`
   Unit: `{cpu}`
+  ### Notes
+
+  Calculated by multiplying the number of sockets by the number of cores per socket
 
   <!-- tabs-open -->
   ### Elixir
@@ -84,26 +73,8 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
     :"system.cpu.physical.count"
   end
 
-  @doc """
-  Seconds each logical CPU spent on each mode
-
-  Instrument: `counter`
-  Unit: `s`
-
-  <!-- tabs-open -->
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_cpu_time()
-      :"system.cpu.time"
-
-  ### Erlang
-
-  ```erlang
-  ?SYSTEM_CPU_TIME.
-  'system.cpu.time'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `cpu.time`.
   """
 
   @spec system_cpu_time :: :"system.cpu.time"
@@ -111,26 +82,8 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
     :"system.cpu.time"
   end
 
-  @doc """
-  Difference in system.cpu.time since the last measurement, divided by the elapsed time and number of logical CPUs
-
-  Instrument: `gauge`
-  Unit: `1`
-
-  <!-- tabs-open -->
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_cpu_utilization()
-      :"system.cpu.utilization"
-
-  ### Erlang
-
-  ```erlang
-  ?SYSTEM_CPU_UTILIZATION.
-  'system.cpu.utilization'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `cpu.utilization`.
   """
 
   @spec system_cpu_utilization :: :"system.cpu.utilization"
@@ -139,7 +92,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+
 
   Instrument: `counter`
   Unit: `By`
@@ -202,7 +155,34 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+  The total storage capacity of the disk
+
+  Instrument: `updowncounter`
+  Unit: `By`
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_disk_limit()
+      :"system.disk.limit"
+
+  ### Erlang
+
+  ```erlang
+  ?SYSTEM_DISK_LIMIT.
+  'system.disk.limit'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec system_disk_limit :: :"system.disk.limit"
+  def system_disk_limit do
+    :"system.disk.limit"
+  end
+
+  @doc """
+
 
   Instrument: `counter`
   Unit: `{operation}`
@@ -263,7 +243,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+
 
   Instrument: `counter`
   Unit: `{operation}`
@@ -290,10 +270,42 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+  The total storage capacity of the filesystem
 
   Instrument: `updowncounter`
   Unit: `By`
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_filesystem_limit()
+      :"system.filesystem.limit"
+
+  ### Erlang
+
+  ```erlang
+  ?SYSTEM_FILESYSTEM_LIMIT.
+  'system.filesystem.limit'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec system_filesystem_limit :: :"system.filesystem.limit"
+  def system_filesystem_limit do
+    :"system.filesystem.limit"
+  end
+
+  @doc """
+  Reports a filesystem's space usage across different states.
+
+  Instrument: `updowncounter`
+  Unit: `By`
+  ### Notes
+
+  The sum of all `system.filesystem.usage` values over the different `system.filesystem.state` attributes
+  **SHOULD** equal the total storage capacity of the filesystem, that is `system.filesystem.limit`.
+
 
   <!-- tabs-open -->
   ### Elixir
@@ -317,7 +329,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+
 
   Instrument: `gauge`
   Unit: `1`
@@ -507,7 +519,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+
 
   Instrument: `gauge`
   Unit: `1`
@@ -534,7 +546,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+
 
   Instrument: `updowncounter`
   Unit: `{connection}`
@@ -631,7 +643,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+
 
   Instrument: `counter`
   Unit: `By`
@@ -658,7 +670,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+
 
   Instrument: `counter`
   Unit: `{packet}`
@@ -685,7 +697,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+
 
   Instrument: `counter`
   Unit: `{fault}`
@@ -712,7 +724,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+
 
   Instrument: `counter`
   Unit: `{operation}`
@@ -766,7 +778,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+
 
   Instrument: `gauge`
   Unit: `1`
@@ -844,5 +856,37 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   @spec system_process_created :: :"system.process.created"
   def system_process_created do
     :"system.process.created"
+  end
+
+  @doc """
+  The time the system has been running
+
+  Instrument: `gauge`
+  Unit: `s`
+  ### Notes
+
+  Instrumentations **SHOULD** use a gauge with type `double` and measure uptime in seconds as a floating point number with the highest precision available.
+  The actual accuracy would depend on the instrumentation and operating system.
+
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_uptime()
+      :"system.uptime"
+
+  ### Erlang
+
+  ```erlang
+  ?SYSTEM_UPTIME.
+  'system.uptime'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec system_uptime :: :"system.uptime"
+  def system_uptime do
+    :"system.uptime"
   end
 end

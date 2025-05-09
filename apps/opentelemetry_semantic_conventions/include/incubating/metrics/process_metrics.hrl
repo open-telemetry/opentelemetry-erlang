@@ -52,3 +52,7 @@
 
 %% Process threads count.
 -define(PROCESS_THREAD_COUNT, 'process.thread.count').
+
+
+%% The time the process has been running.
+-define(PROCESS_UPTIME, 'process.uptime').

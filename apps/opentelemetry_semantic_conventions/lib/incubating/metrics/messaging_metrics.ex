@@ -66,35 +66,44 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.MessagingMetrics do
     :"messaging.client.operation.duration"
   end
 
-  @doc """
-  Number of messages producer attempted to publish to the broker.
-
-  Instrument: `counter`
-  Unit: `{message}`
-  ### Notes
-
-  This metric **MUST** **NOT** count messages that were created haven't yet been attempted to be published.
-
-
-  <!-- tabs-open -->
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.MessagingMetrics.messaging_client_published_messages()
-      :"messaging.client.published.messages"
-
-  ### Erlang
-
-  ```erlang
-  ?MESSAGING_CLIENT_PUBLISHED_MESSAGES.
-  'messaging.client.published.messages'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `messaging.client.sent.messages`.
   """
 
   @spec messaging_client_published_messages :: :"messaging.client.published.messages"
   def messaging_client_published_messages do
     :"messaging.client.published.messages"
+  end
+
+  @doc """
+  Number of messages producer attempted to send to the broker.
+
+  Instrument: `counter`
+  Unit: `{message}`
+  ### Notes
+
+  This metric **MUST** **NOT** count messages that were created but haven't yet been sent.
+
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.MessagingMetrics.messaging_client_sent_messages()
+      :"messaging.client.sent.messages"
+
+  ### Erlang
+
+  ```erlang
+  ?MESSAGING_CLIENT_SENT_MESSAGES.
+  'messaging.client.sent.messages'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec messaging_client_sent_messages :: :"messaging.client.sent.messages"
+  def messaging_client_sent_messages do
+    :"messaging.client.sent.messages"
   end
 
   @doc """

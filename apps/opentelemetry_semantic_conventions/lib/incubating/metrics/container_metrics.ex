@@ -35,6 +35,37 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ContainerMetrics do
   end
 
   @doc """
+  Container's CPU usage, measured in cpus. Range from 0 to the number of allocatable CPUs
+
+  Instrument: `gauge`
+  Unit: `{cpu}`
+  ### Notes
+
+  CPU usage of the specific container on all available CPU cores, averaged over the sample window
+
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.ContainerMetrics.container_cpu_usage()
+      :"container.cpu.usage"
+
+  ### Erlang
+
+  ```erlang
+  ?CONTAINER_CPU_USAGE.
+  'container.cpu.usage'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec container_cpu_usage :: :"container.cpu.usage"
+  def container_cpu_usage do
+    :"container.cpu.usage"
+  end
+
+  @doc """
   Disk bytes for the container.
 
   Instrument: `counter`
@@ -125,5 +156,37 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ContainerMetrics do
   @spec container_network_io :: :"container.network.io"
   def container_network_io do
     :"container.network.io"
+  end
+
+  @doc """
+  The time the container has been running
+
+  Instrument: `gauge`
+  Unit: `s`
+  ### Notes
+
+  Instrumentations **SHOULD** use a gauge with type `double` and measure uptime in seconds as a floating point number with the highest precision available.
+  The actual accuracy would depend on the instrumentation and operating system.
+
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.ContainerMetrics.container_uptime()
+      :"container.uptime"
+
+  ### Erlang
+
+  ```erlang
+  ?CONTAINER_UPTIME.
+  'container.uptime'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec container_uptime :: :"container.uptime"
+  def container_uptime do
+    :"container.uptime"
   end
 end

@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/linux_attributes.hrl").
+
 
 %% The Linux Slab memory state
 -define(LINUX_MEMORY_SLAB_STATE, 'linux.memory.slab.state').

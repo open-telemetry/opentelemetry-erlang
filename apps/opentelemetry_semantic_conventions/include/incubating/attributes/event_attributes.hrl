@@ -13,7 +13,9 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/event_attributes.hrl").
 
+%% @deprecated Replaced by EventName top-level field on the LogRecord
 %% Identifies the class / type of event.
 %%  
 -define(EVENT_NAME, 'event.name').

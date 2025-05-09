@@ -13,8 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
-
-%% SHOULD be set to true if the exception event is recorded at a point where it is known that the exception is escaping the scope of the span.
+%% @deprecated It's no longer recommended to record exceptions that are handled and do not escape the scope of a span.
+%% Indicates that the exception is escaping the scope of the span.
 %%  
 -define(EXCEPTION_ESCAPED, 'exception.escaped').
 

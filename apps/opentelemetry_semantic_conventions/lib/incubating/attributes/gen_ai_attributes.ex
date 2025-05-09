@@ -1,38 +1,107 @@
-defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
+defmodule OpenTelemetry.SemConv.Incubating.GenAIAttributes do
   # This is an auto-generated file
   @moduledoc """
   OpenTelemetry Semantic Conventions for Gen_Ai attributes.
   """
 
   @doc """
-  The full response received from the GenAI model.
+  Free-form description of the GenAI agent provided by the application.
   ### Value type
 
   Value must be of type `atom() | String.t()`.
-  ### Notes
-
-  It's RECOMMENDED to format completions as JSON string matching [OpenAI messages format](https://platform.openai.com/docs/guides/text-generation)
   ### Examples
 
   ```
-  ["[{'role': 'assistant', 'content': 'The capital of France is Paris.'}]"]
+  ["Helps with math problems", "Generates fiction stories"]
   ```
 
   <!-- tabs-open -->
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_completion()
-      :"gen_ai.completion"
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_agent_description()
+      :"gen_ai.agent.description"
 
   ### Erlang
 
   ```erlang
-  ?GEN_AI_COMPLETION.
-  'gen_ai.completion'
+  ?GEN_AI_AGENT_DESCRIPTION.
+  'gen_ai.agent.description'
   ```
 
   <!-- tabs-close -->
+  """
+  @spec gen_ai_agent_description :: :"gen_ai.agent.description"
+  def gen_ai_agent_description do
+    :"gen_ai.agent.description"
+  end
+
+  @doc """
+  The unique identifier of the GenAI agent.
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["asst_5j66UpCpwteGg4YSxUnt7lPY"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_agent_id()
+      :"gen_ai.agent.id"
+
+  ### Erlang
+
+  ```erlang
+  ?GEN_AI_AGENT_ID.
+  'gen_ai.agent.id'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec gen_ai_agent_id :: :"gen_ai.agent.id"
+  def gen_ai_agent_id do
+    :"gen_ai.agent.id"
+  end
+
+  @doc """
+  Human-readable name of the GenAI agent provided by the application.
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["Math Tutor", "Fiction Writer"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_agent_name()
+      :"gen_ai.agent.name"
+
+  ### Erlang
+
+  ```erlang
+  ?GEN_AI_AGENT_NAME.
+  'gen_ai.agent.name'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec gen_ai_agent_name :: :"gen_ai.agent.name"
+  def gen_ai_agent_name do
+    :"gen_ai.agent.name"
+  end
+
+  @deprecated """
+  Removed, no replacement at this time.
   """
   @spec gen_ai_completion :: :"gen_ai.completion"
   def gen_ai_completion do
@@ -40,15 +109,190 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   end
 
   @typedoc """
+  Deprecated, use `gen_ai.output.type`.
+
+
+  ### Enum Values
+  * `:text` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Text response format
+  * `:json_object` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - JSON object response format
+  * `:json_schema` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - JSON schema response format
+  """
+  @type gen_ai_openai_request_response_format_values() :: %{
+          :text => :text,
+          :json_object => :json_object,
+          :json_schema => :json_schema
+        }
+  @deprecated """
+  Replaced by `gen_ai.output.type`.
+  """
+  @spec gen_ai_openai_request_response_format :: :"gen_ai.openai.request.response_format"
+  def gen_ai_openai_request_response_format do
+    :"gen_ai.openai.request.response_format"
+  end
+
+  @spec gen_ai_openai_request_response_format_values() ::
+          gen_ai_openai_request_response_format_values()
+  def gen_ai_openai_request_response_format_values() do
+    %{
+      :text => :text,
+      :json_object => :json_object,
+      :json_schema => :json_schema
+    }
+  end
+
+  @deprecated """
+  Replaced by `gen_ai.request.seed` attribute.
+  """
+  @spec gen_ai_openai_request_seed :: :"gen_ai.openai.request.seed"
+  def gen_ai_openai_request_seed do
+    :"gen_ai.openai.request.seed"
+  end
+
+  @typedoc """
+  The service tier requested. May be a specific tier, default, or auto.
+
+  ### Enum Values
+  * `:auto` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - The system will utilize scale tier credits until they are exhausted.
+  * `:default` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - The system will utilize the default scale tier.
+  """
+  @type gen_ai_openai_request_service_tier_values() :: %{
+          :auto => :auto,
+          :default => :default
+        }
+  @doc """
+  The service tier requested. May be a specific tier, default, or auto.
+
+  ### Examples
+
+  ```
+  ["auto", "default"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_openai_request_service_tier()
+      :"gen_ai.openai.request.service_tier"
+
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_openai_request_service_tier_values().auto
+      :auto
+
+      iex> %{OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_openai_request_service_tier() => OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_openai_request_service_tier_values().auto}
+      %{:"gen_ai.openai.request.service_tier" => :auto}
+
+  ### Erlang
+
+  ```erlang
+  ?GEN_AI_OPENAI_REQUEST_SERVICE_TIER.
+  'gen_ai.openai.request.service_tier'
+
+  ?GEN_AI_OPENAI_REQUEST_SERVICE_TIER_VALUES_AUTO.
+  'auto'
+
+  \#{?GEN_AI_OPENAI_REQUEST_SERVICE_TIER => ?GEN_AI_OPENAI_REQUEST_SERVICE_TIER_VALUES_AUTO}.
+  \#{'gen_ai.openai.request.service_tier' => 'auto'}
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec gen_ai_openai_request_service_tier :: :"gen_ai.openai.request.service_tier"
+  def gen_ai_openai_request_service_tier do
+    :"gen_ai.openai.request.service_tier"
+  end
+
+  @spec gen_ai_openai_request_service_tier_values() :: gen_ai_openai_request_service_tier_values()
+  def gen_ai_openai_request_service_tier_values() do
+    %{
+      :auto => :auto,
+      :default => :default
+    }
+  end
+
+  @doc """
+  The service tier used for the response.
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["scale", "default"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_openai_response_service_tier()
+      :"gen_ai.openai.response.service_tier"
+
+  ### Erlang
+
+  ```erlang
+  ?GEN_AI_OPENAI_RESPONSE_SERVICE_TIER.
+  'gen_ai.openai.response.service_tier'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec gen_ai_openai_response_service_tier :: :"gen_ai.openai.response.service_tier"
+  def gen_ai_openai_response_service_tier do
+    :"gen_ai.openai.response.service_tier"
+  end
+
+  @doc """
+  A fingerprint to track any eventual change in the Generative AI environment.
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["fp_44709d6fcb"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_openai_response_system_fingerprint()
+      :"gen_ai.openai.response.system_fingerprint"
+
+  ### Erlang
+
+  ```erlang
+  ?GEN_AI_OPENAI_RESPONSE_SYSTEM_FINGERPRINT.
+  'gen_ai.openai.response.system_fingerprint'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec gen_ai_openai_response_system_fingerprint :: :"gen_ai.openai.response.system_fingerprint"
+  def gen_ai_openai_response_system_fingerprint do
+    :"gen_ai.openai.response.system_fingerprint"
+  end
+
+  @typedoc """
   The name of the operation being performed.
 
   ### Enum Values
   * `:chat` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Chat completion operation such as [OpenAI Chat API](https://platform.openai.com/docs/api-reference/chat)
+  * `:generate_content` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Multimodal content generation operation such as [Gemini Generate Content](https://ai.google.dev/api/generate-content)
   * `:text_completion` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Text completions operation such as [OpenAI Completions API (Legacy)](https://platform.openai.com/docs/api-reference/completions)
+  * `:embeddings` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Embeddings operation such as [OpenAI Create embeddings API](https://platform.openai.com/docs/api-reference/embeddings/create)
+  * `:create_agent` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Create GenAI agent
+  * `:invoke_agent` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Invoke GenAI agent
+  * `:execute_tool` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Execute a tool
   """
   @type gen_ai_operation_name_values() :: %{
           :chat => :chat,
-          :text_completion => :text_completion
+          :generate_content => :generate_content,
+          :text_completion => :text_completion,
+          :embeddings => :embeddings,
+          :create_agent => :create_agent,
+          :invoke_agent => :invoke_agent,
+          :execute_tool => :execute_tool
         }
   @doc """
   The name of the operation being performed.
@@ -62,13 +306,13 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_operation_name()
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_operation_name()
       :"gen_ai.operation.name"
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_operation_name_values().chat
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_operation_name_values().chat
       :chat
 
-      iex> %{OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_operation_name() => OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_operation_name_values().chat}
+      iex> %{OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_operation_name() => OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_operation_name_values().chat}
       %{:"gen_ai.operation.name" => :chat}
 
   ### Erlang
@@ -95,43 +339,157 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   def gen_ai_operation_name_values() do
     %{
       :chat => :chat,
-      :text_completion => :text_completion
+      :generate_content => :generate_content,
+      :text_completion => :text_completion,
+      :embeddings => :embeddings,
+      :create_agent => :create_agent,
+      :invoke_agent => :invoke_agent,
+      :execute_tool => :execute_tool
     }
   end
 
-  @doc """
-  The full prompt sent to the GenAI model.
-  ### Value type
+  @typedoc """
+  Represents the content type requested by the client.
 
-  Value must be of type `atom() | String.t()`.
+  ### Enum Values
+  * `:text` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Plain text
+  * `:json` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - JSON object with known or unknown schema
+  * `:image` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Image
+  * `:speech` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Speech
+  """
+  @type gen_ai_output_type_values() :: %{
+          :text => :text,
+          :json => :json,
+          :image => :image,
+          :speech => :speech
+        }
+  @doc """
+  Represents the content type requested by the client.
+
   ### Notes
 
-  It's RECOMMENDED to format prompts as JSON string matching [OpenAI messages format](https://platform.openai.com/docs/guides/text-generation)
+  This attribute **SHOULD** be used when the client requests output of a specific type. The model may return zero or more outputs of this type.
+  This attribute specifies the output modality and not the actual output format. For example, if an image is requested, the actual output could be a URL pointing to an image file.
+  Additional output format details may be recorded in the future in the `gen_ai.output.{type}.*` attributes.
+
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_output_type()
+      :"gen_ai.output.type"
+
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_output_type_values().text
+      :text
+
+      iex> %{OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_output_type() => OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_output_type_values().text}
+      %{:"gen_ai.output.type" => :text}
+
+  ### Erlang
+
+  ```erlang
+  ?GEN_AI_OUTPUT_TYPE.
+  'gen_ai.output.type'
+
+  ?GEN_AI_OUTPUT_TYPE_VALUES_TEXT.
+  'text'
+
+  \#{?GEN_AI_OUTPUT_TYPE => ?GEN_AI_OUTPUT_TYPE_VALUES_TEXT}.
+  \#{'gen_ai.output.type' => 'text'}
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec gen_ai_output_type :: :"gen_ai.output.type"
+  def gen_ai_output_type do
+    :"gen_ai.output.type"
+  end
+
+  @spec gen_ai_output_type_values() :: gen_ai_output_type_values()
+  def gen_ai_output_type_values() do
+    %{
+      :text => :text,
+      :json => :json,
+      :image => :image,
+      :speech => :speech
+    }
+  end
+
+  @deprecated """
+  Removed, no replacement at this time.
+  """
+  @spec gen_ai_prompt :: :"gen_ai.prompt"
+  def gen_ai_prompt do
+    :"gen_ai.prompt"
+  end
+
+  @doc """
+  The target number of candidate completions to return.
+  ### Value type
+
+  Value must be of type `integer()`.
   ### Examples
 
   ```
-  ["[{'role': 'user', 'content': 'What is the capital of France?'}]"]
+  [3]
   ```
 
   <!-- tabs-open -->
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_prompt()
-      :"gen_ai.prompt"
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_request_choice_count()
+      :"gen_ai.request.choice.count"
 
   ### Erlang
 
   ```erlang
-  ?GEN_AI_PROMPT.
-  'gen_ai.prompt'
+  ?GEN_AI_REQUEST_CHOICE_COUNT.
+  'gen_ai.request.choice.count'
   ```
 
   <!-- tabs-close -->
   """
-  @spec gen_ai_prompt :: :"gen_ai.prompt"
-  def gen_ai_prompt do
-    :"gen_ai.prompt"
+  @spec gen_ai_request_choice_count :: :"gen_ai.request.choice.count"
+  def gen_ai_request_choice_count do
+    :"gen_ai.request.choice.count"
+  end
+
+  @doc """
+  The encoding formats requested in an embeddings operation, if specified.
+  ### Value type
+
+  Value must be of type `[atom() | String.t()]`.
+  ### Notes
+
+  In some GenAI systems the encoding formats are called embedding types. Also, some GenAI systems only accept a single format per request.
+
+  ### Examples
+
+  ```
+  [["base64"], ["float", "binary"]]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_request_encoding_formats()
+      :"gen_ai.request.encoding_formats"
+
+  ### Erlang
+
+  ```erlang
+  ?GEN_AI_REQUEST_ENCODING_FORMATS.
+  'gen_ai.request.encoding_formats'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec gen_ai_request_encoding_formats :: :"gen_ai.request.encoding_formats"
+  def gen_ai_request_encoding_formats do
+    :"gen_ai.request.encoding_formats"
   end
 
   @doc """
@@ -149,7 +507,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_request_frequency_penalty()
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_request_frequency_penalty()
       :"gen_ai.request.frequency_penalty"
 
   ### Erlang
@@ -181,7 +539,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_request_max_tokens()
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_request_max_tokens()
       :"gen_ai.request.max_tokens"
 
   ### Erlang
@@ -213,7 +571,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_request_model()
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_request_model()
       :"gen_ai.request.model"
 
   ### Erlang
@@ -245,7 +603,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_request_presence_penalty()
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_request_presence_penalty()
       :"gen_ai.request.presence_penalty"
 
   ### Erlang
@@ -263,6 +621,38 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   end
 
   @doc """
+  Requests with same seed value more likely to return same result.
+  ### Value type
+
+  Value must be of type `integer()`.
+  ### Examples
+
+  ```
+  [100]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_request_seed()
+      :"gen_ai.request.seed"
+
+  ### Erlang
+
+  ```erlang
+  ?GEN_AI_REQUEST_SEED.
+  'gen_ai.request.seed'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec gen_ai_request_seed :: :"gen_ai.request.seed"
+  def gen_ai_request_seed do
+    :"gen_ai.request.seed"
+  end
+
+  @doc """
   List of sequences that the model will use to stop generating further tokens.
   ### Value type
 
@@ -270,14 +660,14 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Examples
 
   ```
-  ["forest", "lived"]
+  [["forest", "lived"]]
   ```
 
   <!-- tabs-open -->
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_request_stop_sequences()
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_request_stop_sequences()
       :"gen_ai.request.stop_sequences"
 
   ### Erlang
@@ -309,7 +699,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_request_temperature()
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_request_temperature()
       :"gen_ai.request.temperature"
 
   ### Erlang
@@ -341,7 +731,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_request_top_k()
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_request_top_k()
       :"gen_ai.request.top_k"
 
   ### Erlang
@@ -373,7 +763,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_request_top_p()
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_request_top_p()
       :"gen_ai.request.top_p"
 
   ### Erlang
@@ -398,14 +788,14 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Examples
 
   ```
-  ["stop"]
+  [["stop"], ["stop", "length"]]
   ```
 
   <!-- tabs-open -->
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_response_finish_reasons()
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_response_finish_reasons()
       :"gen_ai.response.finish_reasons"
 
   ### Erlang
@@ -437,7 +827,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_response_id()
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_response_id()
       :"gen_ai.response.id"
 
   ### Erlang
@@ -469,7 +859,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_response_model()
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_response_model()
       :"gen_ai.response.model"
 
   ### Erlang
@@ -491,15 +881,41 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Enum Values
   * `:openai` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - OpenAI
+  * `:"gcp.gen_ai"` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Any Google generative AI endpoint
+  * `:"gcp.vertex_ai"` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Vertex AI
+  * `:"gcp.gemini"` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Gemini
   * `:vertex_ai` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Vertex AI
+  * `:gemini` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Gemini
   * `:anthropic` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Anthropic
   * `:cohere` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Cohere
+  * `:"az.ai.inference"` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Azure AI Inference
+  * `:"az.ai.openai"` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Azure OpenAI
+  * `:"ibm.watsonx.ai"` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - IBM Watsonx AI
+  * `:"aws.bedrock"` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - AWS Bedrock
+  * `:perplexity` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Perplexity
+  * `:xai` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - xAI
+  * `:deepseek` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - DeepSeek
+  * `:groq` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Groq
+  * `:mistral_ai` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Mistral AI
   """
   @type gen_ai_system_values() :: %{
           :openai => :openai,
+          :"gcp.gen_ai" => :"gcp.gen_ai",
+          :"gcp.vertex_ai" => :"gcp.vertex_ai",
+          :"gcp.gemini" => :"gcp.gemini",
           :vertex_ai => :vertex_ai,
+          :gemini => :gemini,
           :anthropic => :anthropic,
-          :cohere => :cohere
+          :cohere => :cohere,
+          :"az.ai.inference" => :"az.ai.inference",
+          :"az.ai.openai" => :"az.ai.openai",
+          :"ibm.watsonx.ai" => :"ibm.watsonx.ai",
+          :"aws.bedrock" => :"aws.bedrock",
+          :perplexity => :perplexity,
+          :xai => :xai,
+          :deepseek => :deepseek,
+          :groq => :groq,
+          :mistral_ai => :mistral_ai
         }
   @doc """
   The Generative AI product as identified by the client or server instrumentation.
@@ -510,8 +926,10 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   by `gen_ai.request.model` and `gen_ai.response.model` attributes.
 
   The actual GenAI product may differ from the one identified by the client.
-  For example, when using OpenAI client libraries to communicate with Mistral, the `gen_ai.system`
-  is set to `openai` based on the instrumentation's best knowledge.
+  Multiple systems, including Azure OpenAI and Gemini, are accessible by OpenAI client
+  libraries. In such cases, the `gen_ai.system` is set to `openai` based on the
+  instrumentation's best knowledge, instead of the actual system. The `server.address`
+  attribute may help identify the actual system in use for `openai`.
 
   For custom model, a custom friendly name **SHOULD** be used.
   If none of these options apply, the `gen_ai.system` **SHOULD** be set to `_OTHER`.
@@ -526,13 +944,13 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_system()
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_system()
       :"gen_ai.system"
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_system_values().openai
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_system_values().openai
       :openai
 
-      iex> %{OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_system() => OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_system_values().openai}
+      iex> %{OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_system() => OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_system_values().openai}
       %{:"gen_ai.system" => :openai}
 
   ### Erlang
@@ -559,9 +977,22 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   def gen_ai_system_values() do
     %{
       :openai => :openai,
+      :"gcp.gen_ai" => :"gcp.gen_ai",
+      :"gcp.vertex_ai" => :"gcp.vertex_ai",
+      :"gcp.gemini" => :"gcp.gemini",
       :vertex_ai => :vertex_ai,
+      :gemini => :gemini,
       :anthropic => :anthropic,
-      :cohere => :cohere
+      :cohere => :cohere,
+      :"az.ai.inference" => :"az.ai.inference",
+      :"az.ai.openai" => :"az.ai.openai",
+      :"ibm.watsonx.ai" => :"ibm.watsonx.ai",
+      :"aws.bedrock" => :"aws.bedrock",
+      :perplexity => :perplexity,
+      :xai => :xai,
+      :deepseek => :deepseek,
+      :groq => :groq,
+      :mistral_ai => :mistral_ai
     }
   end
 
@@ -571,10 +1002,12 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   ### Enum Values
   * `:input` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Input tokens (prompt, input, etc.)
   * `:completion` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Output tokens (completion, response, etc.)
+  * `:output` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Output tokens (completion, response, etc.)
   """
   @type gen_ai_token_type_values() :: %{
           :input => :input,
-          :completion => :output
+          :completion => :output,
+          :output => :output
         }
   @doc """
   The type of token being counted.
@@ -589,13 +1022,13 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_token_type()
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_token_type()
       :"gen_ai.token.type"
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_token_type_values().input
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_token_type_values().input
       :input
 
-      iex> %{OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_token_type() => OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_token_type_values().input}
+      iex> %{OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_token_type() => OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_token_type_values().input}
       %{:"gen_ai.token.type" => :input}
 
   ### Erlang
@@ -622,8 +1055,145 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
   def gen_ai_token_type_values() do
     %{
       :input => :input,
-      :completion => :output
+      :completion => :output,
+      :output => :output
     }
+  end
+
+  @doc """
+  The tool call identifier.
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["call_mszuSIzqtI65i1wAUOE8w5H4"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_tool_call_id()
+      :"gen_ai.tool.call.id"
+
+  ### Erlang
+
+  ```erlang
+  ?GEN_AI_TOOL_CALL_ID.
+  'gen_ai.tool.call.id'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec gen_ai_tool_call_id :: :"gen_ai.tool.call.id"
+  def gen_ai_tool_call_id do
+    :"gen_ai.tool.call.id"
+  end
+
+  @doc """
+  The tool description.
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["Multiply two numbers"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_tool_description()
+      :"gen_ai.tool.description"
+
+  ### Erlang
+
+  ```erlang
+  ?GEN_AI_TOOL_DESCRIPTION.
+  'gen_ai.tool.description'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec gen_ai_tool_description :: :"gen_ai.tool.description"
+  def gen_ai_tool_description do
+    :"gen_ai.tool.description"
+  end
+
+  @doc """
+  Name of the tool utilized by the agent.
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["Flights"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_tool_name()
+      :"gen_ai.tool.name"
+
+  ### Erlang
+
+  ```erlang
+  ?GEN_AI_TOOL_NAME.
+  'gen_ai.tool.name'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec gen_ai_tool_name :: :"gen_ai.tool.name"
+  def gen_ai_tool_name do
+    :"gen_ai.tool.name"
+  end
+
+  @doc """
+  Type of the tool utilized by the agent
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  Extension: A tool executed on the agent-side to directly call external APIs, bridging the gap between the agent and real-world systems.
+    Agent-side operations involve actions that are performed by the agent on the server or within the agent's controlled environment.
+  Function: A tool executed on the client-side, where the agent generates parameters for a predefined function, and the client executes the logic.
+    Client-side operations are actions taken on the user's end or within the client application.
+  Datastore: A tool used by the agent to access and query structured or unstructured external data for retrieval-augmented tasks or knowledge updates.
+
+  ### Examples
+
+  ```
+  ["function", "extension", "datastore"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_tool_type()
+      :"gen_ai.tool.type"
+
+  ### Erlang
+
+  ```erlang
+  ?GEN_AI_TOOL_TYPE.
+  'gen_ai.tool.type'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec gen_ai_tool_type :: :"gen_ai.tool.type"
+  def gen_ai_tool_type do
+    :"gen_ai.tool.type"
   end
 
   @deprecated """
@@ -649,7 +1219,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_usage_input_tokens()
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_usage_input_tokens()
       :"gen_ai.usage.input_tokens"
 
   ### Erlang
@@ -681,7 +1251,7 @@ defmodule OpenTelemetry.SemConv.Incubating.GenAiAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.GenAiAttributes.gen_ai_usage_output_tokens()
+      iex> OpenTelemetry.SemConv.Incubating.GenAIAttributes.gen_ai_usage_output_tokens()
       :"gen_ai.usage.output_tokens"
 
   ### Erlang

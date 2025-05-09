@@ -182,7 +182,7 @@ defmodule OpenTelemetry.SemConv.Incubating.UserAttributes do
   ### Examples
 
   ```
-  ["admin", "reporting_user"]
+  [["admin", "reporting_user"]]
   ```
 
   <!-- tabs-open -->

@@ -1,4 +1,4 @@
-defmodule OpenTelemetry.SemConv.Incubating.Metrics.GenAiMetrics do
+defmodule OpenTelemetry.SemConv.Incubating.Metrics.GenAIMetrics do
   # This is an auto-generated file
   @moduledoc """
   OpenTelemetry Semantic Conventions for Gen_Ai metrics.
@@ -12,7 +12,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.GenAiMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.GenAiMetrics.gen_ai_client_operation_duration()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.GenAIMetrics.gen_ai_client_operation_duration()
       :"gen_ai.client.operation.duration"
 
   ### Erlang
@@ -39,7 +39,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.GenAiMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.GenAiMetrics.gen_ai_client_token_usage()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.GenAIMetrics.gen_ai_client_token_usage()
       :"gen_ai.client.token.usage"
 
   ### Erlang
@@ -66,7 +66,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.GenAiMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.GenAiMetrics.gen_ai_server_request_duration()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.GenAIMetrics.gen_ai_server_request_duration()
       :"gen_ai.server.request.duration"
 
   ### Erlang
@@ -93,7 +93,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.GenAiMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.GenAiMetrics.gen_ai_server_time_per_output_token()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.GenAIMetrics.gen_ai_server_time_per_output_token()
       :"gen_ai.server.time_per_output_token"
 
   ### Erlang
@@ -120,7 +120,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.GenAiMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.GenAiMetrics.gen_ai_server_time_to_first_token()
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.GenAIMetrics.gen_ai_server_time_to_first_token()
       :"gen_ai.server.time_to_first_token"
 
   ### Erlang
