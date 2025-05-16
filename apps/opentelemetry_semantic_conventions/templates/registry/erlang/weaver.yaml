@@ -1,5 +1,5 @@
 params:
-  excluded_namespaces:  ["aspnetcore", "cpython", "dotnet", "go", "ios", "jvm", "kestrel", "nodejs", "signalr", "v8js", "veightjs", "webengine"]
+  excluded_namespaces:  ["aspnetcore", "az", "cpython", "dotnet", "go", "ios", "jvm", "kestrel", "nodejs", "signalr", "v8js", "veightjs", "webengine"]
   excluded_attributes: []
   
 templates:
@@ -55,7 +55,7 @@ templates:
       })
     application_mode: each
 
-acronyms: ["AZ", "GenAI", "CICD", "VCS", "CPU", "HW", "iOS", "HTTP", "API", "SDK", "CLI", "URL", "JSON", "XML", "HTML", "TLS", "RPC", "OS", "OCI", "GCP", "FAAS", "DNS", "DB", "AWS", "S3", "K8S" ]
+acronyms: ["GenAI", "CICD", "VCS", "CPU", "HW", "iOS", "HTTP", "API", "SDK", "CLI", "URL", "JSON", "XML", "HTML", "TLS", "RPC", "OS", "OCI", "GCP", "FAAS", "DNS", "DB", "AWS", "S3", "K8S" ]
 
 text_maps:
   erlang_types:
