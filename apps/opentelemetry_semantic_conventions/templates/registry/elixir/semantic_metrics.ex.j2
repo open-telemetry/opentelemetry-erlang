@@ -1,11 +1,11 @@
 {%- import 'common.j2' as c %}
-{%- set file_name = ctx.output ~ c.file_name(ctx.id) ~ "_metrics.ex" -%}
+{%- set file_name = ctx.output ~ c.file_name(ctx.root_namespace) ~ "_metrics.ex" -%}
 {%- set trim_blocks = true %}
 {%- set trim_lstrip_blocks = true %}
 {{ template.set_file_name(file_name) }}
 
-{%- set module_name = ctx.id | pascal_case | acronym ~ "Metrics" -%}
-{%- if params.stability == "experimental" -%}
+{%- set module_name = ctx.root_namespace | pascal_case | acronym ~ "Metrics" -%}
+{%- if ctx.stability == "incubating" -%}
 {%- set module_namespace = "OpenTelemetry.SemConv.Incubating.Metrics" -%}
 {%- else -%}
 {%- set module_namespace = "OpenTelemetry.SemConv.Metrics" -%}
@@ -13,12 +13,12 @@
 defmodule {{ module_namespace }}.{{ module_name }} do
   # This is an auto-generated file
   @moduledoc """
-  OpenTelemetry Semantic Conventions for {{ ctx.id | title | acronym }} metrics.
+  OpenTelemetry Semantic Conventions for {{ ctx.root_namespace | title | acronym }} metrics.
   """
-{%- for metric in ctx.metrics | sort(attribute="metric_name") %}
+{%- for metric in ctx.metrics %}
   {% if metric is deprecated %}
   @deprecated """
-  {{ metric.deprecated | replace("\n", "\n  ") }}
+  {{ metric.deprecated.note | replace("\n", "\n  ") }}
   """
   {%- else -%}
   @doc """

@@ -13,8 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
-
-%% Reports the current frequency of the CPU in Hz
+%% @deprecated Replaced by `cpu.frequency`.
+%% Deprecated. Use `cpu.frequency` instead.
 -define(SYSTEM_CPU_FREQUENCY, 'system.cpu.frequency').
 
 
@@ -25,16 +25,16 @@
 %% Reports the number of actual physical processor cores on the hardware
 -define(SYSTEM_CPU_PHYSICAL_COUNT, 'system.cpu.physical.count').
 
-
-%% Seconds each logical CPU spent on each mode
+%% @deprecated Replaced by `cpu.time`.
+%% Deprecated. Use `cpu.time` instead.
 -define(SYSTEM_CPU_TIME, 'system.cpu.time').
 
-
-%% Difference in system.cpu.time since the last measurement, divided by the elapsed time and number of logical CPUs
+%% @deprecated Replaced by `cpu.utilization`.
+%% Deprecated. Use `cpu.utilization` instead.
 -define(SYSTEM_CPU_UTILIZATION, 'system.cpu.utilization').
 
 
-%% none
+%% 
 -define(SYSTEM_DISK_IO, 'system.disk.io').
 
 
@@ -42,7 +42,11 @@
 -define(SYSTEM_DISK_IO_TIME, 'system.disk.io_time').
 
 
-%% none
+%% The total storage capacity of the disk
+-define(SYSTEM_DISK_LIMIT, 'system.disk.limit').
+
+
+%% 
 -define(SYSTEM_DISK_MERGED, 'system.disk.merged').
 
 
@@ -50,15 +54,19 @@
 -define(SYSTEM_DISK_OPERATION_TIME, 'system.disk.operation_time').
 
 
-%% none
+%% 
 -define(SYSTEM_DISK_OPERATIONS, 'system.disk.operations').
 
 
-%% none
+%% The total storage capacity of the filesystem
+-define(SYSTEM_FILESYSTEM_LIMIT, 'system.filesystem.limit').
+
+
+%% Reports a filesystem's space usage across different states.
 -define(SYSTEM_FILESYSTEM_USAGE, 'system.filesystem.usage').
 
 
-%% none
+%% 
 -define(SYSTEM_FILESYSTEM_UTILIZATION, 'system.filesystem.utilization').
 
 
@@ -82,11 +90,11 @@
 -define(SYSTEM_MEMORY_USAGE, 'system.memory.usage').
 
 
-%% none
+%% 
 -define(SYSTEM_MEMORY_UTILIZATION, 'system.memory.utilization').
 
 
-%% none
+%% 
 -define(SYSTEM_NETWORK_CONNECTIONS, 'system.network.connections').
 
 
@@ -98,19 +106,19 @@
 -define(SYSTEM_NETWORK_ERRORS, 'system.network.errors').
 
 
-%% none
+%% 
 -define(SYSTEM_NETWORK_IO, 'system.network.io').
 
 
-%% none
+%% 
 -define(SYSTEM_NETWORK_PACKETS, 'system.network.packets').
 
 
-%% none
+%% 
 -define(SYSTEM_PAGING_FAULTS, 'system.paging.faults').
 
 
-%% none
+%% 
 -define(SYSTEM_PAGING_OPERATIONS, 'system.paging.operations').
 
 
@@ -118,7 +126,7 @@
 -define(SYSTEM_PAGING_USAGE, 'system.paging.usage').
 
 
-%% none
+%% 
 -define(SYSTEM_PAGING_UTILIZATION, 'system.paging.utilization').
 
 
@@ -128,3 +136,7 @@
 
 %% Total number of processes created over uptime of the host
 -define(SYSTEM_PROCESS_CREATED, 'system.process.created').
+
+
+%% The time the system has been running
+-define(SYSTEM_UPTIME, 'system.uptime').

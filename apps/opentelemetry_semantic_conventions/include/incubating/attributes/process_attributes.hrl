@@ -13,6 +13,13 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/process_attributes.hrl").
+
+
+%% Length of the process.command_args array
+%%  
+-define(PROCESS_ARGS_COUNT, 'process.args_count').
+
 
 %% The command used to launch the process (i.e. the command name). On Linux based systems, can be set to the zeroth string in `proc/[pid]/cmdline`. On Windows, can be set to the first parameter extracted from `GetCommandLineW`.
 %%  
@@ -54,7 +61,32 @@
 -define(PROCESS_CREATION_TIME, 'process.creation.time').
 
 
-%% The name of the process executable. On Linux based systems, can be set to the `Name` in `proc/[pid]/status`. On Windows, can be set to the base name of `GetProcessImageFileNameW`.
+%% Process environment variables, <key> being the environment variable name, the value being the environment variable value.
+%%  
+-define(PROCESS_ENVIRONMENT_VARIABLE, 'process.environment_variable').
+
+
+%% The GNU build ID as found in the `.note.gnu.build-id` ELF section (hex string).
+%%  
+-define(PROCESS_EXECUTABLE_BUILD_ID_GNU, 'process.executable.build_id.gnu').
+
+
+%% The Go build ID as retrieved by `go tool buildid <go executable>`.
+%%  
+-define(PROCESS_EXECUTABLE_BUILD_ID_GO, 'process.executable.build_id.go').
+
+
+%% Profiling specific build ID for executables. See the OTel specification for Profiles for more information.
+%%  
+-define(PROCESS_EXECUTABLE_BUILD_ID_HTLHASH, 'process.executable.build_id.htlhash').
+
+%% @deprecated Replaced by `process.executable.build_id.htlhash`
+%% "Deprecated, use `process.executable.build_id.htlhash` instead."
+%%  
+-define(PROCESS_EXECUTABLE_BUILD_ID_PROFILING, 'process.executable.build_id.profiling').
+
+
+%% The name of the process executable. On Linux based systems, this SHOULD be set to the base name of the target of `/proc/[pid]/exe`. On Windows, this SHOULD be set to the base name of `GetProcessImageFileNameW`.
 %%  
 -define(PROCESS_EXECUTABLE_NAME, 'process.executable.name').
 
@@ -82,6 +114,10 @@
 %% Whether the process is connected to an interactive shell.
 %%  
 -define(PROCESS_INTERACTIVE, 'process.interactive').
+
+
+%% The control group associated with the process.
+-define(PROCESS_LINUX_CGROUP, 'process.linux.cgroup').
 
 
 %% The username of the user that owns the process.
@@ -149,6 +185,11 @@
 -define(PROCESS_SESSION_LEADER_PID, 'process.session_leader.pid').
 
 
+%% Process title (proctitle)
+%%  
+-define(PROCESS_TITLE, 'process.title').
+
+
 %% The effective user ID (EUID) of the process.
 %%  
 -define(PROCESS_USER_ID, 'process.user.id').
@@ -162,3 +203,8 @@
 %% Virtual process identifier.
 %%  
 -define(PROCESS_VPID, 'process.vpid').
+
+
+%% The working directory of the process.
+%%  
+-define(PROCESS_WORKING_DIRECTORY, 'process.working_directory').
