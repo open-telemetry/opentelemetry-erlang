@@ -53,6 +53,16 @@ defmodule OpenTelemetry do
   """
   @type span_id() :: non_neg_integer()
 
+  @typedoc """
+  Hex-encoded TraceId as a 32-character lowercase binary string.
+  """
+  @type hex_trace_id() :: :opentelemetry.hex_trace_id()
+
+  @typedoc """
+  Hex-encoded SpanId as a 16-character lowercase binary string.
+  """
+  @type hex_span_id() :: :opentelemetry.hex_span_id()
+
   @type attribute_key() :: :opentelemetry.attribute_key()
   @type attribute_value() :: :opentelemetry.attribute_value()
 
