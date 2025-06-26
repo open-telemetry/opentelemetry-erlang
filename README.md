@@ -213,7 +213,7 @@ $ python3 test.py http://127.0.0.1:5000/test
 - [Łukasz Jan Niemier](https://github.com/hauleth)
 - [Iliia Khaprov](https://github.com/deadtrickster), [VMWare](https://www.vmware.com/)
 
-For more information about the maintainer role, see the [community repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#maintainer).
+For more information about the maintainer role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).
 
 ### Approvers
 
@@ -224,7 +224,7 @@ For more information about the maintainer role, see the [community repository](h
 - [Łukasz Jan Niemier](https://github.com/hauleth)
 - [Iliia Khaprov](https://github.com/deadtrickster), [VMWare](https://www.vmware.com/)
 
-For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/community-membership.md#approver).
+For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).
 
 _Find more about the maintainer role in [community repository](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer)._
 
