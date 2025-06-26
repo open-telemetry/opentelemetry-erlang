@@ -113,13 +113,44 @@ new() ->
 merge_with_os(AppEnv) ->
     ConfigMap = new(),
 
+    ConfigMap1 = lists:foldl(fun(F, Acc) ->
+                                     F(AppEnv, Acc)
+                             end, ConfigMap, [fun resource/2,
+                                              fun attribute_limits/2,
+                                              fun propagator/2,
+                                              fun tracer_provider/2,
+                                              fun sweeper/2]),
+
+    %% backwards compatability
     lists:foldl(fun(F, Acc) ->
                         F(AppEnv, Acc)
-                end, ConfigMap, [fun span_limits/2,
-                                 fun general/2,
-                                 fun sampler/2,
-                                 fun processors/2,
-                                 fun sweeper/2]).
+                end, ConfigMap1, [fun span_limits/2,
+                                  fun general/2,
+                                  fun sampler/2,
+                                  fun processors/2,
+                                  fun sweeper/2]).
+
+-spec resource(list(), t()) -> t().
+resource(AppEnv, ConfigMap) ->
+    Resource = proplists:get_value(resource, AppEnv, []),
+    ConfigMap.
+
+-spec attribute_limits(list(), t()) -> t().
+attribute_limits(AppEnv, ConfigMap) ->
+    AttributeLimits = proplists:get_value(attribute_limits, AppEnv, []),
+    ConfigMap.
+
+-spec propagator(list(), t()) -> t().
+propagator(AppEnv, ConfigMap) ->
+    Propagator = proplists:get_value(propagator, AppEnv, []),
+    ConfigMap.
+
+-spec tracer_provider(list(), t()) -> t().
+tracer_provider(AppEnv, ConfigMap) ->
+    TracerProvider = proplists:get_value(tracer_provider, AppEnv, []),
+    ConfigMap.
+
+%% backwards compatability
 
 -spec span_limits(list(), t()) -> t().
 span_limits(AppEnv, ConfigMap) ->
