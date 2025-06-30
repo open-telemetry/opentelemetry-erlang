@@ -206,7 +206,16 @@ $ python3 test.py http://127.0.0.1:5000/test
 
 ## Contributing
 
-Approvers ([@open-telemetry/erlang-approvers](https://github.com/orgs/open-telemetry/teams/erlang-approvers)):
+### Maintainers
+
+- [Tristan Sloughter](https://github.com/tsloughter), [Splunk](https://www.splunk.com/en_us/observability/apm-application-performance-monitoring.html)
+- [Bryan Naegele](https://github.com/bryannaegele), [Simplebet](https://simplebet.io/)
+- [Łukasz Jan Niemier](https://github.com/hauleth)
+- [Iliia Khaprov](https://github.com/deadtrickster), [VMWare](https://www.vmware.com/)
+
+For more information about the maintainer role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).
+
+### Approvers
 
 - [Tristan Sloughter](https://github.com/tsloughter), [Splunk](https://www.splunk.com/en_us/observability/apm-application-performance-monitoring.html)
 - [Bryan Naegele](https://github.com/bryannaegele), [Simplebet](https://simplebet.io/)
@@ -215,14 +224,7 @@ Approvers ([@open-telemetry/erlang-approvers](https://github.com/orgs/open-telem
 - [Łukasz Jan Niemier](https://github.com/hauleth)
 - [Iliia Khaprov](https://github.com/deadtrickster), [VMWare](https://www.vmware.com/)
 
-_Find more about the approver role in [community repository](https://github.com/open-telemetry/community/blob/master/community-membership.md#approver)._
-
-Maintainers ([@open-telemetry/erlang-maintainers](https://github.com/orgs/open-telemetry/teams/erlang-maintainers)):
-
-- [Tristan Sloughter](https://github.com/tsloughter), [Splunk](https://www.splunk.com/en_us/observability/apm-application-performance-monitoring.html)
-- [Bryan Naegele](https://github.com/bryannaegele), [Simplebet](https://simplebet.io/)
-- [Łukasz Jan Niemier](https://github.com/hauleth)
-- [Iliia Khaprov](https://github.com/deadtrickster), [VMWare](https://www.vmware.com/)
+For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).
 
 _Find more about the maintainer role in [community repository](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer)._
 
