@@ -8,6 +8,9 @@ on:
     branches:
       - 'main'
 
+permissions:
+  contents: read
+
 jobs:
   interop_tests:
     name: Run W3C Trace Context Interop Tests

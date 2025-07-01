@@ -12,10 +12,12 @@ on:
       - "main"
 
 permissions:
-  checks: write
+  contents: read
 
 jobs:
   build:
+    permissions:
+      checks: write
     name: Test on OTP ${{ matrix.otp_version }} and ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
