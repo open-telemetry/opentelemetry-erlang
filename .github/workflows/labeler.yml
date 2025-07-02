@@ -1,8 +1,13 @@
 name: "Pull Request Labeler"
 on: [pull_request_target]
 
+permissions:
+  contents: read
+
 jobs:
   triage:
+    permissions:
+      pull-requests: write # required for labeling PRs
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/labeler@v4
