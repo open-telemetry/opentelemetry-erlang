@@ -163,7 +163,7 @@ merge_with_os(AppEnv) ->
 
 -spec convert_to_new(#{}) -> t().
 convert_to_new(OldConfig) ->
-    convert_disabled(OldConfig).
+    convert_attribute_limits(convert_disabled(OldConfig)).
 
 convert_disabled(OldConfig) ->
     case maps:take(sdk_disabled, OldConfig) of
@@ -171,6 +171,23 @@ convert_disabled(OldConfig) ->
             OldConfig1#{disabled => Value};
         error ->
             OldConfig
+    end.
+
+convert_attribute_limits(OldConfig) ->
+    OldConfig2 = case maps:take(attribute_count_limit, OldConfig) of
+                     {AttributeCountLimit, OldConfig1} ->
+                         OldConfig1#{attribute_limits => #{attribute_count_limit => AttributeCountLimit}};
+                     error ->
+                         OldConfig
+                 end,
+
+
+    case maps:take(attribute_value_length_limit, OldConfig2) of
+        {AttributeValueLengthLimit, OldConfig3} ->
+            AttributeLimitsMap = maps:get(attribute_limits, OldConfig3, #{}),
+            OldConfig3#{attribute_limits => AttributeLimitsMap#{attribute_value_length_limit => AttributeValueLengthLimit}};
+        error ->
+            OldConfig2
     end.
 
     %% ConfigMap = new(),

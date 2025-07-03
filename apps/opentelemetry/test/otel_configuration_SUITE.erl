@@ -149,8 +149,8 @@ init_per_testcase(span_limits, Config) ->
 
     setup_env(Vars),
 
-    ExpectedOpts = #{attribute_count_limit => 111,
-                     attribute_value_length_limit => 9,
+    ExpectedOpts = #{attribute_limits => #{attribute_count_limit => 111,
+                                           attribute_value_length_limit => 9},
                      event_count_limit => 200,
                      link_count_limit => 1101,
                      attribute_per_event_limit => 400,
