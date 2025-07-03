@@ -58,10 +58,12 @@
 start_link(Name, RegName, SpanProcessorSupRegName, Resource, Config) ->
     gen_server:start_link({local, RegName}, ?MODULE, [Name, SpanProcessorSupRegName, Resource, Config], []).
 
-init([Name, SpanProcessorSup, Resource, #{id_generator := IdGeneratorModule,
-                                          sampler := SamplerSpec,
-                                          processors := Processors,
-                                          deny_list := DenyList}]) ->
+init([Name, SpanProcessorSup, Resource, Config]) ->
+    IdGeneratorModule = maps:get(id_generator, Config, otel_id_generator),
+    SamplerSpec = maps:get(sampler, Config, {parent_based, #{root => always_on}}),
+    Processors = maps:get(processors, Config, [{otel_batch_processor, #{}}]),
+    DenyList = maps:get(deny_list, Config, []),
+
     Sampler = otel_sampler:new(SamplerSpec),
 
     Processors1 = init_processors(SpanProcessorSup, Processors),

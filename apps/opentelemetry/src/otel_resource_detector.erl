@@ -82,9 +82,13 @@ get_resource(Timeout) ->
     end.
 
 %% @private
-init([#{resource_detectors := Detectors,
-        resource_detector_timeout := DetectorTimeout}]) ->
+init([Config]) ->
     process_flag(trap_exit, true),
+
+    Detectors = maps:get(resource_detectors, Config, [otel_resource_env_var, otel_resource_app_env]),
+    DetectorTimeout = maps:get(resource_detector_timeout, Config, 5000),
+
+
 
     {ok, collecting, #data{resource=otel_resource:create([]),
                            detectors=Detectors,

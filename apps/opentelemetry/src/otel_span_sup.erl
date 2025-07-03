@@ -36,7 +36,7 @@ init([Config]) ->
                  intensity => 1,
                  period => 5},
 
-    SweeperConfig = maps:get(sweeper, Config),
+    SweeperConfig = maps:get(sweeper, Config, #{}),
     Sweeper = #{id => otel_span_sweeper,
                 start => {otel_span_sweeper, start_link, [SweeperConfig]},
                 restart => permanent,

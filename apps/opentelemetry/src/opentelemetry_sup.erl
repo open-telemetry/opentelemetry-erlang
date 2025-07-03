@@ -29,7 +29,7 @@
 start_link(Opts) ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, [Opts]).
 
-init([#{sdk_disabled := true}]) ->
+init([#{disabled := true}]) ->
     {ok, {#{}, []}};
 init([Opts]) ->
     SupFlags = #{strategy => one_for_one,

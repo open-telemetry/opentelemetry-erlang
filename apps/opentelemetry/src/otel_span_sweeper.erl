@@ -50,10 +50,11 @@ storage_size() ->
 start_link(Config) ->
     gen_statem:start_link({local, ?MODULE}, ?MODULE, [Config], []).
 
-init([#{interval := Interval,
-        strategy := Strategy,
-        span_ttl := TTL,
-        storage_size := StorageSize}]) ->
+init([Config]) ->
+    Interval = maps:get(interval, Config, timer:minutes(10)),
+    Strategy = maps:get(strategy, Config, drop),
+    TTL = maps:get(span_ttl, Config, timer:minutes(30)),
+    StorageSize = maps:get(storage_size, Config, infinity),
     {ok, ready, #data{interval=Interval,
                       strategy=Strategy,
                       ttl=maybe_convert_time_unit(TTL),

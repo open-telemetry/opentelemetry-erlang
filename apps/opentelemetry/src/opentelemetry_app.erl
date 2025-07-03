@@ -34,7 +34,7 @@ start(_StartType, _StartArgs) ->
     SupResult = opentelemetry_sup:start_link(Config),
 
     case Config of
-        #{sdk_disabled := true} ->
+        #{disabled := true} ->
             %% skip the rest if the SDK is disabled
             SupResult;
         _ ->
@@ -57,7 +57,8 @@ stop(_State) ->
 
 %% internal functions
 
-setup_text_map_propagators(#{text_map_propagators := List}) ->
+setup_text_map_propagators(Config) ->
+    List = maps:get(text_map_propagators, Config, []),
     CompositePropagator = otel_propagator_text_map_composite:create(List),
     opentelemetry:set_text_map_propagator(CompositePropagator).
 

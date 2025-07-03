@@ -36,12 +36,13 @@ get() ->
     persistent_term:get(?SPAN_LIMITS_KEY).
 
 -spec set(otel_configuration:t()) -> ok.
-set(#{attribute_count_limit := AttributeCountLimit,
-      attribute_value_length_limit := AttributeValueLengthLimit,
-      event_count_limit := EventCountLimit,
-      link_count_limit := LinkCountLimit,
-      attribute_per_event_limit := AttributePerEventLimit,
-      attribute_per_link_limit := AttributePerLinkLimit}) ->
+set(Config) ->
+    AttributeCountLimit = maps:get(attribute_count_limit, Config, 128),
+    AttributeValueLengthLimit = maps:get(attribute_value_length_limit, Config, infinity),
+    EventCountLimit = maps:get(event_count_limit, Config, 128),
+    LinkCountLimit = maps:get(link_count_limit, Config, 128),
+    AttributePerEventLimit = maps:get(attribute_per_event_limit, Config, 128),
+    AttributePerLinkLimit = maps:get(attribute_per_link_limit, Config, 128),
     SpanLimits = #span_limits{attribute_count_limit=AttributeCountLimit,
                               attribute_value_length_limit=AttributeValueLengthLimit,
                               event_count_limit=EventCountLimit,
