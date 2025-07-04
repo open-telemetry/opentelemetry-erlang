@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/disk_attributes.hrl").
+
 
 %% The disk IO operation direction.
 -define(DISK_IO_DIRECTION, 'disk.io.direction').
