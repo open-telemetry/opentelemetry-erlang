@@ -39,7 +39,8 @@ all_cases() ->
      root_span_sampling_always_on, root_span_sampling_always_off,
      record_but_not_sample, record_exception_works, record_exception_with_message_works,
      propagator_configuration, propagator_configuration_with_os_env, force_flush,
-     dropped_attributes, too_many_attributes, truncated_binary_attributes].
+     dropped_attributes, too_many_attributes, truncated_binary_attributes,
+     new_propagator_configuration].
 
 groups() ->
     [{otel_simple_processor, [], all_cases()},
@@ -93,6 +94,12 @@ init_per_testcase(propagator_configuration, Config) ->
 init_per_testcase(propagator_configuration_with_os_env, Config) ->
     os:putenv("OTEL_PROPAGATORS", "tracecontext"),
     application:set_env(opentelemetry, text_map_propagators, [b3multi, baggage]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
+init_per_testcase(new_propagator_configuration, Config) ->
+    application:set_env(opentelemetry, text_map_propagators, [jaeger]),
+    application:set_env(opentelemetry, propagator, #{composite => [b3multi, baggage],
+                                                     composite_list => "baggage, tracecontext"}),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(force_flush, Config) ->
@@ -327,6 +334,15 @@ propagator_configuration_with_os_env(_Config) ->
     ?assertEqual({otel_propagator_baggage, []}, opentelemetry:get_text_map_extractor()),
     ?assertEqual({{otel_propagator_b3, b3single}, []}, opentelemetry:get_text_map_injector()),
 
+    ok.
+
+new_propagator_configuration(_Config) ->
+    %% test that duplicate baggage entry from composite_list is removed in result
+    %% and old format of setting `text_map_propagators' is ignored
+    ?assertEqual({otel_propagator_text_map_composite,
+                  [{otel_propagator_b3,b3multi},otel_propagator_baggage, otel_propagator_trace_context]}, opentelemetry:get_text_map_extractor()),
+    ?assertEqual({otel_propagator_text_map_composite,
+                  [{otel_propagator_b3,b3multi},otel_propagator_baggage, otel_propagator_trace_context]}, opentelemetry:get_text_map_injector()),
     ok.
 
 force_flush(Config) ->

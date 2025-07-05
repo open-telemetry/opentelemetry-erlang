@@ -21,6 +21,7 @@
 
 -export([merge_with_os/1,
          merge_list_with_environment/3,
+         transform/2,
          report_cb/1]).
 
 -type log_level() :: atom().
@@ -150,29 +151,45 @@ new() ->
 %% constructs a config based on the flat format and merges with the new
 %% nested configuration from the declarative configuration SIG
 -spec merge_with_os(list()) -> t().
-merge_with_os(AppEnv) ->
+merge_with_os(Config) ->
     OldConfig = lists:foldl(fun(F, Acc) ->
-                                    F(AppEnv, Acc)
+                                    F(Config, Acc)
                             end, #{}, [fun span_limits/2,
                                        fun general/2,
                                        fun sampler/2,
                                        fun processors/2,
                                        fun sweeper/2]),
 
-    convert_to_new(OldConfig).
+    convert_to_new(OldConfig, Config).
 
--spec convert_to_new(#{}) -> t().
-convert_to_new(OldConfig) ->
-    convert_resource(
-      convert_attribute_limits(
-        convert_disabled(OldConfig))).
+-spec convert_to_new(#{}, map()) -> t().
+convert_to_new(OldConfig, Config) ->
+    convert_propagator(
+      convert_resource(
+        convert_attribute_limits(
+          convert_disabled(OldConfig, Config), Config), Config), Config).
+
+%% convert the old `text_map_propagators' config into the new `propagator' config
+%% based on the declarative file configuration of otel
+convert_propagator(OldConfig, Config) ->
+    case lists:keyfind(propagator, 1, Config) of
+        false ->
+            case maps:take(text_map_propagators, OldConfig) of
+                {Value, OldConfig1} ->
+                    OldConfig1#{propagator => #{composite => Value}};
+                error ->
+                    OldConfig
+            end;
+        {propagator, Value} ->
+            OldConfig#{propagator => Value}
+    end.
 
 %% this one is different, it wasn't read from the old config before, only from application env by the detector
 %% that detector is now a no-op and its parsing is done here. The old supported option for
 %% adding static resource attributes is combined with the new. Anything under the key
 %% `attributes' is expected to be of the form `#{name := binary(), value := binary()}' while
 %% every other key/value pair is assumed to be an attribute
-convert_resource(OldConfig) ->
+convert_resource(OldConfig, Config) ->
     case application:get_env(opentelemetry, resource) of
         {ok, ResourceAttributes} when is_list(ResourceAttributes) orelse is_map(ResourceAttributes) ->
             ResourceAttributes0 = case is_list(ResourceAttributes) of
@@ -201,7 +218,7 @@ convert_resource(OldConfig) ->
             OldConfig
     end.
 
-convert_disabled(OldConfig) ->
+convert_disabled(OldConfig, Config) ->
     case maps:take(sdk_disabled, OldConfig) of
         {Value, OldConfig1} ->
             OldConfig1#{disabled => Value};
@@ -209,7 +226,7 @@ convert_disabled(OldConfig) ->
             OldConfig
     end.
 
-convert_attribute_limits(OldConfig) ->
+convert_attribute_limits(OldConfig, Config) ->
     OldConfig2 = case maps:take(attribute_count_limit, OldConfig) of
                      {AttributeCountLimit, OldConfig1} ->
                          OldConfig1#{attribute_limits => #{attribute_count_limit => AttributeCountLimit}};

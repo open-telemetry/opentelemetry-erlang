@@ -250,21 +250,21 @@ log_level(_Config) ->
 
 propagators(_Config) ->
     ?assertMatch(#{log_level := error,
-                   text_map_propagators := [baggage]},
+                   propagator := #{composite := [baggage]}},
                  otel_configuration:merge_with_os([{log_level, error}])),
 
     ok.
 
 propagators_b3(_Config) ->
     ?assertMatch(#{log_level := error,
-                   text_map_propagators := [b3]},
+                   propagator := #{composite := [b3]}},
                  otel_configuration:merge_with_os([{log_level, error}])),
 
     ok.
 
 propagators_b3multi(_Config) ->
     ?assertMatch(#{log_level := error,
-                   text_map_propagators := [b3multi]},
+                   propagator := #{composite := [b3multi]}},
                  otel_configuration:merge_with_os([{log_level, error}])),
 
     ok.

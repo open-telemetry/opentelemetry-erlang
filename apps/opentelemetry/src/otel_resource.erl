@@ -123,7 +123,7 @@ is_key(_, _) ->
 -spec merge(t(), t()) -> t().
 merge(#resource{schema_url=NewSchemaUrl,
                 attributes=NewAttributes}, CurrentResource=#resource{schema_url=CurrentSchemaUrl,
-                                                             attributes=CurrentAttributes}) ->
+                                                                     attributes=CurrentAttributes}) ->
     SchameUrl = merge_schema_url(NewSchemaUrl, CurrentSchemaUrl),
     NewMap = otel_attributes:map(NewAttributes),
     CurrentResource#resource{schema_url=SchameUrl,

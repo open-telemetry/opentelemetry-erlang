@@ -58,8 +58,13 @@ stop(_State) ->
 %% internal functions
 
 setup_text_map_propagators(Config) ->
-    List = maps:get(text_map_propagators, Config, []),
-    CompositePropagator = otel_propagator_text_map_composite:create(List),
+    Propagator = maps:get(propagator, Config, #{}),
+    PropagatorList = maps:get(composite_list, Propagator, []),
+    Propagators = maps:get(composite, Propagator, []),
+
+    Combined = append_if_not_found(otel_configuration:transform(propagators, PropagatorList), Propagators),
+
+    CompositePropagator = otel_propagator_text_map_composite:create(Combined),
     opentelemetry:set_text_map_propagator(CompositePropagator).
 
 create_loaded_application_tracers(#{create_application_tracers := true}) ->
@@ -69,3 +74,13 @@ create_loaded_application_tracers(#{create_application_tracers := true}) ->
     ok;
 create_loaded_application_tracers(_) ->
     ok.
+
+append_if_not_found([], Existing) ->
+    Existing;
+append_if_not_found([C | Rest], Existing) ->
+    case lists:member(C, Existing) of
+        true ->
+            append_if_not_found(Rest, Existing);
+        false ->
+            append_if_not_found(Rest, Existing ++ [C])
+    end.
