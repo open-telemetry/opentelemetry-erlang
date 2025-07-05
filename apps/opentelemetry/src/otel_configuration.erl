@@ -163,7 +163,43 @@ merge_with_os(AppEnv) ->
 
 -spec convert_to_new(#{}) -> t().
 convert_to_new(OldConfig) ->
-    convert_attribute_limits(convert_disabled(OldConfig)).
+    convert_resource(
+      convert_attribute_limits(
+        convert_disabled(OldConfig))).
+
+%% this one is different, it wasn't read from the old config before, only from application env by the detector
+%% that detector is now a no-op and its parsing is done here. The old supported option for
+%% adding static resource attributes is combined with the new. Anything under the key
+%% `attributes' is expected to be of the form `#{name := binary(), value := binary()}' while
+%% every other key/value pair is assumed to be an attribute
+convert_resource(OldConfig) ->
+    case application:get_env(opentelemetry, resource) of
+        {ok, ResourceAttributes} when is_list(ResourceAttributes) orelse is_map(ResourceAttributes) ->
+            ResourceAttributes0 = case is_list(ResourceAttributes) of
+                                      true ->
+                                          maps:from_list(ResourceAttributes);
+                                      false ->
+                                          ResourceAttributes
+                                  end,
+            {NewConfigAttributes1, ResourceAttributes2}
+                = try maps:take(attributes, ResourceAttributes0) of
+                      {NewConfigAttributes, ResourceAttributes1} ->
+                          {NewConfigAttributes, ResourceAttributes1};
+                      error ->
+                          {[], ResourceAttributes0}
+                  catch
+                      %% old form of resource attributes may not be a map but instead a list
+                      %% we don't bother looking for an attributes key in that list
+                      _:_ ->
+                          {[], ResourceAttributes0}
+                  end,
+
+            ParsedAttributes = otel_resource_app_env:parse(ResourceAttributes2),
+
+            OldConfig#{resource => #{attributes => ParsedAttributes ++ NewConfigAttributes1}};
+         _ ->
+            OldConfig
+    end.
 
 convert_disabled(OldConfig) ->
     case maps:take(sdk_disabled, OldConfig) of

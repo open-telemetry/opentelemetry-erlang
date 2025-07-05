@@ -12,7 +12,7 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @doc Resource detector ({@link otel_resource_detector}) which adds attributes
+%% @doc DEPRECATED: Resource detector ({@link otel_resource_detector}) which adds attributes
 %% to the `Resource' based on the value of `resource'
 %% in the `opentelemetry' application's environment.
 %%
@@ -38,10 +38,10 @@
 -export([get_resource/1,
          parse/1]).
 
+%% now a no-op. `resource` is read from application environment by configuration instead
 %% @private
 get_resource(_Config) ->
-    Attributes = parse(application:get_env(opentelemetry, resource, #{})),
-    otel_resource:create(Attributes).
+    otel_resource:create([]).
 
 %%
 
@@ -49,7 +49,11 @@ get_resource(_Config) ->
 parse(Attributes) when is_map(Attributes) ->
     parse(maps:to_list(Attributes));
 parse(Attributes) when is_list(Attributes) ->
-    lists:flatmap(fun({Key, Values}) when is_list(Key) ; is_binary(Key) ; is_atom(Key) ->
+    lists:flatmap(fun(#{name := Key,
+                        value := Value}) ->
+                          [#{name => unicode:characters_to_binary(Key),
+                             value => Value}];
+                     ({Key, Values}) when is_list(Key) ; is_binary(Key) ; is_atom(Key) ->
                           parse_values(to_string(Key), Values);
                      (_) ->
                           %% ignore anything else
@@ -64,20 +68,26 @@ parse_values(Key, Values) when is_map(Values) ->
 parse_values(Key, Values) when is_list(Values) ->
     case io_lib:printable_unicode_list(Values) of
         true ->
-            [{unicode:characters_to_binary(Key), unicode:characters_to_binary(Values)}];
+            [#{name => unicode:characters_to_binary(Key),
+               value => unicode:characters_to_binary(Values)}];
         false ->
-            lists:flatmap(fun({SubKey, Value=[{_,_}|_]}) ->
-                                  %% list of tuples means we have more subkeys
-                                  parse_values([Key, ".", to_string(SubKey)], Value);
-                             ({SubKey, Value}) when is_map(Value) ->
-                                  %% map value means we have more subkeys
-                                  parse_values([Key, ".", to_string(SubKey)], Value);
-                             ({SubKey, Value})->
-                                  [{otel_utils:assert_to_binary([Key, ".", to_string(SubKey)]), Value}]
-                          end, Values)
+            lists:flatmap(
+              %% the map of name/value is from the otel declarative configuration file spec
+              %% and replaces the old methods below it
+              fun({SubKey, Value=[{_,_}|_]}) ->
+                      %% list of tuples means we have more subkeys
+                      parse_values([Key, ".", to_string(SubKey)], Value);
+                 ({SubKey, Value}) when is_map(Value) ->
+                      %% map value means we have more subkeys
+                      parse_values([Key, ".", to_string(SubKey)], Value);
+                 ({SubKey, Value})->
+                      [#{name => otel_utils:assert_to_binary([Key, ".", to_string(SubKey)]),
+                         value => Value}]
+              end, Values)
     end;
 parse_values(Key, Value) ->
-    [{unicode:characters_to_binary(Key), Value}].
+    [#{name => unicode:characters_to_binary(Key),
+       value => Value}].
 
 -spec to_string(atom() | binary() | list()) -> binary().
 to_string(K) when is_atom(K) ->

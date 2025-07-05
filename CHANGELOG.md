@@ -9,11 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### SDK 
 
-### 
+#### Added
 
-- []()
+- 
 
-### Changes
+#### Changes
+
+- *Deprecated*: Resource attribute configuration: No longer use maps to
+  structure resource attribute keys with dots. Meaning use a key of
+  `service.name` instead of `#{service => #{name => ...}}` to represent
+  `service.name` attribute in the resource.
 
 ## Experimental API 0.5.2 - 2024-11-22
 

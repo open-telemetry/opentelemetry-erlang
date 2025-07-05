@@ -85,12 +85,14 @@ get_resource(Timeout) ->
 init([Config]) ->
     process_flag(trap_exit, true),
 
-    Detectors = maps:get(resource_detectors, Config, [otel_resource_env_var, otel_resource_app_env]),
+    Detectors = maps:get(resource_detectors, Config, [otel_resource_env_var]),
     DetectorTimeout = maps:get(resource_detector_timeout, Config, 5000),
 
+    ConfiguredAttributes = maps:get(attributes,
+                                    maps:get(resource, Config, #{}), []),
+    AttributesMap = configured_attributes_to_map(ConfiguredAttributes),
 
-
-    {ok, collecting, #data{resource=otel_resource:create([]),
+    {ok, collecting, #data{resource=otel_resource:create(AttributesMap),
                            detectors=Detectors,
                            detector_timeout=DetectorTimeout},
      [{next_event, internal, spawn_detectors}]}.
@@ -141,6 +143,12 @@ handle_event(_, _, ready, _) ->
     keep_state_and_data.
 
 %%
+
+configured_attributes_to_map(ConfiguredAttributes) ->
+    lists:foldl(fun(#{name := Name,
+                      value := Value}, Acc) ->
+                        Acc#{Name => Value}
+                end, #{}, ConfiguredAttributes).
 
 %% go to the `ready' state if the list of detectors to collect for is empty
 next_state([]) ->
