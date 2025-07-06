@@ -26,8 +26,8 @@
 
 -type log_level() :: atom().
 
--type attribute_limits() :: #{attribute_value_length_limit := integer() | undefined,
-                              attribute_count_limit := integer() | undefined
+-type attribute_limits() :: #{attribute_value_length_limit => integer() | undefined,
+                              attribute_count_limit => integer() | undefined
                              }.
 
 -type exporter_args() :: map().
@@ -227,20 +227,25 @@ convert_disabled(OldConfig, Config) ->
     end.
 
 convert_attribute_limits(OldConfig, Config) ->
-    OldConfig2 = case maps:take(attribute_count_limit, OldConfig) of
-                     {AttributeCountLimit, OldConfig1} ->
-                         OldConfig1#{attribute_limits => #{attribute_count_limit => AttributeCountLimit}};
-                     error ->
-                         OldConfig
-                 end,
+    case lists:keyfind(attribute_limits, 1, Config) of
+        {attribute_limits, Limits} ->
+            OldConfig#{attribute_limits => Limits};
+        false ->
+            OldConfig2 = case maps:take(attribute_count_limit, OldConfig) of
+                             {AttributeCountLimit, OldConfig1} ->
+                                 OldConfig1#{attribute_limits => #{attribute_count_limit => AttributeCountLimit}};
+                             error ->
+                                 OldConfig
+                         end,
 
 
-    case maps:take(attribute_value_length_limit, OldConfig2) of
-        {AttributeValueLengthLimit, OldConfig3} ->
-            AttributeLimitsMap = maps:get(attribute_limits, OldConfig3, #{}),
-            OldConfig3#{attribute_limits => AttributeLimitsMap#{attribute_value_length_limit => AttributeValueLengthLimit}};
-        error ->
-            OldConfig2
+            case maps:take(attribute_value_length_limit, OldConfig2) of
+                {AttributeValueLengthLimit, OldConfig3} ->
+                    AttributeLimitsMap = maps:get(attribute_limits, OldConfig3, #{}),
+                    OldConfig3#{attribute_limits => AttributeLimitsMap#{attribute_value_length_limit => AttributeValueLengthLimit}};
+                error ->
+                    OldConfig2
+            end
     end.
 
     %% ConfigMap = new(),

@@ -40,7 +40,7 @@ all_cases() ->
      record_but_not_sample, record_exception_works, record_exception_with_message_works,
      propagator_configuration, propagator_configuration_with_os_env, force_flush,
      dropped_attributes, too_many_attributes, truncated_binary_attributes,
-     new_propagator_configuration].
+     new_propagator_configuration, dropped_attributes_ignore_old_config].
 
 groups() ->
     [{otel_simple_processor, [], all_cases()},
@@ -117,6 +117,16 @@ init_per_testcase(dropped_attributes, Config) ->
     Config1 = set_batch_tab_processor(Config),
 
     application:set_env(opentelemetry, attribute_value_length_limit, 2),
+
+    {ok, _} = application:ensure_all_started(opentelemetry),
+
+    Config1;
+init_per_testcase(dropped_attributes_ignore_old_config, Config) ->
+    Config1 = set_batch_tab_processor(Config),
+
+    application:set_env(opentelemetry, attribute_value_length_limit, 500),
+    application:set_env(opentelemetry, attribute_limits, #{attribute_value_length_limit => 2,
+                                                           attribute_count_limit => 1}),
     {ok, _} = application:ensure_all_started(opentelemetry),
 
     Config1;
@@ -169,6 +179,7 @@ end_per_testcase(propagator_configuration_with_os_env, _Config) ->
     ok;
 end_per_testcase(_, _Config) ->
     application:unset_env(opentelemetry, attribute_value_length_limit),
+    application:unset_env(opentelemetry, attribute_limits),
     _ = application:stop(opentelemetry),
     ok.
 
@@ -453,7 +464,6 @@ macros(Config) ->
     otel_span:end_span(SpanCtx1),
 
     [Span1] = assert_exported(Tid, SpanCtx1),
-
     ?assertEqual(#{Attr1 => AttrValue1}, otel_attributes:map(Span1#span.attributes)),
 
     ok.
@@ -1002,6 +1012,22 @@ record_exception_with_message_works(Config) ->
     end.
 
 dropped_attributes(Config) ->
+    Tid = ?config(tid, Config),
+    SpanCtx = ?start_span(<<"span-1">>),
+
+    ?set_current_span(SpanCtx),
+
+    ?set_attribute(<<"attr-1">>, <<"attr-value-1">>),
+    ?set_attribute(<<"attr-2">>, {non_homogeneous, <<"attribute">>}),
+
+    otel_span:end_span(SpanCtx),
+    [Span] = assert_exported(Tid, SpanCtx),
+
+    ?assertEqual(#{<<"attr-1">> => <<"at">>}, otel_attributes:map(Span#span.attributes)),
+
+    ok.
+
+dropped_attributes_ignore_old_config(Config) ->
     Tid = ?config(tid, Config),
     SpanCtx = ?start_span(<<"span-1">>),
 
