@@ -671,9 +671,9 @@ multiple_tracer_providers(_Config) ->
                                                          Resource,
                                                          #{id_generator => otel_id_generator,
                                                            sampler => {otel_sampler_always_on, []},
-                                                           processors => [{otel_batch_processor, #{name => test_batch,
-                                                                                                   scheduled_delay_ms => 1,
-                                                                                                   exporter => {otel_exporter_pid, self()}}}],
+                                                           tracer_provider => #{processors => [{batch, #{name => test_batch,
+                                                                                                         schedule_delay => 1,
+                                                                                                         exporter => {otel_exporter_pid, self()}}}]},
                                                            deny_list => []})),
     ?assertEqual(Resource, otel_tracer_provider:resource(test_provider)),
 
@@ -681,9 +681,10 @@ multiple_tracer_providers(_Config) ->
     ?assertMatch({ok, _}, opentelemetry:start_tracer_provider(deprecated_test_provider_start,
                                                               #{id_generator => otel_id_generator,
                                                                 sampler => {otel_sampler_always_on, []},
-                                                                processors => [{otel_batch_processor, #{name => test_batch_2,
-                                                                                                        scheduled_delay_ms => 1000,
-                                                                                                        exporter => {otel_exporter_pid, self()}}}],
+                                                                tracer_provider =>
+                                                                    #{processors => [{batch, #{name => test_batch_2,
+                                                                                               schedule_delay => 1,
+                                                                                               exporter => {otel_exporter_pid, self()}}}]},
                                                                 deny_list => []})),
 
     ?assertEqual(otel_resource:create([]), otel_tracer_provider:resource(deprecated_test_provider_start)),
@@ -707,7 +708,7 @@ multiple_tracer_providers(_Config) ->
             ?assertEqual(<<"span-1">>, Span#span.name)
     after
         1000 ->
-            ct:fail(failed)
+            ct:fail(failed1)
     end,
 
     %% now a span with the tracer from the non-global tracer provider
@@ -723,7 +724,7 @@ multiple_tracer_providers(_Config) ->
             ?assertEqual(<<"span-2">>, Span1#span.name)
     after
         1000 ->
-            ct:fail(failed)
+            ct:fail(failed2)
     end,
 
     ok.

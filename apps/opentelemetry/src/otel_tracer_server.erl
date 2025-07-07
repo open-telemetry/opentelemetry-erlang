@@ -61,8 +61,10 @@ start_link(Name, RegName, SpanProcessorSupRegName, Resource, Config) ->
 init([Name, SpanProcessorSup, Resource, Config]) ->
     IdGeneratorModule = maps:get(id_generator, Config, otel_id_generator),
     SamplerSpec = maps:get(sampler, Config, {parent_based, #{root => always_on}}),
-    Processors = maps:get(processors, Config, [{otel_batch_processor, #{}}]),
     DenyList = maps:get(deny_list, Config, []),
+
+    TracerProviderConfig = maps:get(tracer_provider, Config, #{}),
+    Processors = maps:get(processors, TracerProviderConfig, [{otel_batch_processor, #{}}]),
 
     Sampler = otel_sampler:new(SamplerSpec),
 
@@ -136,8 +138,8 @@ update_force_flush_error(Reason, {error, List}) ->
 %% is only one, like was once guaranteed. This allows functions like `set_exporter'
 %% to work. But if there is more than one processor defined or it isn't one of the
 %% builtin processors we will not do this hack of adding a name to the config.
-init_processors(SpanProcessorSup, [{P, Config}]) when P =:= otel_batch_processor ;
-                                                      P =:= otel_simple_processor ->
+init_processors(SpanProcessorSup, [{P, Config}]) when P =:= batch ;
+                                                      P =:= simple ->
     case init_processor(SpanProcessorSup, P, maps:merge(#{name => global}, Config)) of
         {true, {_, _}=Processor} ->
             [Processor];
@@ -157,6 +159,10 @@ init_processors_(SpanProcessorSup, [{P, Config} | Rest]) ->
             init_processors_(SpanProcessorSup, Rest)
     end.
 
+init_processor(SpanProcessorSup, batch, Config) ->
+    init_processor(SpanProcessorSup, otel_batch_processor, Config);
+init_processor(SpanProcessorSup, simple, Config) ->
+    init_processor(SpanProcessorSup, otel_simple_processor, Config);
 init_processor(SpanProcessorSup, ProcessorModule, Config) ->
     %% start_link is an optional callback for processors
     case lists:member({start_link, 1}, ProcessorModule:module_info(exports)) of

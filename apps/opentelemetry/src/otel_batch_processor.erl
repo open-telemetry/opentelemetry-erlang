@@ -147,8 +147,8 @@ init([Args=#{reg_name := RegName}]) ->
     process_flag(trap_exit, true),
 
     SizeLimit = maps:get(max_queue_size, Args, ?DEFAULT_MAX_QUEUE_SIZE),
-    ExportingTimeout = maps:get(exporting_timeout_ms, Args, ?DEFAULT_EXPORTER_TIMEOUT_MS),
-    ScheduledDelay = maps:get(scheduled_delay_ms, Args, ?DEFAULT_SCHEDULED_DELAY_MS),
+    ExportingTimeout = maps:get(export_timeout, Args, ?DEFAULT_EXPORTER_TIMEOUT_MS),
+    ScheduledDelay = maps:get(schedule_delay, Args, ?DEFAULT_SCHEDULED_DELAY_MS),
     CheckTableSize = maps:get(check_table_size_ms, Args, ?DEFAULT_CHECK_TABLE_SIZE_MS),
 
     %% TODO: this should be passed in from the tracer server

@@ -36,7 +36,7 @@ init([Name, Resource, Opts]) ->
     %% supervisors and the tracer provider itself.
     %% in the case of the global provider the name is `global'
     SpanProcessorSupRegName = list_to_atom(lists:concat([otel_span_processor_sup, "_", Name])),
-    TracerServeRegName = list_to_atom(lists:concat([otel_tracer_provider, "_", Name])),
+    TracerServerRegName = list_to_atom(lists:concat([otel_tracer_provider, "_", Name])),
 
     SpanProcessorSup = #{id => otel_span_processor_sup,
                          start => {otel_span_processor_sup, start_link, [SpanProcessorSupRegName]},
@@ -47,7 +47,7 @@ init([Name, Resource, Opts]) ->
 
     TracerServer = #{id => otel_tracer_server,
                      start => {otel_tracer_server, start_link, [Name,
-                                                                TracerServeRegName,
+                                                                TracerServerRegName,
                                                                 SpanProcessorSupRegName,
                                                                 Resource,
                                                                 Opts]},

@@ -44,7 +44,10 @@
 
 -type span_processor_type() :: batch | simple | atom().
 
--type span_processor() :: #{span_processor_type() => batch_span_processor() | simple_span_processor() | otel_config_properties:t()}.
+-type span_processor() :: batch_span_processor() |
+                          simple_span_processor() |
+                          otel_config_properties:t()
+-type span_processors() :: #{span_processor_type() => span_processor()}.
 
 -type propagator() :: tracecontext | baggage | b3 | b3multi | jaeger | ottrace | atom().
 
@@ -54,7 +57,7 @@
                attribute_limits => attribute_limits(),
                propagator := #{composite => [propagator()],
                                composite_list => string()},
-               tracer_provider => #{processors => [span_processor()],
+               tracer_provider => #{processors => [span_processors()],
                                     limits => #{},
                                     sampler => #{}}
               }.
@@ -164,10 +167,73 @@ merge_with_os(Config) ->
 
 -spec convert_to_new(#{}, map()) -> t().
 convert_to_new(OldConfig, Config) ->
-    convert_propagator(
-      convert_resource(
-        convert_attribute_limits(
-          convert_disabled(OldConfig, Config), Config), Config), Config).
+    convert_tracer_provider(
+      convert_propagator(
+        convert_resource(
+          convert_attribute_limits(
+            convert_disabled(OldConfig, Config), Config), Config), Config), Config).
+
+convert_tracer_provider(OldConfig, Config) ->
+    %%                    bsp_scheduled_delay_ms := integer() | undefined,
+    %%                    bsp_exporting_timeout_ms := integer() | undefined,
+    %%                    bsp_max_queue_size := integer() | undefined,
+    %%                    ssp_exporting_timeout_ms := integer() | undefined,
+    %%                    traces_exporter := {atom(), term()} | none | undefined,
+    %%                    processors := list(),
+    %%                    sampler := {atom(), term()},
+    case lists:keyfind(tracer_provider, 1, Config) of
+        {tracer_provider, TracerProvider} ->
+            OldConfig#{tracer_provider => TracerProvider};
+        false ->
+            case maps:take(processors, OldConfig) of
+                error ->
+                    OldConfig;
+                {Processors, OldConfig1} ->
+                    NewProcessors = lists:map(fun({otel_batch_processor, BatchConfig}) ->
+                                                      {batch, convert_batch(BatchConfig)};
+                                                 ({otel_simple_processor, SimpleConfig}) ->
+                                                      {simple, convert_simple(SimpleConfig)}
+                                              end, Processors),
+                    OldConfig1#{tracer_provider => #{processors => NewProcessors}}
+            end
+    end.
+
+convert_simple(SimpleConfig) ->
+    SimpleConfig1 = update_processor_config(SimpleConfig, [{exporting_timeout_ms, export_timeout}]),
+
+    case maps:take(exporter, SimpleConfig1) of
+        {ExporterConfig, SimpleConfig2} ->
+            SimpleConfig2#{exporter => convert_exporter(ExporterConfig)};
+        error ->
+            SimpleConfig1
+    end.
+
+convert_batch(BatchConfig) ->
+    BatchConfig1 = update_processor_config(BatchConfig, [{scheduled_delay_ms, schedule_delay},
+                                                         {exporting_timeout_ms, export_timeout}
+                                                         %% {max_queue_size, max_queue_size},
+                                                         %% {max_export_batch_size},
+                                                        ]),
+
+    case maps:take(exporter, BatchConfig1) of
+        error ->
+            BatchConfig1;
+        {ExporterValue, BatchConfig2} ->
+            BatchConfig2#{exporter => convert_exporter(ExporterValue)}
+    end.
+
+update_processor_config(Config, Options) ->
+    lists:foldl(fun({OldKey, NewKey}, ConfigAcc) ->
+                        case maps:take(OldKey, ConfigAcc) of
+                            error ->
+                                ConfigAcc;
+                            {Value, ConfigAcc1} ->
+                                ConfigAcc1#{NewKey => Value}
+                        end
+                end, Config, Options).
+
+convert_exporter(ExporterConfig) ->
+    ExporterConfig.
 
 %% convert the old `text_map_propagators' config into the new `propagator' config
 %% based on the declarative file configuration of otel
