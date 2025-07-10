@@ -208,21 +208,17 @@ $ python3 test.py http://127.0.0.1:5000/test
 
 ### Maintainers
 
-- [Tristan Sloughter](https://github.com/tsloughter), [Splunk](https://www.splunk.com/en_us/observability/apm-application-performance-monitoring.html)
 - [Bryan Naegele](https://github.com/bryannaegele), [Simplebet](https://simplebet.io/)
-- [Łukasz Jan Niemier](https://github.com/hauleth)
 - [Iliia Khaprov](https://github.com/deadtrickster), [VMWare](https://www.vmware.com/)
+- [Łukasz Jan Niemier](https://github.com/hauleth)
+- [Tristan Sloughter](https://github.com/tsloughter), [Splunk](https://www.splunk.com/en_us/observability/apm-application-performance-monitoring.html)
 
 For more information about the maintainer role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#maintainer).
 
 ### Approvers
 
-- [Tristan Sloughter](https://github.com/tsloughter), [Splunk](https://www.splunk.com/en_us/observability/apm-application-performance-monitoring.html)
-- [Bryan Naegele](https://github.com/bryannaegele), [Simplebet](https://simplebet.io/)
-- [Greg Mefford](https://github.com/GregMefford), [STORD](https://www.stord.com/)
 - [Fred Hebert](https://github.com/ferd), [Honeycomb](https://www.honeycomb.io/)
-- [Łukasz Jan Niemier](https://github.com/hauleth)
-- [Iliia Khaprov](https://github.com/deadtrickster), [VMWare](https://www.vmware.com/)
+- [Greg Mefford](https://github.com/GregMefford), [STORD](https://www.stord.com/)
 
 For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).
 
