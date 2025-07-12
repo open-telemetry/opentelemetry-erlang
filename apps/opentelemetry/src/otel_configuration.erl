@@ -46,10 +46,36 @@
 
 -type span_processor() :: batch_span_processor() |
                           simple_span_processor() |
-                          otel_config_properties:t()
+                          otel_config_properties:t().
 -type span_processors() :: #{span_processor_type() => span_processor()}.
 
 -type propagator() :: tracecontext | baggage | b3 | b3multi | jaeger | ottrace | atom().
+
+-type limits() :: #{%% Configure max attribute value size. Overrides .attribute_limits.attribute_value_length_limit.
+                    %% Value must be non-negative.
+                    %% If omitted or undefined, there is no limit.
+                    attribute_value_length_limit => integer() | undefined,
+                    %% Configure max attribute count. Overrides .attribute_limits.attribute_count_limit.
+                    %% Value must be non-negative.
+                    %% If omitted or undefined, 128 is used.
+                    attribute_count_limit => integer() | undefined,
+                    %% Configure max span event count.
+                    %% Value must be non-negative.
+                    %% If omitted or undefined, 128 is used.
+                    event_count_limit => integer() | undefined,
+                    %% Configure max span link count.
+                    %% Value must be non-negative.
+                    %% If omitted or undefined, 128 is used.
+                    link_count_limit => integer() | undefined,
+                    %% Configure max attributes per span event.
+                    %% Value must be non-negative.
+                    %% If omitted or undefined, 128 is used.
+                    event_attribute_count_limit => integer() | undefined,
+                    %% Configure max attributes per span link.
+                    %% Value must be non-negative.
+                    %% If omitted or undefined, 128 is used.
+                    link_attribute_count_limit => integer() | undefined
+                   }.
 
 -type t() :: #{disabled => boolean(),
                log_level => log_level(),
@@ -58,7 +84,7 @@
                propagator := #{composite => [propagator()],
                                composite_list => string()},
                tracer_provider => #{processors => [span_processors()],
-                                    limits => #{},
+                                    limits => limits(),
                                     sampler => #{}}
               }.
 
@@ -187,6 +213,7 @@ convert_tracer_provider(OldConfig, Config) ->
         false ->
             case maps:take(processors, OldConfig) of
                 error ->
+                    TracerProvider = convert_span_limits(OldConfig),
                     OldConfig;
                 {Processors, OldConfig1} ->
                     NewProcessors = lists:map(fun({otel_batch_processor, BatchConfig}) ->
@@ -194,9 +221,33 @@ convert_tracer_provider(OldConfig, Config) ->
                                                  ({otel_simple_processor, SimpleConfig}) ->
                                                       {simple, convert_simple(SimpleConfig)}
                                               end, Processors),
-                    OldConfig1#{tracer_provider => #{processors => NewProcessors}}
+
+                    TracerProvider = convert_span_limits(OldConfig),
+
+                    OldConfig1#{tracer_provider => TracerProvider#{processors => NewProcessors}}
             end
     end.
+
+convert_span_limits(OldConfig) ->
+    AttributeLimits = maps:get(attribute_limits, OldConfig, #{}),
+    #{limits => new_map_updated_keys(maps:merge(OldConfig, AttributeLimits),
+                                     [{attribute_count_limit, attribute_count_limit},
+                                      {attribute_value_length_limit, attribute_value_length_limit},
+                                      {event_count_limit, event_count_limit},
+                                      {link_count_limit, link_count_limit},
+                                      {attribute_per_event_limit, event_attribute_count_limit},
+                                      {attribute_per_link_limit, link_attribute_count_limit}])}.
+
+new_map_updated_keys(Config, Options) ->
+    lists:foldl(fun({OldKey, NewKey}, ConfigAcc) ->
+                        case maps:find(OldKey, Config) of
+                            error ->
+                                ConfigAcc;
+                            {ok, Value} ->
+                                ConfigAcc#{NewKey => Value}
+                        end
+                end, #{}, Options).
+
 
 convert_simple(SimpleConfig) ->
     SimpleConfig1 = update_processor_config(SimpleConfig, [{exporting_timeout_ms, export_timeout}]),

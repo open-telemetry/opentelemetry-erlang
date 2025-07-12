@@ -370,8 +370,14 @@ compare_span_limits(Config) ->
     ok.
 
 span_processors(_Config) ->
-    ?assertMatch(#{tracer_provider := #{processors := [{simple, #{}}]}},
-                 otel_configuration:merge_with_os([{span_processor, simple}])),
+    ?assertMatch(#{tracer_provider := #{processors := [{simple, #{}}],
+                                        limits := #{attribute_value_length_limit := 10,
+                                                    event_attribute_count_limit := 400,
+                                                    event_count_limit := 20}}},
+                 otel_configuration:merge_with_os([{span_processor, simple},
+                                                   {attribute_value_length_limit, 10},
+                                                   {attribute_per_event_limit, 400},
+                                                   {event_count_limit, 20}])),
 
     ?assertMatch(#{tracer_provider :=
                        #{processors := [{batch, #{export_timeout := 2,
