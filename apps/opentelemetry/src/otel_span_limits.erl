@@ -37,14 +37,14 @@ get() ->
 
 -spec set(otel_configuration:t()) -> ok.
 set(Config) ->
-    AttributeLimits = maps:get(attribute_limits, Config, #{}),
-    AttributeCountLimit = maps:get(attribute_count_limit, AttributeLimits, 128),
-    AttributeValueLengthLimit = maps:get(attribute_value_length_limit, AttributeLimits, infinity),
+    AttributeLimits = otel_configuration:defined_or_default(attribute_limits, Config, #{}),
+    AttributeCountLimit = otel_configuration:defined_or_default(attribute_count_limit, AttributeLimits, 128),
+    AttributeValueLengthLimit = otel_configuration:defined_or_default(attribute_value_length_limit, AttributeLimits, infinity),
 
-    EventCountLimit = maps:get(event_count_limit, Config, 128),
-    LinkCountLimit = maps:get(link_count_limit, Config, 128),
-    AttributePerEventLimit = maps:get(attribute_per_event_limit, Config, 128),
-    AttributePerLinkLimit = maps:get(attribute_per_link_limit, Config, 128),
+    EventCountLimit = otel_configuration:defined_or_default(event_count_limit, Config, 128),
+    LinkCountLimit = otel_configuration:defined_or_default(link_count_limit, Config, 128),
+    AttributePerEventLimit = otel_configuration:defined_or_default(attribute_per_event_limit, Config, 128),
+    AttributePerLinkLimit = otel_configuration:defined_or_default(attribute_per_link_limit, Config, 128),
     SpanLimits = #span_limits{attribute_count_limit=AttributeCountLimit,
                               attribute_value_length_limit=AttributeValueLengthLimit,
                               event_count_limit=EventCountLimit,
@@ -52,6 +52,7 @@ set(Config) ->
                               attribute_per_event_limit=AttributePerEventLimit,
                               attribute_per_link_limit=AttributePerLinkLimit},
     persistent_term:put(?SPAN_LIMITS_KEY, SpanLimits).
+
 
 attribute_count_limit() ->
     get_limit(attribute_count_limit, ?MODULE:get()).

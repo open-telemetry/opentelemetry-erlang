@@ -100,7 +100,7 @@
 
 %% @doc Returns a sampler based on the given specification. This is left for backwards
 %% compatibility. The function `new/2' should be used instead.
--spec new(SamplerSpec :: sampler_spec()) -> t().
+-spec new(SamplerSpec :: sampler_spec() | always_on | always_off) -> t().
 new(always_on) ->
     new({otel_sampler_always_on, #{}});
 new(always_off) ->

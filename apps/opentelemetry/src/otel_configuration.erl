@@ -23,6 +23,7 @@
          merge_with_os/1,
          merge_list_with_environment/3,
          transform/2,
+         defined_or_default/3,
          report_cb/1]).
 
 -type log_level() :: atom().
@@ -88,7 +89,13 @@
                                     root => sampler()}}
                  | {atom(), otel_config_properties:t()}.
 
--type t() :: #{disabled => boolean(),
+-type t() :: #{
+               register_loaded_applications => boolean() | undefined,
+               create_application_tracers => boolean() | undefined,
+               id_generator => module(),
+               deny_list => list(),
+
+               disabled => boolean(),
                log_level => log_level(),
                resource => #{attributes => opentelemetry:attributes_map()},
                attribute_limits => attribute_limits(),
@@ -98,6 +105,8 @@
                                     limits => limits(),
                                     sampler => sampler()}
               }.
+
+-type old_t() :: map().
 
 %% structure before the standard otel declarative configuration
 %% -type old_t() :: #{sdk_disabled := boolean(),
@@ -188,6 +197,16 @@ new() ->
 %%                    attribute_per_event_limit => 128,
 %%                    attribute_per_link_limit => 128}, old_t()).
 
+defined_or_default(Key, Map, Default) ->
+    case maps:find(Key, Map) of
+        error ->
+            Default;
+        {ok, undefined} ->
+            Default;
+        {ok, Value} ->
+            Value
+    end.
+
 %% constructs a config based on the flat format and merges with the new
 %% nested configuration from the declarative configuration SIG
 -spec merge_with_os(list()) -> t().
@@ -202,7 +221,7 @@ merge_with_os(Config) ->
 
     convert_to_new(OldConfig, Config).
 
--spec convert_to_new(#{}, map()) -> t().
+-spec convert_to_new(map(), list()) -> t().
 convert_to_new(OldConfig, Config) ->
     convert_tracer_provider(
       convert_propagator(
@@ -226,7 +245,7 @@ convert_tracer_provider(OldConfig, Config) ->
                 error ->
                     {TracerProvider, OldConfig1} = convert_sampler(OldConfig),
                     TracerProvider1 = convert_span_limits(TracerProvider, OldConfig1),
-                    OldConfig1#{tracer_provider => maps:merge(TracerProvider1)};
+                    OldConfig1#{tracer_provider => TracerProvider1};
                 {Processors, OldConfig1} ->
                     NewProcessors = lists:map(fun({otel_batch_processor, BatchConfig}) ->
                                                       {batch, convert_batch(BatchConfig)};
@@ -420,11 +439,11 @@ convert_attribute_limits(OldConfig, Config) ->
 
 %% backwards compatability
 
--spec span_limits(list(), t()) -> t().
+-spec span_limits(list(), old_t()) -> old_t().
 span_limits(AppEnv, ConfigMap) ->
     merge_list_with_environment(config_mappings(span_limits), AppEnv, ConfigMap).
 
--spec general(list(), t()) -> t().
+-spec general(list(), old_t()) -> old_t().
 general(AppEnv, ConfigMap) ->
     Config = merge_list_with_environment(config_mappings(general_sdk), AppEnv, ConfigMap),
 
@@ -445,9 +464,9 @@ general(AppEnv, ConfigMap) ->
                                        Bool
                                end, undefined, Config),
 
-    ?assert_type(Config1, t()).
+    ?assert_type(Config1, old_t()).
 
--spec sweeper(list(), t()) -> t().
+-spec sweeper(list(), old_t()) -> old_t().
 sweeper(AppEnv, ConfigMap) ->
     DefaultSweeperConfig = maps:get(sweeper, ConfigMap, #{}),
     AppEnvSweeper = proplists:get_value(sweeper, AppEnv, #{}),
@@ -458,7 +477,7 @@ sweeper(AppEnv, ConfigMap) ->
                                                 DefaultSweeperConfig),
     ConfigMap#{sweeper => SweeperConfig}.
 
--spec processors(list(), t()) -> t().
+-spec processors(list(), old_t()) -> old_t().
 processors(AppEnv, ConfigMap) ->
     SpanProcessors = case transform(span_processor, proplists:get_value(span_processor, AppEnv)) of
                          undefined ->
@@ -525,7 +544,7 @@ is_default(Key, AppEnv, Mappings) ->
 
 %% sampler configuration is unique since it has the _ARG that is a sort of
 %% sub-configuration of the sampler config, and isn't a list.
--spec sampler(list(), t()) -> t().
+-spec sampler(list(), old_t()) -> old_t().
 sampler(AppEnv, ConfigMap) ->
     OSVar = "OTEL_TRACES_SAMPLER",
     Key = sampler,
