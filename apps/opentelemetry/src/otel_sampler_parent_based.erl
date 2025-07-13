@@ -52,12 +52,12 @@
 %% Options to configure this sampler.
 
 %% @private
-setup(Opts = #{root := RootSpec}) ->
-    RemoteParentSampledSampler = sampler_for_spec(remote_parent_sampled, Opts, always_on),
-    RemoteParentNotSampledSampler = sampler_for_spec(remote_parent_not_sampled, Opts, always_off),
-    LocalParentSampledSampler = sampler_for_spec(local_parent_sampled, Opts, always_on),
-    LocalParentNotSampledSampler = sampler_for_spec(local_parent_not_sampled, Opts, always_off),
-    RootSampler = otel_sampler:new(RootSpec),
+setup(Opts = #{root := {RootName, RootSpec}}) ->
+    RemoteParentSampledSampler = sampler_for_spec(remote_parent_sampled, Opts, {always_on, #{}}),
+    RemoteParentNotSampledSampler = sampler_for_spec(remote_parent_not_sampled, Opts, {always_off, #{}}),
+    LocalParentSampledSampler = sampler_for_spec(local_parent_sampled, Opts, {always_on, #{}}),
+    LocalParentNotSampledSampler = sampler_for_spec(local_parent_not_sampled, Opts, {always_off, #{}}),
+    RootSampler = otel_sampler:new(RootName, RootSpec),
     #{
         root => RootSampler,
         remote_parent_sampled => RemoteParentSampledSampler,
@@ -67,11 +67,18 @@ setup(Opts = #{root := RootSpec}) ->
     };
 setup(Opts) ->
     ?LOG_INFO("No sampler spec found for parent_based 'root' option. The 'always_on' sampler will be used for root spans."),
-    setup(Opts#{root => always_on}).
+    setup(Opts#{root => {always_on, #{}}}).
 
-sampler_for_spec(Key, Opts, DefaultModule) ->
-    Spec = maps:get(Key, Opts, DefaultModule),
-    otel_sampler:new(Spec).
+sampler_for_spec(Key, Opts, DefaultSampler) ->
+    case maps:get(Key, Opts, DefaultSampler) of
+        {Name, Opts} ->
+            otel_sampler:new(Name, Opts);
+        %% backwards compatibility: we used to accept a solo name of the sampler for those that
+        %% don't currently take arguments, like `always_on' but have now standardized on all
+        %% samplers being defined with options
+        Name ->
+            otel_sampler:new(Name)
+    end.
 
 %% @private
 description(#{

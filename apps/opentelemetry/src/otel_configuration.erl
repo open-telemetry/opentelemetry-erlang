@@ -19,7 +19,8 @@
 %%%-------------------------------------------------------------------------
 -module(otel_configuration).
 
--export([merge_with_os/1,
+-export([new/0,
+         merge_with_os/1,
          merge_list_with_environment/3,
          transform/2,
          report_cb/1]).
@@ -77,6 +78,16 @@
                     link_attribute_count_limit => integer() | undefined
                    }.
 
+-type sampler() :: {always_on, #{}}
+                 | {always_off, #{}}
+                 | {trace_id_ratio_based, #{ratio => float()}}
+                 | {parent_based, #{remote_parent_sampled => sampler(),
+                                    remote_parent_not_sampled => sampler(),
+                                    local_parent_sampled => sampler(),
+                                    local_parent_not_sampled => sampler(),
+                                    root => sampler()}}
+                 | {atom(), otel_config_properties:t()}.
+
 -type t() :: #{disabled => boolean(),
                log_level => log_level(),
                resource => #{attributes => opentelemetry:attributes_map()},
@@ -85,7 +96,7 @@
                                composite_list => string()},
                tracer_provider => #{processors => [span_processors()],
                                     limits => limits(),
-                                    sampler => #{}}
+                                    sampler => sampler()}
               }.
 
 %% structure before the standard otel declarative configuration
@@ -213,8 +224,9 @@ convert_tracer_provider(OldConfig, Config) ->
         false ->
             case maps:take(processors, OldConfig) of
                 error ->
-                    TracerProvider = convert_span_limits(OldConfig),
-                    OldConfig;
+                    {TracerProvider, OldConfig1} = convert_sampler(OldConfig),
+                    TracerProvider1 = convert_span_limits(TracerProvider, OldConfig1),
+                    OldConfig1#{tracer_provider => maps:merge(TracerProvider1)};
                 {Processors, OldConfig1} ->
                     NewProcessors = lists:map(fun({otel_batch_processor, BatchConfig}) ->
                                                       {batch, convert_batch(BatchConfig)};
@@ -222,21 +234,30 @@ convert_tracer_provider(OldConfig, Config) ->
                                                       {simple, convert_simple(SimpleConfig)}
                                               end, Processors),
 
-                    TracerProvider = convert_span_limits(OldConfig),
+                    {TracerProvider, OldConfig2} = convert_sampler(OldConfig1),
+                    TracerProvider1 = convert_span_limits(TracerProvider, OldConfig2),
 
-                    OldConfig1#{tracer_provider => TracerProvider#{processors => NewProcessors}}
+                    OldConfig2#{tracer_provider => TracerProvider1#{processors => NewProcessors}}
             end
     end.
 
-convert_span_limits(OldConfig) ->
+convert_sampler(OldConfig) ->
+    case maps:take(sampler, OldConfig) of
+        {Sampler, OldConfig1} ->
+            {#{sampler => Sampler}, OldConfig1};
+        error ->
+            {#{}, OldConfig}
+    end.
+
+convert_span_limits(TracerProvider, OldConfig) ->
     AttributeLimits = maps:get(attribute_limits, OldConfig, #{}),
-    #{limits => new_map_updated_keys(maps:merge(OldConfig, AttributeLimits),
-                                     [{attribute_count_limit, attribute_count_limit},
-                                      {attribute_value_length_limit, attribute_value_length_limit},
-                                      {event_count_limit, event_count_limit},
-                                      {link_count_limit, link_count_limit},
-                                      {attribute_per_event_limit, event_attribute_count_limit},
-                                      {attribute_per_link_limit, link_attribute_count_limit}])}.
+    TracerProvider#{limits => new_map_updated_keys(maps:merge(OldConfig, AttributeLimits),
+                                                   [{attribute_count_limit, attribute_count_limit},
+                                                    {attribute_value_length_limit, attribute_value_length_limit},
+                                                    {event_count_limit, event_count_limit},
+                                                    {link_count_limit, link_count_limit},
+                                                    {attribute_per_event_limit, event_attribute_count_limit},
+                                                    {attribute_per_link_limit, link_attribute_count_limit}])}.
 
 new_map_updated_keys(Config, Options) ->
     lists:foldl(fun({OldKey, NewKey}, ConfigAcc) ->
@@ -377,25 +398,25 @@ convert_attribute_limits(OldConfig, Config) ->
 
 
 
--spec resource(list(), t()) -> t().
-resource(AppEnv, ConfigMap) ->
-    Resource = proplists:get_value(resource, AppEnv, []),
-    ConfigMap.
+%% -spec resource(list(), t()) -> t().
+%% resource(AppEnv, ConfigMap) ->
+%%     Resource = proplists:get_value(resource, AppEnv, []),
+%%     ConfigMap.
 
--spec attribute_limits(list(), t()) -> t().
-attribute_limits(AppEnv, ConfigMap) ->
-    AttributeLimits = proplists:get_value(attribute_limits, AppEnv, []),
-    ConfigMap.
+%% -spec attribute_limits(list(), t()) -> t().
+%% attribute_limits(AppEnv, ConfigMap) ->
+%%     AttributeLimits = proplists:get_value(attribute_limits, AppEnv, []),
+%%     ConfigMap.
 
--spec propagator(list(), t()) -> t().
-propagator(AppEnv, ConfigMap) ->
-    Propagator = proplists:get_value(propagator, AppEnv, []),
-    ConfigMap.
+%% -spec propagator(list(), t()) -> t().
+%% propagator(AppEnv, ConfigMap) ->
+%%     Propagator = proplists:get_value(propagator, AppEnv, []),
+%%     ConfigMap.
 
--spec tracer_provider(list(), t()) -> t().
-tracer_provider(AppEnv, ConfigMap) ->
-    TracerProvider = proplists:get_value(tracer_provider, AppEnv, []),
-    ConfigMap.
+%% -spec tracer_provider(list(), t()) -> t().
+%% tracer_provider(AppEnv, ConfigMap) ->
+%%     TracerProvider = proplists:get_value(tracer_provider, AppEnv, []),
+%%     ConfigMap.
 
 %% backwards compatability
 
@@ -698,21 +719,21 @@ transform(url, Value) ->
     uri_string:parse(Value);
 %% convert sampler string to usable configuration term
 transform(sampler, {"parentbased_always_on", _}) ->
-    {parent_based, #{root => always_on}};
+    {parent_based, #{root => {always_on, #{}}}};
 transform(sampler, {"parentbased_always_off", _}) ->
-    {parent_based, #{root => always_off}};
+    {parent_based, #{root => {always_off, #{}}}};
 transform(sampler, {"always_on", _}) ->
-    always_on;
+    {always_on, #{}};
 transform(sampler, {"always_off", _}) ->
-    always_off;
+    {always_off, #{}};
 transform(sampler, {"traceidratio", false}) ->
-    {trace_id_ratio_based, 1.0};
+    {trace_id_ratio_based, #{ratio => 1.0}};
 transform(sampler, {"traceidratio", Probability}) ->
-    {trace_id_ratio_based, probability_string_to_float(Probability)};
+    {trace_id_ratio_based, #{ratio => probability_string_to_float(Probability)}};
 transform(sampler, {"parentbased_traceidratio", false}) ->
-    {parent_based, #{root => {trace_id_ratio_based, 1.0}}};
+    {parent_based, #{root => {trace_id_ratio_based, #{ratio => 1.0}}}};
 transform(sampler, {"parentbased_traceidratio", Probability}) ->
-    {parent_based, #{root => {trace_id_ratio_based, probability_string_to_float(Probability)}}};
+    {parent_based, #{root => {trace_id_ratio_based, #{ratio => probability_string_to_float(Probability)}}}};
 transform(sampler, Value) ->
     Value;
 transform(key_value_list, Value) when is_list(Value) ->

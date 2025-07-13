@@ -33,7 +33,7 @@ all() ->
      {group, otel_batch_processor}].
 
 all_cases() ->
-    [with_span, macros, child_spans, disabled_sdk,
+    [with_span, macros, child_spans, disabled_sdk, always_off,
      update_span_data, tracer_instrumentation_scope, tracer_previous_ctx, stop_temporary_app,
      reset_after, attach_ctx, default_sampler, non_recording_ets_table,
      root_span_sampling_always_on, root_span_sampling_always_off,
@@ -77,6 +77,11 @@ init_per_testcase(old_disable_auto_creation, Config) ->
     application:set_env(opentelemetry, register_loaded_applications, false),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
+init_per_testcase(always_off, Config) ->
+    application:set_env(opentelemetry, sampler, always_off),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config1 = set_batch_tab_processor(1000000, Config),
+    Config1;
 init_per_testcase(application_tracers, Config) ->
     %% if both are set then the new one, `create_application_tracers', is used
     application:set_env(opentelemetry, register_loaded_applications, false),
@@ -176,6 +181,11 @@ end_per_testcase(old_disable_auto_creation, _Config) ->
 end_per_testcase(propagator_configuration_with_os_env, _Config) ->
     os:unsetenv("OTEL_PROPAGATORS"),
     _ = application:stop(opentelemetry),
+    ok;
+end_per_testcase(always_off, _Config) ->
+    application:unset_env(opentelemetry, sampler),
+    _ = application:stop(opentelemetry),
+    _ = application:unload(opentelemetry),
     ok;
 end_per_testcase(_, _Config) ->
     application:unset_env(opentelemetry, attribute_value_length_limit),
@@ -355,6 +365,21 @@ new_propagator_configuration(_Config) ->
     ?assertEqual({otel_propagator_text_map_composite,
                   [{otel_propagator_b3,b3multi},otel_propagator_baggage, otel_propagator_trace_context]}, opentelemetry:get_text_map_injector()),
     ok.
+
+always_off(Config) ->
+    Tid = ?config(tid, Config),
+    SpanCtx1 = ?start_span(<<"span-1">>),
+
+    ?set_current_span(SpanCtx1),
+
+    otel_span:end_span(SpanCtx1),
+
+    otel_tracer_provider:force_flush(),
+
+    assert_not_exported(Tid, SpanCtx1),
+
+    ok.
+
 
 force_flush(Config) ->
     Tid = ?config(tid, Config),
@@ -894,7 +919,7 @@ non_recording_ets_table(_Config) ->
     SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{}),
     ?assertMatch(true, SpanCtx1#span_ctx.is_recording),
 
-    AlwaysOff = otel_sampler:new(always_off),
+    AlwaysOff = otel_sampler:new(always_off, undefined),
     Tracer1 = {TracerModule, TracerConfig#tracer{sampler=AlwaysOff}},
     SpanCtx2 = otel_tracer:start_span(Tracer1, <<"span-2">>, #{}),
     ?assertMatch(false, SpanCtx2#span_ctx.is_recording),

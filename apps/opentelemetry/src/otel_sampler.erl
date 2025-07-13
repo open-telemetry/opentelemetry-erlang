@@ -33,7 +33,10 @@
 %%%-------------------------------------------------------------------------
 -module(otel_sampler).
 
--export([description/1, new/1, should_sample/7]).
+-export([description/1,
+         new/1,
+         new/2,
+         should_sample/7]).
 
 -export_type([description/0,
               sampler_spec/0,
@@ -73,19 +76,13 @@
 %% Any options passed to a sampler.
 
 -type builtin_sampler() ::
-    always_on
-    | always_off
-    | {trace_id_ratio_based, float()}
-    | {parent_based, #{
-        remote_parent_sampled => sampler_spec(),
-        remote_parent_not_sampled => sampler_spec(),
-        local_parent_sampled => sampler_spec(),
-        local_parent_not_sampled => sampler_spec(),
-        root => sampler_spec()
-    }}.
+        always_on
+      | always_off
+      | trace_id_ratio_based
+      | parent_based.
 %% A built-in sampler.
 
--type sampler_spec() :: builtin_sampler() | {module(), sampler_opts()}.
+-type sampler_spec() :: {builtin_sampler() | atom(), sampler_opts()}.
 %% Specification to create a sampler.
 
 -type sampling_decision() :: ?DROP | ?RECORD_ONLY | ?RECORD_AND_SAMPLE.
@@ -101,17 +98,35 @@
 -opaque t() :: {module(), description(), sampler_opts()}.
 %% A sampler.
 
-%% @doc Returns a sampler based on the given specification.
+%% @doc Returns a sampler based on the given specification. This is left for backwards
+%% compatibility. The function `new/2' should be used instead.
 -spec new(SamplerSpec :: sampler_spec()) -> t().
 new(always_on) ->
     new({otel_sampler_always_on, #{}});
 new(always_off) ->
     new({otel_sampler_always_off, #{}});
+new({always_on, Opts}) ->
+    new({otel_sampler_always_on, Opts});
+new({always_off, Opts}) ->
+    new({otel_sampler_always_off, Opts});
 new({trace_id_ratio_based, Opts}) ->
     new({otel_sampler_trace_id_ratio_based, Opts});
 new({parent_based, Opts}) ->
     new({otel_sampler_parent_based, Opts});
 new({Sampler, Opts}) ->
+    Config = Sampler:setup(Opts),
+    {Sampler, Sampler:description(Config), Config}.
+
+-spec new(builtin_sampler() | atom(), sampler_opts()) -> t().
+new(always_on, Opts) ->
+    new(otel_sampler_always_on, Opts);
+new(always_off, Opts) ->
+    new(otel_sampler_always_off, Opts);
+new(trace_id_ratio_based, Opts) ->
+    new(otel_sampler_trace_id_ratio_based, Opts);
+new(parent_based, Opts) ->
+    new(otel_sampler_parent_based, Opts);
+new(Sampler, Opts) ->
     Config = Sampler:setup(Opts),
     {Sampler, Sampler:description(Config), Config}.
 

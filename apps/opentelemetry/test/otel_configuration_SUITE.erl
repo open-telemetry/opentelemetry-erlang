@@ -16,7 +16,7 @@
                       end, X)).
 
 all() ->
-    [empty_os_environment, sampler, sampler_parent_based, sampler_parent_based_zero,
+    [empty_os_environment, no_sampler, sampler, sampler_parent_based, sampler_parent_based_zero,
      sampler_trace_id, sampler_trace_id_default, sampler_parent_based_one,
      log_level, propagators, propagators_b3, propagators_b3multi, otlp_exporter,
      jaeger_exporter, zipkin_exporter, none_exporter, app_env_exporter,
@@ -46,6 +46,12 @@ init_per_testcase(propagators_b3, Config) ->
     [{os_vars, Vars} | Config];
 init_per_testcase(propagators_b3multi, Config) ->
     Vars = [{"OTEL_PROPAGATORS", "b3multi"}],
+
+    setup_env(Vars),
+
+    [{os_vars, Vars} | Config];
+init_per_testcase(no_sampler, Config) ->
+    Vars = [],
 
     setup_env(Vars),
 
@@ -206,39 +212,45 @@ empty_os_environment(_Config) ->
 
     ok.
 
+no_sampler(_Config) ->
+    ?assertMatch(error,
+                 maps:find(sampler, maps:get(tracer_provider, otel_configuration:merge_with_os([])))),
+
+    ok.
+
 sampler(_Config) ->
-    ?assertMatch({parent_based, #{root := always_off}},
-                 maps:get(sampler, otel_configuration:merge_with_os([]))),
+    ?assertMatch({parent_based, #{root := {always_off, _}}},
+                 maps:get(sampler, maps:get(tracer_provider, otel_configuration:merge_with_os([])))),
 
     ok.
 
 sampler_parent_based(_Config) ->
-    ?assertMatch({parent_based, #{root := {trace_id_ratio_based, 0.5}}},
-                 maps:get(sampler, otel_configuration:merge_with_os([]))),
+    ?assertMatch({parent_based, #{root := {trace_id_ratio_based, #{ratio := 0.5}}}},
+                 maps:get(sampler, maps:get(tracer_provider, otel_configuration:merge_with_os([])))),
 
     ok.
 
 sampler_trace_id(_Config) ->
-    ?assertMatch({trace_id_ratio_based, 0.5},
-                 maps:get(sampler, otel_configuration:merge_with_os([]))),
+    ?assertMatch({trace_id_ratio_based, #{ratio := 0.5}},
+                 maps:get(sampler, maps:get(tracer_provider, otel_configuration:merge_with_os([])))),
 
     ok.
 
 sampler_trace_id_default(_Config) ->
-    ?assertMatch({trace_id_ratio_based, 1.0},
-                 maps:get(sampler, otel_configuration:merge_with_os([]))),
+    ?assertMatch({trace_id_ratio_based, #{ratio := 1.0}},
+                 maps:get(sampler, maps:get(tracer_provider, otel_configuration:merge_with_os([])))),
 
     ok.
 
 sampler_parent_based_one(_Config) ->
-    ?assertMatch({parent_based, #{root := {trace_id_ratio_based, 1.0}}},
-                 maps:get(sampler, otel_configuration:merge_with_os([]))),
+    ?assertMatch({parent_based, #{root := {trace_id_ratio_based, #{ratio := 1.0}}}},
+                 maps:get(sampler, maps:get(tracer_provider, otel_configuration:merge_with_os([])))),
 
     ok.
 
 sampler_parent_based_zero(_Config) ->
-    ?assertMatch({parent_based, #{root := {trace_id_ratio_based, +0.0}}},
-                 maps:get(sampler, otel_configuration:merge_with_os([]))),
+    ?assertMatch({parent_based, #{root := {trace_id_ratio_based, #{ratio := +0.0}}}},
+                 maps:get(sampler, maps:get(tracer_provider, otel_configuration:merge_with_os([])))),
 
     ok.
 
