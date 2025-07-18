@@ -24,8 +24,18 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
 start(_StartType, _StartArgs) ->
-    Config = otel_configuration:merge_with_os(
-               application:get_all_env(opentelemetry)),
+    Env = application:get_all_env(opentelemetry),
+    Config = case os:getenv("OTEL_EXPERIMENTAL_CONFIG_FILE") of
+                 false ->
+                     case proplists:get_value(config_file, Env) of
+                         undefined ->
+                             otel_configuration:merge_with_os(Env);
+                         File ->
+                             otel_file_configuration:parse_file(File)
+                     end;
+                 File ->
+                     otel_file_configuration:parse_file(File)
+             end,
 
     %% set the global propagators for HTTP based on the application env
     %% these get set even if the SDK is disabled
