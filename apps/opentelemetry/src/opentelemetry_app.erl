@@ -31,10 +31,10 @@ start(_StartType, _StartArgs) ->
                          undefined ->
                              otel_configuration:merge_with_os(Env);
                          File ->
-                             otel_file_configuration:parse_file(File)
+                             otel_configuration:merge_with_env(otel_file_configuration:parse_file(File), Env)
                      end;
                  File ->
-                     otel_file_configuration:parse_file(File)
+                     otel_configuration:merge_with_env(otel_file_configuration:parse_file(File), Env)
              end,
 
     %% set the global propagators for HTTP based on the application env

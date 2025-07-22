@@ -20,6 +20,7 @@
 -module(otel_configuration).
 
 -export([new/0,
+         merge_with_env/2,
          merge_with_os/1,
          merge_list_with_environment/3,
          transform/2,
@@ -31,6 +32,8 @@
 -type attribute_limits() :: #{attribute_value_length_limit => integer() | undefined,
                               attribute_count_limit => integer() | undefined
                              }.
+
+-type propagator() :: tracecontext | baggage | b3 | b3multi | jaeger | ottrace | atom().
 
 -type exporter_args() :: map().
 
@@ -51,33 +54,6 @@
                           otel_config_properties:t().
 -type span_processors() :: #{span_processor_type() => span_processor()}.
 
--type propagator() :: tracecontext | baggage | b3 | b3multi | jaeger | ottrace | atom().
-
--type limits() :: #{%% Configure max attribute value size. Overrides .attribute_limits.attribute_value_length_limit.
-                    %% Value must be non-negative.
-                    %% If omitted or undefined, there is no limit.
-                    attribute_value_length_limit => integer() | undefined,
-                    %% Configure max attribute count. Overrides .attribute_limits.attribute_count_limit.
-                    %% Value must be non-negative.
-                    %% If omitted or undefined, 128 is used.
-                    attribute_count_limit => integer() | undefined,
-                    %% Configure max span event count.
-                    %% Value must be non-negative.
-                    %% If omitted or undefined, 128 is used.
-                    event_count_limit => integer() | undefined,
-                    %% Configure max span link count.
-                    %% Value must be non-negative.
-                    %% If omitted or undefined, 128 is used.
-                    link_count_limit => integer() | undefined,
-                    %% Configure max attributes per span event.
-                    %% Value must be non-negative.
-                    %% If omitted or undefined, 128 is used.
-                    event_attribute_count_limit => integer() | undefined,
-                    %% Configure max attributes per span link.
-                    %% Value must be non-negative.
-                    %% If omitted or undefined, 128 is used.
-                    link_attribute_count_limit => integer() | undefined
-                   }.
 
 -type sampler() :: {always_on, #{}}
                  | {always_off, #{}}
@@ -89,69 +65,38 @@
                                     root => sampler()}}
                  | {atom(), otel_config_properties:t()}.
 
--type t() :: #{
+-type tracer_provider() :: #{processors => [span_processors()],
+                             limits => otel_model_limits:t(),
+                             sampler => sampler()}.
+
+-type resource() :: #{attributes => [#{name := unicode:unicode_binary(),
+                                       value := unicode:unicode_binary()}]}.
+
+-type propagators() ::  #{composite => [propagator()],
+                          composite_list => string()}.
+
+-type t() :: #{%% Erlang implementation specific configuration
                register_loaded_applications => boolean() | undefined,
                create_application_tracers => boolean() | undefined,
                id_generator => module(),
                deny_list => list(),
+               sweeper := #{interval => integer() | infinity,
+                            strategy => atom() | fun(),
+                            span_ttl => integer() | infinity,
+                            storage_size => integer() | infinity},
+               resource_detectors => [atom()],
+               resource_detector_timeout => integer(),
 
+               %% configuration based on otel declarative file configuration spec
                disabled => boolean(),
                log_level => log_level(),
-               resource => #{attributes => opentelemetry:attributes_map()},
+               resource => resource(),
                attribute_limits => attribute_limits(),
-               propagator := #{composite => [propagator()],
-                               composite_list => string()},
-               tracer_provider => #{processors => [span_processors()],
-                                    limits => limits(),
-                                    sampler => sampler()}
+               propagator := propagators(),
+               tracer_provider => tracer_provider()
               }.
 
 -type old_t() :: map().
-
-%% structure before the standard otel declarative configuration
-%% -type old_t() :: #{sdk_disabled := boolean(),
-%%                    log_level := atom(),
-%%                    register_loaded_applications := boolean() | undefined,
-%%                    create_application_tracers := boolean() | undefined,
-%%                    id_generator := module(),
-%%                    deny_list := [atom()],
-
-%%                    resource_detectors := [module()],
-%%                    resource_detector_timeout := integer(),
-
-%%                    attribute_count_limit := integer(),
-%%                    attribute_value_length_limit := integer() | infinity,
-
-%%                    event_count_limit := integer(),
-%%                    link_count_limit := integer(),
-
-%%                    attribute_per_event_limit := integer(),
-%%                    attribute_per_link_limit := integer(),
-
-%%                    %% tracer provider
-%%                    bsp_scheduled_delay_ms := integer() | undefined,
-%%                    bsp_exporting_timeout_ms := integer() | undefined,
-%%                    bsp_max_queue_size := integer() | undefined,
-%%                    ssp_exporting_timeout_ms := integer() | undefined,
-%%                    traces_exporter := {atom(), term()} | none | undefined,
-%%                    processors := list(),
-%%                    sampler := {atom(), term()},
-
-%%                    text_map_propagators := [atom()],
-
-%%                    metrics_exporter := {atom(), term()} | none | undefined,
-%%                    views := list(), %% TODO: type should be `[otel_meter_server:view_config]'
-%%                    %% when Metrics are moved out of the experimental app
-%%                    readers := [#{id := atom(), module => module(), config => map()}],
-%%                    exemplars_enabled := boolean(),
-%%                    exemplar_filter := always_on | always_off | trace_based,
-%%                    metric_producers := [{module(), term()}],
-
-%%                    sweeper := #{interval => integer() | infinity,
-%%                                 strategy => atom() | fun(),
-%%                                 span_ttl => integer() | infinity,
-%%                                 storage_size => integer() | infinity}
-%%                   }.
 
 -export_type([t/0]).
 
@@ -161,41 +106,6 @@
 -spec new() -> t().
 new() ->
     ?assert_type(#{}, t()).
-
-%% old() ->
-%%     ?assert_type(#{sdk_disabled => false,
-%%                    log_level => info,
-%%                    register_loaded_applications => undefined,
-%%                    create_application_tracers => undefined,
-%%                    id_generator => otel_id_generator,
-%%                    deny_list => [],
-%%                    resource_detectors => [otel_resource_env_var,
-%%                                           otel_resource_app_env],
-%%                    resource_detector_timeout => 5000,
-%%                    bsp_scheduled_delay_ms => undefined,
-%%                    bsp_exporting_timeout_ms => undefined,
-%%                    bsp_max_queue_size => undefined,
-%%                    ssp_exporting_timeout_ms => undefined,
-%%                    text_map_propagators => [trace_context, baggage],
-%%                    traces_exporter => {opentelemetry_exporter, #{}},
-%%                    metrics_exporter => {opentelemetry_exporter, #{}},
-%%                    views => [],
-%%                    readers => [],
-%%                    exemplars_enabled => false,
-%%                    exemplar_filter => trace_based,
-%%                    metric_producers => [],
-%%                    processors => [{otel_batch_processor, ?BATCH_PROCESSOR_DEFAULTS}],
-%%                    sampler => {parent_based, #{root => always_on}},
-%%                    sweeper => #{interval => timer:minutes(10),
-%%                                 strategy => drop,
-%%                                 span_ttl => timer:minutes(30),
-%%                                 storage_size => infinity},
-%%                    attribute_count_limit => 128,
-%%                    attribute_value_length_limit => infinity,
-%%                    event_count_limit => 128,
-%%                    link_count_limit => 128,
-%%                    attribute_per_event_limit => 128,
-%%                    attribute_per_link_limit => 128}, old_t()).
 
 defined_or_default(Key, Map, Default) ->
     case maps:find(Key, Map) of
@@ -207,13 +117,28 @@ defined_or_default(Key, Map, Default) ->
             Value
     end.
 
+%% base configuration from either a json file or the app environment only
+%% contains configuration from the otel config spec or for instrumentation
+%% libraries. here we merge with our custom config values for things like
+%% the sweeper
+-spec merge_with_env(t(), [{atom(), term()}]) -> t().
+merge_with_env(Config, Env) ->
+    CustomConfig = lists:foldl(fun(F, Acc) ->
+                                       F(Env, Acc)
+                               end, #{}, [fun custom/2,
+                                          fun sweeper/2]),
+
+    maps:merge(Config, CustomConfig).
+
+
 %% constructs a config based on the flat format and merges with the new
 %% nested configuration from the declarative configuration SIG
 -spec merge_with_os(list()) -> t().
 merge_with_os(Config) ->
     OldConfig = lists:foldl(fun(F, Acc) ->
                                     F(Config, Acc)
-                            end, #{}, [fun span_limits/2,
+                            end, #{}, [fun custom/2,
+                                       fun span_limits/2,
                                        fun general/2,
                                        fun sampler/2,
                                        fun processors/2,
@@ -230,13 +155,6 @@ convert_to_new(OldConfig, Config) ->
             convert_disabled(OldConfig, Config), Config), Config), Config), Config).
 
 convert_tracer_provider(OldConfig, Config) ->
-    %%                    bsp_scheduled_delay_ms := integer() | undefined,
-    %%                    bsp_exporting_timeout_ms := integer() | undefined,
-    %%                    bsp_max_queue_size := integer() | undefined,
-    %%                    ssp_exporting_timeout_ms := integer() | undefined,
-    %%                    traces_exporter := {atom(), term()} | none | undefined,
-    %%                    processors := list(),
-    %%                    sampler := {atom(), term()},
     case lists:keyfind(tracer_provider, 1, Config) of
         {tracer_provider, TracerProvider} ->
             OldConfig#{tracer_provider => TracerProvider};
@@ -405,47 +323,13 @@ convert_attribute_limits(OldConfig, Config) ->
             end
     end.
 
-    %% ConfigMap = new(),
-
-    %% ConfigMap1 = lists:foldl(fun(F, Acc) ->
-    %%                                  F(AppEnv, Acc)
-    %%                          end, ConfigMap, [fun resource/2,
-    %%                                           fun attribute_limits/2,
-    %%                                           fun propagator/2,
-    %%                                           fun tracer_provider/2,
-    %%                                           fun sweeper/2]),
-
-
-
-%% -spec resource(list(), t()) -> t().
-%% resource(AppEnv, ConfigMap) ->
-%%     Resource = proplists:get_value(resource, AppEnv, []),
-%%     ConfigMap.
-
-%% -spec attribute_limits(list(), t()) -> t().
-%% attribute_limits(AppEnv, ConfigMap) ->
-%%     AttributeLimits = proplists:get_value(attribute_limits, AppEnv, []),
-%%     ConfigMap.
-
-%% -spec propagator(list(), t()) -> t().
-%% propagator(AppEnv, ConfigMap) ->
-%%     Propagator = proplists:get_value(propagator, AppEnv, []),
-%%     ConfigMap.
-
-%% -spec tracer_provider(list(), t()) -> t().
-%% tracer_provider(AppEnv, ConfigMap) ->
-%%     TracerProvider = proplists:get_value(tracer_provider, AppEnv, []),
-%%     ConfigMap.
-
-%% backwards compatability
-
 -spec span_limits(list(), old_t()) -> old_t().
 span_limits(AppEnv, ConfigMap) ->
     merge_list_with_environment(config_mappings(span_limits), AppEnv, ConfigMap).
 
--spec general(list(), old_t()) -> old_t().
-general(AppEnv, ConfigMap) ->
-    Config = merge_list_with_environment(config_mappings(general_sdk), AppEnv, ConfigMap),
+-spec custom(list(), old_t()) -> old_t().
+custom(AppEnv, ConfigMap) ->
+    Config = merge_list_with_environment(config_mappings(custom), AppEnv, ConfigMap),
 
     %% merge the old `register_loaded_applications' with the new config key
     %% `create_application_tracers' that has replaced it
@@ -465,6 +349,10 @@ general(AppEnv, ConfigMap) ->
                                end, undefined, Config),
 
     ?assert_type(Config1, old_t()).
+
+-spec general(list(), old_t()) -> old_t().
+general(AppEnv, ConfigMap) ->
+    merge_list_with_environment(config_mappings(general_sdk), AppEnv, ConfigMap).
 
 -spec sweeper(list(), old_t()) -> old_t().
 sweeper(AppEnv, ConfigMap) ->
@@ -620,6 +508,15 @@ report_cb(#{source := transform,
     {"Transforming configuration value failed: os_var=~ts key=~ts transform=~ts value=~ts exception=~ts",
      [OSVar, Key, Transform, Value, otel_utils:format_exception(Kind, Reason, StackTrace)]}.
 
+config_mappings(custom) ->
+    [%% `register_loaded_applications' is kept for backwards compatibility
+     {"OTEL_REGISTER_LOADED_APPLICATIONS", register_loaded_applications, boolean},
+     {"OTEL_CREATE_APPLICATION_TRACERS", create_application_tracers, boolean},
+     {"OTEL_ID_GENERATOR", id_generator, existing_atom},
+     {"OTEL_DENY_LIST", deny_list, existing_atom_list},
+     {"OTEL_RESOURCE_DETECTORS", resource_detectors, existing_atom_list},
+     {"OTEL_RESOURCE_DETECTOR_TIMEOUT", resource_detector_timeout, integer}
+    ];
 config_mappings(general_sdk) ->
     [{"OTEL_SDK_DISABLED", sdk_disabled, boolean},
      {"OTEL_LOG_LEVEL", log_level, existing_atom},
@@ -682,7 +579,11 @@ transform(existing_atom_list, String) when is_list(String) ->
                             end
                     end, List);
 transform(exporter, Exporter) when Exporter =:= "otlp" ; Exporter =:= otlp ->
-    {opentelemetry_exporter, #{}};
+    Config = merge_with_exporter_environment(#{}),
+    {opentelemetry_exporter, Config};
+transform(exporter, {opentelemetry_exporter, Config}) ->
+    Config1 = merge_with_exporter_environment(Config),
+    {opentelemetry_exporter, Config1};
 transform(exporter, Exporter) when Exporter =:= "jaeger" ; Exporter =:= jaeger ->
     ?LOG_WARNING("configuring jaeger exporter through OTEL_TRACES_EXPORTER is not yet supported ", []),
     none;
@@ -822,6 +723,11 @@ transform(span_processor, batch) ->
     {otel_batch_processor, #{}};
 transform(span_processor, simple) ->
     {otel_simple_processor, #{}};
+
+%% merge old processor config of OTLP exporter with opentelemetry_exporter app env and OS vars
+transform(span_processor, {Module, Opts=#{exporter := {ExporterModule=opentelemetry_exporter, ExporterOpts}}}) ->
+    ExporterOpts1 = otel_exporter_traces_otlp:merge_with_environment(ExporterOpts),
+    {Module, Opts#{exporter => {ExporterModule, ExporterOpts1}}};
 transform(span_processor, SpanProcessor) ->
     SpanProcessor;
 transform(readers, Readers) ->
@@ -853,9 +759,21 @@ probability_string_to_float(Probability) ->
     catch
         error:badarg when Probability =:= "1" ->
             1.0;
-         error:badarg when Probability =:= "0" ->
+        error:badarg when Probability =:= "0" ->
             0.0;
         error:badarg ->
             ?LOG_WARNING("Unable to convert $OTEL_TRACE_SAMPLER_ARG string value ~ts to float, using 1.0"),
             1.0
+    end.
+
+%% merge the otlp exporter configs with those found in the exporter app itself
+%% this is deprecated as the new configuration model defines all config in the SDK
+merge_with_exporter_environment(Config) ->
+    case application:load(opentelemetry_exporter) of
+        ok ->
+            otel_exporter_traces_otlp:merge_with_environment(Config);
+        {error, _} ->
+            ?LOG_WARNING("Unable to load opentelemetry_exporter application but configured to "
+                         "use otlp exporter. Check your dependencies or configuration."),
+            Config
     end.

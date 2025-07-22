@@ -373,14 +373,16 @@ verify_export(Config) ->
                http_protobuf ->
                    4318
            end,
-    {ok, State} = opentelemetry_exporter:init(#{protocol => Protocol,
-                                                compression => Compression,
-                                                endpoints => [{http, "localhost", Port, []}]}),
+    ExporterOpts = otel_exporter_traces_otlp:merge_with_environment(#{protocol => Protocol,
+                                                                      compression => Compression,
+                                                                      endpoints => [{http, "localhost", Port, []}]}),
+    {ok, State} = opentelemetry_exporter:init(ExporterOpts),
 
+    ExporterOpts1 = otel_exporter_traces_otlp:merge_with_environment(#{protocol => Protocol,
+                                                                       compression => Compression,
+                                                                       endpoints => [{http, "localhost", Port, []}]}),
     %% regression test. adding the httpc profile meant that init'ing more than once would crash
-    {ok, _State} = opentelemetry_exporter:init(#{protocol => Protocol,
-                                                compression => Compression,
-                                                endpoints => [{http, "localhost", Port, []}]}),
+    {ok, _State} = opentelemetry_exporter:init(ExporterOpts1),
 
     Tid = ets:new(span_tab, [duplicate_bag, {keypos, #span.instrumentation_scope}]),
 

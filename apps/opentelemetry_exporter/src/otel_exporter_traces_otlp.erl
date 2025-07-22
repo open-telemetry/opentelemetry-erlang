@@ -119,8 +119,7 @@
 %% @doc Initialize the exporter based on the provided configuration.
 -spec init(otel_exporter_otlp:opts()) -> {ok, #state{}}.
 init(Opts) ->
-    Opts1 = merge_with_environment(Opts),
-    case otel_exporter_otlp:init(Opts1) of
+    case otel_exporter_otlp:init(Opts) of
         {ok, #{channel := Channel,
                channel_pid := ChannelPid,
                endpoints := Endpoints,

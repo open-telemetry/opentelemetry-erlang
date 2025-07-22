@@ -409,7 +409,9 @@ span_processors(_Config) ->
 
     ?assertMatch(#{tracer_provider :=
                        #{processors := [{batch, #{exporter := {opentelemetry_exporter,
-                                                               #{endpoints := ["https://example.com"]}},
+                                                               #{endpoints := [#{scheme := "https",
+                                                                                 path := "/v1/traces",
+                                                                                 host := "example.com"}]}},
                                                   export_timeout := 2,
                                                   max_queue_size := 1,
                                                   schedule_delay := 15000}}]}},
