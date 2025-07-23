@@ -127,21 +127,11 @@ hex_span_ctx(_) ->
 
 -spec hex_trace_id(opentelemetry:span_ctx()) -> opentelemetry:hex_trace_id().
 hex_trace_id(#span_ctx{trace_id=TraceId}) ->
-    case otel_utils:format_binary_string("~32.16.0b", [TraceId]) of
-        {ok, Binary} ->
-            Binary;
-        _ ->
-            <<>>
-    end.
+    binary:encode_hex(<<TraceId:128>>, lowercase).
 
 -spec hex_span_id(opentelemetry:span_ctx()) -> opentelemetry:hex_span_id().
 hex_span_id(#span_ctx{span_id=SpanId}) ->
-    case otel_utils:format_binary_string("~16.16.0b", [SpanId]) of
-        {ok, Binary} ->
-            Binary;
-        _ ->
-            <<>>
-    end.
+    binary:encode_hex(<<SpanId:64>>, lowercase).
 
 -spec tracestate(opentelemetry:span_ctx() | undefined) -> otel_tracestate:t().
 tracestate(#span_ctx{tracestate=Tracestate}) ->
