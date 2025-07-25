@@ -1101,6 +1101,17 @@ no_exporter(_Config) ->
 
     ok.
 
+
+generate_trace_id() -> 41394.
+generate_span_id() -> 50132.
+pregenerate_hex_ids(_Config) ->
+    HexTraceId = <<"0000000000000000000000000000a1b2">>,
+    HexSpanId = <<"000000000000c3d4">>,
+    SpanCtx = otel_span_utils:root_span_ctx(?MODULE),
+    ?assertEqual(HexTraceId, SpanCtx#span_ctx.hex_trace_id),
+    ?assertEqual(HexSpanId, SpanCtx#span_ctx.hex_span_id),
+    ok.
+
 %%
 
 assert_all_exported(Tid, SpanCtxs) ->
