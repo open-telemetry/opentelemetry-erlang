@@ -25,6 +25,7 @@
          merge_list_with_environment/3,
          transform/2,
          defined_or_default/3,
+         convert_exporter/1,
          report_cb/1]).
 
 -type log_level() :: atom().
@@ -35,9 +36,38 @@
 
 -type propagator() :: tracecontext | baggage | b3 | b3multi | jaeger | ottrace | atom().
 
+-type compression() :: gzip | none | undefined.
+
+-type otlp_http() :: #{
+                       endpoint => uri:uri_string(),
+                       certificate_file => file:filename_all() | undefined,
+                       client_key_file => file:filename_all() | undefined,
+                       client_certificate_file => file:filename_all() | undefined,
+                       compression => compression(),
+                       timeout => integer(),
+                       headers => #{unicode:latin1_binary() => unicode:latin1_binary()} | undefined,
+                       headers_list => unicode:latin1_binary(),
+                       encoding => protobuf | undefined
+                      }.
+
+-type otlp_grpc() :: #{
+                       endpoint => uri:uri_string(),
+                       certificate_file => file:filename_all() | undefined,
+                       client_key_file => file:filename_all() | undefined,
+                       client_certificate_file => file:filename_all() | undefined,
+                       compression => compression(),
+                       timeout => integer(),
+                       headers => #{unicode:latin1_binary() => unicode:latin1_binary()} | undefined,
+                       headers_list => unicode:latin1_binary(),
+                       insecure => boolean()
+                      }.
+
 -type exporter_args() :: map().
 
--type exporter() :: {module(), exporter_args()}.
+-type exporter() :: {otlp_http, otlp_http()} |
+                    {otlp_grpc, otlp_grpc()} |
+                    {module(), exporter_args()}.
+
 
 -type batch_span_processor() :: #{schedule_delay := integer(),
                                   export_timeout := integer(),
@@ -52,7 +82,7 @@
 -type span_processor() :: batch_span_processor() |
                           simple_span_processor() |
                           otel_config_properties:t().
--type span_processors() :: #{span_processor_type() => span_processor()}.
+-type span_processors() :: {span_processor_type(), span_processor()}.
 
 
 -type sampler() :: {always_on, #{}}
@@ -241,8 +271,61 @@ update_processor_config(Config, Options) ->
                         end
                 end, Config, Options).
 
-convert_exporter(ExporterConfig) ->
-    ExporterConfig.
+%% in this case convert new configuration file structure to a `{module(), args()}' form
+convert_exporter({otlp_grpc, GrpcConfig=#{endpoint := Endpoint}}) ->
+    Compression = maps:get(compression, GrpcConfig, undefined),
+    Timeout = maps:get(timeout, GrpcConfig, 3000),
+    SSLOptions = exporter_ssl_options(GrpcConfig),
+    Headers = exporter_headers(GrpcConfig),
+    {opentelemetry_exporter, #{endpoints => [Endpoint],
+                               headers => Headers,
+                               protocol => grpc,
+                               ssl_options => SSLOptions,
+                               compression => Compression,
+                               timeout => Timeout}};
+convert_exporter({otlp_http, HttpConfig=#{endpoint := Endpoint}}) ->
+    Compression = maps:get(compression, HttpConfig, undefined),
+    Timeout = maps:get(timeout, HttpConfig, 3000),
+    SSLOptions = exporter_ssl_options(HttpConfig),
+    Headers = exporter_headers(HttpConfig),
+    {opentelemetry_exporter, #{endpoints => [Endpoint],
+                               headers => Headers,
+                               protocol => http,
+                               ssl_options => SSLOptions,
+                               compression => Compression,
+                               timeout => Timeout}}.
+
+exporter_headers(Config) ->
+    Headers = maps:get(headers, Config, []),
+    HeadersList = maps:get(headers_list, Config, ""),
+
+    HeadersFromList = transform(key_value_list, HeadersList),
+
+    Headers ++ HeadersFromList.
+
+
+%% technically this is only an option for grpc for some reason but we support it on
+%% `otlp_http' too
+exporter_ssl_options(#{insecure := true}) ->
+    [];
+%% both `client_key_file' and `client_cert_file' must be set for ssl to be used
+exporter_ssl_options(Config=#{client_key_file := ClientKeyFile,
+                              client_certificate_file := ClientCertFile}) when
+      ClientKeyFile =/= undefined andalso
+      ClientCertFile =/= undefined ->
+    %% if `certificate_file' is missing then use OS certs
+    CACerts = case maps:find(certificate_file, Config) of
+                  {ok, undefined} ->
+                      {cacerts, public_key:cacerts_get()};
+                  error ->
+                      {cacerts, public_key:cacerts_get()};
+                  {ok, File} ->
+                      {cacertfile, File}
+              end,
+
+    [{keyfile, ClientKeyFile}, {certfile, ClientCertFile}, CACerts];
+exporter_ssl_options(_) ->
+    [].
 
 %% convert the old `text_map_propagators' config into the new `propagator' config
 %% based on the declarative file configuration of otel
@@ -293,6 +376,9 @@ convert_resource(OldConfig, Config) ->
             OldConfig
     end.
 
+%% ignore `sdk_disabled' if `disabled' is set
+convert_disabled(OldConfig, Config=#{disabled := _}) ->
+    OldConfig;
 convert_disabled(OldConfig, Config) ->
     case maps:take(sdk_disabled, OldConfig) of
         {Value, OldConfig1} ->

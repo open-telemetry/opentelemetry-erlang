@@ -44,6 +44,8 @@
 
 -include_lib("kernel/include/logger.hrl").
 
+init(Exporter={Type, _}) when Type =:= otlp_grpc orelse Type =:= otlp_http ->
+    init(otel_configuration:convert_exporter(Exporter));
 init({ExporterModule, Config}) when is_atom(ExporterModule) ->
     try ExporterModule:init(Config) of
         {ok, ExporterState} when ExporterModule =:= opentelemetry_exporter ->

@@ -52,7 +52,8 @@
 -type opts() :: #{endpoints => [endpoint()],
                   headers => headers(),
                   protocol => protocol(),
-                  ssl_options => list()}.
+                  ssl_options => list(),
+                  insecure => boolean()}.
 
 -export_type([opts/0,
               headers/0,
