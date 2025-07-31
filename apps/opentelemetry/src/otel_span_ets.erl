@@ -102,7 +102,9 @@ get_ctx(#span{trace_id=TraceId,
               tracestate=TraceState,
               is_recording=IsRecording}) ->
     #span_ctx{trace_id=TraceId,
+              hex_trace_id=otel_utils:encode_hex(<<TraceId:128>>),
               span_id=SpanId,
+              hex_span_id=otel_utils:encode_hex(<<SpanId:64>>),
               tracestate=TraceState,
               is_recording=IsRecording}.
 
