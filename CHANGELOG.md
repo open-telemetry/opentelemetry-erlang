@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## API 1.4.1 - 2025-07-31
+
+### Fixes
+
+- Various type spec fixes
+
+## SDK 1.5.1 - 2025-07-31
+
+### Fixes
+
+- [fix the batch export timeout to default to 30 seconds](https://github.com/open-telemetry/opentelemetry-erlang/pull/836)
+
+## OTLP Exporter 1.8.1 - 2025-07-31
+
+### Fixes
+
+- [fix: key for otlp traces protocol app configuration](https://github.com/open-telemetry/opentelemetry-erlang/pull/789)
+
 ## Experimental API 0.5.2 - 2024-11-22
 
 ### Added
