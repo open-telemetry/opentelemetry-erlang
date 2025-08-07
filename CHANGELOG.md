@@ -11,7 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Added
 
-- 
+- Support `OTEL_EXPERIMENTAL_CONFIG_FILE` environment variable to specify a json
+  file assumed to already be validated against the Otel file configuration
+  jsonschema.
+- Support the new file configuration schema as Erlang application environment
+  configuration in addition to as json.
 
 #### Changes
 
@@ -19,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   structure resource attribute keys with dots. Meaning use a key of
   `service.name` instead of `#{service => #{name => ...}}` to represent
   `service.name` attribute in the resource.
+- Options passed to the start of a tracer server and span processor have changed
+  to correspond to the file configuration schema.
 
 ## Experimental API 0.5.2 - 2024-11-22
 
