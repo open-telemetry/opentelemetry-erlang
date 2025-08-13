@@ -249,7 +249,7 @@ noop_with_span(_Config) ->
 hex_trace_ids(_Config) ->
     HexTraceId = <<"0000000000000000000000000000a1b2">>,
     HexSpanId = <<"000000000000c3d4">>,
-    SpanCtx=#span_ctx{trace_id=41394, span_id=50132},
+    SpanCtx=#span_ctx{trace_id=41394, hex_trace_id=HexTraceId, span_id=50132, hex_span_id=HexSpanId},
     ?assertEqual(HexTraceId, otel_span:hex_trace_id(SpanCtx)),
     ?assertEqual(HexSpanId, otel_span:hex_span_id(SpanCtx)),
     ?assertEqual(#{otel_trace_id => HexTraceId,

@@ -28,7 +28,9 @@
 -include("otel_tracer.hrl").
 
 -define(NOOP_SPAN_CTX, #span_ctx{trace_id=0,
+                                 hex_trace_id= <<"00000000000000000000000000000000">>,
                                  span_id=0,
+                                 hex_span_id= <<"0000000000000000">>,
                                  trace_flags=0,
                                  tracestate=otel_tracestate:new(),
                                  is_valid=false,
