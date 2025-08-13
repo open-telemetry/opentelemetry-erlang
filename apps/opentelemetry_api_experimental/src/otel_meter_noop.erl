@@ -24,7 +24,8 @@
          create_instrument/6]).
 
 %% also act as noop version of instruments
--export([record/4,
+-export([record/5,
+         record/4,
          record/3]).
 
 %%
@@ -35,6 +36,8 @@ record(_Meter, _Name, _Number, _Attributes) ->
 record(_Instrument, _Number, _Attributes) ->
     ok.
 
+record(_Ctx, _Meter, _Name, _Number, _Attributes) ->
+    ok.
 %%
 
 register_callback(_Meter, _Instruments, _Callback, _CallbackArgs) ->

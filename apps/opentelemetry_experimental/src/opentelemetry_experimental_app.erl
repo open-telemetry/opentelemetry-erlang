@@ -16,12 +16,17 @@ start(_StartType, _StartArgs) ->
     Config = otel_configuration:merge_with_os(
                application:get_all_env(opentelemetry_experimental)),
 
-    {ok, Pid} = opentelemetry_experimental_sup:start_link(Config),
+    SupResult = opentelemetry_experimental_sup:start_link(Config),
+    case Config of
+        #{sdk_disabled := true} ->
+          %% skip the rest if the SDK is disabled
+          SupResult;
+        _ ->
+            Resource = otel_resource_detector:get_resource(),
+            {ok, _} = otel_meter_provider_sup:start(?GLOBAL_METER_PROVIDER_NAME, Resource, Config),
 
-    Resource = otel_resource_detector:get_resource(),
-    {ok, _} = otel_meter_provider_sup:start(?GLOBAL_METER_PROVIDER_NAME, Resource, Config),
-
-    {ok, Pid}.
+            SupResult
+    end.
 
 stop(_State) ->
     ok.
