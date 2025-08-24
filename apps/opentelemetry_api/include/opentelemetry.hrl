@@ -49,8 +49,12 @@
 -record(span_ctx, {
           %% 128 bit int trace id
           trace_id          :: opentelemetry:trace_id(),
+          %% 128 bit int trace id encoded as hex binary string
+          hex_trace_id      :: opentelemetry:hex_trace_id(),
           %% 64 bit int span id
           span_id           :: opentelemetry:span_id(),
+          %% 64 bit int span id encoded as hex binary string
+          hex_span_id       :: opentelemetry:hex_span_id(),
           %% 8-bit integer, lowest bit is if it is sampled
           trace_flags = 0   :: integer(),
           %% Tracestate represents tracing-system specific context in a list of key-value pairs.
