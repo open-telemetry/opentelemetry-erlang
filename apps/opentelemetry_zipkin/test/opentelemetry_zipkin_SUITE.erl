@@ -46,7 +46,8 @@ verify_export(_Config) ->
                                                 {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
                                                 {<<"list-key-1">>, [3.14, 9.345]}
                                                 ], 128, 128),
-              status=opentelemetry:status(?SPAN_KIND_INTERNAL, <<"some message about status">>)},
+              status=opentelemetry:status(?SPAN_KIND_INTERNAL, <<"some message about status">>),
+              parent_span_is_remote = undefined},
     true = ets:insert(Tid, ParentSpan),
 
     ChildSpan = #span{name = <<"span-2">>,
@@ -66,7 +67,8 @@ verify_export(_Config) ->
                                                         {attr_3, true},
                                                         {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
                                                         {<<"list-key-1">>, [3.14, 9.345]}
-                                                       ], 128, 128)},
+                                                       ], 128, 128),
+                      parent_span_is_remote = false},
     true = ets:insert(Tid, ChildSpan),
 
     ?assertMatch(ok, opentelemetry_zipkin:export(traces, Tid, Resource, State)),

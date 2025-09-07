@@ -14,7 +14,7 @@ all() ->
      {group, grpc}, {group, grpc_gzip}].
 
 groups() ->
-    [{functional, [], [configuration, span_round_trip, ets_instrumentation_info, to_attributes]},
+    [{functional, [], [configuration, span_round_trip, span_flags, ets_instrumentation_info, to_attributes]},
      {grpc, [], [verify_export]},
      {grpc_gzip, [], [verify_export]},
      {http_protobuf, [], [verify_export, user_agent]},
@@ -322,6 +322,7 @@ span_round_trip(_Config) ->
                                                 ], 128, 128),
               status = #status{code=?OTEL_STATUS_OK,
                                message = <<"">>},
+              parent_span_is_remote = undefined,
               instrumentation_scope = #instrumentation_scope{name = <<"tracer-1">>,
                                                              version = <<"0.0.1">>}},
 
@@ -332,6 +333,59 @@ span_round_trip(_Config) ->
     DecodedProto = opentelemetry_exporter_trace_service_pb:decode_msg(Proto, span),
     ?assertEqual(maps:with([trace_id, span_id], DecodedProto),
                  maps:with([trace_id, span_id], PbSpan1)),
+
+    ok.
+
+span_flags(_Config) ->
+    %% Test build_span_flags function
+    ?assertEqual(16#100, otel_otlp_traces:build_span_flags(false, 0)),   %% 0x100 - local parent
+    ?assertEqual(16#300, otel_otlp_traces:build_span_flags(true, 0)),    %% 0x300 - remote parent
+    ?assertEqual(16#100, otel_otlp_traces:build_span_flags(undefined, 0)), %% 0x100 - no parent
+    ?assertEqual(16#101, otel_otlp_traces:build_span_flags(false, 1)),   %% 0x101 - local parent with sampled flag
+    ?assertEqual(16#301, otel_otlp_traces:build_span_flags(true, 1)),    %% 0x301 - remote parent with sampled flag
+
+    %% Test span with local parent
+    TraceId = otel_id_generator:generate_trace_id(),
+    SpanId = otel_id_generator:generate_span_id(),
+    ParentSpanId = otel_id_generator:generate_span_id(),
+    
+    LocalParentSpan = #span{name = <<"span-with-local-parent">>,
+                           trace_id = TraceId,
+                           span_id = SpanId,
+                           parent_span_id = ParentSpanId,
+                           parent_span_is_remote = false,
+                           kind = ?SPAN_KIND_CLIENT,
+                           trace_flags = 1,
+                           is_recording = true},
+    
+    PbSpanLocal = otel_otlp_traces:to_proto(LocalParentSpan),
+    ?assertEqual(16#101, maps:get(flags, PbSpanLocal)), %% 0x101 - local parent with sampled flag
+
+    %% Test span with remote parent
+    RemoteParentSpan = #span{name = <<"span-with-remote-parent">>,
+                            trace_id = TraceId,
+                            span_id = SpanId,
+                            parent_span_id = ParentSpanId,
+                            parent_span_is_remote = true,
+                            kind = ?SPAN_KIND_CLIENT,
+                            trace_flags = 1,
+                            is_recording = true},
+    
+    PbSpanRemote = otel_otlp_traces:to_proto(RemoteParentSpan),
+    ?assertEqual(16#301, maps:get(flags, PbSpanRemote)), %% 0x301 - remote parent with sampled flag
+
+    %% Test span with no parent
+    NoParentSpan = #span{name = <<"span-with-no-parent">>,
+                        trace_id = TraceId,
+                        span_id = SpanId,
+                        parent_span_id = undefined,
+                        parent_span_is_remote = undefined,
+                        kind = ?SPAN_KIND_CLIENT,
+                        trace_flags = 1,
+                        is_recording = true},
+    
+    PbSpanNoParent = otel_otlp_traces:to_proto(NoParentSpan),
+    ?assertEqual(16#101, maps:get(flags, PbSpanNoParent)), %% 0x101 - no parent with sampled flag
 
     ok.
 

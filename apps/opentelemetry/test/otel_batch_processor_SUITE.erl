@@ -104,4 +104,5 @@ generate_span() ->
           name = "test_span",
           trace_flags = 1,
           is_recording = true,
+          parent_span_is_remote = undefined,
           instrumentation_scope = #instrumentation_scope{name = "test"}}.

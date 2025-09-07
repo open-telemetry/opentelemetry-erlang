@@ -28,6 +28,9 @@
           %% 64 bit int parent span
           parent_span_id          :: opentelemetry:span_id() | undefined | '_',
 
+          %% true if the parent span context came from a remote process
+          parent_span_is_remote   :: boolean() | undefined | '_',
+
           %% name of the span
           name                    :: unicode:unicode_binary() | atom() | '_',
 
