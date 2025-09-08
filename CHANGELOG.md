@@ -9,17 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **SDK**: Add span flags support for `isRemote` property in OTLP exporter
-  - Added `parent_span_is_remote` field to span record to store parent span context remote status
-  - Updated span creation logic to capture parent span's `is_remote` flag
-  - Implemented `build_span_flags` function that sets OTLP span flags based on parent span's `isRemote` property
-  - Updated span and link transformations to properly set flags field (0x100 for local, 0x300 for remote)
-  - Added comprehensive tests for span flags functionality
-
-- **OTLP Exporter**: Add span flags support for `isRemote` property
-  - Implemented `build_span_flags` function that sets OTLP span flags based on parent span's `isRemote` property
-  - Updated span and link transformations to properly set flags field (0x100 for local, 0x300 for remote)
-  - Added comprehensive tests for span flags functionality
+- [Add is_remote flag in exporter for spans and span links](https://github.com/open-telemetry/opentelemetry-erlang/pull/894)
 
 ## API 1.4.1 - 2025-07-31
 
