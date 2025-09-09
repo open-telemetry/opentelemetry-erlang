@@ -22,7 +22,8 @@
 %% for testing
 -ifdef(TEST).
 -export([to_proto_by_instrumentation_scope/1,
-         to_proto/1]).
+         to_proto/1,
+         build_span_flags/2]).
 -endif.
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
@@ -67,6 +68,7 @@ to_proto(#span{trace_id=TraceId,
                span_id=SpanId,
                tracestate=TraceState,
                parent_span_id=MaybeParentSpanId,
+               parent_span_is_remote=ParentIsRemote,
                name=Name,
                kind=Kind,
                start_time=StartTime,
@@ -75,7 +77,7 @@ to_proto(#span{trace_id=TraceId,
                events=TimedEvents,
                links=Links,
                status=Status,
-               trace_flags=_TraceFlags,
+               trace_flags=TraceFlags,
                is_recording=_IsRecording}) when is_integer(TraceId),
                                                 is_integer(SpanId) ->
     ParentSpanId = case MaybeParentSpanId of _ when is_integer(MaybeParentSpanId) -> <<MaybeParentSpanId:64>>; _ -> <<>> end,
@@ -93,7 +95,8 @@ to_proto(#span{trace_id=TraceId,
       dropped_events_count     => otel_events:dropped(TimedEvents),
       links                    => to_links(otel_links:list(Links)),
       dropped_links_count      => otel_links:dropped(Links),
-      status                   => to_status(Status)}.
+      status                   => to_status(Status),
+      flags                    => build_span_flags(ParentIsRemote, TraceFlags)}.
 
 -spec to_status(opentelemetry:status() | undefined) -> opentelemetry_exporter_trace_service_pb:status().
 to_status(#status{code=Code,
@@ -118,10 +121,11 @@ to_links(Links) ->
        span_id => <<SpanId:64>>,
        trace_state => otel_tracestate:encode_header(TraceState),
        attributes => otel_otlp_common:to_attributes(Attributes),
-       dropped_attributes_count => 0} || #link{trace_id=TraceId,
-                                               span_id=SpanId,
-                                               attributes=Attributes,
-                                               tracestate=TraceState} <- Links].
+       dropped_attributes_count => 0,
+       flags => build_span_flags(undefined, 0)} || #link{trace_id=TraceId,
+                                                         span_id=SpanId,
+                                                         attributes=Attributes,
+                                                         tracestate=TraceState} <- Links].
 
 -spec to_otlp_kind(atom()) -> opentelemetry_exporter_trace_service_pb:'span.SpanKind'().
 to_otlp_kind(?SPAN_KIND_INTERNAL) ->
@@ -144,3 +148,21 @@ to_otlp_status(?OTEL_STATUS_OK) ->
     'STATUS_CODE_OK';
 to_otlp_status(?OTEL_STATUS_ERROR) ->
     'STATUS_CODE_ERROR'.
+
+%% @doc Builds span flags based on the parent span context's remote property.
+%% This follows the OTLP specification for span flags.
+%% @param ParentIsRemote boolean() | undefined - whether the parent span context is remote
+%% @param BaseFlags integer() - base flags (typically trace_flags)
+%% @return integer() - computed span flags
+-spec build_span_flags(boolean() | undefined, integer()) -> integer().
+build_span_flags(ParentIsRemote, BaseFlags) ->
+    %% SPAN_FLAGS_CONTEXT_HAS_IS_REMOTE_MASK = 0x100
+    %% SPAN_FLAGS_CONTEXT_IS_REMOTE_MASK = 0x200
+    HasIsRemoteMask = 16#100,
+    IsRemoteMask = 16#200,
+    
+    Flags = BaseFlags bor HasIsRemoteMask,
+    case ParentIsRemote of
+        true -> Flags bor IsRemoteMask;
+        _ -> Flags
+    end.
