@@ -360,7 +360,11 @@ span_flags(_Config) ->
                            start_time = StartTime,
                            end_time = EndTime,
                            trace_flags = 1,
-                           is_recording = true},
+                           is_recording = true,
+                           attributes = otel_attributes:new([], 128, 128),
+                           events = otel_events:new(128, 128, 128),
+                           links = otel_links:new([], 128, 128, 128),
+                           tracestate = otel_tracestate:new([])},
     
     PbSpanLocal = otel_otlp_traces:to_proto(LocalParentSpan),
     ?assertEqual(16#101, maps:get(flags, PbSpanLocal)), %% 0x101 - local parent with sampled flag
@@ -375,7 +379,11 @@ span_flags(_Config) ->
                             start_time = StartTime,
                             end_time = EndTime,
                             trace_flags = 1,
-                            is_recording = true},
+                            is_recording = true,
+                            attributes = otel_attributes:new([], 128, 128),
+                            events = otel_events:new(128, 128, 128),
+                            links = otel_links:new([], 128, 128, 128),
+                            tracestate = otel_tracestate:new([])},
     
     PbSpanRemote = otel_otlp_traces:to_proto(RemoteParentSpan),
     ?assertEqual(16#301, maps:get(flags, PbSpanRemote)), %% 0x301 - remote parent with sampled flag
@@ -390,7 +398,11 @@ span_flags(_Config) ->
                         start_time = StartTime,
                         end_time = EndTime,
                         trace_flags = 1,
-                        is_recording = true},
+                        is_recording = true,
+                        attributes = otel_attributes:new([], 128, 128),
+                        events = otel_events:new(128, 128, 128),
+                        links = otel_links:new([], 128, 128, 128),
+                        tracestate = otel_tracestate:new([])},
     
     PbSpanNoParent = otel_otlp_traces:to_proto(NoParentSpan),
     ?assertEqual(16#101, maps:get(flags, PbSpanNoParent)), %% 0x101 - no parent with sampled flag
