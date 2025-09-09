@@ -99,9 +99,13 @@ shutdown(_) ->
 %% helpers
 
 generate_span() ->
+    StartTime = opentelemetry:timestamp(),
+    EndTime = opentelemetry:timestamp(),
     #span{trace_id = otel_id_generator:generate_trace_id(),
           span_id = otel_id_generator:generate_span_id(),
           name = "test_span",
+          start_time = StartTime,
+          end_time = EndTime,
           trace_flags = 1,
           is_recording = true,
           parent_span_is_remote = undefined,

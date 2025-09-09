@@ -348,6 +348,8 @@ span_flags(_Config) ->
     TraceId = otel_id_generator:generate_trace_id(),
     SpanId = otel_id_generator:generate_span_id(),
     ParentSpanId = otel_id_generator:generate_span_id(),
+    StartTime = opentelemetry:timestamp(),
+    EndTime = opentelemetry:timestamp(),
     
     LocalParentSpan = #span{name = <<"span-with-local-parent">>,
                            trace_id = TraceId,
@@ -355,6 +357,8 @@ span_flags(_Config) ->
                            parent_span_id = ParentSpanId,
                            parent_span_is_remote = false,
                            kind = ?SPAN_KIND_CLIENT,
+                           start_time = StartTime,
+                           end_time = EndTime,
                            trace_flags = 1,
                            is_recording = true},
     
@@ -368,6 +372,8 @@ span_flags(_Config) ->
                             parent_span_id = ParentSpanId,
                             parent_span_is_remote = true,
                             kind = ?SPAN_KIND_CLIENT,
+                            start_time = StartTime,
+                            end_time = EndTime,
                             trace_flags = 1,
                             is_recording = true},
     
@@ -381,6 +387,8 @@ span_flags(_Config) ->
                         parent_span_id = undefined,
                         parent_span_is_remote = undefined,
                         kind = ?SPAN_KIND_CLIENT,
+                        start_time = StartTime,
+                        end_time = EndTime,
                         trace_flags = 1,
                         is_recording = true},
     
