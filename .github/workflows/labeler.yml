@@ -10,6 +10,6 @@ jobs:
       pull-requests: write # required for labeling PRs
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/labeler@v4
+      - uses: actions/labeler@v6
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
