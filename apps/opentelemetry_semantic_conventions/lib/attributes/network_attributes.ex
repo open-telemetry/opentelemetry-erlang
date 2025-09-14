@@ -133,7 +133,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   end
 
   @doc """
-  [OSI application layer](https://osi-model.com/application-layer/) or non-OSI equivalent.
+  [OSI application layer](https://wikipedia.org/wiki/Application_layer) or non-OSI equivalent.
   ### Value type
 
   Value must be of type `atom() | String.t()`.
@@ -204,7 +204,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   end
 
   @typedoc """
-  [OSI transport layer](https://osi-model.com/transport-layer/) or [inter-process communication method](https://wikipedia.org/wiki/Inter-process_communication).
+  [OSI transport layer](https://wikipedia.org/wiki/Transport_layer) or [inter-process communication method](https://wikipedia.org/wiki/Inter-process_communication).
 
 
   ### Enum Values
@@ -222,7 +222,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
           :quic => :quic
         }
   @doc """
-  [OSI transport layer](https://osi-model.com/transport-layer/) or [inter-process communication method](https://wikipedia.org/wiki/Inter-process_communication).
+  [OSI transport layer](https://wikipedia.org/wiki/Transport_layer) or [inter-process communication method](https://wikipedia.org/wiki/Inter-process_communication).
 
 
   ### Notes
@@ -284,7 +284,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
   end
 
   @typedoc """
-  [OSI network layer](https://osi-model.com/network-layer/) or non-OSI equivalent.
+  [OSI network layer](https://wikipedia.org/wiki/Network_layer) or non-OSI equivalent.
 
   ### Enum Values
   * `:ipv4` - IPv4
@@ -295,7 +295,7 @@ defmodule OpenTelemetry.SemConv.NetworkAttributes do
           :ipv6 => :ipv6
         }
   @doc """
-  [OSI network layer](https://osi-model.com/network-layer/) or non-OSI equivalent.
+  [OSI network layer](https://wikipedia.org/wiki/Network_layer) or non-OSI equivalent.
 
   ### Notes
 
