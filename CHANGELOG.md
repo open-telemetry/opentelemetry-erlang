@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## SDK 1.6.0 - 2025-10-16
+
+### Added
+
+- [Add is_remote flag in exporter for spans and span links](https://github.com/open-telemetry/opentelemetry-erlang/pull/894)
+
+## OTLP Exporter 1.9.0 - 2025-10-16
+
 ### Added
 
 - [Add is_remote flag in exporter for spans and span links](https://github.com/open-telemetry/opentelemetry-erlang/pull/894)
