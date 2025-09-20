@@ -45,42 +45,23 @@
 %% See https://www.w3.org/TR/trace-context/#tracestate-header
 %% for the limits and string requirements that make up the regexes
 -define(MAX_MEMBERS, 32).
-%% re:compile("^(([a-z][_0-9a-z\-\*\/]{0,255})|([a-z0-9][_0-9a-z-*/]{0,240}@[a-z][_0-9a-z-*/]{0,13}))$")
--define(KEY_MP, {re_pattern,3,0,0,
-                 <<69,82,67,80,59,1,0,0,16,0,0,0,1,0,0,0,255,255,255,255,
-                   255,255,255,255,0,0,0,0,0,0,3,0,0,0,64,0,0,0,0,0,0,0,
-                   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,131,0,247,
-                   27,133,0,84,0,1,133,0,76,0,2,110,0,0,0,0,0,0,0,0,0,0,
-                   0,0,254,255,255,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,110,
-                   0,0,0,0,0,164,255,3,0,0,0,128,254,255,255,7,0,0,0,0,0,
-                   0,0,0,0,0,0,0,0,0,0,0,104,0,0,0,255,120,0,76,119,0,
-                   155,133,0,149,0,3,110,0,0,0,0,0,0,255,3,0,0,0,0,254,
-                   255,255,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,110,0,0,0,0,
-                   0,164,255,3,0,0,0,128,254,255,255,7,0,0,0,0,0,0,0,0,0,
-                   0,0,0,0,0,0,0,109,0,0,0,240,29,64,110,0,0,0,0,0,0,0,0,
-                   0,0,0,0,254,255,255,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                   110,0,0,0,0,0,164,255,3,0,0,0,128,254,255,255,7,0,0,0,
-                   0,0,0,0,0,0,0,0,0,0,0,0,0,104,0,0,0,13,120,0,149,120,
-                   0,239,25,120,0,247,0>>}).
-%% re:compile("^([ -+--<>-~]{0,255}[!-+--<>-~])$")
--define(VALUE_MP, {re_pattern,1,0,0,
-                   <<69,82,67,80,152,0,0,0,16,0,0,0,1,0,0,0,255,255,255,
-                     255,255,255,255,255,0,0,0,0,0,0,1,0,0,0,64,0,0,0,0,0,
-                     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,131,0,
-                     84,27,133,0,76,0,1,110,0,0,0,0,255,239,255,223,255,
-                     255,255,255,255,255,255,127,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                     0,0,0,104,0,0,0,255,110,0,0,0,0,254,239,255,223,255,
-                     255,255,255,255,255,255,127,0,0,0,0,0,0,0,0,0,0,0,0,0,
-                     0,0,0,120,0,76,25,120,0,84,0>>}).
+%%
+-define(KEY_MP, persistent_term:get({otel_tracestate, key_mp})).
+-define(VALUE_MP, persistent_term:get({otel_tracestate, value_mp})).
 
 -define(IS_STRING, (is_atom(Key) orelse is_string(Key) orelse is_binary(Key))).
 
 -spec new() -> t().
 new() ->
+    %% api had no setup so we have to ensure the persistent term for tracestate
+    %% regexes are setup each time `new' is called
+    ensure_regex_pterms(),
+
     #tracestate{members=[]}.
 
 -spec new([{unicode:latin1_chardata(), unicode:latin1_chardata()}]) -> t().
 new(List) ->
+    ensure_regex_pterms(),
     Members = [Element || {Key, Value}=Element <- List, is_valid(Key, Value)],
     #tracestate{members=Members}.
 
@@ -129,6 +110,18 @@ encode_header(_) ->
     <<>>.
 
 %%
+
+ensure_regex_pterms() ->
+    try
+        _ = ?KEY_MP
+    catch
+        error:badarg ->
+            {ok, KeyMP} = re:compile("^([ -+--<>-~]{0,255}[!-+--<>-~])$"),
+            {ok, ValueMP} = re:compile("^(([a-z][_0-9a-z\-\*\/]{0,255})|([a-z0-9][_0-9a-z-*/]{0,240}@[a-z][_0-9a-z-*/]{0,13}))$"),
+
+            persistent_term:put({otel_tracestate, key_mp}, KeyMP),
+            persistent_term:put({otel_tracestate, value_mp}, ValueMP)
+    end.
 
 is_valid(Key, Value) ->
     try
