@@ -326,6 +326,7 @@ maybe_add_scheme_port(Uri) ->
 
 %% if no ssl opts are defined by the user then use defaults from `tls_certificate_check'
 update_ssl_opts(Host, undefined) ->
+    {ok, _} = application:ensure_all_started(tls_certificate_check),
     tls_certificate_check:options(Host);
 update_ssl_opts(_, SSLOptions) ->
     SSLOptions.
