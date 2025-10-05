@@ -70,7 +70,9 @@ rewrite(_Config) ->
     otel_ctx:clear(),
 
     RecordingSpanCtx = #span_ctx{trace_id=21267647932558653966460912964485513216,
+                                 hex_trace_id= <<"10000000000000000000000000000000">>,
                                  span_id=1152921504606846976,
+                                 hex_span_id= <<"1000000000000000">>,
                                  is_valid=true,
                                  is_recording=true},
     otel_tracer:set_current_span(RecordingSpanCtx),
@@ -117,7 +119,9 @@ invalid_span_no_sdk_propagation(_Config) ->
     otel_ctx:clear(),
 
     InvalidSpanCtx = #span_ctx{trace_id=0,
+                               hex_trace_id= <<"00000000000000000000000000000000">>,
                                span_id=0,
+                               hex_span_id= <<"0000000000000000">>,
                                trace_flags=0,
                                is_valid=false,
                                is_recording=false},
@@ -142,7 +146,9 @@ nonrecording_no_sdk_propagation(_Config) ->
     otel_ctx:clear(),
 
     NonRecordingSpanCtx = #span_ctx{trace_id=21267647932558653966460912964485513216,
+                                    hex_trace_id= <<"10000000000000000000000000000000">>,
                                     span_id=1152921504606846976,
+                                    hex_span_id= <<"1000000000000000">>,
                                     is_valid=true,
                                     is_recording=false},
     ?set_current_span(NonRecordingSpanCtx),
