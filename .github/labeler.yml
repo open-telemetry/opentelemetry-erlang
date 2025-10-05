@@ -1,20 +1,32 @@
 language-elixir:
-  - apps/**/*.ex
-  - apps/**/*.exs
+  - changed-files:
+    - any-glob-to-any-file:
+      - apps/**/*.ex
+      - apps/**/*.exs
 
 language-erlang:
-  - apps/**/*.erl
-  - apps/**/*.hrl
-  - apps/**/rebar.config
+  - changed-files:
+    - any-glob-to-any-file:
+      - apps/**/*.erl
+      - apps/**/*.hrl
+      - apps/**/rebar.config
 
 scope-api:
-  - apps/opentelemetry_api/**
+  - changed-files:
+    - any-glob-to-any-file:
+      - apps/opentelemetry_api/**
 
 scope-sdk:
-  - apps/opentelemetry/**
+  - changed-files:
+    - any-glob-to-any-file:
+      - apps/opentelemetry/**
 
 scope-semconv:
-  - apps/opentelemetry_semantic_conventions/**
+  - changed-files:
+    - any-glob-to-any-file:
+      - apps/opentelemetry_semantic_conventions/**
 
 scope-ci:
-  - .github/workflows/**
+  - changed-files:
+    - any-glob-to-any-file:
+      - .github/workflows/**

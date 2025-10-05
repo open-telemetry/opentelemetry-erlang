@@ -1,0 +1,17 @@
+name: Conventional Commitlint
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    name: Conventional Commitlint
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Conventional Commitlint
+        uses: opensource-nepal/commitlint@v1
