@@ -16,7 +16,7 @@ defmodule OpenTelemetry.SemConv.Incubating.BrowserAttributes do
   ### Examples
 
   ```
-  [" Not A;Brand 99", "Chromium 99", "Chrome 99"]
+  [[" Not A;Brand 99", "Chromium 99", "Chrome 99"]]
   ```
 
   <!-- tabs-open -->

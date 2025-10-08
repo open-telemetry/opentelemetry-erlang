@@ -13,9 +13,16 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
-%% @deprecated Replaced by `user.id` attribute.
-%% Deprecated, use `user.id` instead.
+-include_lib("opentelemetry_semantic_conventions/include/attributes/enduser_attributes.hrl").
+
+
+%% Unique identifier of an end user in the system. It maybe a username, email address, or other identifier.
 -define(ENDUSER_ID, 'enduser.id').
+
+
+%% Pseudonymous identifier of an end user. This identifier should be a random value that is not directly linked or associated with the end user's actual identity.
+%%  
+-define(ENDUSER_PSEUDO_ID, 'enduser.pseudo.id').
 
 %% @deprecated Replaced by `user.roles` attribute.
 %% Deprecated, use `user.roles` instead.
