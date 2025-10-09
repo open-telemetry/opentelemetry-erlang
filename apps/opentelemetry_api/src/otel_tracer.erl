@@ -90,7 +90,9 @@ with_span(Ctx, Tracer={Module, _}, SpanName, Opts, Fun) when is_atom(Module) ->
                         -> opentelemetry:span_ctx().
 non_recording_span(TraceId, SpanId, Traceflags) ->
     #span_ctx{trace_id=TraceId,
+              hex_trace_id=otel_utils:encode_hex(<<TraceId:128>>),
               span_id=SpanId,
+              hex_span_id=otel_utils:encode_hex(<<SpanId:64>>),
               is_recording=false,
               trace_flags=Traceflags}.
 
@@ -100,7 +102,9 @@ non_recording_span(TraceId, SpanId, Traceflags) ->
                       -> opentelemetry:span_ctx().
 from_remote_span(TraceId, SpanId, Traceflags) ->
     #span_ctx{trace_id=TraceId,
+              hex_trace_id=otel_utils:encode_hex(<<TraceId:128>>),
               span_id=SpanId,
+              hex_span_id=otel_utils:encode_hex(<<SpanId:64>>),
               is_valid=true,
               is_recording=false,
               is_remote=true,

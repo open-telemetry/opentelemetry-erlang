@@ -87,12 +87,20 @@ new_span_ctx(Ctx, IdGeneratorModule) ->
             {root_span_ctx(IdGeneratorModule), undefined, undefined};
         ParentSpanCtx=#span_ctx{span_id=ParentSpanId, is_remote=ParentIsRemote} ->
             %% keep the rest of the parent span ctx, simply need to update the span_id
-            {ParentSpanCtx#span_ctx{span_id=IdGeneratorModule:generate_span_id()}, ParentSpanId, ParentIsRemote}
+            SpanId = IdGeneratorModule:generate_span_id(),
+            HexSpanId = otel_utils:encode_hex(<<SpanId:64>>),
+            {ParentSpanCtx#span_ctx{span_id=SpanId, hex_span_id=HexSpanId}, ParentSpanId, ParentIsRemote}
     end.
 
 root_span_ctx(IdGeneratorModule) ->
-    #span_ctx{trace_id=IdGeneratorModule:generate_trace_id(),
-              span_id=IdGeneratorModule:generate_span_id(),
+    TraceId = IdGeneratorModule:generate_trace_id(),
+    HexTraceId = otel_utils:encode_hex(<<TraceId:128>>),
+    SpanId = IdGeneratorModule:generate_span_id(),
+    HexSpanId = otel_utils:encode_hex(<<SpanId:64>>),
+    #span_ctx{trace_id=TraceId,
+              hex_trace_id=HexTraceId,
+              span_id=SpanId,
+              hex_span_id=HexSpanId,
               is_valid=true,
               trace_flags=0}.
 
