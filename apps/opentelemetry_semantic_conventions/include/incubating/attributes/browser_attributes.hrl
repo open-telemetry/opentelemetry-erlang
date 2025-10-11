@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/browser_attributes.hrl").
+
 
 %% Array of brand name and version separated by a space
 -define(BROWSER_BRANDS, 'browser.brands').
