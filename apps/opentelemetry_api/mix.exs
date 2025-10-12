@@ -10,6 +10,7 @@ defmodule OpenTelemetry.MixProject do
       description: to_string(Keyword.fetch!(desc, :description)),
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
+      elixirc_paths: elixirc_paths(Mix.env()),
       deps: [
         {:eqwalizer_support,
          git: "https://github.com/whatsapp/eqwalizer.git",
@@ -65,6 +66,9 @@ defmodule OpenTelemetry.MixProject do
   end
 
   def application, do: []
+
+  defp elixirc_paths(:test), do: ["test/support", "lib"]
+  defp elixirc_paths(_), do: ["lib"]
 
   defp package() do
     [
