@@ -71,13 +71,11 @@ footer = """
 trim = true
 
 [git]
-# regex for matching git tags
-tag_pattern = "v[0-9].*"
 # Parse commits according to the conventional commits specification.
 # See https://www.conventionalcommits.org
 conventional_commits = true
 # Exclude commits that do not match the conventional commits specification.
-filter_unconventional = true
+filter_unconventional = false
 # An array of regex based parsers to modify commit messages prior to further processing.
 commit_preprocessors = [
   # Remove issue numbers.
@@ -88,15 +86,11 @@ commit_preprocessors = [
 # Optionally sets the commit's scope and can decide to exclude commits from further processing.
 commit_parsers = [
   { message = "^chore", skip = true },
-  { message = "^[a|A]dd", group = "Added" },
-  { message = "^[s|S]upport", group = "Added" },
-  { message = "^[r|R]emove", group = "Removed" },
+  { message = "^fix", group = "Fixed" },
   { message = "^.*: add", group = "Added" },
   { message = "^.*: support", group = "Added" },
   { message = "^.*: remove", group = "Removed" },
   { message = "^.*: delete", group = "Removed" },
-  { message = "^test", group = "Fixed" },
-  { message = "^fix", group = "Fixed" },
   { message = "^.*: fix", group = "Fixed" },
   { message = "^.*", group = "Changed" },
 ]
