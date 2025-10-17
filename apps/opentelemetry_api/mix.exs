@@ -6,7 +6,7 @@ defmodule OpenTelemetry.MixProject do
 
     [
       app: app,
-      version: to_string(Keyword.fetch!(desc, :vsn)),
+      version: handle_vsn(Keyword.fetch!(desc, :vsn)),
       description: to_string(Keyword.fetch!(desc, :description)),
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
@@ -83,5 +83,10 @@ defmodule OpenTelemetry.MixProject do
     {:ok, [{:application, name, desc}]} = :file.consult(~c"src/opentelemetry_api.app.src")
 
     {name, desc}
+  end
+
+  defp handle_vsn({:file, file}) do
+    vsn = File.read!(file)
+    String.trim_trailing(vsn)
   end
 end
