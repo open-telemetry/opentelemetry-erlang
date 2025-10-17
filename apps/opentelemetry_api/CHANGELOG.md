@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Precompute hex encodings of SpanID and TraceID
 
 ### Fixed
+- No_auto_import of link to fix otp-28 warning
 - Otp28 removes the ability to cache compiled regex in macros
 
 

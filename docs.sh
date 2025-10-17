@@ -9,11 +9,11 @@ set -e
 
 rebar3 compile
 rebar3 edoc
-sdk_version=1.6.0
-api_version=1.4.1
+sdk_version=1.7.0
+api_version=1.5.0
 exp_sdk_version=0.6.0
 exp_api_version=0.5.2
-otlp_version=1.9.0
+otlp_version=1.10.0
 zipkin_version=1.1.0
 
 mix escript.install hex ex_doc
