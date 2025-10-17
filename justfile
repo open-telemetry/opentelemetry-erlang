@@ -7,8 +7,7 @@ changelogs:
         echo "Processing directory: ${dir}/**"
 
         # version tag is <app>/v<vsn>
-        prefix="${dir#apps/}/v"
-        tag="${dir#apps/}[0-9].*"
+        tag="${dir#apps/}/v[0-9].*"
 
         git cliff 29b747722addf39ce40014ee1a905a973c9044be.. \
             --include-path "${dir}/**" \
