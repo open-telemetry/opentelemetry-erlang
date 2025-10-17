@@ -63,6 +63,7 @@
 
 -include("opentelemetry.hrl").
 -include_lib("kernel/include/logger.hrl").
+-compile({no_auto_import,[link/2]}).
 
 -export_type([tracer/0,
               instrumentation_scope/0,
