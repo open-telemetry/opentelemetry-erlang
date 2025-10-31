@@ -205,11 +205,11 @@ defmodule OpenTelemetry.Tracer do
   See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#record-exception)
   """
   @spec record_exception(Exception.t()) :: boolean()
-  def record_exception(exception, trace \\ nil, attributes \\ []) do
+  def record_exception(exception, stacktrace \\ nil, attributes \\ []) do
     OpenTelemetry.Span.record_exception(
       :otel_tracer.current_span_ctx(),
       exception,
-      trace,
+      stacktrace,
       attributes
     )
   end
