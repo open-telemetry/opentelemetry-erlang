@@ -164,15 +164,16 @@ defmodule OpenTelemetry.Span do
   See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#record-exception)
   """
   @spec record_exception(OpenTelemetry.span_ctx(), Exception.t()) :: boolean()
-  def record_exception(span_ctx, exception, trace \\ nil, attributes \\ [])
+  def record_exception(span_ctx, exception, stacktrace \\ nil, attributes \\ [])
 
-  def record_exception(span_ctx, exception, trace, attributes) when is_exception?(exception) do
+  def record_exception(span_ctx, exception, stacktrace, attributes)
+      when is_exception?(exception) do
     exception_type = to_string(exception.__struct__)
 
     exception_attributes = [
       {:"exception.type", exception_type},
       {:"exception.message", Exception.message(exception)},
-      {:"exception.stacktrace", Exception.format_stacktrace(trace)}
+      {:"exception.stacktrace", Exception.format_stacktrace(stacktrace)}
     ]
 
     add_event(span_ctx, :exception, exception_attributes ++ attributes)
