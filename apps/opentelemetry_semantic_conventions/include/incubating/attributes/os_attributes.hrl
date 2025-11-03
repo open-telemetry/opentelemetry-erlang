@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/os_attributes.hrl").
+
 
 %% Unique identifier for a particular build or compilation of the operating system.
 -define(OS_BUILD_ID, 'os.build_id').
