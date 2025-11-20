@@ -28,7 +28,7 @@ jobs:
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Run Collector
         run: docker compose up -d
       - uses: erlef/setup-beam@v1
@@ -95,7 +95,7 @@ jobs:
         rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp_version }}
@@ -123,7 +123,7 @@ jobs:
         rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp_version }}
@@ -161,7 +161,7 @@ jobs:
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp_version }}
