@@ -20,7 +20,3 @@ changelogs:
       fi
     done
 
-# lint the commits between HEAD and the point from `origin/main` this branch was created from
-commit-lint:
-    npm install -D @commitlint/cli @commitlint/config-conventional
-    npx commitlint --verbose --from `git merge-base --fork-point origin/main` --to HEAD
