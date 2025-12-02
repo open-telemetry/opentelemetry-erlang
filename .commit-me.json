@@ -1,0 +1,4 @@
+{
+  "include-pull-requests": true,
+  "types": [ "chore", "feat", "fix" ]
+}
