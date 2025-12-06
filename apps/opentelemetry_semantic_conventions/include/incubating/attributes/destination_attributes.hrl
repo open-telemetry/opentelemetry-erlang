@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/destination_attributes.hrl").
+
 
 %% Destination address - domain name if available without reverse DNS lookup; otherwise, IP address or Unix domain socket name.
 -define(DESTINATION_ADDRESS, 'destination.address').

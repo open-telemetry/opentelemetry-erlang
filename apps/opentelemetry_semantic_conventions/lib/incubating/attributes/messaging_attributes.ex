@@ -324,7 +324,6 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   @deprecated """
   Replaced by `messaging.consumer.group.name`.
-
   """
   @spec messaging_eventhubs_consumer_group :: :"messaging.eventhubs.consumer.group"
   def messaging_eventhubs_consumer_group do
@@ -499,7 +498,6 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   @deprecated """
   Replaced by `messaging.consumer.group.name`.
-
   """
   @spec messaging_kafka_consumer_group :: :"messaging.kafka.consumer.group"
   def messaging_kafka_consumer_group do
@@ -553,7 +551,6 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   @deprecated """
   Replaced by `messaging.kafka.offset`.
-
   """
   @spec messaging_kafka_message_offset :: :"messaging.kafka.message.offset"
   def messaging_kafka_message_offset do
@@ -807,9 +804,9 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
 
   ### Enum Values
-  * `:publish` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - One or more messages are provided for publishing to an intermediary. If a single message is published, the context of the "Publish" span can be used as the creation context and no "Create" span needs to be created.
+  * `:create` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - A message is created. "Create" spans always refer to a single message and are used to provide a unique creation context for messages in batch sending scenarios.
 
-  * `:create` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - A message is created. "Create" spans always refer to a single message and are used to provide a unique creation context for messages in batch publishing scenarios.
+  * `:send` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - One or more messages are provided for sending to an intermediary. If a single message is sent, the context of the "Send" span can be used as the creation context and no "Create" span needs to be created.
 
   * `:receive` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - One or more messages are requested by a consumer. This operation refers to pull-based scenarios, where consumers explicitly call methods of messaging SDKs to receive messages.
 
@@ -817,15 +814,17 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   * `:settle` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - One or more messages are settled.
 
-  * `:deliver` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - **deprecated** ~~Deprecated. Use `process` instead.~~
+  * `:deliver` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Deprecated. Use `process` instead.
+  * `:publish` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Deprecated. Use `send` instead.
   """
   @type messaging_operation_type_values() :: %{
-          :publish => :publish,
           :create => :create,
+          :send => :send,
           :receive => :receive,
           :process => :process,
           :settle => :settle,
-          :deliver => :deliver
+          :deliver => :deliver,
+          :publish => :publish
         }
   @doc """
   A string identifying the type of the messaging operation.
@@ -842,11 +841,11 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
       iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type()
       :"messaging.operation.type"
 
-      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type_values().publish
-      :publish
+      iex> OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type_values().create
+      :create
 
-      iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type_values().publish}
-      %{:"messaging.operation.type" => :publish}
+      iex> %{OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type() => OpenTelemetry.SemConv.Incubating.MessagingAttributes.messaging_operation_type_values().create}
+      %{:"messaging.operation.type" => :create}
 
   ### Erlang
 
@@ -854,11 +853,11 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ?MESSAGING_OPERATION_TYPE.
   'messaging.operation.type'
 
-  ?MESSAGING_OPERATION_TYPE_VALUES_PUBLISH.
-  'publish'
+  ?MESSAGING_OPERATION_TYPE_VALUES_CREATE.
+  'create'
 
-  \#{?MESSAGING_OPERATION_TYPE => ?MESSAGING_OPERATION_TYPE_VALUES_PUBLISH}.
-  \#{'messaging.operation.type' => 'publish'}
+  \#{?MESSAGING_OPERATION_TYPE => ?MESSAGING_OPERATION_TYPE_VALUES_CREATE}.
+  \#{'messaging.operation.type' => 'create'}
   ```
 
   <!-- tabs-close -->
@@ -871,12 +870,13 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   @spec messaging_operation_type_values() :: messaging_operation_type_values()
   def messaging_operation_type_values() do
     %{
-      :publish => :publish,
       :create => :create,
+      :send => :send,
       :receive => :receive,
       :process => :process,
       :settle => :settle,
-      :deliver => :deliver
+      :deliver => :deliver,
+      :publish => :publish
     }
   end
 
@@ -949,7 +949,6 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
 
   @deprecated """
   Replaced by `messaging.consumer.group.name` on the consumer spans. No replacement for producer spans.
-
   """
   @spec messaging_rocketmq_client_group :: :"messaging.rocketmq.client_group"
   def messaging_rocketmq_client_group do
@@ -1125,7 +1124,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   ### Examples
 
   ```
-  ["keyA", "keyB"]
+  [["keyA", "keyB"]]
   ```
 
   <!-- tabs-open -->
@@ -1280,8 +1279,7 @@ defmodule OpenTelemetry.SemConv.Incubating.MessagingAttributes do
   end
 
   @deprecated """
-  Replaced by `messaging.servicebus.destination.subscription_name`.
-
+  Replaced by `messaging.destination.subscription.name`.
   """
   @spec messaging_servicebus_destination_subscription_name ::
           :"messaging.servicebus.destination.subscription_name"

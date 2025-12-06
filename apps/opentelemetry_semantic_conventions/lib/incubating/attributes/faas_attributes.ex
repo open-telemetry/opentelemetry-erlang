@@ -231,7 +231,7 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   Value must be of type `atom() | String.t()`.
   ### Notes
 
-  * **AWS Lambda:** Use the (full) log stream name.
+  - **AWS Lambda:** Use the (full) log stream name.
 
   ### Examples
 
@@ -486,14 +486,14 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
   This is the name of the function as configured/deployed on the FaaS
   platform and is usually different from the name of the callback
   function (which may be stored in the
-  [`code.namespace`/`code.function`](/docs/general/attributes.md#source-code-attributes)
+  [`code.namespace`/`code.function.name`](/docs/general/attributes.md#source-code-attributes)
   span attributes).
 
   For some cloud providers, the above definition is ambiguous. The following
   definition of function name **MUST** be used for this attribute
   (and consequently the span name) for the listed cloud providers/products:
 
-  * **Azure:**  The full name `<FUNCAPP>/<FUNC>`, i.e., function app name
+  - **Azure:**  The full name `<FUNCAPP>/<FUNC>`, i.e., function app name
     followed by a forward slash followed by the function name (this form
     can also be seen in the resource JSON for the function).
     This means that a span attribute **MUST** be used, as an Azure function
@@ -636,13 +636,13 @@ defmodule OpenTelemetry.SemConv.Incubating.FAASAttributes do
 
   Depending on the cloud provider and platform, use:
 
-  * **AWS Lambda:** The [function version](https://docs.aws.amazon.com/lambda/latest/dg/configuration-versions.html)
+  - **AWS Lambda:** The [function version](https://docs.aws.amazon.com/lambda/latest/dg/configuration-versions.html)
     (an integer represented as a decimal string).
-  * **Google Cloud Run (Services):** The [revision](https://cloud.google.com/run/docs/managing/revisions)
+  - **Google Cloud Run (Services):** The [revision](https://cloud.google.com/run/docs/managing/revisions)
     (i.e., the function name plus the revision suffix).
-  * **Google Cloud Functions:** The value of the
+  - **Google Cloud Functions:** The value of the
     [`K_REVISION` environment variable](https://cloud.google.com/functions/docs/env-var#runtime_environment_variables_set_automatically).
-  * **Azure Functions:** Not applicable. Do not set this attribute.
+  - **Azure Functions:** Not applicable. Do not set this attribute.
 
   ### Examples
 
