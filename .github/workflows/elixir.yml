@@ -23,7 +23,7 @@ jobs:
           otp-version: "27.2"
           elixir-version: "1.18.1"
           version-type: "strict"
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         name: Cache
         with:
           path: |
@@ -88,7 +88,7 @@ jobs:
           elixir-version: ${{ matrix.elixir_version }}
           rebar3-version: ${{ matrix.rebar3_version }}
           version-type: "strict"
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         name: Cache
         with:
           path: |
@@ -130,7 +130,7 @@ jobs:
           otp-version: ${{ matrix.otp_version }}
           elixir-version: ${{ matrix.elixir_version }}
           version-type: "strict"
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         name: Cache
         with:
           path: |
@@ -172,7 +172,7 @@ jobs:
           rebar3-version: ${{ matrix.rebar3_version }}
           version-type: "strict"
       - name: Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/deps
