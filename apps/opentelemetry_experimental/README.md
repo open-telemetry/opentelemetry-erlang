@@ -138,3 +138,14 @@ configured to export to the console every five seconds would look like:
                config => #{export_interval_ms => 5000,
                            exporter => {otel_metric_exporter_console, #{}}}}]}]},
 ```
+
+## For non-Erlang reviewers
+
+- **What to read first**: See `SPEC_COMPLIANCE.md` in this folder for a plain-language crosswalk to the OpenTelemetry Metrics spec with code anchors.
+- **How the pieces fit**: Instruments created via the API are matched to Views here to produce per-Reader Streams. Readers collect and export (periodic or pull). Aggregations and temporality are enforced per Reader.
+- **Quick validation**:
+  - Add a console Reader (example above) and start the app.
+  - Create a Counter and record a value via the API macros.
+  - Observe a sum metric printed by the console exporter.
+  - Add a View to filter attributes or change histogram buckets; observe effect on output.
+
