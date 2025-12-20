@@ -1,5 +1,5 @@
 {%- import 'common.j2' as c %}
-{%- set file_name = ctx.output ~ c.file_name(ctx.id) ~ "_attributes.hrl" -%}
+{%- set file_name = ctx.output ~ c.file_name(ctx.root_namespace) ~ "_attributes.hrl" -%}
 {{ template.set_file_name(file_name) }}
 %%%------------------------------------------------------------------------
 %% Copyright The OpenTelemetry Authors
@@ -15,12 +15,12 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
-{%- if params.stability == "experimental" and (ctx.all_attributes | length) > (ctx.attributes | length) %}
--include_lib("opentelemetry_semantic_conventions/include/attributes/{{ c.file_name(ctx.id) }}_attributes.hrl").
+{%- if ctx.stability == "incubating" %}
+-include_lib("opentelemetry_semantic_conventions/include/attributes/{{ c.file_name(ctx.root_namespace) }}_attributes.hrl").
 {% endif -%}
-{%- for attribute in ctx.attributes | sort(attribute="name") %}
+{%- for attribute in ctx.attributes %}
 {% if attribute is deprecated -%}
-%% @deprecated {{ attribute.deprecated | replace("\n", "\n%%  ") }}
+%% @deprecated {{ attribute.deprecated.note | replace("\n", "\n%%  ") }}
 {%- endif %}
 %% {{ attribute.brief | replace("\n", "\n%%  ") }}
 -define({{ c.attr_name(attribute.name) }}, '{{ attribute.name }}').

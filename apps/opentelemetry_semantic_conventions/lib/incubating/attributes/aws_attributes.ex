@@ -12,7 +12,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["{ \"AttributeName\": \"string\", \"AttributeType\": \"string\" }"]
+  [["{ \"AttributeName\": \"string\", \"AttributeType\": \"string\" }"]]
   ```
 
   <!-- tabs-open -->
@@ -44,7 +44,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["lives", "id"]
+  [["lives", "id"]]
   ```
 
   <!-- tabs-open -->
@@ -103,7 +103,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["{ \"CapacityUnits\": number, \"GlobalSecondaryIndexes\": { \"string\" : { \"CapacityUnits\": number, \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number } }, \"LocalSecondaryIndexes\": { \"string\" : { \"CapacityUnits\": number, \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number } }, \"ReadCapacityUnits\": number, \"Table\": { \"CapacityUnits\": number, \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number }, \"TableName\": \"string\", \"WriteCapacityUnits\": number }"]
+  [["{ \"CapacityUnits\": number, \"GlobalSecondaryIndexes\": { \"string\" : { \"CapacityUnits\": number, \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number } }, \"LocalSecondaryIndexes\": { \"string\" : { \"CapacityUnits\": number, \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number } }, \"ReadCapacityUnits\": number, \"Table\": { \"CapacityUnits\": number, \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number }, \"TableName\": \"string\", \"WriteCapacityUnits\": number }"]]
   ```
 
   <!-- tabs-open -->
@@ -199,7 +199,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["{ \"Create\": { \"IndexName\": \"string\", \"KeySchema\": [ { \"AttributeName\": \"string\", \"KeyType\": \"string\" } ], \"Projection\": { \"NonKeyAttributes\": [ \"string\" ], \"ProjectionType\": \"string\" }, \"ProvisionedThroughput\": { \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number } }"]
+  [["{ \"Create\": { \"IndexName\": \"string\", \"KeySchema\": [ { \"AttributeName\": \"string\", \"KeyType\": \"string\" } ], \"Projection\": { \"NonKeyAttributes\": [ \"string\" ], \"ProjectionType\": \"string\" }, \"ProvisionedThroughput\": { \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number } }"]]
   ```
 
   <!-- tabs-open -->
@@ -232,7 +232,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["{ \"IndexName\": \"string\", \"KeySchema\": [ { \"AttributeName\": \"string\", \"KeyType\": \"string\" } ], \"Projection\": { \"NonKeyAttributes\": [ \"string\" ], \"ProjectionType\": \"string\" }, \"ProvisionedThroughput\": { \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number } }"]
+  [["{ \"IndexName\": \"string\", \"KeySchema\": [ { \"AttributeName\": \"string\", \"KeyType\": \"string\" } ], \"Projection\": { \"NonKeyAttributes\": [ \"string\" ], \"ProjectionType\": \"string\" }, \"ProvisionedThroughput\": { \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number } }"]]
   ```
 
   <!-- tabs-open -->
@@ -360,7 +360,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["{ \"IndexArn\": \"string\", \"IndexName\": \"string\", \"IndexSizeBytes\": number, \"ItemCount\": number, \"KeySchema\": [ { \"AttributeName\": \"string\", \"KeyType\": \"string\" } ], \"Projection\": { \"NonKeyAttributes\": [ \"string\" ], \"ProjectionType\": \"string\" } }"]
+  [["{ \"IndexArn\": \"string\", \"IndexName\": \"string\", \"IndexSizeBytes\": number, \"ItemCount\": number, \"KeySchema\": [ { \"AttributeName\": \"string\", \"KeyType\": \"string\" } ], \"Projection\": { \"NonKeyAttributes\": [ \"string\" ], \"ProjectionType\": \"string\" } }"]]
   ```
 
   <!-- tabs-open -->
@@ -643,7 +643,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["Users", "Cats"]
+  [["Users", "Cats"]]
   ```
 
   <!-- tabs-open -->
@@ -989,6 +989,38 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   end
 
   @doc """
+  The AWS extended request ID as returned in the response header `x-amz-id-2`.
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ="]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_extended_request_id()
+      :"aws.extended_request_id"
+
+  ### Erlang
+
+  ```erlang
+  ?AWS_EXTENDED_REQUEST_ID.
+  'aws.extended_request_id'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec aws_extended_request_id :: :"aws.extended_request_id"
+  def aws_extended_request_id do
+    :"aws.extended_request_id"
+  end
+
+  @doc """
   The full invoked ARN as provided on the `Context` passed to the function (`Lambda-Runtime-Invoked-Function-Arn` header on the `/runtime/invocation/next` applicable).
 
   ### Value type
@@ -1037,7 +1069,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["arn:aws:logs:us-west-1:123456789012:log-group:/aws/my/group:*"]
+  [["arn:aws:logs:us-west-1:123456789012:log-group:/aws/my/group:*"]]
   ```
 
   <!-- tabs-open -->
@@ -1074,7 +1106,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["/aws/lambda/my-function", "opentelemetry-service"]
+  [["/aws/lambda/my-function", "opentelemetry-service"]]
   ```
 
   <!-- tabs-open -->
@@ -1111,7 +1143,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["arn:aws:logs:us-west-1:123456789012:log-group:/aws/my/group:log-stream:logs/main/10838bed-421f-43ef-870a-f43feacbbb5b"]
+  [["arn:aws:logs:us-west-1:123456789012:log-group:/aws/my/group:log-stream:logs/main/10838bed-421f-43ef-870a-f43feacbbb5b"]]
   ```
 
   <!-- tabs-open -->
@@ -1144,7 +1176,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["logs/main/10838bed-421f-43ef-870a-f43feacbbb5b"]
+  [["logs/main/10838bed-421f-43ef-870a-f43feacbbb5b"]]
   ```
 
   <!-- tabs-open -->
@@ -1169,7 +1201,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   end
 
   @doc """
-  The AWS request ID as returned in the response headers `x-amz-request-id` or `x-amz-requestid`.
+  The AWS request ID as returned in the response headers `x-amzn-requestid`, `x-amzn-request-id` or `x-amz-request-id`.
   ### Value type
 
   Value must be of type `atom() | String.t()`.

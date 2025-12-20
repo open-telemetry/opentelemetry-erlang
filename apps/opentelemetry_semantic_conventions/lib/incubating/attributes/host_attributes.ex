@@ -427,7 +427,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Examples
 
   ```
-  ["192.168.1.140", "fe80::abc2:4a28:737a:609e"]
+  [["192.168.1.140", "fe80::abc2:4a28:737a:609e"]]
   ```
 
   <!-- tabs-open -->
@@ -464,7 +464,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HostAttributes do
   ### Examples
 
   ```
-  ["AC-DE-48-23-45-67", "AC-DE-48-23-45-67-01-9F"]
+  [["AC-DE-48-23-45-67", "AC-DE-48-23-45-67-01-9F"]]
   ```
 
   <!-- tabs-open -->

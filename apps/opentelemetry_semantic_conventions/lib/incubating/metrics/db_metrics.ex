@@ -139,7 +139,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   end
 
   @doc """
-  The number of pending requests for an open connection, cumulative for the entire pool
+  The number of current pending requests for an open connection
 
   Instrument: `updowncounter`
   Unit: `{request}`
@@ -327,6 +327,25 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
     :"db.client.connections.wait_time"
   end
 
+  @deprecated """
+  Replaced by `azure.cosmosdb.client.active_instance.count`.
+  """
+
+  @spec db_client_cosmosdb_active_instance_count :: :"db.client.cosmosdb.active_instance.count"
+  def db_client_cosmosdb_active_instance_count do
+    :"db.client.cosmosdb.active_instance.count"
+  end
+
+  @deprecated """
+  Replaced by `azure.cosmosdb.client.operation.request_charge`.
+  """
+
+  @spec db_client_cosmosdb_operation_request_charge ::
+          :"db.client.cosmosdb.operation.request_charge"
+  def db_client_cosmosdb_operation_request_charge do
+    :"db.client.cosmosdb.operation.request_charge"
+  end
+
   @doc """
   Duration of database client operations.
 
@@ -356,5 +375,32 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   @spec db_client_operation_duration :: :"db.client.operation.duration"
   def db_client_operation_duration do
     :"db.client.operation.duration"
+  end
+
+  @doc """
+  The actual number of records returned by the database operation.
+
+  Instrument: `histogram`
+  Unit: `{row}`
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics.db_client_response_returned_rows()
+      :"db.client.response.returned_rows"
+
+  ### Erlang
+
+  ```erlang
+  ?DB_CLIENT_RESPONSE_RETURNED_ROWS.
+  'db.client.response.returned_rows'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec db_client_response_returned_rows :: :"db.client.response.returned_rows"
+  def db_client_response_returned_rows do
+    :"db.client.response.returned_rows"
   end
 end

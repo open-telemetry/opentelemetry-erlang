@@ -13,6 +13,89 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/gcp_attributes.hrl").
+
+
+%% The container within GCP where the AppHub application is defined.
+%%  
+-define(GCP_APPHUB_APPLICATION_CONTAINER, 'gcp.apphub.application.container').
+
+
+%% The name of the application as configured in AppHub.
+%%  
+-define(GCP_APPHUB_APPLICATION_ID, 'gcp.apphub.application.id').
+
+
+%% The GCP zone or region where the application is defined.
+%%  
+-define(GCP_APPHUB_APPLICATION_LOCATION, 'gcp.apphub.application.location').
+
+
+%% Criticality of a service indicates its importance to the business.
+%%  
+-define(GCP_APPHUB_SERVICE_CRITICALITY_TYPE, 'gcp.apphub.service.criticality_type').
+
+-define(GCP_APPHUB_SERVICE_CRITICALITY_TYPE_VALUES_MISSION_CRITICAL, 'MISSION_CRITICAL').
+
+-define(GCP_APPHUB_SERVICE_CRITICALITY_TYPE_VALUES_HIGH, 'HIGH').
+
+-define(GCP_APPHUB_SERVICE_CRITICALITY_TYPE_VALUES_MEDIUM, 'MEDIUM').
+
+-define(GCP_APPHUB_SERVICE_CRITICALITY_TYPE_VALUES_LOW, 'LOW').
+
+
+
+%% Environment of a service is the stage of a software lifecycle.
+%%  
+-define(GCP_APPHUB_SERVICE_ENVIRONMENT_TYPE, 'gcp.apphub.service.environment_type').
+
+-define(GCP_APPHUB_SERVICE_ENVIRONMENT_TYPE_VALUES_PRODUCTION, 'PRODUCTION').
+
+-define(GCP_APPHUB_SERVICE_ENVIRONMENT_TYPE_VALUES_STAGING, 'STAGING').
+
+-define(GCP_APPHUB_SERVICE_ENVIRONMENT_TYPE_VALUES_TEST, 'TEST').
+
+-define(GCP_APPHUB_SERVICE_ENVIRONMENT_TYPE_VALUES_DEVELOPMENT, 'DEVELOPMENT').
+
+
+
+%% The name of the service as configured in AppHub.
+%%  
+-define(GCP_APPHUB_SERVICE_ID, 'gcp.apphub.service.id').
+
+
+%% Criticality of a workload indicates its importance to the business.
+%%  
+-define(GCP_APPHUB_WORKLOAD_CRITICALITY_TYPE, 'gcp.apphub.workload.criticality_type').
+
+-define(GCP_APPHUB_WORKLOAD_CRITICALITY_TYPE_VALUES_MISSION_CRITICAL, 'MISSION_CRITICAL').
+
+-define(GCP_APPHUB_WORKLOAD_CRITICALITY_TYPE_VALUES_HIGH, 'HIGH').
+
+-define(GCP_APPHUB_WORKLOAD_CRITICALITY_TYPE_VALUES_MEDIUM, 'MEDIUM').
+
+-define(GCP_APPHUB_WORKLOAD_CRITICALITY_TYPE_VALUES_LOW, 'LOW').
+
+
+
+%% Environment of a workload is the stage of a software lifecycle.
+%%  
+-define(GCP_APPHUB_WORKLOAD_ENVIRONMENT_TYPE, 'gcp.apphub.workload.environment_type').
+
+-define(GCP_APPHUB_WORKLOAD_ENVIRONMENT_TYPE_VALUES_PRODUCTION, 'PRODUCTION').
+
+-define(GCP_APPHUB_WORKLOAD_ENVIRONMENT_TYPE_VALUES_STAGING, 'STAGING').
+
+-define(GCP_APPHUB_WORKLOAD_ENVIRONMENT_TYPE_VALUES_TEST, 'TEST').
+
+-define(GCP_APPHUB_WORKLOAD_ENVIRONMENT_TYPE_VALUES_DEVELOPMENT, 'DEVELOPMENT').
+
+
+
+%% The name of the workload as configured in AppHub.
+%%  
+-define(GCP_APPHUB_WORKLOAD_ID, 'gcp.apphub.workload.id').
+
 
 %% Identifies the Google Cloud service for which the official client library is intended.
 -define(GCP_CLIENT_SERVICE, 'gcp.client.service').

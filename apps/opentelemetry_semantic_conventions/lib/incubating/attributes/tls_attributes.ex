@@ -83,7 +83,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Examples
 
   ```
-  ["MII...", "MI..."]
+  [["MII...", "MI..."]]
   ```
 
   <!-- tabs-open -->
@@ -335,7 +335,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   end
 
   @deprecated """
-  Replaced by `server.address.
+  Replaced by `server.address`.
   """
   @spec tls_client_server_name :: :"tls.client.server_name"
   def tls_client_server_name do
@@ -382,7 +382,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Examples
 
   ```
-  ["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "..."]
+  [["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"]]
   ```
 
   <!-- tabs-open -->
@@ -504,7 +504,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   end
 
   @typedoc """
-  Normalized lowercase protocol name parsed from original string of the negotiated [SSL/TLS protocol version](https://www.openssl.org/docs/man1.1.1/man3/SSL_get_version.html#RETURN-VALUES)
+  Normalized lowercase protocol name parsed from original string of the negotiated [SSL/TLS protocol version](https://docs.openssl.org/1.1.1/man3/SSL_get_version/#return-values)
 
 
   ### Enum Values
@@ -516,7 +516,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
           :tls => :tls
         }
   @doc """
-  Normalized lowercase protocol name parsed from original string of the negotiated [SSL/TLS protocol version](https://www.openssl.org/docs/man1.1.1/man3/SSL_get_version.html#RETURN-VALUES)
+  Normalized lowercase protocol name parsed from original string of the negotiated [SSL/TLS protocol version](https://docs.openssl.org/1.1.1/man3/SSL_get_version/#return-values)
 
 
 
@@ -562,7 +562,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   end
 
   @doc """
-  Numeric part of the version parsed from the original string of the negotiated [SSL/TLS protocol version](https://www.openssl.org/docs/man1.1.1/man3/SSL_get_version.html#RETURN-VALUES)
+  Numeric part of the version parsed from the original string of the negotiated [SSL/TLS protocol version](https://docs.openssl.org/1.1.1/man3/SSL_get_version/#return-values)
 
   ### Value type
 
@@ -668,7 +668,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TLSAttributes do
   ### Examples
 
   ```
-  ["MII...", "MI..."]
+  [["MII...", "MI..."]]
   ```
 
   <!-- tabs-open -->

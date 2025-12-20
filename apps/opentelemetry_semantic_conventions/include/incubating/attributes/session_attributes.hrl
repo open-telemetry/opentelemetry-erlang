@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/session_attributes.hrl").
+
 
 %% A unique id to identify a session.
 -define(SESSION_ID, 'session.id').

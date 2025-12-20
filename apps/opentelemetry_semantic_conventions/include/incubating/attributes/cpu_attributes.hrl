@@ -13,6 +13,12 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/cpu_attributes.hrl").
+
+
+%% The logical CPU number [0..n-1]
+-define(CPU_LOGICAL_NUMBER, 'cpu.logical_number').
+
 
 %% The mode of the CPU
 -define(CPU_MODE, 'cpu.mode').
