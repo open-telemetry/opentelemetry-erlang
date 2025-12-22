@@ -86,7 +86,7 @@ extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet, _Options) ->
         undefined ->
             Ctx;
         SpanCtxString ->
-            case decode(string:trim(SpanCtxString)) of
+            case decode(SpanCtxString) of
                 undefined ->
                     Ctx;
                 SpanCtx ->
@@ -112,20 +112,29 @@ encode_traceparent(TraceId, SpanId, TraceOptions) ->
     otel_utils:assert_to_binary([?VERSION, "-", EncodedTraceId, "-",
                                  EncodedSpanId, "-", Options]).
 
+decode(SpanCtxString) ->
+    % Parse without the string trim first to avoid its cost
+    case do_decode(SpanCtxString) of
+        undefined ->
+            do_decode(string:trim(SpanCtxString));
+        SpanCtx ->
+            SpanCtx
+    end.
+
 %% note: version ff (255) not allowed by spec
-decode(TraceContext) when is_list(TraceContext) ->
-    decode(list_to_binary(TraceContext));
-decode(<<_:2/binary, "-", TraceId:32/binary, "-", SpanId:16/binary, _/binary>>)
+do_decode(TraceContext) when is_list(TraceContext) ->
+    do_decode(list_to_binary(TraceContext));
+do_decode(<<_:2/binary, "-", TraceId:32/binary, "-", SpanId:16/binary, _/binary>>)
   when TraceId =:= ?ZERO_TRACEID orelse SpanId =:= ?ZERO_SPANID ->
     undefined;
-decode(<<Version:2/binary, "-", TraceId:32/binary, "-", SpanId:16/binary, "-", Opts:2/binary>>)
+do_decode(<<Version:2/binary, "-", TraceId:32/binary, "-", SpanId:16/binary, "-", Opts:2/binary>>)
   when Version >= ?VERSION andalso Version =/= <<"ff">> ->
     to_span_ctx(Version, TraceId, SpanId, Opts);
 %% future versions could have more after Opts, so allow for a trailing -
-decode(<<Version:2/binary, "-", TraceId:32/binary, "-", SpanId:16/binary, "-", Opts:2/binary, "-", _/binary>>)
+do_decode(<<Version:2/binary, "-", TraceId:32/binary, "-", SpanId:16/binary, "-", Opts:2/binary, "-", _/binary>>)
   when Version > ?VERSION andalso Version =/= <<"ff">> ->
     to_span_ctx(Version, TraceId, SpanId, Opts);
-decode(_) ->
+do_decode(_) ->
     undefined.
 
 to_span_ctx(Version, TraceId, SpanId, Opts) ->
