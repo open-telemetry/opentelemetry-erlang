@@ -1774,7 +1774,7 @@ async_cumulative_page_faults(_Config) ->
 
     CounterName = page_faults,
     CounterDesc = <<"number of page faults">>,
-    CounterUnit = 1,
+    CounterUnit = '1',
 
     ?assert(otel_meter_server:add_view(#{instrument_name => CounterName},
                                        #{aggregation_module => otel_aggregation_sum})),
@@ -1834,7 +1834,7 @@ async_delta_page_faults(_Config) ->
 
     CounterName = page_faults,
     CounterDesc = <<"number of page faults">>,
-    CounterUnit = 1,
+    CounterUnit = '1',
 
     ?assert(otel_meter_server:add_view(#{instrument_name => CounterName},
                                        #{aggregation_module => otel_aggregation_sum})),
@@ -1915,7 +1915,7 @@ async_attribute_removal(_Config) ->
 
     CounterName = page_faults,
     CounterDesc = <<"number of page faults">>,
-    CounterUnit = 1,
+    CounterUnit = '1',
 
     ?assert(otel_meter_server:add_view(#{instrument_name => CounterName},
                                        #{aggregation_module => otel_aggregation_sum,

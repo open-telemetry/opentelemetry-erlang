@@ -41,9 +41,9 @@
 
 -type advisory_params() :: #{explicit_bucket_boundaries => [number(), ...]}.
 
--type opts() :: #{description => description(),
-                  unit => unit(),
-                  advisory_params => advisory_params()}.
+-type opts() :: #{description => description() | undefined,
+                  unit => unit() | undefined,
+                  advisory_params => advisory_params() | undefined}.
 
 -type t() :: #instrument{}.
 
