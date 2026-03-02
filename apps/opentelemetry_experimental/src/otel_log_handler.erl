@@ -189,33 +189,23 @@ exporting({timeout, export_logs}, export_logs, _) ->
     {keep_state_and_data, [postpone]};
 exporting(enter, _OldState, _Data) ->
     keep_state_and_data;
-exporting(internal, export, Data=#data{exporter=Exporter,
-                                       resource=Resource,
-                                       config=Config,
-                                       batch=Batch}) ->
-    _ = map_size(Batch) =/= 0 andalso
-        export(Exporter, Resource, Batch, Config),
-    %% If the batch is empty we still got to transition to the idle state,
-    %% reschedule the export, and continue collecting the next batch.
+exporting(internal, export, Data) ->
+    ok = maybe_export(Data),
     {next_state, idle, Data#data{batch=#{}}};
 exporting(EventType, EventContent, Data) ->
     handle_event(EventType, EventContent, Data).
 
 handle_event({call, From}, {changing_config, _SetOrUpdate, _OldConfig, NewConfig}, Data) ->
     {keep_state, Data#data{config=NewConfig}, [{reply, From, NewConfig}]};
-handle_event({call, From}, {removing_handler, Config}, _Data) ->
-    %% TODO: flush
+handle_event({call, From}, {removing_handler, Config}, Data) ->
+    ok = maybe_export(Data),
     {keep_state_and_data, [{reply, From, Config}]};
 handle_event({call, From}, {filter_handler, Config}, Data) ->
     {keep_state, Data, [{reply, From, Config}]};
 handle_event({call, From}, {filter_config, Config}, Data) ->
     {keep_state, Data, [{reply, From, Config}]};
-handle_event({call, From}, flush, Data=#data{exporter=Exporter,
-                                             resource=Resource,
-                                             config=Config,
-                                             batch=Batch}) ->
-    _ = map_size(Batch) =/= 0 andalso
-        export(Exporter, Resource, Batch, Config),
+handle_event({call, From}, flush, Data) ->
+    ok = maybe_export(Data),
     {keep_state, Data, [{reply, From, ok}]};
 handle_event({call, _From}, _Msg, _Data) ->
     keep_state_and_data;
@@ -235,6 +225,15 @@ init_exporter(ExporterConfig) ->
         _ ->
             undefined
     end.
+
+maybe_export(Data=#data{exporter=Exporter,
+                        resource=Resource,
+                        config=Config,
+                        batch=Batch}) when map_size(Batch) =/= 0 ->
+    _ = export(Exporter, Resource, Batch, Config),
+    ok;
+maybe_export(_Data) ->
+    ok.
 
 export(undefined, _, _, _) ->
     true;
