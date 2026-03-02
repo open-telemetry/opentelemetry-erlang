@@ -22,7 +22,8 @@
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
--export([start_link/2]).
+-export([start_link/2,
+         flush/1]).
 
 -export([log/2,
          adding_handler/1,
@@ -68,6 +69,11 @@
 
 start_link(RegName, Config) ->
     gen_statem:start_link({local, RegName}, ?MODULE, [RegName, Config], []).
+
+-spec flush(Config) -> ok when
+      Config :: config().
+flush(_Config=#{regname := Id}) ->
+    gen_statem:call(Id, flush).
 
 -spec adding_handler(Config) -> {ok, Config} | {error, Reason} when
       Config :: config(),
@@ -186,14 +192,12 @@ exporting(enter, _OldState, _Data) ->
 exporting(internal, export, Data=#data{exporter=Exporter,
                                        resource=Resource,
                                        config=Config,
-                                       batch=Batch}) when map_size(Batch) =/= 0 ->
-    _ = export(Exporter, Resource, Batch, Config),
+                                       batch=Batch}) ->
+    _ = map_size(Batch) =/= 0 andalso
+        export(Exporter, Resource, Batch, Config),
+    %% If the batch is empty we still got to transition to the idle state,
+    %% reschedule the export, and continue collecting the next batch.
     {next_state, idle, Data#data{batch=#{}}};
-exporting(internal, export, Data) ->
-    %% FIXME Was this clause missing?
-    %% If the batch is empty, transition to the idle state, reschedule the
-    %% export, and continue collecting the next batch.
-    {next_state, idle, Data};
 exporting(EventType, EventContent, Data) ->
     handle_event(EventType, EventContent, Data).
 
@@ -206,6 +210,13 @@ handle_event({call, From}, {filter_handler, Config}, Data) ->
     {keep_state, Data, [{reply, From, Config}]};
 handle_event({call, From}, {filter_config, Config}, Data) ->
     {keep_state, Data, [{reply, From, Config}]};
+handle_event({call, From}, flush, Data=#data{exporter=Exporter,
+                                             resource=Resource,
+                                             config=Config,
+                                             batch=Batch}) ->
+    _ = map_size(Batch) =/= 0 andalso
+        export(Exporter, Resource, Batch, Config),
+    {keep_state, Data, [{reply, From, ok}]};
 handle_event({call, _From}, _Msg, _Data) ->
     keep_state_and_data;
 handle_event(cast, {log, Scope, LogEvent}, Data=#data{batch=Logs}) ->
