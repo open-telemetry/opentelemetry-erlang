@@ -189,6 +189,11 @@ exporting(internal, export, Data=#data{exporter=Exporter,
                                        batch=Batch}) when map_size(Batch) =/= 0 ->
     _ = export(Exporter, Resource, Batch, Config),
     {next_state, idle, Data#data{batch=#{}}};
+exporting(internal, export, Data) ->
+    %% FIXME Was this clause missing?
+    %% If the batch is empty, transition to the idle state, reschedule the
+    %% export, and continue collecting the next batch.
+    {next_state, idle, Data};
 exporting(EventType, EventContent, Data) ->
     handle_event(EventType, EventContent, Data).
 
