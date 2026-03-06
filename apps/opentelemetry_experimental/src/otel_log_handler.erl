@@ -22,7 +22,8 @@
 -include_lib("kernel/include/logger.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
--export([start_link/2]).
+-export([start_link/2,
+         flush/1]).
 
 -export([log/2,
          adding_handler/1,
@@ -68,6 +69,11 @@
 
 start_link(RegName, Config) ->
     gen_statem:start_link({local, RegName}, ?MODULE, [RegName, Config], []).
+
+-spec flush(Config) -> ok when
+      Config :: config().
+flush(_Config=#{regname := Id}) ->
+    gen_statem:call(Id, flush).
 
 -spec adding_handler(Config) -> {ok, Config} | {error, Reason} when
       Config :: config(),
@@ -183,24 +189,24 @@ exporting({timeout, export_logs}, export_logs, _) ->
     {keep_state_and_data, [postpone]};
 exporting(enter, _OldState, _Data) ->
     keep_state_and_data;
-exporting(internal, export, Data=#data{exporter=Exporter,
-                                       resource=Resource,
-                                       config=Config,
-                                       batch=Batch}) when map_size(Batch) =/= 0 ->
-    _ = export(Exporter, Resource, Batch, Config),
+exporting(internal, export, Data) ->
+    ok = maybe_export(Data),
     {next_state, idle, Data#data{batch=#{}}};
 exporting(EventType, EventContent, Data) ->
     handle_event(EventType, EventContent, Data).
 
 handle_event({call, From}, {changing_config, _SetOrUpdate, _OldConfig, NewConfig}, Data) ->
     {keep_state, Data#data{config=NewConfig}, [{reply, From, NewConfig}]};
-handle_event({call, From}, {removing_handler, Config}, _Data) ->
-    %% TODO: flush
+handle_event({call, From}, {removing_handler, Config}, Data) ->
+    ok = maybe_export(Data),
     {keep_state_and_data, [{reply, From, Config}]};
 handle_event({call, From}, {filter_handler, Config}, Data) ->
     {keep_state, Data, [{reply, From, Config}]};
 handle_event({call, From}, {filter_config, Config}, Data) ->
     {keep_state, Data, [{reply, From, Config}]};
+handle_event({call, From}, flush, Data) ->
+    ok = maybe_export(Data),
+    {keep_state, Data, [{reply, From, ok}]};
 handle_event({call, _From}, _Msg, _Data) ->
     keep_state_and_data;
 handle_event(cast, {log, Scope, LogEvent}, Data=#data{batch=Logs}) ->
@@ -219,6 +225,15 @@ init_exporter(ExporterConfig) ->
         _ ->
             undefined
     end.
+
+maybe_export(Data=#data{exporter=Exporter,
+                        resource=Resource,
+                        config=Config,
+                        batch=Batch}) when map_size(Batch) =/= 0 ->
+    _ = export(Exporter, Resource, Batch, Config),
+    ok;
+maybe_export(_Data) ->
+    ok.
 
 export(undefined, _, _, _) ->
     true;
