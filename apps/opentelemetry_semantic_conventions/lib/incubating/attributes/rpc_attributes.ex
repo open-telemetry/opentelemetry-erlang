@@ -4,59 +4,8 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   OpenTelemetry Semantic Conventions for RPC attributes.
   """
 
-  @deprecated """
-  Replaced by `rpc.message.compressed_size`.
-  """
-  @spec message_compressed_size :: :"message.compressed_size"
-  def message_compressed_size do
-    :"message.compressed_size"
-  end
-
-  @deprecated """
-  Replaced by `rpc.message.id`.
-  """
-  @spec message_id :: :"message.id"
-  def message_id do
-    :"message.id"
-  end
-
   @typedoc """
-  Deprecated, use `rpc.message.type` instead.
-
-  ### Enum Values
-  * `:sent` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:received` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  """
-  @type message_type_values() :: %{
-          :sent => :SENT,
-          :received => :RECEIVED
-        }
-  @deprecated """
-  Replaced by `rpc.message.type`.
-  """
-  @spec message_type :: :"message.type"
-  def message_type do
-    :"message.type"
-  end
-
-  @spec message_type_values() :: message_type_values()
-  def message_type_values() do
-    %{
-      :sent => :SENT,
-      :received => :RECEIVED
-    }
-  end
-
-  @deprecated """
-  Replaced by `rpc.message.uncompressed_size`.
-  """
-  @spec message_uncompressed_size :: :"message.uncompressed_size"
-  def message_uncompressed_size do
-    :"message.uncompressed_size"
-  end
-
-  @typedoc """
-  The [error codes](https://connect.build/docs/protocol/#error-codes) of the Connect request. Error codes are always string values.
+  The [error codes](https://connectrpc.com//docs/protocol/#error-codes) of the Connect request. Error codes are always string values.
 
   ### Enum Values
   * `:cancelled` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
@@ -95,7 +44,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
           :unauthenticated => :unauthenticated
         }
   @doc """
-  The [error codes](https://connect.build/docs/protocol/#error-codes) of the Connect request. Error codes are always string values.
+  The [error codes](https://connectrpc.com//docs/protocol/#error-codes) of the Connect request. Error codes are always string values.
 
 
   <!-- tabs-open -->
@@ -161,12 +110,16 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   Value must be of type `[atom() | String.t()]`.
   ### Notes
 
-  Instrumentations **SHOULD** require an explicit configuration of which metadata values are to be captured. Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+  Instrumentations **SHOULD** require an explicit configuration of which metadata values are to be captured.
+  Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+
+  For example, a property `my-custom-key` with value `["1.2.3.4", "1.2.3.5"]` **SHOULD** be recorded as
+  the `rpc.connect_rpc.request.metadata.my-custom-key` attribute with value `["1.2.3.4", "1.2.3.5"]`
 
   ### Examples
 
   ```
-  ["rpc.request.metadata.my-custom-metadata-attribute=[\"1.2.3.4\", \"1.2.3.5\"]"]
+  ["[\"1.2.3.4\", \"1.2.3.5\"]"]
   ```
 
   <!-- tabs-open -->
@@ -198,12 +151,16 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   Value must be of type `[atom() | String.t()]`.
   ### Notes
 
-  Instrumentations **SHOULD** require an explicit configuration of which metadata values are to be captured. Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+  Instrumentations **SHOULD** require an explicit configuration of which metadata values are to be captured.
+  Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+
+  For example, a property `my-custom-key` with value `"attribute_value"` **SHOULD** be recorded as
+  the `rpc.connect_rpc.response.metadata.my-custom-key` attribute with value `["attribute_value"]`
 
   ### Examples
 
   ```
-  ["rpc.response.metadata.my-custom-metadata-attribute=[\"attribute_value\"]"]
+  ["attribute_value"]
   ```
 
   <!-- tabs-open -->
@@ -235,12 +192,16 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   Value must be of type `[atom() | String.t()]`.
   ### Notes
 
-  Instrumentations **SHOULD** require an explicit configuration of which metadata values are to be captured. Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+  Instrumentations **SHOULD** require an explicit configuration of which metadata values are to be captured.
+  Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+
+  For example, a property `my-custom-key` with value `["1.2.3.4", "1.2.3.5"]` **SHOULD** be recorded as
+  `rpc.grpc.request.metadata.my-custom-key` attribute with value `["1.2.3.4", "1.2.3.5"]`
 
   ### Examples
 
   ```
-  ["rpc.grpc.request.metadata.my-custom-metadata-attribute=[\"1.2.3.4\", \"1.2.3.5\"]"]
+  ["[\"1.2.3.4\", \"1.2.3.5\"]"]
   ```
 
   <!-- tabs-open -->
@@ -272,12 +233,16 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   Value must be of type `[atom() | String.t()]`.
   ### Notes
 
-  Instrumentations **SHOULD** require an explicit configuration of which metadata values are to be captured. Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+  Instrumentations **SHOULD** require an explicit configuration of which metadata values are to be captured.
+  Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+
+  For example, a property `my-custom-key` with value `["attribute_value"]` **SHOULD** be recorded as
+  the `rpc.grpc.response.metadata.my-custom-key` attribute with value `["attribute_value"]`
 
   ### Examples
 
   ```
-  ["rpc.grpc.response.metadata.my-custom-metadata-attribute=[\"attribute_value\"]"]
+  ["[\"attribute_value\"]"]
   ```
 
   <!-- tabs-open -->
@@ -678,7 +643,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   Value must be of type `atom() | String.t()`.
   ### Notes
 
-  This is the logical name of the method from the RPC interface perspective, which can be different from the name of any implementing method/function. The `code.function` attribute may be used to store the latter (e.g., method actually executing the call on the server side, RPC client stub method on the client side).
+  This is the logical name of the method from the RPC interface perspective, which can be different from the name of any implementing method/function. The `code.function.name` attribute may be used to store the latter (e.g., method actually executing the call on the server side, RPC client stub method on the client side).
 
   ### Examples
 

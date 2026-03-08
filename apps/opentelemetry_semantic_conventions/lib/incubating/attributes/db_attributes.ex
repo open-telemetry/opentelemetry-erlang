@@ -3,10 +3,28 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   @moduledoc """
   OpenTelemetry Semantic Conventions for DB attributes.
   """
+  defdelegate db_collection_name(), to: OpenTelemetry.SemConv.DBAttributes
+
+  defdelegate db_namespace(), to: OpenTelemetry.SemConv.DBAttributes
+
+  defdelegate db_operation_batch_size(), to: OpenTelemetry.SemConv.DBAttributes
+
+  defdelegate db_operation_name(), to: OpenTelemetry.SemConv.DBAttributes
+
+  defdelegate db_query_summary(), to: OpenTelemetry.SemConv.DBAttributes
+
+  defdelegate db_query_text(), to: OpenTelemetry.SemConv.DBAttributes
+
+  defdelegate db_response_status_code(), to: OpenTelemetry.SemConv.DBAttributes
+
+  defdelegate db_stored_procedure_name(), to: OpenTelemetry.SemConv.DBAttributes
+
+  defdelegate db_system_name(), to: OpenTelemetry.SemConv.DBAttributes
+
+  defdelegate db_system_name_values(), to: OpenTelemetry.SemConv.DBAttributes
 
   @typedoc """
-  The consistency level of the query. Based on consistency values from [CQL](https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/dml/dmlConfigConsistency.html).
-
+  Deprecated, use `cassandra.consistency.level` instead.
 
   ### Enum Values
   * `:all` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
@@ -34,38 +52,8 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
           :serial => :serial,
           :local_serial => :local_serial
         }
-  @doc """
-  The consistency level of the query. Based on consistency values from [CQL](https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/dml/dmlConfigConsistency.html).
-
-
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistency_level()
-      :"db.cassandra.consistency_level"
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistency_level_values().all
-      :all
-
-      iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistency_level() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_consistency_level_values().all}
-      %{:"db.cassandra.consistency_level" => :all}
-
-  ### Erlang
-
-  ```erlang
-  ?DB_CASSANDRA_CONSISTENCY_LEVEL.
-  'db.cassandra.consistency_level'
-
-  ?DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES_ALL.
-  'all'
-
-  \#{?DB_CASSANDRA_CONSISTENCY_LEVEL => ?DB_CASSANDRA_CONSISTENCY_LEVEL_VALUES_ALL}.
-  \#{'db.cassandra.consistency_level' => 'all'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `cassandra.consistency.level`.
   """
   @spec db_cassandra_consistency_level :: :"db.cassandra.consistency_level"
   def db_cassandra_consistency_level do
@@ -89,160 +77,40 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
     }
   end
 
-  @doc """
-  The data center of the coordinating node for a query.
-
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Examples
-
-  ```
-  us-west-2
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_coordinator_dc()
-      :"db.cassandra.coordinator.dc"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_CASSANDRA_COORDINATOR_DC.
-  'db.cassandra.coordinator.dc'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `cassandra.coordinator.dc`.
   """
   @spec db_cassandra_coordinator_dc :: :"db.cassandra.coordinator.dc"
   def db_cassandra_coordinator_dc do
     :"db.cassandra.coordinator.dc"
   end
 
-  @doc """
-  The ID of the coordinating node for a query.
-
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Examples
-
-  ```
-  be13faa2-8574-4d71-926d-27f16cf8a7af
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_coordinator_id()
-      :"db.cassandra.coordinator.id"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_CASSANDRA_COORDINATOR_ID.
-  'db.cassandra.coordinator.id'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `cassandra.coordinator.id`.
   """
   @spec db_cassandra_coordinator_id :: :"db.cassandra.coordinator.id"
   def db_cassandra_coordinator_id do
     :"db.cassandra.coordinator.id"
   end
 
-  @doc """
-  Whether or not the query is idempotent.
-
-  ### Value type
-
-  Value must be of type `boolean()`.
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_idempotence()
-      :"db.cassandra.idempotence"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_CASSANDRA_IDEMPOTENCE.
-  'db.cassandra.idempotence'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `cassandra.query.idempotent`.
   """
   @spec db_cassandra_idempotence :: :"db.cassandra.idempotence"
   def db_cassandra_idempotence do
     :"db.cassandra.idempotence"
   end
 
-  @doc """
-  The fetch size used for paging, i.e. how many rows will be returned at once.
-
-  ### Value type
-
-  Value must be of type `integer()`.
-  ### Examples
-
-  ```
-  [5000]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_page_size()
-      :"db.cassandra.page_size"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_CASSANDRA_PAGE_SIZE.
-  'db.cassandra.page_size'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `cassandra.page.size`.
   """
   @spec db_cassandra_page_size :: :"db.cassandra.page_size"
   def db_cassandra_page_size do
     :"db.cassandra.page_size"
   end
 
-  @doc """
-  The number of times a query was speculatively executed. Not set or `0` if the query was not executed speculatively.
-
-  ### Value type
-
-  Value must be of type `integer()`.
-  ### Examples
-
-  ```
-  [0, 2]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cassandra_speculative_execution_count()
-      :"db.cassandra.speculative_execution_count"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_CASSANDRA_SPECULATIVE_EXECUTION_COUNT.
-  'db.cassandra.speculative_execution_count'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `cassandra.speculative_execution.count`.
   """
   @spec db_cassandra_speculative_execution_count :: :"db.cassandra.speculative_execution_count"
   def db_cassandra_speculative_execution_count do
@@ -386,79 +254,16 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
     }
   end
 
-  @doc """
-  The name of a collection (table, container) within the database.
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Notes
-
-  It is RECOMMENDED to capture the value as provided by the application without attempting to do any case normalization.
-  If the collection name is parsed from the query text, it **SHOULD** be the first collection name found in the query and it **SHOULD** match the value provided in the query text including any schema and database name prefix.
-  For batch operations, if the individual operations are known to have the same collection name then that collection name **SHOULD** be used, otherwise `db.collection.name` **SHOULD** **NOT** be captured.
-
-  ### Examples
-
-  ```
-  ["public.users", "customers"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_collection_name()
-      :"db.collection.name"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_COLLECTION_NAME.
-  'db.collection.name'
-  ```
-
-  <!-- tabs-close -->
-  """
-  @spec db_collection_name :: :"db.collection.name"
-  def db_collection_name do
-    :"db.collection.name"
-  end
-
   @deprecated """
-  "Replaced by `server.address` and `server.port`."
-
+  Replaced by `server.address` and `server.port`.
   """
   @spec db_connection_string :: :"db.connection_string"
   def db_connection_string do
     :"db.connection_string"
   end
 
-  @doc """
-  Unique Cosmos client instance id.
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Examples
-
-  ```
-  3ba4827d-4422-483f-b59f-85b74211c11d
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_client_id()
-      :"db.cosmosdb.client_id"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_COSMOSDB_CLIENT_ID.
-  'db.cosmosdb.client_id'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `azure.client.id`.
   """
   @spec db_cosmosdb_client_id :: :"db.cosmosdb.client_id"
   def db_cosmosdb_client_id do
@@ -466,47 +271,18 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   end
 
   @typedoc """
-  Cosmos client connection mode.
+  Deprecated, use `azure.cosmosdb.connection.mode` instead.
 
   ### Enum Values
-  * `:gateway` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Gateway (HTTP) connections mode
+  * `:gateway` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Gateway (HTTP) connection.
   * `:direct` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Direct connection.
   """
   @type db_cosmosdb_connection_mode_values() :: %{
           :gateway => :gateway,
           :direct => :direct
         }
-  @doc """
-  Cosmos client connection mode.
-
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connection_mode()
-      :"db.cosmosdb.connection_mode"
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connection_mode_values().gateway
-      :gateway
-
-      iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connection_mode() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_connection_mode_values().gateway}
-      %{:"db.cosmosdb.connection_mode" => :gateway}
-
-  ### Erlang
-
-  ```erlang
-  ?DB_COSMOSDB_CONNECTION_MODE.
-  'db.cosmosdb.connection_mode'
-
-  ?DB_COSMOSDB_CONNECTION_MODE_VALUES_GATEWAY.
-  'gateway'
-
-  \#{?DB_COSMOSDB_CONNECTION_MODE => ?DB_COSMOSDB_CONNECTION_MODE_VALUES_GATEWAY}.
-  \#{'db.cosmosdb.connection_mode' => 'gateway'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `azure.cosmosdb.connection.mode`.
   """
   @spec db_cosmosdb_connection_mode :: :"db.cosmosdb.connection_mode"
   def db_cosmosdb_connection_mode do
@@ -521,6 +297,42 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
     }
   end
 
+  @typedoc """
+  Deprecated, use `cosmosdb.consistency.level` instead.
+
+  ### Enum Values
+  * `:strong` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:bounded_staleness` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:session` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:eventual` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:consistent_prefix` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  """
+  @type db_cosmosdb_consistency_level_values() :: %{
+          :strong => :Strong,
+          :bounded_staleness => :BoundedStaleness,
+          :session => :Session,
+          :eventual => :Eventual,
+          :consistent_prefix => :ConsistentPrefix
+        }
+  @deprecated """
+  Replaced by `azure.cosmosdb.consistency.level`.
+  """
+  @spec db_cosmosdb_consistency_level :: :"db.cosmosdb.consistency_level"
+  def db_cosmosdb_consistency_level do
+    :"db.cosmosdb.consistency_level"
+  end
+
+  @spec db_cosmosdb_consistency_level_values() :: db_cosmosdb_consistency_level_values()
+  def db_cosmosdb_consistency_level_values() do
+    %{
+      :strong => :Strong,
+      :bounded_staleness => :BoundedStaleness,
+      :session => :Session,
+      :eventual => :Eventual,
+      :consistent_prefix => :ConsistentPrefix
+    }
+  end
+
   @deprecated """
   Replaced by `db.collection.name`.
   """
@@ -530,73 +342,44 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   end
 
   @typedoc """
-  CosmosDB Operation Type.
+  Deprecated, no replacement at this time.
 
   ### Enum Values
-  * `:invalid` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:batch` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:create` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:patch` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:read` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:read_feed` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:delete` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:replace` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:execute` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:query` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:execute_javascript` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:invalid` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:head` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:head_feed` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:upsert` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:batch` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:patch` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:query` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   * `:query_plan` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:execute_javascript` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:read` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:read_feed` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:replace` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:upsert` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
   """
   @type db_cosmosdb_operation_type_values() :: %{
-          :invalid => :Invalid,
-          :create => :Create,
-          :patch => :Patch,
-          :read => :Read,
-          :read_feed => :ReadFeed,
-          :delete => :Delete,
-          :replace => :Replace,
-          :execute => :Execute,
-          :query => :Query,
-          :head => :Head,
-          :head_feed => :HeadFeed,
-          :upsert => :Upsert,
-          :batch => :Batch,
-          :query_plan => :QueryPlan,
-          :execute_javascript => :ExecuteJavaScript
+          :batch => :batch,
+          :create => :create,
+          :delete => :delete,
+          :execute => :execute,
+          :execute_javascript => :execute_javascript,
+          :invalid => :invalid,
+          :head => :head,
+          :head_feed => :head_feed,
+          :patch => :patch,
+          :query => :query,
+          :query_plan => :query_plan,
+          :read => :read,
+          :read_feed => :read_feed,
+          :replace => :replace,
+          :upsert => :upsert
         }
-  @doc """
-  CosmosDB Operation Type.
-
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operation_type()
-      :"db.cosmosdb.operation_type"
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operation_type_values().invalid
-      :Invalid
-
-      iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operation_type() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_operation_type_values().invalid}
-      %{:"db.cosmosdb.operation_type" => :Invalid}
-
-  ### Erlang
-
-  ```erlang
-  ?DB_COSMOSDB_OPERATION_TYPE.
-  'db.cosmosdb.operation_type'
-
-  ?DB_COSMOSDB_OPERATION_TYPE_VALUES_INVALID.
-  'Invalid'
-
-  \#{?DB_COSMOSDB_OPERATION_TYPE => ?DB_COSMOSDB_OPERATION_TYPE_VALUES_INVALID}.
-  \#{'db.cosmosdb.operation_type' => 'Invalid'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  No replacement at this time.
   """
   @spec db_cosmosdb_operation_type :: :"db.cosmosdb.operation_type"
   def db_cosmosdb_operation_type do
@@ -606,141 +389,58 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   @spec db_cosmosdb_operation_type_values() :: db_cosmosdb_operation_type_values()
   def db_cosmosdb_operation_type_values() do
     %{
-      :invalid => :Invalid,
-      :create => :Create,
-      :patch => :Patch,
-      :read => :Read,
-      :read_feed => :ReadFeed,
-      :delete => :Delete,
-      :replace => :Replace,
-      :execute => :Execute,
-      :query => :Query,
-      :head => :Head,
-      :head_feed => :HeadFeed,
-      :upsert => :Upsert,
-      :batch => :Batch,
-      :query_plan => :QueryPlan,
-      :execute_javascript => :ExecuteJavaScript
+      :batch => :batch,
+      :create => :create,
+      :delete => :delete,
+      :execute => :execute,
+      :execute_javascript => :execute_javascript,
+      :invalid => :invalid,
+      :head => :head,
+      :head_feed => :head_feed,
+      :patch => :patch,
+      :query => :query,
+      :query_plan => :query_plan,
+      :read => :read,
+      :read_feed => :read_feed,
+      :replace => :replace,
+      :upsert => :upsert
     }
   end
 
-  @doc """
-  RU consumed for that operation
-  ### Value type
+  @deprecated """
+  Replaced by `azure.cosmosdb.operation.contacted_regions`.
+  """
+  @spec db_cosmosdb_regions_contacted :: :"db.cosmosdb.regions_contacted"
+  def db_cosmosdb_regions_contacted do
+    :"db.cosmosdb.regions_contacted"
+  end
 
-  Value must be of type `float()`.
-  ### Examples
-
-  ```
-  [46.18, 1.0]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_request_charge()
-      :"db.cosmosdb.request_charge"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_COSMOSDB_REQUEST_CHARGE.
-  'db.cosmosdb.request_charge'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `azure.cosmosdb.operation.request_charge`.
   """
   @spec db_cosmosdb_request_charge :: :"db.cosmosdb.request_charge"
   def db_cosmosdb_request_charge do
     :"db.cosmosdb.request_charge"
   end
 
-  @doc """
-  Request payload size in bytes
-  ### Value type
-
-  Value must be of type `integer()`.
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_request_content_length()
-      :"db.cosmosdb.request_content_length"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_COSMOSDB_REQUEST_CONTENT_LENGTH.
-  'db.cosmosdb.request_content_length'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `azure.cosmosdb.request.body.size`.
   """
   @spec db_cosmosdb_request_content_length :: :"db.cosmosdb.request_content_length"
   def db_cosmosdb_request_content_length do
     :"db.cosmosdb.request_content_length"
   end
 
-  @doc """
-  Cosmos DB status code.
-  ### Value type
-
-  Value must be of type `integer()`.
-  ### Examples
-
-  ```
-  [200, 201]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_status_code()
-      :"db.cosmosdb.status_code"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_COSMOSDB_STATUS_CODE.
-  'db.cosmosdb.status_code'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `db.response.status_code`.
   """
   @spec db_cosmosdb_status_code :: :"db.cosmosdb.status_code"
   def db_cosmosdb_status_code do
     :"db.cosmosdb.status_code"
   end
 
-  @doc """
-  Cosmos DB sub status code.
-  ### Value type
-
-  Value must be of type `integer()`.
-  ### Examples
-
-  ```
-  [1000, 1002]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_cosmosdb_sub_status_code()
-      :"db.cosmosdb.sub_status_code"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_COSMOSDB_SUB_STATUS_CODE.
-  'db.cosmosdb.sub_status_code'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `azure.cosmosdb.response.sub_status_code`.
   """
   @spec db_cosmosdb_sub_status_code :: :"db.cosmosdb.sub_status_code"
   def db_cosmosdb_sub_status_code do
@@ -755,70 +455,16 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
     :"db.elasticsearch.cluster.name"
   end
 
-  @doc """
-  Represents the human-readable identifier of the node/instance to which a request was routed.
-
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Examples
-
-  ```
-  ["instance-0000000001"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_elasticsearch_node_name()
-      :"db.elasticsearch.node.name"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_ELASTICSEARCH_NODE_NAME.
-  'db.elasticsearch.node.name'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `elasticsearch.node.name`.
   """
   @spec db_elasticsearch_node_name :: :"db.elasticsearch.node.name"
   def db_elasticsearch_node_name do
     :"db.elasticsearch.node.name"
   end
 
-  @doc """
-  A dynamic value in the url path.
-
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Notes
-
-  Many Elasticsearch url paths allow dynamic values. These **SHOULD** be recorded in span attributes in the format `db.elasticsearch.path_parts.<key>`, where `<key>` is the url path part name. The implementation **SHOULD** reference the [elasticsearch schema](https://raw.githubusercontent.com/elastic/elasticsearch-specification/main/output/schema/schema.json) in order to map the path part values to their names.
-
-  ### Examples
-
-  ```
-  ["db.elasticsearch.path_parts.index=test-index", "db.elasticsearch.path_parts.doc_id=123"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_elasticsearch_path_parts()
-      :"db.elasticsearch.path_parts"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_ELASTICSEARCH_PATH_PARTS.
-  'db.elasticsearch.path_parts'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `db.operation.parameter`.
   """
   @spec db_elasticsearch_path_parts :: :"db.elasticsearch.path_parts"
   def db_elasticsearch_path_parts do
@@ -865,45 +511,6 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
     :"db.name"
   end
 
-  @doc """
-  The name of the database, fully qualified within the server address and port.
-
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Notes
-
-  If a database system has multiple namespace components, they **SHOULD** be concatenated (potentially using database system specific conventions) from most general to most specific namespace component, and more specific namespaces **SHOULD** **NOT** be captured without the more general namespaces, to ensure that "startswith" queries for the more general namespaces will be valid.
-  Semantic conventions for individual database systems **SHOULD** document what `db.namespace` means in the context of that system.
-  It is RECOMMENDED to capture the value as provided by the application without attempting to do any case normalization.
-
-  ### Examples
-
-  ```
-  ["customers", "test.users"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_namespace()
-      :"db.namespace"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_NAMESPACE.
-  'db.namespace'
-  ```
-
-  <!-- tabs-close -->
-  """
-  @spec db_namespace :: :"db.namespace"
-  def db_namespace do
-    :"db.namespace"
-  end
-
   @deprecated """
   Replaced by `db.operation.name`.
   """
@@ -913,90 +520,69 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   end
 
   @doc """
-  The number of queries included in a [batch operation](/docs/database/database-spans.md#batch-operations).
-  ### Value type
-
-  Value must be of type `integer()`.
-  ### Notes
-
-  Operations are only considered batches when they contain two or more operations, and so `db.operation.batch.size` **SHOULD** never be `1`.
-
-  ### Examples
-
-  ```
-  [2, 3, 4]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_operation_batch_size()
-      :"db.operation.batch.size"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_OPERATION_BATCH_SIZE.
-  'db.operation.batch.size'
-  ```
-
-  <!-- tabs-close -->
-  """
-  @spec db_operation_batch_size :: :"db.operation.batch.size"
-  def db_operation_batch_size do
-    :"db.operation.batch.size"
-  end
-
-  @doc """
-  The name of the operation or command being executed.
+  A database operation parameter, with `<key>` being the parameter name, and the attribute value being a string representation of the parameter value.
 
   ### Value type
 
   Value must be of type `atom() | String.t()`.
   ### Notes
 
-  It is RECOMMENDED to capture the value as provided by the application without attempting to do any case normalization.
-  If the operation name is parsed from the query text, it **SHOULD** be the first operation name found in the query.
-  For batch operations, if the individual operations are known to have the same operation name then that operation name **SHOULD** be used prepended by `BATCH `, otherwise `db.operation.name` **SHOULD** be `BATCH` or some other database system specific term if more applicable.
+  For example, a client-side maximum number of rows to read from the database
+  **MAY** be recorded as the `db.operation.parameter.max_rows` attribute.
+
+  `db.query.text` parameters **SHOULD** be captured using `db.query.parameter.<key>`
+  instead of `db.operation.parameter.<key>`.
 
   ### Examples
 
   ```
-  ["findAndModify", "HMSET", "SELECT"]
+  ["someval", "55"]
   ```
 
   <!-- tabs-open -->
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_operation_name()
-      :"db.operation.name"
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_operation_parameter()
+      :"db.operation.parameter"
 
   ### Erlang
 
   ```erlang
-  ?DB_OPERATION_NAME.
-  'db.operation.name'
+  ?DB_OPERATION_PARAMETER.
+  'db.operation.parameter'
   ```
 
   <!-- tabs-close -->
   """
-  @spec db_operation_name :: :"db.operation.name"
-  def db_operation_name do
-    :"db.operation.name"
+  @spec db_operation_parameter :: :"db.operation.parameter"
+  def db_operation_parameter do
+    :"db.operation.parameter"
   end
 
   @doc """
-  A query parameter used in `db.query.text`, with `<key>` being the parameter name, and the attribute value being a string representation of the parameter value.
+  A database query parameter, with `<key>` being the parameter name, and the attribute value being a string representation of the parameter value.
 
   ### Value type
 
   Value must be of type `atom() | String.t()`.
   ### Notes
 
-  Query parameters should only be captured when `db.query.text` is parameterized with placeholders.
-  If a parameter has no name and instead is referenced only by index, then `<key>` **SHOULD** be the 0-based index.
+  If a query parameter has no name and instead is referenced only by index,
+  then `<key>` **SHOULD** be the 0-based index.
+
+  `db.query.parameter.<key>` **SHOULD** match
+  up with the parameterized placeholders present in `db.query.text`.
+
+  `db.query.parameter.<key>` **SHOULD** **NOT** be captured on batch operations.
+
+  Examples:
+
+  - For a query `SELECT * FROM users where username =  %s` with the parameter `"jdoe"`,
+    the attribute `db.query.parameter.0` **SHOULD** be set to `"jdoe"`.
+
+  - For a query `"SELECT * FROM users WHERE username = %(username)s;` with parameter
+    `username = "jdoe"`, the attribute `db.query.parameter.username` **SHOULD** be set to `"jdoe"`.
 
   ### Examples
 
@@ -1025,45 +611,6 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
     :"db.query.parameter"
   end
 
-  @doc """
-  The database query being executed.
-
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Notes
-
-  For sanitization see [Sanitization of `db.query.text`](../../docs/database/database-spans.md#sanitization-of-dbquerytext).
-  For batch operations, if the individual operations are known to have the same query text then that query text **SHOULD** be used, otherwise all of the individual query texts **SHOULD** be concatenated with separator `; ` or some other database system specific separator if more applicable.
-  Even though parameterized query text can potentially have sensitive data, by using a parameterized query the user is giving a strong signal that any sensitive data will be passed as parameter values, and the benefit to observability of capturing the static part of the query text by default outweighs the risk.
-
-  ### Examples
-
-  ```
-  ["SELECT * FROM wuser_table where username = ?", "SET mykey \"WuValue\""]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_query_text()
-      :"db.query.text"
-
-  ### Erlang
-
-  ```erlang
-  ?DB_QUERY_TEXT.
-  'db.query.text'
-  ```
-
-  <!-- tabs-close -->
-  """
-  @spec db_query_text :: :"db.query.text"
-  def db_query_text do
-    :"db.query.text"
-  end
-
   @deprecated """
   Replaced by `db.namespace`.
   """
@@ -1072,8 +619,40 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
     :"db.redis.database_index"
   end
 
+  @doc """
+  Number of rows returned by the operation.
+  ### Value type
+
+  Value must be of type `integer()`.
+  ### Examples
+
+  ```
+  [10, 30, 1000]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_response_returned_rows()
+      :"db.response.returned_rows"
+
+  ### Erlang
+
+  ```erlang
+  ?DB_RESPONSE_RETURNED_ROWS.
+  'db.response.returned_rows'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec db_response_returned_rows :: :"db.response.returned_rows"
+  def db_response_returned_rows do
+    :"db.response.returned_rows"
+  end
+
   @deprecated """
-  Replaced by `db.collection.name`.
+  Replaced by `db.collection.name`, but only if not extracting the value from `db.query.text`.
   """
   @spec db_sql_table :: :"db.sql.table"
   def db_sql_table do
@@ -1089,18 +668,18 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   end
 
   @typedoc """
-  The database management system (DBMS) product as identified by the client instrumentation.
+  Deprecated, use `db.system.name` instead.
 
   ### Enum Values
   * `:other_sql` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Some other SQL database. Fallback only. See notes.
   * `:adabas` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Adabas (Adaptable Database System)
-  * `:cache` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - **deprecated** ~~Deprecated, use `intersystems_cache` instead.~~
+  * `:cache` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Deprecated, use `intersystems_cache` instead.
   * `:intersystems_cache` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - InterSystems Caché
   * `:cassandra` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache Cassandra
   * `:clickhouse` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - ClickHouse
-  * `:cloudscape` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - **deprecated** ~~Deprecated, use `other_sql` instead.~~
+  * `:cloudscape` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Deprecated, use `other_sql` instead.
   * `:cockroachdb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - CockroachDB
-  * `:coldfusion` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - **deprecated** ~~Deprecated, no replacement at this time.~~
+  * `:coldfusion` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Deprecated, no replacement at this time.
   * `:cosmosdb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Microsoft Azure Cosmos DB
   * `:couchbase` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Couchbase
   * `:couchdb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - CouchDB
@@ -1111,7 +690,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   * `:elasticsearch` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Elasticsearch
   * `:filemaker` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - FileMaker
   * `:firebird` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Firebird
-  * `:firstsql` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - **deprecated** ~~Deprecated, use `other_sql` instead.~~
+  * `:firstsql` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Deprecated, use `other_sql` instead.
   * `:geode` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache Geode
   * `:h2` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - H2
   * `:hanadb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - SAP HANA
@@ -1128,7 +707,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   * `:memcached` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Memcached
   * `:mongodb` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - MongoDB
   * `:mssql` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Microsoft SQL Server
-  * `:mssqlcompact` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - **deprecated** ~~Deprecated, Microsoft SQL Server Compact is discontinued.~~
+  * `:mssqlcompact` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Deprecated, Microsoft SQL Server Compact is discontinued.
   * `:mysql` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - MySQL
   * `:neo4j` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Neo4j
   * `:netezza` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Netezza
@@ -1203,41 +782,8 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
           :trino => :trino,
           :vertica => :vertica
         }
-  @doc """
-  The database management system (DBMS) product as identified by the client instrumentation.
-
-  ### Notes
-
-  The actual DBMS may differ from the one identified by the client. For example, when using PostgreSQL client libraries to connect to a CockroachDB, the `db.system` is set to `postgresql` based on the instrumentation's best knowledge.
-
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_system()
-      :"db.system"
-
-      iex> OpenTelemetry.SemConv.Incubating.DBAttributes.db_system_values().other_sql
-      :other_sql
-
-      iex> %{OpenTelemetry.SemConv.Incubating.DBAttributes.db_system() => OpenTelemetry.SemConv.Incubating.DBAttributes.db_system_values().other_sql}
-      %{:"db.system" => :other_sql}
-
-  ### Erlang
-
-  ```erlang
-  ?DB_SYSTEM.
-  'db.system'
-
-  ?DB_SYSTEM_VALUES_OTHER_SQL.
-  'other_sql'
-
-  \#{?DB_SYSTEM => ?DB_SYSTEM_VALUES_OTHER_SQL}.
-  \#{'db.system' => 'other_sql'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `db.system.name`.
   """
   @spec db_system :: :"db.system"
   def db_system do
@@ -1310,40 +856,5 @@ defmodule OpenTelemetry.SemConv.Incubating.DBAttributes do
   @spec db_user :: :"db.user"
   def db_user do
     :"db.user"
-  end
-
-  @deprecated """
-  Replaced by `db.client.connection.pool.name`.
-  """
-  @spec pool_name :: :"pool.name"
-  def pool_name do
-    :"pool.name"
-  end
-
-  @typedoc """
-  Deprecated, use `db.client.connection.state` instead.
-
-  ### Enum Values
-  * `:idle` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:used` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  """
-  @type state_values() :: %{
-          :idle => :idle,
-          :used => :used
-        }
-  @deprecated """
-  Replaced by `db.client.connection.state`.
-  """
-  @spec state :: :state
-  def state do
-    :state
-  end
-
-  @spec state_values() :: state_values()
-  def state_values() do
-    %{
-      :idle => :idle,
-      :used => :used
-    }
   end
 end

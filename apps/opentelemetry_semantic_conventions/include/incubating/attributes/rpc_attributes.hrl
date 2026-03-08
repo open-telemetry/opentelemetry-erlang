@@ -13,29 +13,10 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
-%% @deprecated Replaced by `rpc.message.compressed_size`.
-%% Deprecated, use `rpc.message.compressed_size` instead.
--define(MESSAGE_COMPRESSED_SIZE, 'message.compressed_size').
-
-%% @deprecated Replaced by `rpc.message.id`.
-%% Deprecated, use `rpc.message.id` instead.
--define(MESSAGE_ID, 'message.id').
-
-%% @deprecated Replaced by `rpc.message.type`.
-%% Deprecated, use `rpc.message.type` instead.
--define(MESSAGE_TYPE, 'message.type').
-
--define(MESSAGE_TYPE_VALUES_SENT, 'SENT').
-
--define(MESSAGE_TYPE_VALUES_RECEIVED, 'RECEIVED').
+-include_lib("opentelemetry_semantic_conventions/include/attributes/rpc_attributes.hrl").
 
 
-%% @deprecated Replaced by `rpc.message.uncompressed_size`.
-%% Deprecated, use `rpc.message.uncompressed_size` instead.
--define(MESSAGE_UNCOMPRESSED_SIZE, 'message.uncompressed_size').
-
-
-%% The [error codes](https://connect.build/docs/protocol/#error-codes) of the Connect request. Error codes are always string values.
+%% The [error codes](https://connectrpc.com//docs/protocol/#error-codes) of the Connect request. Error codes are always string values.
 -define(RPC_CONNECT_RPC_ERROR_CODE, 'rpc.connect_rpc.error_code').
 
 -define(RPC_CONNECT_RPC_ERROR_CODE_VALUES_CANCELLED, 'cancelled').
