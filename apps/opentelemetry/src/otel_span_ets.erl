@@ -197,6 +197,7 @@ init(_Opts) ->
         undefined ->
             ets:new(?SPAN_TAB, [named_table, public,
                                 {write_concurrency, true},
+                                {heir, whereis(otel_span_sup), undefined},
                                 {keypos, #span.span_id}]);
         _ ->
             ok
