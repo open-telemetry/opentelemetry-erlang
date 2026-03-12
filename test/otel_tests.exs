@@ -266,6 +266,82 @@ defmodule OtelTests do
     end
   end
 
+  test "Span.record_exception/4 should add a throw event to the span" do
+    s = Tracer.start_span("span-1")
+
+    try do
+      throw("value")
+    catch
+      kind, reason ->
+        assert Span.record_exception(s, kind, reason, __STACKTRACE__)
+        assert Span.end_span(s)
+
+        attributes =
+          :otel_attributes.new(
+            [
+              {:"exception.type", "throw"},
+              {:"exception.message", "\"value\""},
+              {:"exception.stacktrace", Exception.format_stacktrace(__STACKTRACE__)}
+            ],
+            128,
+            :infinity
+          )
+
+        assert_receive {:span,
+                        span(
+                          name: "span-1",
+                          events: {
+                            :events,
+                            128,
+                            128,
+                            :infinity,
+                            0,
+                            [
+                              {:event, _, :exception, ^attributes}
+                            ]
+                          }
+                        )}
+    end
+  end
+
+  test "Span.record_exception/4 should add an abnormal exit event to the span" do
+    s = Tracer.start_span("span-1")
+
+    try do
+      exit(:abnormal)
+    catch
+      kind, reason ->
+        assert Span.record_exception(s, kind, reason, __STACKTRACE__)
+        assert Span.end_span(s)
+
+        attributes =
+          :otel_attributes.new(
+            [
+              {:"exception.type", "exit"},
+              {:"exception.message", ":abnormal"},
+              {:"exception.stacktrace", Exception.format_stacktrace(__STACKTRACE__)}
+            ],
+            128,
+            :infinity
+          )
+
+        assert_receive {:span,
+                        span(
+                          name: "span-1",
+                          events: {
+                            :events,
+                            128,
+                            128,
+                            :infinity,
+                            0,
+                            [
+                              {:event, _, :exception, ^attributes}
+                            ]
+                          }
+                        )}
+    end
+  end
+
   test "Custom Sampler that checks attributes" do
     name = "span-prob-sampled"
     trace_id = 120_647_249_294_066_572_380_176_333_851_662_846_319
