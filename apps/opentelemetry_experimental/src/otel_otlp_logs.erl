@@ -76,6 +76,7 @@ log_record(#{level := Level,
                           trim(
                             lists:reverse(
                               trim(S, false)), true)),
+                    %% TODO Do we actually have to strip string of newlines with indentation?
                     re:replace(T,",?\r?\n\s*",", ",
                                [{return,binary}, global, unicode]);
                 M ->
