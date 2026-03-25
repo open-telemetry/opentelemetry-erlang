@@ -73,12 +73,7 @@ to_any_value(Value) when is_map(Value) ->
 to_any_value(Value) when is_tuple(Value) ->
     #{value => {array_value, to_array_value(tuple_to_list(Value))}};
 to_any_value(Value) when is_list(Value) ->
-    case maybe_unicode_charlist(Value) of
-        {ok, Bin} ->
-            #{value => {string_value, Bin}};
-        error ->
-            to_array_or_kvlist(Value)
-    end;
+    to_array_or_kvlist(Value);
 to_any_value(Value) ->
     #{value => {string_value, to_binary(io_lib:format("~p", [Value]))}}.
 
@@ -115,19 +110,6 @@ is_proplist([{K, _} | L]) when is_atom(K) ; is_binary(K) ->
     is_proplist(L);
 is_proplist(_) ->
     false.
-
-maybe_unicode_charlist(Value) when is_list(Value) ->
-    try
-        case unicode:characters_to_binary(Value) of
-            Bin when is_binary(Bin) ->
-                {ok, Bin};
-            _ ->
-                error
-        end
-    catch
-        _:_ ->
-            error
-    end.
 
 to_binary(Term) when is_atom(Term) ->
     erlang:atom_to_binary(Term, unicode);
