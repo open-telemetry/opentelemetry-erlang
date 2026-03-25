@@ -38,9 +38,18 @@
          exporting/3,
          handle_event/3]).
 
+
+-type handler_config() :: #{max_queue_size => non_neg_integer(),
+                            exporting_timeout_ms => non_neg_integer(),
+                            scheduled_delay_ms => non_neg_integer(),
+                            exporter => {module(), term()},
+                            report_cb => fun(),
+                            depth => non_neg_integer(),
+                            chars_limit => non_neg_integer(),
+                            single_line => boolean()}.
 -type config() :: #{id => logger:handler_id(),
                     regname := atom(),
-                    config => term(),
+                    config => handler_config(),
                     level => logger:level() | all | none,
                     module => module(),
                     filter_default => log | stop,
@@ -146,17 +155,17 @@ init([_RegName, Config]) ->
     process_flag(trap_exit, true),
 
     Resource = otel_resource_detector:get_resource(),
+    HandlerConfig = maps:get(config, Config, #{}),
+    SizeLimit = maps:get(max_queue_size, HandlerConfig, ?DEFAULT_MAX_QUEUE_SIZE),
+    ExportingTimeout = maps:get(exporting_timeout_ms, HandlerConfig, ?DEFAULT_EXPORTER_TIMEOUT_MS),
+    ScheduledDelay = maps:get(scheduled_delay_ms, HandlerConfig, ?DEFAULT_SCHEDULED_DELAY_MS),
 
-    SizeLimit = maps:get(max_queue_size, Config, ?DEFAULT_MAX_QUEUE_SIZE),
-    ExportingTimeout = maps:get(exporting_timeout_ms, Config, ?DEFAULT_EXPORTER_TIMEOUT_MS),
-    ScheduledDelay = maps:get(scheduled_delay_ms, Config, ?DEFAULT_SCHEDULED_DELAY_MS),
-
-    ExporterConfig = maps:get(exporter, Config, {opentelemetry_exporter, #{protocol => grpc}}),
+    ExporterConfig = maps:get(exporter, HandlerConfig, {opentelemetry_exporter, #{protocol => grpc}}),
 
     {ok, idle, #data{exporter=undefined,
                      exporter_config=ExporterConfig,
                      resource=Resource,
-                     config=Config,
+                     config=HandlerConfig,
                      max_queue_size=case SizeLimit of
                                         infinity -> infinity;
                                         _ -> SizeLimit div erlang:system_info(wordsize)
@@ -196,12 +205,11 @@ exporting(EventType, EventContent, Data) ->
     handle_event(EventType, EventContent, Data).
 
 handle_event({call, From}, {changing_config, _SetOrUpdate, _OldConfig, NewConfig}, Data) ->
-    {keep_state, Data#data{config=NewConfig}, [{reply, From, NewConfig}]};
+    HandlerConfig = maps:get(config, NewConfig, #{}),
+    {keep_state, Data#data{config=HandlerConfig}, [{reply, From, NewConfig}]};
 handle_event({call, From}, {removing_handler, Config}, Data) ->
     ok = maybe_export(Data),
     {keep_state_and_data, [{reply, From, Config}]};
-handle_event({call, From}, {filter_handler, Config}, Data) ->
-    {keep_state, Data, [{reply, From, Config}]};
 handle_event({call, From}, {filter_config, Config}, Data) ->
     {keep_state, Data, [{reply, From, Config}]};
 handle_event({call, From}, flush, Data) ->
