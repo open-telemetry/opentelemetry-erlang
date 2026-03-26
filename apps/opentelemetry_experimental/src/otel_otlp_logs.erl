@@ -90,38 +90,41 @@ log_record(#{level := Level,
     DroppedAttributesCount = maps:size(Attributes) - length(Attributes1),
     Flags = 0,
 
-    %% Note: otel_trace_id and otel_span_id from hex_span_ctx are now binaries, not charlists.
-    LogRecord = case Metadata of
-        #{otel_trace_id := TraceId,
-          otel_span_id := SpanId,
-          otel_trace_flags := TraceFlagsHex} ->
-            TraceFlags = case TraceFlagsHex of
-                <<_:0, _/binary>> when byte_size(TraceFlagsHex) == 2 ->
-                    erlang:binary_to_integer(TraceFlagsHex, 16);
-                _ -> 0
-            end,
-            #{trace_id => TraceId,
-              span_id => SpanId,
-              trace_flags => TraceFlags};
-        #{otel_trace_id := TraceId,
-          otel_span_id := SpanId} ->
-            #{trace_id => TraceId,
-              span_id => SpanId};
-        _ ->
-            #{}
-    end,
-
-
+    %% NOTE: Collector wants IDs to be bytes (https://github.com/open-telemetry/opentelemetry-proto/blob/ca839c51f706f5d53bfb46f06c3e90c3af3a52c6/opentelemetry/proto/logs/v1/logs.proto#L199)
+    LogRecord = try_prepare_tracing_ids(Metadata),
 
     LogRecord#{time_unix_nano          => opentelemetry:timestamp_to_nano(Time),
                observed_time_unix_nano => erlang:convert_time_unit(ObservedTime, microsecond, nanosecond),
-               severity_number         => SeverityNumber,
-               severity_text           => SeverityText,
-               body                    => otel_otlp_common:to_any_value(Body1),
-               attributes              => Attributes1,
+               severity_number          => SeverityNumber,
+               severity_text            => SeverityText,
+               body                     => otel_otlp_common:to_any_value(Body1),
+               attributes               => Attributes1,
                dropped_attributes_count => DroppedAttributesCount,
-               flags                   => Flags
+               flags                    => Flags
               }.
+
+try_prepare_tracing_ids(#{otel_trace_id := TraceId, otel_span_id := SpanId, otel_trace_flags := TraceFlagsHex}) ->
+    try
+        TraceFlags = case TraceFlagsHex of
+                         <<_:0, _/binary>> when byte_size(TraceFlagsHex) == 2 ->
+                             erlang:binary_to_integer(TraceFlagsHex, 16);
+                         _ -> 0
+                     end,
+        #{trace_id => <<(binary_to_integer(TraceId, 16)):128>>,
+          span_id => <<(binary_to_integer(SpanId, 16)):64>>,
+          trace_flags => TraceFlags}
+    catch
+        _:_ -> #{}
+    end;
+try_prepare_tracing_ids(#{otel_trace_id := TraceId, otel_span_id := SpanId}) ->
+    try
+        #{trace_id => <<(binary_to_integer(TraceId, 16)):128>>,
+          span_id => <<(binary_to_integer(SpanId, 16)):64>>}
+    catch
+        _:_ -> #{}
+    end;
+try_prepare_tracing_ids(_) ->
+    #{}.
 
 format_msg({string, Chardata}, Meta, Config) ->
     format_msg({"~ts", [Chardata]}, Meta, Config);
