@@ -82,11 +82,12 @@ log_record(#{level := Level,
                 M ->
                     M
             end,
-    Attributes = maps:without([gl, time, report_cb], Metadata),
+    Attributes = maps:without([gl, time, report_cb, otel_trace_id, otel_span_id, otel_trace_flags], Metadata),
     Attributes1 = maps:fold(fun(K, V, Acc) ->
                                     [#{key => otel_otlp_common:to_binary(K),
                                        value => otel_otlp_common:to_any_value(V)} | Acc]
                             end, [], Attributes),
+    %% FIXME Always 0?
     DroppedAttributesCount = maps:size(Attributes) - length(Attributes1),
     Flags = 0,
 
