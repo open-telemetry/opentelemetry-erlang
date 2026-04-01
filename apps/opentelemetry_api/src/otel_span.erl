@@ -280,7 +280,7 @@ update_name(_, _) ->
 %% If `SpanCtx' is not recording, this function doesn't do anything.
 %% Returns the updated span context.
 -spec end_span(SpanCtx) -> SpanCtx when
-      SpanCtx :: opentelemetry:span_ctx().
+      SpanCtx :: opentelemetry:span_ctx() | undefined.
 end_span(SpanCtx=#span_ctx{span_sdk={Module, _}}) when ?is_recording(SpanCtx) ->
     _ = Module:end_span(SpanCtx, undefined),
     SpanCtx#span_ctx{is_recording=false};
