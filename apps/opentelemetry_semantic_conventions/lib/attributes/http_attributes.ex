@@ -12,14 +12,27 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   Value must be of type `[atom() | String.t()]`.
   ### Notes
 
-  Instrumentations **SHOULD** require an explicit configuration of which headers are to be captured. Including all request headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
-  The `User-Agent` header is already captured in the `user_agent.original` attribute. Users **MAY** explicitly configure instrumentations to capture them even though it is not recommended.
-  The attribute value **MUST** consist of either multiple header values as an array of strings or a single-item array containing a possibly comma-concatenated string, depending on the way the HTTP library provides access to headers.
+  Instrumentations **SHOULD** require an explicit configuration of which headers are to be captured.
+  Including all request headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
+
+  The `User-Agent` header is already captured in the `user_agent.original` attribute.
+  Users **MAY** explicitly configure instrumentations to capture them even though it is not recommended.
+
+  The attribute value **MUST** consist of either multiple header values as an array of strings
+  or a single-item array containing a possibly comma-concatenated string, depending on the way
+  the HTTP library provides access to headers.
+
+  Examples:
+
+  - A header `Content-Type: application/json` **SHOULD** be recorded as the `http.request.header.content-type`
+    attribute with value `["application/json"]`.
+  - A header `X-Forwarded-For: 1.2.3.4, 1.2.3.5` **SHOULD** be recorded as the `http.request.header.x-forwarded-for`
+    attribute with value `["1.2.3.4", "1.2.3.5"]` or `["1.2.3.4, 1.2.3.5"]` depending on the HTTP library.
 
   ### Examples
 
   ```
-  ["http.request.header.content-type=[\"application/json\"]", "http.request.header.x-forwarded-for=[\"1.2.3.4\", \"1.2.3.5\"]"]
+  ["[\"application/json\"]", "[\"1.2.3.4\", \"1.2.3.5\"]"]
   ```
 
   <!-- tabs-open -->
@@ -222,14 +235,26 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   Value must be of type `[atom() | String.t()]`.
   ### Notes
 
-  Instrumentations **SHOULD** require an explicit configuration of which headers are to be captured. Including all response headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
+  Instrumentations **SHOULD** require an explicit configuration of which headers are to be captured.
+  Including all response headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
+
   Users **MAY** explicitly configure instrumentations to capture them even though it is not recommended.
-  The attribute value **MUST** consist of either multiple header values as an array of strings or a single-item array containing a possibly comma-concatenated string, depending on the way the HTTP library provides access to headers.
+
+  The attribute value **MUST** consist of either multiple header values as an array of strings
+  or a single-item array containing a possibly comma-concatenated string, depending on the way
+  the HTTP library provides access to headers.
+
+  Examples:
+
+  - A header `Content-Type: application/json` header **SHOULD** be recorded as the `http.request.response.content-type`
+    attribute with value `["application/json"]`.
+  - A header `My-custom-header: abc, def` header **SHOULD** be recorded as the `http.response.header.my-custom-header`
+    attribute with value `["abc", "def"]` or `["abc, def"]` depending on the HTTP library.
 
   ### Examples
 
   ```
-  ["http.response.header.content-type=[\"application/json\"]", "http.response.header.my-custom-header=[\"abc\", \"def\"]"]
+  ["[\"application/json\"]", "[\"abc\", \"def\"]"]
   ```
 
   <!-- tabs-open -->
