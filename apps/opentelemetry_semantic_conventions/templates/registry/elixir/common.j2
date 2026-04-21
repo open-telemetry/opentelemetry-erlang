@@ -11,7 +11,7 @@
 {%- endmacro -%}
 
 {%- macro to_atom(text) -%}
-{% if text | split_id | length > 1 -%}:"{{ text }}"{%- else -%}:{{ text }}{%- endif %}
+{% if text | split_id | length > 1 or "/" in text -%}:"{{ text }}"{%- else -%}:{{ text }}{%- endif %}
 {%- endmacro -%}
 
 {% macro to_elixir_type(member) -%}
@@ -63,6 +63,10 @@
     {{ to_atom(member.id) }} => {{ enum_value_to_elixir_type(member.value) }}{% if not loop.last %},{% endif %}
   {% endfor %}
   {% raw %}}{% endraw %}
+{%- endmacro -%}
+
+{%- macro map_access(text) -%}
+{% if text | split_id | length > 1 or "/" in text -%}[:"{{ text }}"]{% else -%}.{{ text }}{%- endif %}
 {%- endmacro -%}
 
 {%- macro strong_reqs(string) -%}

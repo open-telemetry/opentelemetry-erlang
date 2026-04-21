@@ -4,32 +4,8 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   OpenTelemetry Semantic Conventions for System attributes.
   """
 
-  @doc """
-  The logical CPU number [0..n-1]
-  ### Value type
-
-  Value must be of type `integer()`.
-  ### Examples
-
-  ```
-  [1]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_cpu_logical_number()
-      :"system.cpu.logical_number"
-
-  ### Erlang
-
-  ```erlang
-  ?SYSTEM_CPU_LOGICAL_NUMBER.
-  'system.cpu.logical_number'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `cpu.logical_number`.
   """
   @spec system_cpu_logical_number :: :"system.cpu.logical_number"
   def system_cpu_logical_number do
@@ -40,13 +16,13 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   Deprecated, use `cpu.mode` instead.
 
   ### Enum Values
-  * `:user` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:system` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:nice` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:idle` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:iowait` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:interrupt` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:steal` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:user` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:system` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:nice` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:idle` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:iowait` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:interrupt` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:steal` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type system_cpu_state_values() :: %{
           :user => :user,
@@ -58,7 +34,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
           :steal => :steal
         }
   @deprecated """
-  Replaced by `cpu.mode`
+  Replaced by `cpu.mode`.
   """
   @spec system_cpu_state :: :"system.cpu.state"
   def system_cpu_state do
@@ -178,9 +154,9 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   The filesystem state
 
   ### Enum Values
-  * `:used` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:free` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:reserved` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:used` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:free` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:reserved` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type system_filesystem_state_values() :: %{
           :used => :used,
@@ -242,12 +218,12 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   The filesystem type
 
   ### Enum Values
-  * `:fat32` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:exfat` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:ntfs` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:refs` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:hfsplus` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:ext4` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:fat32` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:exfat` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:ntfs` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:refs` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:hfsplus` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:ext4` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type system_filesystem_type_values() :: %{
           :fat32 => :fat32,
@@ -312,14 +288,75 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   end
 
   @typedoc """
+  The Linux Slab memory state
+
+  ### Enum Values
+  * `:reclaimable` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:unreclaimable` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  """
+  @type system_memory_linux_slab_state_values() :: %{
+          :reclaimable => :reclaimable,
+          :unreclaimable => :unreclaimable
+        }
+  @doc """
+  The Linux Slab memory state
+
+  ### Examples
+
+  ```
+  ["reclaimable", "unreclaimable"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_memory_linux_slab_state()
+      :"system.memory.linux.slab.state"
+
+      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_memory_linux_slab_state_values().reclaimable
+      :reclaimable
+
+      iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_memory_linux_slab_state() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_memory_linux_slab_state_values().reclaimable}
+      %{:"system.memory.linux.slab.state" => :reclaimable}
+
+  ### Erlang
+
+  ```erlang
+  ?SYSTEM_MEMORY_LINUX_SLAB_STATE.
+  'system.memory.linux.slab.state'
+
+  ?SYSTEM_MEMORY_LINUX_SLAB_STATE_VALUES_RECLAIMABLE.
+  'reclaimable'
+
+  \#{?SYSTEM_MEMORY_LINUX_SLAB_STATE => ?SYSTEM_MEMORY_LINUX_SLAB_STATE_VALUES_RECLAIMABLE}.
+  \#{'system.memory.linux.slab.state' => 'reclaimable'}
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec system_memory_linux_slab_state :: :"system.memory.linux.slab.state"
+  def system_memory_linux_slab_state do
+    :"system.memory.linux.slab.state"
+  end
+
+  @spec system_memory_linux_slab_state_values() :: system_memory_linux_slab_state_values()
+  def system_memory_linux_slab_state_values() do
+    %{
+      :reclaimable => :reclaimable,
+      :unreclaimable => :unreclaimable
+    }
+  end
+
+  @typedoc """
   The memory state
 
   ### Enum Values
-  * `:used` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:free` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:shared` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:buffers` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:cached` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:used` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Actual used virtual memory in bytes.
+  * `:free` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:shared` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - **deprecated** ~~~~
+  * `:buffers` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:cached` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type system_memory_state_values() :: %{
           :used => :used,
@@ -382,21 +419,21 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   end
 
   @typedoc """
-  A stateless protocol **MUST** **NOT** set this attribute
+  Deprecated, use `network.connection.state` instead.
 
   ### Enum Values
-  * `:close` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:close_wait` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:closing` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:delete` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:established` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:fin_wait_1` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:fin_wait_2` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:last_ack` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:listen` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:syn_recv` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:syn_sent` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:time_wait` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:close` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:close_wait` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:closing` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:delete` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:established` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:fin_wait_1` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:fin_wait_2` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:last_ack` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:listen` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:syn_recv` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:syn_sent` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:time_wait` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type system_network_state_values() :: %{
           :close => :close,
@@ -412,42 +449,8 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
           :syn_sent => :syn_sent,
           :time_wait => :time_wait
         }
-  @doc """
-  A stateless protocol **MUST** **NOT** set this attribute
-
-  ### Examples
-
-  ```
-  ["close_wait"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_network_state()
-      :"system.network.state"
-
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_network_state_values().close
-      :close
-
-      iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_network_state() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_network_state_values().close}
-      %{:"system.network.state" => :close}
-
-  ### Erlang
-
-  ```erlang
-  ?SYSTEM_NETWORK_STATE.
-  'system.network.state'
-
-  ?SYSTEM_NETWORK_STATE_VALUES_CLOSE.
-  'close'
-
-  \#{?SYSTEM_NETWORK_STATE => ?SYSTEM_NETWORK_STATE_VALUES_CLOSE}.
-  \#{'system.network.state' => 'close'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `network.connection.state`.
   """
   @spec system_network_state :: :"system.network.state"
   def system_network_state do
@@ -476,8 +479,8 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   The paging access direction
 
   ### Enum Values
-  * `:in` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:out` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:in` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:out` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type system_paging_direction_values() :: %{
           :in => :in,
@@ -534,11 +537,72 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   end
 
   @typedoc """
+  The paging fault type
+
+  ### Enum Values
+  * `:major` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:minor` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  """
+  @type system_paging_fault_type_values() :: %{
+          :major => :major,
+          :minor => :minor
+        }
+  @doc """
+  The paging fault type
+
+  ### Examples
+
+  ```
+  ["minor"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_fault_type()
+      :"system.paging.fault.type"
+
+      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_fault_type_values().major
+      :major
+
+      iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_fault_type() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_fault_type_values().major}
+      %{:"system.paging.fault.type" => :major}
+
+  ### Erlang
+
+  ```erlang
+  ?SYSTEM_PAGING_FAULT_TYPE.
+  'system.paging.fault.type'
+
+  ?SYSTEM_PAGING_FAULT_TYPE_VALUES_MAJOR.
+  'major'
+
+  \#{?SYSTEM_PAGING_FAULT_TYPE => ?SYSTEM_PAGING_FAULT_TYPE_VALUES_MAJOR}.
+  \#{'system.paging.fault.type' => 'major'}
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec system_paging_fault_type :: :"system.paging.fault.type"
+  def system_paging_fault_type do
+    :"system.paging.fault.type"
+  end
+
+  @spec system_paging_fault_type_values() :: system_paging_fault_type_values()
+  def system_paging_fault_type_values() do
+    %{
+      :major => :major,
+      :minor => :minor
+    }
+  end
+
+  @typedoc """
   The memory paging state
 
   ### Enum Values
-  * `:used` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:free` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:used` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:free` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type system_paging_state_values() :: %{
           :used => :used,
@@ -595,52 +659,18 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   end
 
   @typedoc """
-  The memory paging type
+  Deprecated, use `system.paging.fault.type` instead.
 
   ### Enum Values
-  * `:major` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:minor` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:major` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:minor` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type system_paging_type_values() :: %{
           :major => :major,
           :minor => :minor
         }
-  @doc """
-  The memory paging type
-
-  ### Examples
-
-  ```
-  ["minor"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_type()
-      :"system.paging.type"
-
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_type_values().major
-      :major
-
-      iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_type() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_paging_type_values().major}
-      %{:"system.paging.type" => :major}
-
-  ### Erlang
-
-  ```erlang
-  ?SYSTEM_PAGING_TYPE.
-  'system.paging.type'
-
-  ?SYSTEM_PAGING_TYPE_VALUES_MAJOR.
-  'major'
-
-  \#{?SYSTEM_PAGING_TYPE => ?SYSTEM_PAGING_TYPE_VALUES_MAJOR}.
-  \#{'system.paging.type' => 'major'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `system.paging.fault.type`.
   """
   @spec system_paging_type :: :"system.paging.type"
   def system_paging_type do
@@ -656,14 +686,13 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   end
 
   @typedoc """
-  The process state, e.g., [Linux Process State Codes](https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES)
-
+  Deprecated, use `process.state` instead.
 
   ### Enum Values
-  * `:running` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:sleeping` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:stopped` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:defunct` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:running` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:sleeping` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:stopped` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:defunct` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type system_process_status_values() :: %{
           :running => :running,
@@ -671,43 +700,8 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
           :stopped => :stopped,
           :defunct => :defunct
         }
-  @doc """
-  The process state, e.g., [Linux Process State Codes](https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES)
-
-
-  ### Examples
-
-  ```
-  ["running"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_process_status()
-      :"system.process.status"
-
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_process_status_values().running
-      :running
-
-      iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_process_status() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_process_status_values().running}
-      %{:"system.process.status" => :running}
-
-  ### Erlang
-
-  ```erlang
-  ?SYSTEM_PROCESS_STATUS.
-  'system.process.status'
-
-  ?SYSTEM_PROCESS_STATUS_VALUES_RUNNING.
-  'running'
-
-  \#{?SYSTEM_PROCESS_STATUS => ?SYSTEM_PROCESS_STATUS_VALUES_RUNNING}.
-  \#{'system.process.status' => 'running'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `process.state`.
   """
   @spec system_process_status :: :"system.process.status"
   def system_process_status do
@@ -725,13 +719,13 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   end
 
   @typedoc """
-  Deprecated, use `system.process.status` instead.
+  Deprecated, use `process.state` instead.
 
   ### Enum Values
-  * `:running` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:sleeping` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:stopped` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:defunct` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:running` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:sleeping` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:stopped` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:defunct` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type system_processes_status_values() :: %{
           :running => :running,
@@ -740,7 +734,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
           :defunct => :defunct
         }
   @deprecated """
-  Replaced by `system.process.status`.
+  Replaced by `process.state`.
   """
   @spec system_processes_status :: :"system.processes.status"
   def system_processes_status do

@@ -13,7 +13,7 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
-
+%% @deprecated Replaced by `system.memory.linux.slab.state`.
 %% The Linux Slab memory state
 -define(LINUX_MEMORY_SLAB_STATE, 'linux.memory.slab.state').
 

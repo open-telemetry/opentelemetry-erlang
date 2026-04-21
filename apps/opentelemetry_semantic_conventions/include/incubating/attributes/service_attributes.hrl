@@ -16,11 +16,25 @@
 -include_lib("opentelemetry_semantic_conventions/include/attributes/service_attributes.hrl").
 
 
-%% The string ID of the service instance.
+%% The operational criticality of the service.
 %%  
--define(SERVICE_INSTANCE_ID, 'service.instance.id').
+-define(SERVICE_CRITICALITY, 'service.criticality').
+
+-define(SERVICE_CRITICALITY_VALUES_CRITICAL, 'critical').
+
+-define(SERVICE_CRITICALITY_VALUES_HIGH, 'high').
+
+-define(SERVICE_CRITICALITY_VALUES_MEDIUM, 'medium').
+
+-define(SERVICE_CRITICALITY_VALUES_LOW, 'low').
 
 
-%% A namespace for `service.name`.
+
+%% Logical name of the service on the other side of the connection. SHOULD be equal to the actual [`service.name`](/docs/resource/README.md#service) resource attribute of the remote service if any.
 %%  
--define(SERVICE_NAMESPACE, 'service.namespace').
+-define(SERVICE_PEER_NAME, 'service.peer.name').
+
+
+%% Logical namespace of the service on the other side of the connection. SHOULD be equal to the actual [`service.namespace`](/docs/resource/README.md#service) resource attribute of the remote service if any.
+%%  
+-define(SERVICE_PEER_NAMESPACE, 'service.peer.namespace').

@@ -5,6 +5,43 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   """
 
   @doc """
+  Length of the process.command_args array
+
+  ### Value type
+
+  Value must be of type `integer()`.
+  ### Notes
+
+  This field can be useful for querying or performing bucket analysis on how many arguments were provided to start a process. More arguments may be an indication of suspicious activity.
+
+  ### Examples
+
+  ```
+  [4]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_args_count()
+      :"process.args_count"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_ARGS_COUNT.
+  'process.args_count'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_args_count :: :"process.args_count"
+  def process_args_count do
+    :"process.args_count"
+  end
+
+  @doc """
   The command used to launch the process (i.e. the command name). On Linux based systems, can be set to the zeroth string in `proc/[pid]/cmdline`. On Windows, can be set to the first parameter extracted from `GetCommandLineW`.
 
   ### Value type
@@ -38,7 +75,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   end
 
   @doc """
-  All the command arguments (including the command/executable itself) as received by the process. On Linux-based systems (and some other Unixoid systems supporting procfs), can be set according to the list of null-delimited strings extracted from `proc/[pid]/cmdline`. For libc-based executables, this would be the full argv vector passed to `main`.
+  All the command arguments (including the command/executable itself) as received by the process. On Linux-based systems (and some other Unixoid systems supporting procfs), can be set according to the list of null-delimited strings extracted from `proc/[pid]/cmdline`. For libc-based executables, this would be the full argv vector passed to `main`. **SHOULD** **NOT** be collected by default unless there is sanitization that excludes sensitive data.
 
   ### Value type
 
@@ -46,7 +83,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Examples
 
   ```
-  ["cmd/otecol", "--config=config.yaml"]
+  [["cmd/otecol", "--config=config.yaml"]]
   ```
 
   <!-- tabs-open -->
@@ -71,7 +108,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   end
 
   @doc """
-  The full command used to launch the process as a single string representing the full command. On Windows, can be set to the result of `GetCommandLineW`. Do not set this if you have to assemble it just for monitoring; use `process.command_args` instead.
+  The full command used to launch the process as a single string representing the full command. On Windows, can be set to the result of `GetCommandLineW`. Do not set this if you have to assemble it just for monitoring; use `process.command_args` instead. **SHOULD** **NOT** be collected by default unless there is sanitization that excludes sensitive data.
 
   ### Value type
 
@@ -107,8 +144,8 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   Specifies whether the context switches for this data point were voluntary or involuntary.
 
   ### Enum Values
-  * `:voluntary` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:involuntary` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:voluntary` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:involuntary` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type process_context_switch_type_values() :: %{
           :voluntary => :voluntary,
@@ -123,32 +160,32 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Elixir
 
       iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_context_switch_type()
-      :"process.context_switch_type"
+      :"process.context_switch.type"
 
       iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_context_switch_type_values().voluntary
       :voluntary
 
       iex> %{OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_context_switch_type() => OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_context_switch_type_values().voluntary}
-      %{:"process.context_switch_type" => :voluntary}
+      %{:"process.context_switch.type" => :voluntary}
 
   ### Erlang
 
   ```erlang
   ?PROCESS_CONTEXT_SWITCH_TYPE.
-  'process.context_switch_type'
+  'process.context_switch.type'
 
   ?PROCESS_CONTEXT_SWITCH_TYPE_VALUES_VOLUNTARY.
   'voluntary'
 
   \#{?PROCESS_CONTEXT_SWITCH_TYPE => ?PROCESS_CONTEXT_SWITCH_TYPE_VALUES_VOLUNTARY}.
-  \#{'process.context_switch_type' => 'voluntary'}
+  \#{'process.context_switch.type' => 'voluntary'}
   ```
 
   <!-- tabs-close -->
   """
-  @spec process_context_switch_type :: :"process.context_switch_type"
+  @spec process_context_switch_type :: :"process.context_switch.type"
   def process_context_switch_type do
-    :"process.context_switch_type"
+    :"process.context_switch.type"
   end
 
   @spec process_context_switch_type_values() :: process_context_switch_type_values()
@@ -163,9 +200,9 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   Deprecated, use `cpu.mode` instead.
 
   ### Enum Values
-  * `:system` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:user` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:wait` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:system` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:user` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:wait` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type process_cpu_state_values() :: %{
           :system => :system,
@@ -173,7 +210,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
           :wait => :wait
         }
   @deprecated """
-  Replaced by `cpu.mode`
+  Replaced by `cpu.mode`.
   """
   @spec process_cpu_state :: :"process.cpu.state"
   def process_cpu_state do
@@ -223,7 +260,158 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   end
 
   @doc """
-  The name of the process executable. On Linux based systems, can be set to the `Name` in `proc/[pid]/status`. On Windows, can be set to the base name of `GetProcessImageFileNameW`.
+  Process environment variables, `<key>` being the environment variable name, the value being the environment variable value.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  Examples:
+
+  - an environment variable `USER` with value `"ubuntu"` **SHOULD** be recorded
+  as the `process.environment_variable.USER` attribute with value `"ubuntu"`.
+
+  - an environment variable `PATH` with value `"/usr/local/bin:/usr/bin"`
+  **SHOULD** be recorded as the `process.environment_variable.PATH` attribute
+  with value `"/usr/local/bin:/usr/bin"`.
+
+  ### Examples
+
+  ```
+  ["ubuntu", "/usr/local/bin:/usr/bin"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_environment_variable()
+      :"process.environment_variable"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_ENVIRONMENT_VARIABLE.
+  'process.environment_variable'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_environment_variable :: :"process.environment_variable"
+  def process_environment_variable do
+    :"process.environment_variable"
+  end
+
+  @doc """
+  The GNU build ID as found in the `.note.gnu.build-id` ELF section (hex string).
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["c89b11207f6479603b0d49bf291c092c2b719293"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_executable_build_id_gnu()
+      :"process.executable.build_id.gnu"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_EXECUTABLE_BUILD_ID_GNU.
+  'process.executable.build_id.gnu'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_executable_build_id_gnu :: :"process.executable.build_id.gnu"
+  def process_executable_build_id_gnu do
+    :"process.executable.build_id.gnu"
+  end
+
+  @doc """
+  The Go build ID as retrieved by `go tool buildid <go executable>`.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["foh3mEXu7BLZjsN9pOwG/kATcXlYVCDEFouRMQed_/WwRFB1hPo9LBkekthSPG/x8hMC8emW2cCjXD0_1aY"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_executable_build_id_go()
+      :"process.executable.build_id.go"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_EXECUTABLE_BUILD_ID_GO.
+  'process.executable.build_id.go'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_executable_build_id_go :: :"process.executable.build_id.go"
+  def process_executable_build_id_go do
+    :"process.executable.build_id.go"
+  end
+
+  @doc """
+  Profiling specific build ID for executables. See the OTel specification for Profiles for more information.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["600DCAFE4A110000F2BF38C493F5FB92"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_executable_build_id_htlhash()
+      :"process.executable.build_id.htlhash"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_EXECUTABLE_BUILD_ID_HTLHASH.
+  'process.executable.build_id.htlhash'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_executable_build_id_htlhash :: :"process.executable.build_id.htlhash"
+  def process_executable_build_id_htlhash do
+    :"process.executable.build_id.htlhash"
+  end
+
+  @deprecated """
+  Replaced by `process.executable.build_id.htlhash`.
+  """
+  @spec process_executable_build_id_profiling :: :"process.executable.build_id.profiling"
+  def process_executable_build_id_profiling do
+    :"process.executable.build_id.profiling"
+  end
+
+  @doc """
+  The name of the process executable. On Linux based systems, this **SHOULD** be set to the base name of the target of `/proc/[pid]/exe`. On Windows, this **SHOULD** be set to the base name of `GetProcessImageFileNameW`.
 
   ### Value type
 
@@ -416,6 +604,42 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   end
 
   @doc """
+  The control group associated with the process.
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  Control groups (cgroups) are a kernel feature used to organize and manage process resources. This attribute provides the path(s) to the cgroup(s) associated with the process, which should match the contents of the [/proc/\[PID\]/cgroup](https://man7.org/linux/man-pages/man7/cgroups.7.html) file.
+
+  ### Examples
+
+  ```
+  ["1:name=systemd:/user.slice/user-1000.slice/session-3.scope", "0::/user.slice/user-1000.slice/user@1000.service/tmux-spawn-0267755b-4639-4a27-90ed-f19f88e53748.scope"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_linux_cgroup()
+      :"process.linux.cgroup"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_LINUX_CGROUP.
+  'process.linux.cgroup'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_linux_cgroup :: :"process.linux.cgroup"
+  def process_linux_cgroup do
+    :"process.linux.cgroup"
+  end
+
+  @doc """
   The username of the user that owns the process.
 
   ### Value type
@@ -449,49 +673,18 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   end
 
   @typedoc """
-  The type of page fault for this data point. Type `major` is for major/hard page faults, and `minor` is for minor/soft page faults.
-
+  Deprecated, use `system.paging.fault.type` instead.
 
   ### Enum Values
-  * `:major` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:minor` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:major` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:minor` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type process_paging_fault_type_values() :: %{
           :major => :major,
           :minor => :minor
         }
-  @doc """
-  The type of page fault for this data point. Type `major` is for major/hard page faults, and `minor` is for minor/soft page faults.
-
-
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_fault_type()
-      :"process.paging.fault_type"
-
-      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_fault_type_values().major
-      :major
-
-      iex> %{OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_fault_type() => OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_paging_fault_type_values().major}
-      %{:"process.paging.fault_type" => :major}
-
-  ### Erlang
-
-  ```erlang
-  ?PROCESS_PAGING_FAULT_TYPE.
-  'process.paging.fault_type'
-
-  ?PROCESS_PAGING_FAULT_TYPE_VALUES_MAJOR.
-  'major'
-
-  \#{?PROCESS_PAGING_FAULT_TYPE => ?PROCESS_PAGING_FAULT_TYPE_VALUES_MAJOR}.
-  \#{'process.paging.fault_type' => 'major'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `system.paging.fault.type`.
   """
   @spec process_paging_fault_type :: :"process.paging.fault_type"
   def process_paging_fault_type do
@@ -836,6 +1029,112 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
     :"process.session_leader.pid"
   end
 
+  @typedoc """
+  The process state, e.g., [Linux Process State Codes](https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES)
+
+
+  ### Enum Values
+  * `:running` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:sleeping` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:stopped` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:defunct` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  """
+  @type process_state_values() :: %{
+          :running => :running,
+          :sleeping => :sleeping,
+          :stopped => :stopped,
+          :defunct => :defunct
+        }
+  @doc """
+  The process state, e.g., [Linux Process State Codes](https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES)
+
+
+  ### Examples
+
+  ```
+  ["running"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_state()
+      :"process.state"
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_state_values().running
+      :running
+
+      iex> %{OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_state() => OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_state_values().running}
+      %{:"process.state" => :running}
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_STATE.
+  'process.state'
+
+  ?PROCESS_STATE_VALUES_RUNNING.
+  'running'
+
+  \#{?PROCESS_STATE => ?PROCESS_STATE_VALUES_RUNNING}.
+  \#{'process.state' => 'running'}
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_state :: :"process.state"
+  def process_state do
+    :"process.state"
+  end
+
+  @spec process_state_values() :: process_state_values()
+  def process_state_values() do
+    %{
+      :running => :running,
+      :sleeping => :sleeping,
+      :stopped => :stopped,
+      :defunct => :defunct
+    }
+  end
+
+  @doc """
+  Process title (proctitle)
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  In many Unix-like systems, process title (proctitle), is the string that represents the name or command line of a running process, displayed by system monitoring tools like ps, top, and htop.
+
+  ### Examples
+
+  ```
+  ["cat /etc/hostname", "xfce4-session", "bash"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_title()
+      :"process.title"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_TITLE.
+  'process.title'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_title :: :"process.title"
+  def process_title do
+    :"process.title"
+  end
+
   @doc """
   The effective user ID (EUID) of the process.
 
@@ -937,5 +1236,38 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   @spec process_vpid :: :"process.vpid"
   def process_vpid do
     :"process.vpid"
+  end
+
+  @doc """
+  The working directory of the process.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["/root"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_working_directory()
+      :"process.working_directory"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_WORKING_DIRECTORY.
+  'process.working_directory'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_working_directory :: :"process.working_directory"
+  def process_working_directory do
+    :"process.working_directory"
   end
 end

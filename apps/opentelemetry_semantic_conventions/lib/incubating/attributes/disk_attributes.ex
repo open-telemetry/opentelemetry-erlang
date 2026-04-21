@@ -8,8 +8,8 @@ defmodule OpenTelemetry.SemConv.Incubating.DiskAttributes do
   The disk IO operation direction.
 
   ### Enum Values
-  * `:read` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:write` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:read` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:write` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type disk_io_direction_values() :: %{
           :read => :read,

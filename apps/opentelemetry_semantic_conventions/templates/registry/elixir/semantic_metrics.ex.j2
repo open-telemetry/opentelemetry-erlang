@@ -18,7 +18,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
 {%- for metric in ctx.metrics | sort(attribute="metric_name") %}
   {% if metric is deprecated %}
   @deprecated """
-  {{ metric.deprecated | replace("\n", "\n  ") }}
+  {{ metric.deprecated.note | replace("\n", "\n  ") }}
   """
   {%- else -%}
   @doc """

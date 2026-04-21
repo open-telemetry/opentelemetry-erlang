@@ -14,11 +14,21 @@
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
 
+%% The string ID of the service instance.
+%%  
+-define(SERVICE_INSTANCE_ID, 'service.instance.id').
+
+
 %% Logical name of the service.
 %%  
 -define(SERVICE_NAME, 'service.name').
 
 
-%% The version string of the service API or implementation. The format is not defined by these conventions.
+%% A namespace for `service.name`.
+%%  
+-define(SERVICE_NAMESPACE, 'service.namespace').
+
+
+%% The version string of the service component. The format is not defined by these conventions.
 %%  
 -define(SERVICE_VERSION, 'service.version').

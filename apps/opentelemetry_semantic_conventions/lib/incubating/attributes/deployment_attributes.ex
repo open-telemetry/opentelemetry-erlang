@@ -5,7 +5,7 @@ defmodule OpenTelemetry.SemConv.Incubating.DeploymentAttributes do
   """
 
   @deprecated """
-  Deprecated, use `deployment.environment.name` instead.
+  Replaced by `deployment.environment.name`.
   """
   @spec deployment_environment :: :"deployment.environment"
   def deployment_environment do
@@ -25,8 +25,8 @@ defmodule OpenTelemetry.SemConv.Incubating.DeploymentAttributes do
   This implies that resources carrying the following attribute combinations **MUST** be
   considered to be identifying the same service:
 
-  * `service.name=frontend`, `deployment.environment.name=production`
-  * `service.name=frontend`, `deployment.environment.name=staging`.
+  - `service.name=frontend`, `deployment.environment.name=production`
+  - `service.name=frontend`, `deployment.environment.name=staging`.
 
   ### Examples
 

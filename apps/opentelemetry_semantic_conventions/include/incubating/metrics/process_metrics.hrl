@@ -41,8 +41,8 @@
 %% Network bytes transferred.
 -define(PROCESS_NETWORK_IO, 'process.network.io').
 
-
-%% Number of file descriptors in use by the process.
+%% @deprecated Replaced by `process.unix.file_descriptor.count`.
+%% Deprecated, use `process.unix.file_descriptor.count` instead.
 -define(PROCESS_OPEN_FILE_DESCRIPTOR_COUNT, 'process.open_file_descriptor.count').
 
 
@@ -52,3 +52,15 @@
 
 %% Process threads count.
 -define(PROCESS_THREAD_COUNT, 'process.thread.count').
+
+
+%% Number of unix file descriptors in use by the process.
+-define(PROCESS_UNIX_FILE_DESCRIPTOR_COUNT, 'process.unix.file_descriptor.count').
+
+
+%% The time the process has been running.
+-define(PROCESS_UPTIME, 'process.uptime').
+
+
+%% Number of handles held by the process.
+-define(PROCESS_WINDOWS_HANDLE_COUNT, 'process.windows.handle.count').

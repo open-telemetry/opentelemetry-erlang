@@ -14,17 +14,53 @@
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
 
-%% Total CPU time consumed
+%% Total CPU time consumed.
 -define(CONTAINER_CPU_TIME, 'container.cpu.time').
+
+
+%% Container's CPU usage, measured in cpus. Range from 0 to the number of allocatable CPUs.
+-define(CONTAINER_CPU_USAGE, 'container.cpu.usage').
 
 
 %% Disk bytes for the container.
 -define(CONTAINER_DISK_IO, 'container.disk.io').
 
 
+%% Container filesystem available bytes.
+-define(CONTAINER_FILESYSTEM_AVAILABLE, 'container.filesystem.available').
+
+
+%% Container filesystem capacity.
+-define(CONTAINER_FILESYSTEM_CAPACITY, 'container.filesystem.capacity').
+
+
+%% Container filesystem usage.
+-define(CONTAINER_FILESYSTEM_USAGE, 'container.filesystem.usage').
+
+
+%% Container memory available.
+-define(CONTAINER_MEMORY_AVAILABLE, 'container.memory.available').
+
+
+%% Container memory paging faults.
+-define(CONTAINER_MEMORY_PAGING_FAULTS, 'container.memory.paging.faults').
+
+
+%% Container memory RSS.
+-define(CONTAINER_MEMORY_RSS, 'container.memory.rss').
+
+
 %% Memory usage of the container.
 -define(CONTAINER_MEMORY_USAGE, 'container.memory.usage').
 
 
+%% Container memory working set.
+-define(CONTAINER_MEMORY_WORKING_SET, 'container.memory.working_set').
+
+
 %% Network bytes for the container.
 -define(CONTAINER_NETWORK_IO, 'container.network.io').
+
+
+%% The time the container has been running.
+-define(CONTAINER_UPTIME, 'container.uptime').
