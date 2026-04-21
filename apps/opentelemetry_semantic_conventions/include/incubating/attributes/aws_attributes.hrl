@@ -14,6 +14,16 @@
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
 
+%% The unique identifier of the AWS Bedrock Guardrail. A [guardrail](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) helps safeguard and prevent unwanted behavior from model responses or user messages.
+%%  
+-define(AWS_BEDROCK_GUARDRAIL_ID, 'aws.bedrock.guardrail.id').
+
+
+%% The unique identifier of the AWS Bedrock Knowledge base. A [knowledge base](https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html) is a bank of information that can be queried by models to generate more relevant responses and augment prompts.
+%%  
+-define(AWS_BEDROCK_KNOWLEDGE_BASE_ID, 'aws.bedrock.knowledge_base.id').
+
+
 %% The JSON-serialized value of each item in the `AttributeDefinitions` request field.
 -define(AWS_DYNAMODB_ATTRIBUTE_DEFINITIONS, 'aws.dynamodb.attribute_definitions').
 
@@ -147,9 +157,23 @@
 -define(AWS_EKS_CLUSTER_ARN, 'aws.eks.cluster.arn').
 
 
+%% The AWS extended request ID as returned in the response header `x-amz-id-2`.
+-define(AWS_EXTENDED_REQUEST_ID, 'aws.extended_request_id').
+
+
+%% The name of the AWS Kinesis [stream](https://docs.aws.amazon.com/streams/latest/dev/introduction.html) the request refers to. Corresponds to the `--stream-name` parameter of the Kinesis [describe-stream](https://docs.aws.amazon.com/cli/latest/reference/kinesis/describe-stream.html) operation.
+%%  
+-define(AWS_KINESIS_STREAM_NAME, 'aws.kinesis.stream_name').
+
+
 %% The full invoked ARN as provided on the `Context` passed to the function (`Lambda-Runtime-Invoked-Function-Arn` header on the `/runtime/invocation/next` applicable).
 %%  
 -define(AWS_LAMBDA_INVOKED_ARN, 'aws.lambda.invoked_arn').
+
+
+%% The UUID of the [AWS Lambda EvenSource Mapping](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html). An event source is mapped to a lambda function. It's contents are read by Lambda and used to trigger a function. This isn't available in the lambda execution context or the lambda runtime environtment. This is going to be populated by the AWS SDK for each language when that UUID is present. Some of these operations are Create/Delete/Get/List/Update EventSourceMapping.
+%%  
+-define(AWS_LAMBDA_RESOURCE_MAPPING_ID, 'aws.lambda.resource_mapping.id').
 
 
 %% The Amazon Resource Name(s) (ARN) of the AWS log group(s).
@@ -172,7 +196,7 @@
 -define(AWS_LOG_STREAM_NAMES, 'aws.log.stream.names').
 
 
-%% The AWS request ID as returned in the response headers `x-amz-request-id` or `x-amz-requestid`.
+%% The AWS request ID as returned in the response headers `x-amzn-requestid`, `x-amzn-request-id` or `x-amz-request-id`.
 -define(AWS_REQUEST_ID, 'aws.request_id').
 
 
@@ -198,3 +222,28 @@
 
 %% Upload ID that identifies the multipart upload.
 -define(AWS_S3_UPLOAD_ID, 'aws.s3.upload_id').
+
+
+%% The ARN of the Secret stored in the Secrets Mangger
+%%  
+-define(AWS_SECRETSMANAGER_SECRET_ARN, 'aws.secretsmanager.secret.arn').
+
+
+%% The ARN of the AWS SNS Topic. An Amazon SNS [topic](https://docs.aws.amazon.com/sns/latest/dg/sns-create-topic.html) is a logical access point that acts as a communication channel.
+%%  
+-define(AWS_SNS_TOPIC_ARN, 'aws.sns.topic.arn').
+
+
+%% The URL of the AWS SQS Queue. It's a unique identifier for a queue in Amazon Simple Queue Service (SQS) and is used to access the queue and perform actions on it.
+%%  
+-define(AWS_SQS_QUEUE_URL, 'aws.sqs.queue.url').
+
+
+%% The ARN of the AWS Step Functions Activity.
+%%  
+-define(AWS_STEP_FUNCTIONS_ACTIVITY_ARN, 'aws.step_functions.activity.arn').
+
+
+%% The ARN of the AWS Step Functions State Machine.
+%%  
+-define(AWS_STEP_FUNCTIONS_STATE_MACHINE_ARN, 'aws.step_functions.state_machine.arn').

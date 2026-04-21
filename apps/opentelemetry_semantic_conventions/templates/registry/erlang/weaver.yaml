@@ -10,12 +10,12 @@ templates:
       | map(select(.type == "attribute_group"))
       | map(select(.id | startswith("registry.")))
       | map({ id: .id, group_id: .id | split(".") | .[1], attributes: .attributes})
-      | map(select([.attributes[] | select(.stability == $stability)] | any))
+      | map(select([.attributes[] | select(if $stability == "stable" then .stability == "stable" else .stability != "stable" end)] | any))
       | group_by(.group_id)
-      | map({ 
+      | map({
         id: .[0].group_id,
-        attributes: [.[].attributes[] | select(.stability == $stability) | (select( .name as $id | any( $excluded_attrs[]; . == $id ) | not ))] | sort_by(.id),
-        all_attributes: [.[].attributes[]],
+        attributes: [.[].attributes[] | select(if $stability == "stable" then .stability == "stable" else .stability != "stable" end) | (select( .name as $id | any( $excluded_attrs[]; . == $id ) | not ))] | sort_by(.id) | unique_by(.name | gsub("[.]"; "_")),
+        all_attributes: [.[].attributes[]] | sort_by(.id) | unique_by(.name | gsub("[.]"; "_")),
         output: $output + "/attributes/"
       })
       | map(select( .id as $id | any( $excluded[]; . == $id) | not ))
@@ -25,7 +25,7 @@ templates:
     filter: >
       .groups
       | map(select(.type == "metric"))
-      | map(select(.stability == $stability))
+      | map(select(if $stability == "stable" then .stability == "stable" else .stability != "stable" end))
       | map({ id: .id, group_id: .id | split(".") | .[1], brief, unit, stability, deprecated, instrument, metric_name, note})
       | group_by(.group_id)
       | map({

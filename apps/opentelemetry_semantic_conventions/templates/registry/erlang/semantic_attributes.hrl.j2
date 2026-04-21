@@ -20,7 +20,7 @@
 {% endif -%}
 {%- for attribute in ctx.attributes | sort(attribute="name") %}
 {% if attribute is deprecated -%}
-%% @deprecated {{ attribute.deprecated | replace("\n", "\n%%  ") }}
+%% @deprecated {{ attribute.deprecated.note | replace("\n", "\n%%  ") }}
 {%- endif %}
 %% {{ attribute.brief | replace("\n", "\n%%  ") }}
 -define({{ c.attr_name(attribute.name) }}, '{{ attribute.name }}').

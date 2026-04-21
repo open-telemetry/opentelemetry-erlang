@@ -9,18 +9,18 @@ defmodule OpenTelemetry.SemConv.TelemetryAttributes do
 
 
   ### Enum Values
-  * `:cpp`
-  * `:dotnet`
-  * `:erlang`
-  * `:go`
-  * `:java`
-  * `:nodejs`
-  * `:php`
-  * `:python`
-  * `:ruby`
-  * `:rust`
-  * `:swift`
-  * `:webjs`
+  * `:cpp` - 
+  * `:dotnet` - 
+  * `:erlang` - 
+  * `:go` - 
+  * `:java` - 
+  * `:nodejs` - 
+  * `:php` - 
+  * `:python` - 
+  * `:ruby` - 
+  * `:rust` - 
+  * `:swift` - 
+  * `:webjs` - 
   """
   @type telemetry_sdk_language_values() :: %{
           :cpp => :cpp,

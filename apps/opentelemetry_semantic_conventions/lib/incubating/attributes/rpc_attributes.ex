@@ -5,7 +5,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   """
 
   @deprecated """
-  Replaced by `rpc.message.compressed_size`.
+  Deprecated, no replacement at this time.
   """
   @spec message_compressed_size :: :"message.compressed_size"
   def message_compressed_size do
@@ -13,7 +13,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   end
 
   @deprecated """
-  Replaced by `rpc.message.id`.
+  Deprecated, no replacement at this time.
   """
   @spec message_id :: :"message.id"
   def message_id do
@@ -21,18 +21,18 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   end
 
   @typedoc """
-  Deprecated, use `rpc.message.type` instead.
+  Deprecated, no replacement at this time.
 
   ### Enum Values
-  * `:sent` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:received` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:sent` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:received` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type message_type_values() :: %{
           :sent => :SENT,
           :received => :RECEIVED
         }
   @deprecated """
-  Replaced by `rpc.message.type`.
+  Deprecated, no replacement at this time.
   """
   @spec message_type :: :"message.type"
   def message_type do
@@ -48,7 +48,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   end
 
   @deprecated """
-  Replaced by `rpc.message.uncompressed_size`.
+  Deprecated, no replacement at this time.
   """
   @spec message_uncompressed_size :: :"message.uncompressed_size"
   def message_uncompressed_size do
@@ -56,25 +56,25 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   end
 
   @typedoc """
-  The [error codes](https://connect.build/docs/protocol/#error-codes) of the Connect request. Error codes are always string values.
+  Deprecated, use `rpc.response.status_code` attribute instead.
 
   ### Enum Values
-  * `:cancelled` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:unknown` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:invalid_argument` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:deadline_exceeded` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:not_found` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:already_exists` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:permission_denied` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:resource_exhausted` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:failed_precondition` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:aborted` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:out_of_range` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:unimplemented` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:internal` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:unavailable` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:data_loss` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:unauthenticated` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:cancelled` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:unknown` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:invalid_argument` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:deadline_exceeded` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:not_found` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:already_exists` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:permission_denied` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:resource_exhausted` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:failed_precondition` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:aborted` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:out_of_range` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:unimplemented` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:internal` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:unavailable` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:data_loss` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:unauthenticated` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type rpc_connect_rpc_error_code_values() :: %{
           :cancelled => :cancelled,
@@ -94,37 +94,8 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
           :data_loss => :data_loss,
           :unauthenticated => :unauthenticated
         }
-  @doc """
-  The [error codes](https://connect.build/docs/protocol/#error-codes) of the Connect request. Error codes are always string values.
-
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connect_rpc_error_code()
-      :"rpc.connect_rpc.error_code"
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connect_rpc_error_code_values().cancelled
-      :cancelled
-
-      iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connect_rpc_error_code() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connect_rpc_error_code_values().cancelled}
-      %{:"rpc.connect_rpc.error_code" => :cancelled}
-
-  ### Erlang
-
-  ```erlang
-  ?RPC_CONNECT_RPC_ERROR_CODE.
-  'rpc.connect_rpc.error_code'
-
-  ?RPC_CONNECT_RPC_ERROR_CODE_VALUES_CANCELLED.
-  'cancelled'
-
-  \#{?RPC_CONNECT_RPC_ERROR_CODE => ?RPC_CONNECT_RPC_ERROR_CODE_VALUES_CANCELLED}.
-  \#{'rpc.connect_rpc.error_code' => 'cancelled'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `rpc.response.status_code`.
   """
   @spec rpc_connect_rpc_error_code :: :"rpc.connect_rpc.error_code"
   def rpc_connect_rpc_error_code do
@@ -153,148 +124,32 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
     }
   end
 
-  @doc """
-  Connect request metadata, `<key>` being the normalized Connect Metadata key (lowercase), the value being the metadata values.
-
-  ### Value type
-
-  Value must be of type `[atom() | String.t()]`.
-  ### Notes
-
-  Instrumentations **SHOULD** require an explicit configuration of which metadata values are to be captured. Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
-
-  ### Examples
-
-  ```
-  ["rpc.request.metadata.my-custom-metadata-attribute=[\"1.2.3.4\", \"1.2.3.5\"]"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connect_rpc_request_metadata()
-      :"rpc.connect_rpc.request.metadata"
-
-  ### Erlang
-
-  ```erlang
-  ?RPC_CONNECT_RPC_REQUEST_METADATA.
-  'rpc.connect_rpc.request.metadata'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `rpc.request.metadata`.
   """
   @spec rpc_connect_rpc_request_metadata :: :"rpc.connect_rpc.request.metadata"
   def rpc_connect_rpc_request_metadata do
     :"rpc.connect_rpc.request.metadata"
   end
 
-  @doc """
-  Connect response metadata, `<key>` being the normalized Connect Metadata key (lowercase), the value being the metadata values.
-
-  ### Value type
-
-  Value must be of type `[atom() | String.t()]`.
-  ### Notes
-
-  Instrumentations **SHOULD** require an explicit configuration of which metadata values are to be captured. Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
-
-  ### Examples
-
-  ```
-  ["rpc.response.metadata.my-custom-metadata-attribute=[\"attribute_value\"]"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_connect_rpc_response_metadata()
-      :"rpc.connect_rpc.response.metadata"
-
-  ### Erlang
-
-  ```erlang
-  ?RPC_CONNECT_RPC_RESPONSE_METADATA.
-  'rpc.connect_rpc.response.metadata'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `rpc.response.metadata`.
   """
   @spec rpc_connect_rpc_response_metadata :: :"rpc.connect_rpc.response.metadata"
   def rpc_connect_rpc_response_metadata do
     :"rpc.connect_rpc.response.metadata"
   end
 
-  @doc """
-  gRPC request metadata, `<key>` being the normalized gRPC Metadata key (lowercase), the value being the metadata values.
-
-  ### Value type
-
-  Value must be of type `[atom() | String.t()]`.
-  ### Notes
-
-  Instrumentations **SHOULD** require an explicit configuration of which metadata values are to be captured. Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
-
-  ### Examples
-
-  ```
-  ["rpc.grpc.request.metadata.my-custom-metadata-attribute=[\"1.2.3.4\", \"1.2.3.5\"]"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_request_metadata()
-      :"rpc.grpc.request.metadata"
-
-  ### Erlang
-
-  ```erlang
-  ?RPC_GRPC_REQUEST_METADATA.
-  'rpc.grpc.request.metadata'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `rpc.request.metadata`.
   """
   @spec rpc_grpc_request_metadata :: :"rpc.grpc.request.metadata"
   def rpc_grpc_request_metadata do
     :"rpc.grpc.request.metadata"
   end
 
-  @doc """
-  gRPC response metadata, `<key>` being the normalized gRPC Metadata key (lowercase), the value being the metadata values.
-
-  ### Value type
-
-  Value must be of type `[atom() | String.t()]`.
-  ### Notes
-
-  Instrumentations **SHOULD** require an explicit configuration of which metadata values are to be captured. Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
-
-  ### Examples
-
-  ```
-  ["rpc.grpc.response.metadata.my-custom-metadata-attribute=[\"attribute_value\"]"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_response_metadata()
-      :"rpc.grpc.response.metadata"
-
-  ### Erlang
-
-  ```erlang
-  ?RPC_GRPC_RESPONSE_METADATA.
-  'rpc.grpc.response.metadata'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `rpc.response.metadata`.
   """
   @spec rpc_grpc_response_metadata :: :"rpc.grpc.response.metadata"
   def rpc_grpc_response_metadata do
@@ -302,7 +157,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   end
 
   @typedoc """
-  The [numeric status code](https://github.com/grpc/grpc/blob/v1.33.2/doc/statuscodes.md) of the gRPC request.
+  Deprecated, use string representation on the `rpc.response.status_code` attribute instead.
 
   ### Enum Values
   * `:ok` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - OK
@@ -342,37 +197,8 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
           :data_loss => 15,
           :unauthenticated => 16
         }
-  @doc """
-  The [numeric status code](https://github.com/grpc/grpc/blob/v1.33.2/doc/statuscodes.md) of the gRPC request.
-
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_status_code()
-      :"rpc.grpc.status_code"
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_status_code_values().ok
-      0
-
-      iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_status_code() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_grpc_status_code_values().ok}
-      %{:"rpc.grpc.status_code" => 0}
-
-  ### Erlang
-
-  ```erlang
-  ?RPC_GRPC_STATUS_CODE.
-  'rpc.grpc.status_code'
-
-  ?RPC_GRPC_STATUS_CODE_VALUES_OK.
-  '0'
-
-  \#{?RPC_GRPC_STATUS_CODE => ?RPC_GRPC_STATUS_CODE_VALUES_OK}.
-  \#{'rpc.grpc.status_code' => '0'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Use string representation of the gRPC status code on the `rpc.response.status_code` attribute.
   """
   @spec rpc_grpc_status_code :: :"rpc.grpc.status_code"
   def rpc_grpc_status_code do
@@ -402,186 +228,48 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
     }
   end
 
-  @doc """
-  `error.code` property of response if it is an error response.
-  ### Value type
-
-  Value must be of type `integer()`.
-  ### Examples
-
-  ```
-  [-32700, 100]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_jsonrpc_error_code()
-      :"rpc.jsonrpc.error_code"
-
-  ### Erlang
-
-  ```erlang
-  ?RPC_JSONRPC_ERROR_CODE.
-  'rpc.jsonrpc.error_code'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Use string representation of the error code on the `rpc.response.status_code` attribute.
   """
   @spec rpc_jsonrpc_error_code :: :"rpc.jsonrpc.error_code"
   def rpc_jsonrpc_error_code do
     :"rpc.jsonrpc.error_code"
   end
 
-  @doc """
-  `error.message` property of response if it is an error response.
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Examples
-
-  ```
-  ["Parse error", "User already exists"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_jsonrpc_error_message()
-      :"rpc.jsonrpc.error_message"
-
-  ### Erlang
-
-  ```erlang
-  ?RPC_JSONRPC_ERROR_MESSAGE.
-  'rpc.jsonrpc.error_message'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Use the span status description when reporting JSON-RPC spans.
   """
   @spec rpc_jsonrpc_error_message :: :"rpc.jsonrpc.error_message"
   def rpc_jsonrpc_error_message do
     :"rpc.jsonrpc.error_message"
   end
 
-  @doc """
-  `id` property of request or response. Since protocol allows id to be int, string, `null` or missing (for notifications), value is expected to be cast to string for simplicity. Use empty string in case of `null` value. Omit entirely if this is a notification.
-
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Examples
-
-  ```
-  ["10", "request-7", ""]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_jsonrpc_request_id()
-      :"rpc.jsonrpc.request_id"
-
-  ### Erlang
-
-  ```erlang
-  ?RPC_JSONRPC_REQUEST_ID.
-  'rpc.jsonrpc.request_id'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `jsonrpc.request.id`.
   """
   @spec rpc_jsonrpc_request_id :: :"rpc.jsonrpc.request_id"
   def rpc_jsonrpc_request_id do
     :"rpc.jsonrpc.request_id"
   end
 
-  @doc """
-  Protocol version as in `jsonrpc` property of request/response. Since JSON-RPC 1.0 doesn't specify this, the value can be omitted.
-  ### Value type
-
-  Value must be of type `atom() | String.t()`.
-  ### Examples
-
-  ```
-  ["2.0", "1.0"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_jsonrpc_version()
-      :"rpc.jsonrpc.version"
-
-  ### Erlang
-
-  ```erlang
-  ?RPC_JSONRPC_VERSION.
-  'rpc.jsonrpc.version'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `jsonrpc.protocol.version`.
   """
   @spec rpc_jsonrpc_version :: :"rpc.jsonrpc.version"
   def rpc_jsonrpc_version do
     :"rpc.jsonrpc.version"
   end
 
-  @doc """
-  Compressed size of the message in bytes.
-  ### Value type
-
-  Value must be of type `integer()`.
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_compressed_size()
-      :"rpc.message.compressed_size"
-
-  ### Erlang
-
-  ```erlang
-  ?RPC_MESSAGE_COMPRESSED_SIZE.
-  'rpc.message.compressed_size'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Deprecated, no replacement at this time.
   """
   @spec rpc_message_compressed_size :: :"rpc.message.compressed_size"
   def rpc_message_compressed_size do
     :"rpc.message.compressed_size"
   end
 
-  @doc """
-  MUST be calculated as two different counters starting from `1` one for sent messages and one for received message.
-  ### Value type
-
-  Value must be of type `integer()`.
-  ### Notes
-
-  This way we guarantee that the values will be consistent between different implementations.
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_id()
-      :"rpc.message.id"
-
-  ### Erlang
-
-  ```erlang
-  ?RPC_MESSAGE_ID.
-  'rpc.message.id'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Deprecated, no replacement at this time.
   """
   @spec rpc_message_id :: :"rpc.message.id"
   def rpc_message_id do
@@ -592,44 +280,15 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   Whether this is a received or sent message.
 
   ### Enum Values
-  * `:sent` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:received` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:sent` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:received` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type rpc_message_type_values() :: %{
           :sent => :SENT,
           :received => :RECEIVED
         }
-  @doc """
-  Whether this is a received or sent message.
-
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type()
-      :"rpc.message.type"
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type_values().sent
-      :SENT
-
-      iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_type_values().sent}
-      %{:"rpc.message.type" => :SENT}
-
-  ### Erlang
-
-  ```erlang
-  ?RPC_MESSAGE_TYPE.
-  'rpc.message.type'
-
-  ?RPC_MESSAGE_TYPE_VALUES_SENT.
-  'SENT'
-
-  \#{?RPC_MESSAGE_TYPE => ?RPC_MESSAGE_TYPE_VALUES_SENT}.
-  \#{'rpc.message.type' => 'SENT'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Deprecated, no replacement at this time.
   """
   @spec rpc_message_type :: :"rpc.message.type"
   def rpc_message_type do
@@ -644,27 +303,8 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
     }
   end
 
-  @doc """
-  Uncompressed size of the message in bytes.
-  ### Value type
-
-  Value must be of type `integer()`.
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_message_uncompressed_size()
-      :"rpc.message.uncompressed_size"
-
-  ### Erlang
-
-  ```erlang
-  ?RPC_MESSAGE_UNCOMPRESSED_SIZE.
-  'rpc.message.uncompressed_size'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Deprecated, no replacement at this time.
   """
   @spec rpc_message_uncompressed_size :: :"rpc.message.uncompressed_size"
   def rpc_message_uncompressed_size do
@@ -672,18 +312,40 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   end
 
   @doc """
-  The name of the (logical) method being called, must be equal to the $method part in the span name.
+  The fully-qualified logical name of the method from the RPC interface perspective.
   ### Value type
 
   Value must be of type `atom() | String.t()`.
   ### Notes
 
-  This is the logical name of the method from the RPC interface perspective, which can be different from the name of any implementing method/function. The `code.function` attribute may be used to store the latter (e.g., method actually executing the call on the server side, RPC client stub method on the client side).
+  The method name **MAY** have unbounded cardinality in edge or error cases.
+
+  Some RPC frameworks or libraries provide a fixed set of recognized methods
+  for client stubs and server implementations. Instrumentations for such
+  frameworks **MUST** set this attribute to the original method name only
+  when the method is recognized by the framework or library.
+
+  When the method is not recognized, for example, when the server receives
+  a request for a method that is not predefined on the server, or when
+  instrumentation is not able to reliably detect if the method is predefined,
+  the attribute **MUST** be set to `_OTHER`. In such cases, tracing
+  instrumentations **MUST** also set `rpc.method_original` attribute to
+  the original method value.
+
+  If the RPC instrumentation could end up converting valid RPC methods to
+  `_OTHER`, then it **SHOULD** provide a way to configure the list of recognized
+  RPC methods.
+
+  The `rpc.method` can be different from the name of any implementing
+  method/function.
+  The `code.function.name` attribute may be used to record the fully-qualified
+  method actually executing the call on the server side, or the
+  RPC client stub method on the client side.
 
   ### Examples
 
   ```
-  exampleMethod
+  ["com.example.ExampleService/exampleMethod", "EchoService/Echo", "_OTHER"]
   ```
 
   <!-- tabs-open -->
@@ -708,35 +370,159 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   end
 
   @doc """
-  The full (logical) name of the service being called, including its package name, if applicable.
+  The original name of the method used by the client.
+
   ### Value type
 
   Value must be of type `atom() | String.t()`.
-  ### Notes
-
-  This is the logical name of the service from the RPC interface perspective, which can be different from the name of any implementing class. The `code.namespace` attribute may be used to store the latter (despite the attribute name, it may include a class name; e.g., class with method actually executing the call on the server side, RPC client stub class on the client side).
-
   ### Examples
 
   ```
-  myservice.EchoService
+  ["com.myservice.EchoService/catchAll", "com.myservice.EchoService/unknownMethod", "InvalidMethod"]
   ```
 
   <!-- tabs-open -->
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_service()
-      :"rpc.service"
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_method_original()
+      :"rpc.method_original"
 
   ### Erlang
 
   ```erlang
-  ?RPC_SERVICE.
-  'rpc.service'
+  ?RPC_METHOD_ORIGINAL.
+  'rpc.method_original'
   ```
 
   <!-- tabs-close -->
+  """
+  @spec rpc_method_original :: :"rpc.method_original"
+  def rpc_method_original do
+    :"rpc.method_original"
+  end
+
+  @doc """
+  RPC request metadata, `<key>` being the normalized RPC metadata key (lowercase), the value being the metadata values.
+
+  ### Value type
+
+  Value must be of type `[atom() | String.t()]`.
+  ### Notes
+
+  Instrumentations **SHOULD** require an explicit configuration of which metadata values are to be captured.
+  Including all request metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+
+  For example, a property `my-custom-key` with value `["1.2.3.4", "1.2.3.5"]` **SHOULD** be recorded as
+  `rpc.request.metadata.my-custom-key` attribute with value `["1.2.3.4", "1.2.3.5"]`
+
+  ### Examples
+
+  ```
+  [["1.2.3.4", "1.2.3.5"]]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_request_metadata()
+      :"rpc.request.metadata"
+
+  ### Erlang
+
+  ```erlang
+  ?RPC_REQUEST_METADATA.
+  'rpc.request.metadata'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec rpc_request_metadata :: :"rpc.request.metadata"
+  def rpc_request_metadata do
+    :"rpc.request.metadata"
+  end
+
+  @doc """
+  RPC response metadata, `<key>` being the normalized RPC metadata key (lowercase), the value being the metadata values.
+
+  ### Value type
+
+  Value must be of type `[atom() | String.t()]`.
+  ### Notes
+
+  Instrumentations **SHOULD** require an explicit configuration of which metadata values are to be captured.
+  Including all response metadata values can be a security risk - explicit configuration helps avoid leaking sensitive information.
+
+  For example, a property `my-custom-key` with value `["attribute_value"]` **SHOULD** be recorded as
+  the `rpc.response.metadata.my-custom-key` attribute with value `["attribute_value"]`
+
+  ### Examples
+
+  ```
+  [["attribute_value"]]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_response_metadata()
+      :"rpc.response.metadata"
+
+  ### Erlang
+
+  ```erlang
+  ?RPC_RESPONSE_METADATA.
+  'rpc.response.metadata'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec rpc_response_metadata :: :"rpc.response.metadata"
+  def rpc_response_metadata do
+    :"rpc.response.metadata"
+  end
+
+  @doc """
+  Status code of the RPC returned by the RPC server or generated by the client
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  Usually it represents an error code, but may also represent partial success, warning, or differentiate between various types of successful outcomes.
+  Semantic conventions for individual RPC frameworks **SHOULD** document what `rpc.response.status_code` means in the context of that system and which values are considered to represent errors.
+
+  ### Examples
+
+  ```
+  ["OK", "DEADLINE_EXCEEDED", "-32602"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_response_status_code()
+      :"rpc.response.status_code"
+
+  ### Erlang
+
+  ```erlang
+  ?RPC_RESPONSE_STATUS_CODE.
+  'rpc.response.status_code'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec rpc_response_status_code :: :"rpc.response.status_code"
+  def rpc_response_status_code do
+    :"rpc.response.status_code"
+  end
+
+  @deprecated """
+  Value should be included in `rpc.method` which is expected to be a fully-qualified name.
   """
   @spec rpc_service :: :"rpc.service"
   def rpc_service do
@@ -744,7 +530,7 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   end
 
   @typedoc """
-  A string identifying the remoting system. See below for a list of well-known identifiers.
+  Deprecated, use `rpc.system.name` attribute instead.
 
   ### Enum Values
   * `:grpc` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - gRPC
@@ -752,45 +538,20 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
   * `:dotnet_wcf` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - .NET WCF
   * `:apache_dubbo` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Apache Dubbo
   * `:connect_rpc` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Connect RPC
+  * `:onc_rpc` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - [ONC RPC (Sun RPC)](https://datatracker.ietf.org/doc/html/rfc5531)
+  * `:jsonrpc` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - JSON-RPC
   """
   @type rpc_system_values() :: %{
           :grpc => :grpc,
           :java_rmi => :java_rmi,
           :dotnet_wcf => :dotnet_wcf,
           :apache_dubbo => :apache_dubbo,
-          :connect_rpc => :connect_rpc
+          :connect_rpc => :connect_rpc,
+          :onc_rpc => :onc_rpc,
+          :jsonrpc => :jsonrpc
         }
-  @doc """
-  A string identifying the remoting system. See below for a list of well-known identifiers.
-
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system()
-      :"rpc.system"
-
-      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system_values().grpc
-      :grpc
-
-      iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system_values().grpc}
-      %{:"rpc.system" => :grpc}
-
-  ### Erlang
-
-  ```erlang
-  ?RPC_SYSTEM.
-  'rpc.system'
-
-  ?RPC_SYSTEM_VALUES_GRPC.
-  'grpc'
-
-  \#{?RPC_SYSTEM => ?RPC_SYSTEM_VALUES_GRPC}.
-  \#{'rpc.system' => 'grpc'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `rpc.system.name`.
   """
   @spec rpc_system :: :"rpc.system"
   def rpc_system do
@@ -804,7 +565,75 @@ defmodule OpenTelemetry.SemConv.Incubating.RPCAttributes do
       :java_rmi => :java_rmi,
       :dotnet_wcf => :dotnet_wcf,
       :apache_dubbo => :apache_dubbo,
-      :connect_rpc => :connect_rpc
+      :connect_rpc => :connect_rpc,
+      :onc_rpc => :onc_rpc,
+      :jsonrpc => :jsonrpc
+    }
+  end
+
+  @typedoc """
+  The Remote Procedure Call (RPC) system.
+
+  ### Enum Values
+  * `:grpc` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - [gRPC](https://grpc.io/)
+  * `:dubbo` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - [Apache Dubbo](https://dubbo.apache.org/)
+  * `:connectrpc` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - [Connect RPC](https://connectrpc.com/)
+  * `:jsonrpc` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - [JSON-RPC](https://www.jsonrpc.org/)
+  """
+  @type rpc_system_name_values() :: %{
+          :grpc => :grpc,
+          :dubbo => :dubbo,
+          :connectrpc => :connectrpc,
+          :jsonrpc => :jsonrpc
+        }
+  @doc """
+  The Remote Procedure Call (RPC) system.
+
+  ### Notes
+
+  The client and server RPC systems may differ for the same RPC interaction. For example, a client may use Apache Dubbo or Connect RPC to communicate with a server that uses gRPC since both protocols provide compatibility with gRPC.
+
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system_name()
+      :"rpc.system.name"
+
+      iex> OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system_name_values().grpc
+      :grpc
+
+      iex> %{OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system_name() => OpenTelemetry.SemConv.Incubating.RPCAttributes.rpc_system_name_values().grpc}
+      %{:"rpc.system.name" => :grpc}
+
+  ### Erlang
+
+  ```erlang
+  ?RPC_SYSTEM_NAME.
+  'rpc.system.name'
+
+  ?RPC_SYSTEM_NAME_VALUES_GRPC.
+  'grpc'
+
+  \#{?RPC_SYSTEM_NAME => ?RPC_SYSTEM_NAME_VALUES_GRPC}.
+  \#{'rpc.system.name' => 'grpc'}
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec rpc_system_name :: :"rpc.system.name"
+  def rpc_system_name do
+    :"rpc.system.name"
+  end
+
+  @spec rpc_system_name_values() :: rpc_system_name_values()
+  def rpc_system_name_values() do
+    %{
+      :grpc => :grpc,
+      :dubbo => :dubbo,
+      :connectrpc => :connectrpc,
+      :jsonrpc => :jsonrpc
     }
   end
 end

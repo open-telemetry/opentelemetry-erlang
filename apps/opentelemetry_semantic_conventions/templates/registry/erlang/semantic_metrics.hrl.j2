@@ -18,7 +18,7 @@
 
 {%- for metric in ctx.metrics | sort(attribute="metric_name") %}
 {% if metric is deprecated -%}
-%% @deprecated {{ metric.deprecated | replace("\n", "\n%%  ") }}
+%% @deprecated {{ metric.deprecated.note | replace("\n", "\n%%  ") }}
 {%- endif %}
 %% {{ metric.brief | replace("\n", "\n%%  ") }}
 -define({{ c.attr_name(metric.metric_name) }}, '{{ metric.metric_name }}').

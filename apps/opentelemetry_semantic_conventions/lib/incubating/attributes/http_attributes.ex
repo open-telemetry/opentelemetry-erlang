@@ -89,7 +89,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   end
 
   @typedoc """
-  Deprecated, use `network.protocol.name` instead.
+  Deprecated, use `network.protocol.name` and `network.protocol.version` instead.
 
   ### Enum Values
   * `:http_1_0` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - HTTP/1.0
@@ -108,7 +108,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
           :quic => :QUIC
         }
   @deprecated """
-  Replaced by `network.protocol.name`.
+  Split into `network.protocol.name` and `network.protocol.version`
   """
   @spec http_flavor :: :"http.flavor"
   def http_flavor do
@@ -129,6 +129,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
 
   @deprecated """
   Replaced by one of `server.address`, `client.address` or `http.request.header.host`, depending on the usage.
+
   """
   @spec http_host :: :"http.host"
   def http_host do
@@ -300,7 +301,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   end
 
   @deprecated """
-  Replace by `http.response.body.size`.
+  Replaced by `http.response.body.size`.
   """
   @spec http_response_content_length_uncompressed :: :"http.response_content_length_uncompressed"
   def http_response_content_length_uncompressed do
@@ -308,7 +309,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   end
 
   @deprecated """
-  Replaced by `url.scheme` instead.
+  Replaced by `url.scheme`.
   """
   @spec http_scheme :: :"http.scheme"
   def http_scheme do
@@ -332,7 +333,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   end
 
   @deprecated """
-  Split to `url.path` and `url.query.
+  Split to `url.path` and `url.query`.
   """
   @spec http_target :: :"http.target"
   def http_target do

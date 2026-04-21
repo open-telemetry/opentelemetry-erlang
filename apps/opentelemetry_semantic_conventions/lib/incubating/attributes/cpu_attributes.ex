@@ -4,18 +4,50 @@ defmodule OpenTelemetry.SemConv.Incubating.CpuAttributes do
   OpenTelemetry Semantic Conventions for Cpu attributes.
   """
 
+  @doc """
+  The logical CPU number [0..n-1]
+  ### Value type
+
+  Value must be of type `integer()`.
+  ### Examples
+
+  ```
+  [1]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.CpuAttributes.cpu_logical_number()
+      :"cpu.logical_number"
+
+  ### Erlang
+
+  ```erlang
+  ?CPU_LOGICAL_NUMBER.
+  'cpu.logical_number'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec cpu_logical_number :: :"cpu.logical_number"
+  def cpu_logical_number do
+    :"cpu.logical_number"
+  end
+
   @typedoc """
   The mode of the CPU
 
   ### Enum Values
-  * `:user` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:system` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:nice` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:idle` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:iowait` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:interrupt` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:steal` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:kernel` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:user` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - User
+  * `:system` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - System
+  * `:nice` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Nice
+  * `:idle` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Idle
+  * `:iowait` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - IO Wait
+  * `:interrupt` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Interrupt
+  * `:steal` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Steal
+  * `:kernel` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Kernel
   """
   @type cpu_mode_values() :: %{
           :user => :user,
