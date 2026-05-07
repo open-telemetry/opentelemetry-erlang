@@ -118,7 +118,8 @@ all() ->
      sync_delta_histogram, async_cumulative_page_faults, async_delta_page_faults,
      async_attribute_removal, sync_cumulative_histogram, simple_fixed_exemplars,
      float_simple_fixed_exemplars, explicit_histogram_exemplars, trace_based_exemplars,
-     observable_exemplars, simple_producer, fail_name_instrument_lookup
+     observable_exemplars, simple_producer, fail_name_instrument_lookup,
+     reader_default_export_interval
     ].
 
 init_per_suite(Config) ->
@@ -2391,3 +2392,25 @@ check_observer_results(MetricName, Expected) ->
 
 is_subset(List1, List2) ->
     sets:is_subset(sets:from_list(List1), sets:from_list(List2)).
+
+%% Verify that otel_metric_reader starts without crashing when export_interval_ms
+%% is omitted from the reader config, and that it applies the OTel spec default
+%% of 60 000 ms rather than leaving the value undefined (which previously caused
+%% a function_clause crash in collect_/1).
+reader_default_export_interval(_Config) ->
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers,
+                             [#{module => otel_metric_reader,
+                                config => #{exporter => {otel_metric_exporter_pid, self()}}}]),
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    %% The reader process must be alive — previously it would crash on the
+    %% first collect call when export_interval_ms was undefined.
+    [{_, ProviderSupPid, _, _}] = supervisor:which_children(otel_meter_provider_sup),
+    {_, ReaderSup, _, _} = lists:keyfind(otel_metric_reader_sup, 1,
+                                         supervisor:which_children(ProviderSupPid)),
+    [{_, ReaderPid, _, _}] = supervisor:which_children(ReaderSup),
+    ?assert(is_process_alive(ReaderPid)),
+
+    %% Manually trigger collect — must not crash.
+    ok = gen_server:call(ReaderPid, collect).

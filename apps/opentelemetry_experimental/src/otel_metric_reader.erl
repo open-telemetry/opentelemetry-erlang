@@ -92,9 +92,10 @@ init([ReaderId, ProviderSup, Config]) ->
     DefaultAggregationMapping = maps:get(default_aggregation_mapping, Config, otel_aggregation:default_mapping()),
     Temporality = maps:get(default_temporality_mapping, Config, otel_aggregation:default_temporality_mapping()),
 
-    %% if a periodic reader is needed then this value is set
-    %% somehow need to do a default of 10000 MILLIS, but only if this is a periodic reader
-    ExporterIntervalMs = maps:get(export_interval_ms, Config, undefined),
+    %% Default to 60 000 ms (OTel spec default for PeriodicExportingMetricReader).
+    %% Pass export_interval_ms => undefined explicitly to disable periodic export
+    %% and rely on manual collect calls only.
+    ExporterIntervalMs = maps:get(export_interval_ms, Config, 60000),
 
     TRef = case ExporterIntervalMs of
                undefined ->
@@ -204,7 +205,10 @@ collect_(State=#state{id=ReaderId,
 
     otel_exporter_metrics:export(Exporter, Metrics, Resource),
 
-    State#state{tref=NewTRef}.
+    State#state{tref=NewTRef};
+collect_(State) ->
+    %% No exporter and no interval configured — nothing to do.
+    State.
 
 run_collection(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId, Producers) ->
     %% collect from view aggregations table and then export
