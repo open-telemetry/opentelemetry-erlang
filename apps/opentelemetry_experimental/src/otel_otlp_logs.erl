@@ -89,23 +89,24 @@ log_record(#{level := Level,
     DroppedAttributesCount = maps:size(Attributes) - length(Attributes1),
     Flags = 0,
 
-    %% Note: otel_trace_id and otel_span_id from hex_span_ctx are now binaries, not charlists.
+    %% otel_trace_id and otel_span_id from hex_span_ctx are 32/16-char hex binaries.
+    %% OTLP protobuf requires raw bytes (16 bytes for trace_id, 8 bytes for span_id).
     LogRecord = case Metadata of
-        #{otel_trace_id := TraceId,
-          otel_span_id := SpanId,
+        #{otel_trace_id := TraceIdHex,
+          otel_span_id := SpanIdHex,
           otel_trace_flags := TraceFlagsHex} ->
             TraceFlags = case TraceFlagsHex of
                 <<_:0, _/binary>> when byte_size(TraceFlagsHex) == 2 ->
                     erlang:binary_to_integer(TraceFlagsHex, 16);
                 _ -> 0
             end,
-            #{trace_id => TraceId,
-              span_id => SpanId,
+            #{trace_id => binary:decode_hex(TraceIdHex),
+              span_id => binary:decode_hex(SpanIdHex),
               trace_flags => TraceFlags};
-        #{otel_trace_id := TraceId,
-          otel_span_id := SpanId} ->
-            #{trace_id => TraceId,
-              span_id => SpanId};
+        #{otel_trace_id := TraceIdHex,
+          otel_span_id := SpanIdHex} ->
+            #{trace_id => binary:decode_hex(TraceIdHex),
+              span_id => binary:decode_hex(SpanIdHex)};
         _ ->
             #{}
     end,

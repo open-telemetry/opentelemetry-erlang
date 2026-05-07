@@ -16,7 +16,7 @@ all() ->
      {group, grpc}, {group, grpc_gzip}].
 
 groups() ->
-    [{functional, [], [configuration]},
+    [{functional, [], [configuration, log_record_trace_ids]},
      {grpc, [], [verify_export]},
      {grpc_gzip, [], [verify_export]},
      {http_protobuf, [], [verify_export]},
@@ -184,3 +184,32 @@ configuration(_Config) ->
         os:unsetenv("OTEL_EXPORTER_OTLP_METRICS_HEADERS"),
         os:unsetenv("OTEL_EXPORTER_OTLP_PROTOCOL")
     end.
+
+%% Verify that trace_id and span_id in log records are exported as raw bytes,
+%% not as hex-encoded strings. otel_span:hex_span_ctx/1 stores them as hex
+%% binaries in logger metadata; OTLP protobuf requires 16-byte/8-byte values.
+log_record_trace_ids(_Config) ->
+    TraceIdHex = <<"0af7651916cd43dd8448eb211c80319c">>,
+    SpanIdHex  = <<"b7ad6b7169203331">>,
+
+    Metadata = #{time             => erlang:system_time(microsecond),
+                 otel_trace_id    => TraceIdHex,
+                 otel_span_id     => SpanIdHex,
+                 otel_trace_flags => <<"01">>},
+
+    Log = #{level => info,
+            msg   => {string, <<"test">>},
+            meta  => Metadata},
+
+    %% Logs are batched as a map from InstrumentationScope to list of events
+    Scope = #instrumentation_scope{name = <<"test">>, version = <<"1.0.0">>},
+    Batch = #{Scope => [Log]},
+
+    Resource = otel_resource:create([]),
+    #{resource_logs := [#{scope_logs := [#{log_records := [Record]}]}]} =
+        otel_otlp_logs:to_proto(Batch, Resource, #{}),
+
+    %% Must be raw bytes, not the original hex strings
+    ?assertEqual(binary:decode_hex(TraceIdHex), maps:get(trace_id, Record)),
+    ?assertEqual(binary:decode_hex(SpanIdHex),  maps:get(span_id, Record)),
+    ?assertEqual(1, maps:get(trace_flags, Record)).
