@@ -412,6 +412,21 @@ span_processors(_Config) ->
                  otel_configuration:merge_with_os([{span_processor, simple},
                                                    {ssp_exporting_timeout_ms, 2}])),
 
+    %% Processor-level exporter must survive when OTEL_TRACES_EXPORTER is set
+    %% in the OS environment. Global traces_exporter must not silently clobber
+    %% an exporter that the caller set explicitly in the processor opts map.
+    os:putenv("OTEL_TRACES_EXPORTER", "otlp"),
+    try
+        ?assertMatch(
+           #{processors := [{otel_batch_processor,
+                              #{exporter := {otel_exporter_pid, _}}}]},
+           otel_configuration:merge_with_os(
+             [{processors, [{otel_batch_processor,
+                              #{exporter => {otel_exporter_pid, self()}}}]}]))
+    after
+        os:unsetenv("OTEL_TRACES_EXPORTER")
+    end,
+
     ok.
 
 %%

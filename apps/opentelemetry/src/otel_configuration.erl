@@ -189,13 +189,27 @@ merge_processor_config(otel_batch_processor, Opts, ConfigMap, AppEnv) ->
                        {bsp_exporting_timeout_ms, exporting_timeout_ms},
                        {bsp_max_queue_size, max_queue_size},
                        {traces_exporter, exporter}],
-    maps:merge(?BATCH_PROCESSOR_DEFAULTS,
-               merge_processor_config_(BatchEnvMapping, Opts, ConfigMap, AppEnv));
+    Merged = maps:merge(?BATCH_PROCESSOR_DEFAULTS,
+                        merge_processor_config_(BatchEnvMapping, Opts, ConfigMap, AppEnv)),
+    %% A non-default exporter set directly in the processor opts must survive even when
+    %% OTEL_TRACES_EXPORTER (or traces_exporter in app env) points to something else.
+    %% We distinguish "user explicitly chose this exporter" from "it came from the
+    %% span_processor=batch shorthand default" by comparing against the default value.
+    DefaultExporter = maps:get(exporter, ?BATCH_PROCESSOR_DEFAULTS),
+    case maps:find(exporter, Opts) of
+        {ok, E} when E =/= DefaultExporter -> Merged#{exporter => E};
+        _                                  -> Merged
+    end;
 merge_processor_config(otel_simple_processor, Opts, ConfigMap, AppEnv) ->
     SimpleEnvMapping = [{ssp_exporting_timeout_ms, exporting_timeout_ms},
                         {traces_exporter, exporter}],
-    maps:merge(?SIMPLE_PROCESSOR_DEFAULTS,
-               merge_processor_config_(SimpleEnvMapping, Opts, ConfigMap, AppEnv));
+    Merged = maps:merge(?SIMPLE_PROCESSOR_DEFAULTS,
+                        merge_processor_config_(SimpleEnvMapping, Opts, ConfigMap, AppEnv)),
+    DefaultExporter = maps:get(exporter, ?SIMPLE_PROCESSOR_DEFAULTS),
+    case maps:find(exporter, Opts) of
+        {ok, E} when E =/= DefaultExporter -> Merged#{exporter => E};
+        _                                  -> Merged
+    end;
 merge_processor_config(_, Opts, _, _) ->
     Opts.
 
