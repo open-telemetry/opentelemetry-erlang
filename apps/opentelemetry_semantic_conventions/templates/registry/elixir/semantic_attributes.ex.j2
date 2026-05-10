@@ -6,7 +6,7 @@
 {%- set module_name = ctx.id | pascal_case | acronym ~ "Attributes" -%}
 {%- set incubating_module_namespace = "OpenTelemetry.SemConv.Incubating" -%}
 {%- set stable_module_namespace = "OpenTelemetry.SemConv" -%}
-{%- if params.stability == "experimental" -%}
+{%- if params.stability != "stable" -%}
 {%- set module_namespace = incubating_module_namespace -%}
 {%- else -%}
 {%- set module_namespace = stable_module_namespace -%}
@@ -16,7 +16,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   @moduledoc """
   OpenTelemetry Semantic Conventions for {{ ctx.id | title | acronym }} attributes.
   """
-{%- if params.stability == "experimental" and (ctx.all_attributes | length) > (ctx.attributes | length) %}
+{%- if params.stability != "stable" and (ctx.all_attributes | length) > (ctx.attributes | length) %}
 {%- for attribute in ctx.all_attributes | sort(attribute="name") %}
   {%- if attribute is stable %}
   defdelegate {{ c.func_name(attribute.name) }}(), to: {{ stable_module_namespace }}.{{ module_name }}
@@ -34,7 +34,7 @@ defmodule {{ module_namespace }}.{{ module_name }} do
   ### Enum Values
   {% for member in attribute.type.members -%}
   * `{{ c.to_atom(member.id) }}`
-  {%- if member is experimental %} ^[e](`m:OpenTelemetry.SemConv#experimental`)^{% endif %}{% if member.brief != none %} - {% if member is deprecated %}**deprecated** ~~{% endif %}{{ member.brief }}{% if member is deprecated %}~~{% endif %}{% endif %}
+  {%- if member.stability is defined and member.stability != "stable" %} ^[e](`m:OpenTelemetry.SemConv#experimental`)^{% endif %}{% if member.brief != none %} - {% if member is deprecated %}**deprecated** ~~{% endif %}{{ member.brief }}{% if member is deprecated %}~~{% endif %}{% endif %}
   {% endfor -%}
   """
   @type {{ c.func_name(attribute.name) }}_values() :: {{ c.enum_to_map(attribute.type.members) }}

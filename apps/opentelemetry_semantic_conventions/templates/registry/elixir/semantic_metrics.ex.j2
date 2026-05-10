@@ -5,7 +5,7 @@
 {{ template.set_file_name(file_name) }}
 
 {%- set module_name = ctx.id | pascal_case | acronym ~ "Metrics" -%}
-{%- if params.stability == "experimental" -%}
+{%- if params.stability != "stable" -%}
 {%- set module_namespace = "OpenTelemetry.SemConv.Incubating.Metrics" -%}
 {%- else -%}
 {%- set module_namespace = "OpenTelemetry.SemConv.Metrics" -%}

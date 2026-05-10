@@ -35,11 +35,11 @@ generate: generate-elixir generate-erlang format-and-test
 
 generate-elixir:
 	weaver registry generate --registry=semtmp/model --templates=templates --param output=lib/ --param stability=stable elixir .
-	weaver registry generate --registry=semtmp/model --templates=templates --param output=lib/incubating/ --param stability=experimental elixir .
+	weaver registry generate --registry=semtmp/model --templates=templates --param output=lib/incubating/ --param stability=incubating elixir .
 
 generate-erlang:
 	weaver registry generate --registry=semtmp/model --templates=templates --param output=include/ --param stability=stable erlang .
-	weaver registry generate --registry=semtmp/model --templates=templates --param output=include/incubating/ --param stability=experimental erlang .
+	weaver registry generate --registry=semtmp/model --templates=templates --param output=include/incubating/ --param stability=incubating erlang .
 
 format-and-test:
 	mix format
