@@ -956,10 +956,16 @@ record_exception_works(Config) ->
             [Span] = assert_exported(Tid, SpanCtx),
             [Event] = otel_events:list(Span#span.events),
             ?assertEqual(exception, Event#event.name),
+            {ok, ExpectedStack} = otel_utils:unicode_to_binary(otel_utils:format_exception(Class, Term, Stacktrace)),
             ?assertEqual(#{'exception.type' => <<"throw:my_error">>,
-                           'exception.stacktrace' => list_to_binary(io_lib:format("~p", [Stacktrace], [{chars_limit, 50}])),
+                           'exception.stacktrace' => ExpectedStack,
                            <<"some-attribute">> => <<"value">>},
                          otel_attributes:map(Event#event.attributes)),
+            %% Regression guard: the stacktrace must not be the legacy
+            %% 50-char truncated form. It must contain at least one resolved
+            %% MFA from this test module.
+            ?assert(byte_size(ExpectedStack) > 50),
+            ?assertNotEqual(nomatch, binary:match(ExpectedStack, <<"opentelemetry_SUITE">>)),
             ok
     end.
 
@@ -976,12 +982,15 @@ record_exception_with_message_works(Config) ->
             [Span] = assert_exported(Tid, SpanCtx),
             [Event] = otel_events:list(Span#span.events),
             ?assertEqual(exception, Event#event.name),
+            {ok, ExpectedStack} = otel_utils:unicode_to_binary(otel_utils:format_exception(Class, Term, Stacktrace)),
             ?assertEqual(#{'exception.type' => <<"throw:my_error">>,
-                           'exception.stacktrace' => list_to_binary(io_lib:format("~p", [Stacktrace], [{chars_limit, 50}])),
+                           'exception.stacktrace' => ExpectedStack,
                            'exception.message' => <<"My message">>,
                            <<"some-attribute">> => <<"value">>},
                          otel_attributes:map(Event#event.attributes)
                         ),
+            ?assert(byte_size(ExpectedStack) > 50),
+            ?assertNotEqual(nomatch, binary:match(ExpectedStack, <<"opentelemetry_SUITE">>)),
             ok
     end.
 
