@@ -89,38 +89,15 @@ init(Opts) ->
     Compression = maps:get(compression, Opts, undefined),
     case maps:get(protocol, Opts, http_protobuf) of
         grpc ->
-            Endpoints = endpoints(maps:get(endpoints, Opts), SSLOptions),
-            ChannelOpts = maps:get(channel_opts, Opts, #{}),
-            UpdatedChannelOpts = case Compression of
-                                   undefined -> ChannelOpts;
-                                   Encoding -> maps:put(encoding, Encoding, ChannelOpts)
-                                 end,
-
-            %% Channel name can be any term. To separate Channels per
-            %% the process calling the exporter  use the current pid
-            Channel = self(),
-            case grpcbox_channel:start_link(Channel,
-                                            grpcbox_endpoints(Endpoints),
-                                            UpdatedChannelOpts) of
-                {ok, ChannelPid} ->
-                    {ok, State#{channel => Channel,
-                                channel_pid => ChannelPid,
-                                endpoints => Endpoints,
-                                headers => Headers,
-                                compression => Compression,
-                                grpc_metadata => headers_to_grpc_metadata(Headers),
-                                protocol => grpc}};
-                ErrorOrIgnore ->
-                    %% TODO: do something different for `already_started' error?
-
-                    %% even if it is `ignore' we should just use `http_protobuf' because
-                    %% `ignore' should never happen and means something is wrong
-                    ?LOG_WARNING("unable to start grpc channel for exporting and falling back "
-                                 "to http_protobuf protocol. reason=~p", [ErrorOrIgnore]),
-                    {ok, State#{endpoints => Endpoints,
-                                headers => Headers,
-                                compression => Compression,
-                                protocol => http_protobuf}}
+            case grpcbox_available() of
+                true ->
+                    init_grpc(Opts, State, SSLOptions, Headers, Compression);
+                false ->
+                    ?LOG_ERROR("OTLP exporter configured with protocol=grpc but the optional "
+                               "grpcbox dependency is not available. Add grpcbox to your "
+                               "project's dependencies to use the gRPC exporter. Falling back "
+                               "to http_protobuf."),
+                    init(Opts#{protocol => http_protobuf})
             end;
         http_protobuf ->
             HttpcProfile = start_httpc(Opts),
@@ -138,6 +115,48 @@ init(Opts) ->
                         headers => Headers,
                         compression => Compression,
                         protocol => http_json}}
+    end.
+
+init_grpc(Opts, State, SSLOptions, Headers, Compression) ->
+    Endpoints = endpoints(maps:get(endpoints, Opts), SSLOptions),
+    ChannelOpts = maps:get(channel_opts, Opts, #{}),
+    UpdatedChannelOpts = case Compression of
+                             undefined -> ChannelOpts;
+                             Encoding -> maps:put(encoding, Encoding, ChannelOpts)
+                         end,
+
+    %% Channel name can be any term. To separate Channels per
+    %% the process calling the exporter  use the current pid
+    Channel = self(),
+    case grpcbox_channel:start_link(Channel,
+                                    grpcbox_endpoints(Endpoints),
+                                    UpdatedChannelOpts) of
+        {ok, ChannelPid} ->
+            {ok, State#{channel => Channel,
+                        channel_pid => ChannelPid,
+                        endpoints => Endpoints,
+                        headers => Headers,
+                        compression => Compression,
+                        grpc_metadata => headers_to_grpc_metadata(Headers),
+                        protocol => grpc}};
+        ErrorOrIgnore ->
+            %% TODO: do something different for `already_started' error?
+
+            %% even if it is `ignore' we should just use `http_protobuf' because
+            %% `ignore' should never happen and means something is wrong
+            ?LOG_WARNING("unable to start grpc channel for exporting and falling back "
+                         "to http_protobuf protocol. reason=~p", [ErrorOrIgnore]),
+            {ok, State#{endpoints => Endpoints,
+                        headers => Headers,
+                        compression => Compression,
+                        protocol => http_protobuf}}
+    end.
+
+%% grpcbox is an optional dependency, only present when the gRPC exporter is used.
+grpcbox_available() ->
+    case code:ensure_loaded(grpcbox_channel) of
+        {module, _} -> true;
+        {error, _} -> false
     end.
 
 %% use a unique httpc profile per exporter
