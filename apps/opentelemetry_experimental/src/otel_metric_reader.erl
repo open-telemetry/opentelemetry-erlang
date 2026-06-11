@@ -54,6 +54,7 @@
          streams_tab :: ets:table(),
          metrics_tab :: ets:table(),
          exemplars_tab :: ets:table(),
+         cardinality_limit :: integer(),
          config :: #{},
          resource :: otel_resource:t() | undefined,
          generation_ref :: atomics:atomics_ref(),
@@ -91,6 +92,7 @@ init([ReaderId, ProviderSup, Config]) ->
 
     DefaultAggregationMapping = maps:get(default_aggregation_mapping, Config, otel_aggregation:default_mapping()),
     Temporality = maps:get(default_temporality_mapping, Config, otel_aggregation:default_temporality_mapping()),
+    CardinalityLimit = maps:get(cardinality_limit, Config, otel_metric_cardinality:default_limit()),
 
     %% if a periodic reader is needed then this value is set
     %% somehow need to do a default of 10000 MILLIS, but only if this is a periodic reader
@@ -119,6 +121,7 @@ init([ReaderId, ProviderSup, Config]) ->
                 temporality_mapping=Temporality,
                 export_interval_ms=ExporterIntervalMs,
                 tref=TRef,
+                cardinality_limit=CardinalityLimit,
                 generation_ref=GenerationRef,
                 producers=[],
                 config=Config}, {continue, register_with_server}}.
@@ -126,12 +129,14 @@ init([ReaderId, ProviderSup, Config]) ->
 handle_continue(register_with_server, State=#state{provider_sup=ProviderSup,
                                                    id=ReaderId,
                                                    default_aggregation_mapping=DefaultAggregationMapping,
-                                                   temporality_mapping=Temporality}) ->
+                                                   temporality_mapping=Temporality,
+                                                   cardinality_limit=CardinalityLimit}) ->
     ServerPid = otel_meter_server_sup:provider_pid(ProviderSup),
     {CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, Resource, Producers} =
         otel_meter_server:add_metric_reader(ServerPid, ReaderId, self(),
                                             DefaultAggregationMapping,
-                                            Temporality),
+                                            Temporality,
+                                            CardinalityLimit),
     {noreply, State#state{callbacks_tab=CallbacksTab,
                           streams_tab=StreamsTab,
                           metrics_tab=MetricsTab,

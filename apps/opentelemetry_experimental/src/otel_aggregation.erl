@@ -45,16 +45,79 @@ maybe_init_aggregate(Ctx, MetricsTab, ExemplarsTab, Stream=#stream{aggregation_m
                                                                    attribute_keys=AttributeKeys},
                      Value, Attributes) ->
     {FilteredAttributes, DroppedAttributes} = filter_attributes(AttributeKeys, Attributes),
-    case AggregationModule:aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value, term_to_binary(FilteredAttributes), DroppedAttributes) of
+    AttributesKey = term_to_binary(FilteredAttributes),
+    case AggregationModule:aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value, AttributesKey, DroppedAttributes) of
         true ->
             true;
         false ->
-            %% entry doesn't exist, create it and rerun the aggregate function
-            Metric = AggregationModule:init(Stream, term_to_binary(FilteredAttributes)),
-            %% don't overwrite a possible concurrent measurement doing the same
-            _ = ets:insert_new(MetricsTab, Metric),
-            AggregationModule:aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value, term_to_binary(FilteredAttributes), DroppedAttributes)
+            %% entry doesn't exist (Exists=false); apply the cardinality limit
+            %% before creating a new series. If the limit is reached the
+            %% measurement is redirected into the single overflow series.
+            maybe_init_new_series(Ctx, MetricsTab, ExemplarsTab, Stream, Value,
+                                  FilteredAttributes, AttributesKey, DroppedAttributes)
     end.
+
+maybe_init_new_series(Ctx, MetricsTab, ExemplarsTab,
+                      Stream=#stream{aggregation_module=AggregationModule,
+                                     cardinality_limit=Limit},
+                      Value, FilteredAttributes, AttributesKey, DroppedAttributes) ->
+    CurrentCount = series_count(MetricsTab, Stream),
+    case otel_metric_cardinality:limit_attributes(FilteredAttributes, CurrentCount, false, limit(Limit)) of
+        FilteredAttributes ->
+            %% under the limit: create the requested series and record into it
+            init_and_aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value,
+                               AttributesKey, DroppedAttributes);
+        OverflowAttributes ->
+            %% over the limit: fold into the single overflow series. It may
+            %% already exist (and just needs updating) or need to be created
+            %% once and then reused.
+            OverflowKey = term_to_binary(OverflowAttributes),
+            case AggregationModule:aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value, OverflowKey, DroppedAttributes) of
+                true ->
+                    true;
+                false ->
+                    init_and_aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value,
+                                       OverflowKey, DroppedAttributes)
+            end
+    end.
+
+init_and_aggregate(Ctx, MetricsTab, ExemplarsTab,
+                   Stream=#stream{aggregation_module=AggregationModule}, Value,
+                   AttributesKey, DroppedAttributes) ->
+    %% entry doesn't exist, create it and rerun the aggregate function
+    Metric = AggregationModule:init(Stream, AttributesKey),
+    %% don't overwrite a possible concurrent measurement doing the same
+    _ = ets:insert_new(MetricsTab, Metric),
+    AggregationModule:aggregate(Ctx, MetricsTab, ExemplarsTab, Stream, Value, AttributesKey, DroppedAttributes).
+
+%% a limit of `undefined' (e.g. on a stream built before the field existed)
+%% falls back to the default limit
+limit(undefined) ->
+    otel_metric_cardinality:default_limit();
+limit(Limit) ->
+    Limit.
+
+%% Count the distinct series currently recorded for this stream (same metric
+%% name, reader, and generation). This runs only on the cold path when a new
+%% series would otherwise be created.
+series_count(MetricsTab, #stream{name=Name,
+                                 reader=ReaderId,
+                                 forget=Forget}) ->
+    Generation = case Forget of
+                     true ->
+                         otel_metric_reader:checkpoint_generation(ReaderId);
+                     _ ->
+                         0
+                 end,
+    %% all aggregation records store the key `{Name, Attributes, ReaderId,
+    %% Generation}' at element 2; match on the key shape regardless of the
+    %% record type (which have differing arities).
+    MS = [{'$1',
+           [{'=:=', {element, 1, {element, 2, '$1'}}, {const, Name}},
+            {'=:=', {element, 3, {element, 2, '$1'}}, {const, ReaderId}},
+            {'=:=', {element, 4, {element, 2, '$1'}}, {const, Generation}}],
+           [true]}],
+    ets:select_count(MetricsTab, MS).
 
 filter_attributes(undefined, Attributes) ->
     {Attributes, #{}};

@@ -37,6 +37,7 @@
 -export([start_link/4,
          add_metric_reader/4,
          add_metric_reader/5,
+         add_metric_reader/6,
          get_readers/0,
          get_readers/1,
          add_instrument/1,
@@ -71,7 +72,8 @@
          pid                         :: pid(),
          monitor_ref                 :: reference(),
          default_aggregation_mapping :: map(),
-         default_temporality_mapping :: map()
+         default_temporality_mapping :: map(),
+         cardinality_limit           :: integer()
         }).
 
 -type reader() :: #reader{}.
@@ -129,7 +131,12 @@ add_metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) -
                       DefaultAggregationMapping, Temporality).
 
 add_metric_reader(Provider, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) ->
-    gen_server:call(Provider, {add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality}).
+    add_metric_reader(Provider, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality,
+                      otel_metric_cardinality:default_limit()).
+
+add_metric_reader(Provider, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality, CardinalityLimit) ->
+    gen_server:call(Provider, {add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping,
+                               Temporality, CardinalityLimit}).
 
 get_readers() ->
     get_readers(?GLOBAL_METER_PROVIDER_REG_NAME).
@@ -220,7 +227,7 @@ init_producers(ProducerConfigs) ->
 handle_call(get_readers, _From, State=#state{readers=Readers}) ->
 
     {reply, Readers, State};
-handle_call({add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality},
+handle_call({add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, Temporality, CardinalityLimit},
             _From, State=#state{readers=Readers,
                                 views=Views,
                                 instruments_tab=InstrumentsTab,
@@ -235,7 +242,8 @@ handle_call({add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, 
     Reader = metric_reader(ReaderId,
                            ReaderPid,
                            DefaultAggregationMapping,
-                           Temporality),
+                           Temporality,
+                           CardinalityLimit),
     Readers1 = [Reader | Readers],
 
     %% create Streams entries for existing View/Instrument
@@ -363,7 +371,7 @@ register_callback_(CallbacksTab, Instruments, Callback, CallbackArgs, Readers) -
                       otel_metrics_tables:insert_callback(CallbacksTab, ReaderId, Callback, CallbackArgs, Instruments)
               end, Readers).
 
-metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) ->
+metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality, CardinalityLimit) ->
     %% TODO: Uncomment when we can drop OTP-23 support
     %% Ref = erlang:monitor(process, ReaderPid, [{tag, 'DOWN_READER'}]),
     Ref = erlang:monitor(process, ReaderPid),
@@ -375,7 +383,8 @@ metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) ->
             pid=ReaderPid,
             monitor_ref=Ref,
             default_aggregation_mapping=ReaderAggregationMapping,
-            default_temporality_mapping=Temporality}.
+            default_temporality_mapping=Temporality,
+            cardinality_limit=CardinalityLimit}.
 
 
 %% a Measurement's Instrument is matched against Views
@@ -410,7 +419,8 @@ per_reader_aggregations(Reader, Instrument, Streams) ->
 
 stream_for_reader(Instrument=#instrument{kind=Kind}, Stream, View=#view{attribute_keys=AttributeKeys},
                   Reader=#reader{id=Id,
-                                 default_temporality_mapping=ReaderTemporalityMapping}) ->
+                                 default_temporality_mapping=ReaderTemporalityMapping,
+                                 cardinality_limit=CardinalityLimit}) ->
     AggregationModule = aggregation_module(Instrument, View, Reader),
     Temporality = maps:get(Kind, ReaderTemporalityMapping, ?TEMPORALITY_CUMULATIVE),
 
@@ -421,10 +431,12 @@ stream_for_reader(Instrument=#instrument{kind=Kind}, Stream, View=#view{attribut
       attribute_keys=AttributeKeys,
       aggregation_module=AggregationModule,
       forget=Forget,
-      temporality=Temporality};
+      temporality=Temporality,
+      cardinality_limit=CardinalityLimit};
 stream_for_reader(Instrument=#instrument{kind=Kind}, Stream, View,
                             Reader=#reader{id=Id,
-                                           default_temporality_mapping=ReaderTemporalityMapping}) ->
+                                           default_temporality_mapping=ReaderTemporalityMapping,
+                                           cardinality_limit=CardinalityLimit}) ->
     AggregationModule = aggregation_module(Instrument, View, Reader),
     Temporality = maps:get(Kind, ReaderTemporalityMapping, ?TEMPORALITY_CUMULATIVE),
 
@@ -435,7 +447,8 @@ stream_for_reader(Instrument=#instrument{kind=Kind}, Stream, View,
       attribute_keys=undefined,
       aggregation_module=AggregationModule,
       forget=Forget,
-      temporality=Temporality}.
+      temporality=Temporality,
+      cardinality_limit=CardinalityLimit}.
 
 
 %% no aggregation defined for the View, so get the aggregation from the Reader

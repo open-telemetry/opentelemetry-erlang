@@ -29,6 +29,11 @@
          %% temporality metrics
          forget :: boolean() | undefined,
 
+         %% the per-stream cardinality limit; the maximum number of distinct
+         %% attribute sets recorded before further sets overflow into a single
+         %% overflow series. `=< 0' disables the limit.
+         cardinality_limit :: integer() | undefined,
+
          %%
          exemplar_reservoir :: term()
         }).
