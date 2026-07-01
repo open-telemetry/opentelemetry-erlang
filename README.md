@@ -208,7 +208,6 @@ $ python3 test.py http://127.0.0.1:5000/test
 
 ### Maintainers
 
-- [Bryan Naegele](https://github.com/bryannaegele), [Simplebet](https://simplebet.io/)
 - [Iliia Khaprov](https://github.com/deadtrickster), [VMWare](https://www.vmware.com/)
 - [Łukasz Jan Niemier](https://github.com/hauleth)
 - [Tristan Sloughter](https://github.com/tsloughter), [Splunk](https://www.splunk.com/en_us/observability/apm-application-performance-monitoring.html)
@@ -229,6 +228,7 @@ _Find more about the maintainer role in [community repository](https://github.co
 
 ### Emeritus
 
+- [Bryan Naegele](https://github.com/bryannaegele), Maintainer
 - [Greg Mefford](https://github.com/GregMefford), Approver
 
 For more information about the emeritus role, see the
