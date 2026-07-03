@@ -62,10 +62,8 @@ flush() ->
 init({logs, Pid}) ->
     {ok, Pid}.
 
-export(logs, Data, _Resource, Pid) ->
-    Pid ! {logs, Data},
-    ok;
-export(_Otel, _Data, _Resource, _Pid) ->
+export(Logs, _Resource, Pid) ->
+    Pid ! {logs, Logs},
     ok.
 
 shutdown(_) ->
