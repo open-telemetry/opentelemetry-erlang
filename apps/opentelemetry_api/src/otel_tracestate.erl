@@ -42,7 +42,7 @@
 -export_type([t/0,
               members/0]).
 
-%% See https://www.w3.org/TR/trace-context/#tracestate-header
+%% See https://www.w3.org/TR/trace-context-2/#tracestate-header
 %% for the limits and string requirements that make up the regexes
 -define(MAX_MEMBERS, 32).
 %%
@@ -117,7 +117,8 @@ ensure_regex_pterms() ->
         _ = ?KEY_MP
     catch
         error:badarg ->
-            {ok, KeyMP} = re:compile("^(([a-z][_0-9a-z\-\*\/]{0,255})|([a-z0-9][_0-9a-z-*/]{0,240}@[a-z][_0-9a-z-*/]{0,13}))$"),
+            %% key = ( lcalpha / DIGIT ) 0*255 ( lcalpha / DIGIT / "_" / "-" / "*" / "/" / "@" )
+            {ok, KeyMP} = re:compile("^[a-z0-9][a-z0-9_*/@-]{0,255}$"),
             {ok, ValueMP} = re:compile("^([ -+--<>-~]{0,255}[!-+--<>-~])$"),
 
             persistent_term:put({otel_tracestate, key_mp}, KeyMP),
