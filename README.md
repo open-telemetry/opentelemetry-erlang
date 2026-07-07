@@ -221,15 +221,13 @@ For more information about the maintainer role, see the [community repository](h
 
 For more information about the approver role, see the [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#approver).
 
-_Find more about the maintainer role in [community repository](https://github.com/open-telemetry/community/blob/master/community-membership.md#maintainer)._
-
-### Thanks to all the people who have contributed
-
-[![contributors](https://contributors-img.web.app/image?repo=open-telemetry/opentelemetry-erlang)](https://github.com/open-telemetry/opentelemetry-erlang/graphs/contributors)
-
 ### Emeritus
 
 - [Greg Mefford](https://github.com/GregMefford), Approver
 
 For more information about the emeritus role, see the
 [community repository](https://github.com/open-telemetry/community/blob/main/guides/contributor/membership.md#emeritus-maintainerapprovertriager).
+
+### Thanks to all the people who have contributed
+
+[![contributors](https://contributors-img.web.app/image?repo=open-telemetry/opentelemetry-erlang)](https://github.com/open-telemetry/opentelemetry-erlang/graphs/contributors)
