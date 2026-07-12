@@ -23,21 +23,17 @@ rebar3 and mix, so each of those three also has its own `mix.exs`.
 Changes are usually scoped to one `apps/*` directory. Check which app(s) a
 change touches before assuming a repo-wide build/test is needed.
 
-The OpenTelemety Specification is hosted at https://github.com/open-telemetry/opentelemetry-specification.
+The OpenTelemetry Specification is hosted at https://github.com/open-telemetry/opentelemetry-specification.
 
 The currently supported specification version is `1.8.0`.
 
 
 ## Build
 
-```
-rebar3 compile
-```
-
-Elixir-side deps (only needed for `opentelemetry_api` mix tests):
+Build an app from its own directory:
 
 ```
-cd apps/opentelemetry_api && mix deps.get
+cd apps/<app> && rebar3 compile
 ```
 
 ## Tests
@@ -50,7 +46,11 @@ repo root.
 
 - Erlang tests (per app, Common Test): `cd apps/<app> && rebar3 ct`
   - Logs: `apps/<app>/_build/test/logs/index.html`
+- If Mix dependencies are missing or have changed, run `cd apps/<app> && mix deps.get`
+  in the relevant dual-published app.
 - Elixir tests for `opentelemetry_api`: `cd apps/opentelemetry_api && mix test`
+- Elixir tests for `opentelemetry_api_experimental`: `cd apps/opentelemetry_api_experimental && mix test`
+- Elixir tests for `opentelemetry_semantic_conventions`: `cd apps/opentelemetry_semantic_conventions && mix test`
 - Top-level Elixir tests (repo-root integration tests, exercise the SDK from
   Elixir): `mix test --no-start test/otel_tests.exs test/otel_metric_tests.exs`
   (requires `rebar3 as test compile` from the repo root first)
@@ -114,7 +114,9 @@ Assisted-by: Claude Opus 4.5
   by design (metrics/logs); don't "stabilize" APIs there unless asked.
 - `opentelemetry_semantic_conventions` is generated code — check
   `apps/opentelemetry_semantic_conventions/makefile` before hand-editing
-  generated modules. It uses `weaver` to codegen so any change you may want to make
-  is likely a change needed to the templates, instead. 
+  generated modules. It uses `weaver` to codegen, so changes generally belong in
+  the templates or semantic-conventions version. To regenerate locally, run
+  `make setup`, `make checkout`, and `make generate` from
+  `apps/opentelemetry_semantic_conventions`.
 - Follow the existing formatting/style in the file you're editing; don't
   run repo-wide reformatting as a side effect of an unrelated change.
