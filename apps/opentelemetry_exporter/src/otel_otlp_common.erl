@@ -60,14 +60,14 @@ to_any_value(Value) when is_binary(Value) ->
         String ->
             #{value => {string_value, String}}
     end;
+to_any_value(Value) when is_boolean(Value) ->
+    #{value => {bool_value, Value}};
 to_any_value(Value) when is_atom(Value) ->
     #{value => {string_value, to_binary(Value)}};
 to_any_value(Value) when is_integer(Value) ->
     #{value => {int_value, Value}};
 to_any_value(Value) when is_float(Value) ->
     #{value => {double_value, Value}};
-to_any_value(Value) when is_boolean(Value) ->
-    #{value => {bool_value, Value}};
 to_any_value(Value) when is_map(Value) ->
     #{value => {kvlist_value, to_key_value_list(maps:to_list(Value))}};
 to_any_value(Value) when is_tuple(Value) ->

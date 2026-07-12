@@ -28,7 +28,7 @@ jobs:
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Run Collector
         run: docker compose up -d
       - uses: erlef/setup-beam@v1
@@ -62,25 +62,25 @@ jobs:
       - name: Covertool
         if: ${{ always() }}
         run: rebar3 covertool generate
-      - uses: codecov/codecov-action@v6
+      - uses: codecov/codecov-action@v7
         if: ${{ always() }}
         with:
           file: _build/test/covertool/opentelemetry.covertool.xml
           env_vars: OTP_VERSION
           flags: sdk,erlang
-      - uses: codecov/codecov-action@v6
+      - uses: codecov/codecov-action@v7
         if: ${{ always() }}
         with:
           file: _build/test/covertool/opentelemetry_api.covertool.xml
           env_vars: OTP_VERSION
           flags: api,erlang
-      - uses: codecov/codecov-action@v6
+      - uses: codecov/codecov-action@v7
         if: ${{ always() }}
         with:
           file: _build/test/covertool/opentelemetry_exporter.covertool.xml
           env_vars: OTP_VERSION
           flags: exporter,erlang
-      - uses: codecov/codecov-action@v6
+      - uses: codecov/codecov-action@v7
         if: ${{ always() }}
         with:
           file: _build/test/covertool/opentelemetry_zipkin.covertool.xml
@@ -95,7 +95,7 @@ jobs:
         rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp_version }}
@@ -123,7 +123,7 @@ jobs:
         rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp_version }}
@@ -161,7 +161,7 @@ jobs:
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{ matrix.otp_version }}
