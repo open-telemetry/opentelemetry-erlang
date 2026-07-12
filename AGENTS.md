@@ -91,7 +91,7 @@ features which are unsupported in those versions.
 
 We appreciate it if users disclose the use of AI tools when the significant part of a commit is
 taken from a tool. When making a commit this should be disclosed through an
-Assisted-by: commit message trailer.
+Assisted-by: commit message trailer and as a trailer in PR Summaries.
 
 Examples:
 
