@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/faas_attributes.hrl").
+
 
 %% A boolean that is true if the serverless function is executed for the first time (aka cold-start).
 %%  

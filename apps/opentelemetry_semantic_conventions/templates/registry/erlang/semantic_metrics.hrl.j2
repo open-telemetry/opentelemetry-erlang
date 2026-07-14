@@ -1,5 +1,5 @@
 {%- import 'common.j2' as c %}
-{%- set file_name = ctx.output ~ c.file_name(ctx.id) ~ "_metrics.hrl" -%}
+{%- set file_name = ctx.output ~ c.file_name(ctx.root_namespace) ~ "_metrics.hrl" -%}
 {{ template.set_file_name(file_name) }}
 %%%------------------------------------------------------------------------
 %% Copyright The OpenTelemetry Authors
@@ -18,7 +18,7 @@
 
 {%- for metric in ctx.metrics | sort(attribute="metric_name") %}
 {% if metric is deprecated -%}
-%% @deprecated {{ metric.deprecated | replace("\n", "\n%%  ") }}
+%% @deprecated {{ metric.deprecated.note | replace("\n", "\n%%  ") }}
 {%- endif %}
 %% {{ metric.brief | replace("\n", "\n%%  ") }}
 -define({{ c.attr_name(metric.metric_name) }}, '{{ metric.metric_name }}').

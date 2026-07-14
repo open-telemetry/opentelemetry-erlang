@@ -21,9 +21,13 @@
 %% Duration of messaging operation initiated by a producer or consumer client.
 -define(MESSAGING_CLIENT_OPERATION_DURATION, 'messaging.client.operation.duration').
 
-
-%% Number of messages producer attempted to publish to the broker.
+%% @deprecated Replaced by `messaging.client.sent.messages`.
+%% Deprecated. Use `messaging.client.sent.messages` instead.
 -define(MESSAGING_CLIENT_PUBLISHED_MESSAGES, 'messaging.client.published.messages').
+
+
+%% Number of messages producer attempted to send to the broker.
+-define(MESSAGING_CLIENT_SENT_MESSAGES, 'messaging.client.sent.messages').
 
 
 %% Duration of processing operation.

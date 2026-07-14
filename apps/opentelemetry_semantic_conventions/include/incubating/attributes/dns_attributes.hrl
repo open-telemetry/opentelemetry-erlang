@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/dns_attributes.hrl").
+
 
 %% The name being queried.
 -define(DNS_QUESTION_NAME, 'dns.question.name').

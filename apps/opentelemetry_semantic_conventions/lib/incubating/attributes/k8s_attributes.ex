@@ -61,9 +61,9 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   Which states:
 
   > If generated according to one of the mechanisms defined in Rec.
-    ITU-T X.667 | ISO/IEC 9834-8, a UUID is either guaranteed to be
-    different from all other UUIDs generated before 3603 A.D., or is
-    extremely likely to be different (depending on the mechanism chosen).
+  > ITU-T X.667 | ISO/IEC 9834-8, a UUID is either guaranteed to be
+  > different from all other UUIDs generated before 3603 A.D., or is
+  > extremely likely to be different (depending on the mechanism chosen).
 
   Therefore, UIDs between clusters should be extremely unlikely to
   conflict.
@@ -191,6 +191,90 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   end
 
   @doc """
+  The cronjob annotation placed on the CronJob, the `<key>` being the annotation name, the value being the annotation value.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  Examples:
+
+  - An annotation `retries` with value `4` **SHOULD** be recorded as the
+    `k8s.cronjob.annotation.retries` attribute with value `"4"`.
+  - An annotation `data` with empty string value **SHOULD** be recorded as
+    the `k8s.cronjob.annotation.data` attribute with value `""`.
+
+  ### Examples
+
+  ```
+  ["4", ""]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_cronjob_annotation()
+      :"k8s.cronjob.annotation"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_CRONJOB_ANNOTATION.
+  'k8s.cronjob.annotation'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_cronjob_annotation :: :"k8s.cronjob.annotation"
+  def k8s_cronjob_annotation do
+    :"k8s.cronjob.annotation"
+  end
+
+  @doc """
+  The label placed on the CronJob, the `<key>` being the label name, the value being the label value.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  Examples:
+
+  - A label `type` with value `weekly` **SHOULD** be recorded as the
+    `k8s.cronjob.label.type` attribute with value `"weekly"`.
+  - A label `automated` with empty string value **SHOULD** be recorded as
+    the `k8s.cronjob.label.automated` attribute with value `""`.
+
+  ### Examples
+
+  ```
+  ["weekly", ""]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_cronjob_label()
+      :"k8s.cronjob.label"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_CRONJOB_LABEL.
+  'k8s.cronjob.label'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_cronjob_label :: :"k8s.cronjob.label"
+  def k8s_cronjob_label do
+    :"k8s.cronjob.label"
+  end
+
+  @doc """
   The name of the CronJob.
 
   ### Value type
@@ -254,6 +338,80 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   @spec k8s_cronjob_uid :: :"k8s.cronjob.uid"
   def k8s_cronjob_uid do
     :"k8s.cronjob.uid"
+  end
+
+  @doc """
+  The annotation key-value pairs placed on the DaemonSet.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  The `<key>` being the annotation name, the value being the annotation value, even if the value is empty.
+
+  ### Examples
+
+  ```
+  ["k8s.daemonset.annotation.replicas=1", "k8s.daemonset.annotation.data="]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_daemonset_annotation()
+      :"k8s.daemonset.annotation"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_DAEMONSET_ANNOTATION.
+  'k8s.daemonset.annotation'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_daemonset_annotation :: :"k8s.daemonset.annotation"
+  def k8s_daemonset_annotation do
+    :"k8s.daemonset.annotation"
+  end
+
+  @doc """
+  The label key-value pairs placed on the DaemonSet.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  The `<key>` being the label name, the value being the label value, even if the value is empty.
+
+  ### Examples
+
+  ```
+  ["k8s.daemonset.label.app=guestbook", "k8s.daemonset.label.injected="]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_daemonset_label()
+      :"k8s.daemonset.label"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_DAEMONSET_LABEL.
+  'k8s.daemonset.label'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_daemonset_label :: :"k8s.daemonset.label"
+  def k8s_daemonset_label do
+    :"k8s.daemonset.label"
   end
 
   @doc """
@@ -323,6 +481,80 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   end
 
   @doc """
+  The annotation key-value pairs placed on the Deployment.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  The `<key>` being the annotation name, the value being the annotation value, even if the value is empty.
+
+  ### Examples
+
+  ```
+  ["k8s.deployment.annotation.replicas=1", "k8s.deployment.annotation.data="]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_deployment_annotation()
+      :"k8s.deployment.annotation"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_DEPLOYMENT_ANNOTATION.
+  'k8s.deployment.annotation'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_deployment_annotation :: :"k8s.deployment.annotation"
+  def k8s_deployment_annotation do
+    :"k8s.deployment.annotation"
+  end
+
+  @doc """
+  The label key-value pairs placed on the Deployment.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  The `<key>` being the label name, the value being the label value, even if the value is empty.
+
+  ### Examples
+
+  ```
+  ["k8s.deployment.label.app=guestbook", "k8s.deployment.label.injected="]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_deployment_label()
+      :"k8s.deployment.label"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_DEPLOYMENT_LABEL.
+  'k8s.deployment.label'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_deployment_label :: :"k8s.deployment.label"
+  def k8s_deployment_label do
+    :"k8s.deployment.label"
+  end
+
+  @doc """
   The name of the Deployment.
 
   ### Value type
@@ -386,6 +618,146 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   @spec k8s_deployment_uid :: :"k8s.deployment.uid"
   def k8s_deployment_uid do
     :"k8s.deployment.uid"
+  end
+
+  @doc """
+  The name of the horizontal pod autoscaler.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["opentelemetry"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_hpa_name()
+      :"k8s.hpa.name"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_HPA_NAME.
+  'k8s.hpa.name'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_hpa_name :: :"k8s.hpa.name"
+  def k8s_hpa_name do
+    :"k8s.hpa.name"
+  end
+
+  @doc """
+  The UID of the horizontal pod autoscaler.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["275ecb36-5aa8-4c2a-9c47-d8bb681b9aff"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_hpa_uid()
+      :"k8s.hpa.uid"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_HPA_UID.
+  'k8s.hpa.uid'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_hpa_uid :: :"k8s.hpa.uid"
+  def k8s_hpa_uid do
+    :"k8s.hpa.uid"
+  end
+
+  @doc """
+  The annotation key-value pairs placed on the Job.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  The `<key>` being the annotation name, the value being the annotation value, even if the value is empty.
+
+  ### Examples
+
+  ```
+  ["k8s.job.annotation.number=1", "k8s.job.annotation.data="]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_job_annotation()
+      :"k8s.job.annotation"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_JOB_ANNOTATION.
+  'k8s.job.annotation'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_job_annotation :: :"k8s.job.annotation"
+  def k8s_job_annotation do
+    :"k8s.job.annotation"
+  end
+
+  @doc """
+  The label key-value pairs placed on the Job.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  The `<key>` being the label name, the value being the label value, even if the value is empty.
+
+  ### Examples
+
+  ```
+  ["k8s.job.label.jobtype=ci", "k8s.job.label.automated="]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_job_label()
+      :"k8s.job.label"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_JOB_LABEL.
+  'k8s.job.label'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_job_label :: :"k8s.job.label"
+  def k8s_job_label do
+    :"k8s.job.label"
   end
 
   @doc """
@@ -455,6 +827,80 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   end
 
   @doc """
+  The annotation key-value pairs placed on the Namespace.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  The `<key>` being the annotation name, the value being the annotation value, even if the value is empty.
+
+  ### Examples
+
+  ```
+  ["k8s.namespace.annotation.ttl=0", "k8s.namespace.annotation.data="]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_namespace_annotation()
+      :"k8s.namespace.annotation"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_NAMESPACE_ANNOTATION.
+  'k8s.namespace.annotation'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_namespace_annotation :: :"k8s.namespace.annotation"
+  def k8s_namespace_annotation do
+    :"k8s.namespace.annotation"
+  end
+
+  @doc """
+  The label key-value pairs placed on the Namespace.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  The `<key>` being the label name, the value being the label value, even if the value is empty.
+
+  ### Examples
+
+  ```
+  ["k8s.namespace.label.kubernetes.io/metadata.name=default", "k8s.namespace.label.data="]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_namespace_label()
+      :"k8s.namespace.label"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_NAMESPACE_LABEL.
+  'k8s.namespace.label'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_namespace_label :: :"k8s.namespace.label"
+  def k8s_namespace_label do
+    :"k8s.namespace.label"
+  end
+
+  @doc """
   The name of the namespace that the pod is running in.
 
   ### Value type
@@ -485,6 +931,158 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   @spec k8s_namespace_name :: :"k8s.namespace.name"
   def k8s_namespace_name do
     :"k8s.namespace.name"
+  end
+
+  @typedoc """
+  The phase of the K8s namespace.
+
+
+  ### Enum Values
+  * `:active` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Active namespace phase as described by [K8s API](https://pkg.go.dev/k8s.io/api@v0.31.3/core/v1#NamespacePhase)
+  * `:terminating` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Terminating namespace phase as described by [K8s API](https://pkg.go.dev/k8s.io/api@v0.31.3/core/v1#NamespacePhase)
+  """
+  @type k8s_namespace_phase_values() :: %{
+          :active => :active,
+          :terminating => :terminating
+        }
+  @doc """
+  The phase of the K8s namespace.
+
+
+  ### Notes
+
+  This attribute aligns with the `phase` field of the
+  [K8s NamespaceStatus](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#namespacestatus-v1-core)
+
+  ### Examples
+
+  ```
+  ["active", "terminating"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_namespace_phase()
+      :"k8s.namespace.phase"
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_namespace_phase_values().active
+      :active
+
+      iex> %{OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_namespace_phase() => OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_namespace_phase_values().active}
+      %{:"k8s.namespace.phase" => :active}
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_NAMESPACE_PHASE.
+  'k8s.namespace.phase'
+
+  ?K8S_NAMESPACE_PHASE_VALUES_ACTIVE.
+  'active'
+
+  \#{?K8S_NAMESPACE_PHASE => ?K8S_NAMESPACE_PHASE_VALUES_ACTIVE}.
+  \#{'k8s.namespace.phase' => 'active'}
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_namespace_phase :: :"k8s.namespace.phase"
+  def k8s_namespace_phase do
+    :"k8s.namespace.phase"
+  end
+
+  @spec k8s_namespace_phase_values() :: k8s_namespace_phase_values()
+  def k8s_namespace_phase_values() do
+    %{
+      :active => :active,
+      :terminating => :terminating
+    }
+  end
+
+  @doc """
+  The annotation placed on the Node, the `<key>` being the annotation name, the value being the annotation value, even if the value is empty.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  Examples:
+
+  - An annotation `node.alpha.kubernetes.io/ttl` with value `0` **SHOULD** be recorded as
+    the `k8s.node.annotation.node.alpha.kubernetes.io/ttl` attribute with value `"0"`.
+  - An annotation `data` with empty string value **SHOULD** be recorded as
+    the `k8s.node.annotation.data` attribute with value `""`.
+
+  ### Examples
+
+  ```
+  ["0", ""]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_node_annotation()
+      :"k8s.node.annotation"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_NODE_ANNOTATION.
+  'k8s.node.annotation'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_node_annotation :: :"k8s.node.annotation"
+  def k8s_node_annotation do
+    :"k8s.node.annotation"
+  end
+
+  @doc """
+  The label placed on the Node, the `<key>` being the label name, the value being the label value, even if the value is empty.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  Examples:
+
+  - A label `kubernetes.io/arch` with value `arm64` **SHOULD** be recorded
+    as the `k8s.node.label.kubernetes.io/arch` attribute with value `"arm64"`.
+  - A label `data` with empty string value **SHOULD** be recorded as
+    the `k8s.node.label.data` attribute with value `""`.
+
+  ### Examples
+
+  ```
+  ["arm64", ""]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_node_label()
+      :"k8s.node.label"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_NODE_LABEL.
+  'k8s.node.label'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_node_label :: :"k8s.node.label"
+  def k8s_node_label do
+    :"k8s.node.label"
   end
 
   @doc """
@@ -554,15 +1152,26 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   end
 
   @doc """
-  The annotation key-value pairs placed on the Pod, the `<key>` being the annotation name, the value being the annotation value.
+  The annotation placed on the Pod, the `<key>` being the annotation name, the value being the annotation value.
 
   ### Value type
 
   Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  Examples:
+
+  - An annotation `kubernetes.io/enforce-mountable-secrets` with value `true` **SHOULD** be recorded as
+    the `k8s.pod.annotation.kubernetes.io/enforce-mountable-secrets` attribute with value `"true"`.
+  - An annotation `mycompany.io/arch` with value `x64` **SHOULD** be recorded as
+    the `k8s.pod.annotation.mycompany.io/arch` attribute with value `"x64"`.
+  - An annotation `data` with empty string value **SHOULD** be recorded as
+    the `k8s.pod.annotation.data` attribute with value `""`.
+
   ### Examples
 
   ```
-  ["k8s.pod.annotation.kubernetes.io/enforce-mountable-secrets=true", "k8s.pod.annotation.mycompany.io/arch=x64", "k8s.pod.annotation.data="]
+  ["true", "x64", ""]
   ```
 
   <!-- tabs-open -->
@@ -587,15 +1196,26 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   end
 
   @doc """
-  The label key-value pairs placed on the Pod, the `<key>` being the label name, the value being the label value.
+  The label placed on the Pod, the `<key>` being the label name, the value being the label value.
 
   ### Value type
 
   Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  Examples:
+
+  - A label `app` with value `my-app` **SHOULD** be recorded as
+    the `k8s.pod.label.app` attribute with value `"my-app"`.
+  - A label `mycompany.io/arch` with value `x64` **SHOULD** be recorded as
+    the `k8s.pod.label.mycompany.io/arch` attribute with value `"x64"`.
+  - A label `data` with empty string value **SHOULD** be recorded as
+    the `k8s.pod.label.data` attribute with value `""`.
+
   ### Examples
 
   ```
-  ["k8s.pod.label.app=my-app", "k8s.pod.label.mycompany.io/arch=x64", "k8s.pod.label.data="]
+  ["my-app", "x64", ""]
   ```
 
   <!-- tabs-open -->
@@ -694,6 +1314,80 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   end
 
   @doc """
+  The annotation key-value pairs placed on the ReplicaSet.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  The `<key>` being the annotation name, the value being the annotation value, even if the value is empty.
+
+  ### Examples
+
+  ```
+  ["k8s.replicaset.annotation.replicas=0", "k8s.replicaset.annotation.data="]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_replicaset_annotation()
+      :"k8s.replicaset.annotation"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_REPLICASET_ANNOTATION.
+  'k8s.replicaset.annotation'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_replicaset_annotation :: :"k8s.replicaset.annotation"
+  def k8s_replicaset_annotation do
+    :"k8s.replicaset.annotation"
+  end
+
+  @doc """
+  The label key-value pairs placed on the ReplicaSet.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  The `<key>` being the label name, the value being the label value, even if the value is empty.
+
+  ### Examples
+
+  ```
+  ["k8s.replicaset.label.app=guestbook", "k8s.replicaset.label.injected="]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_replicaset_label()
+      :"k8s.replicaset.label"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_REPLICASET_LABEL.
+  'k8s.replicaset.label'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_replicaset_label :: :"k8s.replicaset.label"
+  def k8s_replicaset_label do
+    :"k8s.replicaset.label"
+  end
+
+  @doc """
   The name of the ReplicaSet.
 
   ### Value type
@@ -760,6 +1454,212 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   end
 
   @doc """
+  The name of the replication controller.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["opentelemetry"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_replicationcontroller_name()
+      :"k8s.replicationcontroller.name"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_REPLICATIONCONTROLLER_NAME.
+  'k8s.replicationcontroller.name'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_replicationcontroller_name :: :"k8s.replicationcontroller.name"
+  def k8s_replicationcontroller_name do
+    :"k8s.replicationcontroller.name"
+  end
+
+  @doc """
+  The UID of the replication controller.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["275ecb36-5aa8-4c2a-9c47-d8bb681b9aff"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_replicationcontroller_uid()
+      :"k8s.replicationcontroller.uid"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_REPLICATIONCONTROLLER_UID.
+  'k8s.replicationcontroller.uid'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_replicationcontroller_uid :: :"k8s.replicationcontroller.uid"
+  def k8s_replicationcontroller_uid do
+    :"k8s.replicationcontroller.uid"
+  end
+
+  @doc """
+  The name of the resource quota.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["opentelemetry"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_resourcequota_name()
+      :"k8s.resourcequota.name"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_RESOURCEQUOTA_NAME.
+  'k8s.resourcequota.name'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_resourcequota_name :: :"k8s.resourcequota.name"
+  def k8s_resourcequota_name do
+    :"k8s.resourcequota.name"
+  end
+
+  @doc """
+  The UID of the resource quota.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["275ecb36-5aa8-4c2a-9c47-d8bb681b9aff"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_resourcequota_uid()
+      :"k8s.resourcequota.uid"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_RESOURCEQUOTA_UID.
+  'k8s.resourcequota.uid'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_resourcequota_uid :: :"k8s.resourcequota.uid"
+  def k8s_resourcequota_uid do
+    :"k8s.resourcequota.uid"
+  end
+
+  @doc """
+  The annotation key-value pairs placed on the StatefulSet.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  The `<key>` being the annotation name, the value being the annotation value, even if the value is empty.
+
+  ### Examples
+
+  ```
+  ["k8s.statefulset.annotation.replicas=1", "k8s.statefulset.annotation.data="]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_statefulset_annotation()
+      :"k8s.statefulset.annotation"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_STATEFULSET_ANNOTATION.
+  'k8s.statefulset.annotation'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_statefulset_annotation :: :"k8s.statefulset.annotation"
+  def k8s_statefulset_annotation do
+    :"k8s.statefulset.annotation"
+  end
+
+  @doc """
+  The label key-value pairs placed on the StatefulSet.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  The `<key>` being the label name, the value being the label value, even if the value is empty.
+
+  ### Examples
+
+  ```
+  ["k8s.statefulset.label.app=guestbook", "k8s.statefulset.label.injected="]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_statefulset_label()
+      :"k8s.statefulset.label"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_STATEFULSET_LABEL.
+  'k8s.statefulset.label'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_statefulset_label :: :"k8s.statefulset.label"
+  def k8s_statefulset_label do
+    :"k8s.statefulset.label"
+  end
+
+  @doc """
   The name of the StatefulSet.
 
   ### Value type
@@ -823,5 +1723,113 @@ defmodule OpenTelemetry.SemConv.Incubating.K8SAttributes do
   @spec k8s_statefulset_uid :: :"k8s.statefulset.uid"
   def k8s_statefulset_uid do
     :"k8s.statefulset.uid"
+  end
+
+  @doc """
+  The name of the K8s volume.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["volume0"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_volume_name()
+      :"k8s.volume.name"
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_VOLUME_NAME.
+  'k8s.volume.name'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_volume_name :: :"k8s.volume.name"
+  def k8s_volume_name do
+    :"k8s.volume.name"
+  end
+
+  @typedoc """
+  The type of the K8s volume.
+
+
+  ### Enum Values
+  * `:persistent_volume_claim` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - A [persistentVolumeClaim](https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#persistentvolumeclaim) volume
+  * `:config_map` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - A [configMap](https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#configmap) volume
+  * `:downward_api` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - A [downwardAPI](https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#downwardapi) volume
+  * `:empty_dir` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - An [emptyDir](https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#emptydir) volume
+  * `:secret` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - A [secret](https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#secret) volume
+  * `:local` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - A [local](https://v1-30.docs.kubernetes.io/docs/concepts/storage/volumes/#local) volume
+  """
+  @type k8s_volume_type_values() :: %{
+          :persistent_volume_claim => :persistentVolumeClaim,
+          :config_map => :configMap,
+          :downward_api => :downwardAPI,
+          :empty_dir => :emptyDir,
+          :secret => :secret,
+          :local => :local
+        }
+  @doc """
+  The type of the K8s volume.
+
+
+  ### Examples
+
+  ```
+  ["emptyDir", "persistentVolumeClaim"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_volume_type()
+      :"k8s.volume.type"
+
+      iex> OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_volume_type_values().persistent_volume_claim
+      :persistentVolumeClaim
+
+      iex> %{OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_volume_type() => OpenTelemetry.SemConv.Incubating.K8SAttributes.k8s_volume_type_values().persistent_volume_claim}
+      %{:"k8s.volume.type" => :persistentVolumeClaim}
+
+  ### Erlang
+
+  ```erlang
+  ?K8S_VOLUME_TYPE.
+  'k8s.volume.type'
+
+  ?K8S_VOLUME_TYPE_VALUES_PERSISTENT_VOLUME_CLAIM.
+  'persistentVolumeClaim'
+
+  \#{?K8S_VOLUME_TYPE => ?K8S_VOLUME_TYPE_VALUES_PERSISTENT_VOLUME_CLAIM}.
+  \#{'k8s.volume.type' => 'persistentVolumeClaim'}
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec k8s_volume_type :: :"k8s.volume.type"
+  def k8s_volume_type do
+    :"k8s.volume.type"
+  end
+
+  @spec k8s_volume_type_values() :: k8s_volume_type_values()
+  def k8s_volume_type_values() do
+    %{
+      :persistent_volume_claim => :persistentVolumeClaim,
+      :config_map => :configMap,
+      :downward_api => :downwardAPI,
+      :empty_dir => :emptyDir,
+      :secret => :secret,
+      :local => :local
+    }
   end
 end

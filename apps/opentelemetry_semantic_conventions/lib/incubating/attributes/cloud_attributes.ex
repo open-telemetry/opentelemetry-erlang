@@ -104,6 +104,8 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   * `:gcp_app_engine` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Google Cloud App Engine (GAE)
   * `:gcp_openshift` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Red Hat OpenShift on Google Cloud
   * `:ibm_cloud_openshift` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Red Hat OpenShift on IBM Cloud
+  * `:oracle_cloud_compute` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Compute on Oracle Cloud Infrastructure (OCI)
+  * `:oracle_cloud_oke` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Kubernetes Engine (OKE) on Oracle Cloud Infrastructure (OCI)
   * `:tencent_cloud_cvm` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Tencent Cloud Cloud Virtual Machine (CVM)
   * `:tencent_cloud_eks` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Tencent Cloud Elastic Kubernetes Service (EKS)
   * `:tencent_cloud_scf` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Tencent Cloud Serverless Cloud Function (SCF)
@@ -134,6 +136,8 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
           :gcp_app_engine => :gcp_app_engine,
           :gcp_openshift => :gcp_openshift,
           :ibm_cloud_openshift => :ibm_cloud_openshift,
+          :oracle_cloud_compute => :oracle_cloud_compute,
+          :oracle_cloud_oke => :oracle_cloud_oke,
           :tencent_cloud_cvm => :tencent_cloud_cvm,
           :tencent_cloud_eks => :tencent_cloud_eks,
           :tencent_cloud_scf => :tencent_cloud_scf
@@ -208,6 +212,8 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
       :gcp_app_engine => :gcp_app_engine,
       :gcp_openshift => :gcp_openshift,
       :ibm_cloud_openshift => :ibm_cloud_openshift,
+      :oracle_cloud_compute => :oracle_cloud_compute,
+      :oracle_cloud_oke => :oracle_cloud_oke,
       :tencent_cloud_cvm => :tencent_cloud_cvm,
       :tencent_cloud_eks => :tencent_cloud_eks,
       :tencent_cloud_scf => :tencent_cloud_scf
@@ -225,6 +231,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   * `:gcp` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Google Cloud Platform
   * `:heroku` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Heroku Platform as a Service
   * `:ibm_cloud` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - IBM Cloud
+  * `:oracle_cloud` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Oracle Cloud Infrastructure (OCI)
   * `:tencent_cloud` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Tencent Cloud
   """
   @type cloud_provider_values() :: %{
@@ -234,6 +241,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
           :gcp => :gcp,
           :heroku => :heroku,
           :ibm_cloud => :ibm_cloud,
+          :oracle_cloud => :oracle_cloud,
           :tencent_cloud => :tencent_cloud
         }
   @doc """
@@ -283,6 +291,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
       :gcp => :gcp,
       :heroku => :heroku,
       :ibm_cloud => :ibm_cloud,
+      :oracle_cloud => :oracle_cloud,
       :tencent_cloud => :tencent_cloud
     }
   end
@@ -325,7 +334,7 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   end
 
   @doc """
-  Cloud provider-specific native identifier of the monitored cloud resource (e.g. an [ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html) on AWS, a [fully qualified resource ID](https://learn.microsoft.com/rest/api/resources/resources/get-by-id) on Azure, a [full resource name](https://cloud.google.com/apis/design/resource_names#full_resource_name) on GCP)
+  Cloud provider-specific native identifier of the monitored cloud resource (e.g. an [ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html) on AWS, a [fully qualified resource ID](https://learn.microsoft.com/rest/api/resources/resources/get-by-id) on Azure, a [full resource name](https://google.aip.dev/122#full-resource-names) on GCP)
 
   ### Value type
 
@@ -338,22 +347,22 @@ defmodule OpenTelemetry.SemConv.Incubating.CloudAttributes do
   The exact value to use for `cloud.resource_id` depends on the cloud provider.
   The following well-known definitions **MUST** be used if you set this attribute and they apply:
 
-  * **AWS Lambda:** The function [ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html).
+  - **AWS Lambda:** The function [ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html).
     Take care not to use the "invoked ARN" directly but replace any
     [alias suffix](https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html)
     with the resolved function version, as the same runtime instance may be invocable with
     multiple different aliases.
-  * **GCP:** The [URI of the resource](https://cloud.google.com/iam/docs/full-resource-names)
-  * **Azure:** The [Fully Qualified Resource ID](https://docs.microsoft.com/rest/api/resources/resources/get-by-id) of the invoked function,
+  - **GCP:** The [URI of the resource](https://cloud.google.com/iam/docs/full-resource-names)
+  - **Azure:** The [Fully Qualified Resource ID](https://docs.microsoft.com/rest/api/resources/resources/get-by-id) of the invoked function,
     *not* the function app, having the form
-    `/subscriptions/<SUBSCIPTION_GUID>/resourceGroups/<RG>/providers/Microsoft.Web/sites/<FUNCAPP>/functions/<FUNC>`.
+    `/subscriptions/<SUBSCRIPTION_GUID>/resourceGroups/<RG>/providers/Microsoft.Web/sites/<FUNCAPP>/functions/<FUNC>`.
     This means that a span attribute **MUST** be used, as an Azure function app can host multiple functions that would usually share
     a TracerProvider.
 
   ### Examples
 
   ```
-  ["arn:aws:lambda:REGION:ACCOUNT_ID:function:my-function", "//run.googleapis.com/projects/PROJECT_ID/locations/LOCATION_ID/services/SERVICE_ID", "/subscriptions/<SUBSCIPTION_GUID>/resourceGroups/<RG>/providers/Microsoft.Web/sites/<FUNCAPP>/functions/<FUNC>"]
+  ["arn:aws:lambda:REGION:ACCOUNT_ID:function:my-function", "//run.googleapis.com/projects/PROJECT_ID/locations/LOCATION_ID/services/SERVICE_ID", "/subscriptions/<SUBSCRIPTION_GUID>/resourceGroups/<RG>/providers/Microsoft.Web/sites/<FUNCAPP>/functions/<FUNC>"]
   ```
 
   <!-- tabs-open -->

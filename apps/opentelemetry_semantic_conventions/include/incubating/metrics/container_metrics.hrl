@@ -18,6 +18,10 @@
 -define(CONTAINER_CPU_TIME, 'container.cpu.time').
 
 
+%% Container's CPU usage, measured in cpus. Range from 0 to the number of allocatable CPUs
+-define(CONTAINER_CPU_USAGE, 'container.cpu.usage').
+
+
 %% Disk bytes for the container.
 -define(CONTAINER_DISK_IO, 'container.disk.io').
 
@@ -28,3 +32,7 @@
 
 %% Network bytes for the container.
 -define(CONTAINER_NETWORK_IO, 'container.network.io').
+
+
+%% The time the container has been running
+-define(CONTAINER_UPTIME, 'container.uptime').

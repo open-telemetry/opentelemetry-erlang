@@ -1,4 +1,4 @@
-SEMCON_VERSION = 1.27.0
+SEMCON_VERSION = 1.33.0
 
 .PHONY: setup clean-all checkout generate
 
@@ -20,7 +20,7 @@ clean-erlang:
 	rm -rf include/metrics
 
 setup:
-	curl --proto '=https' --tlsv1.2 -LsSf https://github.com/open-telemetry/weaver/releases/download/v0.9.2/weaver-installer.sh | sh
+	curl --proto '=https' --tlsv1.2 -LsSf https://github.com/open-telemetry/weaver/releases/download/v0.15.0/weaver-installer.sh | sh
 
 checkout:
 	mkdir semtmp
@@ -28,18 +28,17 @@ checkout:
 	cd semtmp; \
 	  git checkout v$(SEMCON_VERSION) && \
 	  cp -r docs ../guides
-	rm -rf guides/docs
-	rm -f $(addprefix guides/attributes-registry/, android.md aspnetcore.md dotnet.md go.md ios.md jvm.md kestrel.md nodejs.md signalr.md v8js.md veightjs.md webengine.md)
+	rm -rf $(addprefix guides/, docs dotnet mobile)
+	rm -f $(addprefix guides/attributes-registry/, android.md aspnetcore.md cpython.md dotnet.md go.md ios.md jvm.md kestrel.md nodejs.md signalr.md v8js.md veightjs.md webengine.md)
+	rm -f $(addprefix guides/runtime/, cpython-metrics.md dotnet-metrics.md go-metrics.md jvm-metrics.md nodejs-metrics.md v8js-metrics.md)
 
 generate: generate-elixir generate-erlang format-and-test
 
 generate-elixir:
-	weaver registry generate --registry=semtmp/model --templates=templates --param output=lib/ --param stability=stable elixir .
-	weaver registry generate --registry=semtmp/model --templates=templates --param output=lib/incubating/ --param stability=experimental elixir .
+	weaver registry generate --registry=semtmp/model --templates=templates --param output=lib/ elixir .
 
 generate-erlang:
-	weaver registry generate --registry=semtmp/model --templates=templates --param output=include/ --param stability=stable erlang .
-	weaver registry generate --registry=semtmp/model --templates=templates --param output=include/incubating/ --param stability=experimental erlang .
+	weaver registry generate --registry=semtmp/model --templates=templates --param output=include/ erlang .
 
 format-and-test:
 	mix format

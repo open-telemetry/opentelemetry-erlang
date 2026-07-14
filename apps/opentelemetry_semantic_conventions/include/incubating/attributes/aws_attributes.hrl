@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/aws_attributes.hrl").
+
 
 %% The JSON-serialized value of each item in the `AttributeDefinitions` request field.
 -define(AWS_DYNAMODB_ATTRIBUTE_DEFINITIONS, 'aws.dynamodb.attribute_definitions').
@@ -147,6 +149,10 @@
 -define(AWS_EKS_CLUSTER_ARN, 'aws.eks.cluster.arn').
 
 
+%% The AWS extended request ID as returned in the response header `x-amz-id-2`.
+-define(AWS_EXTENDED_REQUEST_ID, 'aws.extended_request_id').
+
+
 %% The full invoked ARN as provided on the `Context` passed to the function (`Lambda-Runtime-Invoked-Function-Arn` header on the `/runtime/invocation/next` applicable).
 %%  
 -define(AWS_LAMBDA_INVOKED_ARN, 'aws.lambda.invoked_arn').
@@ -172,7 +178,7 @@
 -define(AWS_LOG_STREAM_NAMES, 'aws.log.stream.names').
 
 
-%% The AWS request ID as returned in the response headers `x-amz-request-id` or `x-amz-requestid`.
+%% The AWS request ID as returned in the response headers `x-amzn-requestid`, `x-amzn-request-id` or `x-amz-request-id`.
 -define(AWS_REQUEST_ID, 'aws.request_id').
 
 

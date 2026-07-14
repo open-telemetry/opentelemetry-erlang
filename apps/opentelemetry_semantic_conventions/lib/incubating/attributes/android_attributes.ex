@@ -4,6 +4,79 @@ defmodule OpenTelemetry.SemConv.Incubating.AndroidAttributes do
   OpenTelemetry Semantic Conventions for Android attributes.
   """
 
+  @typedoc """
+  This attribute represents the state of the application.
+
+
+  ### Enum Values
+  * `:created` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Any time before Activity.onResume() or, if the app has no Activity, Context.startService() has been called in the app for the first time.
+
+  * `:background` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Any time after Activity.onPause() or, if the app has no Activity, Context.stopService() has been called when the app was in the foreground state.
+
+  * `:foreground` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Any time after Activity.onResume() or, if the app has no Activity, Context.startService() has been called when the app was in either the created or background states.
+
+  """
+  @type android_app_state_values() :: %{
+          :created => :created,
+          :background => :background,
+          :foreground => :foreground
+        }
+  @doc """
+  This attribute represents the state of the application.
+
+
+  ### Notes
+
+  The Android lifecycle states are defined in [Activity lifecycle callbacks](https://developer.android.com/guide/components/activities/activity-lifecycle#lc), and from which the `OS identifiers` are derived.
+
+  ### Examples
+
+  ```
+  ["created"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.AndroidAttributes.android_app_state()
+      :"android.app.state"
+
+      iex> OpenTelemetry.SemConv.Incubating.AndroidAttributes.android_app_state_values().created
+      :created
+
+      iex> %{OpenTelemetry.SemConv.Incubating.AndroidAttributes.android_app_state() => OpenTelemetry.SemConv.Incubating.AndroidAttributes.android_app_state_values().created}
+      %{:"android.app.state" => :created}
+
+  ### Erlang
+
+  ```erlang
+  ?ANDROID_APP_STATE.
+  'android.app.state'
+
+  ?ANDROID_APP_STATE_VALUES_CREATED.
+  'created'
+
+  \#{?ANDROID_APP_STATE => ?ANDROID_APP_STATE_VALUES_CREATED}.
+  \#{'android.app.state' => 'created'}
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec android_app_state :: :"android.app.state"
+  def android_app_state do
+    :"android.app.state"
+  end
+
+  @spec android_app_state_values() :: android_app_state_values()
+  def android_app_state_values() do
+    %{
+      :created => :created,
+      :background => :background,
+      :foreground => :foreground
+    }
+  end
+
   @doc """
   Uniquely identifies the framework API revision offered by a version (`os.version`) of the android operating system. More information can be found [here](https://developer.android.com/guide/topics/manifest/uses-sdk-element#ApiLevels).
 
@@ -38,8 +111,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AndroidAttributes do
   end
 
   @typedoc """
-  Deprecated use the `device.app.lifecycle` event definition including `android.state` as a payload field instead.
-
+  Deprecated. Use `android.app.state` instead.
 
   ### Enum Values
   * `:created` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Any time before Activity.onResume() or, if the app has no Activity, Context.startService() has been called in the app for the first time.
@@ -54,42 +126,8 @@ defmodule OpenTelemetry.SemConv.Incubating.AndroidAttributes do
           :background => :background,
           :foreground => :foreground
         }
-  @doc """
-  Deprecated use the `device.app.lifecycle` event definition including `android.state` as a payload field instead.
-
-
-  ### Notes
-
-  The Android lifecycle states are defined in [Activity lifecycle callbacks](https://developer.android.com/guide/components/activities/activity-lifecycle#lc), and from which the `OS identifiers` are derived.
-
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.AndroidAttributes.android_state()
-      :"android.state"
-
-      iex> OpenTelemetry.SemConv.Incubating.AndroidAttributes.android_state_values().created
-      :created
-
-      iex> %{OpenTelemetry.SemConv.Incubating.AndroidAttributes.android_state() => OpenTelemetry.SemConv.Incubating.AndroidAttributes.android_state_values().created}
-      %{:"android.state" => :created}
-
-  ### Erlang
-
-  ```erlang
-  ?ANDROID_STATE.
-  'android.state'
-
-  ?ANDROID_STATE_VALUES_CREATED.
-  'created'
-
-  \#{?ANDROID_STATE => ?ANDROID_STATE_VALUES_CREATED}.
-  \#{'android.state' => 'created'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Renamed to `android.app.state`
   """
   @spec android_state :: :"android.state"
   def android_state do

@@ -5,7 +5,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   """
 
   @doc """
-  The logical CPU number [0..n-1]
+  Deprecated, use `cpu.logical_number` instead.
   ### Value type
 
   Value must be of type `integer()`.
@@ -382,7 +382,7 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
   end
 
   @typedoc """
-  A stateless protocol **MUST** **NOT** set this attribute
+  Deprecated, use `network.connection.state` instead.
 
   ### Enum Values
   * `:close` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
@@ -412,42 +412,8 @@ defmodule OpenTelemetry.SemConv.Incubating.SystemAttributes do
           :syn_sent => :syn_sent,
           :time_wait => :time_wait
         }
-  @doc """
-  A stateless protocol **MUST** **NOT** set this attribute
-
-  ### Examples
-
-  ```
-  ["close_wait"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_network_state()
-      :"system.network.state"
-
-      iex> OpenTelemetry.SemConv.Incubating.SystemAttributes.system_network_state_values().close
-      :close
-
-      iex> %{OpenTelemetry.SemConv.Incubating.SystemAttributes.system_network_state() => OpenTelemetry.SemConv.Incubating.SystemAttributes.system_network_state_values().close}
-      %{:"system.network.state" => :close}
-
-  ### Erlang
-
-  ```erlang
-  ?SYSTEM_NETWORK_STATE.
-  'system.network.state'
-
-  ?SYSTEM_NETWORK_STATE_VALUES_CLOSE.
-  'close'
-
-  \#{?SYSTEM_NETWORK_STATE => ?SYSTEM_NETWORK_STATE_VALUES_CLOSE}.
-  \#{'system.network.state' => 'close'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Removed, report network connection state with `network.connection.state` attribute
   """
   @spec system_network_state :: :"system.network.state"
   def system_network_state do

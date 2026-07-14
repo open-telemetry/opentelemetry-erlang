@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/opentracing_attributes.hrl").
+
 
 %% Parent-child Reference type
 -define(OPENTRACING_REF_TYPE, 'opentracing.ref_type').

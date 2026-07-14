@@ -1,8 +1,40 @@
-defmodule OpenTelemetry.SemConv.Incubating.CpuAttributes do
+defmodule OpenTelemetry.SemConv.Incubating.CPUAttributes do
   # This is an auto-generated file
   @moduledoc """
-  OpenTelemetry Semantic Conventions for Cpu attributes.
+  OpenTelemetry Semantic Conventions for CPU attributes.
   """
+
+  @doc """
+  The logical CPU number [0..n-1]
+  ### Value type
+
+  Value must be of type `integer()`.
+  ### Examples
+
+  ```
+  [1]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.CPUAttributes.cpu_logical_number()
+      :"cpu.logical_number"
+
+  ### Erlang
+
+  ```erlang
+  ?CPU_LOGICAL_NUMBER.
+  'cpu.logical_number'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec cpu_logical_number :: :"cpu.logical_number"
+  def cpu_logical_number do
+    :"cpu.logical_number"
+  end
 
   @typedoc """
   The mode of the CPU
@@ -40,13 +72,13 @@ defmodule OpenTelemetry.SemConv.Incubating.CpuAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.CpuAttributes.cpu_mode()
+      iex> OpenTelemetry.SemConv.Incubating.CPUAttributes.cpu_mode()
       :"cpu.mode"
 
-      iex> OpenTelemetry.SemConv.Incubating.CpuAttributes.cpu_mode_values().user
+      iex> OpenTelemetry.SemConv.Incubating.CPUAttributes.cpu_mode_values().user
       :user
 
-      iex> %{OpenTelemetry.SemConv.Incubating.CpuAttributes.cpu_mode() => OpenTelemetry.SemConv.Incubating.CpuAttributes.cpu_mode_values().user}
+      iex> %{OpenTelemetry.SemConv.Incubating.CPUAttributes.cpu_mode() => OpenTelemetry.SemConv.Incubating.CPUAttributes.cpu_mode_values().user}
       %{:"cpu.mode" => :user}
 
   ### Erlang

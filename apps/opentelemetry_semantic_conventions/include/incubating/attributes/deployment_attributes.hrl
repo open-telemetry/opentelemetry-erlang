@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/deployment_attributes.hrl").
+
 %% @deprecated Deprecated, use `deployment.environment.name` instead.
 %% 'Deprecated, use `deployment.environment.name` instead.'
 %%  

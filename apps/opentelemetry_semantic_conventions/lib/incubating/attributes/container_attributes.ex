@@ -42,7 +42,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   end
 
   @doc """
-  All the command arguments (including the command/executable itself) run by the container. [2]
+  All the command arguments (including the command/executable itself) run by the container.
 
   ### Value type
 
@@ -50,7 +50,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Examples
 
   ```
-  ["otelcontribcol, --config, config.yaml"]
+  [["otelcontribcol", "--config", "config.yaml"]]
   ```
 
   <!-- tabs-open -->
@@ -75,7 +75,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   end
 
   @doc """
-  The full command run by the container as a single string representing the full command. [2]
+  The full command run by the container as a single string representing the full command.
 
   ### Value type
 
@@ -138,7 +138,81 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   end
 
   @doc """
-  Container ID. Usually a UUID, as for example used to [identify Docker containers](https://docs.docker.com/engine/reference/run/#container-identification). The UUID might be abbreviated.
+  The name of the CSI ([Container Storage Interface](https://github.com/container-storage-interface/spec)) plugin used by the volume.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  This can sometimes be referred to as a "driver" in CSI implementations. This should represent the `name` field of the GetPluginInfo RPC.
+
+  ### Examples
+
+  ```
+  ["pd.csi.storage.gke.io"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_csi_plugin_name()
+      :"container.csi.plugin.name"
+
+  ### Erlang
+
+  ```erlang
+  ?CONTAINER_CSI_PLUGIN_NAME.
+  'container.csi.plugin.name'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec container_csi_plugin_name :: :"container.csi.plugin.name"
+  def container_csi_plugin_name do
+    :"container.csi.plugin.name"
+  end
+
+  @doc """
+  The unique volume ID returned by the CSI ([Container Storage Interface](https://github.com/container-storage-interface/spec)) plugin.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  This can sometimes be referred to as a "volume handle" in CSI implementations. This should represent the `Volume.volume_id` field in CSI spec.
+
+  ### Examples
+
+  ```
+  ["projects/my-gcp-project/zones/my-gcp-zone/disks/my-gcp-disk"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_csi_volume_id()
+      :"container.csi.volume.id"
+
+  ### Erlang
+
+  ```erlang
+  ?CONTAINER_CSI_VOLUME_ID.
+  'container.csi.volume.id'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec container_csi_volume_id :: :"container.csi.volume.id"
+  def container_csi_volume_id do
+    :"container.csi.volume.id"
+  end
+
+  @doc """
+  Container ID. Usually a UUID, as for example used to [identify Docker containers](https://docs.docker.com/engine/containers/run/#container-identification). The UUID might be abbreviated.
 
   ### Value type
 
@@ -255,7 +329,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Examples
 
   ```
-  ["example@sha256:afcc7f1ac1b49db317a7196c902e61c6c3c4607d63599ee1a82d702d249a0ccb", "internal.registry.example.com:5000/example@sha256:b69959407d21e8a062e0416bf13405bb2b71ed7a84dde4158ebafacfa06f5578"]
+  [["example@sha256:afcc7f1ac1b49db317a7196c902e61c6c3c4607d63599ee1a82d702d249a0ccb", "internal.registry.example.com:5000/example@sha256:b69959407d21e8a062e0416bf13405bb2b71ed7a84dde4158ebafacfa06f5578"]]
   ```
 
   <!-- tabs-open -->
@@ -288,7 +362,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Examples
 
   ```
-  ["v1.27.1", "3.5.7-0"]
+  [["v1.27.1", "3.5.7-0"]]
   ```
 
   <!-- tabs-open -->
@@ -318,10 +392,14 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Value type
 
   Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  For example, a docker container label `app` with value `nginx` **SHOULD** be recorded as the `container.label.app` attribute with value `"nginx"`.
+
   ### Examples
 
   ```
-  ["container.label.app=nginx"]
+  ["nginx"]
   ```
 
   <!-- tabs-open -->

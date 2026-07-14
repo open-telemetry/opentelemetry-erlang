@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/oci_attributes.hrl").
+
 
 %% The digest of the OCI image manifest. For container images specifically is the digest by which the container image is known.
 %%  

@@ -5,6 +5,43 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   """
 
   @doc """
+  Length of the process.command_args array
+
+  ### Value type
+
+  Value must be of type `integer()`.
+  ### Notes
+
+  This field can be useful for querying or performing bucket analysis on how many arguments were provided to start a process. More arguments may be an indication of suspicious activity.
+
+  ### Examples
+
+  ```
+  [4]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_args_count()
+      :"process.args_count"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_ARGS_COUNT.
+  'process.args_count'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_args_count :: :"process.args_count"
+  def process_args_count do
+    :"process.args_count"
+  end
+
+  @doc """
   The command used to launch the process (i.e. the command name). On Linux based systems, can be set to the zeroth string in `proc/[pid]/cmdline`. On Windows, can be set to the first parameter extracted from `GetCommandLineW`.
 
   ### Value type
@@ -46,7 +83,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   ### Examples
 
   ```
-  ["cmd/otecol", "--config=config.yaml"]
+  [["cmd/otecol", "--config=config.yaml"]]
   ```
 
   <!-- tabs-open -->
@@ -223,7 +260,158 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   end
 
   @doc """
-  The name of the process executable. On Linux based systems, can be set to the `Name` in `proc/[pid]/status`. On Windows, can be set to the base name of `GetProcessImageFileNameW`.
+  Process environment variables, <key> being the environment variable name, the value being the environment variable value.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  Examples:
+
+  - an environment variable `USER` with value `"ubuntu"` **SHOULD** be recorded
+  as the `process.environment_variable.USER` attribute with value `"ubuntu"`.
+
+  - an environment variable `PATH` with value `"/usr/local/bin:/usr/bin"`
+  **SHOULD** be recorded as the `process.environment_variable.PATH` attribute
+  with value `"/usr/local/bin:/usr/bin"`.
+
+  ### Examples
+
+  ```
+  ["ubuntu", "/usr/local/bin:/usr/bin"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_environment_variable()
+      :"process.environment_variable"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_ENVIRONMENT_VARIABLE.
+  'process.environment_variable'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_environment_variable :: :"process.environment_variable"
+  def process_environment_variable do
+    :"process.environment_variable"
+  end
+
+  @doc """
+  The GNU build ID as found in the `.note.gnu.build-id` ELF section (hex string).
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["c89b11207f6479603b0d49bf291c092c2b719293"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_executable_build_id_gnu()
+      :"process.executable.build_id.gnu"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_EXECUTABLE_BUILD_ID_GNU.
+  'process.executable.build_id.gnu'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_executable_build_id_gnu :: :"process.executable.build_id.gnu"
+  def process_executable_build_id_gnu do
+    :"process.executable.build_id.gnu"
+  end
+
+  @doc """
+  The Go build ID as retrieved by `go tool buildid <go executable>`.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["foh3mEXu7BLZjsN9pOwG/kATcXlYVCDEFouRMQed_/WwRFB1hPo9LBkekthSPG/x8hMC8emW2cCjXD0_1aY"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_executable_build_id_go()
+      :"process.executable.build_id.go"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_EXECUTABLE_BUILD_ID_GO.
+  'process.executable.build_id.go'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_executable_build_id_go :: :"process.executable.build_id.go"
+  def process_executable_build_id_go do
+    :"process.executable.build_id.go"
+  end
+
+  @doc """
+  Profiling specific build ID for executables. See the OTel specification for Profiles for more information.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["600DCAFE4A110000F2BF38C493F5FB92"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_executable_build_id_htlhash()
+      :"process.executable.build_id.htlhash"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_EXECUTABLE_BUILD_ID_HTLHASH.
+  'process.executable.build_id.htlhash'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_executable_build_id_htlhash :: :"process.executable.build_id.htlhash"
+  def process_executable_build_id_htlhash do
+    :"process.executable.build_id.htlhash"
+  end
+
+  @deprecated """
+  Replaced by `process.executable.build_id.htlhash`
+  """
+  @spec process_executable_build_id_profiling :: :"process.executable.build_id.profiling"
+  def process_executable_build_id_profiling do
+    :"process.executable.build_id.profiling"
+  end
+
+  @doc """
+  The name of the process executable. On Linux based systems, this **SHOULD** be set to the base name of the target of `/proc/[pid]/exe`. On Windows, this **SHOULD** be set to the base name of `GetProcessImageFileNameW`.
 
   ### Value type
 
@@ -413,6 +601,42 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   @spec process_interactive :: :"process.interactive"
   def process_interactive do
     :"process.interactive"
+  end
+
+  @doc """
+  The control group associated with the process.
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  Control groups (cgroups) are a kernel feature used to organize and manage process resources. This attribute provides the path(s) to the cgroup(s) associated with the process, which should match the contents of the [/proc/\[PID\]/cgroup](https://man7.org/linux/man-pages/man7/cgroups.7.html) file.
+
+  ### Examples
+
+  ```
+  ["1:name=systemd:/user.slice/user-1000.slice/session-3.scope", "0::/user.slice/user-1000.slice/user@1000.service/tmux-spawn-0267755b-4639-4a27-90ed-f19f88e53748.scope"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_linux_cgroup()
+      :"process.linux.cgroup"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_LINUX_CGROUP.
+  'process.linux.cgroup'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_linux_cgroup :: :"process.linux.cgroup"
+  def process_linux_cgroup do
+    :"process.linux.cgroup"
   end
 
   @doc """
@@ -837,6 +1061,43 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   end
 
   @doc """
+  Process title (proctitle)
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  In many Unix-like systems, process title (proctitle), is the string that represents the name or command line of a running process, displayed by system monitoring tools like ps, top, and htop.
+
+  ### Examples
+
+  ```
+  ["cat /etc/hostname", "xfce4-session", "bash"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_title()
+      :"process.title"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_TITLE.
+  'process.title'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_title :: :"process.title"
+  def process_title do
+    :"process.title"
+  end
+
+  @doc """
   The effective user ID (EUID) of the process.
 
   ### Value type
@@ -937,5 +1198,38 @@ defmodule OpenTelemetry.SemConv.Incubating.ProcessAttributes do
   @spec process_vpid :: :"process.vpid"
   def process_vpid do
     :"process.vpid"
+  end
+
+  @doc """
+  The working directory of the process.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["/root"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ProcessAttributes.process_working_directory()
+      :"process.working_directory"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_WORKING_DIRECTORY.
+  'process.working_directory'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec process_working_directory :: :"process.working_directory"
+  def process_working_directory do
+    :"process.working_directory"
   end
 end

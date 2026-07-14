@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/log_attributes.hrl").
+
 
 %% The basename of the file.
 %%  
@@ -44,7 +46,7 @@
 
 
 
-%% The complete orignal Log Record.
+%% The complete original Log Record.
 %%  
 -define(LOG_RECORD_ORIGINAL, 'log.record.original').
 

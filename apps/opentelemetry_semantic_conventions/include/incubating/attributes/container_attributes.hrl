@@ -13,18 +13,20 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/container_attributes.hrl").
+
 
 %% The command used to run the container (i.e. the command name).
 %%  
 -define(CONTAINER_COMMAND, 'container.command').
 
 
-%% All the command arguments (including the command/executable itself) run by the container. [2]
+%% All the command arguments (including the command/executable itself) run by the container.
 %%  
 -define(CONTAINER_COMMAND_ARGS, 'container.command_args').
 
 
-%% The full command run by the container as a single string representing the full command. [2]
+%% The full command run by the container as a single string representing the full command.
 %%  
 -define(CONTAINER_COMMAND_LINE, 'container.command_line').
 
@@ -40,7 +42,17 @@
 
 
 
-%% Container ID. Usually a UUID, as for example used to [identify Docker containers](https://docs.docker.com/engine/reference/run/#container-identification). The UUID might be abbreviated.
+%% The name of the CSI ([Container Storage Interface](https://github.com/container-storage-interface/spec)) plugin used by the volume.
+%%  
+-define(CONTAINER_CSI_PLUGIN_NAME, 'container.csi.plugin.name').
+
+
+%% The unique volume ID returned by the CSI ([Container Storage Interface](https://github.com/container-storage-interface/spec)) plugin.
+%%  
+-define(CONTAINER_CSI_VOLUME_ID, 'container.csi.volume.id').
+
+
+%% Container ID. Usually a UUID, as for example used to [identify Docker containers](https://docs.docker.com/engine/containers/run/#container-identification). The UUID might be abbreviated.
 %%  
 -define(CONTAINER_ID, 'container.id').
 

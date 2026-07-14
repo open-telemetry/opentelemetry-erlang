@@ -13,6 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/cloud_attributes.hrl").
+
 
 %% The cloud account ID the resource is assigned to.
 %%  
@@ -78,6 +80,10 @@
 
 -define(CLOUD_PLATFORM_VALUES_IBM_CLOUD_OPENSHIFT, 'ibm_cloud_openshift').
 
+-define(CLOUD_PLATFORM_VALUES_ORACLE_CLOUD_COMPUTE, 'oracle_cloud_compute').
+
+-define(CLOUD_PLATFORM_VALUES_ORACLE_CLOUD_OKE, 'oracle_cloud_oke').
+
 -define(CLOUD_PLATFORM_VALUES_TENCENT_CLOUD_CVM, 'tencent_cloud_cvm').
 
 -define(CLOUD_PLATFORM_VALUES_TENCENT_CLOUD_EKS, 'tencent_cloud_eks').
@@ -102,6 +108,8 @@
 
 -define(CLOUD_PROVIDER_VALUES_IBM_CLOUD, 'ibm_cloud').
 
+-define(CLOUD_PROVIDER_VALUES_ORACLE_CLOUD, 'oracle_cloud').
+
 -define(CLOUD_PROVIDER_VALUES_TENCENT_CLOUD, 'tencent_cloud').
 
 
@@ -111,6 +119,6 @@
 -define(CLOUD_REGION, 'cloud.region').
 
 
-%% Cloud provider-specific native identifier of the monitored cloud resource (e.g. an [ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html) on AWS, a [fully qualified resource ID](https://learn.microsoft.com/rest/api/resources/resources/get-by-id) on Azure, a [full resource name](https://cloud.google.com/apis/design/resource_names#full_resource_name) on GCP)
+%% Cloud provider-specific native identifier of the monitored cloud resource (e.g. an [ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html) on AWS, a [fully qualified resource ID](https://learn.microsoft.com/rest/api/resources/resources/get-by-id) on Azure, a [full resource name](https://google.aip.dev/122#full-resource-names) on GCP)
 %%  
 -define(CLOUD_RESOURCE_ID, 'cloud.resource_id').

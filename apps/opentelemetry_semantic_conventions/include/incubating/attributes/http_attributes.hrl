@@ -63,8 +63,8 @@
 %%  
 -define(HTTP_REQUEST_SIZE, 'http.request.size').
 
-%% @deprecated Replaced by `http.request.header.content-length`.
-%% Deprecated, use `http.request.header.content-length` instead.
+%% @deprecated Replaced by `http.request.header.<key>`.
+%% Deprecated, use `http.request.header.<key>` instead.
 -define(HTTP_REQUEST_CONTENT_LENGTH, 'http.request_content_length').
 
 %% @deprecated Replaced by `http.request.body.size`.
@@ -81,8 +81,8 @@
 %%  
 -define(HTTP_RESPONSE_SIZE, 'http.response.size').
 
-%% @deprecated Replaced by `http.response.header.content-length`.
-%% Deprecated, use `http.response.header.content-length` instead.
+%% @deprecated Replaced by `http.response.header.<key>`.
+%% Deprecated, use `http.response.header.<key>` instead.
 -define(HTTP_RESPONSE_CONTENT_LENGTH, 'http.response_content_length').
 
 %% @deprecated Replace by `http.response.body.size`.

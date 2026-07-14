@@ -210,7 +210,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   end
 
   @deprecated """
-  Replaced by `http.request.header.content-length`.
+  Replaced by `http.request.header.<key>`.
   """
   @spec http_request_content_length :: :"http.request_content_length"
   def http_request_content_length do
@@ -292,7 +292,7 @@ defmodule OpenTelemetry.SemConv.Incubating.HTTPAttributes do
   end
 
   @deprecated """
-  Replaced by `http.response.header.content-length`.
+  Replaced by `http.response.header.<key>`.
   """
   @spec http_response_content_length :: :"http.response_content_length"
   def http_response_content_length do

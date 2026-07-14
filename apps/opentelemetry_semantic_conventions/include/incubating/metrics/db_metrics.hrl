@@ -34,7 +34,7 @@
 -define(DB_CLIENT_CONNECTION_MAX, 'db.client.connection.max').
 
 
-%% The number of pending requests for an open connection, cumulative for the entire pool
+%% The number of current pending requests for an open connection
 -define(DB_CLIENT_CONNECTION_PENDING_REQUESTS, 'db.client.connection.pending_requests').
 
 
@@ -85,6 +85,14 @@
 %% Deprecated, use `db.client.connection.wait_time` instead. Note: the unit also changed from `ms` to `s`.
 -define(DB_CLIENT_CONNECTIONS_WAIT_TIME, 'db.client.connections.wait_time').
 
+%% @deprecated Replaced by `azure.cosmosdb.client.active_instance.count`.
+%% Deprecated, use `azure.cosmosdb.client.active_instance.count` instead.
+-define(DB_CLIENT_COSMOSDB_ACTIVE_INSTANCE_COUNT, 'db.client.cosmosdb.active_instance.count').
 
-%% Duration of database client operations.
--define(DB_CLIENT_OPERATION_DURATION, 'db.client.operation.duration').
+%% @deprecated Replaced by `azure.cosmosdb.client.operation.request_charge`.
+%% Deprecated, use `azure.cosmosdb.client.operation.request_charge` instead.
+-define(DB_CLIENT_COSMOSDB_OPERATION_REQUEST_CHARGE, 'db.client.cosmosdb.operation.request_charge').
+
+
+%% The actual number of records returned by the database operation.
+-define(DB_CLIENT_RESPONSE_RETURNED_ROWS, 'db.client.response.returned_rows').

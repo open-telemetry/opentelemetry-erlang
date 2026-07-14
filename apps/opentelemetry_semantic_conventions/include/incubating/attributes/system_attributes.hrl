@@ -13,8 +13,10 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/system_attributes.hrl").
 
-%% The logical CPU number [0..n-1]
+
+%% Deprecated, use `cpu.logical_number` instead.
 -define(SYSTEM_CPU_LOGICAL_NUMBER, 'system.cpu.logical_number').
 
 %% @deprecated Replaced by `cpu.mode`
@@ -91,8 +93,8 @@
 -define(SYSTEM_MEMORY_STATE_VALUES_CACHED, 'cached').
 
 
-
-%% A stateless protocol MUST NOT set this attribute
+%% @deprecated Removed, report network connection state with `network.connection.state` attribute
+%% Deprecated, use `network.connection.state` instead.
 -define(SYSTEM_NETWORK_STATE, 'system.network.state').
 
 -define(SYSTEM_NETWORK_STATE_VALUES_CLOSE, 'close').

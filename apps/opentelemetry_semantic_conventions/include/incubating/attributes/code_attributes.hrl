@@ -13,32 +13,29 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
+-include_lib("opentelemetry_semantic_conventions/include/attributes/code_attributes.hrl").
 
-%% The column number in `code.filepath` best representing the operation. It SHOULD point within the code unit named in `code.function`.
+%% @deprecated Replaced by `code.column.number`
+%% Deprecated, use `code.column.number`
 %%  
 -define(CODE_COLUMN, 'code.column').
 
-
-%% The source code file name that identifies the code unit as uniquely as possible (preferably an absolute file path).
+%% @deprecated Replaced by `code.file.path`
+%% Deprecated, use `code.file.path` instead
 %%  
 -define(CODE_FILEPATH, 'code.filepath').
 
-
-%% The method or function name, or equivalent (usually rightmost part of the code unit's name).
+%% @deprecated Replaced by `code.function.name`
+%% Deprecated, use `code.function.name` instead
 %%  
 -define(CODE_FUNCTION, 'code.function').
 
-
-%% The line number in `code.filepath` best representing the operation. It SHOULD point within the code unit named in `code.function`.
+%% @deprecated Replaced by `code.line.number`
+%% Deprecated, use `code.line.number` instead
 %%  
 -define(CODE_LINENO, 'code.lineno').
 
-
-%% The "namespace" within which `code.function` is defined. Usually the qualified class or module name, such that `code.namespace` + some separator + `code.function` form a unique identifier for the code unit.
+%% @deprecated Value should be included in `code.function.name` which is expected to be a fully-qualified name.
+%% Deprecated, namespace is now included into `code.function.name`
 %%  
 -define(CODE_NAMESPACE, 'code.namespace').
-
-
-%% A stacktrace as a string in the natural representation for the language runtime. The representation is to be determined and documented by each language SIG.
-%%  
--define(CODE_STACKTRACE, 'code.stacktrace').
