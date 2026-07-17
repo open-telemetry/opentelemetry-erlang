@@ -26,8 +26,10 @@
 -define(BATCH_PROCESSOR_DEFAULTS, #{scheduled_delay_ms => 5000,
                                     exporting_timeout_ms => 30000,
                                     max_queue_size => 2048,
+                                    export_unsampled => false,
                                     exporter => {opentelemetry_exporter, #{}}}).
 -define(SIMPLE_PROCESSOR_DEFAULTS, #{exporting_timeout_ms => 30000,
+                                     export_unsampled => false,
                                      exporter => {opentelemetry_exporter, #{}}}).
 
 %% required configuration
