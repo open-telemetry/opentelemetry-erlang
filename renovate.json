@@ -1,13 +1,31 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:best-practices",
+    "helpers:pinGitHubActionDigestsToSemver",
   ],
   "packageRules": [
     {
-      "matchDatasources": ["hex"],
       "matchUpdateTypes": ["patch", "pin", "digest"],
-      "addLabels": ["skip-changelog"]
+      "groupName": "patch updates",
+      "addLabels": ["patch", "chore", "skip-changelog"]
+    },
+    {
+      "matchDatasources": ["hex"],
+      "matchUpdateTypes": ["minor"],
+      "groupName": "hex minor updates",
+      "addLabels": ["minor", "chore"]
+    },
+    {
+      "matchDatasources": ["hex"],
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true,
+      "addLabels": ["major"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "addLabels": ["chore"]
     }
   ]
 }
