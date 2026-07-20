@@ -43,10 +43,10 @@ defmodule OpenTelemetryExperimental.MixProject do
       dep when is_atom(dep) -> {dep, ">= 0.0.0"}
     end)
     |> Enum.concat([
-      {:cmark, "~> 0.10", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.40", only: :dev, runtime: false},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
-      {:covertool, ">= 0.0.0", only: :test}
+      {:cmark, "== 0.10.0", only: :dev, runtime: false},
+      {:ex_doc, "== 0.40.3", only: :dev, runtime: false},
+      {:dialyxir, "== 1.4.7", only: [:dev], runtime: false},
+      {:covertool, "== 2.0.7", only: :test}
     ])
   end
 
