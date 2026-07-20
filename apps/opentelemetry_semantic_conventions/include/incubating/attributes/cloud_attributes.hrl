@@ -28,6 +28,8 @@
 %%  
 -define(CLOUD_PLATFORM, 'cloud.platform').
 
+-define(CLOUD_PLATFORM_VALUES_AKAMAI_CLOUD_COMPUTE, 'akamai_cloud.compute').
+
 -define(CLOUD_PLATFORM_VALUES_ALIBABA_CLOUD_ECS, 'alibaba_cloud_ecs').
 
 -define(CLOUD_PLATFORM_VALUES_ALIBABA_CLOUD_FC, 'alibaba_cloud_fc').
@@ -48,6 +50,20 @@
 
 -define(CLOUD_PLATFORM_VALUES_AWS_OPENSHIFT, 'aws_openshift').
 
+-define(CLOUD_PLATFORM_VALUES_AZURE_VM, 'azure.vm').
+
+-define(CLOUD_PLATFORM_VALUES_AZURE_CONTAINER_APPS, 'azure.container_apps').
+
+-define(CLOUD_PLATFORM_VALUES_AZURE_CONTAINER_INSTANCES, 'azure.container_instances').
+
+-define(CLOUD_PLATFORM_VALUES_AZURE_AKS, 'azure.aks').
+
+-define(CLOUD_PLATFORM_VALUES_AZURE_FUNCTIONS, 'azure.functions').
+
+-define(CLOUD_PLATFORM_VALUES_AZURE_APP_SERVICE, 'azure.app_service').
+
+-define(CLOUD_PLATFORM_VALUES_AZURE_OPENSHIFT, 'azure.openshift').
+
 -define(CLOUD_PLATFORM_VALUES_AZURE_VM, 'azure_vm').
 
 -define(CLOUD_PLATFORM_VALUES_AZURE_CONTAINER_APPS, 'azure_container_apps').
@@ -61,6 +77,8 @@
 -define(CLOUD_PLATFORM_VALUES_AZURE_APP_SERVICE, 'azure_app_service').
 
 -define(CLOUD_PLATFORM_VALUES_AZURE_OPENSHIFT, 'azure_openshift').
+
+-define(CLOUD_PLATFORM_VALUES_GCP_AGENT_ENGINE, 'gcp.agent_engine').
 
 -define(CLOUD_PLATFORM_VALUES_GCP_BARE_METAL_SOLUTION, 'gcp_bare_metal_solution').
 
@@ -76,7 +94,13 @@
 
 -define(CLOUD_PLATFORM_VALUES_GCP_OPENSHIFT, 'gcp_openshift').
 
+-define(CLOUD_PLATFORM_VALUES_HETZNER_CLOUD_SERVER, 'hetzner.cloud_server').
+
 -define(CLOUD_PLATFORM_VALUES_IBM_CLOUD_OPENSHIFT, 'ibm_cloud_openshift').
+
+-define(CLOUD_PLATFORM_VALUES_ORACLE_CLOUD_COMPUTE, 'oracle_cloud_compute').
+
+-define(CLOUD_PLATFORM_VALUES_ORACLE_CLOUD_OKE, 'oracle_cloud_oke').
 
 -define(CLOUD_PLATFORM_VALUES_TENCENT_CLOUD_CVM, 'tencent_cloud_cvm').
 
@@ -84,11 +108,15 @@
 
 -define(CLOUD_PLATFORM_VALUES_TENCENT_CLOUD_SCF, 'tencent_cloud_scf').
 
+-define(CLOUD_PLATFORM_VALUES_VULTR_CLOUD_COMPUTE, 'vultr.cloud_compute').
+
 
 
 %% Name of the cloud provider.
 %%  
 -define(CLOUD_PROVIDER, 'cloud.provider').
+
+-define(CLOUD_PROVIDER_VALUES_AKAMAI_CLOUD, 'akamai_cloud').
 
 -define(CLOUD_PROVIDER_VALUES_ALIBABA_CLOUD, 'alibaba_cloud').
 
@@ -100,17 +128,23 @@
 
 -define(CLOUD_PROVIDER_VALUES_HEROKU, 'heroku').
 
+-define(CLOUD_PROVIDER_VALUES_HETZNER, 'hetzner').
+
 -define(CLOUD_PROVIDER_VALUES_IBM_CLOUD, 'ibm_cloud').
+
+-define(CLOUD_PROVIDER_VALUES_ORACLE_CLOUD, 'oracle_cloud').
 
 -define(CLOUD_PROVIDER_VALUES_TENCENT_CLOUD, 'tencent_cloud').
 
+-define(CLOUD_PROVIDER_VALUES_VULTR, 'vultr').
 
 
-%% The geographical region the resource is running.
+
+%% The geographical region within a cloud provider. When associated with a resource, this attribute specifies the region where the resource operates. When calling services or APIs deployed on a cloud, this attribute identifies the region where the called destination is deployed.
 %%  
 -define(CLOUD_REGION, 'cloud.region').
 
 
-%% Cloud provider-specific native identifier of the monitored cloud resource (e.g. an [ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html) on AWS, a [fully qualified resource ID](https://learn.microsoft.com/rest/api/resources/resources/get-by-id) on Azure, a [full resource name](https://cloud.google.com/apis/design/resource_names#full_resource_name) on GCP)
+%% Cloud provider-specific native identifier of the monitored cloud resource (e.g. an [ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html) on AWS, a [fully qualified resource ID](https://learn.microsoft.com/rest/api/resources/resources/get-by-id) on Azure, a [full resource name](https://google.aip.dev/122#full-resource-names) on GCP)
 %%  
 -define(CLOUD_RESOURCE_ID, 'cloud.resource_id').

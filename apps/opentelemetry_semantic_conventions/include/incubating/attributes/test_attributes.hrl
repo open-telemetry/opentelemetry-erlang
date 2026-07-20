@@ -14,7 +14,7 @@
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
 
-%% The fully qualified human readable name of the [test case](https://en.wikipedia.org/wiki/Test_case).
+%% The fully qualified human readable name of the [test case](https://wikipedia.org/wiki/Test_case).
 %%  
 -define(TEST_CASE_NAME, 'test.case.name').
 
@@ -29,7 +29,7 @@
 
 
 
-%% The human readable name of a [test suite](https://en.wikipedia.org/wiki/Test_suite).
+%% The human readable name of a [test suite](https://wikipedia.org/wiki/Test_suite).
 %%  
 -define(TEST_SUITE_NAME, 'test.suite.name').
 

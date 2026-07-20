@@ -4,7 +4,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   OpenTelemetry Semantic Conventions for FAAS metrics.
   """
   @doc """
-  Number of invocation cold starts
+  Number of invocation cold starts.
 
   Instrument: `counter`
   Unit: `{coldstart}`
@@ -31,7 +31,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   end
 
   @doc """
-  Distribution of CPU usage per invocation
+  Distribution of CPU usage per invocation.
 
   Instrument: `histogram`
   Unit: `s`
@@ -58,7 +58,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   end
 
   @doc """
-  Number of invocation errors
+  Number of invocation errors.
 
   Instrument: `counter`
   Unit: `{error}`
@@ -85,7 +85,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   end
 
   @doc """
-  Measures the duration of the function's initialization, such as a cold start
+  Measures the duration of the function's initialization, such as a cold start.
 
   Instrument: `histogram`
   Unit: `s`
@@ -112,7 +112,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   end
 
   @doc """
-  Number of successful invocations
+  Number of successful invocations.
 
   Instrument: `counter`
   Unit: `{invocation}`
@@ -139,7 +139,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   end
 
   @doc """
-  Measures the duration of the function's logic execution
+  Measures the duration of the function's logic execution.
 
   Instrument: `histogram`
   Unit: `s`
@@ -166,7 +166,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   end
 
   @doc """
-  Distribution of max memory usage per invocation
+  Distribution of max memory usage per invocation.
 
   Instrument: `histogram`
   Unit: `By`
@@ -193,7 +193,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   end
 
   @doc """
-  Distribution of net I/O usage per invocation
+  Distribution of net I/O usage per invocation.
 
   Instrument: `histogram`
   Unit: `By`
@@ -220,7 +220,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.FAASMetrics do
   end
 
   @doc """
-  Number of invocation timeouts
+  Number of invocation timeouts.
 
   Instrument: `counter`
   Unit: `{timeout}`

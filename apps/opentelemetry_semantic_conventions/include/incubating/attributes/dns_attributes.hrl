@@ -14,5 +14,9 @@
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
 
+%% The list of IPv4 or IPv6 addresses resolved during DNS lookup.
+-define(DNS_ANSWERS, 'dns.answers').
+
+
 %% The name being queried.
 -define(DNS_QUESTION_NAME, 'dns.question.name').

@@ -4,7 +4,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.GenAiMetrics do
   OpenTelemetry Semantic Conventions for Gen_Ai metrics.
   """
   @doc """
-  GenAI operation duration
+  GenAI operation duration.
 
   Instrument: `histogram`
   Unit: `s`
@@ -31,7 +31,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.GenAiMetrics do
   end
 
   @doc """
-  Measures number of input and output tokens used
+  Number of input and output tokens used.
 
   Instrument: `histogram`
   Unit: `{token}`
@@ -58,7 +58,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.GenAiMetrics do
   end
 
   @doc """
-  Generative AI server request duration such as time-to-last byte or last output token
+  Generative AI server request duration such as time-to-last byte or last output token.
 
   Instrument: `histogram`
   Unit: `s`
@@ -85,7 +85,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.GenAiMetrics do
   end
 
   @doc """
-  Time per output token generated after the first token for successful responses
+  Time per output token generated after the first token for successful responses.
 
   Instrument: `histogram`
   Unit: `s`
@@ -112,7 +112,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.GenAiMetrics do
   end
 
   @doc """
-  Time to generate first token for successful responses
+  Time to generate first token for successful responses.
 
   Instrument: `histogram`
   Unit: `s`

@@ -5,7 +5,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TestAttributes do
   """
 
   @doc """
-  The fully qualified human readable name of the [test case](https://en.wikipedia.org/wiki/Test_case).
+  The fully qualified human readable name of the [test case](https://wikipedia.org/wiki/Test_case).
 
   ### Value type
 
@@ -101,7 +101,7 @@ defmodule OpenTelemetry.SemConv.Incubating.TestAttributes do
   end
 
   @doc """
-  The human readable name of a [test suite](https://en.wikipedia.org/wiki/Test_suite).
+  The human readable name of a [test suite](https://wikipedia.org/wiki/Test_suite).
 
   ### Value type
 

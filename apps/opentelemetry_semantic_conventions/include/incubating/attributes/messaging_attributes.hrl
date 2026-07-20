@@ -13,8 +13,6 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
--include_lib("opentelemetry_semantic_conventions/include/attributes/messaging_attributes.hrl").
-
 
 %% The number of messages sent, received, or processed in the scope of the batching operation.
 -define(MESSAGING_BATCH_MESSAGE_COUNT, 'messaging.batch.message_count').
@@ -54,16 +52,15 @@
 %% A boolean that is true if the message destination is temporary and might not exist anymore after messages are processed.
 -define(MESSAGING_DESTINATION_TEMPORARY, 'messaging.destination.temporary').
 
-%% @deprecated No replacement at this time.
+%% @deprecated Removed. No replacement at this time.
 %% Deprecated, no replacement at this time.
 -define(MESSAGING_DESTINATION_PUBLISH_ANONYMOUS, 'messaging.destination_publish.anonymous').
 
-%% @deprecated No replacement at this time.
+%% @deprecated Removed. No replacement at this time.
 %% Deprecated, no replacement at this time.
 -define(MESSAGING_DESTINATION_PUBLISH_NAME, 'messaging.destination_publish.name').
 
 %% @deprecated Replaced by `messaging.consumer.group.name`.
-%%  
 %% Deprecated, use `messaging.consumer.group.name` instead.
 %%  
 -define(MESSAGING_EVENTHUBS_CONSUMER_GROUP, 'messaging.eventhubs.consumer.group').
@@ -94,12 +91,11 @@
 -define(MESSAGING_GCP_PUBSUB_MESSAGE_ORDERING_KEY, 'messaging.gcp_pubsub.message.ordering_key').
 
 %% @deprecated Replaced by `messaging.consumer.group.name`.
-%%  
 %% Deprecated, use `messaging.consumer.group.name` instead.
 %%  
 -define(MESSAGING_KAFKA_CONSUMER_GROUP, 'messaging.kafka.consumer.group').
 
-%% @deprecated Replaced by `messaging.destination.partition.id`.
+%% @deprecated Record string representation of the partition id in `messaging.destination.partition.id` attribute.
 %% Deprecated, use `messaging.destination.partition.id` instead.
 %%  
 -define(MESSAGING_KAFKA_DESTINATION_PARTITION, 'messaging.kafka.destination.partition').
@@ -110,7 +106,6 @@
 -define(MESSAGING_KAFKA_MESSAGE_KEY, 'messaging.kafka.message.key').
 
 %% @deprecated Replaced by `messaging.kafka.offset`.
-%%  
 %% Deprecated, use `messaging.kafka.offset` instead.
 %%  
 -define(MESSAGING_KAFKA_MESSAGE_OFFSET, 'messaging.kafka.message.offset').
@@ -158,9 +153,9 @@
 %%  
 -define(MESSAGING_OPERATION_TYPE, 'messaging.operation.type').
 
--define(MESSAGING_OPERATION_TYPE_VALUES_PUBLISH, 'publish').
-
 -define(MESSAGING_OPERATION_TYPE_VALUES_CREATE, 'create').
+
+-define(MESSAGING_OPERATION_TYPE_VALUES_SEND, 'send').
 
 -define(MESSAGING_OPERATION_TYPE_VALUES_RECEIVE, 'receive').
 
@@ -169,6 +164,8 @@
 -define(MESSAGING_OPERATION_TYPE_VALUES_SETTLE, 'settle').
 
 -define(MESSAGING_OPERATION_TYPE_VALUES_DELIVER, 'deliver').
+
+-define(MESSAGING_OPERATION_TYPE_VALUES_PUBLISH, 'publish').
 
 
 
@@ -241,9 +238,8 @@
 %%  
 -define(MESSAGING_ROCKETMQ_NAMESPACE, 'messaging.rocketmq.namespace').
 
-%% @deprecated Replaced by `messaging.servicebus.destination.subscription_name`.
-%%  
-%% Deprecated, use `messaging.servicebus.destination.subscription_name` instead.
+%% @deprecated Replaced by `messaging.destination.subscription.name`.
+%% Deprecated, use `messaging.destination.subscription.name` instead.
 %%  
 -define(MESSAGING_SERVICEBUS_DESTINATION_SUBSCRIPTION_NAME, 'messaging.servicebus.destination.subscription_name').
 
@@ -276,6 +272,8 @@
 -define(MESSAGING_SYSTEM, 'messaging.system').
 
 -define(MESSAGING_SYSTEM_VALUES_ACTIVEMQ, 'activemq').
+
+-define(MESSAGING_SYSTEM_VALUES_AWS_SNS, 'aws.sns').
 
 -define(MESSAGING_SYSTEM_VALUES_AWS_SQS, 'aws_sqs').
 

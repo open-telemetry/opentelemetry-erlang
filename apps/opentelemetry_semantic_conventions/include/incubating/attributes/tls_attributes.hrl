@@ -59,7 +59,7 @@
 %% Date/Time indicating when client certificate is first considered valid.
 -define(TLS_CLIENT_NOT_BEFORE, 'tls.client.not_before').
 
-%% @deprecated Replaced by `server.address.
+%% @deprecated Replaced by `server.address`.
 %% Deprecated, use `server.address` instead.
 -define(TLS_CLIENT_SERVER_NAME, 'tls.client.server_name').
 
@@ -85,7 +85,7 @@
 -define(TLS_NEXT_PROTOCOL, 'tls.next_protocol').
 
 
-%% Normalized lowercase protocol name parsed from original string of the negotiated [SSL/TLS protocol version](https://www.openssl.org/docs/man1.1.1/man3/SSL_get_version.html#RETURN-VALUES)
+%% Normalized lowercase protocol name parsed from original string of the negotiated [SSL/TLS protocol version](https://docs.openssl.org/1.1.1/man3/SSL_get_version/#return-values)
 %%  
 -define(TLS_PROTOCOL_NAME, 'tls.protocol.name').
 
@@ -95,7 +95,7 @@
 
 
 
-%% Numeric part of the version parsed from the original string of the negotiated [SSL/TLS protocol version](https://www.openssl.org/docs/man1.1.1/man3/SSL_get_version.html#RETURN-VALUES)
+%% Numeric part of the version parsed from the original string of the negotiated [SSL/TLS protocol version](https://docs.openssl.org/1.1.1/man3/SSL_get_version/#return-values)
 %%  
 -define(TLS_PROTOCOL_VERSION, 'tls.protocol.version').
 

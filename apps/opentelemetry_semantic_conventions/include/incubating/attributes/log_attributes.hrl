@@ -44,7 +44,7 @@
 
 
 
-%% The complete orignal Log Record.
+%% The complete original Log Record.
 %%  
 -define(LOG_RECORD_ORIGINAL, 'log.record.original').
 

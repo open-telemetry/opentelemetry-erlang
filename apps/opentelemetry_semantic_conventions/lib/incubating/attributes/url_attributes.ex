@@ -166,7 +166,7 @@ defmodule OpenTelemetry.SemConv.Incubating.URLAttributes do
   Value must be of type `atom() | String.t()`.
   ### Notes
 
-  This value can be determined precisely with the [public suffix list](http://publicsuffix.org). For example, the registered domain for `foo.example.com` is `example.com`. Trying to approximate this by simply taking the last two labels will not work well for TLDs such as `co.uk`.
+  This value can be determined precisely with the [public suffix list](https://publicsuffix.org/). For example, the registered domain for `foo.example.com` is `example.com`. Trying to approximate this by simply taking the last two labels will not work well for TLDs such as `co.uk`.
 
   ### Examples
 
@@ -273,7 +273,7 @@ defmodule OpenTelemetry.SemConv.Incubating.URLAttributes do
   Value must be of type `atom() | String.t()`.
   ### Notes
 
-  This value can be determined precisely with the [public suffix list](http://publicsuffix.org).
+  This value can be determined precisely with the [public suffix list](https://publicsuffix.org/).
 
   ### Examples
 

@@ -13,14 +13,19 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
-%% @deprecated Replaced by `user.id` attribute.
-%% Deprecated, use `user.id` instead.
+
+%% Unique identifier of an end user in the system. It maybe a username, email address, or other identifier.
 -define(ENDUSER_ID, 'enduser.id').
 
-%% @deprecated Replaced by `user.roles` attribute.
+
+%% Pseudonymous identifier of an end user. This identifier should be a random value that is not directly linked or associated with the end user's actual identity.
+%%  
+-define(ENDUSER_PSEUDO_ID, 'enduser.pseudo.id').
+
+%% @deprecated Use `user.roles` instead.
 %% Deprecated, use `user.roles` instead.
 -define(ENDUSER_ROLE, 'enduser.role').
 
-%% @deprecated Removed.
+%% @deprecated Removed, no replacement at this time.
 %% Deprecated, no replacement at this time.
 -define(ENDUSER_SCOPE, 'enduser.scope').

@@ -5,13 +5,45 @@ defmodule OpenTelemetry.SemConv.Incubating.DNSAttributes do
   """
 
   @doc """
+  The list of IPv4 or IPv6 addresses resolved during DNS lookup.
+  ### Value type
+
+  Value must be of type `[atom() | String.t()]`.
+  ### Examples
+
+  ```
+  [["10.0.0.1", "2001:0db8:85a3:0000:0000:8a2e:0370:7334"]]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.DNSAttributes.dns_answers()
+      :"dns.answers"
+
+  ### Erlang
+
+  ```erlang
+  ?DNS_ANSWERS.
+  'dns.answers'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec dns_answers :: :"dns.answers"
+  def dns_answers do
+    :"dns.answers"
+  end
+
+  @doc """
   The name being queried.
   ### Value type
 
   Value must be of type `atom() | String.t()`.
   ### Notes
 
-  If the name field contains non-printable characters (below 32 or above 126), those characters should be represented as escaped base 10 integers (\DDD). Back slashes and quotes should be escaped. Tabs, carriage returns, and line feeds should be converted to \t, \r, and \n respectively.
+  The name represents the queried domain name as it appears in the DNS query without any additional normalization.
 
   ### Examples
 

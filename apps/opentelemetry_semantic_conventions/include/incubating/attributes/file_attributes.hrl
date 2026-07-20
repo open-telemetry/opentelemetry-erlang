@@ -14,6 +14,26 @@
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
 
+%% Time when the file was last accessed, in ISO 8601 format.
+%%  
+-define(FILE_ACCESSED, 'file.accessed').
+
+
+%% Array of file attributes.
+%%  
+-define(FILE_ATTRIBUTES, 'file.attributes').
+
+
+%% Time when the file attributes or metadata was last changed, in ISO 8601 format.
+%%  
+-define(FILE_CHANGED, 'file.changed').
+
+
+%% Time when the file was created, in ISO 8601 format.
+%%  
+-define(FILE_CREATED, 'file.created').
+
+
 %% Directory where the file is located. It should include the drive letter, when appropriate.
 %%  
 -define(FILE_DIRECTORY, 'file.directory').
@@ -24,9 +44,49 @@
 -define(FILE_EXTENSION, 'file.extension').
 
 
+%% Name of the fork. A fork is additional data associated with a filesystem object.
+%%  
+-define(FILE_FORK_NAME, 'file.fork_name').
+
+
+%% Primary Group ID (GID) of the file.
+%%  
+-define(FILE_GROUP_ID, 'file.group.id').
+
+
+%% Primary group name of the file.
+%%  
+-define(FILE_GROUP_NAME, 'file.group.name').
+
+
+%% Inode representing the file in the filesystem.
+%%  
+-define(FILE_INODE, 'file.inode').
+
+
+%% Mode of the file in octal representation.
+%%  
+-define(FILE_MODE, 'file.mode').
+
+
+%% Time when the file content was last modified, in ISO 8601 format.
+%%  
+-define(FILE_MODIFIED, 'file.modified').
+
+
 %% Name of the file including the extension, without the directory.
 %%  
 -define(FILE_NAME, 'file.name').
+
+
+%% The user ID (UID) or security identifier (SID) of the file owner.
+%%  
+-define(FILE_OWNER_ID, 'file.owner.id').
+
+
+%% Username of the file owner.
+%%  
+-define(FILE_OWNER_NAME, 'file.owner.name').
 
 
 %% Full path to the file, including the file name. It should include the drive letter, when appropriate.
@@ -37,3 +97,8 @@
 %% File size in bytes.
 %%  
 -define(FILE_SIZE, 'file.size').
+
+
+%% Path to the target of a symbolic link.
+%%  
+-define(FILE_SYMBOLIC_LINK_TARGET_PATH, 'file.symbolic_link.target_path').

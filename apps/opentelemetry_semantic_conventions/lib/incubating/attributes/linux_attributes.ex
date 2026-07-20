@@ -8,49 +8,15 @@ defmodule OpenTelemetry.SemConv.Incubating.LinuxAttributes do
   The Linux Slab memory state
 
   ### Enum Values
-  * `:reclaimable` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:unreclaimable` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:reclaimable` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:unreclaimable` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type linux_memory_slab_state_values() :: %{
           :reclaimable => :reclaimable,
           :unreclaimable => :unreclaimable
         }
-  @doc """
-  The Linux Slab memory state
-
-  ### Examples
-
-  ```
-  ["reclaimable", "unreclaimable"]
-  ```
-
-  <!-- tabs-open -->
-
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.LinuxAttributes.linux_memory_slab_state()
-      :"linux.memory.slab.state"
-
-      iex> OpenTelemetry.SemConv.Incubating.LinuxAttributes.linux_memory_slab_state_values().reclaimable
-      :reclaimable
-
-      iex> %{OpenTelemetry.SemConv.Incubating.LinuxAttributes.linux_memory_slab_state() => OpenTelemetry.SemConv.Incubating.LinuxAttributes.linux_memory_slab_state_values().reclaimable}
-      %{:"linux.memory.slab.state" => :reclaimable}
-
-  ### Erlang
-
-  ```erlang
-  ?LINUX_MEMORY_SLAB_STATE.
-  'linux.memory.slab.state'
-
-  ?LINUX_MEMORY_SLAB_STATE_VALUES_RECLAIMABLE.
-  'reclaimable'
-
-  \#{?LINUX_MEMORY_SLAB_STATE => ?LINUX_MEMORY_SLAB_STATE_VALUES_RECLAIMABLE}.
-  \#{'linux.memory.slab.state' => 'reclaimable'}
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `system.memory.linux.slab.state`.
   """
   @spec linux_memory_slab_state :: :"linux.memory.slab.state"
   def linux_memory_slab_state do
