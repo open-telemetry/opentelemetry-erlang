@@ -319,6 +319,14 @@ terminate(_Reason, _State, #data{exporter=Exporter,
     %% `export' is used to perform a blocking export
     _ = export(Exporter, Resource, CurrentTable),
 
+    %% Synchronously shut the exporter down before this gen_statem exits.
+    %% Linked transport resources (e.g. grpcbox channels) clean up via
+    %% gproc in their own `terminate'; if we just return here, those
+    %% terminations race with the shutdown of the `grpcbox' application
+    %% itself and crash with "the table identifier does not refer to an
+    %% existing ETS table". See open-telemetry/opentelemetry-erlang#868.
+    _ = otel_exporter:shutdown(Exporter),
+
     ok.
 
 %%
