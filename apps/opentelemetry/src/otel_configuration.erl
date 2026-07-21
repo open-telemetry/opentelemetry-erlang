@@ -199,31 +199,22 @@ merge_processor_config(otel_simple_processor, Opts, ConfigMap, AppEnv) ->
 merge_processor_config(_, Opts, _, _) ->
     Opts.
 
-merge_processor_config_(EnvMapping, Opts, ConfigMap, AppEnv) ->
-    Mappings = config_mappings(general_sdk),
-
+merge_processor_config_(EnvMapping, Opts, ConfigMap, _AppEnv) ->
     lists:foldl(fun({K, V}, Acc) ->
                         case maps:get(K, ConfigMap, undefined) of
                             undefined ->
                                 Acc;
                             Value ->
-                                %% use default only if the config isn't found in Opts
-                                %% but if the value in ConfigMap isn't the default use it
-                                IsDefault = is_default(K, AppEnv, Mappings),
-                                case (IsDefault andalso not maps:is_key(V, Opts)) orelse not IsDefault of
+                                %% apply top-level/env config value only if the
+                                %% key isn't already explicitly set in processor opts
+                                case maps:is_key(V, Opts) of
                                     true ->
-                                        Acc#{V => Value};
+                                        Acc;
                                     false ->
-                                        Acc
+                                        Acc#{V => Value}
                                 end
                         end
                 end, Opts, EnvMapping).
-
-%% return true if the user (through application or os environment) configured
-%% a certain setting
-is_default(Key, AppEnv, Mappings) ->
-    {OSVarName, Key, _TransformType} = lists:keyfind(Key, 2, Mappings),
-    not lists:keymember(Key, 1, AppEnv) andalso os:getenv(OSVarName) =:= false.
 
 %% sampler configuration is unique since it has the _ARG that is a sort of
 %% sub-configuration of the sampler config, and isn't a list.
@@ -502,9 +493,9 @@ transform(span_processors, Unknown) ->
     ?LOG_WARNING("processors value must be a list, but ~ts given. No span processors will be used", [Unknown]),
     [];
 transform(span_processor, batch) ->
-    {otel_batch_processor, ?BATCH_PROCESSOR_DEFAULTS};
+    {otel_batch_processor, #{}};
 transform(span_processor, simple) ->
-    {otel_simple_processor, ?SIMPLE_PROCESSOR_DEFAULTS};
+    {otel_simple_processor, #{}};
 transform(span_processor, SpanProcessor) ->
     SpanProcessor;
 transform(readers, Readers) ->

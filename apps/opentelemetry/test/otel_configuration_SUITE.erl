@@ -21,7 +21,9 @@ all() ->
      log_level, propagators, propagators_b3, propagators_b3multi, otlp_exporter,
      jaeger_exporter, zipkin_exporter, none_exporter, app_env_exporter,
      otlp_metrics_exporter, none_metrics_exporter, span_limits, bad_span_limits,
-     bad_app_config, deny_list, resource_detectors, span_processors].
+     bad_app_config, deny_list, resource_detectors, span_processors,
+     processor_exporter_not_overridden,
+     processor_config_precedence_with_os_env].
 
 init_per_testcase(empty_os_environment, Config) ->
     Vars = [],
@@ -188,7 +190,13 @@ init_per_testcase(app_env_exporter, Config) ->
 
     [{os_vars, []} | Config];
 init_per_testcase(span_processors, Config) ->
-    [{os_vars, []} | Config].
+    [{os_vars, []} | Config];
+init_per_testcase(processor_exporter_not_overridden, Config) ->
+    [{os_vars, []} | Config];
+init_per_testcase(processor_config_precedence_with_os_env, Config) ->
+    Vars = [{"OTEL_TRACES_EXPORTER", "none"}],
+    setup_env(Vars),
+    [{os_vars, Vars} | Config].
 
 end_per_testcase(_, Config) ->
     Vars = ?config(os_vars, Config),
@@ -395,10 +403,11 @@ span_processors(_Config) ->
                                                            scheduled_delay_ms := 5000}}]},
                  otel_configuration:merge_with_os([{span_processor, batch}])),
 
+    %% processor-level config takes precedence over top-level bsp_ settings
     ?assertMatch(#{processors := [{otel_batch_processor, #{exporter := {opentelemetry_exporter,
                                                                         #{endpoints := ["https://example.com"]}},
-                                                           exporting_timeout_ms := 2,
-                                                           max_queue_size := 1,
+                                                           exporting_timeout_ms := 3,
+                                                           max_queue_size := 4,
                                                            scheduled_delay_ms := 15000}}]},
                  otel_configuration:merge_with_os([{processors, [{otel_batch_processor, #{exporter => {opentelemetry_exporter,#{endpoints => ["https://example.com"]}},
                                                                                           scheduled_delay_ms => 15000,
@@ -411,6 +420,103 @@ span_processors(_Config) ->
                                                             exporting_timeout_ms := 2}}]},
                  otel_configuration:merge_with_os([{span_processor, simple},
                                                    {ssp_exporting_timeout_ms, 2}])),
+
+    ok.
+
+processor_exporter_not_overridden(_Config) ->
+    %% processor-level exporter should not be overridden by top-level traces_exporter
+    ?assertMatch(#{processors := [{otel_batch_processor, #{exporter := {my_exporter, #{}}}}]},
+                 otel_configuration:merge_with_os([{traces_exporter, {other_exporter, #{}}},
+                                                   {processors, [{otel_batch_processor,
+                                                                  #{exporter => {my_exporter, #{}}}}]}])),
+
+    %% processor-level exporter preserved when no top-level traces_exporter is set
+    ?assertMatch(#{processors := [{otel_batch_processor, #{exporter := {my_exporter, #{}}}}]},
+                 otel_configuration:merge_with_os([{processors, [{otel_batch_processor,
+                                                                  #{exporter => {my_exporter, #{}}}}]}])),
+
+    %% top-level traces_exporter applies when processor opts don't include exporter
+    ?assertMatch(#{processors := [{otel_batch_processor, #{exporter := {custom_exporter, #{}}}}]},
+                 otel_configuration:merge_with_os([{traces_exporter, {custom_exporter, #{}}},
+                                                   {span_processor, batch}])),
+
+    %% same for simple processor
+    ?assertMatch(#{processors := [{otel_simple_processor, #{exporter := {my_exporter, #{}}}}]},
+                 otel_configuration:merge_with_os([{traces_exporter, {other_exporter, #{}}},
+                                                   {processors, [{otel_simple_processor,
+                                                                  #{exporter => {my_exporter, #{}}}}]}])),
+
+    %% processor-level 'none' exporter preserved even when top-level sets something else
+    ?assertMatch(#{processors := [{otel_batch_processor, #{exporter := none}}]},
+                 otel_configuration:merge_with_os([{traces_exporter, {other_exporter, #{}}},
+                                                   {processors, [{otel_batch_processor,
+                                                                  #{exporter => none}}]}])),
+
+    %% processor-level timeout preserved when bsp_ also set
+    ?assertMatch(#{processors := [{otel_batch_processor, #{exporting_timeout_ms := 500}}]},
+                 otel_configuration:merge_with_os([{bsp_exporting_timeout_ms, 999},
+                                                   {processors, [{otel_batch_processor,
+                                                                  #{exporting_timeout_ms => 500}}]}])),
+
+    %% processor-level scheduled_delay_ms preserved when bsp_ also set
+    ?assertMatch(#{processors := [{otel_batch_processor, #{scheduled_delay_ms := 100}}]},
+                 otel_configuration:merge_with_os([{bsp_scheduled_delay_ms, 9999},
+                                                   {processors, [{otel_batch_processor,
+                                                                  #{scheduled_delay_ms => 100}}]}])),
+
+    %% simple processor timeout preserved when ssp_ also set
+    ?assertMatch(#{processors := [{otel_simple_processor, #{exporting_timeout_ms := 200}}]},
+                 otel_configuration:merge_with_os([{ssp_exporting_timeout_ms, 888},
+                                                   {processors, [{otel_simple_processor,
+                                                                  #{exporting_timeout_ms => 200}}]}])),
+
+    %% bsp_ settings still apply when processor opts don't include those keys
+    ?assertMatch(#{processors := [{otel_batch_processor, #{exporting_timeout_ms := 7,
+                                                           max_queue_size := 11}}]},
+                 otel_configuration:merge_with_os([{bsp_exporting_timeout_ms, 7},
+                                                   {bsp_max_queue_size, 11},
+                                                   {processors, [{otel_batch_processor,
+                                                                  #{scheduled_delay_ms => 100}}]}])),
+
+    %% multiple processors - each gets independent config resolution
+    ?assertMatch(#{processors := [{otel_batch_processor, #{exporter := {batch_exp, #{}}}},
+                                  {otel_simple_processor, #{exporter := {simple_exp, #{}}}}]},
+                 otel_configuration:merge_with_os([{traces_exporter, {global_exp, #{}}},
+                                                   {processors, [{otel_batch_processor,
+                                                                  #{exporter => {batch_exp, #{}}}},
+                                                                 {otel_simple_processor,
+                                                                  #{exporter => {simple_exp, #{}}}}]}])),
+
+    %% default config fully populated when using span_processor shorthand
+    ?assertMatch(#{processors := [{otel_batch_processor, #{exporter := {opentelemetry_exporter, #{}},
+                                                           exporting_timeout_ms := 30000,
+                                                           max_queue_size := 2048,
+                                                           scheduled_delay_ms := 5000}}]},
+                 otel_configuration:merge_with_os([{span_processor, batch}])),
+
+    ok.
+
+processor_config_precedence_with_os_env(_Config) ->
+    %% OTEL_TRACES_EXPORTER=none is set in init_per_testcase
+
+    %% OS env 'none' applies to batch processor via shorthand
+    ?assertMatch(#{processors := [{otel_batch_processor, #{exporter := none}}]},
+                 otel_configuration:merge_with_os([{span_processor, batch}])),
+
+    %% OS env 'none' applies to simple processor via shorthand
+    ?assertMatch(#{processors := [{otel_simple_processor, #{exporter := none}}]},
+                 otel_configuration:merge_with_os([{span_processor, simple}])),
+
+    %% OS env does NOT override processor-level exporter
+    ?assertMatch(#{processors := [{otel_batch_processor, #{exporter := {my_exporter, #{}}}}]},
+                 otel_configuration:merge_with_os([{processors, [{otel_batch_processor,
+                                                                  #{exporter => {my_exporter, #{}}}}]}])),
+
+    %% OS env applies when processor opts don't include exporter
+    ?assertMatch(#{processors := [{otel_batch_processor, #{exporter := none,
+                                                           scheduled_delay_ms := 100}}]},
+                 otel_configuration:merge_with_os([{processors, [{otel_batch_processor,
+                                                                  #{scheduled_delay_ms => 100}}]}])),
 
     ok.
 
