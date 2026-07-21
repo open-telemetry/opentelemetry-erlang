@@ -16,13 +16,13 @@ jobs:
     name: Run W3C Trace Context Interop Tests
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v7
-    - uses: erlef/setup-beam@v1
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
       with:
         otp-version: '26.1.2'
         version-type: strict
         rebar3-version: '3.22.1'
-    - uses: actions/cache@v5
+    - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
       name: Cache
       with:
         path: |
@@ -34,14 +34,14 @@ jobs:
     - name: Compile
       run: rebar3 as interop compile
 
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: 'w3c/trace-context'
         path: 'trace-context'
     - name: Setup python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
       with:
-        python-version: 3.13
+        python-version: 3.14
         architecture: x64
     - run: pip install aiohttp
     - run: |
