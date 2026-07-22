@@ -10,7 +10,7 @@
 -compile(export_all).
 -compile(nowarn_export_all).
 
--include_lib("grpcbox/include/grpcbox.hrl").
+-include("otel_grpcbox_def.hrl").
 
 -define(is_ctx(Ctx), is_tuple(Ctx) andalso element(1, Ctx) =:= ctx).
 
