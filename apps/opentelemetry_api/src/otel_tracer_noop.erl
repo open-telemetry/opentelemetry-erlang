@@ -56,11 +56,15 @@ start_span(Ctx, _, _SpanName, _) ->
 with_span(Ctx, Tracer, SpanName, Opts, Fun) ->
     SpanCtx = start_span(Ctx, Tracer, SpanName, Opts),
     Ctx1 = otel_tracer:set_current_span(Ctx, SpanCtx),
-    otel_ctx:attach(Ctx1),
+    Token = otel_ctx:attach(Ctx1),
     try
         Fun(SpanCtx)
     after
-        otel_ctx:attach(Ctx)
+        %% passing SpanCtx directly ensures that this `end_span' ends the span started
+        %% in this function. If spans in `Fun()' were started and not finished properly
+        %% they will be abandoned and it be up to the `otel_span_sweeper' to eventually remove them.
+        _ = otel_span_ets:end_span(SpanCtx),
+        otel_ctx:detach(Token)
     end.
 
 -spec end_span(opentelemetry:tracer(), opentelemetry:span_ctx())
