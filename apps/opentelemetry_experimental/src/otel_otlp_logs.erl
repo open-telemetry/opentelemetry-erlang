@@ -77,7 +77,7 @@ log_record(#{level := Level,
                             lists:reverse(
                               trim(S, false)), true)),
                     re:replace(T,",?\r?\n\s*",", ",
-                               [{return,list}, global, unicode]);
+                               [{return,binary}, global, unicode]);
                 M ->
                     M
             end,
