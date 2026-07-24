@@ -50,6 +50,13 @@
 
 -define(BAGGAGE_HEADER, <<"baggage">>).
 
+%% Limits recommended by the W3C Baggage specification and applied by the
+%% other OpenTelemetry SDK implementations (Java SDK 1.62.0
+%% `W3CBaggagePropagator`, Go `propagation/baggage.go`, .NET
+%% `BaggagePropagator.cs`, C++ `baggage.h`).
+-define(MAX_BAGGAGE_BYTES, 8192).
+-define(MAX_BAGGAGE_ENTRIES, 180).
+
 %% @private
 fields(_) ->
     [?BAGGAGE_HEADER].
@@ -83,14 +90,33 @@ extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet, _Options) ->
         undefined ->
             Ctx;
         String ->
-            Pairs = string:lexemes(String, [$,]),
-            DecodedBaggage =
-                lists:foldl(fun(Pair, Acc) ->
-                                    [Key, Value] = string:split(Pair, "="),
-                                    Acc#{decode_key(Key) => decode_value(Value)}
+            case header_size(String) of
+                Size when Size > ?MAX_BAGGAGE_BYTES ->
+                    Ctx;
+                _ ->
+                    Pairs = string:lexemes(String, [$,]),
+                    DecodedBaggage = decode_pairs(Pairs, #{}, 0),
+                    otel_baggage:set_to(Ctx, DecodedBaggage)
+            end
+    end.
 
-                            end, #{}, Pairs),
-            otel_baggage:set_to(Ctx, DecodedBaggage)
+header_size(String) when is_binary(String) ->
+    byte_size(String);
+header_size(String) when is_list(String) ->
+    iolist_size(String);
+header_size(_) ->
+    0.
+
+decode_pairs([], Acc, _N) ->
+    Acc;
+decode_pairs(_Pairs, Acc, N) when N >= ?MAX_BAGGAGE_ENTRIES ->
+    Acc;
+decode_pairs([Pair | Rest], Acc, N) ->
+    case string:split(Pair, "=") of
+        [Key, Value] ->
+            decode_pairs(Rest, Acc#{decode_key(Key) => decode_value(Value)}, N + 1);
+        _ ->
+            decode_pairs(Rest, Acc, N)
     end.
 
 %%
