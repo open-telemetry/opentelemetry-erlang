@@ -189,6 +189,12 @@ exporting(internal, export, Data=#data{exporter=Exporter,
                                        batch=Batch}) when map_size(Batch) =/= 0 ->
     _ = export(Exporter, Resource, Batch, Config),
     {next_state, idle, Data#data{batch=#{}}};
+exporting(internal, export, Data=#data{batch=Batch}) when map_size(Batch) =:= 0 ->
+    %% Nothing accumulated this interval. Return to `idle` so its `enter` clause
+    %% re-arms the export timer. Without this clause an empty tick falls through
+    %% to `handle_event/3` (`keep_state_and_data`) and the handler stays in
+    %% `exporting` forever, never exporting again after the first idle interval.
+    {next_state, idle, Data};
 exporting(EventType, EventContent, Data) ->
     handle_event(EventType, EventContent, Data).
 
