@@ -28,8 +28,8 @@
 -define(HTTP_CONNECTION_STATE_VALUES_IDLE, 'idle').
 
 
-%% @deprecated Replaced by `network.protocol.name`.
-%% Deprecated, use `network.protocol.name` instead.
+%% @deprecated Split into `network.protocol.name` and `network.protocol.version`
+%% Deprecated, use `network.protocol.name` and `network.protocol.version` instead.
 -define(HTTP_FLAVOR, 'http.flavor').
 
 -define(HTTP_FLAVOR_VALUES_HTTP_1_0, '1.0').
@@ -46,6 +46,7 @@
 
 
 %% @deprecated Replaced by one of `server.address`, `client.address` or `http.request.header.host`, depending on the usage.
+%%  
 %% Deprecated, use one of `server.address`, `client.address` or `http.request.header.host` instead, depending on the usage.
 -define(HTTP_HOST, 'http.host').
 
@@ -85,11 +86,11 @@
 %% Deprecated, use `http.response.header.content-length` instead.
 -define(HTTP_RESPONSE_CONTENT_LENGTH, 'http.response_content_length').
 
-%% @deprecated Replace by `http.response.body.size`.
+%% @deprecated Replaced by `http.response.body.size`.
 %% Deprecated, use `http.response.body.size` instead.
 -define(HTTP_RESPONSE_CONTENT_LENGTH_UNCOMPRESSED, 'http.response_content_length_uncompressed').
 
-%% @deprecated Replaced by `url.scheme` instead.
+%% @deprecated Replaced by `url.scheme`.
 %% Deprecated, use `url.scheme` instead.
 -define(HTTP_SCHEME, 'http.scheme').
 
@@ -101,7 +102,7 @@
 %% Deprecated, use `http.response.status_code` instead.
 -define(HTTP_STATUS_CODE, 'http.status_code').
 
-%% @deprecated Split to `url.path` and `url.query.
+%% @deprecated Split to `url.path` and `url.query`.
 %% Deprecated, use `url.path` and `url.query` instead.
 -define(HTTP_TARGET, 'http.target').
 

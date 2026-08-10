@@ -5,6 +5,72 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   """
 
   @doc """
+  The unique identifier of the AWS Bedrock Guardrail. A [guardrail](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) helps safeguard and prevent unwanted behavior from model responses or user messages.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["sgi5gkybzqak"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_bedrock_guardrail_id()
+      :"aws.bedrock.guardrail.id"
+
+  ### Erlang
+
+  ```erlang
+  ?AWS_BEDROCK_GUARDRAIL_ID.
+  'aws.bedrock.guardrail.id'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec aws_bedrock_guardrail_id :: :"aws.bedrock.guardrail.id"
+  def aws_bedrock_guardrail_id do
+    :"aws.bedrock.guardrail.id"
+  end
+
+  @doc """
+  The unique identifier of the AWS Bedrock Knowledge base. A [knowledge base](https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html) is a bank of information that can be queried by models to generate more relevant responses and augment prompts.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["XFWUPB9PAW"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_bedrock_knowledge_base_id()
+      :"aws.bedrock.knowledge_base.id"
+
+  ### Erlang
+
+  ```erlang
+  ?AWS_BEDROCK_KNOWLEDGE_BASE_ID.
+  'aws.bedrock.knowledge_base.id'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec aws_bedrock_knowledge_base_id :: :"aws.bedrock.knowledge_base.id"
+  def aws_bedrock_knowledge_base_id do
+    :"aws.bedrock.knowledge_base.id"
+  end
+
+  @doc """
   The JSON-serialized value of each item in the `AttributeDefinitions` request field.
   ### Value type
 
@@ -12,7 +78,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["{ \"AttributeName\": \"string\", \"AttributeType\": \"string\" }"]
+  [["{ \"AttributeName\": \"string\", \"AttributeType\": \"string\" }"]]
   ```
 
   <!-- tabs-open -->
@@ -44,7 +110,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["lives", "id"]
+  [["lives", "id"]]
   ```
 
   <!-- tabs-open -->
@@ -103,7 +169,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["{ \"CapacityUnits\": number, \"GlobalSecondaryIndexes\": { \"string\" : { \"CapacityUnits\": number, \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number } }, \"LocalSecondaryIndexes\": { \"string\" : { \"CapacityUnits\": number, \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number } }, \"ReadCapacityUnits\": number, \"Table\": { \"CapacityUnits\": number, \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number }, \"TableName\": \"string\", \"WriteCapacityUnits\": number }"]
+  [["{ \"CapacityUnits\": number, \"GlobalSecondaryIndexes\": { \"string\" : { \"CapacityUnits\": number, \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number } }, \"LocalSecondaryIndexes\": { \"string\" : { \"CapacityUnits\": number, \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number } }, \"ReadCapacityUnits\": number, \"Table\": { \"CapacityUnits\": number, \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number }, \"TableName\": \"string\", \"WriteCapacityUnits\": number }"]]
   ```
 
   <!-- tabs-open -->
@@ -199,7 +265,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["{ \"Create\": { \"IndexName\": \"string\", \"KeySchema\": [ { \"AttributeName\": \"string\", \"KeyType\": \"string\" } ], \"Projection\": { \"NonKeyAttributes\": [ \"string\" ], \"ProjectionType\": \"string\" }, \"ProvisionedThroughput\": { \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number } }"]
+  [["{ \"Create\": { \"IndexName\": \"string\", \"KeySchema\": [ { \"AttributeName\": \"string\", \"KeyType\": \"string\" } ], \"Projection\": { \"NonKeyAttributes\": [ \"string\" ], \"ProjectionType\": \"string\" }, \"ProvisionedThroughput\": { \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number } }"]]
   ```
 
   <!-- tabs-open -->
@@ -232,7 +298,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["{ \"IndexName\": \"string\", \"KeySchema\": [ { \"AttributeName\": \"string\", \"KeyType\": \"string\" } ], \"Projection\": { \"NonKeyAttributes\": [ \"string\" ], \"ProjectionType\": \"string\" }, \"ProvisionedThroughput\": { \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number } }"]
+  [["{ \"IndexName\": \"string\", \"KeySchema\": [ { \"AttributeName\": \"string\", \"KeyType\": \"string\" } ], \"Projection\": { \"NonKeyAttributes\": [ \"string\" ], \"ProjectionType\": \"string\" }, \"ProvisionedThroughput\": { \"ReadCapacityUnits\": number, \"WriteCapacityUnits\": number } }"]]
   ```
 
   <!-- tabs-open -->
@@ -360,7 +426,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["{ \"IndexArn\": \"string\", \"IndexName\": \"string\", \"IndexSizeBytes\": number, \"ItemCount\": number, \"KeySchema\": [ { \"AttributeName\": \"string\", \"KeyType\": \"string\" } ], \"Projection\": { \"NonKeyAttributes\": [ \"string\" ], \"ProjectionType\": \"string\" } }"]
+  [["{ \"IndexArn\": \"string\", \"IndexName\": \"string\", \"IndexSizeBytes\": number, \"ItemCount\": number, \"KeySchema\": [ { \"AttributeName\": \"string\", \"KeyType\": \"string\" } ], \"Projection\": { \"NonKeyAttributes\": [ \"string\" ], \"ProjectionType\": \"string\" } }"]]
   ```
 
   <!-- tabs-open -->
@@ -643,7 +709,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["Users", "Cats"]
+  [["Users", "Cats"]]
   ```
 
   <!-- tabs-open -->
@@ -770,8 +836,8 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
 
 
   ### Enum Values
-  * `:ec2` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:fargate` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:ec2` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Amazon EC2
+  * `:fargate` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Amazon Fargate
   """
   @type aws_ecs_launchtype_values() :: %{
           :ec2 => :ec2,
@@ -989,6 +1055,71 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   end
 
   @doc """
+  The AWS extended request ID as returned in the response header `x-amz-id-2`.
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ="]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_extended_request_id()
+      :"aws.extended_request_id"
+
+  ### Erlang
+
+  ```erlang
+  ?AWS_EXTENDED_REQUEST_ID.
+  'aws.extended_request_id'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec aws_extended_request_id :: :"aws.extended_request_id"
+  def aws_extended_request_id do
+    :"aws.extended_request_id"
+  end
+
+  @doc """
+  The name of the AWS Kinesis [stream](https://docs.aws.amazon.com/streams/latest/dev/introduction.html) the request refers to. Corresponds to the `--stream-name` parameter of the Kinesis [describe-stream](https://docs.aws.amazon.com/cli/latest/reference/kinesis/describe-stream.html) operation.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["some-stream-name"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_kinesis_stream_name()
+      :"aws.kinesis.stream_name"
+
+  ### Erlang
+
+  ```erlang
+  ?AWS_KINESIS_STREAM_NAME.
+  'aws.kinesis.stream_name'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec aws_kinesis_stream_name :: :"aws.kinesis.stream_name"
+  def aws_kinesis_stream_name do
+    :"aws.kinesis.stream_name"
+  end
+
+  @doc """
   The full invoked ARN as provided on the `Context` passed to the function (`Lambda-Runtime-Invoked-Function-Arn` header on the `/runtime/invocation/next` applicable).
 
   ### Value type
@@ -1025,6 +1156,39 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   end
 
   @doc """
+  The UUID of the [AWS Lambda EvenSource Mapping](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html). An event source is mapped to a lambda function. It's contents are read by Lambda and used to trigger a function. This isn't available in the lambda execution context or the lambda runtime environtment. This is going to be populated by the AWS SDK for each language when that UUID is present. Some of these operations are Create/Delete/Get/List/Update EventSourceMapping.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["587ad24b-03b9-4413-8202-bbd56b36e5b7"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_lambda_resource_mapping_id()
+      :"aws.lambda.resource_mapping.id"
+
+  ### Erlang
+
+  ```erlang
+  ?AWS_LAMBDA_RESOURCE_MAPPING_ID.
+  'aws.lambda.resource_mapping.id'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec aws_lambda_resource_mapping_id :: :"aws.lambda.resource_mapping.id"
+  def aws_lambda_resource_mapping_id do
+    :"aws.lambda.resource_mapping.id"
+  end
+
+  @doc """
   The Amazon Resource Name(s) (ARN) of the AWS log group(s).
 
   ### Value type
@@ -1037,7 +1201,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["arn:aws:logs:us-west-1:123456789012:log-group:/aws/my/group:*"]
+  [["arn:aws:logs:us-west-1:123456789012:log-group:/aws/my/group:*"]]
   ```
 
   <!-- tabs-open -->
@@ -1074,7 +1238,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["/aws/lambda/my-function", "opentelemetry-service"]
+  [["/aws/lambda/my-function", "opentelemetry-service"]]
   ```
 
   <!-- tabs-open -->
@@ -1111,7 +1275,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["arn:aws:logs:us-west-1:123456789012:log-group:/aws/my/group:log-stream:logs/main/10838bed-421f-43ef-870a-f43feacbbb5b"]
+  [["arn:aws:logs:us-west-1:123456789012:log-group:/aws/my/group:log-stream:logs/main/10838bed-421f-43ef-870a-f43feacbbb5b"]]
   ```
 
   <!-- tabs-open -->
@@ -1144,7 +1308,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   ### Examples
 
   ```
-  ["logs/main/10838bed-421f-43ef-870a-f43feacbbb5b"]
+  [["logs/main/10838bed-421f-43ef-870a-f43feacbbb5b"]]
   ```
 
   <!-- tabs-open -->
@@ -1169,7 +1333,7 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   end
 
   @doc """
-  The AWS request ID as returned in the response headers `x-amz-request-id` or `x-amz-requestid`.
+  The AWS request ID as returned in the response headers `x-amzn-requestid`, `x-amzn-request-id` or `x-amz-request-id`.
   ### Value type
 
   Value must be of type `atom() | String.t()`.
@@ -1448,5 +1612,170 @@ defmodule OpenTelemetry.SemConv.Incubating.AWSAttributes do
   @spec aws_s3_upload_id :: :"aws.s3.upload_id"
   def aws_s3_upload_id do
     :"aws.s3.upload_id"
+  end
+
+  @doc """
+  The ARN of the Secret stored in the Secrets Mangger
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["arn:aws:secretsmanager:us-east-1:123456789012:secret:SecretName-6RandomCharacters"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_secretsmanager_secret_arn()
+      :"aws.secretsmanager.secret.arn"
+
+  ### Erlang
+
+  ```erlang
+  ?AWS_SECRETSMANAGER_SECRET_ARN.
+  'aws.secretsmanager.secret.arn'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec aws_secretsmanager_secret_arn :: :"aws.secretsmanager.secret.arn"
+  def aws_secretsmanager_secret_arn do
+    :"aws.secretsmanager.secret.arn"
+  end
+
+  @doc """
+  The ARN of the AWS SNS Topic. An Amazon SNS [topic](https://docs.aws.amazon.com/sns/latest/dg/sns-create-topic.html) is a logical access point that acts as a communication channel.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["arn:aws:sns:us-east-1:123456789012:mystack-mytopic-NZJ5JSMVGFIE"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_sns_topic_arn()
+      :"aws.sns.topic.arn"
+
+  ### Erlang
+
+  ```erlang
+  ?AWS_SNS_TOPIC_ARN.
+  'aws.sns.topic.arn'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec aws_sns_topic_arn :: :"aws.sns.topic.arn"
+  def aws_sns_topic_arn do
+    :"aws.sns.topic.arn"
+  end
+
+  @doc """
+  The URL of the AWS SQS Queue. It's a unique identifier for a queue in Amazon Simple Queue Service (SQS) and is used to access the queue and perform actions on it.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["https://sqs.us-east-1.amazonaws.com/123456789012/MyQueue"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_sqs_queue_url()
+      :"aws.sqs.queue.url"
+
+  ### Erlang
+
+  ```erlang
+  ?AWS_SQS_QUEUE_URL.
+  'aws.sqs.queue.url'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec aws_sqs_queue_url :: :"aws.sqs.queue.url"
+  def aws_sqs_queue_url do
+    :"aws.sqs.queue.url"
+  end
+
+  @doc """
+  The ARN of the AWS Step Functions Activity.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["arn:aws:states:us-east-1:123456789012:activity:get-greeting"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_step_functions_activity_arn()
+      :"aws.step_functions.activity.arn"
+
+  ### Erlang
+
+  ```erlang
+  ?AWS_STEP_FUNCTIONS_ACTIVITY_ARN.
+  'aws.step_functions.activity.arn'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec aws_step_functions_activity_arn :: :"aws.step_functions.activity.arn"
+  def aws_step_functions_activity_arn do
+    :"aws.step_functions.activity.arn"
+  end
+
+  @doc """
+  The ARN of the AWS Step Functions State Machine.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["arn:aws:states:us-east-1:123456789012:stateMachine:myStateMachine:1"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.AWSAttributes.aws_step_functions_state_machine_arn()
+      :"aws.step_functions.state_machine.arn"
+
+  ### Erlang
+
+  ```erlang
+  ?AWS_STEP_FUNCTIONS_STATE_MACHINE_ARN.
+  'aws.step_functions.state_machine.arn'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec aws_step_functions_state_machine_arn :: :"aws.step_functions.state_machine.arn"
+  def aws_step_functions_state_machine_arn do
+    :"aws.step_functions.state_machine.arn"
   end
 end

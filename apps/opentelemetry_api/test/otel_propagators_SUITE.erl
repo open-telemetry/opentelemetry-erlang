@@ -16,7 +16,7 @@
                             <<"00-10000000000000000000000000000000-1000000000000000-00">>}]).
 
 all() ->
-    [tracestate, rewrite, {group, absence_of_an_installed_sdk}, custom_propagator].
+    [tracestate, tracestate_key_grammar, rewrite, {group, absence_of_an_installed_sdk}, custom_propagator].
 
 groups() ->
     %% Tests of Behavior of the API in the absence of an installed SDK
@@ -63,6 +63,29 @@ tracestate(_Config) ->
 
     TracestateEncoded1 = otel_tracestate:encode_header(Tracestate8),
     ?assertEqual(<<"a=h,c=g">>, TracestateEncoded1),
+
+    ok.
+
+%% key = ( lcalpha / DIGIT ) 0*255 ( lcalpha / DIGIT / "_" / "-" / "*" / "/" / "@" )
+%% https://www.w3.org/TR/trace-context-2/#key
+tracestate_key_grammar(_Config) ->
+    ValidKeys = [<<"foo@">>,
+                 <<"foo@@bar">>,
+                 <<"foo@bar@baz">>,
+                 <<"0mykey">>,
+                 binary:copy(<<"z">>, 256)],
+    lists:foreach(fun(Key) ->
+                          Decoded = otel_tracestate:decode_header(<<Key/binary, "=1,bar=2">>),
+                          ?assertEqual(<<"1">>, otel_tracestate:get(Key, Decoded)),
+                          ?assertEqual(<<"2">>, otel_tracestate:get(<<"bar">>, Decoded))
+                  end, ValidKeys),
+
+    InvalidKeys = [<<"@foo">>,
+                   binary:copy(<<"z">>, 257)],
+    lists:foreach(fun(Key) ->
+                          Decoded = otel_tracestate:decode_header(<<Key/binary, "=1,bar=2">>),
+                          ?assertEqual("", otel_tracestate:get(Key, Decoded))
+                  end, InvalidKeys),
 
     ok.
 

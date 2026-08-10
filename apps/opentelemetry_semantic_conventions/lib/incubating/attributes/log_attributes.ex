@@ -195,7 +195,7 @@ defmodule OpenTelemetry.SemConv.Incubating.LogAttributes do
   end
 
   @doc """
-  The complete orignal Log Record.
+  The complete original Log Record.
 
   ### Value type
 

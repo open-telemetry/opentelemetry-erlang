@@ -142,7 +142,7 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   end
 
   @deprecated """
-  Removed.
+  Removed. No replacement at this time.
   """
   @spec net_sock_peer_name :: :"net.sock.peer.name"
   def net_sock_peer_name do
@@ -161,8 +161,8 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   Deprecated, use `network.transport`.
 
   ### Enum Values
-  * `:ip_tcp` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:ip_udp` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:ip_tcp` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:ip_udp` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   * `:pipe` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Named or anonymous pipe.
   * `:inproc` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - In-process communication.
   * `:other` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Something else (non IP-based).
@@ -322,6 +322,97 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   end
 
   @typedoc """
+  The state of network connection
+
+  ### Enum Values
+  * `:closed` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:close_wait` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:closing` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:established` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:fin_wait_1` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:fin_wait_2` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:last_ack` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:listen` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:syn_received` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:syn_sent` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:time_wait` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  """
+  @type network_connection_state_values() :: %{
+          :closed => :closed,
+          :close_wait => :close_wait,
+          :closing => :closing,
+          :established => :established,
+          :fin_wait_1 => :fin_wait_1,
+          :fin_wait_2 => :fin_wait_2,
+          :last_ack => :last_ack,
+          :listen => :listen,
+          :syn_received => :syn_received,
+          :syn_sent => :syn_sent,
+          :time_wait => :time_wait
+        }
+  @doc """
+  The state of network connection
+
+  ### Notes
+
+  Connection states are defined as part of the [rfc9293](https://datatracker.ietf.org/doc/html/rfc9293#section-3.3.2)
+  ### Examples
+
+  ```
+  ["close_wait"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_state()
+      :"network.connection.state"
+
+      iex> OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_state_values().closed
+      :closed
+
+      iex> %{OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_state() => OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_connection_state_values().closed}
+      %{:"network.connection.state" => :closed}
+
+  ### Erlang
+
+  ```erlang
+  ?NETWORK_CONNECTION_STATE.
+  'network.connection.state'
+
+  ?NETWORK_CONNECTION_STATE_VALUES_CLOSED.
+  'closed'
+
+  \#{?NETWORK_CONNECTION_STATE => ?NETWORK_CONNECTION_STATE_VALUES_CLOSED}.
+  \#{'network.connection.state' => 'closed'}
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec network_connection_state :: :"network.connection.state"
+  def network_connection_state do
+    :"network.connection.state"
+  end
+
+  @spec network_connection_state_values() :: network_connection_state_values()
+  def network_connection_state_values() do
+    %{
+      :closed => :closed,
+      :close_wait => :close_wait,
+      :closing => :closing,
+      :established => :established,
+      :fin_wait_1 => :fin_wait_1,
+      :fin_wait_2 => :fin_wait_2,
+      :last_ack => :last_ack,
+      :listen => :listen,
+      :syn_received => :syn_received,
+      :syn_sent => :syn_sent,
+      :time_wait => :time_wait
+    }
+  end
+
+  @typedoc """
   This describes more details regarding the connection.type. It may be the type of cell technology connection, but it could be used for describing details about a wifi connection.
 
   ### Enum Values
@@ -443,11 +534,11 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
   The internet connection type.
 
   ### Enum Values
-  * `:wifi` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:wired` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:cell` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:unavailable` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:unknown` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:wifi` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:wired` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:cell` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:unavailable` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:unknown` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type network_connection_type_values() :: %{
           :wifi => :wifi,
@@ -509,12 +600,44 @@ defmodule OpenTelemetry.SemConv.Incubating.NetworkAttributes do
     }
   end
 
+  @doc """
+  The network interface name.
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["lo", "eth0"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.NetworkAttributes.network_interface_name()
+      :"network.interface.name"
+
+  ### Erlang
+
+  ```erlang
+  ?NETWORK_INTERFACE_NAME.
+  'network.interface.name'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec network_interface_name :: :"network.interface.name"
+  def network_interface_name do
+    :"network.interface.name"
+  end
+
   @typedoc """
   The network IO operation direction.
 
   ### Enum Values
-  * `:transmit` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
-  * `:receive` ^[e](`m:OpenTelemetry.SemConv#experimental`)^
+  * `:transmit` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
+  * `:receive` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - 
   """
   @type network_io_direction_values() :: %{
           :transmit => :transmit,

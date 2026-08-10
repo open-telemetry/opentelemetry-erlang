@@ -14,7 +14,7 @@ all() ->
      {group, grpc}, {group, grpc_gzip}].
 
 groups() ->
-    [{functional, [], [configuration, span_round_trip, span_flags, ets_instrumentation_info, to_attributes]},
+    [{functional, [], [configuration, span_round_trip, span_flags, ets_instrumentation_info, to_any_value_boolean, to_attributes]},
      {grpc, [], [verify_export]},
      {grpc_gzip, [], [verify_export]},
      {http_protobuf, [], [verify_export, user_agent]},
@@ -407,6 +407,14 @@ span_flags(_Config) ->
     PbSpanNoParent = otel_otlp_traces:to_proto(NoParentSpan),
     ?assertEqual(16#101, maps:get(flags, PbSpanNoParent)), %% 0x101 - no parent with sampled flag
 
+    ok.
+
+%% test boolean conversion to the OTLP AnyValue representation
+to_any_value_boolean(_Config) ->
+    ?assertEqual(#{value => {bool_value, true}},
+                 otel_otlp_common:to_any_value(true)),
+    ?assertEqual(#{value => {bool_value, false}},
+                 otel_otlp_common:to_any_value(false)),
     ok.
 
 %% test conversion of attributes to the map representation of the OTLP protobuf

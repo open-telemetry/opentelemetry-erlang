@@ -70,7 +70,7 @@
 %% Deprecated, use `network.peer.address`.
 -define(NET_SOCK_PEER_ADDR, 'net.sock.peer.addr').
 
-%% @deprecated Removed.
+%% @deprecated Removed. No replacement at this time.
 %% Deprecated, no replacement at this time.
 -define(NET_SOCK_PEER_NAME, 'net.sock.peer.name').
 
@@ -108,6 +108,33 @@
 
 %% The name of the mobile carrier.
 -define(NETWORK_CARRIER_NAME, 'network.carrier.name').
+
+
+%% The state of network connection
+-define(NETWORK_CONNECTION_STATE, 'network.connection.state').
+
+-define(NETWORK_CONNECTION_STATE_VALUES_CLOSED, 'closed').
+
+-define(NETWORK_CONNECTION_STATE_VALUES_CLOSE_WAIT, 'close_wait').
+
+-define(NETWORK_CONNECTION_STATE_VALUES_CLOSING, 'closing').
+
+-define(NETWORK_CONNECTION_STATE_VALUES_ESTABLISHED, 'established').
+
+-define(NETWORK_CONNECTION_STATE_VALUES_FIN_WAIT_1, 'fin_wait_1').
+
+-define(NETWORK_CONNECTION_STATE_VALUES_FIN_WAIT_2, 'fin_wait_2').
+
+-define(NETWORK_CONNECTION_STATE_VALUES_LAST_ACK, 'last_ack').
+
+-define(NETWORK_CONNECTION_STATE_VALUES_LISTEN, 'listen').
+
+-define(NETWORK_CONNECTION_STATE_VALUES_SYN_RECEIVED, 'syn_received').
+
+-define(NETWORK_CONNECTION_STATE_VALUES_SYN_SENT, 'syn_sent').
+
+-define(NETWORK_CONNECTION_STATE_VALUES_TIME_WAIT, 'time_wait').
+
 
 
 %% This describes more details regarding the connection.type. It may be the type of cell technology connection, but it could be used for describing details about a wifi connection.
@@ -170,6 +197,10 @@
 
 -define(NETWORK_CONNECTION_TYPE_VALUES_UNKNOWN, 'unknown').
 
+
+
+%% The network interface name.
+-define(NETWORK_INTERFACE_NAME, 'network.interface.name').
 
 
 %% The network IO operation direction.

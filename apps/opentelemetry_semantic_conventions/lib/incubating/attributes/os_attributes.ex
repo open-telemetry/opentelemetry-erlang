@@ -116,7 +116,8 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
   * `:hpux` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - HP-UX (Hewlett Packard Unix)
   * `:aix` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - AIX (Advanced Interactive eXecutive)
   * `:solaris` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - SunOS, Oracle Solaris
-  * `:z_os` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - IBM z/OS
+  * `:z_os` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - **deprecated** ~~Deprecated. Use `zos` instead.~~
+  * `:zos` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - IBM z/OS
   """
   @type os_type_values() :: %{
           :windows => :windows,
@@ -129,7 +130,8 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
           :hpux => :hpux,
           :aix => :aix,
           :solaris => :solaris,
-          :z_os => :z_os
+          :z_os => :z_os,
+          :zos => :zos
         }
   @doc """
   The operating system type.
@@ -182,7 +184,8 @@ defmodule OpenTelemetry.SemConv.Incubating.OSAttributes do
       :hpux => :hpux,
       :aix => :aix,
       :solaris => :solaris,
-      :z_os => :z_os
+      :z_os => :z_os,
+      :zos => :zos
     }
   end
 

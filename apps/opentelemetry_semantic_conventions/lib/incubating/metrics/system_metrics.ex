@@ -4,10 +4,10 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   OpenTelemetry Semantic Conventions for System metrics.
   """
   @doc """
-  Reports the current frequency of the CPU in Hz
+  Operating frequency of the logical CPU in Hertz.
 
   Instrument: `gauge`
-  Unit: `{Hz}`
+  Unit: `Hz`
 
   <!-- tabs-open -->
   ### Elixir
@@ -31,10 +31,13 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  Reports the number of logical (virtual) processor cores created by the operating system to manage multitasking
+  Reports the number of logical (virtual) processor cores created by the operating system to manage multitasking.
 
   Instrument: `updowncounter`
   Unit: `{cpu}`
+  ### Notes
+
+  Calculated by multiplying the number of sockets by the number of cores per socket, and then by the number of threads per core
 
   <!-- tabs-open -->
   ### Elixir
@@ -58,10 +61,13 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  Reports the number of actual physical processor cores on the hardware
+  Reports the number of actual physical processor cores on the hardware.
 
   Instrument: `updowncounter`
   Unit: `{cpu}`
+  ### Notes
+
+  Calculated by multiplying the number of sockets by the number of cores per socket
 
   <!-- tabs-open -->
   ### Elixir
@@ -85,7 +91,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  Seconds each logical CPU spent on each mode
+  Seconds each logical CPU spent on each mode.
 
   Instrument: `counter`
   Unit: `s`
@@ -112,7 +118,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  Difference in system.cpu.time since the last measurement, divided by the elapsed time and number of logical CPUs
+  For each logical CPU, the utilization is calculated as the change in cumulative CPU time (cpu.time) over a measurement interval, divided by the elapsed time.
 
   Instrument: `gauge`
   Unit: `1`
@@ -139,7 +145,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+  Disk bytes transferred.
 
   Instrument: `counter`
   Unit: `By`
@@ -166,7 +172,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  Time disk spent activated
+  Time disk spent activated.
 
   Instrument: `counter`
   Unit: `s`
@@ -202,7 +208,34 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+  The total storage capacity of the disk.
+
+  Instrument: `updowncounter`
+  Unit: `By`
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_disk_limit()
+      :"system.disk.limit"
+
+  ### Erlang
+
+  ```erlang
+  ?SYSTEM_DISK_LIMIT.
+  'system.disk.limit'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec system_disk_limit :: :"system.disk.limit"
+  def system_disk_limit do
+    :"system.disk.limit"
+  end
+
+  @doc """
+  The number of disk reads/writes merged into single physical disk access operations.
 
   Instrument: `counter`
   Unit: `{operation}`
@@ -229,7 +262,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  Sum of the time each operation took to complete
+  Sum of the time each operation took to complete.
 
   Instrument: `counter`
   Unit: `s`
@@ -263,7 +296,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+  Disk operations count.
 
   Instrument: `counter`
   Unit: `{operation}`
@@ -290,10 +323,42 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+  The total storage capacity of the filesystem.
 
   Instrument: `updowncounter`
   Unit: `By`
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_filesystem_limit()
+      :"system.filesystem.limit"
+
+  ### Erlang
+
+  ```erlang
+  ?SYSTEM_FILESYSTEM_LIMIT.
+  'system.filesystem.limit'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec system_filesystem_limit :: :"system.filesystem.limit"
+  def system_filesystem_limit do
+    :"system.filesystem.limit"
+  end
+
+  @doc """
+  Reports a filesystem's space usage across different states.
+
+  Instrument: `updowncounter`
+  Unit: `By`
+  ### Notes
+
+  The sum of all `system.filesystem.usage` values over the different `system.filesystem.state` attributes
+  **SHOULD** equal the total storage capacity of the filesystem, that is `system.filesystem.limit`.
+
 
   <!-- tabs-open -->
   ### Elixir
@@ -317,7 +382,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+  Fraction of filesystem bytes used.
 
   Instrument: `gauge`
   Unit: `1`
@@ -343,34 +408,8 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
     :"system.filesystem.utilization"
   end
 
-  @doc """
-  An estimate of how much memory is available for starting new applications, without causing swapping
-
-  Instrument: `updowncounter`
-  Unit: `By`
-  ### Notes
-
-  This is an alternative to `system.memory.usage` metric with `state=free`.
-  Linux starting from 3.14 exports "available" memory. It takes "free" memory as a baseline, and then factors in kernel-specific values.
-  This is supposed to be more accurate than just "free" memory.
-  For reference, see the calculations [here](https://superuser.com/a/980821).
-  See also `MemAvailable` in [/proc/meminfo](https://man7.org/linux/man-pages/man5/proc.5.html).
-
-
-  <!-- tabs-open -->
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_linux_memory_available()
-      :"system.linux.memory.available"
-
-  ### Erlang
-
-  ```erlang
-  ?SYSTEM_LINUX_MEMORY_AVAILABLE.
-  'system.linux.memory.available'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `system.memory.linux.available`.
   """
 
   @spec system_linux_memory_available :: :"system.linux.memory.available"
@@ -378,32 +417,8 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
     :"system.linux.memory.available"
   end
 
-  @doc """
-  Reports the memory used by the Linux kernel for managing caches of frequently used objects.
-
-  Instrument: `updowncounter`
-  Unit: `By`
-  ### Notes
-
-  The sum over the `reclaimable` and `unreclaimable` state values in `linux.memory.slab.usage` **SHOULD** be equal to the total slab memory available on the system.
-  Note that the total slab memory is not constant and may vary over time.
-  See also the [Slab allocator](https://blogs.oracle.com/linux/post/understanding-linux-kernel-memory-statistics) and `Slab` in [/proc/meminfo](https://man7.org/linux/man-pages/man5/proc.5.html).
-
-
-  <!-- tabs-open -->
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_linux_memory_slab_usage()
-      :"system.linux.memory.slab.usage"
-
-  ### Erlang
-
-  ```erlang
-  ?SYSTEM_LINUX_MEMORY_SLAB_USAGE.
-  'system.linux.memory.slab.usage'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `system.memory.linux.slab.usage`.
   """
 
   @spec system_linux_memory_slab_usage :: :"system.linux.memory.slab.usage"
@@ -412,14 +427,10 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  Total memory available in the system.
+  Total virtual memory available in the system.
 
   Instrument: `updowncounter`
   Unit: `By`
-  ### Notes
-
-  Its value **SHOULD** equal the sum of `system.memory.state` over all states.
-
 
   <!-- tabs-open -->
   ### Elixir
@@ -443,6 +454,41 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
+  An estimate of how much memory is available for starting new applications, without causing swapping.
+
+  Instrument: `updowncounter`
+  Unit: `By`
+  ### Notes
+
+  This is an alternative to `system.memory.usage` metric with `state=free`.
+  Linux starting from 3.14 exports "available" memory. It takes "free" memory as a baseline, and then factors in kernel-specific values.
+  This is supposed to be more accurate than just "free" memory.
+  For reference, see the calculations [here](https://superuser.com/a/980821).
+  See also `MemAvailable` in [/proc/meminfo](https://man7.org/linux/man-pages/man5/proc.5.html).
+
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_memory_linux_available()
+      :"system.memory.linux.available"
+
+  ### Erlang
+
+  ```erlang
+  ?SYSTEM_MEMORY_LINUX_AVAILABLE.
+  'system.memory.linux.available'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec system_memory_linux_available :: :"system.memory.linux.available"
+  def system_memory_linux_available do
+    :"system.memory.linux.available"
+  end
+
+  @doc """
   Shared memory used (mostly by tmpfs).
 
   Instrument: `updowncounter`
@@ -456,17 +502,59 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_memory_shared()
-      :"system.memory.shared"
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_memory_linux_shared()
+      :"system.memory.linux.shared"
 
   ### Erlang
 
   ```erlang
-  ?SYSTEM_MEMORY_SHARED.
-  'system.memory.shared'
+  ?SYSTEM_MEMORY_LINUX_SHARED.
+  'system.memory.linux.shared'
   ```
 
   <!-- tabs-close -->
+  """
+
+  @spec system_memory_linux_shared :: :"system.memory.linux.shared"
+  def system_memory_linux_shared do
+    :"system.memory.linux.shared"
+  end
+
+  @doc """
+  Reports the memory used by the Linux kernel for managing caches of frequently used objects.
+
+  Instrument: `updowncounter`
+  Unit: `By`
+  ### Notes
+
+  The sum over the `reclaimable` and `unreclaimable` state values in `memory.linux.slab.usage` **SHOULD** be equal to the total slab memory available on the system.
+  Note that the total slab memory is not constant and may vary over time.
+  See also the [Slab allocator](https://blogs.oracle.com/linux/post/understanding-linux-kernel-memory-statistics) and `Slab` in [/proc/meminfo](https://man7.org/linux/man-pages/man5/proc.5.html).
+
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_memory_linux_slab_usage()
+      :"system.memory.linux.slab.usage"
+
+  ### Erlang
+
+  ```erlang
+  ?SYSTEM_MEMORY_LINUX_SLAB_USAGE.
+  'system.memory.linux.slab.usage'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec system_memory_linux_slab_usage :: :"system.memory.linux.slab.usage"
+  def system_memory_linux_slab_usage do
+    :"system.memory.linux.slab.usage"
+  end
+
+  @deprecated """
+  Replaced by `system.memory.linux.shared`.
   """
 
   @spec system_memory_shared :: :"system.memory.shared"
@@ -479,11 +567,6 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
 
   Instrument: `updowncounter`
   Unit: `By`
-  ### Notes
-
-  The sum over all `system.memory.state` values **SHOULD** equal the total memory
-  available on the system, that is `system.memory.limit`.
-
 
   <!-- tabs-open -->
   ### Elixir
@@ -507,7 +590,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+  Percentage of memory bytes in use.
 
   Instrument: `gauge`
   Unit: `1`
@@ -534,7 +617,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+  The number of connections.
 
   Instrument: `updowncounter`
   Unit: `{connection}`
@@ -542,17 +625,26 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_network_connections()
-      :"system.network.connections"
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_network_connection_count()
+      :"system.network.connection.count"
 
   ### Erlang
 
   ```erlang
-  ?SYSTEM_NETWORK_CONNECTIONS.
-  'system.network.connections'
+  ?SYSTEM_NETWORK_CONNECTION_COUNT.
+  'system.network.connection.count'
   ```
 
   <!-- tabs-close -->
+  """
+
+  @spec system_network_connection_count :: :"system.network.connection.count"
+  def system_network_connection_count do
+    :"system.network.connection.count"
+  end
+
+  @deprecated """
+  Replaced by `system.network.connection.count`.
   """
 
   @spec system_network_connections :: :"system.network.connections"
@@ -560,34 +652,8 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
     :"system.network.connections"
   end
 
-  @doc """
-  Count of packets that are dropped or discarded even though there was no error
-
-  Instrument: `counter`
-  Unit: `{packet}`
-  ### Notes
-
-  Measured as:
-
-  - Linux: the `drop` column in `/proc/dev/net` ([source](https://web.archive.org/web/20180321091318/http://www.onlamp.com/pub/a/linux/2000/11/16/LinuxAdmin.html))
-  - Windows: [`InDiscards`/`OutDiscards`](https://docs.microsoft.com/windows/win32/api/netioapi/ns-netioapi-mib_if_row2)
-    from [`GetIfEntry2`](https://docs.microsoft.com/windows/win32/api/netioapi/nf-netioapi-getifentry2)
-
-
-  <!-- tabs-open -->
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_network_dropped()
-      :"system.network.dropped"
-
-  ### Erlang
-
-  ```erlang
-  ?SYSTEM_NETWORK_DROPPED.
-  'system.network.dropped'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `system.network.packet.dropped`.
   """
 
   @spec system_network_dropped :: :"system.network.dropped"
@@ -596,7 +662,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  Count of network errors detected
+  Count of network errors detected.
 
   Instrument: `counter`
   Unit: `{error}`
@@ -604,7 +670,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
 
   Measured as:
 
-  - Linux: the `errs` column in `/proc/dev/net` ([source](https://web.archive.org/web/20180321091318/http://www.onlamp.com/pub/a/linux/2000/11/16/LinuxAdmin.html)).
+  - Linux: the `errs` column in `/proc/net/dev` ([source](https://web.archive.org/web/20180321091318/http://www.onlamp.com/pub/a/linux/2000/11/16/LinuxAdmin.html)).
   - Windows: [`InErrors`/`OutErrors`](https://docs.microsoft.com/windows/win32/api/netioapi/ns-netioapi-mib_if_row2)
     from [`GetIfEntry2`](https://docs.microsoft.com/windows/win32/api/netioapi/nf-netioapi-getifentry2).
 
@@ -631,7 +697,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+  The number of bytes transmitted and received.
 
   Instrument: `counter`
   Unit: `By`
@@ -658,7 +724,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+  The number of packets transferred.
 
   Instrument: `counter`
   Unit: `{packet}`
@@ -666,17 +732,61 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_network_packets()
-      :"system.network.packets"
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_network_packet_count()
+      :"system.network.packet.count"
 
   ### Erlang
 
   ```erlang
-  ?SYSTEM_NETWORK_PACKETS.
-  'system.network.packets'
+  ?SYSTEM_NETWORK_PACKET_COUNT.
+  'system.network.packet.count'
   ```
 
   <!-- tabs-close -->
+  """
+
+  @spec system_network_packet_count :: :"system.network.packet.count"
+  def system_network_packet_count do
+    :"system.network.packet.count"
+  end
+
+  @doc """
+  Count of packets that are dropped or discarded even though there was no error.
+
+  Instrument: `counter`
+  Unit: `{packet}`
+  ### Notes
+
+  Measured as:
+
+  - Linux: the `drop` column in `/proc/net/dev` ([source](https://web.archive.org/web/20180321091318/http://www.onlamp.com/pub/a/linux/2000/11/16/LinuxAdmin.html))
+  - Windows: [`InDiscards`/`OutDiscards`](https://docs.microsoft.com/windows/win32/api/netioapi/ns-netioapi-mib_if_row2)
+    from [`GetIfEntry2`](https://docs.microsoft.com/windows/win32/api/netioapi/nf-netioapi-getifentry2)
+
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_network_packet_dropped()
+      :"system.network.packet.dropped"
+
+  ### Erlang
+
+  ```erlang
+  ?SYSTEM_NETWORK_PACKET_DROPPED.
+  'system.network.packet.dropped'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec system_network_packet_dropped :: :"system.network.packet.dropped"
+  def system_network_packet_dropped do
+    :"system.network.packet.dropped"
+  end
+
+  @deprecated """
+  Replaced by `system.network.packet.count`.
   """
 
   @spec system_network_packets :: :"system.network.packets"
@@ -685,7 +795,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+  The number of page faults.
 
   Instrument: `counter`
   Unit: `{fault}`
@@ -712,7 +822,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+  The number of paging operations.
 
   Instrument: `counter`
   Unit: `{operation}`
@@ -739,7 +849,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  Unix swap or windows pagefile usage
+  Unix swap or windows pagefile usage.
 
   Instrument: `updowncounter`
   Unit: `By`
@@ -766,7 +876,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  none
+  Swap (unix) or pagefile (windows) utilization.
 
   Instrument: `gauge`
   Unit: `1`
@@ -793,7 +903,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  Total number of processes in each state
+  Total number of processes in each state.
 
   Instrument: `updowncounter`
   Unit: `{process}`
@@ -820,7 +930,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   end
 
   @doc """
-  Total number of processes created over uptime of the host
+  Total number of processes created over uptime of the host.
 
   Instrument: `counter`
   Unit: `{process}`
@@ -844,5 +954,37 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics do
   @spec system_process_created :: :"system.process.created"
   def system_process_created do
     :"system.process.created"
+  end
+
+  @doc """
+  The time the system has been running.
+
+  Instrument: `gauge`
+  Unit: `s`
+  ### Notes
+
+  Instrumentations **SHOULD** use a gauge with type `double` and measure uptime in seconds as a floating point number with the highest precision available.
+  The actual accuracy would depend on the instrumentation and operating system.
+
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.SystemMetrics.system_uptime()
+      :"system.uptime"
+
+  ### Erlang
+
+  ```erlang
+  ?SYSTEM_UPTIME.
+  'system.uptime'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec system_uptime :: :"system.uptime"
+  def system_uptime do
+    :"system.uptime"
   end
 end

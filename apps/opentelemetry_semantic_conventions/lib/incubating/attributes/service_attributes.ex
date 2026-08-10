@@ -3,82 +3,130 @@ defmodule OpenTelemetry.SemConv.Incubating.ServiceAttributes do
   @moduledoc """
   OpenTelemetry Semantic Conventions for Service attributes.
   """
+  defdelegate service_instance_id(), to: OpenTelemetry.SemConv.ServiceAttributes
+
   defdelegate service_name(), to: OpenTelemetry.SemConv.ServiceAttributes
+
+  defdelegate service_namespace(), to: OpenTelemetry.SemConv.ServiceAttributes
 
   defdelegate service_version(), to: OpenTelemetry.SemConv.ServiceAttributes
 
+  @typedoc """
+  The operational criticality of the service.
+
+
+  ### Enum Values
+  * `:critical` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Service is business-critical; downtime directly impacts revenue, user experience, or core functionality.
+
+  * `:high` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Service is important but has degradation tolerance or fallback mechanisms.
+
+  * `:medium` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Service provides supplementary functionality; degradation has limited user impact.
+
+  * `:low` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - Service is non-essential to core operations; used for background tasks or internal tools.
+
+  """
+  @type service_criticality_values() :: %{
+          :critical => :critical,
+          :high => :high,
+          :medium => :medium,
+          :low => :low
+        }
   @doc """
-  The string ID of the service instance.
+  The operational criticality of the service.
 
-  ### Value type
 
-  Value must be of type `atom() | String.t()`.
   ### Notes
 
-  MUST be unique for each instance of the same `service.namespace,service.name` pair (in other words
-  `service.namespace,service.name,service.instance.id` triplet **MUST** be globally unique). The ID helps to
-  distinguish instances of the same service that exist at the same time (e.g. instances of a horizontally scaled
-  service).
-
-  Implementations, such as SDKs, are recommended to generate a random Version 1 or Version 4 [RFC
-  4122](https://www.ietf.org/rfc/rfc4122.txt) UUID, but are free to use an inherent unique ID as the source of
-  this value if stability is desirable. In that case, the ID **SHOULD** be used as source of a UUID Version 5 and
-  **SHOULD** use the following UUID as the namespace: `4d63009a-8d0f-11ee-aad7-4c796ed8e320`.
-
-  UUIDs are typically recommended, as only an opaque value for the purposes of identifying a service instance is
-  needed. Similar to what can be seen in the man page for the
-  [`/etc/machine-id`](https://www.freedesktop.org/software/systemd/man/machine-id.html) file, the underlying
-  data, such as pod name and namespace should be treated as confidential, being the user's choice to expose it
-  or not via another resource attribute.
-
-  For applications running behind an application server (like unicorn), we do not recommend using one identifier
-  for all processes participating in the application. Instead, it's recommended each division (e.g. a worker
-  thread in unicorn) to have its own instance.id.
-
-  It's not recommended for a Collector to set `service.instance.id` if it can't unambiguously determine the
-  service instance that is generating that telemetry. For instance, creating an UUID based on `pod.name` will
-  likely be wrong, as the Collector might not know from which container within that pod the telemetry originated.
-  However, Collectors can set the `service.instance.id` if they can unambiguously determine the service instance
-  for that telemetry. This is typically the case for scraping receivers, as they know the target address and
-  port.
+  Application developers are encouraged to set `service.criticality` to express the operational importance of their services. Telemetry consumers **MAY** use this attribute to optimize telemetry collection or improve user experience.
 
   ### Examples
 
   ```
-  ["627cc493-f310-47de-96bd-71410b7dec09"]
+  ["critical", "high", "medium", "low"]
   ```
 
   <!-- tabs-open -->
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ServiceAttributes.service_instance_id()
-      :"service.instance.id"
+      iex> OpenTelemetry.SemConv.Incubating.ServiceAttributes.service_criticality()
+      :"service.criticality"
+
+      iex> OpenTelemetry.SemConv.Incubating.ServiceAttributes.service_criticality_values().critical
+      :critical
+
+      iex> %{OpenTelemetry.SemConv.Incubating.ServiceAttributes.service_criticality() => OpenTelemetry.SemConv.Incubating.ServiceAttributes.service_criticality_values().critical}
+      %{:"service.criticality" => :critical}
 
   ### Erlang
 
   ```erlang
-  ?SERVICE_INSTANCE_ID.
-  'service.instance.id'
+  ?SERVICE_CRITICALITY.
+  'service.criticality'
+
+  ?SERVICE_CRITICALITY_VALUES_CRITICAL.
+  'critical'
+
+  \#{?SERVICE_CRITICALITY => ?SERVICE_CRITICALITY_VALUES_CRITICAL}.
+  \#{'service.criticality' => 'critical'}
   ```
 
   <!-- tabs-close -->
   """
-  @spec service_instance_id :: :"service.instance.id"
-  def service_instance_id do
-    :"service.instance.id"
+  @spec service_criticality :: :"service.criticality"
+  def service_criticality do
+    :"service.criticality"
+  end
+
+  @spec service_criticality_values() :: service_criticality_values()
+  def service_criticality_values() do
+    %{
+      :critical => :critical,
+      :high => :high,
+      :medium => :medium,
+      :low => :low
+    }
   end
 
   @doc """
-  A namespace for `service.name`.
+  Logical name of the service on the other side of the connection. **SHOULD** be equal to the actual [`service.name`](/docs/resource/README.md#service) resource attribute of the remote service if any.
 
   ### Value type
 
   Value must be of type `atom() | String.t()`.
-  ### Notes
+  ### Examples
 
-  A string value having a meaning that helps to distinguish a group of services, for example the team name that owns a group of services. `service.name` is expected to be unique within the same namespace. If `service.namespace` is not specified in the Resource then `service.name` is expected to be unique for all services that have no explicit namespace defined (so the empty/unspecified namespace is simply one more valid namespace). Zero-length namespace string is assumed equal to unspecified namespace.
+  ```
+  ["shoppingcart"]
+  ```
 
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ServiceAttributes.service_peer_name()
+      :"service.peer.name"
+
+  ### Erlang
+
+  ```erlang
+  ?SERVICE_PEER_NAME.
+  'service.peer.name'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec service_peer_name :: :"service.peer.name"
+  def service_peer_name do
+    :"service.peer.name"
+  end
+
+  @doc """
+  Logical namespace of the service on the other side of the connection. **SHOULD** be equal to the actual [`service.namespace`](/docs/resource/README.md#service) resource attribute of the remote service if any.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
   ### Examples
 
   ```
@@ -89,20 +137,20 @@ defmodule OpenTelemetry.SemConv.Incubating.ServiceAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ServiceAttributes.service_namespace()
-      :"service.namespace"
+      iex> OpenTelemetry.SemConv.Incubating.ServiceAttributes.service_peer_namespace()
+      :"service.peer.namespace"
 
   ### Erlang
 
   ```erlang
-  ?SERVICE_NAMESPACE.
-  'service.namespace'
+  ?SERVICE_PEER_NAMESPACE.
+  'service.peer.namespace'
   ```
 
   <!-- tabs-close -->
   """
-  @spec service_namespace :: :"service.namespace"
-  def service_namespace do
-    :"service.namespace"
+  @spec service_peer_namespace :: :"service.peer.namespace"
+  def service_peer_namespace do
+    :"service.peer.namespace"
   end
 end

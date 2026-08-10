@@ -40,6 +40,8 @@
 
 -define(HTTP_REQUEST_METHOD_VALUES_TRACE, 'TRACE').
 
+-define(HTTP_REQUEST_METHOD_VALUES_QUERY, 'QUERY').
+
 -define(HTTP_REQUEST_METHOD_VALUES_OTHER, '_OTHER').
 
 
@@ -62,6 +64,6 @@
 -define(HTTP_RESPONSE_STATUS_CODE, 'http.response.status_code').
 
 
-%% The matched route, that is, the path template in the format used by the respective server framework.
+%% The matched route template for the request. This MUST be low-cardinality and include all static path segments, with dynamic path segments represented with placeholders.
 %%  
 -define(HTTP_ROUTE, 'http.route').

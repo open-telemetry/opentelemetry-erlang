@@ -30,7 +30,7 @@
 -define(NETWORK_PEER_PORT, 'network.peer.port').
 
 
-%% [OSI application layer](https://osi-model.com/application-layer/) or non-OSI equivalent.
+%% [OSI application layer](https://wikipedia.org/wiki/Application_layer) or non-OSI equivalent.
 -define(NETWORK_PROTOCOL_NAME, 'network.protocol.name').
 
 
@@ -38,7 +38,7 @@
 -define(NETWORK_PROTOCOL_VERSION, 'network.protocol.version').
 
 
-%% [OSI transport layer](https://osi-model.com/transport-layer/) or [inter-process communication method](https://wikipedia.org/wiki/Inter-process_communication).
+%% [OSI transport layer](https://wikipedia.org/wiki/Transport_layer) or [inter-process communication method](https://wikipedia.org/wiki/Inter-process_communication).
 %%  
 -define(NETWORK_TRANSPORT, 'network.transport').
 
@@ -54,7 +54,7 @@
 
 
 
-%% [OSI network layer](https://osi-model.com/network-layer/) or non-OSI equivalent.
+%% [OSI network layer](https://wikipedia.org/wiki/Network_layer) or non-OSI equivalent.
 -define(NETWORK_TYPE, 'network.type').
 
 -define(NETWORK_TYPE_VALUES_IPV4, 'ipv4').

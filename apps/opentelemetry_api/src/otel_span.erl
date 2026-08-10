@@ -210,8 +210,8 @@ add_events(_, _) ->
 record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) when is_list(Attributes) ->
     record_exception(SpanCtx, Class, Term, Stacktrace, maps:from_list(Attributes));
 record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) when is_map(Attributes) ->
-    {ok, ExceptionType} = otel_utils:format_binary_string("~0tP:~0tP", [Class, 10, Term, 10], [{chars_limit, 50}]),
-    {ok, StacktraceString} = otel_utils:format_binary_string("~0tP", [Stacktrace, 10], [{chars_limit, 50}]),
+    {ok, ExceptionType} = otel_utils:format_binary_string("~0tP:~0tP", [Class, 10, Term, 10], [{chars_limit, 1024}]),
+    {ok, StacktraceString} = otel_utils:unicode_to_binary(otel_utils:format_exception(Class, Term, Stacktrace)),
     ExceptionAttributes = #{'exception.type' => ExceptionType,
                             'exception.stacktrace' => StacktraceString},
     add_event(SpanCtx, 'exception', maps:merge(ExceptionAttributes, Attributes));
@@ -228,8 +228,8 @@ record_exception(_, _, _, _, _) ->
 record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) when is_list(Attributes) ->
     record_exception(SpanCtx, Class, Term, Message, Stacktrace, maps:from_list(Attributes));
 record_exception(SpanCtx, Class, Term, Message, Stacktrace, Attributes) when is_map(Attributes) ->
-    {ok, ExceptionType} = otel_utils:format_binary_string("~0tP:~0tP", [Class, 10, Term, 10], [{chars_limit, 50}]),
-    {ok, StacktraceString} = otel_utils:format_binary_string("~0tP", [Stacktrace, 10], [{chars_limit, 50}]),
+    {ok, ExceptionType} = otel_utils:format_binary_string("~0tP:~0tP", [Class, 10, Term, 10], [{chars_limit, 1024}]),
+    {ok, StacktraceString} = otel_utils:unicode_to_binary(otel_utils:format_exception(Class, Term, Stacktrace)),
     ExceptionAttributes = #{'exception.type' => ExceptionType,
                             'exception.stacktrace' => StacktraceString,
                             'exception.message' => Message},

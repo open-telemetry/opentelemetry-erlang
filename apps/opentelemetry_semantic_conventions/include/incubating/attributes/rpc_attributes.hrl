@@ -13,16 +13,16 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
-%% @deprecated Replaced by `rpc.message.compressed_size`.
-%% Deprecated, use `rpc.message.compressed_size` instead.
+%% @deprecated Deprecated, no replacement at this time.
+%% Deprecated, no replacement at this time.
 -define(MESSAGE_COMPRESSED_SIZE, 'message.compressed_size').
 
-%% @deprecated Replaced by `rpc.message.id`.
-%% Deprecated, use `rpc.message.id` instead.
+%% @deprecated Deprecated, no replacement at this time.
+%% Deprecated, no replacement at this time.
 -define(MESSAGE_ID, 'message.id').
 
-%% @deprecated Replaced by `rpc.message.type`.
-%% Deprecated, use `rpc.message.type` instead.
+%% @deprecated Deprecated, no replacement at this time.
+%% Deprecated, no replacement at this time.
 -define(MESSAGE_TYPE, 'message.type').
 
 -define(MESSAGE_TYPE_VALUES_SENT, 'SENT').
@@ -30,12 +30,12 @@
 -define(MESSAGE_TYPE_VALUES_RECEIVED, 'RECEIVED').
 
 
-%% @deprecated Replaced by `rpc.message.uncompressed_size`.
-%% Deprecated, use `rpc.message.uncompressed_size` instead.
+%% @deprecated Deprecated, no replacement at this time.
+%% Deprecated, no replacement at this time.
 -define(MESSAGE_UNCOMPRESSED_SIZE, 'message.uncompressed_size').
 
-
-%% The [error codes](https://connect.build/docs/protocol/#error-codes) of the Connect request. Error codes are always string values.
+%% @deprecated Replaced by `rpc.response.status_code`.
+%% Deprecated, use `rpc.response.status_code` attribute instead.
 -define(RPC_CONNECT_RPC_ERROR_CODE, 'rpc.connect_rpc.error_code').
 
 -define(RPC_CONNECT_RPC_ERROR_CODE_VALUES_CANCELLED, 'cancelled').
@@ -71,28 +71,28 @@
 -define(RPC_CONNECT_RPC_ERROR_CODE_VALUES_UNAUTHENTICATED, 'unauthenticated').
 
 
-
-%% Connect request metadata, `<key>` being the normalized Connect Metadata key (lowercase), the value being the metadata values.
+%% @deprecated Replaced by `rpc.request.metadata`.
+%% Deprecated, use `rpc.request.metadata` instead.
 %%  
 -define(RPC_CONNECT_RPC_REQUEST_METADATA, 'rpc.connect_rpc.request.metadata').
 
-
-%% Connect response metadata, `<key>` being the normalized Connect Metadata key (lowercase), the value being the metadata values.
+%% @deprecated Replaced by `rpc.response.metadata`.
+%% Deprecated, use `rpc.response.metadata` instead.
 %%  
 -define(RPC_CONNECT_RPC_RESPONSE_METADATA, 'rpc.connect_rpc.response.metadata').
 
-
-%% gRPC request metadata, `<key>` being the normalized gRPC Metadata key (lowercase), the value being the metadata values.
+%% @deprecated Replaced by `rpc.request.metadata`.
+%% Deprecated, use `rpc.request.metadata` instead.
 %%  
 -define(RPC_GRPC_REQUEST_METADATA, 'rpc.grpc.request.metadata').
 
-
-%% gRPC response metadata, `<key>` being the normalized gRPC Metadata key (lowercase), the value being the metadata values.
+%% @deprecated Replaced by `rpc.response.metadata`.
+%% Deprecated, use `rpc.response.metadata` instead.
 %%  
 -define(RPC_GRPC_RESPONSE_METADATA, 'rpc.grpc.response.metadata').
 
-
-%% The [numeric status code](https://github.com/grpc/grpc/blob/v1.33.2/doc/statuscodes.md) of the gRPC request.
+%% @deprecated Use string representation of the gRPC status code on the `rpc.response.status_code` attribute.
+%% Deprecated, use string representation on the `rpc.response.status_code` attribute instead.
 -define(RPC_GRPC_STATUS_CODE, 'rpc.grpc.status_code').
 
 -define(RPC_GRPC_STATUS_CODE_VALUES_OK, '0').
@@ -130,32 +130,31 @@
 -define(RPC_GRPC_STATUS_CODE_VALUES_UNAUTHENTICATED, '16').
 
 
-
-%% `error.code` property of response if it is an error response.
+%% @deprecated Use string representation of the error code on the `rpc.response.status_code` attribute.
+%% Deprecated, use string representation on the `rpc.response.status_code` attribute instead.
 -define(RPC_JSONRPC_ERROR_CODE, 'rpc.jsonrpc.error_code').
 
-
-%% `error.message` property of response if it is an error response.
+%% @deprecated Use the span status description when reporting JSON-RPC spans.
+%% Deprecated, use the span status description when reporting JSON-RPC spans.
 -define(RPC_JSONRPC_ERROR_MESSAGE, 'rpc.jsonrpc.error_message').
 
-
-%% `id` property of request or response. Since protocol allows id to be int, string, `null` or missing (for notifications), value is expected to be cast to string for simplicity. Use empty string in case of `null` value. Omit entirely if this is a notification.
-%%  
+%% @deprecated Replaced by `jsonrpc.request.id`.
+%% Deprecated, use `jsonrpc.request.id` instead.
 -define(RPC_JSONRPC_REQUEST_ID, 'rpc.jsonrpc.request_id').
 
-
-%% Protocol version as in `jsonrpc` property of request/response. Since JSON-RPC 1.0 doesn't specify this, the value can be omitted.
+%% @deprecated Replaced by `jsonrpc.protocol.version`.
+%% Deprecated, use `jsonrpc.protocol.version` instead.
 -define(RPC_JSONRPC_VERSION, 'rpc.jsonrpc.version').
 
-
+%% @deprecated Deprecated, no replacement at this time.
 %% Compressed size of the message in bytes.
 -define(RPC_MESSAGE_COMPRESSED_SIZE, 'rpc.message.compressed_size').
 
-
+%% @deprecated Deprecated, no replacement at this time.
 %% MUST be calculated as two different counters starting from `1` one for sent messages and one for received message.
 -define(RPC_MESSAGE_ID, 'rpc.message.id').
 
-
+%% @deprecated Deprecated, no replacement at this time.
 %% Whether this is a received or sent message.
 -define(RPC_MESSAGE_TYPE, 'rpc.message.type').
 
@@ -164,20 +163,39 @@
 -define(RPC_MESSAGE_TYPE_VALUES_RECEIVED, 'RECEIVED').
 
 
-
+%% @deprecated Deprecated, no replacement at this time.
 %% Uncompressed size of the message in bytes.
 -define(RPC_MESSAGE_UNCOMPRESSED_SIZE, 'rpc.message.uncompressed_size').
 
 
-%% The name of the (logical) method being called, must be equal to the $method part in the span name.
+%% The fully-qualified logical name of the method from the RPC interface perspective.
 -define(RPC_METHOD, 'rpc.method').
 
 
-%% The full (logical) name of the service being called, including its package name, if applicable.
+%% The original name of the method used by the client.
+%%  
+-define(RPC_METHOD_ORIGINAL, 'rpc.method_original').
+
+
+%% RPC request metadata, `<key>` being the normalized RPC metadata key (lowercase), the value being the metadata values.
+%%  
+-define(RPC_REQUEST_METADATA, 'rpc.request.metadata').
+
+
+%% RPC response metadata, `<key>` being the normalized RPC metadata key (lowercase), the value being the metadata values.
+%%  
+-define(RPC_RESPONSE_METADATA, 'rpc.response.metadata').
+
+
+%% Status code of the RPC returned by the RPC server or generated by the client
+-define(RPC_RESPONSE_STATUS_CODE, 'rpc.response.status_code').
+
+%% @deprecated Value should be included in `rpc.method` which is expected to be a fully-qualified name.
+%% Deprecated, use fully-qualified `rpc.method` instead.
 -define(RPC_SERVICE, 'rpc.service').
 
-
-%% A string identifying the remoting system. See below for a list of well-known identifiers.
+%% @deprecated Replaced by `rpc.system.name`.
+%% Deprecated, use `rpc.system.name` attribute instead.
 -define(RPC_SYSTEM, 'rpc.system').
 
 -define(RPC_SYSTEM_VALUES_GRPC, 'grpc').
@@ -189,4 +207,21 @@
 -define(RPC_SYSTEM_VALUES_APACHE_DUBBO, 'apache_dubbo').
 
 -define(RPC_SYSTEM_VALUES_CONNECT_RPC, 'connect_rpc').
+
+-define(RPC_SYSTEM_VALUES_ONC_RPC, 'onc_rpc').
+
+-define(RPC_SYSTEM_VALUES_JSONRPC, 'jsonrpc').
+
+
+
+%% The Remote Procedure Call (RPC) system.
+-define(RPC_SYSTEM_NAME, 'rpc.system.name').
+
+-define(RPC_SYSTEM_NAME_VALUES_GRPC, 'grpc').
+
+-define(RPC_SYSTEM_NAME_VALUES_DUBBO, 'dubbo').
+
+-define(RPC_SYSTEM_NAME_VALUES_CONNECTRPC, 'connectrpc').
+
+-define(RPC_SYSTEM_NAME_VALUES_JSONRPC, 'jsonrpc').
 

@@ -13,11 +13,11 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
-
-%% The logical CPU number [0..n-1]
+%% @deprecated Replaced by `cpu.logical_number`.
+%% Deprecated, use `cpu.logical_number` instead.
 -define(SYSTEM_CPU_LOGICAL_NUMBER, 'system.cpu.logical_number').
 
-%% @deprecated Replaced by `cpu.mode`
+%% @deprecated Replaced by `cpu.mode`.
 %% Deprecated, use `cpu.mode` instead.
 -define(SYSTEM_CPU_STATE, 'system.cpu.state').
 
@@ -77,6 +77,15 @@
 
 
 
+%% The Linux Slab memory state
+-define(SYSTEM_MEMORY_LINUX_SLAB_STATE, 'system.memory.linux.slab.state').
+
+-define(SYSTEM_MEMORY_LINUX_SLAB_STATE_VALUES_RECLAIMABLE, 'reclaimable').
+
+-define(SYSTEM_MEMORY_LINUX_SLAB_STATE_VALUES_UNRECLAIMABLE, 'unreclaimable').
+
+
+
 %% The memory state
 -define(SYSTEM_MEMORY_STATE, 'system.memory.state').
 
@@ -91,8 +100,8 @@
 -define(SYSTEM_MEMORY_STATE_VALUES_CACHED, 'cached').
 
 
-
-%% A stateless protocol MUST NOT set this attribute
+%% @deprecated Replaced by `network.connection.state`.
+%% Deprecated, use `network.connection.state` instead.
 -define(SYSTEM_NETWORK_STATE, 'system.network.state').
 
 -define(SYSTEM_NETWORK_STATE_VALUES_CLOSE, 'close').
@@ -130,6 +139,15 @@
 
 
 
+%% The paging fault type
+-define(SYSTEM_PAGING_FAULT_TYPE, 'system.paging.fault.type').
+
+-define(SYSTEM_PAGING_FAULT_TYPE_VALUES_MAJOR, 'major').
+
+-define(SYSTEM_PAGING_FAULT_TYPE_VALUES_MINOR, 'minor').
+
+
+
 %% The memory paging state
 -define(SYSTEM_PAGING_STATE, 'system.paging.state').
 
@@ -138,8 +156,8 @@
 -define(SYSTEM_PAGING_STATE_VALUES_FREE, 'free').
 
 
-
-%% The memory paging type
+%% @deprecated Replaced by `system.paging.fault.type`.
+%% Deprecated, use `system.paging.fault.type` instead.
 -define(SYSTEM_PAGING_TYPE, 'system.paging.type').
 
 -define(SYSTEM_PAGING_TYPE_VALUES_MAJOR, 'major').
@@ -147,9 +165,8 @@
 -define(SYSTEM_PAGING_TYPE_VALUES_MINOR, 'minor').
 
 
-
-%% The process state, e.g., [Linux Process State Codes](https://man7.org/linux/man-pages/man1/ps.1.html#PROCESS_STATE_CODES)
-%%  
+%% @deprecated Replaced by `process.state`.
+%% Deprecated, use `process.state` instead.
 -define(SYSTEM_PROCESS_STATUS, 'system.process.status').
 
 -define(SYSTEM_PROCESS_STATUS_VALUES_RUNNING, 'running').
@@ -161,8 +178,8 @@
 -define(SYSTEM_PROCESS_STATUS_VALUES_DEFUNCT, 'defunct').
 
 
-%% @deprecated Replaced by `system.process.status`.
-%% Deprecated, use `system.process.status` instead.
+%% @deprecated Replaced by `process.state`.
+%% Deprecated, use `process.state` instead.
 -define(SYSTEM_PROCESSES_STATUS, 'system.processes.status').
 
 -define(SYSTEM_PROCESSES_STATUS_VALUES_RUNNING, 'running').

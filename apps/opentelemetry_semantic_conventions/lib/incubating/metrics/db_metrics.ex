@@ -4,7 +4,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   OpenTelemetry Semantic Conventions for DB metrics.
   """
   @doc """
-  The number of connections that are currently in state described by the `state` attribute
+  The number of connections that are currently in state described by the `state` attribute.
 
   Instrument: `updowncounter`
   Unit: `{connection}`
@@ -31,7 +31,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   end
 
   @doc """
-  The time it took to create a new connection
+  The time it took to create a new connection.
 
   Instrument: `histogram`
   Unit: `s`
@@ -58,7 +58,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   end
 
   @doc """
-  The maximum number of idle open connections allowed
+  The maximum number of idle open connections allowed.
 
   Instrument: `updowncounter`
   Unit: `{connection}`
@@ -85,7 +85,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   end
 
   @doc """
-  The minimum number of idle open connections allowed
+  The minimum number of idle open connections allowed.
 
   Instrument: `updowncounter`
   Unit: `{connection}`
@@ -112,7 +112,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   end
 
   @doc """
-  The maximum number of open connections allowed
+  The maximum number of open connections allowed.
 
   Instrument: `updowncounter`
   Unit: `{connection}`
@@ -139,7 +139,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   end
 
   @doc """
-  The number of pending requests for an open connection, cumulative for the entire pool
+  The number of current pending requests for an open connection.
 
   Instrument: `updowncounter`
   Unit: `{request}`
@@ -166,7 +166,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   end
 
   @doc """
-  The number of connection timeouts that have occurred trying to obtain a connection from the pool
+  The number of connection timeouts that have occurred trying to obtain a connection from the pool.
 
   Instrument: `counter`
   Unit: `{timeout}`
@@ -193,7 +193,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   end
 
   @doc """
-  The time between borrowing a connection and returning it to the pool
+  The time between borrowing a connection and returning it to the pool.
 
   Instrument: `histogram`
   Unit: `s`
@@ -220,7 +220,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   end
 
   @doc """
-  The time it took to obtain an open connection from the pool
+  The time it took to obtain an open connection from the pool.
 
   Instrument: `histogram`
   Unit: `s`
@@ -247,7 +247,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   end
 
   @deprecated """
-  Replaced by `db.client.connection.create_time`. Note: the unit also changed from `ms` to `s`.
+  Replaced by `db.client.connection.create_time` with unit `s`.
   """
 
   @spec db_client_connections_create_time :: :"db.client.connections.create_time"
@@ -310,7 +310,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   end
 
   @deprecated """
-  Replaced by `db.client.connection.use_time`. Note: the unit also changed from `ms` to `s`.
+  Replaced by `db.client.connection.use_time` with unit `s`.
   """
 
   @spec db_client_connections_use_time :: :"db.client.connections.use_time"
@@ -319,7 +319,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
   end
 
   @deprecated """
-  Replaced by `db.client.connection.wait_time`. Note: the unit also changed from `ms` to `s`.
+  Replaced by `db.client.connection.wait_time` with unit `s`.
   """
 
   @spec db_client_connections_wait_time :: :"db.client.connections.wait_time"
@@ -327,34 +327,49 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics do
     :"db.client.connections.wait_time"
   end
 
+  @deprecated """
+  Replaced by `azure.cosmosdb.client.active_instance.count`.
+  """
+
+  @spec db_client_cosmosdb_active_instance_count :: :"db.client.cosmosdb.active_instance.count"
+  def db_client_cosmosdb_active_instance_count do
+    :"db.client.cosmosdb.active_instance.count"
+  end
+
+  @deprecated """
+  Replaced by `azure.cosmosdb.client.operation.request_charge`.
+  """
+
+  @spec db_client_cosmosdb_operation_request_charge ::
+          :"db.client.cosmosdb.operation.request_charge"
+  def db_client_cosmosdb_operation_request_charge do
+    :"db.client.cosmosdb.operation.request_charge"
+  end
+
   @doc """
-  Duration of database client operations.
+  The actual number of records returned by the database operation.
 
   Instrument: `histogram`
-  Unit: `s`
-  ### Notes
-
-  Batch operations **SHOULD** be recorded as a single operation.
-
+  Unit: `{row}`
 
   <!-- tabs-open -->
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics.db_client_operation_duration()
-      :"db.client.operation.duration"
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.DBMetrics.db_client_response_returned_rows()
+      :"db.client.response.returned_rows"
 
   ### Erlang
 
   ```erlang
-  ?DB_CLIENT_OPERATION_DURATION.
-  'db.client.operation.duration'
+  ?DB_CLIENT_RESPONSE_RETURNED_ROWS.
+  'db.client.response.returned_rows'
   ```
 
   <!-- tabs-close -->
   """
 
-  @spec db_client_operation_duration :: :"db.client.operation.duration"
-  def db_client_operation_duration do
-    :"db.client.operation.duration"
+  @spec db_client_response_returned_rows :: :"db.client.response.returned_rows"
+  def db_client_response_returned_rows do
+    :"db.client.response.returned_rows"
   end
 end

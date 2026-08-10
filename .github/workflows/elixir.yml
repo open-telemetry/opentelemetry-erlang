@@ -17,13 +17,13 @@ jobs:
   format:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
-      - uses: erlef/setup-beam@v1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         with:
-          otp-version: "27.2"
+          otp-version: "27.2.4"
           elixir-version: "1.18.1"
           version-type: "strict"
-      - uses: actions/cache@v5
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         name: Cache
         with:
           path: |
@@ -39,19 +39,19 @@ jobs:
     name: Test SDK on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["27.2", "25.3.2.16"]
+        otp_version: ["27.2.4", "26.2.5.21"]
         elixir_version: ["1.18.1", "1.14.5"]
         rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
         exclude:
           - elixir_version: "1.14.5"
-          - otp_version: "27.2"
+          - otp_version: "27.2.4"
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir_version }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: erlef/setup-beam@v1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         with:
           otp-version: ${{ matrix.otp_version }}
           elixir-version: ${{ matrix.elixir_version }}
@@ -67,13 +67,13 @@ jobs:
     name: Test API on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["27.2", "25.3.2.16"]
+        otp_version: ["27.2.4", "26.2.5.21"]
         elixir_version: ["1.18.1", "1.14.5"]
         rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
         exclude:
           - elixir_version: "1.14.5"
-          - otp_version: "27.2"
+          - otp_version: "27.2.4"
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir_version }}
@@ -81,14 +81,14 @@ jobs:
       run:
         working-directory: apps/opentelemetry_api/
     steps:
-      - uses: actions/checkout@v6
-      - uses: erlef/setup-beam@v1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         with:
           otp-version: ${{ matrix.otp_version }}
           elixir-version: ${{ matrix.elixir_version }}
           rebar3-version: ${{ matrix.rebar3_version }}
           version-type: "strict"
-      - uses: actions/cache@v5
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         name: Cache
         with:
           path: |
@@ -101,7 +101,7 @@ jobs:
         name: Deps
       - run: mix test --cover
         name: ExUnit
-      - uses: codecov/codecov-action@v6
+      - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
         if: ${{ always() }}
         with:
           file: apps/opentelemetry_api/coverage.xml
@@ -113,7 +113,7 @@ jobs:
     name: Dialyze on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["27.2"]
+        otp_version: ["27.2.4"]
         elixir_version: ["1.18.1"]
         rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
@@ -124,13 +124,13 @@ jobs:
       run:
         working-directory: apps/opentelemetry_api/
     steps:
-      - uses: actions/checkout@v6
-      - uses: erlef/setup-beam@v1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         with:
           otp-version: ${{ matrix.otp_version }}
           elixir-version: ${{ matrix.elixir_version }}
           version-type: "strict"
-      - uses: actions/cache@v5
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         name: Cache
         with:
           path: |
@@ -150,13 +150,13 @@ jobs:
     name: Test SemConv on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["27.2", "25.3.2.16"]
+        otp_version: ["27.2.4", "26.2.5.21"]
         elixir_version: ["1.18.1", "1.14.5"]
         rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
         exclude:
           - elixir_version: "1.14.5"
-          - otp_version: "27.2"
+          - otp_version: "27.2.4"
     defaults:
       run:
         working-directory: apps/opentelemetry_semantic_conventions
@@ -164,15 +164,15 @@ jobs:
       OTP_VERSION: ${{ matrix.otp_version }}
       ELIXIR_VERSION: ${{ matrix.elixir_version }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: erlef/setup-beam@v1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         with:
           otp-version: ${{ matrix.otp_version }}
           elixir-version: ${{ matrix.elixir_version }}
           rebar3-version: ${{ matrix.rebar3_version }}
           version-type: "strict"
       - name: Cache
-        uses: actions/cache@v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/deps

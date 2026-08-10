@@ -19,16 +19,16 @@
 -define(CONTAINER_COMMAND, 'container.command').
 
 
-%% All the command arguments (including the command/executable itself) run by the container. [2]
+%% All the command arguments (including the command/executable itself) run by the container.
 %%  
 -define(CONTAINER_COMMAND_ARGS, 'container.command_args').
 
 
-%% The full command run by the container as a single string representing the full command. [2]
+%% The full command run by the container as a single string representing the full command.
 %%  
 -define(CONTAINER_COMMAND_LINE, 'container.command_line').
 
-%% @deprecated Replaced by `cpu.mode`
+%% @deprecated Replaced by `cpu.mode`.
 %% Deprecated, use `cpu.mode` instead.
 -define(CONTAINER_CPU_STATE, 'container.cpu.state').
 
@@ -40,7 +40,17 @@
 
 
 
-%% Container ID. Usually a UUID, as for example used to [identify Docker containers](https://docs.docker.com/engine/reference/run/#container-identification). The UUID might be abbreviated.
+%% The name of the CSI ([Container Storage Interface](https://github.com/container-storage-interface/spec)) plugin used by the volume.
+%%  
+-define(CONTAINER_CSI_PLUGIN_NAME, 'container.csi.plugin.name').
+
+
+%% The unique volume ID returned by the CSI ([Container Storage Interface](https://github.com/container-storage-interface/spec)) plugin.
+%%  
+-define(CONTAINER_CSI_VOLUME_ID, 'container.csi.volume.id').
+
+
+%% Container ID. Usually a UUID, as for example used to [identify Docker containers](https://docs.docker.com/engine/containers/run/#container-identification). The UUID might be abbreviated.
 %%  
 -define(CONTAINER_ID, 'container.id').
 
@@ -60,7 +70,7 @@
 -define(CONTAINER_IMAGE_REPO_DIGESTS, 'container.image.repo_digests').
 
 
-%% Container image tags. An example can be found in [Docker Image Inspect](https://docs.docker.com/engine/api/v1.43/#tag/Image/operation/ImageInspect). Should be only the `<tag>` section of the full name for example from `registry.example.com/my-org/my-image:<tag>`.
+%% Container image tags. An example can be found in [Docker Image Inspect](https://docs.docker.com/reference/api/engine/version/v1.52/#tag/Image/operation/ImageInspect). Should be only the `<tag>` section of the full name for example from `registry.example.com/my-org/my-image:<tag>`.
 %%  
 -define(CONTAINER_IMAGE_TAGS, 'container.image.tags').
 
@@ -78,7 +88,22 @@
 %%  
 -define(CONTAINER_NAME, 'container.name').
 
-
+%% @deprecated Replaced by `container.runtime.name`.
 %% The container runtime managing this container.
 %%  
 -define(CONTAINER_RUNTIME, 'container.runtime').
+
+
+%% A description about the runtime which could include, for example details about the CRI/API version being used or other customisations.
+%%  
+-define(CONTAINER_RUNTIME_DESCRIPTION, 'container.runtime.description').
+
+
+%% The container runtime managing this container.
+%%  
+-define(CONTAINER_RUNTIME_NAME, 'container.runtime.name').
+
+
+%% The version of the runtime of this process, as returned by the runtime without modification.
+%%  
+-define(CONTAINER_RUNTIME_VERSION, 'container.runtime.version').

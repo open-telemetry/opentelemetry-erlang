@@ -13,8 +13,8 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%%-------------------------------------------------------------------------
-%% @deprecated Deprecated, use `deployment.environment.name` instead.
-%% 'Deprecated, use `deployment.environment.name` instead.'
+%% @deprecated Replaced by `deployment.environment.name`.
+%% Deprecated, use `deployment.environment.name` instead.
 %%  
 -define(DEPLOYMENT_ENVIRONMENT, 'deployment.environment').
 

@@ -7,7 +7,7 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   Number of times the process has been context switched.
 
   Instrument: `counter`
-  Unit: `{count}`
+  Unit: `{context_switch}`
 
   <!-- tabs-open -->
   ### Elixir
@@ -192,26 +192,8 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
     :"process.network.io"
   end
 
-  @doc """
-  Number of file descriptors in use by the process.
-
-  Instrument: `updowncounter`
-  Unit: `{count}`
-
-  <!-- tabs-open -->
-  ### Elixir
-
-      iex> OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics.process_open_file_descriptor_count()
-      :"process.open_file_descriptor.count"
-
-  ### Erlang
-
-  ```erlang
-  ?PROCESS_OPEN_FILE_DESCRIPTOR_COUNT.
-  'process.open_file_descriptor.count'
-  ```
-
-  <!-- tabs-close -->
+  @deprecated """
+  Replaced by `process.unix.file_descriptor.count`.
   """
 
   @spec process_open_file_descriptor_count :: :"process.open_file_descriptor.count"
@@ -271,5 +253,91 @@ defmodule OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics do
   @spec process_thread_count :: :"process.thread.count"
   def process_thread_count do
     :"process.thread.count"
+  end
+
+  @doc """
+  Number of unix file descriptors in use by the process.
+
+  Instrument: `updowncounter`
+  Unit: `{file_descriptor}`
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics.process_unix_file_descriptor_count()
+      :"process.unix.file_descriptor.count"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_UNIX_FILE_DESCRIPTOR_COUNT.
+  'process.unix.file_descriptor.count'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec process_unix_file_descriptor_count :: :"process.unix.file_descriptor.count"
+  def process_unix_file_descriptor_count do
+    :"process.unix.file_descriptor.count"
+  end
+
+  @doc """
+  The time the process has been running.
+
+  Instrument: `gauge`
+  Unit: `s`
+  ### Notes
+
+  Instrumentations **SHOULD** use a gauge with type `double` and measure uptime in seconds as a floating point number with the highest precision available.
+  The actual accuracy would depend on the instrumentation and operating system.
+
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics.process_uptime()
+      :"process.uptime"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_UPTIME.
+  'process.uptime'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec process_uptime :: :"process.uptime"
+  def process_uptime do
+    :"process.uptime"
+  end
+
+  @doc """
+  Number of handles held by the process.
+
+  Instrument: `updowncounter`
+  Unit: `{handle}`
+
+  <!-- tabs-open -->
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.Metrics.ProcessMetrics.process_windows_handle_count()
+      :"process.windows.handle.count"
+
+  ### Erlang
+
+  ```erlang
+  ?PROCESS_WINDOWS_HANDLE_COUNT.
+  'process.windows.handle.count'
+  ```
+
+  <!-- tabs-close -->
+  """
+
+  @spec process_windows_handle_count :: :"process.windows.handle.count"
+  def process_windows_handle_count do
+    :"process.windows.handle.count"
   end
 end

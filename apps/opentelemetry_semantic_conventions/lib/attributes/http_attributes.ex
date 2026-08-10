@@ -12,14 +12,27 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   Value must be of type `[atom() | String.t()]`.
   ### Notes
 
-  Instrumentations **SHOULD** require an explicit configuration of which headers are to be captured. Including all request headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
-  The `User-Agent` header is already captured in the `user_agent.original` attribute. Users **MAY** explicitly configure instrumentations to capture them even though it is not recommended.
-  The attribute value **MUST** consist of either multiple header values as an array of strings or a single-item array containing a possibly comma-concatenated string, depending on the way the HTTP library provides access to headers.
+  Instrumentations **SHOULD** require an explicit configuration of which headers are to be captured.
+  Including all request headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
+
+  The `User-Agent` header is already captured in the `user_agent.original` attribute.
+  Users **MAY** explicitly configure instrumentations to capture them even though it is not recommended.
+
+  The attribute value **MUST** consist of either multiple header values as an array of strings
+  or a single-item array containing a possibly comma-concatenated string, depending on the way
+  the HTTP library provides access to headers.
+
+  Examples:
+
+  - A header `Content-Type: application/json` **SHOULD** be recorded as the `http.request.header.content-type`
+    attribute with value `["application/json"]`.
+  - A header `X-Forwarded-For: 1.2.3.4, 1.2.3.5` **SHOULD** be recorded as the `http.request.header.x-forwarded-for`
+    attribute with value `["1.2.3.4", "1.2.3.5"]` or `["1.2.3.4, 1.2.3.5"]` depending on the HTTP library.
 
   ### Examples
 
   ```
-  ["http.request.header.content-type=[\"application/json\"]", "http.request.header.x-forwarded-for=[\"1.2.3.4\", \"1.2.3.5\"]"]
+  [["application/json"], ["1.2.3.4", "1.2.3.5"]]
   ```
 
   <!-- tabs-open -->
@@ -56,6 +69,7 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   * `:post` - POST method.
   * `:put` - PUT method.
   * `:trace` - TRACE method.
+  * `:query` ^[e](`m:OpenTelemetry.SemConv#experimental`)^ - QUERY method.
   * `:other` - Any HTTP method that the instrumentation has no prior knowledge of.
   """
   @type http_request_method_values() :: %{
@@ -68,6 +82,7 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
           :post => :POST,
           :put => :PUT,
           :trace => :TRACE,
+          :query => :QUERY,
           :other => :_OTHER
         }
   @doc """
@@ -76,15 +91,23 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   ### Notes
 
   HTTP request method value **SHOULD** be "known" to the instrumentation.
-  By default, this convention defines "known" methods as the ones listed in [RFC9110](https://www.rfc-editor.org/rfc/rfc9110.html#name-methods)
-  and the PATCH method defined in [RFC5789](https://www.rfc-editor.org/rfc/rfc5789.html).
+  By default, this convention defines "known" methods as the ones listed in [RFC9110](https://www.rfc-editor.org/rfc/rfc9110.html#name-methods),
+  the PATCH method defined in [RFC5789](https://www.rfc-editor.org/rfc/rfc5789.html)
+  and the QUERY method defined in [httpbis-safe-method-w-body](https://datatracker.ietf.org/doc/draft-ietf-httpbis-safe-method-w-body/?include_text=1).
 
   If the HTTP request method is not known to instrumentation, it **MUST** set the `http.request.method` attribute to `_OTHER`.
 
   If the HTTP instrumentation could end up converting valid HTTP request methods to `_OTHER`, then it **MUST** provide a way to override
   the list of known HTTP methods. If this override is done via environment variable, then the environment variable **MUST** be named
-  OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS and support a comma-separated list of case-sensitive known HTTP methods
-  (this list **MUST** be a full override of the default known method, it is not a list of known methods in addition to the defaults).
+  OTEL_INSTRUMENTATION_HTTP_KNOWN_METHODS and support a comma-separated list of case-sensitive known HTTP methods.
+
+  ![Development](https://img.shields.io/badge/-development-blue)
+  If this override is done via declarative configuration, then the list **MUST** be configurable via the `known_methods` property
+  (an array of case-sensitive strings with minimum items 0) under `.instrumentation/development.general.http.client` and/or
+  `.instrumentation/development.general.http.server`.
+
+  In either case, this list **MUST** be a full override of the default known methods,
+  it is not a list of known methods in addition to the defaults.
 
   HTTP method names are case-sensitive and `http.request.method` attribute value **MUST** match a known HTTP method name exactly.
   Instrumentations for specific web frameworks that consider HTTP methods to be case insensitive, **SHOULD** populate a canonical equivalent.
@@ -141,6 +164,7 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
       :post => :POST,
       :put => :PUT,
       :trace => :TRACE,
+      :query => :QUERY,
       :other => :_OTHER
     }
   end
@@ -222,14 +246,26 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   Value must be of type `[atom() | String.t()]`.
   ### Notes
 
-  Instrumentations **SHOULD** require an explicit configuration of which headers are to be captured. Including all response headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
+  Instrumentations **SHOULD** require an explicit configuration of which headers are to be captured.
+  Including all response headers can be a security risk - explicit configuration helps avoid leaking sensitive information.
+
   Users **MAY** explicitly configure instrumentations to capture them even though it is not recommended.
-  The attribute value **MUST** consist of either multiple header values as an array of strings or a single-item array containing a possibly comma-concatenated string, depending on the way the HTTP library provides access to headers.
+
+  The attribute value **MUST** consist of either multiple header values as an array of strings
+  or a single-item array containing a possibly comma-concatenated string, depending on the way
+  the HTTP library provides access to headers.
+
+  Examples:
+
+  - A header `Content-Type: application/json` header **SHOULD** be recorded as the `http.request.response.content-type`
+    attribute with value `["application/json"]`.
+  - A header `My-custom-header: abc, def` header **SHOULD** be recorded as the `http.response.header.my-custom-header`
+    attribute with value `["abc", "def"]` or `["abc, def"]` depending on the HTTP library.
 
   ### Examples
 
   ```
-  ["http.response.header.content-type=[\"application/json\"]", "http.response.header.my-custom-header=[\"abc\", \"def\"]"]
+  [["application/json"], ["abc", "def"]]
   ```
 
   <!-- tabs-open -->
@@ -286,7 +322,7 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   end
 
   @doc """
-  The matched route, that is, the path template in the format used by the respective server framework.
+  The matched route template for the request. This **MUST** be low-cardinality and include all static path segments, with dynamic path segments represented with placeholders.
 
   ### Value type
 
@@ -296,10 +332,18 @@ defmodule OpenTelemetry.SemConv.HTTPAttributes do
   MUST **NOT** be populated when this is not supported by the HTTP server framework as the route attribute should have low-cardinality and the URI path can **NOT** substitute it.
   **SHOULD** include the [application root](/docs/http/http-spans.md#http-server-definitions) if there is one.
 
+  A static path segment is a part of the route template with a fixed, low-cardinality value. This includes literal strings like `/users/` and placeholders that
+  are constrained to a finite, predefined set of values, e.g. `{controller}` or `{action}`.
+
+  A dynamic path segment is a placeholder for a value that can have high cardinality and is not constrained to a predefined list like static path segments.
+
+  Instrumentations **SHOULD** use routing information provided by the corresponding web framework. They **SHOULD** pick the most precise source of routing information and MAY
+  support custom route formatting. Instrumentations **SHOULD** document the format and the API used to obtain the route string.
+
   ### Examples
 
   ```
-  ["/users/:userID?", "{controller}/{action}/{id?}"]
+  ["/users/:userID?", "my-controller/my-action/{id?}"]
   ```
 
   <!-- tabs-open -->

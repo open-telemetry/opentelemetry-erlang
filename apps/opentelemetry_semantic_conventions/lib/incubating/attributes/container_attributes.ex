@@ -42,7 +42,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   end
 
   @doc """
-  All the command arguments (including the command/executable itself) run by the container. [2]
+  All the command arguments (including the command/executable itself) run by the container.
 
   ### Value type
 
@@ -50,7 +50,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Examples
 
   ```
-  ["otelcontribcol, --config, config.yaml"]
+  [["otelcontribcol", "--config", "config.yaml"]]
   ```
 
   <!-- tabs-open -->
@@ -75,7 +75,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   end
 
   @doc """
-  The full command run by the container as a single string representing the full command. [2]
+  The full command run by the container as a single string representing the full command.
 
   ### Value type
 
@@ -121,7 +121,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
           :kernel => :kernel
         }
   @deprecated """
-  Replaced by `cpu.mode`
+  Replaced by `cpu.mode`.
   """
   @spec container_cpu_state :: :"container.cpu.state"
   def container_cpu_state do
@@ -138,7 +138,81 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   end
 
   @doc """
-  Container ID. Usually a UUID, as for example used to [identify Docker containers](https://docs.docker.com/engine/reference/run/#container-identification). The UUID might be abbreviated.
+  The name of the CSI ([Container Storage Interface](https://github.com/container-storage-interface/spec)) plugin used by the volume.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  This can sometimes be referred to as a "driver" in CSI implementations. This should represent the `name` field of the GetPluginInfo RPC.
+
+  ### Examples
+
+  ```
+  ["pd.csi.storage.gke.io"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_csi_plugin_name()
+      :"container.csi.plugin.name"
+
+  ### Erlang
+
+  ```erlang
+  ?CONTAINER_CSI_PLUGIN_NAME.
+  'container.csi.plugin.name'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec container_csi_plugin_name :: :"container.csi.plugin.name"
+  def container_csi_plugin_name do
+    :"container.csi.plugin.name"
+  end
+
+  @doc """
+  The unique volume ID returned by the CSI ([Container Storage Interface](https://github.com/container-storage-interface/spec)) plugin.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  This can sometimes be referred to as a "volume handle" in CSI implementations. This should represent the `Volume.volume_id` field in CSI spec.
+
+  ### Examples
+
+  ```
+  ["projects/my-gcp-project/zones/my-gcp-zone/disks/my-gcp-disk"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_csi_volume_id()
+      :"container.csi.volume.id"
+
+  ### Erlang
+
+  ```erlang
+  ?CONTAINER_CSI_VOLUME_ID.
+  'container.csi.volume.id'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec container_csi_volume_id :: :"container.csi.volume.id"
+  def container_csi_volume_id do
+    :"container.csi.volume.id"
+  end
+
+  @doc """
+  Container ID. Usually a UUID, as for example used to [identify Docker containers](https://docs.docker.com/engine/containers/run/#container-identification). The UUID might be abbreviated.
 
   ### Value type
 
@@ -178,7 +252,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   Value must be of type `atom() | String.t()`.
   ### Notes
 
-  Docker defines a sha256 of the image id; `container.image.id` corresponds to the `Image` field from the Docker container inspect [API](https://docs.docker.com/engine/api/v1.43/#tag/Container/operation/ContainerInspect) endpoint.
+  Docker defines a sha256 of the image id; `container.image.id` corresponds to the `Image` field from the Docker container inspect [API](https://docs.docker.com/reference/api/engine/version/v1.52/#tag/Container/operation/ContainerInspect) endpoint.
   K8s defines a link to the container registry repository with digest `"imageID": "registry.azurecr.io /namespace/service/dockerfile@sha256:bdeabd40c3a8a492eaf9e8e44d0ebbb84bac7ee25ac0cf8a7159d25f62555625"`.
   The ID is assigned by the container runtime and can vary in different environments. Consider using `oci.manifest.digest` if it is important to identify the same image in different environments/runtimes.
 
@@ -250,12 +324,12 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   Value must be of type `[atom() | String.t()]`.
   ### Notes
 
-  [Docker](https://docs.docker.com/engine/api/v1.43/#tag/Image/operation/ImageInspect) and [CRI](https://github.com/kubernetes/cri-api/blob/c75ef5b473bbe2d0a4fc92f82235efd665ea8e9f/pkg/apis/runtime/v1/api.proto#L1237-L1238) report those under the `RepoDigests` field.
+  [Docker](https://docs.docker.com/reference/api/engine/version/v1.52/#tag/Image/operation/ImageInspect) and [CRI](https://github.com/kubernetes/cri-api/blob/c75ef5b473bbe2d0a4fc92f82235efd665ea8e9f/pkg/apis/runtime/v1/api.proto#L1237-L1238) report those under the `RepoDigests` field.
 
   ### Examples
 
   ```
-  ["example@sha256:afcc7f1ac1b49db317a7196c902e61c6c3c4607d63599ee1a82d702d249a0ccb", "internal.registry.example.com:5000/example@sha256:b69959407d21e8a062e0416bf13405bb2b71ed7a84dde4158ebafacfa06f5578"]
+  [["example@sha256:afcc7f1ac1b49db317a7196c902e61c6c3c4607d63599ee1a82d702d249a0ccb", "internal.registry.example.com:5000/example@sha256:b69959407d21e8a062e0416bf13405bb2b71ed7a84dde4158ebafacfa06f5578"]]
   ```
 
   <!-- tabs-open -->
@@ -280,7 +354,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   end
 
   @doc """
-  Container image tags. An example can be found in [Docker Image Inspect](https://docs.docker.com/engine/api/v1.43/#tag/Image/operation/ImageInspect). Should be only the `<tag>` section of the full name for example from `registry.example.com/my-org/my-image:<tag>`.
+  Container image tags. An example can be found in [Docker Image Inspect](https://docs.docker.com/reference/api/engine/version/v1.52/#tag/Image/operation/ImageInspect). Should be only the `<tag>` section of the full name for example from `registry.example.com/my-org/my-image:<tag>`.
 
   ### Value type
 
@@ -288,7 +362,7 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Examples
 
   ```
-  ["v1.27.1", "3.5.7-0"]
+  [["v1.27.1", "3.5.7-0"]]
   ```
 
   <!-- tabs-open -->
@@ -318,10 +392,14 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
   ### Value type
 
   Value must be of type `atom() | String.t()`.
+  ### Notes
+
+  For example, a docker container label `app` with value `nginx` **SHOULD** be recorded as the `container.label.app` attribute with value `"nginx"`.
+
   ### Examples
 
   ```
-  ["container.label.app=nginx"]
+  ["nginx"]
   ```
 
   <!-- tabs-open -->
@@ -386,6 +464,47 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
     :"container.name"
   end
 
+  @deprecated """
+  Replaced by `container.runtime.name`.
+  """
+  @spec container_runtime :: :"container.runtime"
+  def container_runtime do
+    :"container.runtime"
+  end
+
+  @doc """
+  A description about the runtime which could include, for example details about the CRI/API version being used or other customisations.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  ["docker://19.3.1 - CRI: 1.22.0"]
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_runtime_description()
+      :"container.runtime.description"
+
+  ### Erlang
+
+  ```erlang
+  ?CONTAINER_RUNTIME_DESCRIPTION.
+  'container.runtime.description'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec container_runtime_description :: :"container.runtime.description"
+  def container_runtime_description do
+    :"container.runtime.description"
+  end
+
   @doc """
   The container runtime managing this container.
 
@@ -402,20 +521,53 @@ defmodule OpenTelemetry.SemConv.Incubating.ContainerAttributes do
 
   ### Elixir
 
-      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_runtime()
-      :"container.runtime"
+      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_runtime_name()
+      :"container.runtime.name"
 
   ### Erlang
 
   ```erlang
-  ?CONTAINER_RUNTIME.
-  'container.runtime'
+  ?CONTAINER_RUNTIME_NAME.
+  'container.runtime.name'
   ```
 
   <!-- tabs-close -->
   """
-  @spec container_runtime :: :"container.runtime"
-  def container_runtime do
-    :"container.runtime"
+  @spec container_runtime_name :: :"container.runtime.name"
+  def container_runtime_name do
+    :"container.runtime.name"
+  end
+
+  @doc """
+  The version of the runtime of this process, as returned by the runtime without modification.
+
+  ### Value type
+
+  Value must be of type `atom() | String.t()`.
+  ### Examples
+
+  ```
+  1.0.0
+  ```
+
+  <!-- tabs-open -->
+
+  ### Elixir
+
+      iex> OpenTelemetry.SemConv.Incubating.ContainerAttributes.container_runtime_version()
+      :"container.runtime.version"
+
+  ### Erlang
+
+  ```erlang
+  ?CONTAINER_RUNTIME_VERSION.
+  'container.runtime.version'
+  ```
+
+  <!-- tabs-close -->
+  """
+  @spec container_runtime_version :: :"container.runtime.version"
+  def container_runtime_version do
+    :"container.runtime.version"
   end
 end

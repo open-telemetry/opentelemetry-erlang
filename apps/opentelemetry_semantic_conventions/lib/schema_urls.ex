@@ -1,3 +1,16 @@
 defmodule OpenTelemetry.SemConv.Schemas do
   def v1_27_0, do: "https://opentelemetry.io/schemas/1.27.0"
+  def v1_28_0, do: "https://opentelemetry.io/schemas/1.28.0"
+  def v1_29_0, do: "https://opentelemetry.io/schemas/1.29.0"
+  def v1_30_0, do: "https://opentelemetry.io/schemas/1.30.0"
+  def v1_31_0, do: "https://opentelemetry.io/schemas/1.31.0"
+  def v1_32_0, do: "https://opentelemetry.io/schemas/1.32.0"
+  def v1_33_0, do: "https://opentelemetry.io/schemas/1.33.0"
+  def v1_34_0, do: "https://opentelemetry.io/schemas/1.34.0"
+  def v1_35_0, do: "https://opentelemetry.io/schemas/1.35.0"
+  def v1_36_0, do: "https://opentelemetry.io/schemas/1.36.0"
+  def v1_37_0, do: "https://opentelemetry.io/schemas/1.37.0"
+  def v1_38_0, do: "https://opentelemetry.io/schemas/1.38.0"
+  def v1_39_0, do: "https://opentelemetry.io/schemas/1.39.0"
+  def v1_40_0, do: "https://opentelemetry.io/schemas/1.40.0"
 end
