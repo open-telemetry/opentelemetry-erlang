@@ -90,22 +90,15 @@ log_record(#{level := Level,
     Flags = 0,
 
     %% Note: otel_trace_id and otel_span_id from hex_span_ctx are now binaries, not charlists.
+    %% They are hex encoded, but the OTLP trace_id and span_id fields are the
+    %% raw 16/8 bytes, so they must be decoded before being put in the
+    %% LogRecord. If either id can't be decoded then the correlation fields
+    %% are omitted entirely rather than exporting garbage ids.
     LogRecord = case Metadata of
-        #{otel_trace_id := TraceId,
-          otel_span_id := SpanId,
-          otel_trace_flags := TraceFlagsHex} ->
-            TraceFlags = case TraceFlagsHex of
-                <<_:0, _/binary>> when byte_size(TraceFlagsHex) == 2 ->
-                    erlang:binary_to_integer(TraceFlagsHex, 16);
-                _ -> 0
-            end,
-            #{trace_id => TraceId,
-              span_id => SpanId,
-              trace_flags => TraceFlags};
-        #{otel_trace_id := TraceId,
-          otel_span_id := SpanId} ->
-            #{trace_id => TraceId,
-              span_id => SpanId};
+        #{otel_trace_id := MetaTraceId,
+          otel_span_id := MetaSpanId} ->
+            correlation_fields(MetaTraceId, MetaSpanId,
+                               maps:get(otel_trace_flags, Metadata, undefined));
         _ ->
             #{}
     end,
@@ -121,6 +114,82 @@ log_record(#{level := Level,
                dropped_attributes_count => DroppedAttributesCount,
                flags                   => Flags
               }.
+
+%% Decode a trace or span id from logger metadata into the raw bytes the
+%% OTLP LogRecord expects. The metadata value is a lowercase hex encoded
+%% binary when set by `otel_span:hex_span_ctx/1' (a hex encoded charlist
+%% in older versions of the API) but raw ids are also accepted in case
+%% the user set the metadata themselves.
+%% Decode both correlation ids together: either both are valid and the
+%% correlation fields are returned (trace_flags added only when the
+%% metadata carried it), or all correlation fields are omitted.
+correlation_fields(MetaTraceId, MetaSpanId, TraceFlagsHex) ->
+    case {decode_id(MetaTraceId, 16), decode_id(MetaSpanId, 8)} of
+        {{ok, TraceId}, {ok, SpanId}} ->
+            Base = #{trace_id => TraceId,
+                     span_id => SpanId},
+            case decode_trace_flags(TraceFlagsHex) of
+                undefined ->
+                    Base;
+                TraceFlags ->
+                    Base#{trace_flags => TraceFlags}
+            end;
+        _ ->
+            #{}
+    end.
+
+%% Absent flags metadata omits the field entirely; present but
+%% malformed flags (wrong size, non-binary, non-hex digits) fall back
+%% to 0 rather than raising from binary_to_integer/2.
+decode_trace_flags(undefined) ->
+    undefined;
+decode_trace_flags(TraceFlagsHex) when is_binary(TraceFlagsHex),
+                                       byte_size(TraceFlagsHex) =:= 2 ->
+    try
+        erlang:binary_to_integer(TraceFlagsHex, 16)
+    catch
+        _:_ ->
+            0
+    end;
+decode_trace_flags(_) ->
+    0.
+
+-spec decode_id(term(), pos_integer()) -> {ok, binary()} | error.
+decode_id(Id, NumBytes) when is_list(Id) ->
+    %% logger metadata is arbitrary user data: characters_to_binary/1
+    %% raises badarg for non-chardata lists (improper lists, atoms in
+    %% lists), which must omit the ids rather than crash the export.
+    try unicode:characters_to_binary(Id) of
+        Bin when is_binary(Bin) ->
+            decode_id(Bin, NumBytes);
+        _ ->
+            error
+    catch
+        _:_ ->
+            error
+    end;
+decode_id(Id, NumBytes) when is_binary(Id), byte_size(Id) =:= NumBytes ->
+    %% already the raw bytes
+    {ok, Id};
+decode_id(Id, NumBytes) when is_binary(Id), byte_size(Id) =:= 2 * NumBytes ->
+    try
+        {ok, decode_hex(Id)}
+    catch
+        _:_ ->
+            error
+    end;
+decode_id(_, _) ->
+    error.
+
+%% binary:decode_hex/1 requires OTP 24 and only accepts mixed case hex
+%% digits starting from OTP 26.2, so decode by hand like
+%% otel_utils:encode_hex/1 does for encoding on older OTP versions.
+decode_hex(Hex) ->
+    << <<(hex_nibble(Nibble)):4>> || <<Nibble>> <= Hex >>.
+
+hex_nibble(N) when N >= $0, N =< $9 -> N - $0;
+hex_nibble(N) when N >= $a, N =< $f -> N - $a + 10;
+hex_nibble(N) when N >= $A, N =< $F -> N - $A + 10.
 
 format_msg({string, Chardata}, Meta, Config) ->
     format_msg({"~ts", [Chardata]}, Meta, Config);
