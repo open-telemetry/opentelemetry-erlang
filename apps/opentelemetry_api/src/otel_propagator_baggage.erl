@@ -50,6 +50,11 @@
 
 -define(BAGGAGE_HEADER, <<"baggage">>).
 
+%% W3C Baggage size limits, enforced on extract (https://www.w3.org/TR/baggage/#limits).
+-define(MAX_ENTRIES, 180).
+-define(MAX_ENTRY_BYTES, 4096).
+-define(MAX_TOTAL_BYTES, 8192).
+
 %% @private
 fields(_) ->
     [?BAGGAGE_HEADER].
@@ -84,13 +89,22 @@ extract(Ctx, Carrier, _CarrierKeysFun, CarrierGet, _Options) ->
             Ctx;
         String ->
             Pairs = string:lexemes(String, [$,]),
-            DecodedBaggage =
-                lists:foldl(fun(Pair, Acc) ->
-                                    [Key, Value] = string:split(Pair, "="),
-                                    Acc#{decode_key(Key) => decode_value(Value)}
-
-                            end, #{}, Pairs),
+            {DecodedBaggage, _, _} =
+                lists:foldl(fun decode_within_limits/2, {#{}, 0, 0}, Pairs),
             otel_baggage:set_to(Ctx, DecodedBaggage)
+    end.
+
+decode_within_limits(_Pair, {Acc, Count, Bytes}) when Count >= ?MAX_ENTRIES ->
+    {Acc, Count, Bytes};
+decode_within_limits(Pair, {Acc, Count, Bytes}) ->
+    PairBytes = byte_size(Pair),
+    NewBytes = Bytes + PairBytes,
+    case PairBytes =< ?MAX_ENTRY_BYTES andalso NewBytes =< ?MAX_TOTAL_BYTES of
+        false ->
+            {Acc, Count, Bytes};
+        true ->
+            [Key, Value] = string:split(Pair, "="),
+            {Acc#{decode_key(Key) => decode_value(Value)}, Count + 1, NewBytes}
     end.
 
 %%
