@@ -7,7 +7,8 @@
 
 all() ->
     [enforces_max_entries, enforces_max_entry_length,
-     enforces_max_entry_length_is_bytes_not_graphemes, enforces_max_total_length].
+     enforces_max_entry_length_is_bytes_not_graphemes, enforces_max_total_length,
+     charges_a_separator_byte_between_accepted_entries].
 
 init_per_suite(Config) ->
     application:load(opentelemetry_api),
@@ -59,4 +60,18 @@ enforces_max_total_length(_Config) ->
     ?assert(Size > 0 andalso Size < 100),
     ?assert(maps:is_key(<<"k1">>, Baggage)),
     ?assertNot(maps:is_key(<<"k100">>, Baggage)),
+    ok.
+
+charges_a_separator_byte_between_accepted_entries(_Config) ->
+    FillerAPrefix = <<"filler_a=">>,
+    FillerBPrefix = <<"filler_b=">>,
+    SmallPair = <<"small=">>,
+    FillerA = <<FillerAPrefix/binary, (binary:copy(<<"x">>, 4096 - byte_size(FillerAPrefix)))/binary>>,
+    FillerBBytes = 8192 - byte_size(SmallPair) - byte_size(FillerA) - 1,
+    FillerB = <<FillerBPrefix/binary, (binary:copy(<<"x">>, FillerBBytes - byte_size(FillerBPrefix)))/binary>>,
+    Header = iolist_to_binary(lists:join(<<",">>, [FillerA, FillerB, SmallPair])),
+    Baggage = extract(Header),
+    ?assert(maps:is_key(<<"filler_a">>, Baggage)),
+    ?assert(maps:is_key(<<"filler_b">>, Baggage)),
+    ?assertNot(maps:is_key(<<"small">>, Baggage)),
     ok.

@@ -98,7 +98,8 @@ decode_within_limits(_Pair, {Acc, Count, Bytes}) when Count >= ?MAX_ENTRIES ->
     {Acc, Count, Bytes};
 decode_within_limits(Pair, {Acc, Count, Bytes}) ->
     PairBytes = byte_size(Pair),
-    NewBytes = Bytes + PairBytes,
+    SeparatorBytes = case Count of 0 -> 0; _ -> 1 end,
+    NewBytes = Bytes + SeparatorBytes + PairBytes,
     case PairBytes =< ?MAX_ENTRY_BYTES andalso NewBytes =< ?MAX_TOTAL_BYTES of
         false ->
             {Acc, Count, Bytes};
