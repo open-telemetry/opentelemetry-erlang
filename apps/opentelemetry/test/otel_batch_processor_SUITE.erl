@@ -11,7 +11,9 @@
 all() ->
     [exporting_timeout_test,
      check_table_size_test,
-     exporting_runner_timeout_test].
+     exporting_runner_timeout_test,
+     unsampled_spans_dropped_by_default_test,
+     export_unsampled_spans_test].
 
 %% verifies that after the runner has to be killed for taking too long
 %% that everything is still functional and the exporter does not crash
@@ -85,6 +87,50 @@ exporting_runner_timeout_test(_Config) ->
             ok
     end.
 
+unsampled_spans_dropped_by_default_test(_Config) ->
+    process_flag(trap_exit, true),
+
+    {ok, _Pid, #{reg_name := RegName}} = otel_batch_processor:start_link(
+                                           #{name => test_processor_drop_unsampled,
+                                             resource => otel_resource:create([]),
+                                             exporter => ?MODULE,
+                                             exporting_timeout_ms => timer:minutes(10),
+                                             scheduled_delay_ms => timer:minutes(10)}),
+
+    UnsampledSpan = generate_unsampled_span(),
+    dropped = otel_batch_processor:on_end(UnsampledSpan, #{reg_name => RegName}),
+
+    SampledSpan = generate_span(),
+    true = otel_batch_processor:on_end(SampledSpan, #{reg_name => RegName}),
+
+    Spans = otel_batch_processor:current_tab_to_list(RegName),
+    ?assertEqual(1, length(Spans)),
+    ?assertEqual(SampledSpan#span.span_id, (hd(Spans))#span.span_id).
+
+export_unsampled_spans_test(_Config) ->
+    process_flag(trap_exit, true),
+
+    {ok, _Pid, #{reg_name := RegName}} = otel_batch_processor:start_link(
+                                           #{name => test_processor_export_unsampled,
+                                             resource => otel_resource:create([]),
+                                             exporter => ?MODULE,
+                                             export_unsampled => true,
+                                             exporting_timeout_ms => timer:minutes(10),
+                                             scheduled_delay_ms => timer:minutes(10)}),
+
+    UnsampledSpan = generate_unsampled_span(),
+    true = otel_batch_processor:on_end(UnsampledSpan,
+                                       #{reg_name => RegName,
+                                         export_unsampled => true}),
+
+    SampledSpan = generate_span(),
+    true = otel_batch_processor:on_end(SampledSpan,
+                                       #{reg_name => RegName,
+                                         export_unsampled => true}),
+
+    Spans = otel_batch_processor:current_tab_to_list(RegName),
+    ?assertEqual(2, length(Spans)).
+
 %% exporter behaviour
 
 init(_) ->
@@ -107,6 +153,23 @@ generate_span() ->
           start_time = StartTime,
           end_time = EndTime,
           trace_flags = 1,
+          is_recording = true,
+          parent_span_is_remote = undefined,
+          attributes = otel_attributes:new([], 128, 128),
+          events = otel_events:new(128, 128, 128),
+          links = otel_links:new([], 128, 128, 128),
+          tracestate = otel_tracestate:new([]),
+          instrumentation_scope = #instrumentation_scope{name = "test"}}.
+
+generate_unsampled_span() ->
+    StartTime = opentelemetry:timestamp(),
+    EndTime = opentelemetry:timestamp(),
+    #span{trace_id = otel_id_generator:generate_trace_id(),
+          span_id = otel_id_generator:generate_span_id(),
+          name = "unsampled_test_span",
+          start_time = StartTime,
+          end_time = EndTime,
+          trace_flags = 0,
           is_recording = true,
           parent_span_is_remote = undefined,
           attributes = otel_attributes:new([], 128, 128),

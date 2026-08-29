@@ -99,8 +99,14 @@ on_start(_Ctx, Span, _) ->
 %% @private
 -spec on_end(opentelemetry:span(), otel_span_processor:processor_config())
             -> true | dropped | {error, invalid_span} | {error, no_export_buffer}.
-on_end(#span{trace_flags=TraceFlags}, _) when not(?IS_SAMPLED(TraceFlags)) ->
-    dropped;
+on_end(Span=#span{trace_flags=TraceFlags}, Config=#{reg_name := RegName})
+  when not(?IS_SAMPLED(TraceFlags)) ->
+    case maps:get(export_unsampled, Config, false) of
+        true ->
+            gen_statem:call(RegName, {export, Span});
+        _ ->
+            dropped
+    end;
 on_end(Span=#span{}, #{reg_name := RegName}) ->
     gen_statem:call(RegName, {export, Span});
 on_end(_Span, _) ->
