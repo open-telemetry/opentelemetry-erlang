@@ -69,14 +69,17 @@ init_per_testcase(no_exporter, Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(disable_auto_creation, Config) ->
+    clear_application_tracers(),
     application:set_env(opentelemetry, create_application_tracers, false),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(old_disable_auto_creation, Config) ->
+    clear_application_tracers(),
     application:set_env(opentelemetry, register_loaded_applications, false),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(application_tracers, Config) ->
+    clear_application_tracers(),
     %% if both are set then the new one, `create_application_tracers', is used
     application:set_env(opentelemetry, register_loaded_applications, false),
     application:set_env(opentelemetry, create_application_tracers, true),
@@ -175,21 +178,28 @@ set_batch_tab_processor(DelayMs, Config) ->
                                                   scheduled_delay_ms => DelayMs}}]),
     [{tid, Tid} | Config].
 
+clear_application_tracers() ->
+    persistent_term:erase({opentelemetry, otel_module_to_application_key}),
+    ok.
+
 %% test cases
 
 disable_auto_creation(_Config) ->
+    ?assertEqual('$__default_tracer', opentelemetry:get_application(kernel)),
     {_, #tracer{instrumentation_scope=Library}} = opentelemetry:get_tracer(
                                                       opentelemetry:get_application(kernel)),
     ?assertEqual(undefined, Library),
     ok.
 
 old_disable_auto_creation(_Config) ->
+    ?assertEqual('$__default_tracer', opentelemetry:get_application(kernel)),
     {_, #tracer{instrumentation_scope=Library}} = opentelemetry:get_tracer(
                                                       opentelemetry:get_application(kernel)),
     ?assertEqual(undefined, Library),
     ok.
 
 application_tracers(_Config) ->
+    ?assertMatch({kernel, _, _}, opentelemetry:get_application(kernel)),
     {_, #tracer{instrumentation_scope=Library}} = opentelemetry:get_tracer(
                                                       opentelemetry:get_application(kernel)),
     ?assertEqual(<<"kernel">>, Library#instrumentation_scope.name),
@@ -1140,4 +1150,3 @@ assert_not_exported(Tid, #span_ctx{trace_id=TraceId,
     ?assertMatch([], ets:match(Tid, #span{trace_id=TraceId,
                                           span_id=SpanId,
                                           _='_'})).
-
