@@ -39,7 +39,7 @@ jobs:
     name: Test SDK on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["27.2.4", "26.2.5.21"]
+        otp_version: ["27.2.4"]
         elixir_version: ["1.18.1", "1.14.5"]
         rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
@@ -67,7 +67,7 @@ jobs:
     name: Test API on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["27.2.4", "26.2.5.21"]
+        otp_version: ["27.2.4"]
         elixir_version: ["1.18.1", "1.14.5"]
         rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
@@ -150,7 +150,7 @@ jobs:
     name: Test SemConv on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["27.2.4", "26.2.5.21"]
+        otp_version: ["29.0"]
         elixir_version: ["1.18.1", "1.14.5"]
         rebar3_version: ["3.24.0"]
         os: [ubuntu-24.04]
