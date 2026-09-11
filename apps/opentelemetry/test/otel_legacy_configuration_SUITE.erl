@@ -13,6 +13,7 @@ all() ->
      application_tracer_compatibility_alias,
      custom_components,
      repeated_resolution,
+     reads_current_environment,
      application_startup].
 
 init_per_suite(Config) ->
@@ -52,7 +53,10 @@ defaults(_Config) ->
            max_queue_size => 2048,
            exporter => {opentelemetry_exporter, #{}}}},
     Expected =
-        #{sdk_disabled => false,
+        #{configuration_source => legacy,
+          sdk_disabled => false,
+          traces_enabled => true,
+          metrics_enabled => true,
           log_level => info,
           register_loaded_applications => undefined,
           create_application_tracers => true,
@@ -60,6 +64,7 @@ defaults(_Config) ->
           deny_list => [],
           resource_detectors => [otel_resource_env_var, otel_resource_app_env],
           resource_detector_timeout => 5000,
+          resource => undefined,
           bsp_scheduled_delay_ms => undefined,
           bsp_exporting_timeout_ms => undefined,
           bsp_max_queue_size => undefined,
@@ -85,7 +90,7 @@ defaults(_Config) ->
           attribute_per_event_limit => 128,
           attribute_per_link_limit => 128},
 
-    ?assertEqual(Expected, otel_configuration:merge_with_os([])).
+    ?assertEqual(Expected, otel_configuration_legacy:resolve([])).
 
 application_environment(_Config) ->
     AppEnv =
@@ -104,7 +109,7 @@ application_environment(_Config) ->
                      storage_size => 30}},
          {attribute_count_limit, 64}],
 
-    Config = otel_configuration:merge_with_os(AppEnv),
+    Config = otel_configuration_legacy:resolve(AppEnv),
 
     ?assertMatch(#{sdk_disabled := true,
                    log_level := debug,
@@ -147,14 +152,14 @@ os_environment_precedence(_Config) ->
                        [{otel_batch_processor, #{scheduled_delay_ms := 42}}],
                    attribute_count_limit := 17,
                    create_application_tracers := false},
-                 otel_configuration:merge_with_os(AppEnv)).
+                 otel_configuration_legacy:resolve(AppEnv)).
 
 application_tracer_compatibility_alias(_Config) ->
     ?assertMatch(#{create_application_tracers := false},
-                 otel_configuration:merge_with_os(
+                 otel_configuration_legacy:resolve(
                    [{register_loaded_applications, false}])),
     ?assertMatch(#{create_application_tracers := true},
-                 otel_configuration:merge_with_os(
+                 otel_configuration_legacy:resolve(
                    [{register_loaded_applications, false},
                     {create_application_tracers, true}])).
 
@@ -167,7 +172,7 @@ custom_components(_Config) ->
                    sampler := CustomSampler,
                    processors := [CustomProcessor],
                    text_map_propagators := [CustomPropagator]},
-                 otel_configuration:merge_with_os(
+                 otel_configuration_legacy:resolve(
                    [{id_generator, custom_id_generator},
                     {sampler, CustomSampler},
                     {processors, [CustomProcessor]},
@@ -181,10 +186,35 @@ repeated_resolution(_Config) ->
          {sampler, {trace_id_ratio_based, 0.25}},
          {resource_detector_timeout, 250}],
 
-    First = otel_configuration:merge_with_os(AppEnv),
-    Second = otel_configuration:merge_with_os(AppEnv),
+    First = otel_configuration_legacy:resolve(AppEnv),
+    Second = otel_configuration_legacy:resolve(AppEnv),
 
     ?assertEqual(First, Second).
+
+reads_current_environment(_Config) ->
+    WithoutOSEnv = otel_configuration_legacy:resolve([]),
+    ?assertMatch(#{log_level := info,
+                   sampler := {parent_based, #{root := always_on}},
+                   processors :=
+                       [{otel_batch_processor, #{scheduled_delay_ms := 5000}}]},
+                 WithoutOSEnv),
+
+    os:putenv("OTEL_LOG_LEVEL", "debug"),
+    os:putenv("OTEL_TRACES_SAMPLER", "traceidratio"),
+    os:putenv("OTEL_TRACES_SAMPLER_ARG", "0.25"),
+    os:putenv("OTEL_BSP_SCHEDULE_DELAY_MILLIS", "42"),
+    WithOSEnv = otel_configuration_legacy:resolve([{log_level, info}]),
+    ?assertMatch(#{log_level := debug,
+                   sampler := {trace_id_ratio_based, 0.25},
+                   processors :=
+                       [{otel_batch_processor, #{scheduled_delay_ms := 42}}]},
+                 WithOSEnv),
+
+    os:unsetenv("OTEL_LOG_LEVEL"),
+    os:unsetenv("OTEL_TRACES_SAMPLER"),
+    os:unsetenv("OTEL_TRACES_SAMPLER_ARG"),
+    os:unsetenv("OTEL_BSP_SCHEDULE_DELAY_MILLIS"),
+    ?assertEqual(WithoutOSEnv, otel_configuration_legacy:resolve([])).
 
 application_startup(_Config) ->
     %% Application tracers are cached in persistent_term and intentionally survive
@@ -213,7 +243,9 @@ restore_os_env(Name, Value) ->
     os:putenv(Name, Value).
 
 environment_names() ->
-    ["OTEL_SDK_DISABLED",
+    ["OTEL_CONFIG_FILE",
+     "OTEL_EXPERIMENTAL_CONFIG_FILE",
+     "OTEL_SDK_DISABLED",
      "OTEL_LOG_LEVEL",
      "OTEL_REGISTER_LOADED_APPLICATIONS",
      "OTEL_CREATE_APPLICATION_TRACERS",

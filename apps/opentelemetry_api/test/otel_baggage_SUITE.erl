@@ -39,13 +39,20 @@ explicit_context(_Config) ->
     Ctx = otel_ctx:new(),
 
     Ctx1 = otel_baggage:set(Ctx, <<"key-1">>, <<"value-1">>),
+    true = is_map(Ctx1),
     Ctx2 = otel_baggage:set(Ctx1, [{"key-2", "value-2"}]),
+    true = is_map(Ctx2),
 
     ?assertEqual(#{<<"key-1">> => {<<"value-1">>, []},
                    <<"key-2">> => {<<"value-2">>, []}}, otel_baggage:get_all(Ctx2)),
+
+    %% Invalid values and keys are ignored when updating an explicit context.
+    ?assertEqual(Ctx2, erlang:apply(otel_baggage, set,
+                                   [Ctx2, <<"invalid-value">>, 123])),
+    ?assertEqual(Ctx2, erlang:apply(otel_baggage, set,
+                                   [Ctx2, 123, <<"invalid-key">>])),
 
     Ctx3 = otel_baggage:clear(Ctx2),
     ?assert(maps:size(otel_baggage:get_all(Ctx3)) =:= 0),
 
     ok.
-

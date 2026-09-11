@@ -164,6 +164,18 @@ configuration(_Config) ->
 
         os:putenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4343"),
         os:putenv("OTEL_EXPORTER_OTLP_HEADERS", "key1=value1"),
+        ?assertEqual(#{endpoints => [<<"http://declarative:4318/v1/traces">>],
+                       headers => [{<<"source">>, <<"declarative">>}],
+                       compression => undefined,
+                       protocol => http_protobuf,
+                       ssl_options => undefined},
+                     otel_exporter_traces_otlp:merge_with_environment(
+                       #{configuration_source => declarative,
+                         endpoints => [<<"http://declarative:4318/v1/traces">>],
+                         headers => [{<<"source">>, <<"declarative">>}],
+                         compression => undefined,
+                         protocol => http_protobuf,
+                         ssl_options => undefined})),
         ?assertEqual(#{endpoints =>
                            [#{host => "localhost", path => "/v1/traces", port => 4343,
                               scheme => "http"}],

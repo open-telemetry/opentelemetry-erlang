@@ -49,8 +49,6 @@
               criteria/0,
               config/0]).
 
--include_lib("opentelemetry_api/include/gradualizer.hrl").
-
 %% ignore dialyzer warnings in functions using matchspecs or related to those that do
 -dialyzer({nowarn_function, do_new/2}).
 -dialyzer({nowarn_function, criteria_to_instrument_matchspec/1}).
@@ -202,4 +200,3 @@ view_name_from_criteria(Criteria) when is_map(Criteria) ->
     end;
 view_name_from_criteria(_) ->
     undefined.
-

@@ -55,6 +55,37 @@ This can be done by setting `traces_exporter`'s value to the atom `none`.
 config :opentelemetry, traces_exporter: :none
 ```
 
+### Declarative configuration
+
+The SDK can consume the JSON representation of an
+[OpenTelemetry declarative configuration](https://github.com/open-telemetry/opentelemetry-configuration).
+YAML parsing, environment variable substitution, and JSON Schema validation
+must be performed before the SDK starts. Set `OTEL_CONFIG_FILE` to the resulting
+JSON file:
+
+```shell
+export OTEL_CONFIG_FILE=/path/to/otel-sdk-config.json
+```
+
+The deprecated `OTEL_EXPERIMENTAL_CONFIG_FILE` variable remains supported. An
+Erlang release can also select the file from `sys.config`:
+
+```erlang
+[
+ {opentelemetry,
+  [{config_file, "/path/to/otel-sdk-config.json"}]}
+].
+```
+
+`OTEL_CONFIG_FILE` takes precedence over `OTEL_EXPERIMENTAL_CONFIG_FILE`, which
+takes precedence over `config_file`. Once a declarative file is selected, it is
+authoritative: the SDK does not merge the legacy OpenTelemetry OS or Application
+environment settings into it. Unsupported declarative components cause SDK
+startup to fail with a configuration error.
+
+Reading JSON files uses the `json` module included in OTP 27 and later. Legacy
+configuration remains available on earlier supported OTP releases.
+
 The following sections detail the available SDK options and how to configure
 them through either the OS or Application environment.
 

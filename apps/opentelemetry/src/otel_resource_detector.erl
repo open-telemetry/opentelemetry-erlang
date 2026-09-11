@@ -48,13 +48,16 @@
 -include_lib("kernel/include/logger.hrl").
 
 -record(data, {resource         :: otel_resource:t(),
+               configuration_source = legacy :: legacy | declarative,
                detectors        :: [detector()],
                detector_timeout :: integer()}).
 
 %% @private
 -spec start_link(Config) -> {ok, pid()} | ignore | {error, term()} when
-              Config :: #{resource_detectors := [module()],
-                          resource_detector_timeout := integer()}.
+              Config :: #{resource_detectors := [detector()],
+                          resource_detector_timeout := integer(),
+                          resource => otel_resource:t(),
+                          configuration_source => legacy | declarative}.
 start_link(Config) ->
     gen_statem:start_link({local, ?MODULE}, ?MODULE, [Config], []).
 
@@ -83,10 +86,16 @@ get_resource(Timeout) ->
 
 %% @private
 init([#{resource_detectors := Detectors,
-        resource_detector_timeout := DetectorTimeout}]) ->
+        resource_detector_timeout := DetectorTimeout}=Config]) ->
     process_flag(trap_exit, true),
 
-    {ok, collecting, #data{resource=otel_resource:create([]),
+    Resource = case maps:get(resource, Config, undefined) of
+                   undefined -> otel_resource:create([]);
+                   ConfiguredResource -> ConfiguredResource
+               end,
+
+    {ok, collecting, #data{resource=Resource,
+                           configuration_source=maps:get(configuration_source, Config, legacy),
                            detectors=Detectors,
                            detector_timeout=DetectorTimeout},
      [{next_event, internal, spawn_detectors}]}.
@@ -96,6 +105,13 @@ callback_mode() ->
     [handle_event_function, state_enter].
 
 %% @private
+handle_event(enter, _, ready, Data=#data{resource=Resource,
+                                       configuration_source=declarative}) ->
+    %% Declarative detection is opt-in. These SDK defaults must not read the
+    %% legacy application/OS environment or override explicitly set attributes.
+    Defaults = add_telemetry_info(otel_resource:create(
+                                   [{'service.name', <<"unknown_service">>}])),
+    {keep_state, Data#data{resource=otel_resource:merge(Resource, Defaults)}};
 handle_event(enter, _, ready, Data=#data{resource=Resource}) ->
     NewResource = default_resource_attributes(Resource),
     {keep_state, Data#data{resource=NewResource}};
