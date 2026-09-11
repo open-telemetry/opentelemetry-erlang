@@ -156,8 +156,6 @@
 %% uncomment when OTP-23 becomes the minimum required version
 %% -deprecated({start_tracer_provider, 2, "start the TracerProvider through the SDK"}).
 
--include("gradualizer.hrl").
-
 %% @deprecated Start the TracerProvider through the SDK"
 -spec start_tracer_provider(atom(), map()) -> {ok, pid() | undefined} | {error, term()}.
 start_tracer_provider(Name, Config) ->
@@ -334,7 +332,7 @@ timestamp() ->
 %% @end
 -spec timestamp_to_nano(timestamp()) -> pos_integer().
 timestamp_to_nano(Timestamp) ->
-    ?assert_type(convert_timestamp(Timestamp, nanosecond), pos_integer()).
+    convert_timestamp(Timestamp, nanosecond).
 
 %% @doc Convert a native monotonic timestamp to POSIX time of any {@link erlang:time_unit()}.
 %% Meaning the time since Epoch. Epoch is defined to be 00:00:00 UTC, 1970-01-01.

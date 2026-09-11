@@ -24,19 +24,35 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
 start(_StartType, _StartArgs) ->
-    Config = otel_configuration:merge_with_os(
-               application:get_all_env(opentelemetry)),
+    case otel_configuration_source:resolve(
+           application:get_all_env(opentelemetry)) of
+        {ok, Config} ->
+            start_with_configuration(Config);
+        {error, Reason} ->
+            {error, {configuration_error, Reason}}
+    end.
 
-    %% set the global propagators for HTTP based on the application env
+start_with_configuration(Config) ->
+
+    %% set the global propagators for HTTP based on the resolved configuration
     %% these get set even if the SDK is disabled
     setup_text_map_propagators(Config),
 
-    SupResult = opentelemetry_sup:start_link(Config),
+    case opentelemetry_sup:start_link(Config) of
+        {ok, _}=SupResult ->
+            configure_tracing(Config),
+            otel_configuration:store_runtime(Config),
+            SupResult;
+        Other ->
+            Other
+    end.
 
+configure_tracing(Config) ->
     case Config of
         #{sdk_disabled := true} ->
-            %% skip the rest if the SDK is disabled
-            SupResult;
+            ok;
+        #{traces_enabled := false} ->
+            ok;
         _ ->
             %% set global span limits record based on configuration
             otel_span_limits:set(Config),
@@ -49,11 +65,11 @@ start(_StartType, _StartArgs) ->
             %% changes the version in the tracer will not be updated.
             create_loaded_application_tracers(Config),
 
-            SupResult
+            ok
     end.
 
 stop(_State) ->
-    ok.
+    otel_configuration:clear_runtime().
 
 %% internal functions
 

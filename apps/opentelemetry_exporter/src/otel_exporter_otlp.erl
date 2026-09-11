@@ -49,10 +49,29 @@
 -type protocol() :: grpc | http_protobuf | http_json.
 -type compression() :: gzip.
 
+-type httpc_option() :: {proxy, {{string(), integer()}, [string()]}}
+                      | {https_proxy, {{string(), integer()}, [string()]}}
+                      | {max_connections_open, integer() | infinity}
+                      | {max_sessions, integer()}
+                      | {max_keep_alive_length, integer()}
+                      | {keep_alive_timeout, integer()}
+                      | {max_pipeline_length, integer()}
+                      | {pipeline_timeout, integer()}
+                      | {cookies, enabled | disabled | verify}
+                      | {ipfamily, inet | inet6 | local | inet6fb4}
+                      | {ip, inet:ip_address()}
+                      | {port, integer()}
+                      | {socket_opts, [term()]}
+                      | {verbose, false | verbose | debug | trace}
+                      | {unix_socket, string()}.
+
+-type ssl_options() :: list() | {system_defaults, list()}.
+
 -type opts() :: #{endpoints => [endpoint()],
                   headers => headers(),
                   protocol => protocol(),
-                  ssl_options => list()}.
+                  ssl_options => ssl_options(),
+                  httpc_options => [httpc_option()]}.
 
 -export_type([opts/0,
               headers/0,
@@ -69,8 +88,6 @@
                    compression := compression() | undefined,
                    grpc_metadata := map() | undefined,
                    endpoints := [endpoint_map()]}.
-
--include_lib("opentelemetry_api/include/gradualizer.hrl").
 
 %% @doc Initialize the exporter based on the provided configuration.
 -spec init(opts()) -> {ok, state()}.
@@ -147,10 +164,11 @@ start_httpc(Opts) ->
     case httpc:info(HttpcProfile) of
         {error, {not_started, _}} ->
             %% by default use inet6fb4 which will try ipv6 and then fallback to ipv4 if it fails
-            HttpcOptions = lists:ukeymerge(1,
-                                           lists:usort(maps:get(httpc_options, Opts, [])),
-                                           [{ipfamily, inet6fb4}]
-                                          ),
+            ConfiguredHttpcOptions = lists:usort(maps:get(httpc_options, Opts, [])),
+            HttpcOptions = case lists:keymember(ipfamily, 1, ConfiguredHttpcOptions) of
+                               true -> ConfiguredHttpcOptions;
+                               false -> [{ipfamily, inet6fb4} | ConfiguredHttpcOptions]
+                           end,
             %% can't use `stand_alone' because then `httpc:info(Profile)' would fail
             {ok, Pid} = inets:start(httpc, [{profile, HttpcProfile}]),
             ok = httpc:set_options(HttpcOptions, Pid);
@@ -223,7 +241,7 @@ user_agent() ->
     {ok, ExporterVsn} = application:get_key(opentelemetry_exporter, vsn),
     lists:flatten(io_lib:format("OTel-OTLP-Exporter-erlang/~s", [ExporterVsn])).
 
--spec endpoints([endpoint()], list() | undefined) -> [endpoint_map()].
+-spec endpoints([endpoint()], ssl_options() | undefined) -> [endpoint_map()].
 endpoints(List, DefaultSSLOpts) when is_list(List) ->
     Endpoints = case io_lib:printable_list(List) of
                     true ->
@@ -327,6 +345,10 @@ maybe_add_scheme_port(Uri) ->
 %% if no ssl opts are defined by the user then use defaults from `tls_certificate_check'
 update_ssl_opts(Host, undefined) ->
     tls_certificate_check:options(Host);
+update_ssl_opts(Host, {system_defaults, SSLOptions}) ->
+    %% This form contains only the declarative client key and certificate;
+    %% retain the system verification options used when TLS is otherwise unset.
+    SSLOptions ++ tls_certificate_check:options(Host);
 update_ssl_opts(_, SSLOptions) ->
     SSLOptions.
 
@@ -349,6 +371,12 @@ to_existing_atom(Scheme) when is_binary(Scheme) ->
 to_existing_atom(_) ->
     erlang:error(bad_exporter_scheme).
 
+merge_with_environment(_ConfigMapping, _AppEnv,
+                       #{configuration_source := declarative}=Opts,
+                       _SignalEndpointConfigKey, _SignalHeadersConfigKey,
+                       _SignalProtocolConfigKey, _SignalCompressionConfigKey,
+                       _DefaultPath) ->
+    maps:remove(configuration_source, Opts);
 merge_with_environment(ConfigMapping, AppEnv, Opts, SignalEndpointConfigKey, SignalHeadersConfigKey, SignalProtocolConfigKey, SignalCompressionConfigKey, DefaultPath) ->
     Config = #{otlp_endpoint => undefined,
                SignalEndpointConfigKey => undefined,
@@ -360,7 +388,7 @@ merge_with_environment(ConfigMapping, AppEnv, Opts, SignalEndpointConfigKey, Sig
                SignalCompressionConfigKey => undefined,
                ssl_options => undefined},
 
-    AppOpts = otel_configuration:merge_list_with_environment(ConfigMapping, AppEnv, Config),
+    AppOpts = otel_configuration_legacy:merge_list_with_environment(ConfigMapping, AppEnv, Config),
 
     %% check for error in app env value parsing
     case maps:get(otlp_endpoint, AppOpts) of
@@ -439,7 +467,15 @@ append_path(Endpoint=#{}, DefaultPath) ->
     Endpoint#{path => filename:join([], DefaultPath)};
 append_path(EndpointString, DefaultPath) when is_list(EndpointString) orelse is_binary(EndpointString) ->
     Endpoint=#{path := Path} = uri_string:parse(EndpointString),
-    Endpoint#{path => filename:join(?assert_type(Path, string() | binary()), DefaultPath)}.
+    Endpoint#{path => filename:join(filename_path(Path), DefaultPath)}.
+
+-spec filename_path(unicode:chardata()) -> string() | binary().
+filename_path(Path) when is_binary(Path) ->
+    Path;
+filename_path(Path) ->
+    List = unicode:characters_to_list(Path),
+    true = is_list(List),
+    List.
 
 %% use the value from the environment if it exists, otherwise use the value
 %% passed in Opts or the default
@@ -457,4 +493,3 @@ update_opts(AppKey, OptKey, Default, AppOpts, Opts, Transform) ->
 
 id(X) ->
     X.
-

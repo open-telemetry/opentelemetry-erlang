@@ -33,6 +33,7 @@
 
 -export([create/1,
          create/2,
+         create_from_attributes/2,
          merge/2,
          schema_url/1,
          attributes/1,
@@ -41,7 +42,8 @@
 -type key() :: unicode:latin1_binary() | atom().
 %% values allowed in attributes of a resource are limited
 
--type value() :: unicode:latin1_binary() | integer() | float() | boolean().
+-type scalar_value() :: unicode:latin1_binary() | integer() | float() | boolean().
+-type value() :: scalar_value() | [scalar_value()] | unicode:chardata().
 %% A resource value.
 
 -type schema_url() :: uri_string:uri_string().
@@ -71,11 +73,22 @@ create(Attributes) ->
 create(Map, SchemaUrl) when is_map(Map) ->
     create(maps:to_list(Map), SchemaUrl);
 create(List, SchemaUrl) when is_list(List) ->
+    create(List, SchemaUrl, fun check_value/1).
+
+%% @private
+%% Creates a resource from normalized attribute values: strings are binaries,
+%% and lists are arrays. Unlike create/2, this does not interpret arrays as
+%% Erlang character lists. Used after declarative schema validation.
+-spec create_from_attributes([opentelemetry:attribute()], schema_url() | undefined) -> t().
+create_from_attributes(Attributes, SchemaUrl) ->
+    create(Attributes, SchemaUrl, fun check_attribute_value/1).
+
+create(List, SchemaUrl, CheckValue) ->
     List1 = lists:filtermap(fun({K, V}) ->
                                     %% TODO: log an info or debug message when dropping?
                                     case try_check_key(K, true) of
                                         {true, Key} ->
-                                            case check_value(V) of
+                                            case CheckValue(V) of
                                                 {true, Value} ->
                                                     {true, {Key, Value}};
                                                 _ ->
@@ -190,6 +203,11 @@ check_value(V) when is_list(V) ->
     end;
 check_value(_) ->
     false.
+
+check_attribute_value(Value) when is_list(Value) ->
+    {true, Value};
+check_attribute_value(Value) ->
+    check_value(Value).
 
 check_string_value(V) ->
     %% all resource strings, key or value, must be latin1 with length less than 255

@@ -39,7 +39,6 @@
 -dialyzer({nowarn_function, maybe_delete_old_generation/4}).
 -dialyzer({nowarn_function, datapoint/4}).
 
--include_lib("opentelemetry_api/include/gradualizer.hrl").
 -include("otel_view.hrl").
 
 init(#stream{name=Name,
