@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
       with:
         otp-version: '26.1.2'
@@ -27,7 +29,7 @@ jobs:
       with:
         path: |
           _build
-        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles(format('rebar.lock')) }}-1
+        key: ${{ runner.os }}-build-${{ matrix.otp_version }}-${{ hashFiles('rebar.lock') }}-1
         restore-keys: |
           ${{ runner.os }}-build-${{ matrix.otp_version }}-1-
 
@@ -36,6 +38,7 @@ jobs:
 
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
+        persist-credentials: false
         repository: 'w3c/trace-context'
         path: 'trace-context'
     - name: Setup python
