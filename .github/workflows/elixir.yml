@@ -43,7 +43,7 @@ jobs:
       matrix:
         otp_version: ["27.2.4"]
         elixir_version: ["1.18.1", "1.14.5"]
-        rebar3_version: ["3.24.0"]
+        rebar3_version: ["3.25.1"]
         os: [ubuntu-24.04]
         exclude:
           - elixir_version: "1.14.5"
@@ -73,7 +73,7 @@ jobs:
       matrix:
         otp_version: ["27.2.4"]
         elixir_version: ["1.18.1", "1.14.5"]
-        rebar3_version: ["3.24.0"]
+        rebar3_version: ["3.25.1"]
         os: [ubuntu-24.04]
         exclude:
           - elixir_version: "1.14.5"
@@ -121,7 +121,7 @@ jobs:
       matrix:
         otp_version: ["27.2.4"]
         elixir_version: ["1.18.1"]
-        rebar3_version: ["3.24.0"]
+        rebar3_version: ["3.25.1"]
         os: [ubuntu-24.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
@@ -160,7 +160,7 @@ jobs:
       matrix:
         otp_version: ["29.0"]
         elixir_version: ["1.18.1", "1.14.5"]
-        rebar3_version: ["3.24.0"]
+        rebar3_version: ["3.25.1"]
         os: [ubuntu-24.04]
         exclude:
           - elixir_version: "1.14.5"

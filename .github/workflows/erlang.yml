@@ -23,7 +23,7 @@ jobs:
     strategy:
       matrix:
         otp_version: ["29.0", "28.1", "27.2"]
-        rebar3_version: ["3.24.0"]
+        rebar3_version: ["3.25.1"]
         os: [ubuntu-24.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
@@ -94,7 +94,7 @@ jobs:
     strategy:
       matrix:
         otp_version: ["28.1"]
-        rebar3_version: ["3.24.0"]
+        rebar3_version: ["3.25.1"]
         os: [ubuntu-24.04]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -124,7 +124,7 @@ jobs:
     strategy:
       matrix:
         otp_version: ["29.0"]
-        rebar3_version: ["3.24.0"]
+        rebar3_version: ["3.25.1"]
         os: [ubuntu-24.04]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -159,7 +159,7 @@ jobs:
     strategy:
       matrix:
         otp_version: ["29.0", "28.1", "27.2"]
-        rebar3_version: ["3.24.0"]
+        rebar3_version: ["3.25.1"]
         os: [ubuntu-24.04]
     defaults:
       run:
