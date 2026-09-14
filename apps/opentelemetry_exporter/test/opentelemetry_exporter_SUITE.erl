@@ -317,8 +317,9 @@ span_round_trip(_Config) ->
                                                attributes = [{<<"attr-3">>, <<"value-3">>}]}], Events),
               attributes = otel_attributes:new([{<<"attr-2">>, <<"value-2">>},
                                                 {attr_3, true},
-                                                {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
-                                                {<<"list-key-1">>, [3.14, 9.345]}
+                                                {<<"map-key-1">>, #{<<"map-kv-1">> => 123}},
+                                                {<<"binary-list-key-1">>, [<<"value-1">>, <<"value-2">>]},
+                                                {<<"atom-list-key-1">>, [kv1, kv2]}
                                                 ], 128, 128),
               status = #status{code=?OTEL_STATUS_OK,
                                message = <<"">>},
@@ -331,6 +332,37 @@ span_round_trip(_Config) ->
 
     PbSpan1 = maps:filter(fun(_, V) -> V =/= undefined end, PbSpan),
     DecodedProto = opentelemetry_exporter_trace_service_pb:decode_msg(Proto, span),
+    % erlang:dump(DecodedProto),
+    ExpectedAttributes = [#{key => <<"map-key-1">>,
+                       value =>
+                           #{value =>
+                                 {kvlist_value,
+                                     #{values =>
+                                           [#{key => <<"map-kv-1">>,
+                                              value =>
+                                                  #{value =>
+                                                        {int_value,123}}}]}}}},
+                     #{key => <<"binary-list-key-1">>,
+                       value =>
+                           #{value =>
+                                 {array_value,
+                                     #{values =>
+                                           [#{value => {string_value,<<"value-1">>}},
+                                            #{value =>
+                                                  {string_value,<<"value-2">>}}]}}}},
+                     #{key => <<"attr-2">>,
+                       value => #{value => {string_value,<<"value-2">>}}},
+                     #{key => <<"atom-list-key-1">>,
+                         value =>
+                             #{value =>
+                                   {array_value,
+                                       #{values =>
+                                             [#{value => {string_value,<<"value-1">>}},
+                                              #{value =>
+                                                    {string_value,<<"value-2">>}}]}}}},
+                     #{key => <<"attr_3">>,
+                       value => #{value => {string_value,<<"true">>}}}],
+    ?assertMatch(ExpectedAttributes, maps:get(attributes, DecodedProto)),
     ?assertEqual(maps:with([trace_id, span_id], DecodedProto),
                  maps:with([trace_id, span_id], PbSpan1)),
 
