@@ -71,43 +71,42 @@
 -export_type([t/0]).
 
 -include_lib("kernel/include/logger.hrl").
--include_lib("opentelemetry_api/include/gradualizer.hrl").
 
 -spec new() -> t().
 new() ->
-    ?assert_type(#{sdk_disabled => false,
-                   log_level => info,
-                   register_loaded_applications => undefined,
-                   create_application_tracers => undefined,
-                   id_generator => otel_id_generator,
-                   deny_list => [],
-                   resource_detectors => [otel_resource_env_var,
-                                          otel_resource_app_env],
-                   resource_detector_timeout => 5000,
-                   bsp_scheduled_delay_ms => undefined,
-                   bsp_exporting_timeout_ms => undefined,
-                   bsp_max_queue_size => undefined,
-                   ssp_exporting_timeout_ms => undefined,
-                   text_map_propagators => [trace_context, baggage],
-                   traces_exporter => {opentelemetry_exporter, #{}},
-                   metrics_exporter => {opentelemetry_exporter, #{}},
-                   views => [],
-                   readers => [],
-                   exemplars_enabled => false,
-                   exemplar_filter => trace_based,
-                   metric_producers => [],
-                   processors => [{otel_batch_processor, ?BATCH_PROCESSOR_DEFAULTS}],
-                   sampler => {parent_based, #{root => always_on}},
-                   sweeper => #{interval => timer:minutes(10),
-                                strategy => drop,
-                                span_ttl => timer:minutes(30),
-                                storage_size => infinity},
-                   attribute_count_limit => 128,
-                   attribute_value_length_limit => infinity,
-                   event_count_limit => 128,
-                   link_count_limit => 128,
-                   attribute_per_event_limit => 128,
-                   attribute_per_link_limit => 128}, t()).
+    #{sdk_disabled => false,
+      log_level => info,
+      register_loaded_applications => undefined,
+      create_application_tracers => undefined,
+      id_generator => otel_id_generator,
+      deny_list => [],
+      resource_detectors => [otel_resource_env_var,
+                             otel_resource_app_env],
+      resource_detector_timeout => 5000,
+      bsp_scheduled_delay_ms => undefined,
+      bsp_exporting_timeout_ms => undefined,
+      bsp_max_queue_size => undefined,
+      ssp_exporting_timeout_ms => undefined,
+      text_map_propagators => [trace_context, baggage],
+      traces_exporter => {opentelemetry_exporter, #{}},
+      metrics_exporter => {opentelemetry_exporter, #{}},
+      views => [],
+      readers => [],
+      exemplars_enabled => false,
+      exemplar_filter => trace_based,
+      metric_producers => [],
+      processors => [{otel_batch_processor, ?BATCH_PROCESSOR_DEFAULTS}],
+      sampler => {parent_based, #{root => always_on}},
+      sweeper => #{interval => timer:minutes(10),
+                   strategy => drop,
+                   span_ttl => timer:minutes(30),
+                   storage_size => infinity},
+      attribute_count_limit => 128,
+      attribute_value_length_limit => infinity,
+      event_count_limit => 128,
+      link_count_limit => 128,
+      attribute_per_event_limit => 128,
+      attribute_per_link_limit => 128}.
 
 -spec merge_with_os(list()) -> t().
 merge_with_os(AppEnv) ->
@@ -146,7 +145,7 @@ general(AppEnv, ConfigMap) ->
                                        Bool
                                end, Config),
 
-    ?assert_type(Config1, t()).
+    Config1.
 
 -spec sweeper(list(), t()) -> t().
 sweeper(AppEnv, ConfigMap=#{sweeper := DefaultSweeperConfig}) ->

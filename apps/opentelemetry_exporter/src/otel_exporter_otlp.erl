@@ -70,8 +70,6 @@
                    grpc_metadata := map() | undefined,
                    endpoints := [endpoint_map()]}.
 
--include_lib("opentelemetry_api/include/gradualizer.hrl").
-
 %% @doc Initialize the exporter based on the provided configuration.
 -spec init(opts()) -> {ok, state()}.
 init(Opts) ->
@@ -439,7 +437,7 @@ append_path(Endpoint=#{}, DefaultPath) ->
     Endpoint#{path => filename:join([], DefaultPath)};
 append_path(EndpointString, DefaultPath) when is_list(EndpointString) orelse is_binary(EndpointString) ->
     Endpoint=#{path := Path} = uri_string:parse(EndpointString),
-    Endpoint#{path => filename:join(?assert_type(Path, string() | binary()), DefaultPath)}.
+    Endpoint#{path => filename:join(eqwalizer:dynamic_cast(Path), DefaultPath)}.
 
 %% use the value from the environment if it exists, otherwise use the value
 %% passed in Opts or the default
@@ -457,4 +455,3 @@ update_opts(AppKey, OptKey, Default, AppOpts, Opts, Transform) ->
 
 id(X) ->
     X.
-
