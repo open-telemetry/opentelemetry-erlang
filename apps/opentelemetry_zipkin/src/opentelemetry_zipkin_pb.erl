@@ -466,7 +466,8 @@ e_type_bool(0, Bin, _TrUserData) -> <<Bin/binary, 0>>.
 
 -compile({nowarn_unused_function,e_type_string/3}).
 e_type_string(S, Bin, _TrUserData) ->
-    Utf8 = eqwalizer:dynamic_cast(unicode:characters_to_binary(S)),
+    Utf8 = unicode:characters_to_binary(S),
+    true = is_binary(Utf8),
     Bin2 = e_varint(byte_size(Utf8), Bin),
     <<Bin2/binary, Utf8/binary>>.
 

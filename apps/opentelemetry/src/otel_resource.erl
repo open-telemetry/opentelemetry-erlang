@@ -38,6 +38,8 @@
          attributes/1,
          is_key/2]).
 
+-eqwalizer({nowarn_function, attributes/1}).
+
 -type key() :: unicode:latin1_chardata() | atom().
 %% values allowed in attributes of a resource are limited
 
@@ -104,7 +106,7 @@ schema_url(_) ->
 attributes(#resource{attributes=Attributes}) ->
     Attributes;
 attributes(_) ->
-    eqwalizer:dynamic_cast(undefined).
+    undefined.
 
 %% @doc Returns `true' if `Key' is valid and part of the given resource.
 -spec is_key(key(), t()) -> boolean().

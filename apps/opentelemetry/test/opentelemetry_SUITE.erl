@@ -13,6 +13,12 @@
 -include("otel_sampler.hrl").
 -include("otel_span_ets.hrl").
 
+-type exported_span() :: #span{attributes :: otel_attributes:t()}.
+
+%% This test intentionally passes an invalid status to verify it is rejected.
+-eqwalizer({nowarn_function, update_span_data/1}).
+%% ETS match results are tuples at the type boundary; the pattern fixes their record shape.
+-eqwalizer({nowarn_function, assert_exported/2}).
 
 all() ->
     [%% no need to include tests that don't export any spans with the simple/batch groups
@@ -369,7 +375,7 @@ force_flush(Config) ->
     [Span1] = assert_exported(Tid, SpanCtx1),
 
     ?assertEqual(#{Attr1 => AttrValue1},
-                 otel_attributes:map(eqwalizer:dynamic_cast(Span1#span.attributes))),
+                 otel_attributes:map(Span1#span.attributes)),
 
     ok.
 
@@ -403,7 +409,7 @@ shutdown_force_flush(Config) ->
     [Span1] = assert_exported(Tid, SpanCtx1),
 
     ?assertEqual(#{Attr1 => AttrValue1},
-                 otel_attributes:map(eqwalizer:dynamic_cast(Span1#span.attributes))),
+                 otel_attributes:map(Span1#span.attributes)),
 
     ok.
 
@@ -451,7 +457,7 @@ macros(Config) ->
     [Span1] = assert_exported(Tid, SpanCtx1),
 
     ?assertEqual(#{Attr1 => AttrValue1},
-                 otel_attributes:map(eqwalizer:dynamic_cast(Span1#span.attributes))),
+                 otel_attributes:map(Span1#span.attributes)),
 
     ok.
 
@@ -570,7 +576,7 @@ update_span_data(Config) ->
     ?assertNot(otel_span:set_status(SpanCtx1, ErrorStatus)),
     ?assertNot(otel_span:set_status(SpanCtx1, ?OTEL_STATUS_ERROR)),
     %% %% returns false if called with something that isn't a status record
-    ?assertNot(otel_span:set_status(SpanCtx1, eqwalizer:dynamic_cast(notastatus))),
+    ?assertNot(otel_span:set_status(SpanCtx1, notastatus)),
 
     %% returning not false means it successfully called the SDK
     ?assertNotEqual(false, otel_span:add_event(SpanCtx1, event_1, #{<<"attr-1">> => <<"attr-value-1">>})),
@@ -672,9 +678,9 @@ multiple_tracer_providers(_Config) ->
 
     ?assertEqual(otel_resource:create([]), otel_tracer_provider:resource(deprecated_test_provider_start)),
 
-    GlobalResource = eqwalizer:dynamic_cast(otel_tracer_provider:resource()),
+    GlobalResource = otel_tracer_provider:resource(),
     GlobalResourceAttributes = otel_attributes:map(
-                                 eqwalizer:dynamic_cast(otel_resource:attributes(GlobalResource))),
+                                 otel_resource:attributes(GlobalResource)),
     ?assertMatch(#{'process.executable.name' := <<"erl">>}, GlobalResourceAttributes),
 
     Tracer1 = otel_tracer_provider:get_tracer(test_provider, <<"tracer-name">>, <<>>, <<>>),
@@ -1018,7 +1024,7 @@ dropped_attributes(Config) ->
     [Span] = assert_exported(Tid, SpanCtx),
 
     ?assertEqual(#{<<"attr-1">> => <<"at">>},
-                 otel_attributes:map(eqwalizer:dynamic_cast(Span#span.attributes))),
+                 otel_attributes:map(Span#span.attributes)),
 
     ok.
 
@@ -1071,7 +1077,7 @@ too_many_attributes(Config) ->
 
     ?assertEqual(#{attr1 => [homogeneous, tuple],
                    <<"attr-3">> => 4},
-                 otel_attributes:map(eqwalizer:dynamic_cast(Span#span.attributes))),
+                 otel_attributes:map(Span#span.attributes)),
     ?assertEqual(3, otel_attributes:dropped(Span#span.attributes)),
 
     %% test again using the `set_attributes' macro
@@ -1139,6 +1145,7 @@ pregenerate_hex_ids(_Config) ->
 assert_all_exported(Tid, SpanCtxs) ->
     [assert_exported(Tid, SpanCtx) || SpanCtx <- SpanCtxs].
 
+-spec assert_exported(ets:table(), opentelemetry:span_ctx()) -> [exported_span()].
 assert_exported(Tid, #span_ctx{trace_id=TraceId,
                                span_id=SpanId}) ->
     ?UNTIL_NOT_EQUAL([], ets:match_object(Tid, #span{trace_id=TraceId,

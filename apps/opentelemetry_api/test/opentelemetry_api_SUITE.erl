@@ -4,6 +4,12 @@
 
 -compile(export_all).
 
+%% These tests intentionally pass malformed values to validation APIs.
+-eqwalizer({nowarn_function, can_create_link_from_span/1}).
+-eqwalizer({nowarn_function, validations/1}).
+-eqwalizer({nowarn_function, update_span_data/1}).
+-eqwalizer({nowarn_function, noop_with_span/1}).
+
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 
@@ -72,7 +78,7 @@ can_create_link_from_span(_Config) ->
                     attributes := #{},
                     tracestate := Tracestate}],
                  opentelemetry:links(
-                   eqwalizer:dynamic_cast([undefined, {SpanCtx, Attributes}, SpanCtx]))).
+                   [undefined, {SpanCtx, Attributes}, SpanCtx])).
 
 validations(_Config) ->
     InvalidAttributesArg = undefined,
@@ -97,7 +103,7 @@ validations(_Config) ->
                   {<<"boolean-list-invalid">>, [true, 1.1]},
                   {<<"float-list-invalid">>, [1.1, 2]},
                   {<<"int-list-invalid">>, [1, 2.0]}],
-    Links = eqwalizer:dynamic_cast([{0, 0, Attributes, []}]),
+    Links = [{0, 0, Attributes, []}],
     Events = [{opentelemetry:timestamp(), <<"timed-event-name">>, Attributes},
               {untimed_event, Attributes},
               {<<"">>, Attributes},
@@ -131,7 +137,7 @@ validations(_Config) ->
                    attributes := ProcessedAttributes},
                   #{name := untimed_event,
                    attributes := ProcessedAttributes}],
-                 opentelemetry:events(eqwalizer:dynamic_cast(Events))),
+                 opentelemetry:events(Events)),
 
     ?assertEqual([#{trace_id => 0,
                     span_id => 0,
@@ -139,8 +145,8 @@ validations(_Config) ->
                     tracestate => otel_tracestate:new()}],
                  opentelemetry:links(Links)),
 
-    StartOpts = eqwalizer:dynamic_cast(#{attributes => Attributes,
-                                        links => opentelemetry:links(Links)}),
+    StartOpts = #{attributes => Attributes,
+                  links => opentelemetry:links(Links)},
     EmptyTracestate = otel_tracestate:new(),
     ?assertMatch(#{attributes := ProcessedAttributes,
                   links := [#{trace_id := 0, span_id := 0, attributes := ProcessedAttributes, tracestate := EmptyTracestate}]},
@@ -194,10 +200,10 @@ noop_tracer(_Config) ->
 
 %% just shouldn't crash
 update_span_data(_Config) ->
-    Links = opentelemetry:links(eqwalizer:dynamic_cast([#{trace_id => 0,
-                                                         span_id => 0,
-                                                         attributes => [],
-                                                         tracestate => []}])),
+    Links = opentelemetry:links([#{trace_id => 0,
+                                   span_id => 0,
+                                   attributes => [],
+                                   tracestate => []}]),
 
     SpanCtx1 = ?start_span(<<"span-1">>, #{links => Links}),
     ?set_current_span(SpanCtx1),
@@ -234,10 +240,10 @@ update_span_data(_Config) ->
 
 noop_with_span(_Config) ->
     Attributes = #{<<"attr-1">> => <<"value-1">>},
-    Links = opentelemetry:links(eqwalizer:dynamic_cast([#{trace_id => 0,
-                                                         span_id => 0,
-                                                         attributes => [],
-                                                         tracestate => []}])),
+    Links = opentelemetry:links([#{trace_id => 0,
+                                   span_id => 0,
+                                   attributes => [],
+                                   tracestate => []}]),
     StartOpts = #{attributes => Attributes, links => Links},
 
     Tracer = opentelemetry:get_tracer(),

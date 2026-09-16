@@ -2,6 +2,9 @@
 
 -compile(export_all).
 
+%% This serialization test deliberately includes non-standard attribute values.
+-eqwalizer({nowarn_function, verify_export/1}).
+
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry/include/otel_span.hrl").
@@ -41,10 +44,10 @@ verify_export(_Config) ->
                                         #event{system_time_native=opentelemetry:timestamp(),
                                                name = event_2,
                                                attributes = otel_attributes:new([{<<"attr-3">>, <<"value-3">>}], 128, 128)}], Events),
-              attributes = otel_attributes:new(eqwalizer:dynamic_cast([{<<"attr-2">>, <<"value-2">>},
+              attributes = otel_attributes:new([{<<"attr-2">>, <<"value-2">>},
                                                                        {attr_3, true},
                                                                        {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
-                                                                       {<<"list-key-1">>, [3.14, 9.345]}]),
+                                                                       {<<"list-key-1">>, [3.14, 9.345]}],
                                                128, 128),
               status=opentelemetry:status(?OTEL_STATUS_ERROR, <<"some message about status">>),
               parent_span_is_remote = undefined},
@@ -64,10 +67,10 @@ verify_export(_Config) ->
                                                 #event{system_time_native=opentelemetry:timestamp(),
                                                        name = event_2,
                                                        attributes = otel_attributes:new([{<<"attr-3">>, <<"value-3">>}], 128, 128)}], Events),
-                      attributes = otel_attributes:new(eqwalizer:dynamic_cast([{<<"attr-2">>, <<"value-2">>},
+                      attributes = otel_attributes:new([{<<"attr-2">>, <<"value-2">>},
                                                                                {attr_3, true},
                                                                                {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
-                                                                               {<<"list-key-1">>, [3.14, 9.345]}]),
+                                                                               {<<"list-key-1">>, [3.14, 9.345]}],
                                                        128, 128),
                       parent_span_is_remote = false},
     true = ets:insert(Tid, ChildSpan),

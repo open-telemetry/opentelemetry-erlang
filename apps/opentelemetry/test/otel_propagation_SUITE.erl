@@ -2,6 +2,10 @@
 
 -compile(export_all).
 
+%% These tests include invalid metadata entries to verify they are dropped.
+-eqwalizer({nowarn_function, propagation/1}).
+-eqwalizer({nowarn_function, override_propagators/1}).
+
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 
@@ -72,8 +76,8 @@ propagation(Config) ->
     %% TODO: should the whole baggage entry be dropped if metadata is bad?
     %% drop bad metadata (the `1').
     otel_baggage:set(<<"key-2">>, <<"value-2">>,
-                     eqwalizer:dynamic_cast([<<"metadata">>, 1,
-                                              {<<"md-k-1">>, <<"md-v-1">>}])),
+                     [<<"metadata">>, 1,
+                      {<<"md-k-1">>, <<"md-v-1">>}]),
     %% drop baggage with bad value
     otel_baggage:set(<<"key-3">>, value3),
 
@@ -133,8 +137,8 @@ override_propagators(_Config) ->
     %% TODO: should the whole baggage entry be dropped if metadata is bad?
     %% drop bad metadata (the `1').
     otel_baggage:set(<<"key-2">>, <<"value-2">>,
-                     eqwalizer:dynamic_cast([<<"metadata">>, 1,
-                                              {<<"md-k-1">>, <<"md-v-1">>}])),
+                     [<<"metadata">>, 1,
+                      {<<"md-k-1">>, <<"md-v-1">>}]),
     %% drop baggage with bad value
     otel_baggage:set(<<"key-3">>, value3),
 

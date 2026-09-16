@@ -116,11 +116,11 @@ set(Key, Value, Metadata) when (is_list(Key) orelse is_binary(Key)) andalso is_b
 %% drop bad value
 set(Key, Value, _Metadata) when (is_list(Key) orelse is_binary(Key)) andalso not is_binary(Value) ->
     ok;
-set(Ctx, Key, Value) ->
-    set_to(Ctx,
-           eqwalizer:dynamic_cast(Key),
-           eqwalizer:dynamic_cast(Value),
-           []).
+set(Ctx, Key, Value)
+  when (is_map(Ctx) orelse Ctx =:= undefined),
+       (is_list(Key) orelse is_binary(Key)),
+       (is_list(Value) orelse is_binary(Value) orelse is_atom(Value)) ->
+    set_to(Ctx, Key, Value, []).
 
 %% @doc Sets the given key-value pair in the baggage for the given context.
 %%
@@ -145,7 +145,7 @@ set(Ctx, _, _, _) ->
 %% associated metadata.
 %%
 %% Returns the updated context.
--spec set_to(otel_ctx:t(), input_key(), input_value(), metadata()) -> otel_ctx:t().
+-spec set_to(otel_ctx:t(), input_key(), input_value() | metadata(), metadata()) -> otel_ctx:t().
 set_to(Ctx, Key, Value, Metadata) when is_binary(Value) ->
     Baggage = otel_ctx:get_value(Ctx, ?BAGGAGE_KEY, #{}),
     otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(#{Key => {Value, Metadata}})));

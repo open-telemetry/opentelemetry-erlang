@@ -2,6 +2,9 @@
 
 -compile(export_all).
 
+%% Logger permits handler-specific config keys not represented in its closed type.
+-eqwalizer({nowarn_function, exports_logs_after_idle_interval/1}).
+
 -include_lib("common_test/include/ct.hrl").
 
 all() ->
@@ -29,9 +32,9 @@ end_per_suite(Config) ->
 exports_logs_after_idle_interval(_Config) ->
     HandlerId = ?FUNCTION_NAME,
     ok = logger:add_handler(HandlerId, otel_log_handler,
-                            eqwalizer:dynamic_cast(#{level => info,
-                                                    exporter => {?MODULE, {logs, self()}},
-                                                    scheduled_delay_ms => 1})),
+                            #{level => info,
+                              exporter => {?MODULE, {logs, self()}},
+                              scheduled_delay_ms => 1}),
 
     %% Let several export intervals elapse with no logs — the condition that
     %% used to wedge the handler.

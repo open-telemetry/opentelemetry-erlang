@@ -2,6 +2,9 @@
 
 -compile(export_all).
 
+%% This test forwards a heterogeneous application environment to the validator.
+-eqwalizer({nowarn_function, compare_span_limits/1}).
+
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 
@@ -363,7 +366,7 @@ compare_span_limits(Config) ->
 
     ?assertIsSubset(ExpectedOpts, Opts),
 
-    otel_span_limits:set(eqwalizer:dynamic_cast(maps:from_list(Opts))),
+    otel_span_limits:set(maps:from_list(Opts)),
 
     SpanLimits = otel_span_limits:get(),
 
