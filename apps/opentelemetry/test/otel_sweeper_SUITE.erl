@@ -20,7 +20,8 @@ all() ->
     [storage_size,
      drop,
      end_span,
-     failed_attribute_and_end_span].
+     failed_attribute_and_end_span,
+     span_ets_owner_crash].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
@@ -41,6 +42,16 @@ init_per_testcase(storage_size, Config) ->
                                                                             exporter => {otel_exporter_pid, self()}}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
 
+    Config;
+init_per_testcase(span_ets_owner_crash, Config) ->
+    %% Long sweeper interval so it doesn't interfere with the crash test.
+    application:set_env(opentelemetry, sweeper, #{interval => 60000,
+                                                  strategy => drop,
+                                                  span_ttl => 60000}),
+    application:set_env(opentelemetry, tracer, otel_tracer_default),
+    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1,
+                                                                             exporter => {otel_exporter_pid, self()}}}]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(Type, Config) ->
     application:set_env(opentelemetry, sweeper, #{interval => 250,
@@ -183,3 +194,42 @@ failed_attribute_and_end_span(_Config) ->
     after
       1000 -> ct:fail("Do not received any message after 1s")
     end.
+
+%% @doc Verify that in-flight spans survive a crash of the otel_span_ets
+%% process. The table uses {heir, otel_span_sup, _} so the supervisor
+%% inherits ownership on crash, and the restarted process resumes using
+%% the existing table without data loss.
+span_ets_owner_crash(_Config) ->
+    SpanName1 = <<"crash-test-span-1">>,
+    SpanCtx1 = ?start_span(SpanName1),
+    ?set_current_span(SpanCtx1),
+
+    SpanName2 = <<"crash-test-span-2">>,
+    SpanCtx2 = ?start_span(SpanName2),
+    ?set_current_span(SpanCtx2),
+
+    %% Both spans are in the ETS table.
+    ?assertMatch([_], ets:lookup(?SPAN_TAB, SpanCtx1#span_ctx.span_id)),
+    ?assertMatch([_], ets:lookup(?SPAN_TAB, SpanCtx2#span_ctx.span_id)),
+    SizeBefore = ets:info(?SPAN_TAB, size),
+    ?assert(SizeBefore >= 2),
+
+    %% Kill the process that owns the span table (otel_span_ets).
+    OldPid = ets:info(?SPAN_TAB, owner),
+    ?assert(is_pid(OldPid)),
+    exit(OldPid, kill),
+
+    %% Wait for the supervisor to restart the process.
+    ?UNTIL(ets:info(?SPAN_TAB, owner) =/= undefined andalso
+           ets:info(?SPAN_TAB, owner) =/= OldPid),
+
+    %% The table still exists and retains the spans.
+    ?assertNotEqual(undefined, ets:info(?SPAN_TAB, name)),
+    SizeAfter = ets:info(?SPAN_TAB, size),
+    ?assertEqual(SizeBefore, SizeAfter),
+
+    %% The spans are individually accessible.
+    ?assertMatch([#span{name = <<"crash-test-span-1">>}],
+                 ets:lookup(?SPAN_TAB, SpanCtx1#span_ctx.span_id)),
+    ?assertMatch([#span{name = <<"crash-test-span-2">>}],
+                 ets:lookup(?SPAN_TAB, SpanCtx2#span_ctx.span_id)).
