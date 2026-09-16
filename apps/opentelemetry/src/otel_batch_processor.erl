@@ -28,6 +28,11 @@
 %%
 %% The size limit of the current table where finished spans are stored can
 %% be configured with the `max_queue_size' option.
+%%
+%% Set `export_unsampled' to `true' to also export recording spans whose
+%% trace flags indicate they are not sampled.  This is useful for
+%% Collector-side tail-based sampling and RED metrics that need full
+%% request counts.  The default is `false' (spec-compliant behaviour).
 %% @end
 %%%-----------------------------------------------------------------------
 -module(otel_batch_processor).
@@ -130,8 +135,14 @@ on_start(_Ctx, Span, _) ->
 %% @private
 -spec on_end(opentelemetry:span(), otel_span_processor:processor_config())
             -> true | dropped | {error, invalid_span} | {error, no_export_buffer}.
-on_end(#span{trace_flags=TraceFlags}, _) when not(?IS_SAMPLED(TraceFlags)) ->
-    dropped;
+on_end(Span=#span{trace_flags=TraceFlags}, Config=#{reg_name := RegName})
+  when not(?IS_SAMPLED(TraceFlags)) ->
+    case maps:get(export_unsampled, Config, false) of
+        true ->
+            do_insert(RegName, Span);
+        _ ->
+            dropped
+    end;
 on_end(Span=#span{}, #{reg_name := RegName}) ->
     do_insert(RegName, Span);
 on_end(_Span, _) ->
