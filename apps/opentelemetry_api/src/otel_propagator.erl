@@ -56,7 +56,7 @@
 -type builtin() :: trace_context | tracecontext | b3 | b3multi | baggage.
 %% A built-in propagator.
 
--type carrier() :: term().
+-type carrier() :: eqwalizer:dynamic().
 %% A carrier, which can be any type.
 
 -export_type([t/0,

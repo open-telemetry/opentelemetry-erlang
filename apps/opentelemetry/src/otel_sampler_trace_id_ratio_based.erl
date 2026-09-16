@@ -37,7 +37,7 @@
 -type probability() :: float().
 %% A probability on whether to sample a span, between `0.0' and `1.0'.
 
--type config() :: #{probability := probability(), id_upper_bound := integer()}.
+-type config() :: #{probability := probability(), id_upper_bound := number()}.
 %% The configuration for this sampler.
 
 %% 2^63 - 1

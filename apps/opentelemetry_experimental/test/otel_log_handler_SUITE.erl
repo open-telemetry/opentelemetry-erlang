@@ -29,9 +29,9 @@ end_per_suite(Config) ->
 exports_logs_after_idle_interval(_Config) ->
     HandlerId = ?FUNCTION_NAME,
     ok = logger:add_handler(HandlerId, otel_log_handler,
-                            #{level => info,
-                              exporter => {?MODULE, {logs, self()}},
-                              scheduled_delay_ms => 1}),
+                            eqwalizer:dynamic_cast(#{level => info,
+                                                    exporter => {?MODULE, {logs, self()}},
+                                                    scheduled_delay_ms => 1})),
 
     %% Let several export intervals elapse with no logs — the condition that
     %% used to wedge the handler.

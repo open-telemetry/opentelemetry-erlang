@@ -23,7 +23,7 @@ description(_) ->
                    TraceId :: opentelemetry:trace_id(),
                    Links :: otel_links:t(),
                    SpanName :: opentelemetry:span_name(),
-                   SpanKind :: nopentelemetry:span_kind(),
+                   SpanKind :: opentelemetry:span_kind(),
                    Attributes :: opentelemetry:attributes_map(),
                    Config :: otel_sampler:sampler_config(),
                    Result :: otel_sampler:sampling_result().

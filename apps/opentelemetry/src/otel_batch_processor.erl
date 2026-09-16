@@ -100,7 +100,7 @@ current_tab_to_list(RegName) ->
 %% communicate with the processor
 %% @doc Starts a Batch Span Processor.
 %% @end
--spec start_link(#{name := atom() | list()}) -> {ok, pid(), map()}.
+-spec start_link(#{name := atom() | list(), term() => term()}) -> {ok, pid(), map()}.
 start_link(Config=#{name := Name}) ->
     RegisterName = ?REG_NAME(Name),
     Config1 = Config#{reg_name => RegisterName},
