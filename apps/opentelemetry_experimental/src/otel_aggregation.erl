@@ -11,7 +11,7 @@
 -type t() :: otel_aggregation_drop:t() | otel_aggregation_sum:t() |
              otel_aggregation_last_value:t() | otel_aggregation_histogram_explicit:t().
 
--type key() :: {atom(), opentelemetry:attributes_map(), reference(), number()}.
+-type key() :: {reference(), opentelemetry:attributes_map(), reference(), number()}.
 
 -type options() :: map().
 

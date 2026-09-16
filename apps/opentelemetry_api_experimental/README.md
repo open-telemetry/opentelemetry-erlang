@@ -43,8 +43,10 @@ example](https://github.com/open-telemetry/opentelemetry-erlang-contrib/tree/mai
 ```erlang
 -include_lib("opentelemetry_api_experimental/include/otel_meter.hrl").
 
-?create_counter(?ROLL_COUNTER, #{description => <<"The number of rolls by roll value.">>,
-                                 unit => '1'}).
+RollCounter =
+    ?create_counter('dice.rolls',
+                    #{description => <<"The number of rolls by roll value.">>,
+                      unit => '1'}).
 ```
 ### Instrument Recording
 
@@ -61,8 +63,30 @@ example](https://github.com/open-telemetry/opentelemetry-erlang-contrib/tree/mai
 of recording an addition to a counter with an attribute:
 
 ```erlang
-?counter_add(?ROLL_COUNTER, 1, #{'roll.value' => Roll}),
+?counter_add(RollCounter, 1, #{'roll.value' => Roll}),
 ```
+
+The recording macros accept either the instrument handle returned at creation
+or an explicitly registered, node-local atom alias. An alias is useful when the
+instrument is created in one process but recorded from unrelated processes or
+modules:
+
+```erlang
+-define(ROLL_COUNTER, roll_counter).
+
+RollCounter = ?create_counter('dice.rolls', #{}),
+{ok, RollCounter} = ?register_instrument(?ROLL_COUNTER, RollCounter),
+
+%% This can run in another process. The alias resolves directly to the exact
+%% instrument and does not look up that process's current Meter.
+?counter_add(?ROLL_COUNTER, 1, #{'roll.value' => Roll}).
+```
+
+Aliases are explicit application-level names, not OpenTelemetry instrument
+names. Registering the same alias for a different instrument returns an
+`alias_conflict` error. Re-registering it for the same instrument identity is
+idempotent and refreshes the handle after a Meter Provider restart. An alias
+can be removed with `?unregister_instrument(Alias)`.
 
 See the Experimental SDK's `README.md` for how to setup Views for aggregation
 and then the exporting of metrics.
@@ -109,21 +133,34 @@ To record measurements an instrument must first be created. Each instrument kind
 has a `?create_<kind>` macro in Erlang for creation:
  
 ```erlang
-_RequestCounter = ?create_counter(app_request_counter, #{description => ~"Count of number of requests"})
+RequestCounter =
+    ?create_counter('app.requests',
+                    #{description => <<"Count of number of requests">>})
 ```
 
-Now the instrument can be used to record measurements either by passing the
-atom name `app_request_counter`:
+The returned handle can be passed directly when recording:
 
 ```erlang
-?counter_add(app_request_counter, 5, #{<<"a">> => <<"b">>}),
+?counter_add(RequestCounter, 5, #{<<"a">> => <<"b">>}),
 ```
+
+Alternatively, associate the handle with an atom once and use the atom from
+any process on the node:
+
+```erlang
+{ok, RequestCounter} = ?register_instrument(app_request_counter, RequestCounter),
+?counter_add(app_request_counter, 5, #{<<"a">> => <<"b">>}).
+```
+
+The `?register_counter/3`, `?register_updown_counter/3`, and
+`?register_histogram/3` macros combine creation and alias registration when the
+handle does not otherwise need to be retained.
 
 For synchronous instruments the available macros are:
 
-- `?counter_add(Name, Number, Attributes)`
-- `?updown_counter_add(Name, Number, Attributes)`
-- `?histogram_record(Name, Number, Attributes)`
+- `?counter_add(InstrumentOrAlias, Number, Attributes)`
+- `?updown_counter_add(InstrumentOrAlias, Number, Attributes)`
+- `?histogram_record(InstrumentOrAlias, Number, Attributes)`
 
 The asynchronous (observable) instruments can be created with their callback or
 be later registered with a callback that supports multiple instruments.
@@ -156,8 +193,8 @@ AtomGauge = ?create_observable_gauge(AtomCountName, #{description => <<"Number o
                    fun(_) ->
                            ProcessCount = erlang:system_info(process_count),
                            AtomCount = erlang:system_info(atom_count),
-                           [{ProcessCountName, [{ProcessCount, #{}}]},
-                            {AtomCountName, [{AtomCount, #{}}]}]
+                           [{ProcessGauge, [{ProcessCount, #{}}]},
+                            {AtomGauge, [{AtomCount, #{}}]}]
                    end, [])
 ```
 

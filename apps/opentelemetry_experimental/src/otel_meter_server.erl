@@ -46,7 +46,7 @@
          add_view/2,
          add_view/3,
          add_view/4,
-         record/5,
+         record/4,
          force_flush/0,
          force_flush/1,
          report_cb/1]).
@@ -116,11 +116,11 @@
 start_link(Name, RegName, Resource, Config) ->
     gen_server:start_link({local, RegName}, ?MODULE, [Name, RegName, Resource, Config], []).
 
--spec add_instrument(otel_instrument:t()) -> boolean().
+-spec add_instrument(otel_instrument:t()) -> otel_instrument:t().
 add_instrument(Instrument) ->
     add_instrument(?GLOBAL_METER_PROVIDER_REG_NAME, Instrument).
 
--spec add_instrument(atom(), otel_instrument:t()) -> boolean().
+-spec add_instrument(atom(), otel_instrument:t()) -> otel_instrument:t().
 add_instrument(Provider, Instrument) ->
     gen_server:call(Provider, {add_instrument, Instrument}).
 
@@ -141,7 +141,8 @@ get_readers(Provider) ->
 register_callback(Instruments, Callback, CallbackArgs) ->
     register_callback(?GLOBAL_METER_PROVIDER_REG_NAME, Instruments, Callback, CallbackArgs).
 
--spec register_callback(atom(), [otel_instrument:t()], otel_instrument:callback(), otel_instrument:callback_args()) -> boolean().
+-spec register_callback(atom(), otel_instrument:t() | [otel_instrument:t()],
+                        otel_instrument:callback(), otel_instrument:callback_args()) -> boolean().
 register_callback(Provider, Instruments, Callback, CallbackArgs) ->
     gen_server:call(Provider, {register_callback, Instruments, Callback, CallbackArgs}).
 
@@ -157,10 +158,10 @@ add_view(Name, Criteria, Config) ->
 add_view(Provider, Name, Criteria, Config) ->
     gen_server:call(Provider, {add_view, Name, Criteria, Config}).
 
--spec record(otel_ctx:t(), #meter{}, otel_instrument:name(), number(), opentelemetry:attributes_map()) -> ok | false.
-record(Ctx, Meter, Name, Number, Attributes) when Name =/= undefined ->
-    handle_measurement(Ctx, Meter, Name, Number, Attributes);
-record(_, _, _, _, _) ->
+-spec record(otel_ctx:t(), otel_instrument:t(), number(), opentelemetry:attributes_map()) -> ok | false.
+record(Ctx, Instrument=#instrument{}, Number, Attributes) ->
+    handle_measurement(Ctx, Instrument, Number, Attributes);
+record(_, _, _, _) ->
     false.
 
 -spec force_flush() -> ok.
@@ -240,7 +241,8 @@ handle_call({add_metric_reader, ReaderId, ReaderPid, DefaultAggregationMapping, 
 
     %% create Streams entries for existing View/Instrument
     %% matches for the new Reader
-    _ = update_streams(InstrumentsTab, CallbacksTab, StreamsTab, Views, Readers1, ExemplarsEnabled, ExemplarFilter),
+    NewStreams = update_streams(InstrumentsTab, CallbacksTab, StreamsTab, Views, [Reader], ExemplarsEnabled, ExemplarFilter),
+    maybe_log_stream_conflicts(StreamsTab, NewStreams),
 
     {reply, {CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, Resource, Producers}, State#state{readers=Readers1}};
 handle_call(resource, _From, State=#state{resource=Resource}) ->
@@ -252,8 +254,8 @@ handle_call({add_instrument, Instrument}, _From, State=#state{readers=Readers,
                                                               streams_tab=StreamsTab,
                                                               exemplars_enabled=ExemplarsEnabled,
                                                               exemplar_filter=ExemplarFilter}) ->
-    _ = add_instrument_(InstrumentsTab, CallbacksTab, StreamsTab, Instrument, Views, Readers, ExemplarsEnabled, ExemplarFilter),
-    {reply, ok, State};
+    CanonicalInstrument = add_instrument_(InstrumentsTab, CallbacksTab, StreamsTab, Instrument, Views, Readers, ExemplarsEnabled, ExemplarFilter),
+    {reply, CanonicalInstrument, State};
 handle_call({register_callback, Instruments, Callback, CallbackArgs}, _From, State=#state{readers=Readers,
                                                                                           callbacks_tab=CallbacksTab}) ->
     _ = register_callback_(CallbacksTab, Instruments, Callback, CallbackArgs, Readers),
@@ -295,9 +297,14 @@ code_change(State) ->
 add_view_(Name, Criteria, Config, InstrumentsTab, CallbacksTab, StreamsTab, Readers, Views, State=#state{exemplars_enabled=ExemplarsEnabled,
                                                                                                         exemplar_filter=ExemplarFilter}) ->
     case otel_view:new(Name, Criteria, Config) of
-        {ok, NewView} -> 
-            _ = update_streams(InstrumentsTab, CallbacksTab, StreamsTab, [NewView], Readers, ExemplarsEnabled, ExemplarFilter),
-            {reply, true, State#state{views=[NewView | Views]}};
+        {ok, NewView} ->
+            Views1 = [NewView | Views],
+            %% Re-evaluate the complete view set. Passing only NewView would
+            %% create a fallback/default stream for every instrument it does
+            %% not match, potentially replacing a stream from an older view.
+            UpdatedStreams = update_streams(InstrumentsTab, CallbacksTab, StreamsTab, Views1, Readers, ExemplarsEnabled, ExemplarFilter),
+            maybe_log_stream_conflicts(StreamsTab, UpdatedStreams),
+            {reply, true, State#state{views=Views1}};
         {error, named_wildcard_view} ->
             {reply, false, State}
     end.
@@ -322,39 +329,185 @@ new_view(ViewConfig) ->
 add_instrument_(InstrumentsTab, CallbacksTab, StreamsTab,
                 Instrument=#instrument{meter={_, Meter=#meter{}},
                                        name=Name}, Views, Readers, ExemplarsEnabled, ExemplarFilter) ->
-    case otel_metrics_tables:insert_instrument(InstrumentsTab, Meter, Name, Instrument) of
+    Identity = otel_instrument:identity(Instrument),
+    case otel_metrics_tables:insert_instrument(InstrumentsTab, Meter, Instrument) of
         true ->
-            update_streams_(Instrument, CallbacksTab, StreamsTab, Views, Readers, ExemplarsEnabled, ExemplarFilter);
+            NewStreams = update_streams_(Instrument, CallbacksTab, StreamsTab, Views, Readers, ExemplarsEnabled, ExemplarFilter),
+            maybe_log_stream_conflicts(StreamsTab, NewStreams),
+            Instrument;
         false ->
-            ?LOG_INFO("Instrument ~p already created. Ignoring attempt to create Instrument with the same name in the same Meter.", [Name]),
-            ok
+            Existing = otel_metrics_tables:lookup_instrument_by_identity(InstrumentsTab,
+                                                                         Meter,
+                                                                         Identity),
+            maybe_log_name_conflict(Existing, Instrument),
+            maybe_log_advisory_conflict(Existing, Instrument),
+            ?LOG_DEBUG("Instrument ~p already created; returning the canonical Instrument.", [Name]),
+            Existing
     end.
+
+maybe_log_name_conflict(#instrument{name=Name}, #instrument{name=Name}) ->
+    ok;
+maybe_log_name_conflict(#instrument{name=ExistingName}, #instrument{name=Name}) ->
+    ?LOG_WARNING(
+       "Instrument name ~p conflicts case-insensitively with previously registered name ~p; "
+       "returning the first-created Instrument.",
+       [Name, ExistingName]).
+
+maybe_log_advisory_conflict(#instrument{advisory_params=AdvisoryParams},
+                            #instrument{advisory_params=AdvisoryParams}) ->
+    ok;
+maybe_log_advisory_conflict(#instrument{name=Name}, _) ->
+    ?LOG_WARNING("Identical Instrument ~p was registered with different advisory parameters; using the first-seen parameters.", [Name]).
+
+maybe_log_stream_conflicts(StreamsTab, UpdatedStreams) ->
+    case unique_active_streams(UpdatedStreams) of
+        [] ->
+            ok;
+        Candidates ->
+            StreamsByKey = index_streams(otel_metrics_tables:list_streams(StreamsTab)),
+            Conflicts = lists:usort(
+                          lists:flatmap(
+                            fun(Stream) ->
+                                    conflicts_with(
+                                      Stream,
+                                      maps:get(stream_key(Stream), StreamsByKey, []))
+                            end,
+                            Candidates)),
+            log_stream_conflicts(Conflicts)
+    end.
+
+log_stream_conflicts(Conflicts) ->
+    lists:foreach(
+      fun({Name, Scope, DefinitionA, DefinitionB}) ->
+              ?LOG_WARNING(
+                 "Conflicting metric streams remain after applying Views; both streams remain active. "
+                 "Configure a View to rename one stream or align its identifying fields. "
+                 "name=~p scope=~p stream_definitions=~p",
+                 [Name, Scope, [DefinitionA, DefinitionB]])
+      end,
+      Conflicts).
+
+index_streams(Streams) ->
+    lists:foldl(
+      fun(#stream{aggregation_module=otel_aggregation_drop}, Acc) ->
+              Acc;
+         (Stream, Acc) ->
+              Key = stream_key(Stream),
+              maps:update_with(Key, fun(KeyStreams) -> [Stream | KeyStreams] end,
+                               [Stream], Acc)
+      end,
+      #{},
+      Streams).
+
+unique_active_streams(Streams) ->
+    maps:values(
+      lists:foldl(
+        fun(#stream{aggregation_module=otel_aggregation_drop}, Acc) ->
+                Acc;
+           (Stream=#stream{id=Id}, Acc) ->
+                maps:put(Id, Stream, Acc)
+        end,
+        #{},
+        Streams)).
+
+stream_key(#stream{reader=Reader, scope=Scope, name=Name}) ->
+    {Reader, Scope, normalize_stream_name(Name)}.
+
+conflicts_with(StreamA=#stream{id=Id,
+                               scope=Scope,
+                               name=NameA},
+               Streams) ->
+    NormalizedName = normalize_stream_name(NameA),
+    DefinitionA = stream_definition(StreamA),
+    [begin
+         DefinitionB = stream_definition(StreamB),
+         {NormalizedDefinitionA, NormalizedDefinitionB} =
+             ordered_pair(DefinitionA, DefinitionB),
+         {NormalizedName, Scope, NormalizedDefinitionA, NormalizedDefinitionB}
+     end || StreamB=#stream{id=OtherId} <- Streams,
+            OtherId =/= Id].
+
+stream_definition(#stream{aggregation_module=otel_aggregation_sum,
+                          instrument=#instrument{unit=Unit},
+                          description=Description,
+                          temporality=Temporality,
+                          is_monotonic=IsMonotonic}) ->
+    #{point_type => sum,
+      unit => normalize_stream_optional(Unit),
+      description => normalize_stream_optional(Description),
+      temporality => Temporality,
+      monotonic => IsMonotonic};
+stream_definition(#stream{aggregation_module=otel_aggregation_last_value,
+                          instrument=#instrument{unit=Unit},
+                          description=Description}) ->
+    #{point_type => gauge,
+      unit => normalize_stream_optional(Unit),
+      description => normalize_stream_optional(Description)};
+stream_definition(#stream{aggregation_module=otel_aggregation_histogram_explicit,
+                          instrument=#instrument{unit=Unit},
+                          description=Description,
+                          temporality=Temporality}) ->
+    #{point_type => histogram,
+      unit => normalize_stream_optional(Unit),
+      description => normalize_stream_optional(Description),
+      temporality => Temporality};
+stream_definition(#stream{aggregation_module=AggregationModule,
+                          instrument=#instrument{unit=Unit},
+                          description=Description,
+                          temporality=Temporality,
+                          is_monotonic=IsMonotonic}) ->
+    #{point_type => AggregationModule,
+      unit => normalize_stream_optional(Unit),
+      description => normalize_stream_optional(Description),
+      temporality => Temporality,
+      monotonic => IsMonotonic}.
+
+ordered_pair(A, B) when A =< B ->
+    {A, B};
+ordered_pair(A, B) ->
+    {B, A}.
+
+normalize_stream_name(Value) ->
+    otel_instrument:normalized_name(Value).
+
+normalize_stream_optional(undefined) ->
+    <<>>;
+normalize_stream_optional(Value) when is_atom(Value) ->
+    atom_to_binary(Value, utf8);
+normalize_stream_optional(Value) ->
+    Value.
 
 %% used when a new View is added and the Views must be re-matched with each Instrument
 update_streams(InstrumentsTab, CallbacksTab, StreamsTab, Views, Readers, ExemplarsEnabled, ExemplarFilter) ->
-    otel_metrics_tables:foreach_instrument(InstrumentsTab,
-                                           fun(Instrument) ->
-                                                   update_streams_(Instrument,
-                                                                   CallbacksTab,
-                                                                   StreamsTab,
-                                                                   Views,
-                                                                   Readers,
-                                                                   ExemplarsEnabled,
-                                                                   ExemplarFilter)
-                                           end).
+    otel_metrics_tables:fold_instruments(
+      InstrumentsTab,
+      fun(Instrument, Streams) ->
+              update_streams_(Instrument,
+                              CallbacksTab,
+                              StreamsTab,
+                              Views,
+                              Readers,
+                              ExemplarsEnabled,
+                              ExemplarFilter) ++ Streams
+      end,
+      []).
 
-update_streams_(Instrument=#instrument{meter={_, Meter=#meter{}},
-                                       name=Name}, CallbacksTab, StreamsTab, Views, Readers, ExemplarsEnabled, ExemplarFilter) ->
+update_streams_(Instrument=#instrument{meter={_, #meter{}},
+                                       name=_Name}, CallbacksTab, StreamsTab, Views, Readers, ExemplarsEnabled, ExemplarFilter) ->
     ViewMatches = otel_view:match_instrument_to_views(Instrument, Views, ExemplarsEnabled, ExemplarFilter),
-    lists:foreach(fun(Reader=#reader{id=ReaderId}) ->
+    lists:flatmap(fun(Reader=#reader{id=ReaderId}) ->
                           Matches = per_reader_aggregations(Reader, Instrument, ViewMatches),
-                          [true = otel_metrics_tables:insert_stream(StreamsTab, Meter, Name, M) || M <- Matches],
+                          NewStreams = otel_metrics_tables:replace_streams(StreamsTab,
+                                                                          Instrument,
+                                                                          ReaderId,
+                                                                          Matches),
                           case {Instrument#instrument.callback, Instrument#instrument.callback_args} of
                               {undefined, _} ->
                                   ok;
                               {Callback, CallbackArgs} ->
                                   otel_metrics_tables:insert_callback(CallbacksTab, ReaderId, Callback, CallbackArgs, Instrument)
-                          end
+                          end,
+                          NewStreams
                   end, Readers).
 
 %% Match the Instrument to views and then store a per-Reader aggregation for the View
@@ -383,8 +536,8 @@ metric_reader(ReaderId, ReaderPid, DefaultAggregationMapping, Temporality) ->
 %% for each Stream a Measurement updates a Metric (`#metric')
 %% active metrics are indexed by the Stream name + the Measurement's Attributes
 
-handle_measurement(Ctx, Meter=#meter{streams_tab=StreamsTab}, Name, Number, Attributes) ->
-    Streams = otel_metrics_tables:match_streams(StreamsTab, Meter, Name),
+handle_measurement(Ctx, Instrument=#instrument{meter={_, Meter=#meter{streams_tab=StreamsTab}}}, Number, Attributes) ->
+    Streams = otel_metrics_tables:match_streams(StreamsTab, Instrument),
     update_aggregations(Ctx, Meter, Number, Attributes, Streams).
 
 update_aggregations(Ctx, Meter, Value, Attributes, Streams) ->
@@ -417,6 +570,7 @@ stream_for_reader(Instrument=#instrument{kind=Kind}, Stream, View=#view{attribut
     Forget = do_forget(Kind, Temporality),
 
     Stream#stream{
+      id=make_ref(),
       reader=Id,
       attribute_keys=AttributeKeys,
       aggregation_module=AggregationModule,
@@ -431,6 +585,7 @@ stream_for_reader(Instrument=#instrument{kind=Kind}, Stream, View,
     Forget = do_forget(Kind, Temporality),
 
     Stream#stream{
+      id=make_ref(),
       reader=Id,
       attribute_keys=undefined,
       aggregation_module=AggregationModule,

@@ -21,11 +21,10 @@
 
 -export([create_instrument/4,
          create_instrument/6,
-         lookup_instrument/2,
          register_callback/4,
          scope/1]).
 
--export([record/5]).
+-export([record/4]).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("kernel/include/logger.hrl").
@@ -40,11 +39,7 @@ create_instrument(Meter, Name, Kind, Opts) ->
     ValidatedOpts = validate_opts(Name, Kind, Opts),
     Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
         otel_instrument:new(?MODULE, Meter, Kind, Name, ValidatedOpts),
-    _ = otel_meter_server:add_instrument(Provider, Instrument),
-    Instrument.
-
-lookup_instrument({_, Meter=#meter{instruments_tab=InstrumentsTab}}, Name) ->
-    otel_metrics_tables:lookup_instrument(InstrumentsTab, Meter, Name).
+    otel_meter_server:add_instrument(Provider, Instrument).
 
 -spec create_instrument(otel_meter:t(), otel_instrument:name(), otel_instrument:kind(), otel_instrument:callback(), otel_instrument:callback_args(), otel_instrument:opts()) -> otel_instrument:t().
 create_instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts) ->
@@ -52,8 +47,20 @@ create_instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts) ->
     ValidatedOpts = validate_opts(Name, Kind, Opts),
     Instrument=#instrument{meter={_, #meter{provider=Provider}}} =
         otel_instrument:new(?MODULE, Meter, Kind, Name, Callback, CallbackArgs, ValidatedOpts),
-    _ = otel_meter_server:add_instrument(Provider, Instrument),
-    Instrument.
+    CanonicalInstrument = otel_meter_server:add_instrument(Provider, Instrument),
+    case otel_instrument:id(CanonicalInstrument) =:= otel_instrument:id(Instrument) of
+        true ->
+            ok;
+        false ->
+            %% The instrument already existed, so its callback was not added by
+            %% stream creation. Register this callback against the canonical
+            %% handle as a separate callback registration.
+            _ = otel_meter_server:register_callback(Provider,
+                                                    CanonicalInstrument,
+                                                    Callback,
+                                                    CallbackArgs)
+    end,
+    CanonicalInstrument.
 
 register_callback({_, #meter{provider=Provider}}, Instruments, Callback, CallbackArgs) ->
     otel_meter_server:register_callback(Provider, Instruments, Callback, CallbackArgs);
@@ -112,5 +119,5 @@ validate_explicit_bucket_boundaries(Name, Value) ->
 
 %%
 
-record(Ctx, Meter, Name, Number, Attributes) ->
-    otel_meter_server:record(Ctx, Meter, Name, Number, Attributes).
+record(Ctx, Instrument, Number, Attributes) ->
+    otel_meter_server:record(Ctx, Instrument, Number, Attributes).

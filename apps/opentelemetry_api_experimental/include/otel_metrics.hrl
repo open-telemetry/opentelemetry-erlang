@@ -1,6 +1,7 @@
 -include_lib("match_spec.hrl").
 
--record(instrument, {module          :: module(),
+-record(instrument, {id              :: reference(),
+                     module          :: module(),
                      meter           :: otel_meter:t(),
                      name            :: otel_instrument:name(),
                      description     :: otel_instrument:description() | undefined,

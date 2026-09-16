@@ -30,11 +30,7 @@
 
          scope/1,
 
-         register_callback/4,
-
-         lookup_instrument/2,
-
-         record/5]).
+         register_callback/4]).
 
 -include("otel_metrics.hrl").
 
@@ -54,9 +50,19 @@
 
 -callback register_callback(Meter, Instruments, Callback, CallbackArgs) -> ok when
       Meter :: t(),
-      Instruments :: otel_instrument:t(),
+      Instruments :: [otel_instrument:t()],
       Callback :: otel_instrument:callback(),
       CallbackArgs :: otel_instrument:callback_args().
+
+-callback scope(Meter) -> Scope when
+      Meter :: t(),
+      Scope :: opentelemetry:instrumentation_scope().
+
+-callback record(Ctx, Instrument, Number, Attributes) -> ok | false when
+      Ctx :: otel_ctx:t(),
+      Instrument :: otel_instrument:t(),
+      Number :: number(),
+      Attributes :: opentelemetry:attributes_map().
 
 -type t() :: {module(), term()}.
 
@@ -155,12 +161,6 @@ create_instrument(Meter={Module, _}, Name, Kind, Opts) ->
 create_instrument(Meter={Module, _}, Name, Kind, Callback, CallbackArgs, Opts) ->
     Module:create_instrument(Meter, Name, Kind, Callback, CallbackArgs, Opts).
 
--spec lookup_instrument(Meter, Name) -> otel_instrument:t() | undefined when
-      Meter :: t(),
-      Name :: otel_instrument:name().
-lookup_instrument(Meter={Module, _}, Name) ->
-    Module:lookup_instrument(Meter, Name).
-
 -spec register_callback(Meter, Instruments, Callback, CallbackArgs) -> ok when
       Meter :: t(),
       Instruments :: [otel_instrument:t()],
@@ -168,14 +168,3 @@ lookup_instrument(Meter={Module, _}, Name) ->
       CallbackArgs :: otel_instrument:callback_args().
 register_callback(Meter={Module, _}, Instruments, Callback, CallbackArgs) ->
     Module:register_callback(Meter, Instruments, Callback, CallbackArgs).
-
--spec record(Ctx, Meter, Name, Number, Attributes) -> ok | false when
-      Ctx :: otel_ctx:t(),
-      Meter :: otel_meter:t(),
-      Name :: otel_instrument:name(),
-      Number :: number(),
-      Attributes :: opentelemetry:attributes_map().
-record(Ctx, {Module, Meter}, Name, Number, Attributes) when is_atom(Name) ->
-    Module:record(Ctx, Meter, Name, Number, Attributes);
-record(_, _, _, _, _) ->
-    false.

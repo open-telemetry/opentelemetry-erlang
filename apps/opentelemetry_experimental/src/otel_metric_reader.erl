@@ -238,9 +238,8 @@ collect_(CallbacksTab, StreamsTab, MetricsTab, ExemplarsTab, ReaderId) ->
     %% use the information (temporality) from the VIEW_AGGREGATIONS_TAB entry to reset the
     %% METRICS_TAB entry value (like setting value back to 0 for DELTA)
 
-    %% StreamsTab is a `bag' so to iterate over every Stream for
-    %% each Instrument we use `first'/`next' and lookup the list of Streams
-    %% by the key (Instrument)
+    %% StreamsTab stores one list of Streams for each Instrument, so iterate
+    %% over the Instrument keys and look up each complete list.
     Key = ets:first(StreamsTab),
 
     Generation = inc_checkpoint_generation(ReaderId),

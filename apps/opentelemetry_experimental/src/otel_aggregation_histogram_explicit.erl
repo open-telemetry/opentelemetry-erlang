@@ -146,7 +146,7 @@
 default_buckets() ->
     ?DEFAULT_BOUNDARIES.
 
-init(#stream{name=Name,
+init(#stream{id=StreamId,
              reader=ReaderId,
              aggregation_options=Options,
              forget=Forget}, Attributes) when is_reference(ReaderId) ->
@@ -156,7 +156,7 @@ init(#stream{name=Name,
                      _ ->
                          0
                  end,
-    Key = {Name, Attributes, ReaderId, Generation},
+    Key = {StreamId, Attributes, ReaderId, Generation},
     ExplicitBucketBoundaries = maps:get(explicit_bucket_boundaries, Options, ?DEFAULT_BOUNDARIES),
     RecordMinMax = maps:get(record_min_max, Options, true),
     #explicit_histogram_aggregation{key=Key,
@@ -170,7 +170,7 @@ init(#stream{name=Name,
                                     sum=0
                                    }.
 
-aggregate(Ctx, Table, ExemplarsTab, #stream{name=Name,
+aggregate(Ctx, Table, ExemplarsTab, #stream{id=StreamId,
                                             reader=ReaderId,
                                             aggregation_options=Options,
                                             forget=Forget,
@@ -182,7 +182,7 @@ aggregate(Ctx, Table, ExemplarsTab, #stream{name=Name,
                          0
                  end,
     ExplicitBucketBoundaries = maps:get(explicit_bucket_boundaries, Options, ?DEFAULT_BOUNDARIES),
-    case otel_metrics_tables:lookup_explicit_histogram_bucket_counts(Table, Name, Attributes, ReaderId, Generation) of
+    case otel_metrics_tables:lookup_explicit_histogram_bucket_counts(Table, StreamId, Attributes, ReaderId, Generation) of
         false ->
             %% since we need the options to initialize a histogram `false' is
             %% returned and `otel_metric_server' will initialize the histogram
@@ -198,7 +198,7 @@ aggregate(Ctx, Table, ExemplarsTab, #stream{name=Name,
             BucketIdx = find_bucket(ExplicitBucketBoundaries, Value),
             counters:add(BucketCounts, BucketIdx, 1),
 
-            Key = {Name, Attributes, ReaderId, Generation},
+            Key = {StreamId, Attributes, ReaderId, Generation},
             MS = ?AGGREGATE_MATCH_SPEC(Key, Value, BucketCounts),
             case ets:select_replace(Table, MS) of
                 1 ->
@@ -209,10 +209,10 @@ aggregate(Ctx, Table, ExemplarsTab, #stream{name=Name,
             end
     end.
 
-checkpoint(Tab, #stream{name=Name,
+checkpoint(Tab, #stream{id=StreamId,
                         reader=ReaderId,
                         temporality=?TEMPORALITY_DELTA}, Generation) ->
-    MS = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId, Generation},
+    MS = [{#explicit_histogram_aggregation{key={StreamId, '$1', ReaderId, Generation},
                                            start_time='$9',
                                            explicit_bucket_boundaries='$2',
                                            record_min_max='$3',
@@ -223,7 +223,7 @@ checkpoint(Tab, #stream{name=Name,
                                            sum='$8'
                                           },
            [],
-           [{#explicit_histogram_aggregation{key={{{const, Name}, '$1', {const, ReaderId}, {const, Generation}}},
+           [{#explicit_histogram_aggregation{key={{{const, StreamId}, '$1', {const, ReaderId}, {const, Generation}}},
                                              start_time='$9',
                                              explicit_bucket_boundaries='$2',
                                              record_min_max='$3',
@@ -246,7 +246,7 @@ checkpoint(_Tab, _, _) ->
 
     ok.
 
-collect(Tab, ExemplarsTab, Stream=#stream{name=Name,
+collect(Tab, ExemplarsTab, Stream=#stream{id=StreamId,
                                           reader=ReaderId,
                                           temporality=Temporality,
                                           forget=Forget,
@@ -261,7 +261,7 @@ collect(Tab, ExemplarsTab, Stream=#stream{name=Name,
 
     checkpoint(Tab, Stream, Generation),
 
-    Select = [{#explicit_histogram_aggregation{key={Name, '$1', ReaderId, Generation},
+    Select = [{#explicit_histogram_aggregation{key={StreamId, '$1', ReaderId, Generation},
                                                start_time='$2',
                                                explicit_bucket_boundaries='$3',
                                                record_min_max='$4',
@@ -275,21 +275,21 @@ collect(Tab, ExemplarsTab, Stream=#stream{name=Name,
                         aggregation_temporality=Temporality},
 
     %% would be nice to do this in the reader so its not duplicated in each aggregator
-    maybe_delete_old_generation(Tab, Name, ReaderId, Generation),
+    maybe_delete_old_generation(Tab, StreamId, ReaderId, Generation),
 
     Result.
 
 %%
 
 %% 0 means it is either cumulative or the first generation with nothing older to delete
-maybe_delete_old_generation(_Tab, _Name, _ReaderId, 0) ->
+maybe_delete_old_generation(_Tab, _StreamId, _ReaderId, 0) ->
     ok;
-maybe_delete_old_generation(Tab, Name, ReaderId, Generation) ->
+maybe_delete_old_generation(Tab, StreamId, ReaderId, Generation) ->
     %% delete all older than the Generation instead of just the previous in case a
     %% a crash had happened between incrementing the Generation counter and doing
     %% the delete in a previous collection cycle
     %% eqwalizer:ignore matchspecs mess with the typing
-    Select = [{#explicit_histogram_aggregation{key={Name, '_', ReaderId, '$1'}, _='_'},
+    Select = [{#explicit_histogram_aggregation{key={StreamId, '_', ReaderId, '$1'}, _='_'},
                [{'<', '$1', {const, Generation}}],
                [true]}],
     ets:select_delete(Tab, Select).

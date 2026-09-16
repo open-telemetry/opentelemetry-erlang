@@ -143,8 +143,10 @@ os_environment_precedence(_Config) ->
     ?assertMatch(#{log_level := error,
                    text_map_propagators := [b3],
                    sampler := always_off,
+                   %% Explicit processor options take precedence over the
+                   %% corresponding top-level environment variables.
                    processors :=
-                       [{otel_batch_processor, #{scheduled_delay_ms := 42}}],
+                       [{otel_batch_processor, #{scheduled_delay_ms := 999}}],
                    attribute_count_limit := 17,
                    create_application_tracers := false},
                  otel_configuration:merge_with_os(AppEnv)).

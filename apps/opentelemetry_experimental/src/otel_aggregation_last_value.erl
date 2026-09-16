@@ -41,7 +41,7 @@
 
 -include("otel_view.hrl").
 
-init(#stream{name=Name,
+init(#stream{id=StreamId,
              reader=ReaderId,
              aggregation_options=_Options,
              forget=Forget}, Attributes) when erlang:is_reference(ReaderId) ->
@@ -51,14 +51,14 @@ init(#stream{name=Name,
                      _ ->
                          0
                  end,
-    Key = {Name, Attributes, ReaderId, Generation},
+    Key = {StreamId, Attributes, ReaderId, Generation},
     #last_value_aggregation{key=Key,
                             start_time=opentelemetry:timestamp(),
                             value=undefined,
                             %% not needed or used, but makes eqwalizer happy
                             checkpoint=0}.
 
-aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
+aggregate(Ctx, Tab, ExemplarsTab, #stream{id=StreamId,
                                           reader=ReaderId,
                                           forget=Forget,
                                           exemplar_reservoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes) ->
@@ -68,7 +68,7 @@ aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
                      _ ->
                          0
                  end,
-    Key = {Name, Attributes, ReaderId, Generation},
+    Key = {StreamId, Attributes, ReaderId, Generation},
     case ets:update_element(Tab, Key, {#last_value_aggregation.value, Value}) of
         true ->
             otel_metric_exemplar_reservoir:offer(Ctx, ExemplarReservoir, ExemplarsTab, Key, Value, DroppedAttributes),
@@ -77,29 +77,29 @@ aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
             false
     end.
 
-checkpoint(Tab, #stream{name=Name,
+checkpoint(Tab, #stream{id=StreamId,
                         reader=ReaderId,
                         temporality=?TEMPORALITY_DELTA}, Generation) ->
-    MS = [{#last_value_aggregation{key={Name, '$1', ReaderId, Generation},
+    MS = [{#last_value_aggregation{key={StreamId, '$1', ReaderId, Generation},
                                    start_time='$3',
                                    checkpoint='_',
                                    value='$2'},
            [],
-           [{#last_value_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
+           [{#last_value_aggregation{key={{StreamId, '$1', {const, ReaderId}, {const, Generation}}},
                                      start_time='$3',
                                      checkpoint='$2',
                                      value='$2'}}]}],
     _ = ets:select_replace(Tab, MS),
 
     ok;
-checkpoint(Tab, #stream{name=Name,
+checkpoint(Tab, #stream{id=StreamId,
                         reader=ReaderId}, Generation) ->
-    MS = [{#last_value_aggregation{key={Name, '$1', ReaderId, Generation},
+    MS = [{#last_value_aggregation{key={StreamId, '$1', ReaderId, Generation},
                                    start_time='$3',
                                    checkpoint='_',
                                    value='$2'},
            [],
-           [{#last_value_aggregation{key={{{const, Name}, '$1', {const, ReaderId}, {const, Generation}}},
+           [{#last_value_aggregation{key={{{const, StreamId}, '$1', {const, ReaderId}, {const, Generation}}},
                                      start_time='$3',
                                      checkpoint='$2',
                                      value='$2'}}]}],
@@ -108,7 +108,7 @@ checkpoint(Tab, #stream{name=Name,
     ok.
 
 
-collect(Tab, ExemplarsTab, Stream=#stream{name=Name,
+collect(Tab, ExemplarsTab, Stream=#stream{id=StreamId,
                                           reader=ReaderId,
                                           forget=Forget,
                                           exemplar_reservoir=ExemplarReservoir}, Generation0) ->
@@ -122,28 +122,28 @@ collect(Tab, ExemplarsTab, Stream=#stream{name=Name,
 
     checkpoint(Tab, Stream, Generation),
 
-    Select = [{#last_value_aggregation{key={Name, '_', ReaderId, Generation},
+    Select = [{#last_value_aggregation{key={StreamId, '_', ReaderId, Generation},
                                        _='_'}, [], ['$_']}],
     AttributesAggregation = ets:select(Tab, Select),
     Result = #gauge{datapoints=[datapoint(ExemplarReservoir, ExemplarsTab, CollectionStartTime, LastValueAgg) ||
                                    LastValueAgg <- AttributesAggregation]},
 
     %% would be nice to do this in the reader so its not duplicated in each aggregator
-    maybe_delete_old_generation(Tab, Name, ReaderId, Generation),
+    maybe_delete_old_generation(Tab, StreamId, ReaderId, Generation),
 
     Result.
 
 %%
 
 %% 0 means it is either cumulative or the first generation with nothing older to delete
-maybe_delete_old_generation(_Tab, _Name, _ReaderId, 0) ->
+maybe_delete_old_generation(_Tab, _StreamId, _ReaderId, 0) ->
     ok;
-maybe_delete_old_generation(Tab, Name, ReaderId, Generation) ->
+maybe_delete_old_generation(Tab, StreamId, ReaderId, Generation) ->
     %% delete all older than the Generation instead of just the previous in case a
     %% a crash had happened between incrementing the Generation counter and doing
     %% the delete in a previous collection cycle
     %% eqwalizer:ignore matchspecs mess with the typing
-    Select = [{#last_value_aggregation{key={Name, '_', ReaderId, '$1'}, _='_'},
+    Select = [{#last_value_aggregation{key={StreamId, '_', ReaderId, '$1'}, _='_'},
                [{'<', '$1', {const, Generation}}],
                [true]}],
     ets:select_delete(Tab, Select).

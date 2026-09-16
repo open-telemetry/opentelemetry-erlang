@@ -18,37 +18,62 @@ defmodule OpenTelemetryTest do
   test "create counter instrument with no-op meter" do
     c = Counter.create(:a_counter, %{})
 
-    assert instrument(
-             module: :otel_meter_noop,
-             meter: {:otel_meter_noop, []},
-             name: :a_counter,
-             kind: :counter,
-             temporality: :temporality_delta
-           ) == c
+    assert match?(
+             instrument(
+               id: id,
+               module: :otel_meter_noop,
+               meter: {:otel_meter_noop, []},
+               name: :a_counter,
+               kind: :counter,
+               temporality: :temporality_delta
+             )
+             when is_reference(id),
+             c
+           )
   end
 
   test "create updown counter instrument with no-op meter" do
     c = UpDownCounter.create(:ud_counter, %{})
 
-    assert instrument(
-             module: :otel_meter_noop,
-             meter: {:otel_meter_noop, []},
-             name: :ud_counter,
-             kind: :updown_counter,
-             temporality: :temporality_delta
-           ) == c
+    assert match?(
+             instrument(
+               id: id,
+               module: :otel_meter_noop,
+               meter: {:otel_meter_noop, []},
+               name: :ud_counter,
+               kind: :updown_counter,
+               temporality: :temporality_delta
+             )
+             when is_reference(id),
+             c
+           )
   end
 
   test "create histogram instrument with no-op meter" do
     c = Histogram.create(:a_histogram, %{})
 
-    assert instrument(
-             module: :otel_meter_noop,
-             meter: {:otel_meter_noop, []},
-             name: :a_histogram,
-             kind: :histogram,
-             temporality: :temporality_delta
-           ) == c
+    assert match?(
+             instrument(
+               id: id,
+               module: :otel_meter_noop,
+               meter: {:otel_meter_noop, []},
+               name: :a_histogram,
+               kind: :histogram,
+               temporality: :temporality_delta
+             )
+             when is_reference(id),
+             c
+           )
+  end
+
+  test "record using a registered alias with no-op meter" do
+    alias_name = :noop_counter_alias
+    {:ok, counter} = Counter.register(alias_name, :requests, %{})
+
+    assert :ok == Counter.add(alias_name, 1, %{})
+    assert :ok == Counter.add(counter, 1, %{})
+
+    :ok = :otel_instrument.unregister_alias(alias_name)
   end
 
   test "create observable counter with no-op meter" do

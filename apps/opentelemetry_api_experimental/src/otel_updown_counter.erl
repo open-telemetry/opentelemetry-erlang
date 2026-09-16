@@ -19,7 +19,9 @@
 -module(otel_updown_counter).
 
 -export([create/3,
-         add/5]).
+         add/4]).
+
+-include("otel_metrics.hrl").
 
 -spec create(Meter, Name, Opts) -> otel_instrument:t() when
       Meter :: otel_meter:t(),
@@ -28,7 +30,14 @@
 create(Meter, Name, Opts) ->
     otel_meter:create_updown_counter(Meter, Name, Opts).
 
--spec add(otel_ctx:t(), otel_meter:t(), otel_instrument:name(), number(),
+-spec add(otel_ctx:t(), otel_instrument:t() | otel_instrument:alias(), number(),
           opentelemetry:attributes_map()) -> ok | false.
-add(Ctx, Meter, Name, Number, Attributes) ->
-    otel_meter:record(Ctx, Meter, Name, Number, Attributes).
+add(Ctx, Instrument=#instrument{kind=?KIND_UPDOWN_COUNTER}, Number, Attributes) ->
+    otel_instrument:record(Ctx, Instrument, Number, Attributes);
+add(Ctx, Alias, Number, Attributes) when is_atom(Alias) ->
+    case otel_instrument:lookup_alias(Alias) of
+        {ok, Instrument} -> add(Ctx, Instrument, Number, Attributes);
+        error -> false
+    end;
+add(_, _, _, _) ->
+    false.
