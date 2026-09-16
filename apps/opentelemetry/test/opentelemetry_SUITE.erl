@@ -69,14 +69,17 @@ init_per_testcase(no_exporter, Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(disable_auto_creation, Config) ->
+    clear_application_tracers(),
     application:set_env(opentelemetry, create_application_tracers, false),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(old_disable_auto_creation, Config) ->
+    clear_application_tracers(),
     application:set_env(opentelemetry, register_loaded_applications, false),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(application_tracers, Config) ->
+    clear_application_tracers(),
     %% if both are set then the new one, `create_application_tracers', is used
     application:set_env(opentelemetry, register_loaded_applications, false),
     application:set_env(opentelemetry, create_application_tracers, true),
@@ -175,34 +178,41 @@ set_batch_tab_processor(DelayMs, Config) ->
                                                   scheduled_delay_ms => DelayMs}}]),
     [{tid, Tid} | Config].
 
+clear_application_tracers() ->
+    persistent_term:erase({opentelemetry, otel_module_to_application_key}),
+    ok.
+
 %% test cases
 
 disable_auto_creation(_Config) ->
+    ?assertEqual('$__default_tracer', opentelemetry:get_application(kernel)),
     {_, #tracer{instrumentation_scope=Library}} = opentelemetry:get_tracer(
                                                       opentelemetry:get_application(kernel)),
     ?assertEqual(undefined, Library),
     ok.
 
 old_disable_auto_creation(_Config) ->
+    ?assertEqual('$__default_tracer', opentelemetry:get_application(kernel)),
     {_, #tracer{instrumentation_scope=Library}} = opentelemetry:get_tracer(
                                                       opentelemetry:get_application(kernel)),
     ?assertEqual(undefined, Library),
     ok.
 
 application_tracers(_Config) ->
-    {_, #tracer{instrumentation_scope=Library}} = opentelemetry:get_tracer(
-                                                      opentelemetry:get_application(kernel)),
+    ?assertMatch({kernel, _, _}, opentelemetry:get_application(kernel)),
+    {_, #tracer{instrumentation_scope=#instrumentation_scope{}=Library}} =
+        opentelemetry:get_tracer(opentelemetry:get_application(kernel)),
     ?assertEqual(<<"kernel">>, Library#instrumentation_scope.name),
 
     %% tracers are unique by name/version/schema_url
     NewKernelTracer = opentelemetry:get_tracer(kernel, <<"fake-version">>, undefined),
-    {_, #tracer{instrumentation_scope=NewLibrary}} = NewKernelTracer,
+    {_, #tracer{instrumentation_scope=#instrumentation_scope{}=NewLibrary}} = NewKernelTracer,
     ?assertEqual(<<"kernel">>, NewLibrary#instrumentation_scope.name),
     ?assertEqual(<<"fake-version">>, NewLibrary#instrumentation_scope.version),
     ?assertEqual(undefined, NewLibrary#instrumentation_scope.schema_url),
 
     Tracer = opentelemetry:get_tracer(kernel, <<"fake-version">>, <<"http://schema.org/myschema">>),
-    {_, #tracer{instrumentation_scope=NewLibrary1}} = Tracer,
+    {_, #tracer{instrumentation_scope=#instrumentation_scope{}=NewLibrary1}} = Tracer,
     ?assertEqual(<<"kernel">>, NewLibrary1#instrumentation_scope.name),
     ?assertEqual(<<"fake-version">>, NewLibrary1#instrumentation_scope.version),
     ?assertEqual(<<"http://schema.org/myschema">>, NewLibrary1#instrumentation_scope.schema_url),
@@ -358,7 +368,8 @@ force_flush(Config) ->
     %% wouldn't be exported at this point unless force flush worked
     [Span1] = assert_exported(Tid, SpanCtx1),
 
-    ?assertEqual(#{Attr1 => AttrValue1}, otel_attributes:map(Span1#span.attributes)),
+    ?assertEqual(#{Attr1 => AttrValue1},
+                 otel_attributes:map(eqwalizer:dynamic_cast(Span1#span.attributes))),
 
     ok.
 
@@ -391,7 +402,8 @@ shutdown_force_flush(Config) ->
     %% wouldn't be exported at this point unless force flush on shutdown worked
     [Span1] = assert_exported(Tid, SpanCtx1),
 
-    ?assertEqual(#{Attr1 => AttrValue1}, otel_attributes:map(Span1#span.attributes)),
+    ?assertEqual(#{Attr1 => AttrValue1},
+                 otel_attributes:map(eqwalizer:dynamic_cast(Span1#span.attributes))),
 
     ok.
 
@@ -438,7 +450,8 @@ macros(Config) ->
 
     [Span1] = assert_exported(Tid, SpanCtx1),
 
-    ?assertEqual(#{Attr1 => AttrValue1}, otel_attributes:map(Span1#span.attributes)),
+    ?assertEqual(#{Attr1 => AttrValue1},
+                 otel_attributes:map(eqwalizer:dynamic_cast(Span1#span.attributes))),
 
     ok.
 
@@ -523,10 +536,7 @@ update_span_data(Config) ->
 
     LinkTraceId = otel_id_generator:generate_trace_id(),
     LinkSpanId = otel_id_generator:generate_span_id(),
-    Links = [#link{trace_id=LinkTraceId,
-                   span_id=LinkSpanId,
-                   attributes=[],
-                   tracestate=[]}],
+    Links = opentelemetry:links([{LinkTraceId, LinkSpanId, #{}, otel_tracestate:new()}]),
 
     SpanCtx1=#span_ctx{trace_id=TraceId,
                        span_id=SpanId,
@@ -560,7 +570,7 @@ update_span_data(Config) ->
     ?assertNot(otel_span:set_status(SpanCtx1, ErrorStatus)),
     ?assertNot(otel_span:set_status(SpanCtx1, ?OTEL_STATUS_ERROR)),
     %% %% returns false if called with something that isn't a status record
-    ?assertNot(otel_span:set_status(SpanCtx1, notastatus)),
+    ?assertNot(otel_span:set_status(SpanCtx1, eqwalizer:dynamic_cast(notastatus))),
 
     %% returning not false means it successfully called the SDK
     ?assertNotEqual(false, otel_span:add_event(SpanCtx1, event_1, #{<<"attr-1">> => <<"attr-value-1">>})),
@@ -662,8 +672,9 @@ multiple_tracer_providers(_Config) ->
 
     ?assertEqual(otel_resource:create([]), otel_tracer_provider:resource(deprecated_test_provider_start)),
 
-    GlobalResource = otel_tracer_provider:resource(),
-    GlobalResourceAttributes = otel_attributes:map(otel_resource:attributes(GlobalResource)),
+    GlobalResource = eqwalizer:dynamic_cast(otel_tracer_provider:resource()),
+    GlobalResourceAttributes = otel_attributes:map(
+                                 eqwalizer:dynamic_cast(otel_resource:attributes(GlobalResource))),
     ?assertMatch(#{'process.executable.name' := <<"erl">>}, GlobalResourceAttributes),
 
     Tracer1 = otel_tracer_provider:get_tracer(test_provider, <<"tracer-name">>, <<>>, <<>>),
@@ -862,7 +873,7 @@ default_sampler(_Config) ->
     ok.
 
 non_recording_ets_table(_Config) ->
-    Tracer={TracerModule, TracerConfig} = opentelemetry:get_tracer(),
+    Tracer={TracerModule, TracerConfig=#tracer{}} = opentelemetry:get_tracer(),
 
     SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{}),
     ?assertMatch(true, SpanCtx1#span_ctx.is_recording),
@@ -877,7 +888,7 @@ non_recording_ets_table(_Config) ->
     ok.
 
 root_span_sampling_always_off(_Config) ->
-    Tracer={TracerModule, TracerConfig} = opentelemetry:get_tracer(),
+    Tracer={TracerModule, TracerConfig=#tracer{}} = opentelemetry:get_tracer(),
 
     Sampler = otel_sampler:new(always_off),
     Tracer1 = {TracerModule, TracerConfig#tracer{sampler=Sampler}},
@@ -894,7 +905,7 @@ root_span_sampling_always_off(_Config) ->
     ok.
 
 root_span_sampling_always_on(_Config) ->
-    Tracer={TracerModule, TracerConfig} = opentelemetry:get_tracer(),
+    Tracer={TracerModule, TracerConfig=#tracer{}} = opentelemetry:get_tracer(),
 
     Sampler = otel_sampler:new(always_on),
     Tracer1 = {TracerModule, TracerConfig#tracer{sampler=Sampler}},
@@ -918,7 +929,7 @@ record_but_not_sample(Config) ->
     Sampler = otel_sampler:new({static_sampler, #{<<"span-record-and-sample">> => ?RECORD_AND_SAMPLE,
                                                     <<"span-record">> => ?RECORD_ONLY}}),
 
-    {Module, Tracer0}  = opentelemetry:get_tracer(),
+    {Module, Tracer0=#tracer{}} = opentelemetry:get_tracer(),
     Tracer = {Module, Tracer0#tracer{sampler=Sampler}},
 
     SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-record-and-sample">>, #{}),
@@ -1006,7 +1017,8 @@ dropped_attributes(Config) ->
     otel_span:end_span(SpanCtx),
     [Span] = assert_exported(Tid, SpanCtx),
 
-    ?assertEqual(#{<<"attr-1">> => <<"at">>}, otel_attributes:map(Span#span.attributes)),
+    ?assertEqual(#{<<"attr-1">> => <<"at">>},
+                 otel_attributes:map(eqwalizer:dynamic_cast(Span#span.attributes))),
 
     ok.
 
@@ -1058,7 +1070,8 @@ too_many_attributes(Config) ->
     [Span] = assert_exported(Tid, SpanCtx),
 
     ?assertEqual(#{attr1 => [homogeneous, tuple],
-                   <<"attr-3">> => 4}, otel_attributes:map(Span#span.attributes)),
+                   <<"attr-3">> => 4},
+                 otel_attributes:map(eqwalizer:dynamic_cast(Span#span.attributes))),
     ?assertEqual(3, otel_attributes:dropped(Span#span.attributes)),
 
     %% test again using the `set_attributes' macro
@@ -1140,4 +1153,3 @@ assert_not_exported(Tid, #span_ctx{trace_id=TraceId,
     ?assertMatch([], ets:match(Tid, #span{trace_id=TraceId,
                                           span_id=SpanId,
                                           _='_'})).
-

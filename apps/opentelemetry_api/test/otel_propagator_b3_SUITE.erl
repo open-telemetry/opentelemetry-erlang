@@ -216,7 +216,9 @@ extract_invalid_span_id(_Config) ->
 
 inject_single(_Config) ->
     otel_tracer:set_current_span(#span_ctx{trace_id=11111111111111111111111111111111,
+                                           hex_trace_id = <<"0000008c3defb1edb984fe2ac71c71c7">>,
                                            span_id=2222222222222222,
+                                           hex_span_id = <<"0007e5196e2ae38e">>,
                                            trace_flags=1}),
     Headers = otel_propagator_text_map:inject([]),
 
@@ -227,7 +229,9 @@ inject_single(_Config) ->
 inject_multi(_Config) ->
     % Span with all fields
     otel_tracer:set_current_span(#span_ctx{trace_id=11111111111111111111111111111111,
+                                           hex_trace_id = <<"0000008c3defb1edb984fe2ac71c71c7">>,
                                            span_id=2222222222222222,
+                                           hex_span_id = <<"0007e5196e2ae38e">>,
                                            trace_flags=1}),
     Headers = otel_propagator_text_map:inject([]),
     ?assertListsEqual([{<<"X-B3-TraceId">>, <<"0000008c3defb1edb984fe2ac71c71c7">>},

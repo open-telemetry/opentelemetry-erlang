@@ -71,7 +71,9 @@ propagation(Config) ->
     otel_baggage:set("key-1", <<"value=1">>, []),
     %% TODO: should the whole baggage entry be dropped if metadata is bad?
     %% drop bad metadata (the `1').
-    otel_baggage:set(<<"key-2">>, <<"value-2">>, [<<"metadata">>, 1, {<<"md-k-1">>, <<"md-v-1">>}]),
+    otel_baggage:set(<<"key-2">>, <<"value-2">>,
+                     eqwalizer:dynamic_cast([<<"metadata">>, 1,
+                                              {<<"md-k-1">>, <<"md-v-1">>}])),
     %% drop baggage with bad value
     otel_baggage:set(<<"key-3">>, value3),
 
@@ -130,7 +132,9 @@ override_propagators(_Config) ->
     otel_baggage:set("key-1", <<"value=1">>, []),
     %% TODO: should the whole baggage entry be dropped if metadata is bad?
     %% drop bad metadata (the `1').
-    otel_baggage:set(<<"key-2">>, <<"value-2">>, [<<"metadata">>, 1, {<<"md-k-1">>, <<"md-v-1">>}]),
+    otel_baggage:set(<<"key-2">>, <<"value-2">>,
+                     eqwalizer:dynamic_cast([<<"metadata">>, 1,
+                                              {<<"md-k-1">>, <<"md-v-1">>}])),
     %% drop baggage with bad value
     otel_baggage:set(<<"key-3">>, value3),
 

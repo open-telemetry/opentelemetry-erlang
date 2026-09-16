@@ -29,8 +29,14 @@
 export(Input) ->
     export(ctx:new(), Input, #{}).
 
+-spec export(ctx:t() | opentelemetry_exporter_metrics_service_pb:export_metrics_service_request(), opentelemetry_exporter_metrics_service_pb:export_metrics_service_request() | grpcbox_client:options()) ->
+    {ok, opentelemetry_exporter_metrics_service_pb:export_metrics_service_response(), grpcbox:metadata()} | grpcbox_stream:grpc_error_response() | {error, any()}.
+export(Ctx, Input) when ?is_ctx(Ctx) ->
+    export(Ctx, Input, #{});
+export(Input, Options) ->
+    export(ctx:new(), Input, Options).
+
 -spec export(ctx:t(), opentelemetry_exporter_metrics_service_pb:export_metrics_service_request(), grpcbox_client:options()) ->
     {ok, opentelemetry_exporter_metrics_service_pb:export_metrics_service_response(), grpcbox:metadata()} | grpcbox_stream:grpc_error_response() | {error, any()}.
 export(Ctx, Input, Options) ->
     grpcbox_client:unary(Ctx, <<"/opentelemetry.proto.collector.metrics.v1.MetricsService/Export">>, Input, ?DEF(export_metrics_service_request, export_metrics_service_response, <<"opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest">>), Options).
-

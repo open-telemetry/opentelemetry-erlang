@@ -63,7 +63,7 @@ startup(_Config) ->
         os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=1.1.1"),
 
         {ok, _} = application:ensure_all_started(opentelemetry),
-        Resource = otel_tracer_provider:resource(),
+        Resource = eqwalizer:dynamic_cast(otel_tracer_provider:resource()),
         _ = application:stop(opentelemetry),
 
         ?assertMatch(#{'service.name' := <<"cttest">>,
@@ -81,7 +81,7 @@ startup_env_service_name(_Config) ->
         os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=1.1.1"),
 
         {ok, _} = application:ensure_all_started(opentelemetry),
-        Resource = otel_tracer_provider:resource(),
+        Resource = eqwalizer:dynamic_cast(otel_tracer_provider:resource()),
         _ = application:stop(opentelemetry),
 
         ?assertMatch(#{'service.name' := <<"env-service-name">>,

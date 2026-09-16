@@ -36,7 +36,6 @@ run_callbacks(Callbacks, ReaderId, StreamTab, MetricsTab, ExemplarsTab) ->
                                                                    Callback(CallbackArgs)
                                                            end),
                           handle_instruments_observations(Ctx,
-                                                          %% eqwalizer:ignore not sure why it doesn't like Results
                                                           Results,
                                                           Instruments,
                                                           StreamTab,
@@ -81,7 +80,7 @@ handle_instrument_observations(Ctx, Results, #instrument{meter={_, Meter},
 
 %% handle results for a multi-instrument callback
 -spec handle_instruments_observations(otel_ctx:t(),
-                                      [otel_instrument:named_observations()], [otel_instrument:t()],
+                                      eqwalizer:dynamic(), [otel_instrument:t()],
                                       ets:table(), ets:table(), ets:table(), reference()) -> ok.
 handle_instruments_observations(_Ctx, [], _Instruments, _StreamTab, _MetricsTab, _ExemplarsTab, _ReaderId) ->
     ok;

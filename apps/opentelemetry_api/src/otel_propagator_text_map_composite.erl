@@ -41,7 +41,7 @@
 %%
 %% The `Propagators' list is a list of atoms that represent the <i>suffix</i>
 %% of the module name of the TextMap Propagator to be used.
--spec create([otel_propagator:builtin()]) -> otel_propagator:t().
+-spec create([otel_propagator:t()]) -> otel_propagator:t().
 create(Propagators) ->
     {?MODULE, otel_propagator:builtins_to_modules(Propagators)}.
 

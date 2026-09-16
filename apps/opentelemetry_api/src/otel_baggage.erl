@@ -61,8 +61,6 @@
 
 -define(BAGGAGE_KEY, '$__otel_baggage_ctx_key').
 
--include("gradualizer.hrl").
-
 %% @doc Sets the given key-value pairs in the current baggage.
 %%
 %% If you need to set <i>metadata</i> for the key-value pair, use {@link set/3} instead.
@@ -84,13 +82,13 @@ set(_) ->
 %% Ctx will never be a list or binary so we can tell if a context is passed by checking that
 -spec set(otel_ctx:t() | input_key(), #{input_key() => input_value()} | [{input_key(), input_value()}] | input_value()) -> otel_ctx:t() | ok.
 set(Key, Value) when (is_list(Key) orelse is_binary(Key)) andalso is_binary(Value) ->
-    ?assert_type(set(Key, Value, []), ok | undefined | #{any() => any()});
+    set(Key, Value, []);
 %% drop bad value
 set(Key, Value) when (is_list(Key) orelse is_binary(Key)) andalso not is_binary(Value) ->
     ok;
 set(Ctx, KeyValues) when is_list(KeyValues) ->
     %% eqwalizer:ignore I know what I'm doing
-    ?assert_type(set(Ctx, maps:from_list(KeyValues)), ok | undefined | #{any() => any()});
+    set(Ctx, maps:from_list(KeyValues));
 set(Ctx, KeyValues) when is_map(KeyValues) andalso (is_map(Ctx) orelse Ctx =:= undefined)->
     Baggage = otel_ctx:get_value(Ctx, ?BAGGAGE_KEY, #{}),
     otel_ctx:set_value(Ctx, ?BAGGAGE_KEY, maps:merge(Baggage, verify_baggage(KeyValues))).
@@ -119,9 +117,9 @@ set(Key, Value, Metadata) when (is_list(Key) orelse is_binary(Key)) andalso is_b
 set(Key, Value, _Metadata) when (is_list(Key) orelse is_binary(Key)) andalso not is_binary(Value) ->
     ok;
 set(Ctx, Key, Value) ->
-    set_to(?assert_type(Ctx, otel_ctx:t()),
-           ?assert_type(Key, input_key()),
-           ?assert_type(Value, input_value()),
+    set_to(Ctx,
+           eqwalizer:dynamic_cast(Key),
+           eqwalizer:dynamic_cast(Value),
            []).
 
 %% @doc Sets the given key-value pair in the baggage for the given context.

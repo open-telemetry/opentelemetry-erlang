@@ -53,7 +53,7 @@
 
 %% @private
 -spec start_link(Config) -> {ok, pid()} | ignore | {error, term()} when
-              Config :: #{resource_detectors := [module()],
+              Config :: #{resource_detectors := [detector()],
                           resource_detector_timeout := integer()}.
 start_link(Config) ->
     gen_statem:start_link({local, ?MODULE}, ?MODULE, [Config], []).
