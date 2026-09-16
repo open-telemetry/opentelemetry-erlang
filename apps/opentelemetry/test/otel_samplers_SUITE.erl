@@ -89,10 +89,7 @@ trace_id_ratio_based(_Config) ->
     ?assertEqual(
         {?DROP, [], otel_tracestate:new()},
         Sampler:should_sample(
-            otel_tracer:set_current_span(Ctx, #span_ctx{
-                trace_flags = 1,
-                is_remote = true
-            }),
+            otel_tracer:set_current_span(Ctx, span_ctx(1, true)),
             DoNotSample,
             [],
             SpanName,
@@ -106,10 +103,7 @@ trace_id_ratio_based(_Config) ->
     ?assertEqual(
         {?RECORD_AND_SAMPLE, [], otel_tracestate:new()},
         Sampler:should_sample(
-            otel_tracer:set_current_span(Ctx, #span_ctx{
-                trace_flags = 0,
-                is_remote = false
-            }),
+            otel_tracer:set_current_span(Ctx, span_ctx(0, false)),
             DoSample,
             [],
             SpanName,
@@ -123,10 +117,7 @@ trace_id_ratio_based(_Config) ->
     ?assertEqual(
         {?RECORD_AND_SAMPLE, [], otel_tracestate:new()},
         Sampler:should_sample(
-            otel_tracer:set_current_span(Ctx, #span_ctx{
-                trace_flags = 0,
-                is_remote = true
-            }),
+            otel_tracer:set_current_span(Ctx, span_ctx(0, true)),
             DoSample,
             [],
             SpanName,
@@ -181,10 +172,7 @@ parent_based(_Config) ->
     ?assertEqual(
         {?RECORD_AND_SAMPLE, [], EmptyTracestate},
         Sampler:should_sample(
-            otel_tracer:set_current_span(Ctx, #span_ctx{
-                trace_flags = 1,
-                is_remote = true
-            }),
+            otel_tracer:set_current_span(Ctx, span_ctx(1, true)),
             DoNotSample,
             [],
             SpanName,
@@ -196,10 +184,7 @@ parent_based(_Config) ->
     ?assertEqual(
         {?DROP, [], EmptyTracestate},
         Sampler:should_sample(
-            otel_tracer:set_current_span(Ctx, #span_ctx{
-                trace_flags = 0,
-                is_remote = true
-            }),
+            otel_tracer:set_current_span(Ctx, span_ctx(0, true)),
             DoNotSample,
             [],
             SpanName,
@@ -240,7 +225,7 @@ parent_based(_Config) ->
     ?assertEqual(
         {?RECORD_AND_SAMPLE, [], otel_tracestate:new()},
         DefaultParentOrElse:should_sample(
-            otel_tracer:set_current_span(Ctx, #span_ctx{trace_flags = 1}),
+            otel_tracer:set_current_span(Ctx, span_ctx(1, false)),
             DoNotSample,
             [],
             SpanName,
@@ -252,10 +237,7 @@ parent_based(_Config) ->
     ?assertEqual(
         {?DROP, [], otel_tracestate:new()},
         DefaultParentOrElse:should_sample(
-            otel_tracer:set_current_span(Ctx, #span_ctx{
-                trace_flags = 0,
-                is_remote = true
-            }),
+            otel_tracer:set_current_span(Ctx, span_ctx(0, true)),
             DoNotSample,
             [],
             SpanName,
@@ -266,6 +248,14 @@ parent_based(_Config) ->
     ),
 
     ok.
+
+span_ctx(TraceFlags, IsRemote) ->
+    #span_ctx{trace_id=0,
+              hex_trace_id = <<"00000000000000000000000000000000">>,
+              span_id=0,
+              hex_span_id = <<"0000000000000000">>,
+              trace_flags=TraceFlags,
+              is_remote=IsRemote}.
 
 custom_sampler_module(_Config) ->
     SpanName = <<"span-name">>,

@@ -363,7 +363,7 @@ compare_span_limits(Config) ->
 
     ?assertIsSubset(ExpectedOpts, Opts),
 
-    otel_span_limits:set(maps:from_list(Opts)),
+    otel_span_limits:set(eqwalizer:dynamic_cast(maps:from_list(Opts))),
 
     SpanLimits = otel_span_limits:get(),
 

@@ -39,7 +39,7 @@ start(Name, Config) ->
     otel_tracer_provider_sup:start(Name, Config).
 
 -spec get_tracer(Name, Vsn, SchemaUrl) -> Tracer when
-      Name :: atom(),
+      Name :: opentelemetry:span_name(),
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
       Tracer:: opentelemetry:tracer().
@@ -48,7 +48,7 @@ get_tracer(Name, Vsn, SchemaUrl) ->
 
 -spec get_tracer(ServerRef, Name, Vsn, SchemaUrl) -> Tracer when
       ServerRef :: atom() | pid() | string(),
-      Name :: atom(),
+      Name :: opentelemetry:span_name(),
       Vsn :: unicode:chardata() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined,
       Tracer:: opentelemetry:tracer().

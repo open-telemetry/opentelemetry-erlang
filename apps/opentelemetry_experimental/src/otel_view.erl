@@ -36,7 +36,7 @@
                       meter_version => unicode:unicode_binary() | undefined,
                       meter_schema_url => unicode:unicode_binary() | undefined}.
 -type config() :: #{description => unicode:unicode_binary() | undefined,
-                    attribute_keys => [atom()] | undefined,
+                    attribute_keys => [opentelemetry:attribute_key()] | undefined,
                     aggregation_module => module() | default | undefined,
                     aggregation_options => map()
                     %% exemplar_reservoir

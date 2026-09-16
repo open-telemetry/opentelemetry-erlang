@@ -98,7 +98,7 @@
          count :: number(),
          sum :: float() | integer() | undefined,
          bucket_counts :: list(),
-         explicit_bounds :: match_spec([float()]) | undefined,
+         explicit_bounds :: match_spec([number()]) | undefined,
          exemplars :: list(),
          flags :: integer(),
          min ::  infinity | integer() | undefined,

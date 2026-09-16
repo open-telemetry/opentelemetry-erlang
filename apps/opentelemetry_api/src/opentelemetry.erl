@@ -274,13 +274,13 @@ get_tracer(TracerProvider, Name, Vsn, SchemaUrl) ->
 get_application_tracer(ModuleName) ->
     get_tracer(get_application(ModuleName)).
 
--spec get_application_scope(module()) -> instrumentation_scope() | undefined.
+-spec get_application_scope(module()) -> instrumentation_scope().
 get_application_scope(ModuleName) ->
     case get_application(ModuleName) of
         {Name, Vsn, SchemaUrl} ->
-            instrumentation_scope(Name, Vsn, SchemaUrl);
+            eqwalizer:dynamic_cast(instrumentation_scope(Name, Vsn, SchemaUrl));
         _ ->
-            instrumentation_scope(<<>>, <<>>, <<>>)
+            eqwalizer:dynamic_cast(instrumentation_scope(<<>>, <<>>, <<>>))
     end.
 
 %% looks up the name, version and schema_url used to create a Trace for the OTP
