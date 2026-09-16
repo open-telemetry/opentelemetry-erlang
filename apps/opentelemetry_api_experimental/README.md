@@ -164,3 +164,13 @@ AtomGauge = ?create_observable_gauge(AtomCountName, #{description => <<"Number o
 The callbacks are run when the Metric Reader collects metrics for export. See
 the Experimental SDK's `README.md` for more details on Metric Readers and their
 configuration.
+
+## For non-Erlang reviewers
+
+- **What to read first**: See `SPEC_COMPLIANCE.md` in this folder for a plain-language crosswalk of the Metrics API to the OpenTelemetry spec and where behaviors are implemented.
+- **How to validate quickly**:
+  - Ensure the experimental SDK app `opentelemetry_experimental` is included and configured with a console reader (see that app's README).
+  - Use the macros in `include/otel_meter.hrl` to create an instrument and record a value.
+  - Expect to see aggregated metric points printed by the SDK's console exporter.
+- **Where defaults live**: Aggregation and temporality are SDK concerns; see `../opentelemetry_experimental/SPEC_COMPLIANCE.md` for defaults and reader behavior.
+
