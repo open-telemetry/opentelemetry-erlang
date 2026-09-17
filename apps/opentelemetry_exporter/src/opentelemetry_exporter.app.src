@@ -11,6 +11,10 @@
     tls_certificate_check,
     opentelemetry_api
    ]},
+  %% ctx and grpcbox are only needed for the optional `grpc' export protocol.
+  %% Marking them optional lets the release boot without them when only
+  %% http_protobuf is used.
+  {optional_applications, [ctx, grpcbox]},
   {exclude_paths, ["rebar.lock"]},
   {env,[]},
   {modules, []},
