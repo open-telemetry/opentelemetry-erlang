@@ -40,7 +40,7 @@
 -dialyzer({nowarn_function, maybe_delete_old_generation/4}).
 -dialyzer({nowarn_function, datapoint/7}).
 
-init(#stream{name=Name,
+init(#stream{id=StreamId,
              reader=ReaderId,
              forget=Forget}, Attributes) when is_reference(ReaderId) ->
     Generation = case Forget of
@@ -50,7 +50,7 @@ init(#stream{name=Name,
                          0
                  end,
     StartTime = opentelemetry:timestamp(),
-    Key = {Name, Attributes, ReaderId, Generation},
+    Key = {StreamId, Attributes, ReaderId, Generation},
     #sum_aggregation{key=Key,
                      start_time=StartTime,
                      checkpoint=0, %% 0 value is never reported but gets copied to previous_checkpoint
@@ -59,7 +59,7 @@ init(#stream{name=Name,
                      int_value=0,
                      float_value=0.0}.
 
-aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
+aggregate(Ctx, Tab, ExemplarsTab, #stream{id=StreamId,
                                           reader=ReaderId,
                                           forget=Forget,
                                           exemplar_reservoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes)
@@ -70,7 +70,7 @@ aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
                      _ ->
                          0
                  end,
-    Key = {Name, Attributes, ReaderId, Generation},
+    Key = {StreamId, Attributes, ReaderId, Generation},
     try ets:update_counter(Tab, Key, {#sum_aggregation.int_value, Value}) of
         _ ->
             otel_metric_exemplar_reservoir:offer(Ctx, ExemplarReservoir, ExemplarsTab, Key, Value, DroppedAttributes),
@@ -87,7 +87,7 @@ aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
             %% true
             false
     end;
-aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
+aggregate(Ctx, Tab, ExemplarsTab, #stream{id=StreamId,
                                           reader=ReaderId,
                                           forget=Forget,
                                           exemplar_reservoir=ExemplarReservoir}, Value, Attributes, DroppedAttributes) ->
@@ -97,7 +97,7 @@ aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
                      _ ->
                          0
                  end,
-    Key = {Name, Attributes, ReaderId, Generation},
+    Key = {StreamId, Attributes, ReaderId, Generation},
     MS = [{#sum_aggregation{key=Key,
                             start_time='$1',
                             checkpoint='$2',
@@ -120,30 +120,30 @@ aggregate(Ctx, Tab, ExemplarsTab, #stream{name=Name,
             false
     end.
 
-checkpoint(Tab, #stream{name=Name,
+checkpoint(Tab, #stream{id=StreamId,
                         reader=ReaderId,
                         temporality=?TEMPORALITY_DELTA}, Generation) ->
-    MS = [{#sum_aggregation{key={Name, '$1', ReaderId, Generation},
+    MS = [{#sum_aggregation{key={StreamId, '$1', ReaderId, Generation},
                             start_time='$4',
                             checkpoint='$5',
                             previous_checkpoint='_',
                             int_value='$2',
                             float_value='$3'},
            [{'=:=', '$3', {const, 0.0}}],
-           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
+           [{#sum_aggregation{key={{StreamId, '$1', {const, ReaderId}, {const, Generation}}},
                               start_time='$4',
                               checkpoint='$2',
                               previous_checkpoint='$5',
                               int_value=0,
                               float_value=0.0}}]},
-          {#sum_aggregation{key={Name, '$1', ReaderId, Generation},
+          {#sum_aggregation{key={StreamId, '$1', ReaderId, Generation},
                             start_time='$4',
                             checkpoint='$5',
                             previous_checkpoint='_',
                             int_value='$2',
                             float_value='$3'},
            [],
-           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
+           [{#sum_aggregation{key={{StreamId, '$1', {const, ReaderId}, {const, Generation}}},
                               start_time='$4',
                               checkpoint={'+', '$2', '$3'},
                               previous_checkpoint='$5',
@@ -151,7 +151,7 @@ checkpoint(Tab, #stream{name=Name,
                               float_value=0.0}}]}],
     _ = ets:select_replace(Tab, MS),
     ok;
-checkpoint(Tab, #stream{name=Name,
+checkpoint(Tab, #stream{id=StreamId,
                         reader=ReaderId,
                         forget=Forget,
                         temporality=?TEMPORALITY_CUMULATIVE}, Generation0) ->
@@ -161,27 +161,27 @@ checkpoint(Tab, #stream{name=Name,
                      _ ->
                          0
                  end,
-    MS = [{#sum_aggregation{key={Name, '$1', ReaderId, Generation},
+    MS = [{#sum_aggregation{key={StreamId, '$1', ReaderId, Generation},
                             start_time='$2',
                             checkpoint='$5',
                             previous_checkpoint='$6',
                             int_value='$3',
                             float_value='$4'},
            [{'=:=', '$4', {const, 0.0}}],
-           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
+           [{#sum_aggregation{key={{StreamId, '$1', {const, ReaderId}, {const, Generation}}},
                               start_time='$2',
                               checkpoint='$3',
                               previous_checkpoint={'+', '$5', '$6'},
                               int_value=0,
                               float_value=0.0}}]},
-          {#sum_aggregation{key={Name, '$1', ReaderId, Generation},
+          {#sum_aggregation{key={StreamId, '$1', ReaderId, Generation},
                             start_time='$2',
                             checkpoint='$5',
                             previous_checkpoint='$6',
                             int_value='$3',
                             float_value='$4'},
            [],
-           [{#sum_aggregation{key={{Name, '$1', {const, ReaderId}, {const, Generation}}},
+           [{#sum_aggregation{key={{StreamId, '$1', {const, ReaderId}, {const, Generation}}},
                               start_time='$2',
                               checkpoint={'+', '$3', '$4'},
                               previous_checkpoint={'+', '$5', '$6'},
@@ -190,7 +190,7 @@ checkpoint(Tab, #stream{name=Name,
     _ = ets:select_replace(Tab, MS),
     ok.
 
-collect(Tab, ExemplarsTab, Stream=#stream{name=Name,
+collect(Tab, ExemplarsTab, Stream=#stream{id=StreamId,
                                           reader=ReaderId,
                                           instrument=#instrument{temporality=InstrumentTemporality},
                                           temporality=Temporality,
@@ -208,26 +208,26 @@ collect(Tab, ExemplarsTab, Stream=#stream{name=Name,
     checkpoint(Tab, Stream, Generation),
 
     %% eqwalizer:ignore matchspecs mess with the typing
-    Select = [{#sum_aggregation{key={Name, '_', ReaderId, Generation}, _='_'}, [], ['$_']}],
+    Select = [{#sum_aggregation{key={StreamId, '_', ReaderId, Generation}, _='_'}, [], ['$_']}],
     AttributesAggregation = ets:select(Tab, Select),
     Result = #sum{aggregation_temporality=Temporality,
                   is_monotonic=IsMonotonic,
                   datapoints=[datapoint(Tab, ExemplarReservoir, ExemplarsTab, CollectionStartTime, InstrumentTemporality, Temporality, SumAgg) || SumAgg <- AttributesAggregation]},
 
     %% would be nice to do this in the reader so its not duplicated in each aggregator
-    maybe_delete_old_generation(Tab, Name, ReaderId, Generation),
+    maybe_delete_old_generation(Tab, StreamId, ReaderId, Generation),
 
     Result.
 
 %% 0 means it is either cumulative or the first generation with nothing older to delete
-maybe_delete_old_generation(_Tab, _Name, _ReaderId, 0) ->
+maybe_delete_old_generation(_Tab, _StreamId, _ReaderId, 0) ->
     ok;
-maybe_delete_old_generation(Tab, Name, ReaderId, Generation) ->
+maybe_delete_old_generation(Tab, StreamId, ReaderId, Generation) ->
     %% delete all older than the Generation instead of just the previous in case a
     %% a crash had happened between incrementing the Generation counter and doing
     %% the delete in a previous collection cycle
     %% eqwalizer:ignore matchspecs mess with the typing
-    Select = [{#sum_aggregation{key={Name, '_', ReaderId, '$1'}, _='_'},
+    Select = [{#sum_aggregation{key={StreamId, '_', ReaderId, '$1'}, _='_'},
                [{'<', '$1', {const, Generation}}],
                [true]}],
     ets:select_delete(Tab, Select).
@@ -264,14 +264,14 @@ datapoint(_Tab, ExemplarReservoir, ExemplarsTab, Time, _, ?TEMPORALITY_CUMULATIV
 %% value of the previous collection, if one exists.
 %% because we use a generation counter to reset delta aggregates the previous value
 %% has to be looked up with an ets lookup of the previous generation
-datapoint(Tab, ExemplarReservoir, ExemplarsTab, Time, _, ?TEMPORALITY_DELTA, #sum_aggregation{key=Key={Name, Attributes, ReaderId, Generation},
+datapoint(Tab, ExemplarReservoir, ExemplarsTab, Time, _, ?TEMPORALITY_DELTA, #sum_aggregation{key=Key={StreamId, Attributes, ReaderId, Generation},
                                                                                               start_time=StartTime,
                                                                                               checkpoint=Value}) ->
     %% converting from cumulative to delta by grabbing the last generation and subtracting it
     %% can't use `previous_checkpoint' because with delta metrics have their generation changed
     %% at each collection
     PreviousCheckpoint =
-        otel_metrics_tables:lookup_sum_checkpoint(Tab, Name, Attributes, ReaderId, Generation-1),
+        otel_metrics_tables:lookup_sum_checkpoint(Tab, StreamId, Attributes, ReaderId, Generation-1),
     Exemplars = otel_metric_exemplar_reservoir:collect(ExemplarReservoir, ExemplarsTab, Key),
     #datapoint{
        attributes=binary_to_term(Attributes),
@@ -281,4 +281,3 @@ datapoint(Tab, ExemplarReservoir, ExemplarsTab, Time, _, ?TEMPORALITY_DELTA, #su
        exemplars=Exemplars,
        flags=0
       }.
-

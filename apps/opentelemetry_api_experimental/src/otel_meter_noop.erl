@@ -19,25 +19,25 @@
 
 -behaviour(otel_meter).
 
--export([register_callback/4,
+-export([scope/1,
+         register_callback/4,
          create_instrument/4,
          create_instrument/6]).
 
 %% also act as noop version of instruments
--export([record/5,
-         record/4,
-         record/3]).
+-export([record/4]).
+
+-include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
 %%
 
-record(_Meter, _Name, _Number, _Attributes) ->
+-spec scope(otel_meter:t()) -> opentelemetry:instrumentation_scope().
+scope(_Meter) ->
+    #instrumentation_scope{}.
+
+record(_Ctx, _Instrument, _Number, _Attributes) ->
     ok.
 
-record(_Instrument, _Number, _Attributes) ->
-    ok.
-
-record(_Ctx, _Meter, _Name, _Number, _Attributes) ->
-    ok.
 %%
 
 register_callback(_Meter, _Instruments, _Callback, _CallbackArgs) ->

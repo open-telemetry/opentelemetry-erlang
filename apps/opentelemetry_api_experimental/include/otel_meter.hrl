@@ -10,6 +10,15 @@
 -define(create_counter(Name, Opts),
         otel_meter:create_counter(?current_meter, Name, Opts)).
 
+-define(register_instrument(Alias, Instrument),
+        otel_instrument:register_alias(Alias, Instrument)).
+
+-define(unregister_instrument(Alias),
+        otel_instrument:unregister_alias(Alias)).
+
+-define(register_counter(Alias, Name, Opts),
+        ?register_instrument(Alias, ?create_counter(Name, Opts))).
+
 -define(create_observable_counter(Name, Callback, CallbackArgs, Opts),
         otel_meter:create_observable_counter(?current_meter, Name, Callback, CallbackArgs, Opts)).
 
@@ -18,6 +27,9 @@
 
 -define(create_histogram(Name, Opts),
         otel_meter:create_histogram(?current_meter, Name, Opts)).
+
+-define(register_histogram(Alias, Name, Opts),
+        ?register_instrument(Alias, ?create_histogram(Name, Opts))).
 
 -define(create_observable_gauge(Name, Callback, CallbackArgs, Opts),
         otel_meter:create_observable_gauge(?current_meter, Name, Callback, CallbackArgs, Opts)).
@@ -28,24 +40,27 @@
 -define(create_updown_counter(Name, Opts),
         otel_meter:create_updown_counter(?current_meter, Name, Opts)).
 
+-define(register_updown_counter(Alias, Name, Opts),
+        ?register_instrument(Alias, ?create_updown_counter(Name, Opts))).
+
 -define(create_observable_updowncounter(Name, Callback, CallbackArgs, Opts),
         otel_meter:create_observable_updowncounter(?current_meter, Name, Callback, CallbackArgs, Opts)).
 
 -define(create_observable_updowncounter(Name, Opts),
         otel_meter:create_observable_updowncounter(?current_meter, Name, Opts)).
 
-%% To support only using an atom name of an instrument the macro must support looking
-%% up the meter to use to resolve the instrument name. But if an Instrument record is
-%% given then the meter lookup can be skipped.
+%% A recording target is either the Instrument returned at creation time or a
+%% node-local atom explicitly registered with one of the register_* macros.
+%% The alias resolves directly to the Instrument, including its owning Meter.
 
--define(counter_add(Name, Number, Attributes),
-        otel_counter:add(otel_ctx:get_current(), ?current_meter, Name, Number, Attributes)).
+-define(counter_add(Target, Number, Attributes),
+        otel_counter:add(otel_ctx:get_current(), Target, Number, Attributes)).
 
--define(updown_counter_add(Name, Number, Attributes),
-        otel_updown_counter:add(otel_ctx:get_current(), ?current_meter, Name, Number, Attributes)).
+-define(updown_counter_add(Target, Number, Attributes),
+        otel_updown_counter:add(otel_ctx:get_current(), Target, Number, Attributes)).
 
--define(histogram_record(Name, Number, Attributes),
-        otel_histogram:record(otel_ctx:get_current(), ?current_meter, Name, Number, Attributes)).
+-define(histogram_record(Target, Number, Attributes),
+        otel_histogram:record(otel_ctx:get_current(), Target, Number, Attributes)).
 
 -define(register_callback(Instruments, Callback, CallbackArgs),
         otel_meter:register_callback(?current_meter, Instruments, Callback, CallbackArgs)).

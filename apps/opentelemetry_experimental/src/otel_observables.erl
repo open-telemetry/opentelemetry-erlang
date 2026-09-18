@@ -24,7 +24,8 @@
 -include("otel_view.hrl").
 -include_lib("opentelemetry_api/include/otel_ctx.hrl").
 
--type callbacks() :: [{otel_instrument:callback(), otel_instrument:callback_args(), otel_instrument:t()}].
+-type callbacks() :: [{otel_instrument:callback(), otel_instrument:callback_args(),
+                       otel_instrument:t() | [otel_instrument:t()]}].
 
 %% call each callback and associate the result with the Instruments it observes
 -spec run_callbacks(callbacks(), reference(), ets:table(), ets:table(), ets:table()) -> ok.
@@ -63,10 +64,9 @@ run_callbacks(Callbacks, ReaderId, StreamTab, MetricsTab, ExemplarsTab) ->
 %% lookup Streams for Instrument and aggregate each observation
 -spec handle_instrument_observations(otel_ctx:t(), [otel_instrument:observation()], otel_instrument:t(),
                                      ets:table(), ets:table(), ets:table(), reference()) -> ok.
-handle_instrument_observations(Ctx, Results, #instrument{meter={_, Meter},
-                                                         name=Name},
+handle_instrument_observations(Ctx, Results, #instrument{id=InstrumentId},
                                StreamTab, MetricsTab, ExemplarsTab, ReaderId) ->
-    try ets:lookup_element(StreamTab, {Meter, Name}, 2) of
+    try ets:lookup_element(StreamTab, InstrumentId, 2) of
         Streams ->
             [handle_observations(Ctx, MetricsTab, ExemplarsTab, Stream, Results)
              || #stream{reader=Id}=Stream <- Streams,
@@ -84,23 +84,33 @@ handle_instrument_observations(Ctx, Results, #instrument{meter={_, Meter},
                                       ets:table(), ets:table(), ets:table(), reference()) -> ok.
 handle_instruments_observations(_Ctx, [], _Instruments, _StreamTab, _MetricsTab, _ExemplarsTab, _ReaderId) ->
     ok;
-handle_instruments_observations(Ctx, [{InstrumentName, Results} | Rest], Instruments,
+handle_instruments_observations(Ctx, [{InstrumentTarget, Results} | Rest], Instruments,
                                 StreamTab, MetricsTab, ExemplarsTab, ReaderId) ->
-    case lists:keyfind(InstrumentName, #instrument.name, Instruments) of
+    case resolve_instrument_target(InstrumentTarget, Instruments) of
         false ->
-            ?LOG_DEBUG("Unknown Instrument ~p used in metric callback", [InstrumentName]);
+            ?LOG_DEBUG("Unknown Instrument target ~p used in metric callback", [InstrumentTarget]);
         Instrument ->
             handle_instrument_observations(Ctx, Results, Instrument, StreamTab, MetricsTab, ExemplarsTab, ReaderId)
     end,
     handle_instruments_observations(Ctx, Rest, Instruments, StreamTab, MetricsTab, ExemplarsTab, ReaderId);
 handle_instruments_observations(Ctx, [Result | Rest], Instruments, StreamTab, MetricsTab, ExemplarsTab, ReaderId) ->
     ?LOG_DEBUG("Each multi-instrument callback result must be a tuple of "
-               "type {atom(), [{number(), map()}]} but got ~p", [Result]),
+               "type {instrument_or_alias(), [{number(), map()}]} but got ~p", [Result]),
     handle_instruments_observations(Ctx, Rest, Instruments, StreamTab, MetricsTab, ExemplarsTab, ReaderId);
 handle_instruments_observations(_Ctx, Results, _Instruments, _StreamTab, _MetricsTab, _ExemplarsTab, _ReaderId) ->
     ?LOG_DEBUG("Multi-instrument callback result must be a list of type "
-               "[{atom(), [{number(), map()}]}] but got ~p", [Results]),
+               "[{instrument_or_alias(), [{number(), map()}]}] but got ~p", [Results]),
     ok.
+
+resolve_instrument_target(#instrument{id=Id}, Instruments) ->
+    lists:keyfind(Id, #instrument.id, Instruments);
+resolve_instrument_target(Alias, Instruments) when is_atom(Alias) ->
+    case otel_instrument:lookup_alias(Alias) of
+        {ok, Instrument} -> resolve_instrument_target(Instrument, Instruments);
+        error -> false
+    end;
+resolve_instrument_target(_, _) ->
+    false.
 
 
 %% update aggregation for each observation
@@ -116,5 +126,5 @@ handle_observations(Ctx, MetricsTab, ExemplarsTab, Stream, [Result | Rest]) ->
     handle_observations(Ctx, MetricsTab, ExemplarsTab, Stream, Rest);
 handle_observations(_Ctx, _MetricsTab, _ExemplarsTab, _Stream, Result) ->
     ?LOG_DEBUG("Metric callback return must be a list of type [{number(), map()}] or "
-               "[{atom(), [{number(), map()}]}] but got", [Result]),
+               "[{instrument_or_alias(), [{number(), map()}]}] but got", [Result]),
     ok.

@@ -1,5 +1,6 @@
 -record(view,
-        {name                    :: otel_instrument:name(),
+        {name                    :: otel_instrument:name() | undefined,
+         instrument_name         :: otel_instrument:name() | undefined,
          instrument_matchspec    :: ets:compiled_match_spec(),
          description             :: unicode:unicode_binary() | undefined,
          attribute_keys          :: [opentelemetry:attribute_key()] | undefined,
@@ -7,8 +8,11 @@
          aggregation_options=#{} :: map()}).
 
 -record(stream,
-        {%% name of the view or instrument if the view has no name
-         name :: atom(),
+        {%% Internal aggregation identity. The exported name is not unique.
+         id :: reference(),
+
+         %% name of the view or instrument if the view has no name
+         name :: otel_instrument:name(),
          scope :: opentelemetry:instrumentation_scope(),
          instrument :: otel_instrument:t(),
          reader :: reference() | undefined,

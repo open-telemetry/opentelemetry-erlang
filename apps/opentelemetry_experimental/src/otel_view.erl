@@ -27,7 +27,7 @@
 -include("otel_metrics.hrl").
 -include("otel_view.hrl").
 
--type name() :: atom().
+-type name() :: otel_instrument:name().
 
 -type criteria() :: #{instrument_name => otel_instrument:name(),
                       instrument_kind => otel_instrument:kind(),
@@ -74,11 +74,10 @@ new(Name, Criteria, Config) ->
 %% no name means Instrument name is used
 %% must reject wildcard Criteria  in this case
 do_new(Criteria, Config) ->
-    CriteriaInstrumentName = view_name_from_criteria(Criteria),
+    CriteriaInstrumentName = instrument_name_from_criteria(Criteria),
     Matchspec = criteria_to_instrument_matchspec(Criteria),
-    %% no name given so use the name of the instrument in the selection
-    %% if no instrument name is given then it'll stay `undefined'
-    #view{name=CriteriaInstrumentName,
+    #view{name=undefined,
+          instrument_name=CriteriaInstrumentName,
           instrument_matchspec=Matchspec,
           description=maps:get(description, Config, undefined),
           attribute_keys=maps:get(attribute_keys, Config, undefined),
@@ -96,16 +95,21 @@ match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
     Scope = otel_meter:scope(Meter),
     ExemplarReservoir= otel_metric_exemplar:reservoir(Kind, ExemplarsEnabled, ExemplarFilter),
     case lists:filtermap(fun(View=#view{name=ViewName,
+                                        instrument_name=ViewInstrumentName,
                                         description=ViewDescription,
                                         attribute_keys=AttributeKeys,
                                         aggregation_options=AggregationOptions,
                                         instrument_matchspec=Matchspec}) ->
-                                 case ets:match_spec_run([Instrument], Matchspec) of
-                                     [] ->
+                                 case instrument_matches(Instrument,
+                                                         InstrumentName,
+                                                         ViewInstrumentName,
+                                                         Matchspec) of
+                                     false ->
                                          false;
-                                     _ ->
+                                     true ->
                                          AggregationOptions1 = aggregation_options(AggregationOptions, AdvisoryParams),
-                                         {true, {View, #stream{name=value_or(ViewName,
+                                         {true, {View, #stream{id=make_ref(),
+                                                               name=value_or(ViewName,
                                                                              InstrumentName),
                                                                scope=Scope,
                                                                instrument=Instrument,
@@ -121,7 +125,8 @@ match_instrument_to_views(Instrument=#instrument{name=InstrumentName,
                          end, Views) of
         [] ->
             AggregationOptions1 = aggregation_options(#{}, AdvisoryParams),
-            [{undefined, #stream{name=InstrumentName,
+            [{undefined, #stream{id=make_ref(),
+                                 name=InstrumentName,
                                  scope=Scope,
                                  instrument=Instrument,
                                  temporality=Temporality,
@@ -151,10 +156,8 @@ value_or(Value, _Other) ->
 -spec criteria_to_instrument_matchspec(map() | undefined) -> ets:comp_match_spec().
 criteria_to_instrument_matchspec(Criteria) when is_map(Criteria) ->
     Instrument =
-        maps:fold(fun(instrument_name, '*', InstrumentAcc) ->
+        maps:fold(fun(instrument_name, _InstrumentName, InstrumentAcc) ->
                           InstrumentAcc;
-                     (instrument_name, InstrumentName, InstrumentAcc) ->
-                          InstrumentAcc#instrument{name=InstrumentName};
                      (instrument_kind, Kind, InstrumentAcc) ->
                           InstrumentAcc#instrument{kind=Kind};
                      (instrument_unit, Unit, InstrumentAcc) ->
@@ -193,10 +196,20 @@ update_meter_version(MeterVersion, {_, Meter=#meter{instrumentation_scope=Scope}
 update_meter_schema_url(SchemaUrl, {_, Meter=#meter{instrumentation_scope=Scope}}) ->
     {'_', Meter#meter{instrumentation_scope=Scope#instrumentation_scope{schema_url=SchemaUrl}}}.
 
-view_name_from_criteria(Criteria) when is_map(Criteria) ->
+instrument_name_from_criteria(Criteria) when is_map(Criteria) ->
     case maps:get(instrument_name, Criteria, undefined) of
         '*' -> undefined;
         Name -> Name
     end;
-view_name_from_criteria(_) ->
+instrument_name_from_criteria(_) ->
     undefined.
+
+instrument_matches(Instrument, InstrumentName, ViewInstrumentName, Matchspec) ->
+    instrument_name_matches(InstrumentName, ViewInstrumentName)
+        andalso ets:match_spec_run([Instrument], Matchspec) =/= [].
+
+instrument_name_matches(_InstrumentName, undefined) ->
+    true;
+instrument_name_matches(InstrumentName, ViewInstrumentName) ->
+    otel_instrument:normalized_name(InstrumentName)
+        =:= otel_instrument:normalized_name(ViewInstrumentName).
