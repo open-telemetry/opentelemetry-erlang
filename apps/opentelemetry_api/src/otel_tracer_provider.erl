@@ -62,11 +62,11 @@ get_tracer(ServerRef, Name, Vsn, SchemaUrl) ->
             {otel_tracer_noop, []}
     end.
 
--spec resource() -> term() | undefined.
+-spec resource() -> dynamic() | undefined.
 resource() ->
     resource(?GLOBAL_TRACER_PROVIDER_NAME).
 
--spec resource(atom() | pid() | string()) -> term() | undefined.
+-spec resource(atom() | pid() | string()) -> dynamic() | undefined.
 resource(ServerRef) ->
     try
         Server = maybe_to_reg_name(ServerRef),

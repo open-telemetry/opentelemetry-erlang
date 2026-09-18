@@ -11,12 +11,6 @@ defmodule OpenTelemetry.MixProject do
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: [
-        {:eqwalizer_support,
-         git: "https://github.com/whatsapp/eqwalizer.git",
-         branch: "main",
-         sparse: "eqwalizer_support",
-         only: [:dev],
-         runtime: false},
         {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
         {:covertool, ">= 0.0.0", only: :test},
         {:ex_doc, "~> 0.37", only: :dev, runtime: false}
@@ -27,7 +21,6 @@ defmodule OpenTelemetry.MixProject do
       dialyzer: [
         ignore_warnings: "dialyzer.ignore-warnings",
         remove_defaults: [:unknown],
-        plt_add_apps: [:eqwalizer_support],
         list_unused_filters: true
       ],
       source_url: "https://github.com/open-telemetry/opentelemetry-erlang",

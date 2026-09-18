@@ -2,6 +2,9 @@
 
 -compile(export_all).
 
+%% The tracestate test verifies that invalid key/value types are ignored.
+-eqwalizer({nowarn_function, tracestate/1}).
+
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 -include("otel_tracer.hrl").
@@ -42,8 +45,8 @@ tracestate(_Config) ->
     Tracestate = otel_tracestate:new(),
     Tracestate1 = otel_tracestate:add("a", "b", Tracestate),
     Tracestate2 = otel_tracestate:add("c", "d", Tracestate1),
-    Tracestate3 = otel_tracestate:add(eqwalizer:dynamic_cast(e), "f", Tracestate2),
-    Tracestate4 = otel_tracestate:add("e", eqwalizer:dynamic_cast(f), Tracestate3),
+    Tracestate3 = otel_tracestate:add(e, "f", Tracestate2),
+    Tracestate4 = otel_tracestate:add("e", f, Tracestate3),
 
     ?assertEqual("d", otel_tracestate:get("c", Tracestate4)),
 

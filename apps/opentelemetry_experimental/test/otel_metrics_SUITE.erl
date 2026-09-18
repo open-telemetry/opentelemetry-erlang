@@ -2,6 +2,11 @@
 
 -compile(export_all).
 
+%% These tests deliberately exercise malformed callback/config values and a failed lookup.
+-eqwalizer({nowarn_function, bad_observable_return/1}).
+-eqwalizer({nowarn_function, advisory_params/1}).
+-eqwalizer({nowarn_function, fail_name_instrument_lookup/1}).
+
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 
@@ -336,10 +341,10 @@ end_per_testcase(_, _Config) ->
     ok.
 
 default_resource(_Config) ->
-    Resource = eqwalizer:dynamic_cast(otel_meter_provider:resource()),
+    Resource = otel_meter_provider:resource(),
 
     ?assertMatch(#{'process.executable.name' := <<"erl">>},
-                 otel_attributes:map(eqwalizer:dynamic_cast(otel_resource:attributes(Resource)))),
+                 otel_attributes:map(otel_resource:attributes(Resource))),
 
     ok.
 
@@ -1029,7 +1034,9 @@ kill_server(_Config) ->
     ?assertEqual(ok, otel_counter:add(Ctx, Meter, CounterName, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
 
     CurrentPid = erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME),
-    ProviderPid = eqwalizer:dynamic_cast(erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME)),
+    ProviderPid = case erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME) of
+                      Pid when is_pid(Pid) -> Pid
+                  end,
     erlang:exit(ProviderPid, kill),
 
     %% wait until process has died and born again
@@ -1359,19 +1366,19 @@ bad_observable_return(_Config) ->
     ?assert(otel_meter_server:add_view(#{instrument_name => CounterName2}, #{})),
 
     _Counter = otel_meter:create_observable_counter(Meter, CounterName,
-                                                    eqwalizer:dynamic_cast(fun(_Args) ->
-                                                                                     not_a_list
-                                                                             end),
+                                                    fun(_Args) ->
+                                                            not_a_list
+                                                    end,
                                                     [],
                                                     #{description => CounterDesc,
                                                       unit => CounterUnit}),
 
     _Counter2 = otel_meter:create_observable_counter(Meter, CounterName2,
-                                                     eqwalizer:dynamic_cast(fun(_Args) ->
-                                                                                      [{not_a_number, #{}},
-                                                                                       {7, not_a_map},
-                                                                                       {8, #{}}]
-                                                                              end),
+                                                     fun(_Args) ->
+                                                             [{not_a_number, #{}},
+                                                              {7, not_a_map},
+                                                              {8, #{}}]
+                                                     end,
                                                      [],
                                                      #{description => CounterDesc2,
                                                        unit => CounterUnit}),
@@ -1399,13 +1406,13 @@ advisory_params(_Config) ->
 
     % advisory parameters different from explicit_bucket_boundaries are not allowed
     Counter1 = otel_counter:create(Meter, invalid_2,
-                                   eqwalizer:dynamic_cast(#{advisory_params => #{invalid => invalid}})),
+                                   #{advisory_params => #{invalid => invalid}}),
     ?assertEqual(Counter1#instrument.advisory_params, #{}),
 
     % explicit_bucket_boundaries should be an ordered list of numbers
     Histo1 = otel_histogram:create(
                Meter, invalid_3,
-               eqwalizer:dynamic_cast(#{advisory_params => #{explicit_bucket_boundaries => invalid}})),
+               #{advisory_params => #{explicit_bucket_boundaries => invalid}}),
     ?assertEqual(Histo1#instrument.advisory_params, #{}),
 
     Histo2 = otel_histogram:create(Meter, invalid_4,
@@ -2358,7 +2365,7 @@ fail_name_instrument_lookup(_Config) ->
                    opentelemetry:instrumentation_scope(other_name, undefined, undefined)),
     OtherCounter = otel_meter:lookup_instrument(OtherMeter, CounterName),
     ?assertEqual(false,
-                 ?counter_add(eqwalizer:dynamic_cast(OtherCounter), 10.3,
+                 ?counter_add(OtherCounter, 10.3,
                               #{<<"c">> => <<"b">>})),
     ?assertEqual(undefined, OtherCounter),
 

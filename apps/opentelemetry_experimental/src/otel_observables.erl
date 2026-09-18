@@ -80,7 +80,7 @@ handle_instrument_observations(Ctx, Results, #instrument{meter={_, Meter},
 
 %% handle results for a multi-instrument callback
 -spec handle_instruments_observations(otel_ctx:t(),
-                                      eqwalizer:dynamic(), [otel_instrument:t()],
+                                      dynamic(), [otel_instrument:t()],
                                       ets:table(), ets:table(), ets:table(), reference()) -> ok.
 handle_instruments_observations(_Ctx, [], _Instruments, _StreamTab, _MetricsTab, _ExemplarsTab, _ReaderId) ->
     ok;

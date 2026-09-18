@@ -67,15 +67,18 @@ shutdown(_) ->
 %%
 
 
-zipkin_span(Span, LocalEndpoint) ->
-    StartTime = eqwalizer:dynamic_cast(Span#span.start_time),
-    EndTime = eqwalizer:dynamic_cast(Span#span.end_time),
+zipkin_span(#span{start_time=StartTime,
+                  end_time=EndTime,
+                  trace_id=TraceId,
+                  span_id=SpanId} = Span, LocalEndpoint)
+  when is_integer(StartTime), is_integer(EndTime),
+       is_integer(TraceId), is_integer(SpanId) ->
     Timestamp = opentelemetry:convert_timestamp(StartTime, microsecond),
     Duration = erlang:convert_time_unit(EndTime - StartTime, native, microsecond),
     #zipkin_span{
-       trace_id = <<(eqwalizer:dynamic_cast(Span#span.trace_id)):128>>,
+       trace_id = <<TraceId:128>>,
        name=to_binary_string(Span#span.name),
-       id = <<(eqwalizer:dynamic_cast(Span#span.span_id)):64>>,
+       id = <<SpanId:64>>,
        timestamp=Timestamp,
        duration=Duration,
        %% debug=false, %% TODO: get from attributes?

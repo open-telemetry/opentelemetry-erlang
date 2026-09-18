@@ -1,6 +1,10 @@
 -module(opentelemetry_exporter_SUITE).
 
 -compile(export_all).
+
+%% These serialization tests deliberately include non-standard attribute values.
+-eqwalizer({nowarn_function, span_round_trip/1}).
+-eqwalizer({nowarn_function, verify_export/1}).
 -compile(nowarn_export_all).
 
 -include_lib("stdlib/include/assert.hrl").
@@ -315,10 +319,10 @@ span_round_trip(_Config) ->
                                         #event{system_time_native=opentelemetry:timestamp(),
                                                name = event_2,
                                                attributes = otel_attributes:new([{<<"attr-3">>, <<"value-3">>}], 128, 128)}], Events),
-              attributes = otel_attributes:new(eqwalizer:dynamic_cast([{<<"attr-2">>, <<"value-2">>},
+              attributes = otel_attributes:new([{<<"attr-2">>, <<"value-2">>},
                                                                        {attr_3, true},
                                                                        {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
-                                                                       {<<"list-key-1">>, [3.14, 9.345]}]),
+                                                                       {<<"list-key-1">>, [3.14, 9.345]}],
                                                128, 128),
               status = #status{code=?OTEL_STATUS_OK,
                                message = <<"">>},
@@ -517,14 +521,14 @@ verify_export(Config) ->
                                        message = <<"hello I'm an error">>},
                       instrumentation_scope = #instrumentation_scope{name = <<"tracer-1">>,
                                                                      version = <<"0.0.1">>},
-                      attributes = otel_attributes:new(eqwalizer:dynamic_cast([
+                      attributes = otel_attributes:new([
                                                         {atom_attr, atom_value},
                                                         {<<"attr-2">>, <<"value-2">>},
                                                         {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
                                                         {<<"proplist-key-1">>, [{proplistkey1, 456}, {<<"proplist-key-2">>, 9.345}]},
                                                         {<<"list-key-1">>, [listkey1, 123, <<"list-value-3">>]},
                                                         {<<"tuple-key-1">>, {a, 123, [456, {1, 2}]}}
-                                                       ]), 128, 128)},
+                                                       ], 128, 128)},
     true = ets:insert(Tid, ChildSpan),
 
     ?assertMatch([#{spans := [_, _]}],

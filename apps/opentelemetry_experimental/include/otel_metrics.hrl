@@ -93,7 +93,7 @@
 -record(histogram_datapoint,
         {
          attributes :: opentelemetry:attributes_map(),
-         start_time :: integer() | {const, eqwalizer:dynamic()}  | undefined,
+         start_time :: integer() | {const, dynamic()}  | undefined,
          time :: integer(),
          count :: number(),
          sum :: float() | integer() | undefined,
