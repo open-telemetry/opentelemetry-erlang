@@ -12,15 +12,27 @@ For an Erlang release in `sys.config`:
 
 ``` erlang
 {opentelemetry,
-  [{processors, 
-    [{otel_batch_processor,
-        #{exporter => {opentelemetry_zipkin, #{address => "http://localhost:9411/api/v2/spans",
-                                               local_endpoint => #{service_name => <<"ServiceName">>}}}}}]}]}
+ [{tracer_provider,
+   #{processors =>
+         [{otel_batch_processor,
+           #{exporter =>
+                 {opentelemetry_zipkin,
+                  #{address => "http://localhost:9411/api/v2/spans",
+                    local_endpoint =>
+                        #{service_name => <<"ServiceName">>}}}}}]}}]}
 ```
 
 An Elixir release uses `releases.exs`:
 
 ``` elixir
 config :opentelemetry,
-    :processors, otel_batch_processor: %{exporter: {:opentelemetry_zipkin, %{address: 'http://localhost:9411/api/v2/spans', local_endpoint: %{service_name: "ServiceName"}}}}
+  tracer_provider: %{
+    processors: [
+      {:otel_batch_processor,
+       %{exporter:
+           {:opentelemetry_zipkin,
+            %{address: ~c"http://localhost:9411/api/v2/spans",
+              local_endpoint: %{service_name: "ServiceName"}}}}}
+    ]
+  }
 ```

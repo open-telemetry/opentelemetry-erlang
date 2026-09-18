@@ -54,17 +54,27 @@
          deny_list :: [atom() | {atom(), string()}]
         }).
 
--spec start_link(atom(), atom(), atom(), otel_resource:t(), otel_configuration:t()) -> {ok, pid()} | ignore | {error, term()}.
+-spec start_link(atom(), atom(), atom(), otel_resource:t(),
+                 otel_configuration_sdk:configuration()) ->
+          {ok, pid()} | ignore | {error, term()}.
 start_link(Name, RegName, SpanProcessorSupRegName, Resource, Config) ->
-    gen_server:start_link({local, RegName}, ?MODULE, [Name, SpanProcessorSupRegName, Resource, Config], []).
+    gen_server:start_link({local, RegName}, ?MODULE,
+                          {Name, SpanProcessorSupRegName, Resource, Config}, []).
 
-init([Name, SpanProcessorSup, Resource, #{id_generator := IdGeneratorModule,
-                                          sampler := SamplerSpec,
-                                          processors := Processors,
-                                          deny_list := DenyList}]) ->
+-spec init({atom(), atom(), otel_resource:t(),
+            otel_configuration_sdk:configuration()}) ->
+          {ok, #state{}}.
+init({Name, SpanProcessorSup, Resource, Configuration}) ->
+    TracerProvider = eqwalizer:dynamic_cast(
+                       otel_configuration_sdk:tracer_provider(Configuration)),
+    Erlang = otel_configuration_sdk:erlang_distribution(Configuration),
+    IdGeneratorModule = otel_configuration_sdk:id_generator(TracerProvider),
+    SamplerSpec = otel_configuration_sdk:sampler(TracerProvider),
+    Processors = otel_configuration_sdk:span_processors(TracerProvider),
+    DenyList = otel_configuration_sdk:value(deny_list, Erlang, []),
     Sampler = otel_sampler:new(SamplerSpec),
 
-    Processors1 = init_processors(SpanProcessorSup, Processors),
+    Processors1 = init_processors(Name, SpanProcessorSup, Resource, Processors),
 
     Tracer = #tracer{module=otel_tracer_default,
                      sampler=Sampler,
@@ -130,32 +140,41 @@ update_force_flush_error(Reason, {error, List}) ->
     {error, [Reason | List]}.
 
 %% TODO: remove after a period of deprecation for processor `set_exporter' functions
-%% This is a hack that makes it so there is a known name for the processor if there
-%% is only one, like was once guaranteed. This allows functions like `set_exporter'
-%% to work. But if there is more than one processor defined or it isn't one of the
-%% builtin processors we will not do this hack of adding a name to the config.
-init_processors(SpanProcessorSup, [{P, Config}]) when P =:= otel_batch_processor ;
-                                                      P =:= otel_simple_processor ->
-    case init_processor(SpanProcessorSup, P, maps:merge(#{name => global}, Config)) of
+%% Give a single built-in processor on the global provider its historical name so
+%% functions such as `set_exporter' continue to work. Other providers and multiple
+%% processors receive unique internal names.
+init_processors(Name, SpanProcessorSup, Resource, [Component]) ->
+    {P, Config} = otel_configuration_sdk:span_processor_component(Component),
+    init_single_processor(Name, SpanProcessorSup, Resource, P, Config);
+init_processors(_Name, SpanProcessorSup, Resource, Processors) ->
+    init_processors_(SpanProcessorSup, Resource, Processors).
+
+init_single_processor(?GLOBAL_TRACER_PROVIDER_NAME, SpanProcessorSup, Resource, P, Config)
+  when P =:= otel_batch_processor; P =:= otel_simple_processor ->
+    case init_processor(SpanProcessorSup, Resource, P, Config#{name => global}) of
         {true, {_, _}=Processor} ->
             [Processor];
         _ ->
             []
     end;
-init_processors(SpanProcessorSup, Processors) ->
-    init_processors_(SpanProcessorSup, Processors).
-
-init_processors_(_SpanProcessorSup, []) ->
-    [];
-init_processors_(SpanProcessorSup, [{P, Config} | Rest]) ->
-    case init_processor(SpanProcessorSup, P, Config) of
-        {true, {_, _}=Processor} ->
-            [Processor | init_processors_(SpanProcessorSup, Rest)];
-        _ ->
-            init_processors_(SpanProcessorSup, Rest)
+init_single_processor(_Name, SpanProcessorSup, Resource, P, Config) ->
+    case init_processor(SpanProcessorSup, Resource, P, Config) of
+        {true, {_, _}=Processor} -> [Processor];
+        _ -> []
     end.
 
-init_processor(SpanProcessorSup, ProcessorModule, Config) ->
+init_processors_(_SpanProcessorSup, _Resource, []) ->
+    [];
+init_processors_(SpanProcessorSup, Resource, [Component | Rest]) ->
+    {P, Config} = otel_configuration_sdk:span_processor_component(Component),
+    case init_processor(SpanProcessorSup, Resource, P, Config) of
+        {true, {_, _}=Processor} ->
+            [Processor | init_processors_(SpanProcessorSup, Resource, Rest)];
+        _ ->
+            init_processors_(SpanProcessorSup, Resource, Rest)
+    end.
+
+init_processor(SpanProcessorSup, Resource, ProcessorModule, Config) ->
     %% start_link is an optional callback for processors
     case lists:member({start_link, 1}, ProcessorModule:module_info(exports)) of
         true ->
@@ -164,8 +183,9 @@ init_processor(SpanProcessorSup, ProcessorModule, Config) ->
                                         %% use a unique reference to distinguish multiple processors of the same type while
                                         %% still having a single name, instead of a possibly changing pid, to
                                         %% communicate with the processor
-                                        maps:merge(#{name => erlang:ref_to_list(erlang:make_ref())},
-                                                   Config)])
+                                        (maps:merge(
+                                           #{name => erlang:ref_to_list(erlang:make_ref())},
+                                           Config))#{resource => Resource}])
             of
                 {ok, _Pid, Config1} ->
                     {true, {ProcessorModule, Config1}};

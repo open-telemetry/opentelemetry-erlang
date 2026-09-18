@@ -18,7 +18,8 @@ all() ->
      {group, grpc}, {group, grpc_gzip}].
 
 groups() ->
-    [{functional, [], [configuration, span_round_trip, span_flags, ets_instrumentation_info, to_any_value_boolean, to_attributes]},
+    [{functional, [], [configuration, span_round_trip, span_flags,
+                       ets_instrumentation_info, to_any_value_boolean, to_attributes]},
      {grpc, [], [verify_export]},
      {grpc_gzip, [], [verify_export]},
      {http_protobuf, [], [verify_export, user_agent]},

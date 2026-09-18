@@ -52,7 +52,10 @@ defaults(_Config) ->
            max_queue_size => 2048,
            exporter => {opentelemetry_exporter, #{}}}},
     Expected =
-        #{sdk_disabled => false,
+        #{configuration_source => legacy,
+          sdk_disabled => false,
+          traces_enabled => true,
+          metrics_enabled => true,
           log_level => info,
           register_loaded_applications => undefined,
           create_application_tracers => true,
@@ -60,6 +63,7 @@ defaults(_Config) ->
           deny_list => [],
           resource_detectors => [otel_resource_env_var, otel_resource_app_env],
           resource_detector_timeout => 5000,
+          resource => undefined,
           bsp_scheduled_delay_ms => undefined,
           bsp_exporting_timeout_ms => undefined,
           bsp_max_queue_size => undefined,
@@ -144,7 +148,7 @@ os_environment_precedence(_Config) ->
                    text_map_propagators := [b3],
                    sampler := always_off,
                    processors :=
-                       [{otel_batch_processor, #{scheduled_delay_ms := 42}}],
+                       [{otel_batch_processor, #{scheduled_delay_ms := 999}}],
                    attribute_count_limit := 17,
                    create_application_tracers := false},
                  otel_configuration:merge_with_os(AppEnv)).
@@ -187,9 +191,16 @@ repeated_resolution(_Config) ->
     ?assertEqual(First, Second).
 
 application_startup(_Config) ->
-    %% Application tracers are cached in persistent_term and intentionally survive
-    %% an SDK restart, so disable their automatic creation to keep this test isolated.
-    application:set_env(opentelemetry, create_application_tracers, false),
+    application:set_env(
+      opentelemetry,
+      propagator,
+      #{composite => [trace_context, baggage]}),
+    application:set_env(
+      opentelemetry,
+      tracer_provider,
+      #{processors =>
+            [{otel_batch_processor, #{exporter => {otlp_http, #{}}}}],
+        sampler => {parent_based, #{root => always_on}}}),
     {ok, _} = application:ensure_all_started(opentelemetry),
 
     ?assert(is_pid(whereis(otel_tracer_provider_global))),
@@ -213,7 +224,9 @@ restore_os_env(Name, Value) ->
     os:putenv(Name, Value).
 
 environment_names() ->
-    ["OTEL_SDK_DISABLED",
+    ["OTEL_CONFIG_FILE",
+     "OTEL_EXPERIMENTAL_CONFIG_FILE",
+     "OTEL_SDK_DISABLED",
      "OTEL_LOG_LEVEL",
      "OTEL_REGISTER_LOADED_APPLICATIONS",
      "OTEL_CREATE_APPLICATION_TRACERS",

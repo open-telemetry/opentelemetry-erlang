@@ -43,7 +43,8 @@ enforces_max_entry_length(_Config) ->
     ok.
 
 enforces_max_entry_length_is_bytes_not_graphemes(_Config) ->
-    Multibyte = unicode:characters_to_binary(lists:duplicate(2100, $\x{e9})), %% 2100 graphemes, 4200 bytes
+    Multibyte = eqwalizer:dynamic_cast(
+                  unicode:characters_to_binary(lists:duplicate(2100, $\x{e9}))), %% 2100 graphemes, 4200 bytes
     Header = <<"ok=1,u=", Multibyte/binary>>,
     Baggage = extract(Header),
     ?assertEqual(1, maps:size(Baggage)),

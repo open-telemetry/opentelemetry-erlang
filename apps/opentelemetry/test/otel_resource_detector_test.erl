@@ -5,5 +5,7 @@
 get_resource(sleep) ->
     timer:sleep(5000),
     otel_resource:create([{<<"some-test-resource">>, <<"some-test-value">>}]);
+get_resource({attributes, Attributes}) ->
+    otel_resource:create(Attributes);
 get_resource(error) ->
     erlang:error(some_failure).

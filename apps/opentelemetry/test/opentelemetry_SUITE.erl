@@ -66,42 +66,47 @@ end_per_group(_, _Config) ->
     ok.
 
 init_per_testcase(disabled_sdk, Config) ->
-    application:set_env(opentelemetry, sdk_disabled, true),
+    application:set_env(opentelemetry, disabled, true),
+    set_processors([]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(no_exporter, Config) ->
-    application:set_env(opentelemetry, processors,
-                        [{otel_batch_processor, #{scheduled_delay_ms => 1}}]),
+    set_processors([{batch, #{schedule_delay => 1,
+                              exporter => {otel_exporter_pid, self()}}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(disable_auto_creation, Config) ->
     clear_application_tracers(),
-    application:set_env(opentelemetry, create_application_tracers, false),
+    set_distribution(#{create_application_tracers => false}),
+    set_processors([]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(old_disable_auto_creation, Config) ->
     clear_application_tracers(),
-    application:set_env(opentelemetry, register_loaded_applications, false),
+    set_distribution(#{create_application_tracers => false}),
+    set_processors([]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(application_tracers, Config) ->
     clear_application_tracers(),
-    %% if both are set then the new one, `create_application_tracers', is used
-    application:set_env(opentelemetry, register_loaded_applications, false),
-    application:set_env(opentelemetry, create_application_tracers, true),
+    set_distribution(#{create_application_tracers => true}),
+    set_processors([]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(logger_metadata, Config) ->
+    set_processors([]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(propagator_configuration, Config) ->
     os:unsetenv("OTEL_PROPAGATORS"),
-    application:set_env(opentelemetry, text_map_propagators, [b3multi, baggage]),
+    set_propagators([b3multi, baggage]),
+    set_processors([]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(propagator_configuration_with_os_env, Config) ->
     os:putenv("OTEL_PROPAGATORS", "tracecontext"),
-    application:set_env(opentelemetry, text_map_propagators, [b3multi, baggage]),
+    set_propagators([b3multi, baggage]),
+    set_processors([]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(force_flush, Config) ->
@@ -113,18 +118,18 @@ init_per_testcase(shutdown_force_flush, Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config1;
 init_per_testcase(shutdown_sdk_noop_spans, Config) ->
+    set_processors([]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(dropped_attributes, Config) ->
     Config1 = set_batch_tab_processor(Config),
-
-    application:set_env(opentelemetry, attribute_value_length_limit, 2),
+    set_tracer_limits(#{attribute_value_length_limit => 2}),
     {ok, _} = application:ensure_all_started(opentelemetry),
 
     Config1;
 init_per_testcase(too_many_attributes, Config) ->
     Config1 = set_batch_tab_processor(Config),
-    application:set_env(opentelemetry, attribute_count_limit, 2),
+    set_tracer_limits(#{attribute_count_limit => 2}),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config1;
 init_per_testcase(tracer_instrumentation_scope, Config) ->
@@ -132,28 +137,28 @@ init_per_testcase(tracer_instrumentation_scope, Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config1;
 init_per_testcase(multiple_tracer_providers, Config) ->
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{exporter => {otel_exporter_pid, self()},
-                                                                             scheduled_delay_ms => 1}}]),
+    set_processors([{batch, #{exporter => {otel_exporter_pid, self()},
+                              schedule_delay => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(multiple_processors, Config) ->
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1,
-                                                                            exporter => {otel_exporter_pid, self()}}},
-                                                    {otel_batch_processor, #{name => second,
-                                                                             scheduled_delay_ms => 1,
-                                                                             exporter => {otel_exporter_pid, self()}}}]),
+    set_processors([{batch, #{schedule_delay => 1,
+                              exporter => {otel_exporter_pid, self()}}},
+                    {batch, #{schedule_delay => 1,
+                              exporter => {otel_exporter_pid, self()}}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(_, Config) ->
     Processor = ?config(processor, Config),
     Tid = ets:new(exported_spans, [public, bag]),
-    application:set_env(opentelemetry, processors, [{Processor, #{scheduled_delay_ms => 1,
-                                                                  exporter => {otel_exporter_tab, Tid}}}]),
+    set_processors([{processor_name(Processor),
+                     #{schedule_delay => 1,
+                       exporter => {otel_exporter_tab, Tid}}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     [{tid, Tid} | Config].
 
 end_per_testcase(disabled_sdk, _Config) ->
-    application:set_env(opentelemetry, sdk_disabled, false),
+    application:unset_env(opentelemetry, disabled),
     _ = application:stop(opentelemetry),
     _ = application:unload(opentelemetry),
     ok;
@@ -168,10 +173,11 @@ end_per_testcase(old_disable_auto_creation, _Config) ->
 end_per_testcase(propagator_configuration_with_os_env, _Config) ->
     os:unsetenv("OTEL_PROPAGATORS"),
     _ = application:stop(opentelemetry),
+    clear_sdk_env(),
     ok;
 end_per_testcase(_, _Config) ->
-    application:unset_env(opentelemetry, attribute_value_length_limit),
     _ = application:stop(opentelemetry),
+    clear_sdk_env(),
     ok.
 
 set_batch_tab_processor(Config) ->
@@ -179,10 +185,48 @@ set_batch_tab_processor(Config) ->
 
 set_batch_tab_processor(DelayMs, Config) ->
     Tid = ets:new(exported_spans, [public, bag]),
-    application:set_env(opentelemetry, processors,
-                        [{otel_batch_processor, #{exporter => {otel_exporter_tab, Tid},
-                                                  scheduled_delay_ms => DelayMs}}]),
+    set_processors([{batch, #{exporter => {otel_exporter_tab, Tid},
+                              schedule_delay => DelayMs}}]),
     [{tid, Tid} | Config].
+
+set_processors(Processors) ->
+    update_tracer_provider(
+      fun(TracerProvider) ->
+              TracerProvider#{processors =>
+                                  [{processor_module(Module), Options}
+                                   || {Module, Options} <- Processors]}
+      end).
+
+processor_module(batch) -> otel_batch_processor;
+processor_module(simple) -> otel_simple_processor;
+processor_module(Module) -> Module.
+
+processor_name(otel_batch_processor) -> batch;
+processor_name(otel_simple_processor) -> simple.
+
+set_tracer_limits(Limits) ->
+    update_tracer_provider(
+      fun(TracerProvider) -> TracerProvider#{limits => Limits} end).
+
+update_tracer_provider(Fun) ->
+    TracerProvider = application:get_env(opentelemetry, tracer_provider, #{}),
+    application:set_env(opentelemetry, tracer_provider, Fun(TracerProvider)).
+
+set_propagators(Names) ->
+    application:set_env(
+      opentelemetry,
+      propagator,
+      #{composite => Names}).
+
+set_distribution(Erlang) ->
+    application:set_env(opentelemetry, distribution, #{erlang => Erlang}).
+
+clear_sdk_env() ->
+    [application:unset_env(opentelemetry, Key)
+     || Key <- [file_format, disabled, log_level, attribute_limits,
+                resource, propagator, tracer_provider, meter_provider,
+                logger_provider, 'instrumentation/development', distribution]],
+    ok.
 
 clear_application_tracers() ->
     persistent_term:erase({opentelemetry, otel_module_to_application_key}),
@@ -323,15 +367,18 @@ propagator_configuration(_Config) ->
 
 propagator_configuration_with_os_env(_Config) ->
     ?assertEqual({otel_propagator_text_map_composite,
-                  [otel_propagator_trace_context]}, opentelemetry:get_text_map_extractor()),
+                  [{otel_propagator_b3, b3multi}, otel_propagator_baggage]},
+                 opentelemetry:get_text_map_extractor()),
     ?assertEqual({otel_propagator_text_map_composite,
-                  [otel_propagator_trace_context]}, opentelemetry:get_text_map_injector()),
+                  [{otel_propagator_b3, b3multi}, otel_propagator_baggage]},
+                 opentelemetry:get_text_map_injector()),
 
     opentelemetry:set_text_map_extractor({otel_propagator_baggage, []}),
 
     ?assertEqual({otel_propagator_baggage, []}, opentelemetry:get_text_map_extractor()),
     ?assertEqual({otel_propagator_text_map_composite,
-                  [otel_propagator_trace_context]}, opentelemetry:get_text_map_injector()),
+                  [{otel_propagator_b3, b3multi}, otel_propagator_baggage]},
+                 opentelemetry:get_text_map_injector()),
 
     opentelemetry:set_text_map_injector({{otel_propagator_b3, b3multi}, []}),
 
@@ -542,7 +589,8 @@ update_span_data(Config) ->
 
     LinkTraceId = otel_id_generator:generate_trace_id(),
     LinkSpanId = otel_id_generator:generate_span_id(),
-    Links = opentelemetry:links([{LinkTraceId, LinkSpanId, #{}, otel_tracestate:new()}]),
+    Links = opentelemetry:links(
+              eqwalizer:dynamic_cast([{LinkTraceId, LinkSpanId, #{}, otel_tracestate:new()}])),
 
     SpanCtx1=#span_ctx{trace_id=TraceId,
                        span_id=SpanId,
@@ -657,31 +705,44 @@ multiple_processors(_Config) ->
 
 multiple_tracer_providers(_Config) ->
     Resource = otel_resource:create([{<<"a">>, <<"b">>}]),
+    TestProviderConfiguration = runtime_configuration(
+      #{tracer_provider =>
+            #{id_generator => otel_id_generator,
+              sampler => always_on,
+              processors =>
+                  [{otel_simple_processor,
+                    #{exporter =>
+                          {otel_exporter_pid,
+                           #{pid => self(), include_resource => true}}}}]},
+        distribution => #{erlang => #{deny_list => []}}}),
     ?assertMatch({ok, _}, otel_tracer_provider_sup:start(test_provider,
                                                          Resource,
-                                                         #{id_generator => otel_id_generator,
-                                                           sampler => {otel_sampler_always_on, []},
-                                                           processors => [{otel_batch_processor, #{name => test_batch,
-                                                                                                   scheduled_delay_ms => 1,
-                                                                                                   exporter => {otel_exporter_pid, self()}}}],
-                                                           deny_list => []})),
+                                                         TestProviderConfiguration)),
     ?assertEqual(Resource, otel_tracer_provider:resource(test_provider)),
 
     %% keep around a test of the deprecated API function for starting a tracer provider
-    ?assertMatch({ok, _}, opentelemetry:start_tracer_provider(deprecated_test_provider_start,
-                                                              #{id_generator => otel_id_generator,
-                                                                sampler => {otel_sampler_always_on, []},
-                                                                processors => [{otel_batch_processor, #{name => test_batch_2,
-                                                                                                        scheduled_delay_ms => 1000,
-                                                                                                        exporter => {otel_exporter_pid, self()}}}],
-                                                                deny_list => []})),
+    DeprecatedProviderConfiguration = runtime_configuration(
+      #{tracer_provider =>
+            #{id_generator => otel_id_generator,
+              sampler => always_on,
+              processors =>
+                  [{otel_batch_processor,
+                    #{schedule_delay => 1000,
+                      exporter => {otel_exporter_pid, self()}}}]},
+        distribution => #{erlang => #{deny_list => []}}}),
+    ?assertMatch({ok, _},
+                 opentelemetry:start_tracer_provider(
+                   deprecated_test_provider_start,
+                   DeprecatedProviderConfiguration)),
 
     ?assertEqual(otel_resource:create([]), otel_tracer_provider:resource(deprecated_test_provider_start)),
 
     GlobalResource = otel_tracer_provider:resource(),
     GlobalResourceAttributes = otel_attributes:map(
                                  otel_resource:attributes(GlobalResource)),
-    ?assertMatch(#{'process.executable.name' := <<"erl">>}, GlobalResourceAttributes),
+    ?assertMatch(#{'service.name' := <<"unknown_service:erl">>,
+                   'telemetry.sdk.language' := <<"erlang">>},
+                 GlobalResourceAttributes),
 
     Tracer1 = otel_tracer_provider:get_tracer(test_provider, <<"tracer-name">>, <<>>, <<>>),
 
@@ -708,6 +769,14 @@ multiple_tracer_providers(_Config) ->
     ?assertMatch(SpanCtx2, ?current_span_ctx),
 
     otel_span:end_span(SpanCtx2),
+
+    receive
+        {resource, ExportedResource} ->
+            ?assertEqual(Resource, ExportedResource)
+    after
+        1000 ->
+            ct:fail(missing_provider_resource)
+    end,
 
     receive
         {span, Span1} ->
@@ -1141,6 +1210,12 @@ pregenerate_hex_ids(_Config) ->
     ok.
 
 %%
+
+runtime_configuration(Configuration) ->
+    {ok, Model} = otel_configuration_model:from_application_env(
+                    maps:to_list(Configuration)),
+    {ok, RuntimeConfiguration} = otel_configuration_sdk:create(Model),
+    RuntimeConfiguration.
 
 assert_all_exported(Tid, SpanCtxs) ->
     [assert_exported(Tid, SpanCtx) || SpanCtx <- SpanCtxs].

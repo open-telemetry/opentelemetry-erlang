@@ -24,10 +24,14 @@
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
+-spec start_link(atom(), otel_resource:t(), otel_configuration_sdk:configuration()) ->
+          {ok, pid()} | ignore | {error, term()}.
 start_link(Name, Resource, Opts) ->
-    supervisor:start_link(?MODULE, [Name, Resource, Opts]).
+    supervisor:start_link(?MODULE, {Name, Resource, Opts}).
 
-init([Name, Resource, Opts]) ->
+-spec init({atom(), otel_resource:t(), otel_configuration_sdk:configuration()}) ->
+          {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
+init({Name, Resource, Opts}) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 1,
                  period => 5},

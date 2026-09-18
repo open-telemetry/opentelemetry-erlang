@@ -115,7 +115,8 @@
                 endpoints :: [otel_exporter_otlp:endpoint_map()]}).
 
 %% @doc Initialize the exporter based on the provided configuration.
--spec init(otel_exporter_otlp:opts()) -> {ok, #state{}}.
+-spec init(otel_exporter_otlp:opts() |
+           otel_configuration_sdk:otlp_exporter_options()) -> {ok, #state{}}.
 init(Opts) ->
     Opts1 = merge_with_environment(Opts),
     case otel_exporter_otlp:init(Opts1) of
@@ -207,6 +208,9 @@ shutdown(#state{channel_pid=Pid}) ->
 
 %%
 
+-spec merge_with_environment(otel_exporter_otlp:opts() |
+                             otel_configuration_sdk:otlp_exporter_options()) ->
+          otel_exporter_otlp:opts().
 merge_with_environment(Opts) ->
     %% exporters are initialized by calling their `init/1' function from `opentelemetry'.
     %% since this application depends on `opentelemetry' it will not be started during

@@ -21,9 +21,9 @@
 %% You can configure these timeouts:
 %%
 %% <ul>
-%% <li>`exporting_timeout_ms': how long to let the exports run before killing.</li>
+%% <li>`export_timeout': how long to let the exports run before killing.</li>
 %% <li>`check_table_size_ms': timeout to check the size of the export table.</li>
-%% <li>`scheduled_delay_ms': how often to trigger running the exporters.</li>
+%% <li>`schedule_delay': how often to trigger running the exporters.</li>
 %% </ul>
 %%
 %% The size limit of the current table where finished spans are stored can
@@ -60,6 +60,19 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("kernel/include/logger.hrl").
 -include("otel_span.hrl").
+
+-type configuration() ::
+        #{name := atom() | list(),
+          exporter => otel_configuration_sdk:span_exporter_component() | none,
+          schedule_delay => non_neg_integer() | null,
+          export_timeout => non_neg_integer() | null,
+          max_queue_size => non_neg_integer() | infinity | null,
+          check_table_size => timeout(),
+          resource => otel_resource:t(),
+          reg_name => atom(),
+          binary() => term()}.
+
+-export_type([configuration/0]).
 
 -record(data, {exporter             :: {module(), term()} | undefined,
                exporter_config      :: {module(), term()} | undefined | none,
@@ -100,11 +113,11 @@ current_tab_to_list(RegName) ->
 %% communicate with the processor
 %% @doc Starts a Batch Span Processor.
 %% @end
--spec start_link(#{name := atom() | list(), term() => term()}) -> {ok, pid(), map()}.
+-spec start_link(configuration()) -> {ok, pid(), configuration()}.
 start_link(Config=#{name := Name}) ->
     RegisterName = ?REG_NAME(Name),
     Config1 = Config#{reg_name => RegisterName},
-    {ok, Pid} = gen_statem:start_link({local, RegisterName}, ?MODULE, [Config1], []),
+    {ok, Pid} = gen_statem:start_link({local, RegisterName}, ?MODULE, Config1, []),
     {ok, Pid, Config1}.
 
 %% @deprecated Please use {@link otel_tracer_provider}
@@ -143,23 +156,29 @@ force_flush(#{reg_name := RegName}) ->
     gen_statem:cast(RegName, force_flush).
 
 %% @private
-init([Args=#{reg_name := RegName}]) ->
+-spec init(configuration()) -> gen_statem:init_result(idle).
+init(Args=#{reg_name := RegName}) ->
     process_flag(trap_exit, true),
 
-    SizeLimit = maps:get(max_queue_size, Args, ?DEFAULT_MAX_QUEUE_SIZE),
-    ExportingTimeout = maps:get(exporting_timeout_ms, Args, ?DEFAULT_EXPORTER_TIMEOUT_MS),
-    ScheduledDelay = maps:get(scheduled_delay_ms, Args, ?DEFAULT_SCHEDULED_DELAY_MS),
-    CheckTableSize = maps:get(check_table_size_ms, Args, ?DEFAULT_CHECK_TABLE_SIZE_MS),
+    SizeLimit = otel_configuration_sdk:value(max_queue_size, Args, ?DEFAULT_MAX_QUEUE_SIZE),
+    ExportingTimeout0 = otel_configuration_sdk:value(export_timeout,
+                                                      Args,
+                                                      ?DEFAULT_EXPORTER_TIMEOUT_MS),
+    ExportingTimeout = timeout(ExportingTimeout0),
+    ScheduledDelay = otel_configuration_sdk:value(schedule_delay,
+                                                  Args,
+                                                  ?DEFAULT_SCHEDULED_DELAY_MS),
+    CheckTableSize = otel_configuration_sdk:value(check_table_size,
+                                                  Args,
+                                                  ?DEFAULT_CHECK_TABLE_SIZE_MS),
 
-    %% TODO: this should be passed in from the tracer server
+    %% Direct starts may omit a resource; tracer providers always supply theirs.
     Resource = case maps:find(resource, Args) of
                    {ok, R} ->
                        R;
                    error ->
                        otel_resource_detector:get_resource()
                end,
-    %% Resource = otel_tracer_provider:resource(),
-
     Table1 = ?TABLE_1,
     Table2 = ?TABLE_2,
 
@@ -168,7 +187,7 @@ init([Args=#{reg_name := RegName}]) ->
     persistent_term:put(?CURRENT_TABLES_KEY(RegName), Table1),
 
     %% only enable export table if there is going to be an exporter
-    case maps:get(exporter, Args, none) of
+    case exporter(otel_configuration_sdk:span_exporter_component(Args)) of
         ExporterConfig when ExporterConfig =:= none ; ExporterConfig =:= undefined ->
             disable(RegName);
         ExporterConfig ->
@@ -186,6 +205,13 @@ init([Args=#{reg_name := RegName}]) ->
                      table_1=Table1,
                      table_2=Table2,
                      reg_name=RegName}}.
+
+timeout(0) -> infinity;
+timeout(Value) -> Value.
+
+exporter(none) -> none;
+exporter(undefined) -> none;
+exporter(Configuration) -> otel_configuration_sdk:span_exporter(Configuration).
 
 %% @private
 callback_mode() ->

@@ -33,6 +33,7 @@
 
 -export([create/1,
          create/2,
+         create_from_attributes/2,
          merge/2,
          schema_url/1,
          attributes/1,
@@ -73,11 +74,21 @@ create(Attributes) ->
 create(Map, SchemaUrl) when is_map(Map) ->
     create(maps:to_list(Map), SchemaUrl);
 create(List, SchemaUrl) when is_list(List) ->
+    create(List, SchemaUrl, fun check_value/1).
+
+%% @private
+%% Creates a resource from schema-validated declarative attribute values.
+%% Lists are arrays here, rather than Erlang character lists.
+-spec create_from_attributes([opentelemetry:attribute()], schema_url() | undefined) -> t().
+create_from_attributes(Attributes, SchemaUrl) ->
+    create(Attributes, SchemaUrl, fun check_attribute_value/1).
+
+create(List, SchemaUrl, CheckValue) ->
     List1 = lists:filtermap(fun({K, V}) ->
                                     %% TODO: log an info or debug message when dropping?
                                     case try_check_key(K, true) of
                                         {true, Key} ->
-                                            case check_value(V) of
+                                            case CheckValue(V) of
                                                 {true, Value} ->
                                                     {true, {Key, Value}};
                                                 _ ->
@@ -193,6 +204,11 @@ check_value(V) when is_list(V) ->
     end;
 check_value(_) ->
     false.
+
+check_attribute_value(Value) when is_list(Value) ->
+    {true, Value};
+check_attribute_value(Value) ->
+    check_value(Value).
 
 check_string_value(V) ->
     %% all resource strings, key or value, must be latin1 with length less than 255

@@ -106,44 +106,43 @@ For an Erlang release in `sys.config`:
 
 ```erlang
 {opentelemetry,
-  [{processors,
-    [{otel_batch_processor,
-        #{exporter => {opentelemetry_exporter, #{endpoints =>
-        ["http://localhost:9090"],
-            headers => [{"x-honeycomb-dataset", "experiments"}]}}}}]}]}
+ [{tracer_provider,
+   #{processors =>
+         [{otel_batch_processor,
+           #{exporter =>
+                 {otlp_http,
+                  #{endpoint => <<"http://localhost:9090/v1/traces">>,
+                    headers =>
+                        [{<<"x-honeycomb-dataset">>, <<"experiments">>}]}}}}]}}]}
 ```
 
-The default protocol is `http_protobuf`, to override this and use grpc add
-`protocol` to the config map:
+To use gRPC, select the `otlp_grpc` exporter:
 
 ```erlang
 {opentelemetry,
-  [{processors,
-    [{otel_simple_processor,
-        #{exporter => {opentelemetry_exporter, #{protocol => grpc,
-                                                 endpoints => ["http://localhost:9090"],
-                                                 headers => [{"x-honeycomb-dataset", "experiments"}]}}}}]}]}
+ [{tracer_provider,
+   #{processors =>
+         [{otel_simple_processor,
+           #{exporter =>
+                 {otlp_grpc,
+                  #{endpoint => <<"http://localhost:9090">>,
+                    headers =>
+                        [{<<"x-honeycomb-dataset">>, <<"experiments">>}]}}}}]}}]}
 ```
 
 In Elixir, you can use `config.exs` or `runtime.exs`:
 
 ```elixir
-config :opentelemetry, :processors,
-  otel_batch_processor: %{
-    exporter: {:opentelemetry_exporter, %{endpoints: ["http://localhost:9090"],
-                                          headers: [{"x-honeycomb-dataset", "experiments"}]}}
+config :opentelemetry,
+  tracer_provider: %{
+    processors: [
+      {:otel_batch_processor,
+       %{exporter:
+           {:otlp_http,
+            %{endpoint: "http://localhost:9090/v1/traces",
+              headers: [{"x-honeycomb-dataset", "experiments"}]}}}}
+    ]
   }
-```
-
-To explicitly disable exporting spans, the `traces_exporter` can be set to `none` in the
-`opentelemetry` config:
-
-```erlang
-{opentelemetry, [{traces_exporter, none}]}
-```
-
-```elixir
-config :opentelemetry, traces_exporter: :none
 ```
 
 #### The configuration map

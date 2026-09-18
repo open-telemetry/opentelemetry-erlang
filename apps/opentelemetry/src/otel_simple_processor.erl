@@ -53,13 +53,23 @@
 -include_lib("kernel/include/logger.hrl").
 -include("otel_span.hrl").
 
+-type configuration() ::
+        #{name := atom() | list(),
+          exporter => otel_configuration_sdk:span_exporter_component() | none,
+          export_timeout => non_neg_integer() | null,
+          resource => otel_resource:t(),
+          reg_name => atom(),
+          binary() => term()}.
+
+-export_type([configuration/0]).
+
 -record(data, {exporter             :: {module(), term()} | undefined,
                exporter_config      :: {module(), term()} | undefined | none,
                current_from         :: gen_statem:from() | undefined,
                resource             :: otel_resource:t(),
                handed_off_table     :: atom() | undefined,
                runner_pid           :: pid() | undefined,
-               exporting_timeout_ms :: integer()}).
+               exporting_timeout_ms :: timeout()}).
 
 -define(DEFAULT_EXPORTER_TIMEOUT_MS, timer:minutes(5)).
 -define(NAME_TO_ATOM(Name, Unique), list_to_atom(lists:concat([Name, "_", Unique]))).
@@ -69,11 +79,11 @@
 %% communicate with the processor
 %% @doc Starts a Simple Span Processor.
 %% @end
--spec start_link(#{name := atom() | list()}) -> {ok, pid(), map()}.
+-spec start_link(configuration()) -> {ok, pid(), configuration()}.
 start_link(Config=#{name := Name}) ->
     RegisterName = ?NAME_TO_ATOM(?MODULE, Name),
     Config1 = Config#{reg_name => RegisterName},
-    {ok, Pid} = gen_statem:start_link({local, RegisterName}, ?MODULE, [Config1], []),
+    {ok, Pid} = gen_statem:start_link({local, RegisterName}, ?MODULE, Config1, []),
     {ok, Pid, Config1}.
 
 %% @deprecated Please use {@link otel_tracer_provider}
@@ -112,26 +122,36 @@ force_flush(#{reg_name := RegName}) ->
     gen_statem:cast(RegName, force_flush).
 
 %% @private
-init([Args]) ->
+-spec init(configuration()) -> gen_statem:init_result(idle).
+init(Args) ->
     process_flag(trap_exit, true),
 
-    ExportingTimeout = maps:get(exporting_timeout_ms, Args, ?DEFAULT_EXPORTER_TIMEOUT_MS),
+    ExportingTimeout0 = otel_configuration_sdk:value(export_timeout,
+                                                      Args,
+                                                      ?DEFAULT_EXPORTER_TIMEOUT_MS),
+    ExportingTimeout = case ExportingTimeout0 of
+                           0 -> infinity;
+                           Value -> Value
+                       end,
 
-    %% TODO: this should be passed in from the tracer server
+    %% Direct starts may omit a resource; tracer providers always supply theirs.
     Resource = case maps:find(resource, Args) of
                    {ok, R} ->
                        R;
                    error ->
                        otel_resource_detector:get_resource()
                end,
-    %% Resource = otel_tracer_provider:resource(),
-
     {ok, idle, #data{exporter=undefined,
-                     exporter_config=maps:get(exporter, Args, none),
+                     exporter_config=exporter(
+                                       otel_configuration_sdk:span_exporter_component(Args)),
                      resource = Resource,
                      handed_off_table=undefined,
                      exporting_timeout_ms=ExportingTimeout},
      [{next_event, internal, init_exporter}]}.
+
+exporter(none) -> none;
+exporter(undefined) -> none;
+exporter(Configuration) -> otel_configuration_sdk:span_exporter(Configuration).
 
 %% @private
 callback_mode() ->
