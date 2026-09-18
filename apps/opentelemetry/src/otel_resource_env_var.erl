@@ -17,10 +17,12 @@
 %%
 %% This resource detector reads the `OTEL_RESOURCE_ATTRIBUTES' environment
 %% variable and parses it as a comma-separated list of key-value pairs. For
-% example, `key1=val1,key2=val2'.
+%% example, `key1=val1,key2=val2'. `OTEL_SERVICE_NAME', when nonempty, overrides
+%% the `service.name' attribute from that list.
 %%
-%% This detector is on by default (see the default configuration for `resource_detectors' in the
-%% `opentelemetry' application environment).
+%% With explicit SDK configuration, enable this detector through
+%% `distribution => #{erlang => #{resource_detectors => [otel_resource_env_var]}}'.
+%% Explicitly configured resource attributes take precedence over detected attributes.
 %% @end
 %%%-----------------------------------------------------------------------
 -module(otel_resource_env_var).
@@ -31,27 +33,35 @@
          parse/1]).
 
 -define(OS_ENV, "OTEL_RESOURCE_ATTRIBUTES").
--define(LABEL_LIST_SPLITTER, ",").
--define(LABEL_KEY_VALUE_SPLITTER, "=").
+-include_lib("kernel/include/logger.hrl").
 
 %% @private
 get_resource(_Config) ->
-    otel_resource:create(parse(os:getenv(?OS_ENV))).
+    Resource = otel_resource:create(parse(os:getenv(?OS_ENV))),
+    case os:getenv("OTEL_SERVICE_NAME") of
+        Unset when Unset =:= false; Unset =:= "" ->
+            Resource;
+        ServiceName ->
+            otel_resource:merge(otel_resource:create([{"service.name", ServiceName}]),
+                                Resource)
+    end.
 
 %%
 
 %% @private
--spec parse(false | string()) -> list().
+-spec parse(false | string()) -> [{binary(), binary()}].
 parse(false) ->
     [];
 parse(RawLabels) ->
-    Labels = string:split(RawLabels, ?LABEL_LIST_SPLITTER, all),
-    lists:filtermap(fun(Label) ->
-                            case string:split(Label, ?LABEL_KEY_VALUE_SPLITTER, all) of
-                                [K, V] ->
-                                    V1 = re:replace(string:trim(V), "^\"|\"$", "", [global, {return, list}]),
-                                    {true, {string:trim(K), V1}};
-                                _ ->
-                                    false
-                            end
-                    end, Labels).
+    case otel_configuration_utils:to_binary(RawLabels) of
+        {ok, Binary} ->
+            {Pairs, Errors} = otel_configuration_key_value_list:parse(Binary),
+            lists:foreach(fun(_) -> warn() end, Errors),
+            Pairs;
+        _ ->
+            warn(),
+            []
+    end.
+
+warn() ->
+    ?LOG_WARNING("Ignoring invalid entry in OpenTelemetry environment variable ~ts", [?OS_ENV]).

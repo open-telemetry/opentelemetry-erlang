@@ -157,7 +157,7 @@
 %% -deprecated({start_tracer_provider, 2, "start the TracerProvider through the SDK"}).
 
 %% @deprecated Start the TracerProvider through the SDK"
--spec start_tracer_provider(atom(), map()) -> {ok, pid() | undefined} | {error, term()}.
+-spec start_tracer_provider(atom(), map()) -> supervisor:startchild_ret().
 start_tracer_provider(Name, Config) ->
     otel_tracer_provider:start(Name, Config).
 

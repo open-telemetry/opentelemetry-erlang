@@ -3,8 +3,6 @@
 -compile(export_all).
 
 %% This test forwards a heterogeneous application environment to the validator.
--eqwalizer({nowarn_function, compare_span_limits/1}).
-
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 
@@ -370,11 +368,27 @@ bad_app_config(_Config) ->
 compare_span_limits(Config) ->
     ExpectedRecord = ?config(expected_record, Config),
     ExpectedOpts = maps:to_list(?config(expected_opts, Config)),
-    Opts = maps:to_list(otel_configuration:merge_with_os([])),
+    Legacy = otel_configuration:merge_with_os([]),
+    Opts = maps:to_list(Legacy),
 
     ?assertIsSubset(ExpectedOpts, Opts),
 
-    otel_span_limits:set(maps:from_list(Opts)),
+    {ok, Model} = otel_configuration_model:from_application_env(
+        [{attribute_limits,
+          #{attribute_count_limit => maps:get(attribute_count_limit, Legacy),
+            attribute_value_length_limit =>
+                maps:get(attribute_value_length_limit, Legacy)}},
+         {tracer_provider,
+          #{processors => [],
+            limits =>
+                #{event_count_limit => maps:get(event_count_limit, Legacy),
+                  link_count_limit => maps:get(link_count_limit, Legacy),
+                  event_attribute_count_limit =>
+                      maps:get(attribute_per_event_limit, Legacy),
+                  link_attribute_count_limit =>
+                      maps:get(attribute_per_link_limit, Legacy)}}}]),
+    {ok, RuntimeConfiguration} = otel_configuration_sdk:create(Model),
+    otel_span_limits:set(RuntimeConfiguration),
 
     SpanLimits = otel_span_limits:get(),
 

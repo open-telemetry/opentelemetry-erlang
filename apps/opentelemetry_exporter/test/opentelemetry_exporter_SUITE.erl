@@ -18,7 +18,9 @@ all() ->
      {group, grpc}, {group, grpc_gzip}].
 
 groups() ->
-    [{functional, [], [configuration, span_round_trip, span_flags, ets_instrumentation_info, to_any_value_boolean, to_attributes]},
+    [{functional, [], [configuration, resolved_exporter_precedence,
+                       span_round_trip, span_flags,
+                       ets_instrumentation_info, to_any_value_boolean, to_attributes]},
      {grpc, [], [verify_export]},
      {grpc_gzip, [], [verify_export]},
      {http_protobuf, [], [verify_export, user_agent]},
@@ -240,6 +242,57 @@ configuration(_Config) ->
         os:unsetenv("OTEL_EXPORTER_OTLP_HEADERS"),
         os:unsetenv("OTEL_EXPORTER_OTLP_TRACES_HEADERS"),
         os:unsetenv("OTEL_EXPORTER_OTLP_PROTOCOL")
+    end.
+
+resolved_exporter_precedence(_Config) ->
+    ConfiguredEndpoint = <<"http://configured.example/v1/traces">>,
+    OSName = "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+    SavedOS = os:getenv(OSName),
+    SavedApp = application:get_env(opentelemetry_exporter, otlp_traces_endpoint),
+    os:putenv(OSName, "http://environment.example/v1/traces"),
+    application:set_env(opentelemetry_exporter, otlp_traces_endpoint,
+                         "http://application.example/v1/traces"),
+    try
+        ModuleOptions = #{endpoints => [ConfiguredEndpoint], headers => [],
+                          protocol => http_protobuf, compression => undefined,
+                          ssl_options => undefined},
+        %% Test the SDK/exporter boundary with conflicting OS and app settings.
+        %% Resolution defaults, input forms and validation live in the SDK suite.
+        Components = [{otlp_http, #{endpoint => ConfiguredEndpoint}},
+                      {otlp_grpc, #{endpoint => ConfiguredEndpoint}},
+                      {opentelemetry_exporter, ModuleOptions}],
+        lists:foreach(
+          fun(Component) ->
+                  ct:pal("Resolved exporter precedence: ~tp", [Component]),
+                  {ok, Model} = otel_configuration_model:from_application_env(
+                                  [{tracer_provider,
+                                    #{processors => [{simple, #{exporter => Component}}]}}]),
+                  {ok, Resolved} = otel_configuration_sdk:create(Model),
+                  Protocol = case Component of
+                                 {otlp_grpc, _} -> grpc;
+                                 _ -> http_protobuf
+                             end,
+                  Options = ModuleOptions#{protocol := Protocol, configuration_resolved => true},
+                  #{processors := [{otel_simple_processor,
+                                    #{exporter := {opentelemetry_exporter, Options}}}]} =
+                      otel_configuration_sdk:tracer_provider(Resolved),
+                  Merged = otel_exporter_traces_otlp:merge_with_environment(Options),
+                  ?assertEqual(maps:remove(configuration_resolved, Options), Merged),
+                  ?assertEqual([ConfiguredEndpoint], maps:get(endpoints, Merged))
+          end, Components),
+        %% Only direct initialization, outside SDK resolution, retains the merge.
+        Direct = otel_exporter_traces_otlp:merge_with_environment(ModuleOptions),
+        ?assertMatch([#{scheme := "http", host := "environment.example", path := "/v1/traces"}],
+                     maps:get(endpoints, Direct))
+    after
+        case SavedOS of
+            false -> os:unsetenv(OSName);
+            OSValue -> os:putenv(OSName, OSValue)
+        end,
+        case SavedApp of
+            undefined -> application:unset_env(opentelemetry_exporter, otlp_traces_endpoint);
+            {ok, AppValue} -> application:set_env(opentelemetry_exporter, otlp_traces_endpoint, AppValue)
+        end
     end.
 
 ets_instrumentation_info(_Config) ->

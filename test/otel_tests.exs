@@ -18,9 +18,9 @@ defmodule OtelTests do
   setup do
     Application.load(:opentelemetry)
 
-    Application.put_env(:opentelemetry, :processors, [
-      {:otel_simple_processor, %{exporter: {:otel_exporter_pid, self()}}}
-    ])
+    Application.put_env(:opentelemetry, :tracer_provider, %{
+      processors: [{:simple, %{exporter: {:otel_exporter_pid, self()}}}]
+    })
 
     {:ok, _} = Application.ensure_all_started(:opentelemetry)
 

@@ -25,18 +25,28 @@
 
 -define(SERVER, ?MODULE).
 
-start_link(Config) ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, [Config]).
+-spec start_link(otel_configuration_sdk:configuration()) ->
+          {ok, pid()} | ignore | {error, term()}.
+start_link(Configuration) ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, Configuration).
 
 start_child(ChildSpec) ->
     supervisor:start_child(?SERVER, ChildSpec).
 
-init([Config]) ->
+-spec init(otel_configuration_sdk:configuration()) ->
+          {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
+init(Configuration) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 1,
                  period => 5},
 
-    SweeperConfig = maps:get(sweeper, Config),
+    Erlang = otel_configuration_sdk:erlang_distribution(Configuration),
+    SweeperConfig = maps:merge(
+                      #{interval => timer:minutes(10),
+                        strategy => drop,
+                        span_ttl => timer:minutes(30),
+                        storage_size => infinity},
+                      otel_configuration_sdk:value(sweeper, Erlang, #{})),
     Sweeper = #{id => otel_span_sweeper,
                 start => {otel_span_sweeper, start_link, [SweeperConfig]},
                 restart => permanent,

@@ -26,9 +26,9 @@ defmodule OtelMetricTests do
     Application.load(:opentelemetry_experimental)
     Application.load(:opentelemetry)
 
-    Application.put_env(:opentelemetry, :processors, [
-      {:otel_simple_processor, %{exporter: :none}}
-    ])
+    Application.put_env(:opentelemetry, :tracer_provider, %{
+      processors: [{:simple, %{exporter: :none}}]
+    })
 
     Application.put_env(:opentelemetry_experimental, :readers, [
       %{
