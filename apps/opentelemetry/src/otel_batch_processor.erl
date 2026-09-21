@@ -39,23 +39,13 @@
          on_start/3,
          on_end/2,
          force_flush/1,
-         report_cb/1,
-
-         %% deprecated
-         set_exporter/1,
-         set_exporter/2,
-         set_exporter/3]).
+         report_cb/1]).
 
 -export([init/1,
          callback_mode/0,
          idle/3,
          exporting/3,
          terminate/3]).
-
-%% uncomment when OTP-23 becomes the minimum required version
-%% -deprecated({set_exporter, 1, "set through the otel_tracer_provider instead"}).
-%% -deprecated({set_exporter, 2, "set through the otel_tracer_provider instead"}).
-%% -deprecated({set_exporter, 3, "set through the otel_tracer_provider instead"}).
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("kernel/include/logger.hrl").
@@ -119,20 +109,6 @@ start_link(Config=#{name := Name}) ->
     Config1 = Config#{reg_name => RegisterName},
     {ok, Pid} = gen_statem:start_link({local, RegisterName}, ?MODULE, Config1, []),
     {ok, Pid, Config1}.
-
-%% @deprecated Please use {@link otel_tracer_provider}
-set_exporter(Exporter) ->
-    set_exporter(global, Exporter, []).
-
-%% @deprecated Please use {@link otel_tracer_provider}
--spec set_exporter(module(), term()) -> ok.
-set_exporter(Exporter, Options) ->
-    gen_statem:call(?REG_NAME(global), {set_exporter, {Exporter, Options}}).
-
-%% @deprecated Please use {@link otel_tracer_provider}
--spec set_exporter(atom(), module(), term()) -> ok.
-set_exporter(Name, Exporter, Options) ->
-    gen_statem:call(?REG_NAME(Name), {set_exporter, {Exporter, Options}}).
 
 %% @private
 -spec on_start(otel_ctx:t(), opentelemetry:span(), otel_span_processor:processor_config())
@@ -250,10 +226,8 @@ exporting({timeout, export_spans}, export_spans, _) ->
     {keep_state_and_data, [postpone]};
 exporting(enter, _OldState, #data{exporter=undefined,
                                   reg_name=RegName}) ->
-    %% exporter still undefined, go back to idle
-    %% first empty the table and disable the processor so no more spans are added
-    %% we wait until the attempt to export to disable so we don't lose spans
-    %% on startup but disable once it is clear an exporter isn't being set
+    %% The exporter is unavailable. Empty the table and disable the processor
+    %% so no more spans are added.
     clear_table_and_disable(RegName),
 
     %% use state timeout to transition to `idle' since we can't set a
@@ -318,21 +292,6 @@ handle_event_(_State, {timeout, check_table_size}, check_table_size, #data{max_q
             enable(RegName)
     end,
     {keep_state_and_data, [{{timeout, check_table_size}, CheckInterval, check_table_size}]};
-handle_event_(_, {call, From}, {set_exporter, ExporterConfig}, Data=#data{exporter=OldExporter,
-                                                                          reg_name=RegName}) ->
-    otel_exporter:shutdown(OldExporter),
-
-    %% enable immediately or else spans will be dropped for a period even after this call returns
-    enable(RegName),
-
-    {keep_state, Data#data{exporter=undefined,
-                           exporter_config=ExporterConfig}, [{reply, From, ok},
-                                                             {next_event, internal, init_exporter}]};
-handle_event_(_, internal, init_exporter, Data=#data{exporter=undefined,
-                                                     exporter_config=ExporterConfig,
-                                                     reg_name=RegName}) ->
-    Exporter = init_exporter(RegName, ExporterConfig),
-    {keep_state, Data#data{exporter=Exporter}};
 handle_event_(_, _, _, _) ->
     keep_state_and_data.
 

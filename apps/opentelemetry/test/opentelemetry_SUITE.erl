@@ -49,7 +49,7 @@ all_cases() ->
 
 groups() ->
     [{otel_simple_processor, [], all_cases()},
-     {otel_batch_processor, [], [no_exporter | all_cases()]}].
+     {otel_batch_processor, [], all_cases()}].
 
 init_per_suite(Config) ->
     application:load(opentelemetry),
@@ -68,11 +68,6 @@ end_per_group(_, _Config) ->
 init_per_testcase(disabled_sdk, Config) ->
     application:set_env(opentelemetry, disabled, true),
     set_processors([]),
-    {ok, _} = application:ensure_all_started(opentelemetry),
-    Config;
-init_per_testcase(no_exporter, Config) ->
-    set_processors([{batch, #{schedule_delay => 1,
-                              exporter => {otel_exporter_pid, self()}}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(disable_auto_creation, Config) ->
@@ -657,13 +652,17 @@ update_span_data(Config) ->
 tracer_instrumentation_scope(Config) ->
     Tid = ?config(tid, Config),
 
-    TracerName = tracer1,
+    %% Named tracers are cached in persistent_term, so use a distinct name for
+    %% each processor group that runs this test.
+    TracerName = ?config(processor, Config),
+    TracerNameBin = atom_to_binary(TracerName),
     TracerVsn = <<"1.0.0">>,
     Tracer = {_, #tracer{instrumentation_scope=IL}} =
         opentelemetry:get_tracer(TracerName, TracerVsn, "http://schema.org/myschema"),
 
-    ?assertMatch({instrumentation_scope,<<"tracer1">>,<<"1.0.0">>,<<"http://schema.org/myschema">>},
-                 IL),
+    ?assertMatch(#instrumentation_scope{name = TracerNameBin,
+                                        version = <<"1.0.0">>,
+                                        schema_url = <<"http://schema.org/myschema">>}, IL),
 
     SpanCtx1 = otel_tracer:start_span(Tracer, <<"span-1">>, #{}),
 
@@ -671,7 +670,9 @@ tracer_instrumentation_scope(Config) ->
 
     [Span1] = assert_exported(Tid, SpanCtx1),
 
-    ?assertMatch({instrumentation_scope,<<"tracer1">>,<<"1.0.0">>,<<"http://schema.org/myschema">>},
+    ?assertMatch(#instrumentation_scope{name = TracerNameBin,
+                                        version = <<"1.0.0">>,
+                                        schema_url = <<"http://schema.org/myschema">>},
                  Span1#span.instrumentation_scope).
 
 multiple_processors(_Config) ->
@@ -1177,27 +1178,6 @@ disabled_sdk(_Config) ->
     ?assertMatch(#span_ctx{trace_id=0,
                            span_id=0}, SpanCtx1),
     ok.
-
-no_exporter(_Config) ->
-    SpanCtx1 = ?start_span(<<"span-1">>),
-
-    %% set_exporter will enable the export table even if the exporter ends
-    %% up being undefined to ensure no spans are lost. so briefly spans
-    %% will be captured
-    otel_batch_processor:set_exporter(none),
-    otel_span:end_span(SpanCtx1),
-
-    %% once the exporter is "initialized" the table is cleared and disabled
-    %% future spans are not added
-    ?UNTIL([] =:= otel_batch_processor:current_tab_to_list(otel_batch_processor_global)),
-
-    SpanCtx2 = ?start_span(<<"span-2">>),
-    otel_span:end_span(SpanCtx2),
-
-    ?assertEqual([], otel_batch_processor:current_tab_to_list(otel_batch_processor_global)),
-
-    ok.
-
 
 generate_trace_id() -> 41394.
 generate_span_id() -> 50132.

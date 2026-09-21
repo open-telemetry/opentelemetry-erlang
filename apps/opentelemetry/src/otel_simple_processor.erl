@@ -29,23 +29,13 @@
          on_start/3,
          on_end/2,
          force_flush/1,
-         report_cb/1,
-
-         %% deprecated
-         set_exporter/1,
-         set_exporter/2,
-         set_exporter/3]).
+         report_cb/1]).
 
 -export([init/1,
          callback_mode/0,
          idle/3,
          exporting/3,
          terminate/3]).
-
-%% uncomment when OTP-23 becomes the minimum required version
-%% -deprecated({set_exporter, 1, "set through the otel_tracer_provider instead"}).
-%% -deprecated({set_exporter, 2, "set through the otel_tracer_provider instead"}).
-%% -deprecated({set_exporter, 3, "set through the otel_tracer_provider instead"}).
 
 -eqwalizer({nowarn_function, on_end/2}).
 
@@ -85,20 +75,6 @@ start_link(Config=#{name := Name}) ->
     Config1 = Config#{reg_name => RegisterName},
     {ok, Pid} = gen_statem:start_link({local, RegisterName}, ?MODULE, Config1, []),
     {ok, Pid, Config1}.
-
-%% @deprecated Please use {@link otel_tracer_provider}
-set_exporter(Exporter) ->
-    set_exporter(global, Exporter, []).
-
-%% @deprecated Please use {@link otel_tracer_provider}
--spec set_exporter(module(), term()) -> ok.
-set_exporter(Exporter, Options) ->
-    gen_statem:call(?REG_NAME(global), {set_exporter, {Exporter, Options}}).
-
-%% @deprecated Please use {@link otel_tracer_provider}
--spec set_exporter(atom(), module(), term()) -> ok.
-set_exporter(Name, Exporter, Options) ->
-    gen_statem:call(?REG_NAME(Name), {set_exporter, {Exporter, Options}}).
 
 %% @private
 -spec on_start(otel_ctx:t(), opentelemetry:span(), otel_span_processor:processor_config())
@@ -196,9 +172,6 @@ handle_event_(_, internal, init_exporter, Data=#data{exporter=undefined,
                                                      exporter_config=ExporterConfig}) ->
     Exporter = otel_exporter:init(ExporterConfig),
     {keep_state, Data#data{exporter=Exporter}};
-handle_event_(_, {call, From}, {set_exporter, Exporter}, Data=#data{exporter=OldExporter}) ->
-    otel_exporter:shutdown(OldExporter),
-    {keep_state, Data#data{exporter=otel_exporter:init(Exporter)}, [{reply, From, ok}]};
 handle_event_(_, _, _, _) ->
     keep_state_and_data.
 

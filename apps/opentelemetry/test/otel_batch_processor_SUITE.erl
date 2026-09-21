@@ -9,9 +9,19 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
 all() ->
-    [exporting_timeout_test,
+    [no_exporter_test,
+     exporting_timeout_test,
      check_table_size_test,
      exporting_runner_timeout_test].
+
+no_exporter_test(_Config) ->
+    {ok, _Pid, #{reg_name := RegName}} = otel_batch_processor:start_link(
+                                           #{name => test_processor_no_exporter,
+                                             resource => otel_resource:create([]),
+                                             exporter => none}),
+
+    dropped = otel_batch_processor:on_end(generate_span(), #{reg_name => RegName}),
+    [] = otel_batch_processor:current_tab_to_list(RegName).
 
 %% verifies that after the runner has to be killed for taking too long
 %% that everything is still functional and the exporter does not crash

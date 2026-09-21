@@ -74,7 +74,7 @@ init({Name, SpanProcessorSup, Resource, Configuration}) ->
     DenyList = otel_configuration_sdk:value(deny_list, Erlang, []),
     Sampler = otel_sampler:new(SamplerSpec),
 
-    Processors1 = init_processors(Name, SpanProcessorSup, Resource, Processors),
+    Processors1 = init_processors(SpanProcessorSup, Resource, Processors),
 
     Tracer = #tracer{module=otel_tracer_default,
                      sampler=Sampler,
@@ -139,39 +139,15 @@ update_force_flush_error(Reason, ok) ->
 update_force_flush_error(Reason, {error, List}) ->
     {error, [Reason | List]}.
 
-%% TODO: remove after a period of deprecation for processor `set_exporter' functions
-%% Give a single built-in processor on the global provider its historical name so
-%% functions such as `set_exporter' continue to work. Other providers and multiple
-%% processors receive unique internal names.
-init_processors(Name, SpanProcessorSup, Resource, [Component]) ->
-    {P, Config} = otel_configuration_sdk:span_processor_component(Component),
-    init_single_processor(Name, SpanProcessorSup, Resource, P, Config);
-init_processors(_Name, SpanProcessorSup, Resource, Processors) ->
-    init_processors_(SpanProcessorSup, Resource, Processors).
-
-init_single_processor(?GLOBAL_TRACER_PROVIDER_NAME, SpanProcessorSup, Resource, P, Config)
-  when P =:= otel_batch_processor; P =:= otel_simple_processor ->
-    case init_processor(SpanProcessorSup, Resource, P, Config#{name => global}) of
-        {true, {_, _}=Processor} ->
-            [Processor];
-        _ ->
-            []
-    end;
-init_single_processor(_Name, SpanProcessorSup, Resource, P, Config) ->
-    case init_processor(SpanProcessorSup, Resource, P, Config) of
-        {true, {_, _}=Processor} -> [Processor];
-        _ -> []
-    end.
-
-init_processors_(_SpanProcessorSup, _Resource, []) ->
+init_processors(_SpanProcessorSup, _Resource, []) ->
     [];
-init_processors_(SpanProcessorSup, Resource, [Component | Rest]) ->
+init_processors(SpanProcessorSup, Resource, [Component | Rest]) ->
     {P, Config} = otel_configuration_sdk:span_processor_component(Component),
     case init_processor(SpanProcessorSup, Resource, P, Config) of
         {true, {_, _}=Processor} ->
-            [Processor | init_processors_(SpanProcessorSup, Resource, Rest)];
+            [Processor | init_processors(SpanProcessorSup, Resource, Rest)];
         _ ->
-            init_processors_(SpanProcessorSup, Resource, Rest)
+            init_processors(SpanProcessorSup, Resource, Rest)
     end.
 
 init_processor(SpanProcessorSup, Resource, ProcessorModule, Config) ->
