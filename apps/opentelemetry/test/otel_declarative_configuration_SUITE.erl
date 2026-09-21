@@ -125,7 +125,7 @@ resolves_trace_configuration(_Config) ->
                    export_timeout := 50,
                    max_queue_size := 100}, BatchConfig),
 
-    Resource = eqwalizer:dynamic_cast(otel_configuration_sdk:resource(Resolved)),
+    Resource = configured_resource(Resolved),
     ?assertEqual(<<"https://opentelemetry.io/schemas/1.27.0">>,
                  otel_resource:schema_url(Resource)),
     ?assertMatch(#{'service.name' := <<"configured">>, region := <<"ca">>},
@@ -240,7 +240,7 @@ decodes_key_value_list_escaping(_Config) ->
                                              [#{name => <<"shared">>,
                                                 value => <<"explicit">>}]}}}}]}}),
 
-    Resource = eqwalizer:dynamic_cast(otel_configuration_sdk:resource(Resolved)),
+    Resource = configured_resource(Resolved),
     ?assertMatch(#{'resource,key' := <<"resource=value">>,
                    percent := <<"100%">>,
                    shared := <<"explicit">>},
@@ -350,8 +350,13 @@ preserves_resource_attribute_types(_Config) ->
     %% Legacy character lists continue to mean strings.
     ?assertEqual(#{ints => <<"AB">>, strings => <<"ab">>},
                  resource_attributes_map(otel_resource:create(
-                     eqwalizer:dynamic_cast(
-                       [{ints, [65, 66]}, {strings, [<<"a">>, <<"b">>]}])))).
+                     [{ints, [65, 66]}, {strings, [<<"a">>, <<"b">>]}]))).
+
+configured_resource(Configuration) ->
+    case otel_configuration_sdk:resource(Configuration) of
+        undefined -> error(missing_resource);
+        Resource -> Resource
+    end.
 
 resource_attributes_map(Resource) ->
     case otel_resource:attributes(Resource) of

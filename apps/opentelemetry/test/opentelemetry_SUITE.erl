@@ -585,7 +585,7 @@ update_span_data(Config) ->
     LinkTraceId = otel_id_generator:generate_trace_id(),
     LinkSpanId = otel_id_generator:generate_span_id(),
     Links = opentelemetry:links(
-              eqwalizer:dynamic_cast([{LinkTraceId, LinkSpanId, #{}, otel_tracestate:new()}])),
+              [{LinkTraceId, LinkSpanId, #{}, otel_tracestate:new()}]),
 
     SpanCtx1=#span_ctx{trace_id=TraceId,
                        span_id=SpanId,

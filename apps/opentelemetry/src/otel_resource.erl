@@ -44,7 +44,7 @@
 -type key() :: unicode:latin1_chardata() | atom().
 %% values allowed in attributes of a resource are limited
 
--type value() :: unicode:latin1_binary() | integer() | float() | boolean().
+-type value() :: unicode:chardata() | integer() | float() | boolean().
 %% A resource value.
 
 -type schema_url() :: uri_string:uri_string().

@@ -44,8 +44,8 @@
 -type id_generator_component() :: module().
 -type span_exporter_component() :: {module(), term()}.
 -type otlp_exporter_options() ::
-        #{endpoints := [unicode:chardata()],
-          headers := [{unicode:chardata(), unicode:chardata()}],
+        #{endpoints := [binary()],
+          headers := [{binary(), binary()}],
           protocol := grpc | http_protobuf,
           compression := gzip | undefined,
           ssl_options := list() | {system_defaults, list()} | undefined,
@@ -165,7 +165,13 @@ span_processors(TracerProvider) ->
 -spec span_exporter_component(map()) ->
           span_exporter_component() | none | undefined.
 span_exporter_component(ProcessorConfiguration) ->
-    eqwalizer:dynamic_cast(maps:get(exporter, ProcessorConfiguration, undefined)).
+    case maps:get(exporter, ProcessorConfiguration, undefined) of
+        {Module, _}=Exporter when is_atom(Module) -> Exporter;
+        none -> none;
+        undefined -> undefined;
+        Value -> fail({invalid_configuration,
+                       [tracer_provider, processors, exporter], Value})
+    end.
 
 -spec resource(configuration()) -> otel_resource:t() | undefined.
 resource(Configuration) ->
@@ -606,11 +612,68 @@ span_exporter(Value) ->
     fail({invalid_configuration, [tracer_provider, processors, exporter], Value}).
 
 -spec otlp_exporter_options(span_exporter_component()) -> otlp_exporter_options().
-otlp_exporter_options({opentelemetry_exporter, Options}) when is_map(Options) ->
-    eqwalizer:dynamic_cast(Options);
+otlp_exporter_options(
+  {opentelemetry_exporter,
+   #{endpoints := Endpoints,
+     headers := Headers,
+     protocol := Protocol,
+     compression := Compression,
+     ssl_options := SSLOptions,
+     configuration_source := declarative}}) ->
+    #{endpoints => otlp_endpoints(Endpoints),
+      headers => otlp_headers(Headers),
+      protocol => otlp_protocol(Protocol),
+      compression => otlp_compression(Compression),
+      ssl_options => otlp_ssl_options(SSLOptions),
+      configuration_source => declarative};
 otlp_exporter_options(Exporter) ->
     fail({invalid_configuration,
           [tracer_provider, processors, exporter], Exporter}).
+
+-spec otlp_endpoints(term()) -> [binary()].
+otlp_endpoints(Endpoints) when is_list(Endpoints) ->
+    [case Endpoint of
+         Binary when is_binary(Binary) -> Binary;
+         _ -> fail({invalid_configuration,
+                    [tracer_provider, processors, exporter, endpoints], Endpoint})
+     end || Endpoint <- Endpoints];
+otlp_endpoints(Value) ->
+    fail({invalid_configuration,
+          [tracer_provider, processors, exporter, endpoints], Value}).
+
+-spec otlp_headers(term()) -> [{binary(), binary()}].
+otlp_headers(Headers) when is_list(Headers) ->
+    [case Header of
+         {Name, Value} when is_binary(Name), is_binary(Value) -> Header;
+         _ -> fail({invalid_configuration,
+                    [tracer_provider, processors, exporter, headers], Header})
+     end || Header <- Headers];
+otlp_headers(Value) ->
+    fail({invalid_configuration,
+          [tracer_provider, processors, exporter, headers], Value}).
+
+-spec otlp_protocol(term()) -> grpc | http_protobuf.
+otlp_protocol(grpc) -> grpc;
+otlp_protocol(http_protobuf) -> http_protobuf;
+otlp_protocol(Value) ->
+    fail({invalid_configuration,
+          [tracer_provider, processors, exporter, protocol], Value}).
+
+-spec otlp_compression(term()) -> gzip | undefined.
+otlp_compression(gzip) -> gzip;
+otlp_compression(undefined) -> undefined;
+otlp_compression(Value) ->
+    fail({invalid_configuration,
+          [tracer_provider, processors, exporter, compression], Value}).
+
+-spec otlp_ssl_options(term()) -> list() | {system_defaults, list()} | undefined.
+otlp_ssl_options(undefined) -> undefined;
+otlp_ssl_options(Options) when is_list(Options) -> Options;
+otlp_ssl_options({system_defaults, Options}) when is_list(Options) ->
+    {system_defaults, Options};
+otlp_ssl_options(Value) ->
+    fail({invalid_configuration,
+          [tracer_provider, processors, exporter, ssl_options], Value}).
 
 resolve_span_exporter({opentelemetry_exporter, Options}) when is_map(Options) ->
     case maps:is_key(protocol, Options) of
@@ -647,7 +710,7 @@ otlp_exporter(Transport, Config0) ->
     reject_non_null(max_response_size, Config, Path ++ [max_response_size]),
     reject_non_null(timeout, Config, Path ++ [timeout]),
     check_encoding(Transport, Config, Path),
-    Endpoint = value(endpoint, Config, default_endpoint(Transport)),
+    Endpoint = to_binary(value(endpoint, Config, default_endpoint(Transport))),
     Headers = exporter_headers(Config, Path),
     Compression = compression(value(compression, Config, none), Path ++ [compression]),
     SSLOptions = tls_options(value(tls, Config, undefined), Transport, Path ++ [tls]),
@@ -680,9 +743,9 @@ header_pairs(Headers) when is_list(Headers) ->
               Name = required(name, Header, [exporter, headers, name]),
               case required(value, Header, [exporter, headers, value]) of
                   null -> false;
-                  HeaderValue -> {true, {Name, HeaderValue}}
+                  HeaderValue -> {true, {to_binary(Name), to_binary(HeaderValue)}}
               end;
-         ({Name, HeaderValue}) -> {true, {Name, HeaderValue}};
+         ({Name, HeaderValue}) -> {true, {to_binary(Name), to_binary(HeaderValue)}};
          (Header) -> fail({invalid_configuration, [exporter, headers], Header})
       end, Headers);
 header_pairs(Value) ->

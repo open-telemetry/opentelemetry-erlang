@@ -3,8 +3,6 @@
 -compile(export_all).
 
 %% This test forwards a heterogeneous application environment to the validator.
--eqwalizer({nowarn_function, compare_span_limits/1}).
-
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 

@@ -65,8 +65,9 @@ start_link(Name, RegName, SpanProcessorSupRegName, Resource, Config) ->
             otel_configuration_sdk:configuration()}) ->
           {ok, #state{}}.
 init({Name, SpanProcessorSup, Resource, Configuration}) ->
-    TracerProvider = eqwalizer:dynamic_cast(
-                       otel_configuration_sdk:tracer_provider(Configuration)),
+    TracerProvider = case otel_configuration_sdk:tracer_provider(Configuration) of
+                         Provider when is_map(Provider) -> Provider
+                     end,
     Erlang = otel_configuration_sdk:erlang_distribution(Configuration),
     IdGeneratorModule = otel_configuration_sdk:id_generator(TracerProvider),
     SamplerSpec = otel_configuration_sdk:sampler(TracerProvider),
