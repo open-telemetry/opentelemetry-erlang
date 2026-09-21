@@ -140,11 +140,14 @@ os_environment_precedence(_Config) ->
          {attribute_count_limit, 64},
          {create_application_tracers, true}],
 
+    %% `scheduled_delay_ms' set on the processor itself is more specific than the
+    %% top level `OTEL_BSP_SCHEDULE_DELAY_MILLIS' and so is not overridden by it
     ?assertMatch(#{log_level := error,
                    text_map_propagators := [b3],
                    sampler := always_off,
+                   bsp_scheduled_delay_ms := 42,
                    processors :=
-                       [{otel_batch_processor, #{scheduled_delay_ms := 42}}],
+                       [{otel_batch_processor, #{scheduled_delay_ms := 999}}],
                    attribute_count_limit := 17,
                    create_application_tracers := false},
                  otel_configuration:merge_with_os(AppEnv)).
