@@ -1,6 +1,6 @@
 {application, opentelemetry,
- [{description, "Implementation of stable OpenTelemetry signals"},
-  {vsn, "1.7.0"},
+ [{description, "OpenTelemetry OTP release integration"},
+  {vsn, "2.0.0"},
   {registered, [
                 %% global tracer provider supervisor for use by the API
                 otel_tracer_provider_sup
@@ -9,7 +9,8 @@
   {applications,
    [kernel,
     stdlib,
-    opentelemetry_api
+    opentelemetry_api,
+    opentelemetry_sdk
    ]},
   {exclude_paths, ["rebar.lock"]},
   {env, []},

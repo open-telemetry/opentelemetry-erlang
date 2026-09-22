@@ -6,7 +6,7 @@
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 
--include("otel_span.hrl").
+-include_lib("opentelemetry_sdk/include/otel_span.hrl").
 
 -define(assertIsSubset(X, Y),
         lists:foreach(fun({K, V}) ->

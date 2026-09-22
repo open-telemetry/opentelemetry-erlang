@@ -221,7 +221,7 @@ OpenTelemetry.Tracer.update_name(name)
 ### Including the OpenTelemetry SDK
 
 When only the API is available at runtime a no-op Tracer is used and no Traces
-are exported. The [OpenTelemetry SDK](https://hex.pm/packages/opentelemetry)
+are exported. The [OpenTelemetry SDK](https://hex.pm/packages/opentelemetry_sdk)
 provides the functionality of Tracers, Span Processors and Exporters and should
 be included as part of a
 [Release](https://erlang.org/doc/design_principles/release_structure.html) and
@@ -234,7 +234,7 @@ repo](https://github.com/open-telemetry/opentelemetry-erlang) as the API and SDK
 (OTLP)](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/protocol/otlp.md)
 and [Zipkin](https://zipkin.io/):
 
-- [OpenTelemetry Protocol](https://hex.pm/packages/opentelemetry_exporter)
+- [OpenTelemetry Protocol](https://hex.pm/packages/opentelemetry_sdk)
 - [Zipkin](https://hex.pm/packages/opentelemetry_zipkin)
 
 ### Log Correlation

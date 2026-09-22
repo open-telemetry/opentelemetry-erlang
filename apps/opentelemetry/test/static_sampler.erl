@@ -4,7 +4,7 @@
 
 -export([description/1, setup/1, should_sample/7]).
 
--include("otel_sampler.hrl").
+-include_lib("opentelemetry_sdk/include/otel_sampler.hrl").
 
 %% sampler returns the value from the Opts map based on the SpanName or `DROP'
 setup(Opts) -> Opts.

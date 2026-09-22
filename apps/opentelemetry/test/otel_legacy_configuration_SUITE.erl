@@ -4,7 +4,7 @@
 -compile(nowarn_export_all).
 
 -include_lib("stdlib/include/assert.hrl").
--include("otel_tracer.hrl").
+-include_lib("opentelemetry_sdk/src/otel_tracer.hrl").
 
 all() ->
     [defaults,

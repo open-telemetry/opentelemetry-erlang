@@ -7,7 +7,7 @@
 
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
--include_lib("opentelemetry/include/otel_span.hrl").
+-include_lib("opentelemetry_sdk/include/otel_span.hrl").
 
 all() ->
     [verify_export].

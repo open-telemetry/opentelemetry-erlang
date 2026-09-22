@@ -6,9 +6,9 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
--include("otel_span.hrl").
+-include_lib("opentelemetry_sdk/include/otel_span.hrl").
 -include("otel_test_utils.hrl").
--include("otel_tracer.hrl").
+-include_lib("opentelemetry_sdk/src/otel_tracer.hrl").
 
 %% TODO: negative testing. What a valid value is is still in flux so nothing bothering
 %% to write tests to limit what can be a value only have them become valid values.

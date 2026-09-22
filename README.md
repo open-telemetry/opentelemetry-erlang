@@ -8,15 +8,15 @@
         src="https://img.shields.io/hexpm/v/opentelemetry_api?label=API&amp;style=for-the-badge"
         alt="Hex.pm" />
   </a>
-  <a href="https://hex.pm/packages/opentelemetry">
+  <a href="https://hex.pm/packages/opentelemetry_sdk">
     <img
-        src="https://img.shields.io/hexpm/v/opentelemetry?label=SDK&amp;style=for-the-badge"
+        src="https://img.shields.io/hexpm/v/opentelemetry_sdk?label=SDK&amp;style=for-the-badge"
         alt="Hex.pm" />
   </a>
-  <a href="https://hex.pm/packages/opentelemetry_exporter">
+  <a href="https://hex.pm/packages/opentelemetry">
     <img
-  src="https://img.shields.io/hexpm/v/opentelemetry_exporter?label=OTLP%20Exporter&amp;style=for-the-badge"
-  alt="Hex.pm" />
+        src="https://img.shields.io/hexpm/v/opentelemetry?label=OTP%20Integration&amp;style=for-the-badge"
+        alt="Hex.pm" />
   </a>
   <a href="https://github.com/erlef/eef-observability-wg">
     <img
@@ -89,16 +89,19 @@ When instrumenting a project, your application should only depend on the
 found in directory `apps/opentelemetry_api` of this repo. The API is published as
 the Hex package [opentelemetry_api](https://hex.pm/packages/opentelemetry_api).
 
-The SDK implementation, found under `apps/opentelemetry` and Hex package
-[opentelemetry](https://hex.pm/packages/opentelemetry), should be included in an
-OTP Release along with an exporter.
+The SDK implementation and OTLP exporter are found under
+`apps/opentelemetry_sdk` and published as the
+[opentelemetry_sdk](https://hex.pm/packages/opentelemetry_sdk) package. The
+`opentelemetry` application is the OTP release integration: it loads SDK
+configuration, starts the configured provider, and creates tracers for loaded
+applications. Include `opentelemetry` in a release when that automatic setup is
+desired; it depends on `opentelemetry_sdk`.
 
 Example of Release configuration in `rebar.config`:
 
 ```erlang
 {relx, [{release, {my_instrumented_release, "0.1.0"},
-         [opentelemetry_exporter,
-	      {opentelemetry, temporary},
+         [{opentelemetry, temporary},
           my_instrumented_app]},
 
        ...]}.
@@ -112,7 +115,7 @@ def project do
   [
     releases: [
       my_instrumented_release: [
-        applications: [opentelemetry_exporter: :permanent, opentelemetry: :temporary]
+        applications: [opentelemetry: :temporary]
       ],
 
       ...
@@ -121,26 +124,18 @@ def project do
 end
 ```
 
-Note that you also need to add `opentelemetry_exporter` before your other `opentelemetry` dependencies in `mix.exs`,
-so that it starts before `opentelemetry` does.
-
-In the above example `opentelemetry_exporter` is listed first, ensuring that all of its
-dependencies are booted before `opentelemetry` attempts to start the
-exporter. `opentelemetry` is set to `temporary` so that if the `opentelemetry`
-application crashes, or is shutdown, it does not terminate the other
-applications in the project -- `opentelemetry_exporter` does not need to be
-`temporary` because it does not have a startup and supervision tree. This is
-optional; the `opentelemetry` application purposely sticks to `permanent` for
-the processes started by the root supervisor to leave it up to the end user
-whether they want the crash or shutdown or `opentelemetry` to be ignored or
-cause the shutdown of the rest of the applications in the release.
+In the above example `opentelemetry` is set to `temporary` so that if the
+application crashes, or is shut down, it does not terminate the other
+applications in the project. This is optional; the application uses permanent
+children and leaves it to the release author to decide whether its termination
+should stop the release.
 
 ## Git Dependencies
 
 While it is recommended to use the Hex packages for the
 [API](https://hex.pm/packages/opentelemetry_api),
-[SDK](https://hex.pm/packages/opentelemetry) and [OTLP
-exporter](https://hex.pm/packages/opentelemetry_exporter), there are times
+[SDK](https://hex.pm/packages/opentelemetry_sdk) and [OTP release
+integration](https://hex.pm/packages/opentelemetry), there are times
 depending on the git repo is necessary. Because the OpenTelemetry OTP
 Applications are kept in a single repository, under the directory `apps`, either
 [rebar3's](https://rebar3.org) `git_subdir` (rebar 3.14 or above is required) or
@@ -151,24 +146,21 @@ Applications can be used in rebar3 and mix.
 
 ```erlang
 {opentelemetry_api, {git_subdir, "http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry_api"}},
-{opentelemetry, {git_subdir, "http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry"}},
-{opentelemetry_exporter, {git_subdir, "http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry_exporter"}}
+{opentelemetry_sdk, {git_subdir, "http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry_sdk"}},
+{opentelemetry, {git_subdir, "http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry"}}
 ```
 
 ```elixir
 {:opentelemetry_api, github: "open-telemetry/opentelemetry-erlang", sparse:
 "apps/opentelemetry_api", override: true},
+{:opentelemetry_sdk, github: "open-telemetry/opentelemetry-erlang", sparse:
+"apps/opentelemetry_sdk", override: true},
 {:opentelemetry, github: "open-telemetry/opentelemetry-erlang", sparse:
-"apps/opentelemetry", override: true},
-{:opentelemetry_exporter, github: "open-telemetry/opentelemetry-erlang", sparse: "apps/opentelemetry_exporter", override: true}
+"apps/opentelemetry", override: true}
 ```
 
-The `override: true` is required because the SDK Application, `opentelemetry`, has
-the API in its `deps` list of its `rebar.config` as a Hex dependency and this will
-clash when `mix` tries to resolve the dependencies and fail without the
-override. `override: true` is also used on the SDK because the
-`opentelemetry_exporter` application depends on it and the API as Hex deps so if
-it is included the override is necessary.
+The `override: true` options ensure these Git dependencies replace the Hex
+dependencies declared between the applications.
 
 ## Benchmarks
 

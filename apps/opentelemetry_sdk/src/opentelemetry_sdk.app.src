@@ -1,6 +1,6 @@
-{application, opentelemetry_exporter,
- [{description, "OpenTelemetry Protocol Exporter"},
-  {vsn, "1.11.0"},
+{application, opentelemetry_sdk,
+ [{description, "OpenTelemetry SDK and OTLP exporter"},
+  {vsn, "2.0.0"},
   {registered, []},
   {applications,
    [kernel,
@@ -12,7 +12,7 @@
     opentelemetry_api
    ]},
   {exclude_paths, ["rebar.lock"]},
-  {env,[]},
+  {env, []},
   {modules, []},
 
   {doc, "doc"},

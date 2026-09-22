@@ -241,7 +241,7 @@ add_user_agent(Headers) ->
     end.
 
 user_agent() ->
-    {ok, ExporterVsn} = application:get_key(opentelemetry_exporter, vsn),
+    {ok, ExporterVsn} = application:get_key(opentelemetry_sdk, vsn),
     lists:flatten(io_lib:format("OTel-OTLP-Exporter-erlang/~s", [ExporterVsn])).
 
 -spec endpoints(endpoint() | [endpoint()], ssl_options() | undefined) -> [endpoint_map()].

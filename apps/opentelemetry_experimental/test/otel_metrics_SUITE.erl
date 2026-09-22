@@ -127,10 +127,17 @@ all() ->
     ].
 
 init_per_suite(Config) ->
+    application:stop(opentelemetry),
+    application:load(opentelemetry),
+    application:set_env(opentelemetry, tracer_provider, #{processors => []}),
+    {ok, _} = application:ensure_all_started(opentelemetry),
     application:load(opentelemetry_experimental),
     Config.
 
 end_per_suite(_Config) ->
+    application:stop(opentelemetry),
+    application:unset_env(opentelemetry, tracer_provider),
+    application:unload(opentelemetry),
     ok.
 
 init_per_testcase(provider_test, Config) ->

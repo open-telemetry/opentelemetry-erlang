@@ -11,7 +11,7 @@
 -include_lib("common_test/include/ct.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").
--include_lib("opentelemetry/include/otel_span.hrl").
+-include_lib("opentelemetry_sdk/include/otel_span.hrl").
 
 all() ->
     [{group, functional}, {group, http_protobuf}, {group, http_protobuf_gzip},
@@ -34,30 +34,30 @@ end_per_suite(_Config) ->
 
 init_per_group(Group, Config) when Group =:= grpc ;
                                    Group =:= http_protobuf ->
-    application:ensure_all_started(opentelemetry_exporter),
+    application:ensure_all_started(opentelemetry_sdk),
     application:ensure_all_started(opentelemetry),
     [{protocol, Group}| Config];
 init_per_group(http_protobuf_gzip, Config) ->
-    application:ensure_all_started(opentelemetry_exporter),
+    application:ensure_all_started(opentelemetry_sdk),
     application:ensure_all_started(opentelemetry),
     [{protocol, http_protobuf}, {compression, gzip} | Config];
 init_per_group(grpc_gzip, Config) ->
-    application:ensure_all_started(opentelemetry_exporter),
+    application:ensure_all_started(opentelemetry_sdk),
     application:ensure_all_started(opentelemetry),
     [{protocol, grpc}, {compression, gzip} | Config];
 init_per_group(_, _) ->
-    application:load(opentelemetry_exporter),
+    application:load(opentelemetry_sdk),
     application:ensure_all_started(opentelemetry),
     ok.
 
 end_per_group(Group, _Config) when Group =:= grpc ;
                                    Group =:= http_protobuf ->
     application:stop(opentelemetry),
-    application:stop(opentelemetry_exporter),
+    application:stop(opentelemetry_sdk),
     ok;
 end_per_group(_, _) ->
     application:stop(opentelemetry),
-    application:stop(opentelemetry_exporter),
+    application:stop(opentelemetry_sdk),
     ok.
 
 configuration(_Config) ->
@@ -85,7 +85,7 @@ configuration(_Config) ->
                               port := 9090, path := "/v1/traces", ssl_options := [{verify, verify_none}]}]},
                      otel_exporter_traces_otlp:merge_with_environment(#{endpoints => [{http, "localhost", 9090, [{verify, verify_none}]}]})),
 
-        application:set_env(opentelemetry_exporter, ssl_options, [{cacertfile, "/etc/ssl/other.pem"}]),
+        application:set_env(opentelemetry_sdk, ssl_options, [{cacertfile, "/etc/ssl/other.pem"}]),
         ?assertMatch(#{endpoints := [#{host := "localhost", path := "/v1/traces", port := 4318,
                                        scheme := "http"}], ssl_options := [{cacertfile, "/etc/ssl/other.pem"}]},
                      otel_exporter_traces_otlp:merge_with_environment(#{})),
@@ -119,7 +119,7 @@ configuration(_Config) ->
                        [#{host => "localhost", path => "/v1/traces", port => 4318, scheme => "http", ssl_options => [{verify, verify_none}]}],
                        []
                       )),
-        application:unset_env(opentelemetry_exporter, ssl_options),
+        application:unset_env(opentelemetry_sdk, ssl_options),
 
         ?assertMatch([#{scheme := "http", host := "localhost", port := 443, path := [], ssl_options := [{cacertfile, "/etc/ssl/cert.pem"}]}],
                      otel_exporter_otlp:endpoints(["http://localhost:443"], [{cacertfile, "/etc/ssl/cert.pem"}])),
@@ -138,27 +138,27 @@ configuration(_Config) ->
 
         ?assertMatch([], otel_exporter_otlp:endpoints("://badendpoint", [])),
 
-        application:set_env(opentelemetry_exporter, otlp_endpoint, "http://localhost:5353"),
+        application:set_env(opentelemetry_sdk, otlp_endpoint, "http://localhost:5353"),
         ?assertMatch(#{endpoints := [#{host := "localhost", path := "/v1/traces", port := 5353,
                                        scheme := "http"}]},
                      otel_exporter_traces_otlp:merge_with_environment(#{})),
 
-        application:set_env(opentelemetry_exporter, otlp_endpoint, "http://localhost:5353"),
+        application:set_env(opentelemetry_sdk, otlp_endpoint, "http://localhost:5353"),
         ?assertMatch(#{endpoints := [#{host := "localhost", path := "/v1/traces", port := 5353,
                                        scheme := "http"}]},
                      otel_exporter_traces_otlp:merge_with_environment(#{endpoints => [{http, "localhost", 9090, []}]})),
 
-        application:set_env(opentelemetry_exporter, otlp_endpoint, "\"http://withextraquotes.com:5353\""),
+        application:set_env(opentelemetry_sdk, otlp_endpoint, "\"http://withextraquotes.com:5353\""),
         ?assertMatch(#{endpoints := []}, otel_exporter_traces_otlp:merge_with_environment(#{})),
 
         %% test that the os env and app env give the same configuration
-        application:set_env(opentelemetry_exporter, otlp_endpoint, <<"http://localhost:4317">>),
-        application:set_env(opentelemetry_exporter, otlp_protocol, grpc),
+        application:set_env(opentelemetry_sdk, otlp_endpoint, <<"http://localhost:4317">>),
+        application:set_env(opentelemetry_sdk, otlp_protocol, grpc),
         A = otel_exporter_traces_otlp:merge_with_environment(#{}),
         ?assertMatch([#{scheme := "http", host := "localhost", port := 4317}],
                      otel_exporter_otlp:endpoints(maps:get(endpoints, A), [])),
 
-        application:unset_env(opentelemetry_exporter, otlp_protocol),
+        application:unset_env(opentelemetry_sdk, otlp_protocol),
         os:putenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317"),
         os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
         B = otel_exporter_traces_otlp:merge_with_environment(#{}),
@@ -191,7 +191,7 @@ configuration(_Config) ->
                      otel_exporter_traces_otlp:merge_with_environment(#{endpoints => []})),
 
         %% test all supported protocols
-        application:unset_env(opentelemetry_exporter, otlp_protocol),
+        application:unset_env(opentelemetry_sdk, otlp_protocol),
         os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
         %% regression test for issue #788
         os:putenv("OTEL_EXPORTER_OTLP_TRACES_PROTOCOL", "grpc"),
@@ -201,13 +201,13 @@ configuration(_Config) ->
 
         %% the specification defines the value as "http/protobuf"
         %% https://github.com/open-telemetry/opentelemetry-specification/blob/82707fd9f7b1266f1246b02ff3e00bebdee6b538/specification/protocol/exporter.md#specify-protocol
-        application:unset_env(opentelemetry_exporter, otlp_protocol),
+        application:unset_env(opentelemetry_sdk, otlp_protocol),
         os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf"),
         ?assertMatch(#{protocol := http_protobuf},
                      otel_exporter_traces_otlp:merge_with_environment(#{})),
 
         %% backwards compatible with earlier stable version that uses "http_protobuf"
-        application:unset_env(opentelemetry_exporter, otlp_protocol),
+        application:unset_env(opentelemetry_sdk, otlp_protocol),
         os:putenv("OTEL_EXPORTER_OTLP_PROTOCOL", "http_protobuf"),
         ?assertMatch(#{protocol := http_protobuf},
                      otel_exporter_traces_otlp:merge_with_environment(#{})),
@@ -234,9 +234,9 @@ configuration(_Config) ->
     after
         %% TODO: add these unset_env and it fixed the verify_export test failures,
         %% figure out if its a timing issue or actually needed.
-        application:unset_env(opentelemetry_exporter, otlp_protocol),
-        application:unset_env(opentelemetry_exporter, otlp_endpoint),
-        application:unset_env(opentelemetry_exporter, ssl_options),
+        application:unset_env(opentelemetry_sdk, otlp_protocol),
+        application:unset_env(opentelemetry_sdk, otlp_endpoint),
+        application:unset_env(opentelemetry_sdk, ssl_options),
         os:unsetenv("OTEL_EXPORTER_OTLP_ENDPOINT"),
         os:unsetenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"),
         os:unsetenv("OTEL_EXPORTER_OTLP_HEADERS"),
@@ -626,7 +626,7 @@ user_agent(Config) ->
     meck:new(httpc),
     meck:expect(httpc, request, fun(post, {_, Headers, "application/x-protobuf", _}, _, _, _) ->
         {_, UserAgent} = lists:keyfind("User-Agent", 1, Headers),
-        {ok, ExporterVsn} = application:get_key(opentelemetry_exporter, vsn),
+        {ok, ExporterVsn} = application:get_key(opentelemetry_sdk, vsn),
         ExpectedUserAgent = lists:flatten(io_lib:format("OTel-OTLP-Exporter-erlang/~s", [ExporterVsn])),
         ?assertEqual(ExpectedUserAgent, UserAgent),
         {ok, {{"1.1", 200, ""}, [], <<>>}}

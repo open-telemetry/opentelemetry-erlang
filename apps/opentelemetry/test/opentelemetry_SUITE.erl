@@ -7,11 +7,11 @@
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").
--include("otel_tracer.hrl").
--include("otel_span.hrl").
+-include_lib("opentelemetry_sdk/src/otel_tracer.hrl").
+-include_lib("opentelemetry_sdk/include/otel_span.hrl").
 -include("otel_test_utils.hrl").
--include("otel_sampler.hrl").
--include("otel_span_ets.hrl").
+-include_lib("opentelemetry_sdk/include/otel_sampler.hrl").
+-include_lib("opentelemetry_sdk/src/otel_span_ets.hrl").
 
 -type exported_span() :: #span{attributes :: otel_attributes:t()}.
 
@@ -30,6 +30,7 @@ all() ->
      force_flush,
      shutdown_force_flush,
      shutdown_sdk_noop_spans,
+     supervision_tree,
 
      multiple_processors,
      multiple_tracer_providers,
@@ -113,6 +114,10 @@ init_per_testcase(shutdown_force_flush, Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config1;
 init_per_testcase(shutdown_sdk_noop_spans, Config) ->
+    set_processors([]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
+init_per_testcase(supervision_tree, Config) ->
     set_processors([]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
@@ -1205,10 +1210,25 @@ too_many_attributes(Config) ->
     ok.
 
 disabled_sdk(_Config) ->
+    SdkSup = whereis(opentelemetry_sdk_sup),
+    ?assert(is_pid(SdkSup)),
+    ?assertEqual([], supervisor:which_children(SdkSup)),
+
     SpanCtx1 = ?start_span(<<"span-1">>),
 
     ?assertMatch(#span_ctx{trace_id=0,
                            span_id=0}, SpanCtx1),
+    ok.
+
+supervision_tree(_Config) ->
+    [{opentelemetry_sdk_sup, SdkSup, supervisor, [opentelemetry_sdk_sup]}] =
+        supervisor:which_children(opentelemetry_sup),
+    ?assertEqual(whereis(opentelemetry_sdk_sup), SdkSup),
+
+    Children = supervisor:which_children(SdkSup),
+    ?assertEqual(
+       lists:sort([otel_resource_detector, otel_span_sup, otel_tracer_provider_sup]),
+       lists:sort([Id || {Id, _Pid, _Type, _Modules} <- Children])),
     ok.
 
 generate_trace_id() -> 41394.

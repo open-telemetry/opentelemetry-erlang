@@ -6,7 +6,7 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
--include("otel_sampler.hrl").
+-include_lib("opentelemetry_sdk/include/otel_sampler.hrl").
 
 all() ->
     [trace_id_ratio_based, parent_based, get_description, custom_sampler_module,

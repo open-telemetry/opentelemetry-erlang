@@ -34,41 +34,15 @@ start_link(Configuration) ->
 -spec init(otel_configuration_sdk:configuration()) ->
           {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
 init(Configuration) ->
-    case otel_configuration_sdk:disabled(Configuration) of
-        true ->
-            {ok, {#{}, []}};
-        false ->
-            init_enabled(Configuration)
-    end.
-
-init_enabled(Configuration) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 1,
                  period => 5},
 
-    Detectors =  #{id => otel_resource_detector,
-                   start => {otel_resource_detector, start_link, [Configuration]},
-                   restart => permanent,
-                   shutdown => 5000,
-                   type => worker,
-                   modules => [otel_resource_detector]},
+    SdkSup = #{id => opentelemetry_sdk_sup,
+               start => {opentelemetry_sdk_sup, start_link, [Configuration]},
+               restart => permanent,
+               shutdown => infinity,
+               type => supervisor,
+               modules => [opentelemetry_sdk_sup]},
 
-    TracerProviderSup = #{id => otel_tracer_provider_sup,
-                          start => {otel_tracer_provider_sup, start_link, []},
-                          restart => permanent,
-                          shutdown => 5000,
-                          type => supervisor,
-                          modules => [otel_tracer_provider_sup]},
-
-    SpanSup = #{id => otel_span_sup,
-                start => {otel_span_sup, start_link, [Configuration]},
-                type => supervisor,
-                restart => permanent,
-                shutdown => infinity,
-                modules => [otel_span_sup]},
-
-    %% `SpanSup' should be the last to shutdown so the ETS table lives until the end
-    %% the `TracerServer' process
-    ChildSpecs = [SpanSup, Detectors, TracerProviderSup],
-
-    {ok, {SupFlags, ChildSpecs}}.
+    {ok, {SupFlags, [SdkSup]}}.

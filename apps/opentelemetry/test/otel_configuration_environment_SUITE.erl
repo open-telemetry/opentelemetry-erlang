@@ -6,7 +6,7 @@
 -include_lib("stdlib/include/assert.hrl").
 
 -import(otel_configuration_test_utils, [resource_attributes/1, add_warning_handler/2, warnings/0]).
--include("otel_tracer.hrl").
+-include_lib("opentelemetry_sdk/src/otel_tracer.hrl").
 
 all() ->
     [zero_config_starts_sdk,
@@ -24,7 +24,7 @@ all() ->
      invalid_explicit_configuration_does_not_fall_back].
 
 init_per_suite(Config) ->
-    {ok, Started} = application:ensure_all_started(opentelemetry_exporter),
+    {ok, Started} = application:ensure_all_started(opentelemetry_sdk),
     [{started_apps, Started} | Config].
 
 end_per_suite(Config) ->

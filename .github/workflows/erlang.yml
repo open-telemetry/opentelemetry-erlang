@@ -67,7 +67,7 @@ jobs:
       - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
         if: ${{ always() }}
         with:
-          file: _build/test/covertool/opentelemetry.covertool.xml
+          file: _build/test/covertool/opentelemetry_sdk.covertool.xml
           env_vars: OTP_VERSION
           flags: sdk,erlang
       - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
@@ -79,9 +79,9 @@ jobs:
       - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
         if: ${{ always() }}
         with:
-          file: _build/test/covertool/opentelemetry_exporter.covertool.xml
+          file: _build/test/covertool/opentelemetry.covertool.xml
           env_vars: OTP_VERSION
-          flags: exporter,erlang
+          flags: integration,erlang
       - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
         if: ${{ always() }}
         with:

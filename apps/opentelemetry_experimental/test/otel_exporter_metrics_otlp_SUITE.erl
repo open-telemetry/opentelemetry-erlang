@@ -7,7 +7,7 @@
 -include_lib("common_test/include/ct.hrl").
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").
--include_lib("opentelemetry/include/otel_span.hrl").
+-include_lib("opentelemetry_sdk/include/otel_span.hrl").
 -include_lib("opentelemetry_experimental/include/otel_metrics.hrl").
 -include_lib("opentelemetry_experimental/src/otel_metric_exemplar.hrl").
 
@@ -30,30 +30,30 @@ end_per_suite(_Config) ->
 
 init_per_group(Group, Config) when Group =:= grpc ;
                                    Group =:= http_protobuf ->
-    application:ensure_all_started(opentelemetry_exporter),
+    application:ensure_all_started(opentelemetry_sdk),
     application:ensure_all_started(opentelemetry),
     [{protocol, Group}| Config];
 init_per_group(http_protobuf_gzip, Config) ->
-    application:ensure_all_started(opentelemetry_exporter),
+    application:ensure_all_started(opentelemetry_sdk),
     application:ensure_all_started(opentelemetry),
     [{protocol, http_protobuf}, {compression, gzip} | Config];
 init_per_group(grpc_gzip, Config) ->
-    application:ensure_all_started(opentelemetry_exporter),
+    application:ensure_all_started(opentelemetry_sdk),
     application:ensure_all_started(opentelemetry),
     [{protocol, grpc}, {compression, gzip} | Config];
 init_per_group(_, _) ->
-    application:load(opentelemetry_exporter),
+    application:load(opentelemetry_sdk),
     application:ensure_all_started(opentelemetry),
     ok.
 
 end_per_group(Group, _Config) when Group =:= grpc ;
                                    Group =:= http_protobuf ->
     application:stop(opentelemetry),
-    application:stop(opentelemetry_exporter),
+    application:stop(opentelemetry_sdk),
     ok;
 end_per_group(_, _) ->
     application:stop(opentelemetry),
-    application:unload(opentelemetry_exporter),
+    application:unload(opentelemetry_sdk),
     ok.
 
 verify_export(Config) ->

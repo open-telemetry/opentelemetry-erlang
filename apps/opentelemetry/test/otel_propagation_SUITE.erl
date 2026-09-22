@@ -11,11 +11,11 @@
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").
--include("otel_tracer.hrl").
--include("otel_span.hrl").
+-include_lib("opentelemetry_sdk/src/otel_tracer.hrl").
+-include_lib("opentelemetry_sdk/include/otel_span.hrl").
 -include("otel_test_utils.hrl").
--include("otel_sampler.hrl").
--include("otel_span_ets.hrl").
+-include_lib("opentelemetry_sdk/include/otel_sampler.hrl").
+-include_lib("opentelemetry_sdk/src/otel_span_ets.hrl").
 
 all() ->
     [override_propagators,
