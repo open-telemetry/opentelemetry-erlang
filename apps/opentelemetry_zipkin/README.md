@@ -14,7 +14,7 @@ For an Erlang release in `sys.config`:
 {opentelemetry,
  [{tracer_provider,
    #{processors =>
-         [{otel_batch_processor,
+         [{batch,
            #{exporter =>
                  {opentelemetry_zipkin,
                   #{address => "http://localhost:9411/api/v2/spans",
@@ -28,7 +28,7 @@ An Elixir release uses `releases.exs`:
 config :opentelemetry,
   tracer_provider: %{
     processors: [
-      {:otel_batch_processor,
+      {:batch,
        %{exporter:
            {:opentelemetry_zipkin,
             %{address: ~c"http://localhost:9411/api/v2/spans",

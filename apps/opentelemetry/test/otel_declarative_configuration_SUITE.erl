@@ -15,6 +15,7 @@ all() ->
      decodes_key_value_list_escaping,
      rejects_invalid_key_value_list_escaping,
      preserves_model_semantics,
+     resolves_builtin_processor_aliases,
      resolves_erlang_application_extensions,
      configured_resource_takes_precedence,
      rejects_unsupported_configuration,
@@ -286,6 +287,23 @@ preserves_model_semantics(_Config) ->
     ?assertEqual(Configuration, Root),
     ?assertNot(maps:is_key(<<"tracer_provider">>, Root)),
     ?assertException(error, badarg, binary_to_existing_atom(Unknown, utf8)).
+
+resolves_builtin_processor_aliases(_Config) ->
+    {ok, Model} = otel_configuration_model:from_application_env(
+                    [{tracer_provider,
+                      #{processors =>
+                            [{batch, #{exporter => none}},
+                             {simple, #{exporter => none}},
+                             {otel_batch_processor, #{exporter => none}},
+                             {otel_simple_processor, #{exporter => none}}]}}]),
+    {ok, Resolved} = otel_configuration_sdk:create(Model),
+    TracerProvider = #{} = otel_configuration_sdk:tracer_provider(Resolved),
+    Processors = otel_configuration_sdk:span_processors(TracerProvider),
+    ?assertEqual([otel_batch_processor,
+                  otel_simple_processor,
+                  otel_batch_processor,
+                  otel_simple_processor],
+                 [Module || {Module, _} <- Processors]).
 
 resolves_erlang_application_extensions(_Config) ->
     {ok, Model} = otel_configuration_model:from_application_env(

@@ -70,7 +70,7 @@ application configuration is not a versioned file:
     #{composite => [trace_context, baggage]}},
    {tracer_provider,
     #{processors =>
-          [{otel_batch_processor,
+          [{batch,
             #{exporter =>
                   {otlp_http,
                    #{endpoint => <<"http://localhost:4318/v1/traces">>}}}}],
@@ -87,7 +87,7 @@ config :opentelemetry,
   },
   tracer_provider: %{
     processors: [
-      {:otel_batch_processor,
+      {:batch,
        %{exporter:
            {:otlp_http,
             %{endpoint: "http://localhost:4318/v1/traces"}}}}
@@ -111,6 +111,12 @@ Batch and simple processors read fields such as `schedule_delay`,
 `export_timeout`, and `max_queue_size` directly. Every processor receives the
 resource belonging to its own tracer provider.
 
+The built-in processor component names are `batch` and `simple`. Application
+configuration writes them as `{batch, Options}` and `{simple, Options}`, using
+the same names as the declarative document. The implementation module names
+`otel_batch_processor` and `otel_simple_processor` remain accepted for
+compatibility, but component names are preferred in configuration.
+
 Missing `tracer_provider` and `propagator` sections have the declarative
 model's no-op behavior. In particular, an empty application environment does
 not start a tracer provider. `meter_provider` is retained in the configuration
@@ -120,9 +126,9 @@ being redesigned.
 
 ### Erlang components
 
-Application configuration may use an atom component name to directly select an
-Erlang implementation module. This provides programmatic configuration for
-components that cannot be represented by portable JSON. For example:
+Application configuration may also directly select an Erlang implementation
+module. This is the current extension point for components that cannot be
+represented by portable JSON. For example:
 
 ```erlang
 {tracer_provider,
@@ -137,7 +143,7 @@ An atom exporter name may be used inside a standard processor:
 ```erlang
 {tracer_provider,
  #{processors =>
-       [{otel_simple_processor,
+       [{simple,
          #{exporter =>
                {my_span_exporter, #{exporter_option => value}}}}]}}
 ```

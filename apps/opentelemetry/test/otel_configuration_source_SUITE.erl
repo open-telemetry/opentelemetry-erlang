@@ -114,7 +114,7 @@ application_environment_matches_json(_Config) ->
           #{composite => [trace_context, baggage]}},
          {tracer_provider,
           #{processors =>
-                [{otel_simple_processor, #{exporter => {otlp_http, #{}}}}],
+                [{simple, #{exporter => {otlp_http, #{}}}}],
             sampler => always_off}}],
 
     {ok, ParsedJson} = otel_configuration_declarative:parse(JsonConfiguration),

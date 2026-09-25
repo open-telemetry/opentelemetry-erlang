@@ -108,7 +108,7 @@ For an Erlang release in `sys.config`:
 {opentelemetry,
  [{tracer_provider,
    #{processors =>
-         [{otel_batch_processor,
+         [{batch,
            #{exporter =>
                  {otlp_http,
                   #{endpoint => <<"http://localhost:9090/v1/traces">>,
@@ -122,7 +122,7 @@ To use gRPC, select the `otlp_grpc` exporter:
 {opentelemetry,
  [{tracer_provider,
    #{processors =>
-         [{otel_simple_processor,
+         [{simple,
            #{exporter =>
                  {otlp_grpc,
                   #{endpoint => <<"http://localhost:9090">>,
@@ -136,7 +136,7 @@ In Elixir, you can use `config.exs` or `runtime.exs`:
 config :opentelemetry,
   tracer_provider: %{
     processors: [
-      {:otel_batch_processor,
+      {:batch,
        %{exporter:
            {:otlp_http,
             %{endpoint: "http://localhost:9090/v1/traces",

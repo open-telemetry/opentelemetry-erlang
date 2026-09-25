@@ -492,6 +492,10 @@ resolve_span_processors(Processors) when is_list(Processors) ->
 resolve_span_processors(Value) ->
     fail({invalid_configuration, [tracer_provider, processors], Value}).
 
+resolve_span_processor({batch, Config}) when is_map(Config) ->
+    {otel_batch_processor, resolve_processor_config(batch, Config)};
+resolve_span_processor({simple, Config}) when is_map(Config) ->
+    {otel_simple_processor, resolve_processor_config(simple, Config)};
 resolve_span_processor({Module, Config}) when is_atom(Module), is_map(Config) ->
     case Module of
         otel_batch_processor ->
