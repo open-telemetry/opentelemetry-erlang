@@ -9,6 +9,7 @@ all() ->
     [declarative_defaults_are_authoritative,
      resolves_trace_configuration,
      client_tls_uses_system_trust,
+     warns_about_empty_http_endpoint_paths,
      preserves_resource_attribute_types,
      supports_atom_keys,
      applies_null_limit_defaults,
@@ -620,6 +621,39 @@ configured_resource_takes_precedence(_Config) ->
     after
         gen_statem:stop(Pid),
         application:unload(opentelemetry)
+    end.
+
+warns_about_empty_http_endpoint_paths(_Config) ->
+    Handler = endpoint_warning_test,
+    ok = logger:add_handler(Handler, ?MODULE,
+                            #{level => warning, config => #{pid => self()}}),
+    try
+        lists:foreach(
+          fun({Transport, Endpoint, ExpectedWarnings}) ->
+                  lists:foreach(
+                    fun(Component) ->
+                            {ok, Provider} = otel_configuration_sdk:create_tracer_provider(
+                                               #{processors => [{simple, #{exporter => Component}}]}),
+                            [{otel_simple_processor,
+                              #{exporter := {opentelemetry_exporter, Options = #{}}}}] =
+                                otel_configuration_sdk:span_processors(Provider),
+                            ?assertEqual([unicode:characters_to_binary(Endpoint)],
+                                         maps:get(endpoints, Options)),
+                            ?assertEqual(ExpectedWarnings, configuration_warnings())
+                    end, [{Transport, #{endpoint => Endpoint}},
+                          #{atom_to_binary(Transport, utf8) => #{<<"endpoint">> => Endpoint}}])
+          end,
+          [{otlp_http, <<"http://localhost:4318">>, [[exporter, otlp_http, endpoint]]},
+           {otlp_http, "https://collector:4318?token=secret", [[exporter, otlp_http, endpoint]]},
+           {otlp_http, <<"http://localhost:4318/v1/traces">>, []},
+           {otlp_http, <<"https://collector/custom/traces">>, []},
+           {otlp_http, <<"https://collector/">>, []},
+           {otlp_grpc, <<"http://localhost:4317">>, []}]),
+        ?assertMatch({ok, _}, otel_configuration_sdk:create_tracer_provider(
+                               #{processors => [{batch, #{exporter => {otlp_http, #{}}}}]})),
+        ?assertEqual([], configuration_warnings())
+    after
+        logger:remove_handler(Handler)
     end.
 
 warns_about_unimplemented_settings(_Config) ->

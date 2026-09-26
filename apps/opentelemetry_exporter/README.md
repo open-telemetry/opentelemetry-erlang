@@ -61,7 +61,9 @@ The alias configuration map supports:
 
 - `endpoint`: one signal-specific endpoint. HTTP defaults to
   `http://localhost:4318/v1/traces`; gRPC defaults to
-  `http://localhost:4317`.
+  `http://localhost:4317`. HTTP endpoints are used verbatim: include `/v1/traces`
+  or your collector's custom trace path. An empty HTTP path produces a startup
+  warning; the SDK does not append a path.
 - `headers`: header name/value pairs, for example
   `[{<<"x-access-key">>, <<"secret">>}]`.
 - `headers_list`: a comma-separated string in the

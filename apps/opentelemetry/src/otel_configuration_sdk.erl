@@ -836,6 +836,7 @@ otlp_exporter(Transport, Config0) ->
     warn_unsupported(timeout, Config, Path ++ [timeout], fun non_negative_integer/2),
     check_encoding(Transport, Config, Path),
     Endpoint = to_binary(value(endpoint, Config, default_endpoint(Transport))),
+    warn_empty_http_endpoint_path(Transport, Endpoint),
     Headers = exporter_headers(Config, Path),
     Compression = compression(value(compression, Config, none), Path ++ [compression]),
     SSLOptions = tls_options(value(tls, Config, undefined), Transport, Path ++ [tls]),
@@ -846,6 +847,18 @@ otlp_exporter(Transport, Config0) ->
        compression => Compression,
        ssl_options => SSLOptions,
        configuration_resolved => true}}.
+
+warn_empty_http_endpoint_path(http, Endpoint) ->
+    case uri_string:parse(Endpoint) of
+        #{path := <<>>} ->
+            ?LOG_WARNING("OTLP HTTP endpoint has an empty path and is used verbatim; "
+                         "the traces endpoint usually requires /v1/traces. "
+                         "No path is appended automatically.", [],
+                         #{otel_configuration_path => [exporter, otlp_http, endpoint]});
+        _ -> ok
+    end;
+warn_empty_http_endpoint_path(grpc, _Endpoint) ->
+    ok.
 
 check_encoding(grpc, _Config, _Path) -> ok;
 check_encoding(http, Config, Path) ->
