@@ -41,6 +41,12 @@ produce warnings and are ignored. The older `OTEL_BSP_SCHEDULE_DELAY_MILLIS`
 and `OTEL_BSP_EXPORT_TIMEOUT_MILLIS` names remain accepted, with the standard
 names taking precedence.
 
+Loading a JSON configuration file requires **Erlang/OTP 27 or later**, because
+the SDK uses the built-in [`json:decode/1`](https://www.erlang.org/doc/apps/stdlib/json.html#decode/1)
+function introduced in OTP 27. Native application configuration (`sys.config`
+or `runtime.exs`) and zero-config environment defaults do not use the JSON
+decoder and do not impose this additional OTP requirement.
+
 Set `OTEL_CONFIG_FILE` to a preprocessed JSON document:
 
 ```shell
