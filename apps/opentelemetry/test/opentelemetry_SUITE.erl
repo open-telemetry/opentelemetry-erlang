@@ -132,6 +132,7 @@ init_per_testcase(tracer_instrumentation_scope, Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config1;
 init_per_testcase(multiple_tracer_providers, Config) ->
+    set_distribution(#{deny_list => [blocked_tracer]}),
     set_processors([{batch, #{exporter => {otel_exporter_pid, self()},
                               schedule_delay => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
@@ -709,12 +710,18 @@ multiple_tracer_providers(_Config) ->
        {error,
         {invalid_configuration,
          [tracer_provider, processors, batch, schedule_delay], -1}},
-       otel_tracer_provider_sdk:start(
+       otel_tracer_provider_sup:start(
          invalid_test_provider,
          #{processors =>
                [{batch, #{exporter => none, schedule_delay => -1}}]})),
     ?assertEqual(undefined,
                  otel_tracer_provider:resource(invalid_test_provider)),
+
+    ?assertMatch({ok, _},
+                 otel_tracer_provider_sup:start(empty_test_provider,
+                                                #{processors => []})),
+    ?assertEqual(otel_resource:create([]),
+                 otel_tracer_provider:resource(empty_test_provider)),
 
     Resource = otel_resource:create([{<<"a">>, <<"b">>}]),
     TestProviderConfiguration =
@@ -726,10 +733,18 @@ multiple_tracer_providers(_Config) ->
                       {otel_exporter_pid,
                        #{pid => self(), include_resource => true}}}}]},
     ?assertMatch({ok, _},
-                 otel_tracer_provider_sdk:start(test_provider,
+                 otel_tracer_provider_sup:start(test_provider,
                                                 Resource,
                                                 TestProviderConfiguration)),
     ?assertEqual(Resource, otel_tracer_provider:resource(test_provider)),
+    %% The global provider receives its distribution deny list. Independently
+    %% configured providers retain their own default (empty) deny list.
+    ?assertMatch({otel_tracer_noop, _},
+                 otel_tracer_provider:get_tracer(global, blocked_tracer, <<>>, <<>>)),
+    ?assertMatch({otel_tracer_default, _},
+                 otel_tracer_provider:get_tracer(global, allowed_tracer, <<>>, <<>>)),
+    ?assertMatch({otel_tracer_default, _},
+                 otel_tracer_provider:get_tracer(test_provider, blocked_tracer, <<>>, <<>>)),
 
     DefaultResourceConfiguration =
         #{id_generator => otel_id_generator,

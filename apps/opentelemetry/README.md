@@ -153,14 +153,14 @@ Names from JSON remain binaries and are not converted into module names.
 
 ### Named tracer providers
 
-Start additional named tracer providers through `otel_tracer_provider_sdk`.
+Start additional named tracer providers through `otel_tracer_provider_sup`.
 Its configuration map has the same shape as the `tracer_provider` application
 environment entry and is validated before any provider processes start:
 
 ```erlang
 Resource = otel_resource:create(
              [{<<"service.name">>, <<"checkout-worker">>}]),
-{ok, _} = otel_tracer_provider_sdk:start(
+{ok, _} = otel_tracer_provider_sup:start(
             checkout_worker,
             Resource,
             #{processors =>

@@ -66,7 +66,8 @@ configure_tracing(Config) ->
             otel_span_limits:set(Config),
 
             Resource = otel_resource_detector:get_resource(),
-            _ = otel_tracer_provider_sup:start(?GLOBAL_TRACER_PROVIDER_NAME, Resource, Config),
+            _ = otel_tracer_provider_sup:start_resolved(?GLOBAL_TRACER_PROVIDER_NAME,
+                                                         Resource, TracerProvider),
 
             %% must be done after the supervisor starts so that otel_tracer_server is running
             %% TODO: make this work with release upgrades. Currently if an application's version

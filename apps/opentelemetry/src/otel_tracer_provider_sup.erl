@@ -12,25 +12,67 @@
 %% See the License for the specific language governing permissions and
 %% limitations under the License.
 %%
-%% @private
+%% @doc Starts and supervises SDK TracerProviders.
+%%
+%% `start/2' and `start/3' accept the same native Erlang configuration as the
+%% `tracer_provider' application environment entry. Configuration is resolved
+%% and validated before any provider processes are started.
+%% @end
 %%%-------------------------------------------------------------------------
 -module(otel_tracer_provider_sup).
 
 -behaviour(supervisor).
 
 -export([start_link/0,
-         start/3]).
+         start/2,
+         start/3,
+         start_resolved/3]).
 
 -export([init/1]).
 
+-type processor() :: {batch | simple | module(), map()}.
+-type sampler() :: always_on
+                 | always_off
+                 | {trace_id_ratio_based, number()}
+                 | {parent_based, map()}
+                 | {module(), map()}.
+-type configuration() ::
+        #{processors := [processor()],
+          sampler => sampler(),
+          id_generator => module(),
+          limits => map()}.
+
+-export_type([processor/0,
+              sampler/0,
+              configuration/0]).
+
 -define(SERVER, ?MODULE).
 
+%% @private
 start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
--spec start(atom(), otel_resource:t(), otel_configuration_sdk:configuration()) ->
+%% @doc Starts a named TracerProvider with an empty resource.
+-spec start(atom(), configuration()) -> supervisor:startchild_ret().
+start(Name, Configuration) ->
+    start(Name, otel_resource:create([]), Configuration).
+
+%% @doc Starts a named TracerProvider with the supplied resource.
+-spec start(atom(), otel_resource:t(), configuration()) -> supervisor:startchild_ret().
+start(Name, Resource, Configuration) when is_atom(Name), is_map(Configuration) ->
+    case otel_configuration_sdk:create_tracer_provider(Configuration) of
+        {ok, Resolved} ->
+            start_resolved(Name, Resource, Resolved);
+        {error, _}=Error ->
+            Error
+    end.
+
+%% @private
+%% Application startup has already resolved and validated the configuration.
+-spec start_resolved(atom(), otel_resource:t(),
+                     otel_configuration_sdk:tracer_provider_configuration()) ->
           supervisor:startchild_ret().
-start(Name, Resource, Config) ->
+start_resolved(Name, Resource, Config) ->
     try
         supervisor:start_child(?MODULE, [Name, Resource, Config])
     catch
@@ -39,6 +81,7 @@ start(Name, Resource, Config) ->
             {error, no_tracer_provider_supervisor}
     end.
 
+%% @private
 init([]) ->
     SupFlags = #{strategy => simple_one_for_one,
                  intensity => 1,

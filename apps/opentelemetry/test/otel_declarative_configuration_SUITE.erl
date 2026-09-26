@@ -18,6 +18,7 @@ all() ->
      resolves_builtin_processor_aliases,
      rejects_invalid_builtin_processor_settings,
      resolves_erlang_application_extensions,
+     resolves_standalone_tracer_provider,
      normalizes_json_sweeper_settings,
      configured_resource_takes_precedence,
      rejects_unsupported_configuration,
@@ -362,6 +363,7 @@ resolves_erlang_application_extensions(_Config) ->
     ?assertEqual([custom_text_map_propagator],
                  otel_configuration_sdk:text_map_propagators(Resolved)),
     TracerProvider = #{} = otel_configuration_sdk:tracer_provider(Resolved),
+    ?assertEqual([kernel], maps:get(deny_list, TracerProvider)),
     [Processor] = otel_configuration_sdk:span_processors(TracerProvider),
     ?assertEqual({custom_span_processor, #{custom => value}},
                  otel_configuration_sdk:span_processor_component(Processor)),
@@ -369,6 +371,25 @@ resolves_erlang_application_extensions(_Config) ->
                  otel_configuration_sdk:sampler(TracerProvider)),
     ?assertEqual(custom_id_generator,
                  otel_configuration_sdk:id_generator(TracerProvider)).
+
+resolves_standalone_tracer_provider(_Config) ->
+    Native = #{processors => [{batch, #{exporter => {otlp_http, #{}}}}]},
+    {ok, Model} = otel_configuration_model:from_application_env(
+                    [{tracer_provider, Native}]),
+    {ok, Runtime} = otel_configuration_sdk:create(Model),
+    {ok, Provider} = otel_configuration_sdk:create_tracer_provider(Native),
+    ?assertEqual(otel_configuration_sdk:tracer_provider(Runtime), Provider),
+    ?assertMatch(#{processors :=
+                      [{otel_batch_processor,
+                        #{exporter := {opentelemetry_exporter,
+                                       #{protocol := http_protobuf,
+                                         configuration_source := declarative}}}}],
+                   sampler := {parent_based, #{root := always_on}},
+                   id_generator := otel_id_generator,
+                   deny_list := []}, Provider),
+    ?assertEqual({error, {invalid_configuration,
+                         [tracer_provider, processors], missing}},
+                 otel_configuration_sdk:create_tracer_provider(#{})).
 
 normalizes_json_sweeper_settings(_Config) ->
     {ok, Resolved} = otel_configuration_declarative:resolve(

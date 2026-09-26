@@ -38,7 +38,7 @@
 %% environment entry.
 -spec start(atom(), map()) -> supervisor:startchild_ret().
 start(Name, Config) ->
-    otel_tracer_provider_sdk:start(Name, Config).
+    otel_tracer_provider_sup:start(Name, Config).
 
 -spec get_tracer(Name, Vsn, SchemaUrl) -> Tracer when
       Name :: opentelemetry:span_name(),

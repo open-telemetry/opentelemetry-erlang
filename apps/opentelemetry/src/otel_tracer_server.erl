@@ -55,24 +55,20 @@
         }).
 
 -spec start_link(atom(), atom(), atom(), otel_resource:t(),
-                 otel_configuration_sdk:configuration()) ->
+                 otel_configuration_sdk:tracer_provider_configuration()) ->
           {ok, pid()} | ignore | {error, term()}.
 start_link(Name, RegName, SpanProcessorSupRegName, Resource, Config) ->
     gen_server:start_link({local, RegName}, ?MODULE,
                           {Name, SpanProcessorSupRegName, Resource, Config}, []).
 
 -spec init({atom(), atom(), otel_resource:t(),
-            otel_configuration_sdk:configuration()}) ->
+            otel_configuration_sdk:tracer_provider_configuration()}) ->
           {ok, #state{}}.
-init({Name, SpanProcessorSup, Resource, Configuration}) ->
-    TracerProvider = case otel_configuration_sdk:tracer_provider(Configuration) of
-                         Provider when is_map(Provider) -> Provider
-                     end,
-    Erlang = otel_configuration_sdk:erlang_distribution(Configuration),
+init({Name, SpanProcessorSup, Resource, TracerProvider}) ->
     IdGeneratorModule = otel_configuration_sdk:id_generator(TracerProvider),
     SamplerSpec = otel_configuration_sdk:sampler(TracerProvider),
     Processors = otel_configuration_sdk:span_processors(TracerProvider),
-    DenyList = otel_configuration_sdk:value(deny_list, Erlang, []),
+    DenyList = maps:get(deny_list, TracerProvider),
     Sampler = otel_sampler:new(SamplerSpec),
 
     Processors1 = init_processors(SpanProcessorSup, Resource, Processors),

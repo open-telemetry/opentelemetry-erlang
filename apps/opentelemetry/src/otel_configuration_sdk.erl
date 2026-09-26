@@ -19,6 +19,7 @@
 -module(otel_configuration_sdk).
 
 -export([create/1,
+         create_tracer_provider/1,
          value/3,
          disabled/1,
          tracer_provider/1,
@@ -85,10 +86,11 @@
 -type tracer_provider_configuration() ::
         #{processors := [span_processor_component()],
           sampler := sampler_component(),
-          id_generator := id_generator_component()}.
+          id_generator := id_generator_component(),
+          deny_list := [atom() | {atom(), string()}]}.
 -type erlang_distribution_configuration() ::
         #{create_application_tracers => boolean(),
-          deny_list => [term()],
+          deny_list => [atom() | {atom(), string()}],
           resource_detectors => [module() | {module(), term()}],
           resource_detector_timeout => non_neg_integer(),
           sweeper => sweeper_configuration(),
@@ -137,6 +139,7 @@ create(Model) ->
         validate_distribution(Raw),
         validate_attribute_limits(Raw),
         reject_present(logger_provider, Raw, [logger_provider]),
+        Distribution = #{erlang := Erlang} = resolve_distribution(Raw),
         Configuration0 =
             #{source => Model,
               file_format => otel_configuration_model:file_format(Model),
@@ -144,9 +147,20 @@ create(Model) ->
               resource => resolve_resource(Raw),
               text_map_propagators => resolve_text_map_propagators(Raw),
               span_limits => resolve_span_limits(Raw),
-              tracer_provider => resolve_tracer_provider(Raw),
-              distribution => resolve_distribution(Raw)},
+              tracer_provider => resolve_tracer_provider(Raw, Erlang),
+              distribution => Distribution},
         {ok, maybe_put_log_level(Raw, Configuration0)}
+    catch
+        throw:{declarative_configuration_error, Reason} ->
+            {error, Reason}
+    end.
+
+%% Resolves a standalone provider without constructing an SDK configuration.
+-spec create_tracer_provider(map()) ->
+          {ok, tracer_provider_configuration()} | {error, error_reason()}.
+create_tracer_provider(Configuration) ->
+    try
+        {ok, resolve_tracer_provider_configuration(Configuration, #{})}
     catch
         throw:{declarative_configuration_error, Reason} ->
             {error, Reason}
@@ -493,22 +507,26 @@ propagator_name(<<"b3multi">>) -> b3multi;
 propagator_name(Name) ->
     fail({unsupported_configuration, [propagator, composite_list], Name}).
 
-resolve_tracer_provider(Configuration) ->
+resolve_tracer_provider(Configuration, Erlang) ->
     case find(tracer_provider, Configuration) of
         error -> undefined;
         {ok, null} -> undefined;
-        {ok, TracerProvider} when is_map(TracerProvider) ->
-            reject_present('tracer_configurator/development', TracerProvider,
-                           [tracer_provider, 'tracer_configurator/development']),
-            validate_tracer_limits(TracerProvider),
-            Processors = required(processors, TracerProvider,
-                                  [tracer_provider, processors]),
-            #{processors => resolve_span_processors(Processors),
-              sampler => resolve_sampler(TracerProvider),
-              id_generator => resolve_id_generator(TracerProvider)};
-        {ok, Value} ->
-            fail({invalid_configuration, [tracer_provider], Value})
+        {ok, TracerProvider} ->
+            resolve_tracer_provider_configuration(TracerProvider, Erlang)
     end.
+
+resolve_tracer_provider_configuration(TracerProvider, Erlang) when is_map(TracerProvider) ->
+    reject_present('tracer_configurator/development', TracerProvider,
+                   [tracer_provider, 'tracer_configurator/development']),
+    validate_tracer_limits(TracerProvider),
+    Processors = required(processors, TracerProvider,
+                          [tracer_provider, processors]),
+    #{processors => resolve_span_processors(Processors),
+      sampler => resolve_sampler(TracerProvider),
+      id_generator => resolve_id_generator(TracerProvider),
+      deny_list => maps:get(deny_list, Erlang, [])};
+resolve_tracer_provider_configuration(Value, _Erlang) ->
+    fail({invalid_configuration, [tracer_provider], Value}).
 
 resolve_sampler(TracerProvider) ->
     case find(sampler, TracerProvider) of
