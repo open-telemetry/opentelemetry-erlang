@@ -50,6 +50,8 @@ otel_environment() ->
 
 zero_config_starts_sdk(_Config) ->
     {ok, Runtime} = otel_configuration_source:resolve([]),
+    ?assertNot(maps:is_key(log_level, otel_configuration_model:root(
+                                      otel_configuration_sdk:source(Runtime)))),
     ?assertEqual(environment, otel_configuration_model:source(otel_configuration_sdk:source(Runtime))),
     ?assertEqual([trace_context, baggage], otel_configuration_sdk:text_map_propagators(Runtime)),
     ?assertMatch(#{sampler := {parent_based, #{root := always_on}},
@@ -69,7 +71,8 @@ zero_config_starts_sdk(_Config) ->
                  opentelemetry:get_text_map_injector()).
 
 environment_configures_sdk(_Config) ->
-    set_environment([{"OTEL_EXPORTER_OTLP_ENDPOINT", "http://collector:4318/prefix/"},
+    set_environment([{"OTEL_LOG_LEVEL", "debug"},
+                     {"OTEL_EXPORTER_OTLP_ENDPOINT", "http://collector:4318/prefix/"},
                      {"OTEL_SERVICE_NAME", "checkout"},
                      {"OTEL_SERVICE_INSTANCE", "instance-1"},
                      {"OTEL_RESOURCE_ATTRIBUTES", "service.name=lower-priority,region=ca,note=a%3Db"},
@@ -82,6 +85,9 @@ environment_configures_sdk(_Config) ->
                      {"OTEL_ATTRIBUTE_COUNT_LIMIT", "64"},
                      {"OTEL_SPAN_EVENT_COUNT_LIMIT", "12"}]),
     {ok, Runtime} = otel_configuration_source:resolve([]),
+    ?assertEqual(debug, maps:get(log_level, otel_configuration_model:root(
+                                           otel_configuration_sdk:source(Runtime)))),
+    ?assertNot(maps:is_key(log_level, Runtime)),
     ?assertMatch(#{sampler := {parent_based, #{root := {trace_id_ratio_based, 0.25}}},
                    processors := [{otel_batch_processor, #{schedule_delay := 42,
                                                            export_timeout := 123,

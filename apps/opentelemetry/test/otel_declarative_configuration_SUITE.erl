@@ -662,6 +662,7 @@ warns_about_unimplemented_settings(_Config) ->
                             #{level => warning, config => #{pid => self()}}),
     try
         Input = #{file_format => <<"1.1">>,
+                  log_level => <<"debug3">>,
                   attribute_limits => #{attribute_value_depth_limit => 64},
                   resource => #{'detection/development' => #{}},
                   logger_provider => #{processors => []},
@@ -681,6 +682,7 @@ warns_about_unimplemented_settings(_Config) ->
         {ok, Resolved} = otel_configuration_declarative:resolve(Input),
         ?assertEqual(Input, otel_configuration_model:root(
                               otel_configuration_sdk:source(Resolved))),
+        ?assertNot(maps:is_key(log_level, Resolved)),
         #{processors := [{otel_batch_processor, Processor}]} =
             otel_configuration_sdk:tracer_provider(Resolved),
         ?assertNot(maps:is_key(max_export_batch_size, Processor)),
@@ -688,7 +690,7 @@ warns_about_unimplemented_settings(_Config) ->
                       #{protocol := grpc,
                         endpoints := [<<"https://collector:4317">>],
                         ssl_options := undefined}}, maps:get(exporter, Processor)),
-        Expected = [[logger_provider], [meter_provider],
+        Expected = [[log_level], [logger_provider], [meter_provider],
                     [resource, 'detection/development'],
                     [attribute_limits, attribute_value_depth_limit],
                     [tracer_provider, limits, attribute_value_depth_limit],
@@ -701,7 +703,7 @@ warns_about_unimplemented_settings(_Config) ->
         ?assertEqual(lists:sort(Expected), lists:sort(configuration_warnings())),
         %% Null properties retain default behavior without warning.
         {ok, _} = otel_configuration_declarative:resolve(
-                    #{file_format => <<"1.1">>, logger_provider => null,
+                    #{file_format => <<"1.1">>, log_level => null, logger_provider => null,
                       meter_provider => null,
                       attribute_limits => #{attribute_value_depth_limit => null},
                       tracer_provider =>
@@ -730,7 +732,8 @@ configuration_warnings() ->
     end.
 
 rejects_invalid_unimplemented_settings(_Config) ->
-    Cases = [{[attribute_limits, attribute_value_depth_limit], 0},
+    Cases = [{[log_level], <<"invalid">>},
+             {[attribute_limits, attribute_value_depth_limit], 0},
              {[tracer_provider, limits, attribute_value_depth_limit], -1},
              {[logger_provider], false},
              {[meter_provider], []}],

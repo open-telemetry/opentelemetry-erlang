@@ -113,8 +113,7 @@
           text_map_propagators := [atom() | {module(), component_properties()}],
           span_limits := resolved_span_limits(),
           tracer_provider := tracer_provider_configuration() | undefined,
-          distribution := distribution_configuration(),
-          log_level => atom()}.
+          distribution := distribution_configuration()}.
 
 -export_type([error_reason/0,
               configuration/0,
@@ -137,13 +136,13 @@
 create(Model) ->
     Raw = otel_configuration_model:root(Model),
     try
-        validate_top_level(Raw),
+        warn_unsupported(log_level, Raw, [log_level], fun log_level/2),
         validate_distribution(Raw),
         validate_attribute_limits(Raw),
         warn_unsupported(logger_provider, Raw, [logger_provider], fun component_map/2),
         warn_unsupported(meter_provider, Raw, [meter_provider], fun component_map/2),
         Distribution = #{erlang := Erlang} = resolve_distribution(Raw),
-        Configuration0 =
+        Configuration =
             #{source => Model,
               file_format => otel_configuration_model:file_format(Model),
               disabled => resolve_disabled(Raw),
@@ -152,7 +151,7 @@ create(Model) ->
               span_limits => resolve_span_limits(Raw),
               tracer_provider => resolve_tracer_provider(Raw, Erlang),
               distribution => Distribution},
-        {ok, maybe_put_log_level(Raw, Configuration0)}
+        {ok, Configuration}
     catch
         throw:{declarative_configuration_error, Reason} ->
             {error, Reason}
@@ -316,27 +315,11 @@ limit(Key, Map, MissingDefault, NullDefault) ->
         {ok, Value} -> Value
     end.
 
-validate_top_level(Configuration) ->
-    case find(log_level, Configuration) of
-        error -> ok;
-        {ok, null} -> ok;
-        {ok, undefined} -> ok;
-        {ok, Value} -> _ = log_level(Value), ok
-    end.
-
 resolve_disabled(Configuration) ->
     case value(disabled, Configuration, false) of
         true -> true;
         false -> false;
         Value -> fail({invalid_configuration, [disabled], Value})
-    end.
-
-maybe_put_log_level(Configuration, Resolved) ->
-    case find(log_level, Configuration) of
-        error -> Resolved;
-        {ok, null} -> Resolved;
-        {ok, undefined} -> Resolved;
-        {ok, Value} -> Resolved#{log_level => log_level(Value)}
     end.
 
 validate_distribution(Configuration) ->
@@ -414,7 +397,7 @@ validate_erlang_distribution(Erlang) ->
             fail({invalid_configuration, [distribution, erlang, sweeper], Value})
     end.
 
-log_level(Value) ->
+log_level(Value, Path) ->
     enum(Value,
          [{<<"trace">>, trace}, {<<"trace2">>, trace2},
           {<<"trace3">>, trace3}, {<<"trace4">>, trace4},
@@ -428,7 +411,7 @@ log_level(Value) ->
           {<<"error3">>, error3}, {<<"error4">>, error4},
           {<<"fatal">>, fatal}, {<<"fatal2">>, fatal2},
           {<<"fatal3">>, fatal3}, {<<"fatal4">>, fatal4}],
-         [log_level]).
+         Path).
 
 resource_attributes(Attributes) when is_list(Attributes) ->
     lists:filtermap(

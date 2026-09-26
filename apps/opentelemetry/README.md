@@ -178,13 +178,17 @@ yet. Their presence produces a warning. Metrics remain the responsibility of
 the experimental application while that implementation is being redesigned.
 
 Some optional settings are retained but ignored with a warning identifying the
-configuration path: attribute value depth limits, `max_export_batch_size`,
+configuration path: `log_level`, attribute value depth limits, `max_export_batch_size`,
 OTLP exporter `timeout`, `max_request_size` and `max_response_size`, gRPC
 `tls.insecure`, resource `detection/development`, and
 `tracer_configurator/development`. The corresponding SDK behavior remains
 unchanged; accepting these properties does not implement their limits or
 features. For gRPC transport security, use an explicit `http://` or `https://`
 endpoint. Invalid values and unresolved components still return errors.
+
+`log_level` (including `OTEL_LOG_LEVEL` in zero-config mode) is validated and
+retained in the source model but does not control SDK logging yet. Configure
+Erlang/OTP's `logger` directly to control log output.
 
 For `tracer_provider.limits.attribute_count_limit` and
 `attribute_value_length_limit`, omission inherits the corresponding

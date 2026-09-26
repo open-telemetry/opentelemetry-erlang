@@ -24,19 +24,20 @@
 
 -spec configuration() -> map().
 configuration() ->
-    #{file_format => <<"1.1">>,
-      disabled => read("OTEL_SDK_DISABLED", fun boolean/1, false),
-      log_level => read("OTEL_LOG_LEVEL", fun log_level/1, info),
-      resource => resource(),
-      propagator => #{composite => propagators()},
-      attribute_limits => limits(attribute_limits),
-      tracer_provider =>
-          #{processors => [{batch, batch()}],
-            sampler => sampler(),
-            limits => limits(span_limits),
-            id_generator => read("OTEL_ID_GENERATOR", fun list_to_existing_atom/1,
-                                 otel_id_generator)},
-      distribution => #{erlang => erlang_distribution()}}.
+    Configuration =
+        #{file_format => <<"1.1">>,
+          disabled => read("OTEL_SDK_DISABLED", fun boolean/1, false),
+          resource => resource(),
+          propagator => #{composite => propagators()},
+          attribute_limits => limits(attribute_limits),
+          tracer_provider =>
+              #{processors => [{batch, batch()}],
+                sampler => sampler(),
+                limits => limits(span_limits),
+                id_generator => read("OTEL_ID_GENERATOR", fun list_to_existing_atom/1,
+                                     otel_id_generator)},
+          distribution => #{erlang => erlang_distribution()}},
+    maps:merge(Configuration, mappings([{"OTEL_LOG_LEVEL", log_level}], fun log_level/1)).
 
 batch() ->
     #{exporter => exporter(),

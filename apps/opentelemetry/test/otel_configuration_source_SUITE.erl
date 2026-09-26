@@ -74,28 +74,30 @@ file_configuration_takes_precedence(Config) ->
     os:putenv("OTEL_CONFIG_FILE", StableFile),
     os:putenv("OTEL_LOG_LEVEL", "fatal4"),
     {ok, Stable} = otel_configuration_source:resolve(AppEnv),
-    ?assertEqual(debug,
-                 otel_configuration_sdk:value(log_level, Stable, undefined)),
+    ?assertEqual(<<"debug">>,
+                 maps:get(<<"log_level">>, otel_configuration_model:root(
+                                           otel_configuration_sdk:source(Stable)))),
 
     os:unsetenv("OTEL_CONFIG_FILE"),
     {ok, Application} = otel_configuration_source:resolve(AppEnv),
     ?assertEqual(fatal,
-                 otel_configuration_sdk:value(log_level, Application, undefined)).
+                 maps:get(log_level, otel_configuration_model:root(
+                                       otel_configuration_sdk:source(Application)))).
 
 empty_file_environment_uses_application_configuration(_Config) ->
     os:putenv("OTEL_CONFIG_FILE", ""),
     {ok, Application} = otel_configuration_source:resolve(
                           [{log_level, error}]),
     ?assertEqual(error,
-                 otel_configuration_sdk:value(log_level, Application, undefined)),
+                 maps:get(log_level, otel_configuration_model:root(
+                                       otel_configuration_sdk:source(Application)))),
 
     os:putenv("OTEL_EXPERIMENTAL_CONFIG_FILE", "/not/read.json"),
     os:putenv("OTEL_LOG_LEVEL", "debug"),
     {ok, StillApplication} = otel_configuration_source:resolve([{log_level, info}]),
     ?assertEqual(info,
-                 otel_configuration_sdk:value(log_level,
-                                              StillApplication,
-                                              undefined)).
+                 maps:get(log_level, otel_configuration_model:root(
+                                       otel_configuration_sdk:source(StillApplication)))).
 
 application_environment_matches_json(_Config) ->
     JsonConfiguration =
