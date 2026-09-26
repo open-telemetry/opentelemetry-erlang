@@ -13,7 +13,8 @@
 %% TODO: negative testing. What a valid value is is still in flux so nothing bothering
 %% to write tests to limit what can be a value only have them become valid values.
 all() ->
-    [startup, startup_env_service_name, os_env_resource, app_env_resource, combining,
+    [startup, startup_env_service_name, startup_configured_service_name,
+     os_env_resource, os_env_service_name, app_env_resource, combining,
      combining_conflicting_schemas, crash_detector, timeout_detector, release_service_name,
      unknown_service_name, release_service_name_no_version, service_instance_id_ignores_legacy_env,
      service_instance_id_env_attributes, {group, net_kernel_node_name}, service_instance_id_node_id2,
@@ -86,9 +87,28 @@ startup_env_service_name(_Config) ->
         Resource = otel_tracer_provider:resource(),
         _ = application:stop(opentelemetry),
 
-        ?assertMatch(#{'service.name' := <<"cttest">>,
+        ?assertMatch(#{'service.name' := <<"env-service-name">>,
                        'service.version' := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Resource))),
         ok
+    after
+        os:unsetenv("OTEL_SERVICE_NAME"),
+        os:unsetenv("OTEL_RESOURCE_ATTRIBUTES"),
+        application:stop(opentelemetry),
+        application:unload(opentelemetry)
+    end.
+
+startup_configured_service_name(_Config) ->
+    try
+        os:putenv("OTEL_SERVICE_NAME", "env-service-name"),
+        os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=1.1.1"),
+        configure_resource_startup(),
+        application:set_env(opentelemetry, resource,
+                            #{attributes => #{<<"service.name">> => <<"configured">>}}),
+        {ok, _} = application:ensure_all_started(opentelemetry),
+        Resource = otel_tracer_provider:resource(),
+        ?assertMatch(#{'service.name' := <<"configured">>,
+                       'service.version' := <<"1.1.1">>},
+                     otel_attributes:map(otel_resource:attributes(Resource)))
     after
         os:unsetenv("OTEL_SERVICE_NAME"),
         os:unsetenv("OTEL_RESOURCE_ATTRIBUTES"),
@@ -156,6 +176,33 @@ os_env_resource(_Config) ->
     Expected = [{"service.name", "cttest"}, {"service.version", "1.1.1"}],
     ?assertEqual(Expected, Resource),
     ok.
+
+os_env_service_name(_Config) ->
+    Variables = ["OTEL_SERVICE_NAME", "OTEL_RESOURCE_ATTRIBUTES"],
+    Saved = [{Name, os:getenv(Name)} || Name <- Variables],
+    try
+        lists:foreach(
+          fun({ServiceName, Attributes, Expected}) ->
+              set_env_var("OTEL_SERVICE_NAME", ServiceName),
+              set_env_var("OTEL_RESOURCE_ATTRIBUTES", Attributes),
+              Resource = otel_resource_env_var:get_resource(#{}),
+              ?assertEqual(Expected, otel_attributes:map(otel_resource:attributes(Resource)))
+          end,
+          [{false, false, #{}},
+           {"", false, #{}},
+           {"env-service", false, #{'service.name' => <<"env-service">>}},
+           {false, "service.name=attributes-service",
+            #{'service.name' => <<"attributes-service">>}},
+           {"", "service.name=attributes-service",
+            #{'service.name' => <<"attributes-service">>}},
+           {"env-service", "service.name=attributes-service,service.version=1.0",
+            #{'service.name' => <<"env-service">>, 'service.version' => <<"1.0">>}}])
+    after
+        lists:foreach(fun({Name, Value}) -> set_env_var(Name, Value) end, Saved)
+    end.
+
+set_env_var(Name, false) -> os:unsetenv(Name);
+set_env_var(Name, Value) -> os:putenv(Name, Value).
 
 app_env_resource(_Config) ->
     Attributes = #{a => [{b,[{c,d}]}], service => #{name => <<"hello">>}},

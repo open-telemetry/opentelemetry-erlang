@@ -17,10 +17,12 @@
 %%
 %% This resource detector reads the `OTEL_RESOURCE_ATTRIBUTES' environment
 %% variable and parses it as a comma-separated list of key-value pairs. For
-% example, `key1=val1,key2=val2'.
+%% example, `key1=val1,key2=val2'. `OTEL_SERVICE_NAME', when nonempty, overrides
+%% the `service.name' attribute from that list.
 %%
-%% This detector is on by default (see the default configuration for `resource_detectors' in the
-%% `opentelemetry' application environment).
+%% With explicit SDK configuration, enable this detector through
+%% `distribution => #{erlang => #{resource_detectors => [otel_resource_env_var]}}'.
+%% Explicitly configured resource attributes take precedence over detected attributes.
 %% @end
 %%%-----------------------------------------------------------------------
 -module(otel_resource_env_var).
@@ -36,7 +38,14 @@
 
 %% @private
 get_resource(_Config) ->
-    otel_resource:create(parse(os:getenv(?OS_ENV))).
+    Resource = otel_resource:create(parse(os:getenv(?OS_ENV))),
+    case os:getenv("OTEL_SERVICE_NAME") of
+        Unset when Unset =:= false; Unset =:= "" ->
+            Resource;
+        ServiceName ->
+            otel_resource:merge(otel_resource:create([{"service.name", ServiceName}]),
+                                Resource)
+    end.
 
 %%
 

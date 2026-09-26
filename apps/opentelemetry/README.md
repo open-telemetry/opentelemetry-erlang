@@ -253,9 +253,13 @@ Settings specific to this SDK live under `distribution.erlang`:
                storage_size => infinity}}}}
 ```
 
-Resource environment variables are only read when the corresponding resource
-detector is explicitly configured. Portable resource attributes should usually
-be supplied through the standard `resource` section.
+With explicit SDK configuration, resource environment variables are only read
+when the corresponding resource detector is explicitly configured.
+`otel_resource_env_var` reads `OTEL_RESOURCE_ATTRIBUTES` and `OTEL_SERVICE_NAME`;
+a nonempty `OTEL_SERVICE_NAME` overrides `service.name` from
+`OTEL_RESOURCE_ATTRIBUTES`. Attributes supplied through the standard `resource`
+section take precedence over detected attributes. Without any SDK configuration,
+the environment defaults described above read these variables automatically.
 
 The span sweeper periodically handles spans for which `end_span` was never
 called. Its strategies are `drop`, `end_span`, and
