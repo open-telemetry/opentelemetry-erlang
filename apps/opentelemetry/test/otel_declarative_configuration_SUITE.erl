@@ -16,7 +16,9 @@ all() ->
      rejects_invalid_key_value_list_escaping,
      preserves_model_semantics,
      resolves_builtin_processor_aliases,
+     rejects_invalid_builtin_processor_settings,
      resolves_erlang_application_extensions,
+     normalizes_json_sweeper_settings,
      configured_resource_takes_precedence,
      rejects_unsupported_configuration,
      ignores_unknown_top_level_properties_without_creating_atoms].
@@ -305,6 +307,35 @@ resolves_builtin_processor_aliases(_Config) ->
                   otel_simple_processor],
                  [Module || {Module, _} <- Processors]).
 
+rejects_invalid_builtin_processor_settings(_Config) ->
+    assert_invalid_processor_setting(batch, schedule_delay, -1),
+    assert_invalid_processor_setting(batch, schedule_delay, <<"1">>),
+    assert_invalid_processor_setting(batch, export_timeout, -1),
+    assert_invalid_processor_setting(simple, export_timeout, -1),
+    assert_invalid_processor_setting(batch, max_queue_size, 0),
+    assert_invalid_processor_setting(batch, check_table_size, -1),
+
+    {ok, Model} = otel_configuration_model:from_application_env(
+                    [{tracer_provider,
+                      #{processors =>
+                            [{batch,
+                              #{exporter => none,
+                                schedule_delay => 0,
+                                export_timeout => 0,
+                                max_queue_size => 1,
+                                check_table_size => infinity}}]}}]),
+    ?assertMatch({ok, _}, otel_configuration_sdk:create(Model)).
+
+assert_invalid_processor_setting(Kind, Key, Value) ->
+    {ok, Model} = otel_configuration_model:from_application_env(
+                    [{tracer_provider,
+                      #{processors =>
+                            [{Kind, #{exporter => none, Key => Value}}]}}]),
+    ?assertEqual({error,
+                  {invalid_configuration,
+                   [tracer_provider, processors, Kind, Key], Value}},
+                 otel_configuration_sdk:create(Model)).
+
 resolves_erlang_application_extensions(_Config) ->
     {ok, Model} = otel_configuration_model:from_application_env(
                     [{distribution,
@@ -338,6 +369,35 @@ resolves_erlang_application_extensions(_Config) ->
                  otel_configuration_sdk:sampler(TracerProvider)),
     ?assertEqual(custom_id_generator,
                  otel_configuration_sdk:id_generator(TracerProvider)).
+
+normalizes_json_sweeper_settings(_Config) ->
+    {ok, Resolved} = otel_configuration_declarative:resolve(
+        #{<<"file_format">> => <<"1.1">>,
+          <<"distribution">> =>
+              #{<<"erlang">> =>
+                    #{<<"sweeper">> =>
+                          #{<<"interval">> => 123,
+                            <<"span_ttl">> => 456,
+                            <<"storage_size">> => 789,
+                            <<"strategy">> => <<"end_span">>}}}}),
+    ?assertEqual(#{interval => 123,
+                   span_ttl => 456,
+                   storage_size => 789,
+                   strategy => end_span},
+                 otel_configuration_sdk:value(
+                   sweeper,
+                   otel_configuration_sdk:erlang_distribution(Resolved),
+                   undefined)),
+
+    ?assertMatch(
+       {error,
+        {invalid_configuration,
+         [distribution, erlang, sweeper, interval], -1}},
+       otel_configuration_declarative:resolve(
+         #{<<"file_format">> => <<"1.1">>,
+           <<"distribution">> =>
+               #{<<"erlang">> =>
+                     #{<<"sweeper">> => #{<<"interval">> => -1}}}})).
 
 preserves_resource_attribute_types(_Config) ->
     {ok, Resolved} = otel_configuration_declarative:resolve(

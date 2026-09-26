@@ -91,8 +91,14 @@
           deny_list => [term()],
           resource_detectors => [module() | {module(), term()}],
           resource_detector_timeout => non_neg_integer(),
-          sweeper => component_properties(),
+          sweeper => sweeper_configuration(),
           term() => term()}.
+-type sweeper_configuration() ::
+        #{interval => timeout(),
+          strategy => drop | end_span | failed_attribute_and_end_span |
+                      fun((opentelemetry:span()) -> ok),
+          span_ttl => timeout(),
+          storage_size => non_neg_integer() | infinity}.
 -type distribution_configuration() ::
         #{erlang := erlang_distribution_configuration()}.
 -type configuration() ::
@@ -342,7 +348,7 @@ resolve_distribution(Configuration) ->
     end.
 
 resolve_erlang_distribution(Erlang) ->
-    lists:foldl(
+    Resolved = lists:foldl(
       fun(Key, Acc) ->
               case find(Key, Erlang) of
                   {ok, Value} when Value =/= null, Value =/= undefined ->
@@ -352,8 +358,32 @@ resolve_erlang_distribution(Erlang) ->
       end, #{}, [create_application_tracers,
                  deny_list,
                  resource_detectors,
-                 resource_detector_timeout,
-                 sweeper]).
+                 resource_detector_timeout]),
+    case find(sweeper, Erlang) of
+        {ok, Sweeper} when is_map(Sweeper) ->
+            Resolved#{sweeper => resolve_sweeper(Sweeper)};
+        _ ->
+            Resolved
+    end.
+
+resolve_sweeper(Sweeper) ->
+    Path = [distribution, erlang, sweeper],
+    Resolved0 = copy_validated(interval, Sweeper, #{}, Path,
+                               fun timeout_value/2),
+    Resolved1 = copy_validated(span_ttl, Sweeper, Resolved0, Path,
+                               fun timeout_value/2),
+    Resolved2 = copy_validated(storage_size, Sweeper, Resolved1, Path,
+                               fun size_value/2),
+    copy_validated(strategy, Sweeper, Resolved2, Path,
+                   fun sweeper_strategy/2).
+
+sweeper_strategy(Value, _Path) when is_function(Value, 1) -> Value;
+sweeper_strategy(Value, Path) ->
+    enum(Value,
+         [{<<"drop">>, drop},
+          {<<"end_span">>, end_span},
+          {<<"failed_attribute_and_end_span">>, failed_attribute_and_end_span}],
+         Path).
 
 validate_erlang_distribution(Erlang) ->
     case find(sweeper, Erlang) of
@@ -535,20 +565,45 @@ resolve_processor_config(Kind, Config) ->
     end,
     Exporter = required(exporter, Config, Path ++ [exporter]),
     Resolved0 = #{exporter => resolve_span_exporter(Exporter)},
-    Keys = case Kind of
-               batch -> [schedule_delay, export_timeout, max_queue_size, check_table_size];
-               simple -> [export_timeout]
-           end,
-    copy_present(Keys, Config, Resolved0).
+    Resolved1 = copy_validated(export_timeout, Config, Resolved0, Path,
+                               fun non_negative_integer/2),
+    case Kind of
+        batch ->
+            Resolved2 = copy_validated(schedule_delay, Config, Resolved1, Path,
+                                       fun non_negative_integer/2),
+            Resolved3 = copy_validated(max_queue_size, Config, Resolved2, Path,
+                                       fun positive_integer/2),
+            copy_validated(check_table_size, Config, Resolved3, Path,
+                           fun timeout_value/2);
+        simple ->
+            Resolved1
+    end.
 
-copy_present([], _Source, Target) -> Target;
-copy_present([Key | Rest], Source, Target) ->
+copy_validated(Key, Source, Target, Path, Validator) ->
     case find(Key, Source) of
         {ok, Value} when Value =/= null, Value =/= undefined ->
-            copy_present(Rest, Source, Target#{Key => Value});
+            Target#{Key => Validator(Value, Path ++ [Key])};
         _ ->
-            copy_present(Rest, Source, Target)
+            Target
     end.
+
+non_negative_integer(Value, _Path) when is_integer(Value), Value >= 0 -> Value;
+non_negative_integer(Value, Path) ->
+    fail({invalid_configuration, Path, Value}).
+
+positive_integer(Value, _Path) when is_integer(Value), Value > 0 -> Value;
+positive_integer(Value, Path) ->
+    fail({invalid_configuration, Path, Value}).
+
+timeout_value(infinity, _Path) -> infinity;
+timeout_value(<<"infinity">>, _Path) -> infinity;
+timeout_value("infinity", _Path) -> infinity;
+timeout_value(Value, Path) -> non_negative_integer(Value, Path).
+
+size_value(infinity, _Path) -> infinity;
+size_value(<<"infinity">>, _Path) -> infinity;
+size_value("infinity", _Path) -> infinity;
+size_value(Value, Path) -> non_negative_integer(Value, Path).
 
 validate_tracer_limits(TracerProvider) ->
     case find(limits, TracerProvider) of
@@ -681,7 +736,9 @@ otlp_ssl_options(Value) ->
 
 resolve_span_exporter({opentelemetry_exporter, Options}) when is_map(Options) ->
     case maps:is_key(protocol, Options) of
-        true -> {opentelemetry_exporter, Options};
+        true ->
+            {opentelemetry_exporter,
+             Options#{configuration_source => declarative}};
         false -> fail({invalid_configuration,
                        [tracer_provider, processors, exporter], Options})
     end;

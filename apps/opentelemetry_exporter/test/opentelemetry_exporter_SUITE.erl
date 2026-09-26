@@ -18,7 +18,8 @@ all() ->
      {group, grpc}, {group, grpc_gzip}].
 
 groups() ->
-    [{functional, [], [configuration, span_round_trip, span_flags,
+    [{functional, [], [configuration, declarative_module_exporter_precedence,
+                       span_round_trip, span_flags,
                        ets_instrumentation_info, to_any_value_boolean, to_attributes]},
      {grpc, [], [verify_export]},
      {grpc_gzip, [], [verify_export]},
@@ -241,6 +242,40 @@ configuration(_Config) ->
         os:unsetenv("OTEL_EXPORTER_OTLP_HEADERS"),
         os:unsetenv("OTEL_EXPORTER_OTLP_TRACES_HEADERS"),
         os:unsetenv("OTEL_EXPORTER_OTLP_PROTOCOL")
+    end.
+
+declarative_module_exporter_precedence(_Config) ->
+    ConfiguredEndpoint = <<"http://configured.example/v1/traces">>,
+    os:putenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+              "http://environment.example/v1/traces"),
+    try
+        {ok, Model} = otel_configuration_model:from_application_env(
+                        [{tracer_provider,
+                          #{processors =>
+                                [{simple,
+                                  #{exporter =>
+                                        {opentelemetry_exporter,
+                                         #{endpoints => [ConfiguredEndpoint],
+                                           headers => [],
+                                           protocol => http_protobuf,
+                                           compression => undefined,
+                                           ssl_options => undefined}}}}]}}]),
+        {ok, Resolved} = otel_configuration_sdk:create(Model),
+        TracerProvider = #{} = otel_configuration_sdk:tracer_provider(Resolved),
+        [Processor] = otel_configuration_sdk:span_processors(TracerProvider),
+        Exporter = {opentelemetry_exporter, #{}} =
+            otel_configuration_sdk:span_exporter_component(
+              element(2,
+                      otel_configuration_sdk:span_processor_component(
+                        Processor))),
+        Options = otel_configuration_sdk:otlp_exporter_options(Exporter),
+        ?assertEqual(declarative, maps:get(configuration_source, Options)),
+        ?assertEqual([ConfiguredEndpoint],
+                     maps:get(endpoints,
+                              otel_exporter_traces_otlp:merge_with_environment(
+                                Options)))
+    after
+        os:unsetenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
     end.
 
 ets_instrumentation_info(_Config) ->
