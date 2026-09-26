@@ -797,6 +797,8 @@ resolve_span_exporter({otlp_http, Config}) ->
     otlp_exporter(http, Config);
 resolve_span_exporter({otlp_grpc, Config}) ->
     otlp_exporter(grpc, Config);
+resolve_span_exporter({console, Config}) ->
+    console_exporter(Config);
 resolve_span_exporter({Module, Config}) when is_atom(Module) ->
     {Module, Config};
 resolve_span_exporter(Exporter) ->
@@ -806,6 +808,7 @@ validate_span_exporter(Exporter) when is_map(Exporter), map_size(Exporter) =:= 1
     case first_entry(Exporter) of
         {otlp_http, Config0} -> otlp_exporter(http, Config0);
         {otlp_grpc, Config0} -> otlp_exporter(grpc, Config0);
+        {console, Config0} -> console_exporter(Config0);
         {opentelemetry_exporter, Config} ->
             resolve_span_exporter({opentelemetry_exporter, Config});
         {Name, Config} when is_atom(Name) -> {Name, null_to_map(Config)};
@@ -814,6 +817,14 @@ validate_span_exporter(Exporter) when is_map(Exporter), map_size(Exporter) =:= 1
     end;
 validate_span_exporter(Value) ->
     fail({invalid_configuration, [tracer_provider, processors, exporter], Value}).
+
+console_exporter(Config0) ->
+    Path = [exporter, console],
+    Config = component_map(Config0, Path),
+    case map_size(Config) of
+        0 -> {otel_exporter_stdout, Config};
+        _ -> fail({invalid_configuration, Path, Config})
+    end.
 
 otlp_exporter(Transport, Config0) ->
     Path = [exporter, otlp_transport(Transport)],
@@ -935,6 +946,7 @@ known_key(<<"batch">>) -> batch;
 known_key(<<"simple">>) -> simple;
 known_key(<<"otlp_http">>) -> otlp_http;
 known_key(<<"otlp_grpc">>) -> otlp_grpc;
+known_key(<<"console">>) -> console;
 known_key(<<"periodic">>) -> periodic;
 known_key(<<"pull">>) -> pull;
 known_key(<<"tracecontext">>) -> tracecontext;

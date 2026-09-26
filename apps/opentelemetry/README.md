@@ -156,6 +156,19 @@ When migrating older native configurations, rename `scheduled_delay_ms` to
 Batch-only options are not accepted by `simple`. Custom processors retain
 control over their own option names.
 
+The built-in span exporter names are `otlp_http`, `otlp_grpc`, and `console`.
+`console` uses `otel_exporter_stdout` to print spans for debugging and has no
+options. For example, native configuration can use:
+
+```erlang
+{tracer_provider,
+ #{processors => [{simple, #{exporter => {console, #{}}}}]}}
+```
+
+The equivalent JSON processor is
+`{"simple": {"exporter": {"console": {}}}}`. `{"console": null}` is also
+accepted. Both `simple` and `batch` support this exporter.
+
 In an explicit file or native configuration, missing `tracer_provider` and
 `propagator` sections have the declarative model's no-op behavior. For example,
 `{tracer_provider, null}` explicitly disables provider creation without opting

@@ -17,6 +17,8 @@ all() ->
      rejects_invalid_key_value_list_escaping,
      preserves_model_semantics,
      resolves_builtin_processor_aliases,
+     resolves_console_exporter,
+     rejects_invalid_console_exporter_settings,
      rejects_invalid_builtin_processor_settings,
      rejects_unknown_builtin_processor_settings,
      resolves_erlang_application_extensions,
@@ -346,6 +348,49 @@ resolves_builtin_processor_aliases(_Config) ->
                   otel_batch_processor,
                   otel_simple_processor],
                  [Module || {Module, _} <- Processors]).
+
+resolves_console_exporter(_Config) ->
+    lists:foreach(
+      fun({Kind, Module}) ->
+              lists:foreach(
+                fun(Options) ->
+                        Expected = {otel_exporter_stdout, #{}},
+                        lists:foreach(
+                          fun(Component) ->
+                                  Native = #{processors => [{Kind, #{exporter => Component}}]},
+                                  {ok, Model} = otel_configuration_model:from_application_env(
+                                                  [{tracer_provider, Native}]),
+                                  {ok, Resolved} = otel_configuration_sdk:create(Model),
+                                  Provider = #{} = otel_configuration_sdk:tracer_provider(Resolved),
+                                  {ok, Provider} = otel_configuration_sdk:create_tracer_provider(Native),
+                                  ?assertMatch([{Module, #{exporter := Expected}}],
+                                               otel_configuration_sdk:span_processors(Provider))
+                          end, [{console, Options}, #{console => Options}]),
+                        {ok, JsonResolved} = otel_configuration_declarative:resolve(
+                            #{<<"file_format">> => <<"1.1">>,
+                              <<"tracer_provider">> =>
+                                  #{<<"processors">> =>
+                                        [#{atom_to_binary(Kind, utf8) =>
+                                               #{<<"exporter">> => #{<<"console">> => Options}}}]}}),
+                        JsonProvider = #{} = otel_configuration_sdk:tracer_provider(JsonResolved),
+                        [{Module, #{exporter := Exporter}}] =
+                            otel_configuration_sdk:span_processors(JsonProvider),
+                        ?assertEqual(Expected, Exporter),
+                        %% Exercise the same exporter initialization used by processors.
+                        ?assertEqual({otel_exporter_stdout, []}, otel_exporter:init(Exporter))
+                end, [#{}, null])
+      end, [{simple, otel_simple_processor}, {batch, otel_batch_processor}]).
+
+rejects_invalid_console_exporter_settings(_Config) ->
+    lists:foreach(
+      fun(Options) ->
+              lists:foreach(
+                fun(Component) ->
+                        ?assertEqual({error, {invalid_configuration, [exporter, console], Options}},
+                                     otel_configuration_sdk:create_tracer_provider(
+                                       #{processors => [{simple, #{exporter => Component}}]}))
+                end, [{console, Options}, #{console => Options}, #{<<"console">> => Options}])
+      end, [false, 1, <<"stdout">>, [], #{unsupported => true}, #{<<"unsupported">> => true}]).
 
 rejects_invalid_builtin_processor_settings(_Config) ->
     assert_invalid_processor_setting(batch, schedule_delay, -1),
