@@ -780,20 +780,15 @@ otlp_ssl_options(Value) ->
           [tracer_provider, processors, exporter, ssl_options], Value}).
 
 resolve_span_exporter({opentelemetry_exporter, Options}) when is_map(Options) ->
-    case maps:find(protocol, Options) of
-        {ok, Protocol} ->
-            Transport = case otlp_protocol(Protocol) of
-                            http_protobuf -> http;
-                            grpc -> grpc
-                        end,
-            {opentelemetry_exporter, Defaults} = otlp_exporter(Transport, #{}),
-            %% Keep implementation-specific options while supplying the same
-            %% defaults as aliases, without consulting another config source.
-            Resolved = maps:merge(Defaults, Options),
-            {opentelemetry_exporter, Resolved#{configuration_resolved => true}};
-        error -> fail({invalid_configuration,
-                       [tracer_provider, processors, exporter], Options})
-    end;
+    Transport = case otlp_protocol(maps:get(protocol, Options, http_protobuf)) of
+                    http_protobuf -> http;
+                    grpc -> grpc
+                end,
+    {opentelemetry_exporter, Defaults} = otlp_exporter(Transport, #{}),
+    %% Keep implementation-specific options while supplying the same
+    %% defaults as aliases, without consulting another config source.
+    Resolved = maps:merge(Defaults, Options),
+    {opentelemetry_exporter, Resolved#{configuration_resolved => true}};
 resolve_span_exporter({opentelemetry_exporter, Value}) ->
     fail({invalid_configuration, [tracer_provider, processors, exporter], Value});
 resolve_span_exporter(none) ->

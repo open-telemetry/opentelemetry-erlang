@@ -112,8 +112,10 @@ transport options are required:
 This map uses the implementation options `endpoints`, `headers`, `protocol`,
 `compression`, and `ssl_options`. When it appears under `tracer_provider`, it
 is treated as SDK configuration and is not overridden by application or OS
-environment values. `protocol` is required; omitted options receive the same
-OTLP defaults as the corresponding alias.
+environment values. `protocol` defaults to `http_protobuf`; omitted options
+receive the same OTLP defaults as the corresponding alias. In particular,
+`{opentelemetry_exporter, #{}}` uses HTTP/protobuf with the endpoint
+`http://localhost:4318/v1/traces`.
 
 ## Direct initialization compatibility
 

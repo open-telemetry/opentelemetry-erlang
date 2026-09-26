@@ -259,7 +259,9 @@ resolved_exporter_precedence(_Config) ->
         Components = [{otlp_http, #{endpoint => ConfiguredEndpoint}},
                       {otlp_grpc, #{endpoint => ConfiguredEndpoint}},
                       {opentelemetry_exporter, ModuleOptions},
-                      #{opentelemetry_exporter => ModuleOptions}],
+                      #{opentelemetry_exporter => ModuleOptions},
+                      {opentelemetry_exporter, maps:remove(protocol, ModuleOptions)},
+                      #{opentelemetry_exporter => maps:remove(protocol, ModuleOptions)}],
         lists:foreach(
           fun(Component) ->
                   Native = #{processors => [{simple, #{exporter => Component}}]},
@@ -274,18 +276,17 @@ resolved_exporter_precedence(_Config) ->
                       otel_configuration_sdk:span_processors(Provider),
                   Options = otel_configuration_sdk:otlp_exporter_options(
                               {opentelemetry_exporter, _} = Exporter),
+                  ?assertEqual([ConfiguredEndpoint], maps:get(endpoints, Options)),
                   ?assertEqual(true, maps:get(configuration_resolved, Options)),
                   ?assertEqual(maps:remove(configuration_resolved, Options),
                                otel_exporter_traces_otlp:merge_with_environment(Options))
           end, Components),
         %% Minimal module options get defaults without environment merging.
         lists:foreach(
-          fun({Protocol, Endpoint}) ->
+          fun({Component, Protocol, Endpoint}) ->
                   {ok, Provider} = otel_configuration_sdk:create_tracer_provider(
                                      #{processors =>
-                                           [{simple, #{exporter =>
-                                                           {opentelemetry_exporter,
-                                                            #{protocol => Protocol}}}}]}),
+                                           [{simple, #{exporter => Component}}]}),
                   [{otel_simple_processor, #{exporter := Exporter}}] =
                       otel_configuration_sdk:span_processors(Provider),
                   Options = otel_configuration_sdk:otlp_exporter_options(
@@ -294,8 +295,14 @@ resolved_exporter_precedence(_Config) ->
                                  protocol := Protocol, compression := undefined,
                                  ssl_options := undefined},
                                otel_exporter_traces_otlp:merge_with_environment(Options))
-          end, [{http_protobuf, <<"http://localhost:4318/v1/traces">>},
-                {grpc, <<"http://localhost:4317">>}]),
+          end, [{Component, Protocol, Endpoint}
+                || {Config, Protocol, Endpoint} <-
+                       [{#{}, http_protobuf, <<"http://localhost:4318/v1/traces">>},
+                        {#{protocol => http_protobuf}, http_protobuf,
+                         <<"http://localhost:4318/v1/traces">>},
+                        {#{protocol => grpc}, grpc, <<"http://localhost:4317">>}],
+                   Component <- [{opentelemetry_exporter, Config},
+                                 #{opentelemetry_exporter => Config}]]),
         %% Neither native representation can bypass built-in option validation.
         lists:foreach(
           fun(Component) ->
@@ -303,8 +310,16 @@ resolved_exporter_precedence(_Config) ->
                                         [tracer_provider, processors, exporter], _}},
                                otel_configuration_sdk:create_tracer_provider(
                                  #{processors => [{simple, #{exporter => Component}}]}))
-          end, [{opentelemetry_exporter, #{}}, #{opentelemetry_exporter => #{}},
-                {opentelemetry_exporter, null}, #{opentelemetry_exporter => null}]),
+          end, [{opentelemetry_exporter, null}, #{opentelemetry_exporter => null}]),
+        lists:foreach(
+          fun(Component) ->
+                  ?assertMatch({error, {invalid_configuration,
+                                        [tracer_provider, processors, exporter, protocol],
+                                        invalid_protocol}},
+                               otel_configuration_sdk:create_tracer_provider(
+                                 #{processors => [{simple, #{exporter => Component}}]}))
+          end, [{opentelemetry_exporter, #{protocol => invalid_protocol}},
+                #{opentelemetry_exporter => #{protocol => invalid_protocol}}]),
         %% Only direct initialization, outside SDK resolution, retains the merge.
         ?assertNotEqual([ConfiguredEndpoint],
                         maps:get(endpoints,
