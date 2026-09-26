@@ -73,14 +73,19 @@ The alias configuration map supports:
 - `encoding`: `protobuf` for HTTP. JSON encoding is not implemented.
 
 `max_request_size`, `max_response_size`, `timeout`, and gRPC `tls.insecure`
-are not implemented and are rejected when set.
+are not implemented. Valid values are retained in the source model but ignored
+with a warning identifying the configuration path.
 
 When no SDK file or native configuration is supplied, the SDK builds its
 configuration from OTEL environment variables, including general and
 trace-specific OTLP endpoints, protocols, headers, and compression.
 
-Explicit SDK configuration is authoritative. `opentelemetry_exporter` application
-environment and `OTEL_EXPORTER_*` variables do not override either alias.
+Explicit SDK configuration is authoritative, whether loaded from JSON,
+`sys.config`, `runtime.exs`, or supplied programmatically. The
+`opentelemetry_exporter` application environment and `OTEL_EXPORTER_*` variables
+do not override either alias or the implementation-module form shown below.
+The SDK resolves configuration once; exporters do not merge environment
+settings again during initialization.
 Environment substitution in a declarative configuration document must happen
 before the document reaches the Erlang SDK.
 
@@ -88,7 +93,7 @@ See [secure coding with
 inets](https://erlef.github.io/security-wg/secure_coding_and_deployment_hardening/inets)
 for more information on securing HTTP requests in Erlang.
 
-## Direct exporter compatibility
+## Implementation-module options
 
 The implementation module can still be selected directly when Erlang-specific
 transport options are required:
@@ -107,9 +112,12 @@ transport options are required:
 This map uses the implementation options `endpoints`, `headers`, `protocol`,
 `compression`, and `ssl_options`. When it appears under `tracer_provider`, it
 is treated as SDK configuration and is not overridden by application or OS
-environment values.
+environment values. `protocol` is required; omitted options receive the same
+OTLP defaults as the corresponding alias.
 
-Code that initializes `opentelemetry_exporter` directly, outside the SDK
+## Direct initialization compatibility
+
+Code that calls `opentelemetry_exporter:init/1` directly, outside the SDK
 configuration resolver, retains the older merge behavior. Such callers may
 provide those implementation options to `opentelemetry_exporter:init/1`, use
 the `opentelemetry_exporter` application environment keys `otlp_endpoint`,

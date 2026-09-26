@@ -385,7 +385,7 @@ resolves_standalone_tracer_provider(_Config) ->
                       [{otel_batch_processor,
                         #{exporter := {opentelemetry_exporter,
                                        #{protocol := http_protobuf,
-                                         configuration_source := declarative}}}}],
+                                         configuration_resolved := true}}}}],
                    sampler := {parent_based, #{root := always_on}},
                    id_generator := otel_id_generator,
                    deny_list := []}, Provider),

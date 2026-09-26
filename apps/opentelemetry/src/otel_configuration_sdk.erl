@@ -52,7 +52,7 @@
           protocol := grpc | http_protobuf,
           compression := gzip | undefined,
           ssl_options := list() | {system_defaults, list()} | undefined,
-          configuration_source := declarative}.
+          configuration_resolved := true}.
 -type batch_processor_configuration() ::
         #{exporter => span_exporter_component() | none,
           schedule_delay => non_neg_integer(),
@@ -702,13 +702,13 @@ otlp_exporter_options(
      protocol := Protocol,
      compression := Compression,
      ssl_options := SSLOptions,
-     configuration_source := declarative}}) ->
+     configuration_resolved := true}}) ->
     #{endpoints => otlp_endpoints(Endpoints),
       headers => otlp_headers(Headers),
       protocol => otlp_protocol(Protocol),
       compression => otlp_compression(Compression),
       ssl_options => otlp_ssl_options(SSLOptions),
-      configuration_source => declarative};
+      configuration_resolved => true};
 otlp_exporter_options(Exporter) ->
     fail({invalid_configuration,
           [tracer_provider, processors, exporter], Exporter}).
@@ -759,13 +759,22 @@ otlp_ssl_options(Value) ->
           [tracer_provider, processors, exporter, ssl_options], Value}).
 
 resolve_span_exporter({opentelemetry_exporter, Options}) when is_map(Options) ->
-    case maps:is_key(protocol, Options) of
-        true ->
-            {opentelemetry_exporter,
-             Options#{configuration_source => declarative}};
-        false -> fail({invalid_configuration,
+    case maps:find(protocol, Options) of
+        {ok, Protocol} ->
+            Transport = case otlp_protocol(Protocol) of
+                            http_protobuf -> http;
+                            grpc -> grpc
+                        end,
+            {opentelemetry_exporter, Defaults} = otlp_exporter(Transport, #{}),
+            %% Keep implementation-specific options while supplying the same
+            %% defaults as aliases, without consulting another config source.
+            Resolved = maps:merge(Defaults, Options),
+            {opentelemetry_exporter, Resolved#{configuration_resolved => true}};
+        error -> fail({invalid_configuration,
                        [tracer_provider, processors, exporter], Options})
     end;
+resolve_span_exporter({opentelemetry_exporter, Value}) ->
+    fail({invalid_configuration, [tracer_provider, processors, exporter], Value});
 resolve_span_exporter(none) ->
     none;
 resolve_span_exporter({otlp_http, Config}) ->
@@ -781,6 +790,8 @@ validate_span_exporter(Exporter) when is_map(Exporter), map_size(Exporter) =:= 1
     case first_entry(Exporter) of
         {otlp_http, Config0} -> otlp_exporter(http, Config0);
         {otlp_grpc, Config0} -> otlp_exporter(grpc, Config0);
+        {opentelemetry_exporter, Config} ->
+            resolve_span_exporter({opentelemetry_exporter, Config});
         {Name, Config} when is_atom(Name) -> {Name, null_to_map(Config)};
         {Name, _} -> fail({unsupported_configuration,
                            [tracer_provider, processors, exporter], Name})
@@ -807,7 +818,7 @@ otlp_exporter(Transport, Config0) ->
        protocol => protocol(Transport),
        compression => Compression,
        ssl_options => SSLOptions,
-       configuration_source => declarative}}.
+       configuration_resolved => true}}.
 
 check_encoding(grpc, _Config, _Path) -> ok;
 check_encoding(http, Config, Path) ->

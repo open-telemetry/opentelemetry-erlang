@@ -22,7 +22,7 @@
 %%
 %% Direct callers of `init/1' use the implementation option map with
 %% `endpoints', `headers', `protocol', `compression', and `ssl_options'. For
-%% compatibility, direct calls without the SDK's configuration-source marker
+%% compatibility, direct calls without the SDK's resolved-configuration marker
 %% merge the `opentelemetry_exporter' application environment and corresponding
 %% `OTEL_EXPORTER_*' environment variables.
 %%

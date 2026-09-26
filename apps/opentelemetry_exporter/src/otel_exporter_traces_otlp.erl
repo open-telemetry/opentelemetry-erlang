@@ -15,7 +15,9 @@
 %% @doc This is the module providing the OpenTelemetry protocol for
 %% exporting traces. It can be configured through its application
 %% environment, the OS environment or directly through a map of options
-%% passed when setting up the exporter in the batch processor.
+%% passed to `init/1'. These merge rules apply to direct initialization.
+%% Exporters configured through the SDK's `tracer_provider' configuration are
+%% already resolved and do not merge application or OS environment values here.
 %%
 %% `opentelemetry_exporter' application environment options are:
 %%

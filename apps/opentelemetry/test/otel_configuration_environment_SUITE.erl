@@ -22,6 +22,7 @@ init_per_suite(Config) ->
     [{started_apps, Started} | Config].
 
 end_per_suite(Config) ->
+    _ = application:unload(opentelemetry),
     [application:stop(App) || App <- lists:reverse(proplists:get_value(started_apps, Config))],
     ok.
 
@@ -58,7 +59,7 @@ zero_config_starts_sdk(_Config) ->
                  otel_configuration_sdk:tracer_provider(Runtime)),
     ?assertMatch(#{protocol := http_protobuf,
                    endpoints := [<<"http://localhost:4318/v1/traces">>],
-                   configuration_source := declarative}, exporter_options(Runtime)),
+                   configuration_resolved := true}, exporter_options(Runtime)),
     {ok, _} = application:ensure_all_started(opentelemetry),
     ?assert(is_pid(whereis(otel_tracer_provider_global))),
     ?assertMatch([{_, Pid, worker, _}] when is_pid(Pid),

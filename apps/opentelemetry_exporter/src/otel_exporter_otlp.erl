@@ -72,7 +72,7 @@
                   headers => headers(),
                   protocol => protocol(),
                   compression => compression() | undefined,
-                  ssl_options => ssl_options(),
+                  ssl_options => ssl_options() | undefined,
                   channel_opts => map(),
                   httpc_options => [httpc_option()]}.
 
@@ -373,11 +373,12 @@ to_existing_atom(_) ->
     erlang:error(bad_exporter_scheme).
 
 merge_with_environment(_ConfigMapping, _AppEnv,
-                       #{configuration_source := declarative}=Opts,
+                       #{configuration_resolved := true}=Opts,
                        _SignalEndpointConfigKey, _SignalHeadersConfigKey,
                        _SignalProtocolConfigKey, _SignalCompressionConfigKey,
                        _DefaultPath) ->
-    maps:remove(configuration_source, Opts);
+    %% Source selection and environment handling have already happened in the SDK.
+    maps:remove(configuration_resolved, Opts);
 merge_with_environment(ConfigMapping, AppEnv, Opts, SignalEndpointConfigKey, SignalHeadersConfigKey, SignalProtocolConfigKey, SignalCompressionConfigKey, DefaultPath) ->
     Config = #{otlp_endpoint => undefined,
                SignalEndpointConfigKey => undefined,
