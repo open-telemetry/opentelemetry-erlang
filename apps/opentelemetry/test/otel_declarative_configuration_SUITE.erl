@@ -12,6 +12,7 @@ all() ->
      preserves_resource_attribute_types,
      supports_atom_keys,
      applies_null_limit_defaults,
+     distinguishes_missing_and_null_limits,
      decodes_key_value_list_escaping,
      rejects_invalid_key_value_list_escaping,
      preserves_model_semantics,
@@ -227,6 +228,41 @@ applies_null_limit_defaults(_Config) ->
     {otel_batch_processor, BatchConfig} =
         otel_configuration_sdk:span_processor_component(Processor),
     ?assertEqual(0, otel_configuration_sdk:value(export_timeout, BatchConfig, undefined)).
+
+distinguishes_missing_and_null_limits(_Config) ->
+    Global = #{attribute_count_limit => 64, attribute_value_length_limit => 12},
+    lists:foreach(
+      fun({Limits, Count, Length}) ->
+              Native = [{attribute_limits, Global},
+                        {tracer_provider, #{processors => [], limits => Limits}}],
+              {ok, Model} = otel_configuration_model:from_application_env(Native),
+              {ok, Runtime} = otel_configuration_sdk:create(Model),
+              ?assertMatch(#{attribute_count_limit := Count,
+                             attribute_value_length_limit := Length},
+                           otel_configuration_sdk:span_limits(Runtime))
+      end, [{#{}, 64, 12},
+            {null, 64, 12},
+            {#{attribute_count_limit => null, attribute_value_length_limit => null},
+             128, infinity},
+            {#{attribute_count_limit => 0, attribute_value_length_limit => 0}, 0, 0}]),
+    %% JSON keys have the same omission/null semantics as native atom keys.
+    lists:foreach(
+      fun({Limits, Count, Length}) ->
+              {ok, Runtime} = otel_configuration_declarative:resolve(
+                                #{<<"file_format">> => <<"1.1">>,
+                                  <<"attribute_limits">> =>
+                                      #{<<"attribute_count_limit">> => 64,
+                                        <<"attribute_value_length_limit">> => 12},
+                                  <<"tracer_provider">> =>
+                                      #{<<"processors">> => [], <<"limits">> => Limits}}),
+              ?assertMatch(#{attribute_count_limit := Count,
+                             attribute_value_length_limit := Length},
+                           otel_configuration_sdk:span_limits(Runtime))
+      end, [{#{}, 64, 12},
+            {null, 64, 12},
+            {#{<<"attribute_count_limit">> => null, <<"attribute_value_length_limit">> => null},
+             128, infinity},
+            {#{<<"attribute_count_limit">> => 0, <<"attribute_value_length_limit">> => 0}, 0, 0}]).
 
 decodes_key_value_list_escaping(_Config) ->
     {ok, Resolved} = otel_configuration_declarative:resolve(

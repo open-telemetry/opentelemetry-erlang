@@ -290,6 +290,9 @@ resolve_span_limits(Configuration) ->
     GlobalLength = limit(attribute_value_length_limit, Global, infinity, infinity),
     TracerProvider = value(tracer_provider, Configuration, #{}),
     Limits = value(limits, TracerProvider, #{}),
+    %% Omission inherits the general attribute limit. Explicit null uses the
+    %% SpanLimits schema's defaultBehavior (128 / no length limit), as required
+    %% by Create when the property has no separate nullBehavior.
     #{attribute_count_limit =>
           limit(attribute_count_limit, Limits, GlobalCount, 128),
       attribute_value_length_limit =>

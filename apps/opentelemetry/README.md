@@ -173,6 +173,16 @@ unchanged; accepting these properties does not implement their limits or
 features. For gRPC transport security, use an explicit `http://` or `https://`
 endpoint. Invalid values and unresolved components still return errors.
 
+For `tracer_provider.limits.attribute_count_limit` and
+`attribute_value_length_limit`, omission inherits the corresponding
+`attribute_limits` value. An explicit `null` resets the field to the span
+schema default: 128 attributes or no length limit. For example, with a global
+count limit of 64, an omitted span count limit resolves to 64, while an explicit
+`null` resolves to 128. Omitting or nulling the whole `limits` map leaves its
+fields absent, so the global values are inherited. This follows the
+[Create null handling rule](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/configuration/sdk.md#create)
+and the [SpanLimits defaults](https://github.com/open-telemetry/opentelemetry-configuration/blob/fce52c3f13cc96f41ee5493598d1354a62367641/schema/tracer_provider.yaml).
+
 ### Erlang components
 
 Application configuration may also directly select an Erlang implementation
