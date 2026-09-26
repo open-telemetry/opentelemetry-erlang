@@ -151,6 +151,31 @@ An atom exporter name may be used inside a standard processor:
 These atom forms are available only to the Erlang application configuration.
 Names from JSON remain binaries and are not converted into module names.
 
+### Named tracer providers
+
+Start additional named tracer providers through `otel_tracer_provider_sdk`.
+Its configuration map has the same shape as the `tracer_provider` application
+environment entry and is validated before any provider processes start:
+
+```erlang
+Resource = otel_resource:create(
+             [{<<"service.name">>, <<"checkout-worker">>}]),
+{ok, _} = otel_tracer_provider_sdk:start(
+            checkout_worker,
+            Resource,
+            #{processors =>
+                  [{batch,
+                    #{exporter =>
+                          {otlp_http,
+                           #{endpoint =>
+                                 <<"http://localhost:4318/v1/traces">>}}}}],
+              sampler => always_on}).
+```
+
+`start/2` uses an empty resource. `start/3` accepts an `otel_resource:t()` as
+shown above. Both functions return configuration errors directly, including
+the path of an invalid option.
+
 ### Erlang distribution settings
 
 Settings specific to this SDK live under `distribution.erlang`:

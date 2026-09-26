@@ -705,38 +705,45 @@ multiple_processors(_Config) ->
     ok.
 
 multiple_tracer_providers(_Config) ->
+    ?assertEqual(
+       {error,
+        {invalid_configuration,
+         [tracer_provider, processors, batch, schedule_delay], -1}},
+       otel_tracer_provider_sdk:start(
+         invalid_test_provider,
+         #{processors =>
+               [{batch, #{exporter => none, schedule_delay => -1}}]})),
+    ?assertEqual(undefined,
+                 otel_tracer_provider:resource(invalid_test_provider)),
+
     Resource = otel_resource:create([{<<"a">>, <<"b">>}]),
-    TestProviderConfiguration = runtime_configuration(
-      #{tracer_provider =>
-            #{id_generator => otel_id_generator,
-              sampler => always_on,
-              processors =>
-                  [{otel_simple_processor,
-                    #{exporter =>
-                          {otel_exporter_pid,
-                           #{pid => self(), include_resource => true}}}}]},
-        distribution => #{erlang => #{deny_list => []}}}),
-    ?assertMatch({ok, _}, otel_tracer_provider_sup:start(test_provider,
-                                                         Resource,
-                                                         TestProviderConfiguration)),
+    TestProviderConfiguration =
+        #{id_generator => otel_id_generator,
+          sampler => always_on,
+          processors =>
+              [{simple,
+                #{exporter =>
+                      {otel_exporter_pid,
+                       #{pid => self(), include_resource => true}}}}]},
+    ?assertMatch({ok, _},
+                 otel_tracer_provider_sdk:start(test_provider,
+                                                Resource,
+                                                TestProviderConfiguration)),
     ?assertEqual(Resource, otel_tracer_provider:resource(test_provider)),
 
-    %% keep around a test of the deprecated API function for starting a tracer provider
-    DeprecatedProviderConfiguration = runtime_configuration(
-      #{tracer_provider =>
-            #{id_generator => otel_id_generator,
-              sampler => always_on,
-              processors =>
-                  [{otel_batch_processor,
-                    #{schedule_delay => 1000,
-                      exporter => {otel_exporter_pid, self()}}}]},
-        distribution => #{erlang => #{deny_list => []}}}),
+    DefaultResourceConfiguration =
+        #{id_generator => otel_id_generator,
+          sampler => always_on,
+          processors =>
+              [{batch,
+                #{schedule_delay => 1000,
+                  exporter => {otel_exporter_pid, self()}}}]},
     ?assertMatch({ok, _},
-                 opentelemetry:start_tracer_provider(
-                   deprecated_test_provider_start,
-                   DeprecatedProviderConfiguration)),
+                 otel_tracer_provider:start(default_resource_test_provider,
+                                            DefaultResourceConfiguration)),
 
-    ?assertEqual(otel_resource:create([]), otel_tracer_provider:resource(deprecated_test_provider_start)),
+    ?assertEqual(otel_resource:create([]),
+                 otel_tracer_provider:resource(default_resource_test_provider)),
 
     GlobalResource = otel_tracer_provider:resource(),
     GlobalResourceAttributes = otel_attributes:map(
@@ -1190,12 +1197,6 @@ pregenerate_hex_ids(_Config) ->
     ok.
 
 %%
-
-runtime_configuration(Configuration) ->
-    {ok, Model} = otel_configuration_model:from_application_env(
-                    maps:to_list(Configuration)),
-    {ok, RuntimeConfiguration} = otel_configuration_sdk:create(Model),
-    RuntimeConfiguration.
 
 assert_all_exported(Tid, SpanCtxs) ->
     [assert_exported(Tid, SpanCtx) || SpanCtx <- SpanCtxs].
