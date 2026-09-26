@@ -47,16 +47,16 @@
 
 -include_lib("kernel/include/logger.hrl").
 
--record(data, {resource         :: otel_resource:t(),
-               detectors        :: [detector()],
-               detector_timeout :: integer()}).
+-record(data, {resource            :: otel_resource:t(),
+               configured_resource :: otel_resource:t(),
+               detectors           :: [detector()],
+               detector_timeout    :: integer()}).
 
 %% @private
--spec start_link(Config) -> {ok, pid()} | ignore | {error, term()} when
-              Config :: #{resource_detectors := [detector()],
-                          resource_detector_timeout := integer()}.
+-spec start_link(otel_configuration_sdk:configuration()) ->
+          {ok, pid()} | ignore | {error, term()}.
 start_link(Config) ->
-    gen_statem:start_link({local, ?MODULE}, ?MODULE, [Config], []).
+    gen_statem:start_link({local, ?MODULE}, ?MODULE, Config, []).
 
 %% @equiv get_resource(6000)
 -spec get_resource() -> otel_resource:t().
@@ -82,11 +82,22 @@ get_resource(Timeout) ->
     end.
 
 %% @private
-init([#{resource_detectors := Detectors,
-        resource_detector_timeout := DetectorTimeout}]) ->
+-spec init(otel_configuration_sdk:configuration()) -> gen_statem:init_result(collecting).
+init(Config) ->
     process_flag(trap_exit, true),
 
+    Erlang = otel_configuration_sdk:erlang_distribution(Config),
+    Detectors = otel_configuration_sdk:value(resource_detectors, Erlang, []),
+    DetectorTimeout = otel_configuration_sdk:value(resource_detector_timeout,
+                                                    Erlang,
+                                                    5000),
+    ConfiguredResource = case otel_configuration_sdk:resource(Config) of
+                             undefined -> otel_resource:create([]);
+                             Resource -> Resource
+                         end,
+
     {ok, collecting, #data{resource=otel_resource:create([]),
+                           configured_resource=ConfiguredResource,
                            detectors=Detectors,
                            detector_timeout=DetectorTimeout},
      [{next_event, internal, spawn_detectors}]}.
@@ -96,9 +107,12 @@ callback_mode() ->
     [handle_event_function, state_enter].
 
 %% @private
-handle_event(enter, _, ready, Data=#data{resource=Resource}) ->
-    NewResource = default_resource_attributes(Resource),
-    {keep_state, Data#data{resource=NewResource}};
+handle_event(enter, _, ready,
+             Data=#data{resource=DetectedResource,
+                        configured_resource=ConfiguredResource}) ->
+    Defaults = default_resource_attributes(otel_resource:create([])),
+    Resource = otel_resource:merge(DetectedResource, Defaults),
+    {keep_state, Data#data{resource=otel_resource:merge(ConfiguredResource, Resource)}};
 handle_event(enter, _, _, _) ->
     keep_state_and_data;
 handle_event(internal, spawn_detectors, collecting, Data=#data{detectors=Detectors}) ->
@@ -233,65 +247,40 @@ release_name() ->
             RelName
     end.
 
-%% if OTEL_SERVICE_NAME isn't set then check for service.name in attributes
-%% if that isn't found then try finding the release name
-%% if no release name we use the default service name
+%% Check for service.name in attributes, then use the release name or the SDK
+%% default. Environment substitution belongs to preprocessing of declarative
+%% configuration and is deliberately not performed here.
 add_service_name(Resource, ProgName) ->
-    case os:getenv("OTEL_SERVICE_NAME") of
+    case otel_resource:is_key('service.name', Resource) of
         false ->
-            case otel_resource:is_key('service.name', Resource) of
-                false ->
-                    ServiceResource = service_release_name(ProgName),
-                    otel_resource:merge(ServiceResource, Resource);
-                true ->
-                    Resource
-            end;
-        ServiceName ->
-            %% service.name resource first to override any other service.name
-            %% attribute that could be set in the resource
-            case unicode:characters_to_binary(ServiceName) of
-                {_, _, _} ->
-                    ?LOG_WARNING("error converting service name ~s to utf8. falling back on the release name for service.name resource attributes", [ServiceName]),
-                    ServiceResource = service_release_name(ProgName),
-                    otel_resource:merge(ServiceResource, Resource);
-                BinaryString ->
-                    ServiceNameResource = otel_resource:create([{'service.name', BinaryString}]),
-                    otel_resource:merge(ServiceNameResource, Resource)
-            end
+            ServiceResource = service_release_name(ProgName),
+            otel_resource:merge(ServiceResource, Resource);
+        true ->
+            Resource
     end.
 
-%% if OTEL_SERVICE_INSTANCE isn't set then check for service.name in attributes
-%% if that isn't found then try getting node.
+%% If service.instance.id is absent, derive it from the node name or generate it.
 %% if node is nonode@nohost set a random instance id
 add_service_instance(Resource) ->
-    case os:getenv("OTEL_SERVICE_INSTANCE") of
+    case otel_resource:is_key('service.instance.id', Resource) of
         false ->
-            case otel_resource:is_key('service.instance.id', Resource) of
-                false ->
-                    case erlang:node() of
-                        nonode@nohost ->
-                            ServiceInstanceId = otel_id_generator:generate_trace_id(),
-                            ServiceInstanceResource = otel_resource:create([{'service.instance.id', ServiceInstanceId}]),
-                            otel_resource:merge(ServiceInstanceResource, Resource);
-                        ServiceInstance ->
-                            ServiceInstance1 = erlang:atom_to_binary(ServiceInstance, utf8),
-                            case binary:match(ServiceInstance1, <<"@localhost">>) of
-                                nomatch ->
-                                    ServiceInstanceResource = otel_resource:create([{'service.instance.id', ServiceInstance1}]),
-                                    otel_resource:merge(ServiceInstanceResource, Resource);
-                                _Match ->
-                                    ServiceInstanceId = otel_id_generator:generate_trace_id(),
-                                    ServiceInstanceResource = otel_resource:create([{'service.instance.id', ServiceInstanceId}]),
-                                    otel_resource:merge(ServiceInstanceResource, Resource)
-                            end
-                    end;
-                true ->
-                    Resource
-            end;
-        ServiceInstance ->
-            ServiceInstanceResource = otel_resource:create([{'service.instance.id',
-                                                             otel_utils:assert_to_binary(ServiceInstance)}]),
-            otel_resource:merge(ServiceInstanceResource, Resource)
+            ServiceInstanceId = case erlang:node() of
+                                    nonode@nohost ->
+                                        otel_id_generator:generate_trace_id();
+                                    ServiceInstance ->
+                                        ServiceInstance1 = erlang:atom_to_binary(
+                                                             ServiceInstance, utf8),
+                                        case binary:match(ServiceInstance1,
+                                                          <<"@localhost">>) of
+                                            nomatch -> ServiceInstance1;
+                                            _ -> otel_id_generator:generate_trace_id()
+                                        end
+                                end,
+            ServiceInstanceResource = otel_resource:create(
+                                        [{'service.instance.id', ServiceInstanceId}]),
+            otel_resource:merge(ServiceInstanceResource, Resource);
+        true ->
+            Resource
     end.
 
 service_release_name(ProgName) ->

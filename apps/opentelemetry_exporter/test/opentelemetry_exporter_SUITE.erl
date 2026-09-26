@@ -18,7 +18,9 @@ all() ->
      {group, grpc}, {group, grpc_gzip}].
 
 groups() ->
-    [{functional, [], [configuration, span_round_trip, span_flags, ets_instrumentation_info, to_any_value_boolean, to_attributes]},
+    [{functional, [], [configuration, resolved_exporter_precedence,
+                       span_round_trip, span_flags,
+                       ets_instrumentation_info, to_any_value_boolean, to_attributes]},
      {grpc, [], [verify_export]},
      {grpc_gzip, [], [verify_export]},
      {http_protobuf, [], [verify_export, user_agent]},
@@ -240,6 +242,97 @@ configuration(_Config) ->
         os:unsetenv("OTEL_EXPORTER_OTLP_HEADERS"),
         os:unsetenv("OTEL_EXPORTER_OTLP_TRACES_HEADERS"),
         os:unsetenv("OTEL_EXPORTER_OTLP_PROTOCOL")
+    end.
+
+resolved_exporter_precedence(_Config) ->
+    ConfiguredEndpoint = <<"http://configured.example/v1/traces">>,
+    OSName = "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+    SavedOS = os:getenv(OSName),
+    SavedApp = application:get_env(opentelemetry_exporter, otlp_traces_endpoint),
+    os:putenv(OSName, "http://environment.example/v1/traces"),
+    application:set_env(opentelemetry_exporter, otlp_traces_endpoint,
+                         "http://application.example/v1/traces"),
+    try
+        ModuleOptions = #{endpoints => [ConfiguredEndpoint], headers => [],
+                          protocol => http_protobuf, compression => undefined,
+                          ssl_options => undefined},
+        Components = [{otlp_http, #{endpoint => ConfiguredEndpoint}},
+                      {otlp_grpc, #{endpoint => ConfiguredEndpoint}},
+                      {opentelemetry_exporter, ModuleOptions},
+                      #{opentelemetry_exporter => ModuleOptions},
+                      {opentelemetry_exporter, maps:remove(protocol, ModuleOptions)},
+                      #{opentelemetry_exporter => maps:remove(protocol, ModuleOptions)}],
+        lists:foreach(
+          fun(Component) ->
+                  Native = #{processors => [{simple, #{exporter => Component}}]},
+                  {ok, Model} = otel_configuration_model:from_application_env(
+                                  [{tracer_provider, Native}]),
+                  {ok, Resolved} = otel_configuration_sdk:create(Model),
+                  Provider = #{} = otel_configuration_sdk:tracer_provider(Resolved),
+                  %% Public programmatic startup uses the same provider-only resolver.
+                  {ok, Programmatic} = otel_configuration_sdk:create_tracer_provider(Native),
+                  ?assertEqual(Provider, Programmatic),
+                  [{otel_simple_processor, #{exporter := Exporter}}] =
+                      otel_configuration_sdk:span_processors(Provider),
+                  Options = otel_configuration_sdk:otlp_exporter_options(
+                              {opentelemetry_exporter, _} = Exporter),
+                  ?assertEqual([ConfiguredEndpoint], maps:get(endpoints, Options)),
+                  ?assertEqual(true, maps:get(configuration_resolved, Options)),
+                  ?assertEqual(maps:remove(configuration_resolved, Options),
+                               otel_exporter_traces_otlp:merge_with_environment(Options))
+          end, Components),
+        %% Minimal module options get defaults without environment merging.
+        lists:foreach(
+          fun({Component, Protocol, Endpoint}) ->
+                  {ok, Provider} = otel_configuration_sdk:create_tracer_provider(
+                                     #{processors =>
+                                           [{simple, #{exporter => Component}}]}),
+                  [{otel_simple_processor, #{exporter := Exporter}}] =
+                      otel_configuration_sdk:span_processors(Provider),
+                  Options = otel_configuration_sdk:otlp_exporter_options(
+                              {opentelemetry_exporter, _} = Exporter),
+                  ?assertMatch(#{endpoints := [Endpoint], headers := [],
+                                 protocol := Protocol, compression := undefined,
+                                 ssl_options := undefined},
+                               otel_exporter_traces_otlp:merge_with_environment(Options))
+          end, [{Component, Protocol, Endpoint}
+                || {Config, Protocol, Endpoint} <-
+                       [{#{}, http_protobuf, <<"http://localhost:4318/v1/traces">>},
+                        {#{protocol => http_protobuf}, http_protobuf,
+                         <<"http://localhost:4318/v1/traces">>},
+                        {#{protocol => grpc}, grpc, <<"http://localhost:4317">>}],
+                   Component <- [{opentelemetry_exporter, Config},
+                                 #{opentelemetry_exporter => Config}]]),
+        %% Neither native representation can bypass built-in option validation.
+        lists:foreach(
+          fun(Component) ->
+                  ?assertMatch({error, {invalid_configuration,
+                                        [tracer_provider, processors, exporter], _}},
+                               otel_configuration_sdk:create_tracer_provider(
+                                 #{processors => [{simple, #{exporter => Component}}]}))
+          end, [{opentelemetry_exporter, null}, #{opentelemetry_exporter => null}]),
+        lists:foreach(
+          fun(Component) ->
+                  ?assertMatch({error, {invalid_configuration,
+                                        [tracer_provider, processors, exporter, protocol],
+                                        invalid_protocol}},
+                               otel_configuration_sdk:create_tracer_provider(
+                                 #{processors => [{simple, #{exporter => Component}}]}))
+          end, [{opentelemetry_exporter, #{protocol => invalid_protocol}},
+                #{opentelemetry_exporter => #{protocol => invalid_protocol}}]),
+        %% Only direct initialization, outside SDK resolution, retains the merge.
+        ?assertNotEqual([ConfiguredEndpoint],
+                        maps:get(endpoints,
+                                 otel_exporter_traces_otlp:merge_with_environment(ModuleOptions)))
+    after
+        case SavedOS of
+            false -> os:unsetenv(OSName);
+            OSValue -> os:putenv(OSName, OSValue)
+        end,
+        case SavedApp of
+            undefined -> application:unset_env(opentelemetry_exporter, otlp_traces_endpoint);
+            {ok, AppValue} -> application:set_env(opentelemetry_exporter, otlp_traces_endpoint, AppValue)
+        end
     end.
 
 ets_instrumentation_info(_Config) ->

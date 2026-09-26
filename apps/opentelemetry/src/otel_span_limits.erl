@@ -35,13 +35,15 @@
 get() ->
     persistent_term:get(?SPAN_LIMITS_KEY).
 
--spec set(otel_configuration:t()) -> ok.
-set(#{attribute_count_limit := AttributeCountLimit,
+-spec set(otel_configuration_sdk:configuration()) -> ok.
+set(Configuration) ->
+    #{attribute_count_limit := AttributeCountLimit,
       attribute_value_length_limit := AttributeValueLengthLimit,
       event_count_limit := EventCountLimit,
       link_count_limit := LinkCountLimit,
-      attribute_per_event_limit := AttributePerEventLimit,
-      attribute_per_link_limit := AttributePerLinkLimit}) ->
+      event_attribute_count_limit := AttributePerEventLimit,
+      link_attribute_count_limit := AttributePerLinkLimit} =
+        otel_configuration_sdk:span_limits(Configuration),
     SpanLimits = #span_limits{attribute_count_limit=AttributeCountLimit,
                               attribute_value_length_limit=AttributeValueLengthLimit,
                               event_count_limit=EventCountLimit,

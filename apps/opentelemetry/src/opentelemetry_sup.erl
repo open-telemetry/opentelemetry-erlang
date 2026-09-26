@@ -26,18 +26,28 @@
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
-start_link(Opts) ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, [Opts]).
+-spec start_link(otel_configuration_sdk:configuration()) ->
+          {ok, pid()} | ignore | {error, term()}.
+start_link(Configuration) ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, Configuration).
 
-init([#{sdk_disabled := true}]) ->
-    {ok, {#{}, []}};
-init([Opts]) ->
+-spec init(otel_configuration_sdk:configuration()) ->
+          {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
+init(Configuration) ->
+    case otel_configuration_sdk:disabled(Configuration) of
+        true ->
+            {ok, {#{}, []}};
+        false ->
+            init_enabled(Configuration)
+    end.
+
+init_enabled(Configuration) ->
     SupFlags = #{strategy => one_for_one,
                  intensity => 1,
                  period => 5},
 
     Detectors =  #{id => otel_resource_detector,
-                   start => {otel_resource_detector, start_link, [Opts]},
+                   start => {otel_resource_detector, start_link, [Configuration]},
                    restart => permanent,
                    shutdown => 5000,
                    type => worker,
@@ -51,7 +61,7 @@ init([Opts]) ->
                           modules => [otel_tracer_provider_sup]},
 
     SpanSup = #{id => otel_span_sup,
-                start => {otel_span_sup, start_link, [Opts]},
+                start => {otel_span_sup, start_link, [Configuration]},
                 type => supervisor,
                 restart => permanent,
                 shutdown => infinity,

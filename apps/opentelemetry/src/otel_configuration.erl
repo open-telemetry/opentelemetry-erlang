@@ -39,18 +39,18 @@
                id_generator := module(),
                deny_list := [atom()],
 
-               resource_detectors := [module()],
+               resource_detectors := [module() | {module(), term()}],
                resource_detector_timeout := integer(),
                bsp_scheduled_delay_ms := integer() | undefined,
                bsp_exporting_timeout_ms := integer() | undefined,
                bsp_max_queue_size := integer() | undefined,
                ssp_exporting_timeout_ms := integer() | undefined,
-               text_map_propagators := [atom()],
+               text_map_propagators := [atom() | {module(), map()}],
                traces_exporter := {atom(), term()} | none | undefined,
                metrics_exporter := {atom(), term()} | none | undefined,
                views := list(), %% TODO: type should be `[otel_meter_server:view_config]'
                                 %% when Metrics are moved out of the experimental app
-               readers := [#{id := atom(), module => module(), config => map()}],
+               readers := [#{module := module(), config := map()}],
                exemplars_enabled := boolean(),
                exemplar_filter := always_on | always_off | trace_based,
                metric_producers := [{module(), term()}],

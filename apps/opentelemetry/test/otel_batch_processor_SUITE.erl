@@ -9,9 +9,19 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
 all() ->
-    [exporting_timeout_test,
+    [no_exporter_test,
+     exporting_timeout_test,
      check_table_size_test,
      exporting_runner_timeout_test].
+
+no_exporter_test(_Config) ->
+    {ok, _Pid, #{reg_name := RegName}} = otel_batch_processor:start_link(
+                                           #{name => test_processor_no_exporter,
+                                             resource => otel_resource:create([]),
+                                             exporter => none}),
+
+    dropped = otel_batch_processor:on_end(generate_span(), #{reg_name => RegName}),
+    [] = otel_batch_processor:current_tab_to_list(RegName).
 
 %% verifies that after the runner has to be killed for taking too long
 %% that everything is still functional and the exporter does not crash
@@ -20,9 +30,9 @@ exporting_timeout_test(_Config) ->
 
     {ok, Pid, _} = otel_batch_processor:start_link(#{name => test_processor,
                                                      resource => otel_resource:create([]),
-                                                     exporter => ?MODULE,
-                                                     exporting_timeout_ms => 1,
-                                                     scheduled_delay_ms => 1}),
+                                                     exporter => {?MODULE, #{}},
+                                                     export_timeout => 1,
+                                                     schedule_delay => 1}),
 
     receive
         {'EXIT', Pid, _} ->
@@ -39,11 +49,11 @@ check_table_size_test(_Config) ->
     {ok, _Pid, #{reg_name := RegName}} = otel_batch_processor:start_link(
                                            #{name => test_processor_check_size_test,
                                              resource => otel_resource:create([]),
-                                             exporter => ?MODULE,
-                                             exporting_timeout_ms => timer:minutes(10),
+                                             exporter => {?MODULE, #{}},
+                                             export_timeout => timer:minutes(10),
                                              %% long enough, so that it never happens during the test
-                                             scheduled_delay_ms => timer:minutes(10),
-                                             check_table_size_ms => CheckTableSizeMs,
+                                             schedule_delay => timer:minutes(10),
+                                             check_table_size => CheckTableSizeMs,
                                              max_queue_size => MaxQueueSize}
                                           ),
     %% max_queue_size limit is not reached
@@ -67,9 +77,9 @@ exporting_runner_timeout_test(_Config) ->
     {ok, Pid, #{reg_name := RegName}} = otel_batch_processor:start_link(
                                           #{name => test_processor1,
                                             resource => otel_resource:create([]),
-                                            exporter => ?MODULE,
-                                            exporting_timeout_ms => 1,
-                                            scheduled_delay_ms => 1}),
+                                            exporter => {?MODULE, #{}},
+                                            export_timeout => 1,
+                                            schedule_delay => 1}),
 
     %% Insert a few spans to make sure runner process will be spawned and killed
     %% because it hangs for 10 minutes (see export/4 below)

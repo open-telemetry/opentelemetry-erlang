@@ -26,6 +26,9 @@
 init(Pid) ->
     {ok, Pid}.
 
+export(SpansTid, Resource, #{pid := Pid, include_resource := true}) ->
+    Pid ! {resource, Resource},
+    export(SpansTid, Resource, Pid);
 export(SpansTid, _Resource, Pid) ->
     ets:foldl(fun(Span, _Acc) ->
                       Pid ! {span, Span}
