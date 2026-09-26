@@ -91,7 +91,7 @@ application configuration is not a versioned file:
     #{attributes =>
           #{<<"service.name">> => <<"checkout">>}}},
    {propagator,
-    #{composite => [trace_context, baggage]}},
+    #{composite => [tracecontext, baggage]}},
    {tracer_provider,
     #{processors =>
           [{batch,
@@ -107,7 +107,7 @@ Elixir configuration uses the same shape:
 ```elixir
 config :opentelemetry,
   propagator: %{
-    composite: [:trace_context, :baggage]
+    composite: [:tracecontext, :baggage]
   },
   tracer_provider: %{
     processors: [
@@ -148,6 +148,17 @@ configuration writes them as `{batch, Options}` and `{simple, Options}`, using
 the same names as the declarative document. The implementation module names
 `otel_batch_processor` and `otel_simple_processor` remain accepted for
 compatibility, but component names are preferred in configuration.
+
+The canonical native form for a component with options is a tagged tuple,
+such as `{batch, Options}` or `{otlp_http, Options}`. The equivalent single-entry
+maps, `#{batch => Options}` and `#{otlp_http => Options}`, are also accepted to
+ease translation from JSON. Prefer tagged tuples in `sys.config` and
+`runtime.exs`; JSON uses single-entry objects.
+
+For built-in propagators without options, use atoms in `composite`, for example
+`[tracecontext, baggage]`. `tracecontext` is the canonical name, matching the
+declarative schema and `OTEL_PROPAGATORS`; `trace_context` remains an accepted
+native alias.
 
 Built-in processors reject unknown option names with a path-specific error.
 When migrating older native configurations, rename `scheduled_delay_ms` to
