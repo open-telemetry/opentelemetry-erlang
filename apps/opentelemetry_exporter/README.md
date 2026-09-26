@@ -75,7 +75,11 @@ The alias configuration map supports:
 `max_request_size`, `max_response_size`, `timeout`, and gRPC `tls.insecure`
 are not implemented and are rejected when set.
 
-The SDK configuration is authoritative. `opentelemetry_exporter` application
+When no SDK file or native configuration is supplied, the SDK builds its
+configuration from OTEL environment variables, including general and
+trace-specific OTLP endpoints, protocols, headers, and compression.
+
+Explicit SDK configuration is authoritative. `opentelemetry_exporter` application
 environment and `OTEL_EXPORTER_*` variables do not override either alias.
 Environment substitution in a declarative configuration document must happen
 before the document reaches the Erlang SDK.

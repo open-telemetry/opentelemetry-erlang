@@ -14,8 +14,32 @@ release.
 
 The SDK uses the
 [OpenTelemetry declarative configuration](https://github.com/open-telemetry/opentelemetry-configuration)
-model. YAML parsing, environment variable substitution, and JSON Schema
-validation must be completed before the SDK starts.
+model. When using a configuration file, YAML parsing, environment variable
+substitution, and JSON Schema validation must be completed before the SDK starts.
+
+With no configuration file and an empty `opentelemetry` application environment,
+the SDK starts a batch processor with OTLP HTTP/protobuf export to
+`http://localhost:4318/v1/traces`, a parent-based always-on sampler, and Trace
+Context and Baggage propagation. Standard environment variables configure this
+zero-config startup, for example:
+
+```shell
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4318
+export OTEL_SERVICE_NAME=checkout
+export OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=production
+export OTEL_TRACES_SAMPLER=parentbased_traceidratio
+export OTEL_TRACES_SAMPLER_ARG=0.1
+```
+
+This mode also supports `OTEL_SDK_DISABLED`, `OTEL_PROPAGATORS`,
+`OTEL_TRACES_EXPORTER=none`, OTLP protocol/headers/compression settings, batch
+processor timing and queue settings, and attribute/span limits. Trace-specific
+OTLP variables take precedence over general OTLP variables. The general HTTP
+endpoint receives a `/v1/traces` suffix; a trace-specific endpoint is used as-is.
+Empty environment values are treated as unset. Invalid or unsupported values
+produce warnings and are ignored. The older `OTEL_BSP_SCHEDULE_DELAY_MILLIS`
+and `OTEL_BSP_EXPORT_TIMEOUT_MILLIS` names remain accepted, with the standard
+names taking precedence.
 
 Set `OTEL_CONFIG_FILE` to a preprocessed JSON document:
 
@@ -95,10 +119,18 @@ config :opentelemetry,
   }
 ```
 
-`OTEL_CONFIG_FILE` takes precedence over the application environment. Other
-OpenTelemetry SDK environment variables are not read as an independent
-configuration source. They may be referenced during the external substitution
-step used to produce the JSON document.
+Configuration precedence is:
+
+1. A nonempty `OTEL_CONFIG_FILE` selects the preprocessed JSON document.
+2. Otherwise, a nonempty `opentelemetry` application environment supplies the
+   complete native configuration.
+3. Otherwise, the SDK uses environment variables and zero-config defaults.
+
+Explicit file and native configurations are authoritative: other OTEL
+variables neither override their values nor fill omitted sections. For files,
+variables may be referenced during the external substitution step. An invalid
+explicit configuration fails startup rather than falling back to environment
+configuration.
 
 The previous flat application keys such as `processors`, `sampler`,
 `text_map_propagators`, and `traces_exporter` are rejected at startup. Put their
@@ -117,9 +149,10 @@ the same names as the declarative document. The implementation module names
 `otel_batch_processor` and `otel_simple_processor` remain accepted for
 compatibility, but component names are preferred in configuration.
 
-Missing `tracer_provider` and `propagator` sections have the declarative
-model's no-op behavior. In particular, an empty application environment does
-not start a tracer provider. `meter_provider` and `logger_provider` are retained
+In an explicit file or native configuration, missing `tracer_provider` and
+`propagator` sections have the declarative model's no-op behavior. For example,
+`{tracer_provider, null}` explicitly disables provider creation without opting
+into zero-config defaults. `meter_provider` and `logger_provider` are retained
 in the configuration model but are not interpreted by the stable application
 yet. Their presence produces a warning. Metrics remain the responsibility of
 the experimental application while that implementation is being redesigned.

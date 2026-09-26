@@ -106,6 +106,8 @@ load_declarative(File) ->
             Error
     end.
 
+load_application_env([]) ->
+    otel_configuration_model:from_environment(otel_configuration_environment:configuration());
 load_application_env(AppEnv) ->
     case otel_configuration_model:from_application_env(AppEnv) of
         {ok, Model} ->

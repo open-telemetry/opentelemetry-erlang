@@ -23,11 +23,12 @@
 
 -export([from_map/1,
          from_application_env/1,
+         from_environment/1,
          root/1,
          source/1,
          file_format/1]).
 
--type source() :: declarative | application_env.
+-type source() :: declarative | application_env | environment.
 -opaque t() :: #{source := source(),
                  file_format := binary(),
                  root := map()}.
@@ -73,6 +74,14 @@ from_application_env(AppEnv) when is_list(AppEnv) ->
     end;
 from_application_env(AppEnv) ->
     {error, {invalid_configuration, [], AppEnv}}.
+
+%% Environment defaults are constructed in the same shape as native options.
+-spec from_environment(map()) -> {ok, t()} | {error, error_reason()}.
+from_environment(Configuration) ->
+    case from_map(Configuration) of
+        {ok, Model} -> {ok, Model#{source := environment}};
+        {error, _}=Error -> Error
+    end.
 
 -spec root(t()) -> map().
 root(Configuration) ->
