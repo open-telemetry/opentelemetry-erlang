@@ -119,10 +119,19 @@ compatibility, but component names are preferred in configuration.
 
 Missing `tracer_provider` and `propagator` sections have the declarative
 model's no-op behavior. In particular, an empty application environment does
-not start a tracer provider. `meter_provider` is retained in the configuration
-model but is not interpreted by the stable application yet; metrics remain the
-responsibility of the experimental application while that implementation is
-being redesigned.
+not start a tracer provider. `meter_provider` and `logger_provider` are retained
+in the configuration model but are not interpreted by the stable application
+yet. Their presence produces a warning. Metrics remain the responsibility of
+the experimental application while that implementation is being redesigned.
+
+Some optional settings are retained but ignored with a warning identifying the
+configuration path: attribute value depth limits, `max_export_batch_size`,
+OTLP exporter `timeout`, `max_request_size` and `max_response_size`, gRPC
+`tls.insecure`, resource `detection/development`, and
+`tracer_configurator/development`. The corresponding SDK behavior remains
+unchanged; accepting these properties does not implement their limits or
+features. For gRPC transport security, use an explicit `http://` or `https://`
+endpoint. Invalid values and unresolved components still return errors.
 
 ### Erlang components
 

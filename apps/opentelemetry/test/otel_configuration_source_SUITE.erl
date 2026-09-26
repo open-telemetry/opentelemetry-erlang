@@ -14,6 +14,7 @@ all() ->
      application_environment_matches_json,
      rejects_legacy_application_environment,
      application_startup_uses_shared_declarative_configuration,
+     upstream_reference_starts_sdk,
      omitted_resource_ignores_legacy_detection].
 
 init_per_suite(Config) ->
@@ -182,6 +183,22 @@ application_startup_uses_shared_declarative_configuration(Config) ->
     ?assertNot(maps:is_key('app.only', Attributes)),
 
     ok = application:stop(opentelemetry).
+
+upstream_reference_starts_sdk(Config) ->
+    File = filename:join(?config(data_dir, Config), "otel-sdk-config.json"),
+    {ok, Source} = otel_configuration_source:parse_file(File),
+    {ok, Resolved} = otel_configuration_declarative:resolve(Source),
+    ?assertEqual(Source, otel_configuration_model:root(
+                           otel_configuration_sdk:source(Resolved))),
+    ?assert(maps:is_key(<<"logger_provider">>, Source)),
+    ?assert(maps:is_key(<<"meter_provider">>, Source)),
+    os:putenv("OTEL_CONFIG_FILE", File),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    ?assert(is_pid(whereis(otel_tracer_provider_global))),
+    ?assertMatch([{_, Pid, worker, _}] when is_pid(Pid),
+                 supervisor:which_children(otel_span_processor_sup_global)),
+    Attributes = resource_attributes_map(otel_tracer_provider:resource()),
+    ?assertMatch(#{'service.name' := <<"unknown_service">>}, Attributes).
 
 omitted_resource_ignores_legacy_detection(Config) ->
     File = write_configuration(?config(priv_dir, Config), "no-resource.json", "info"),

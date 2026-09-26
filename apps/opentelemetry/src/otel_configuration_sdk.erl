@@ -18,6 +18,8 @@
 %%%-------------------------------------------------------------------------
 -module(otel_configuration_sdk).
 
+-include_lib("kernel/include/logger.hrl").
+
 -export([create/1,
          create_tracer_provider/1,
          value/3,
@@ -138,7 +140,8 @@ create(Model) ->
         validate_top_level(Raw),
         validate_distribution(Raw),
         validate_attribute_limits(Raw),
-        reject_present(logger_provider, Raw, [logger_provider]),
+        warn_unsupported(logger_provider, Raw, [logger_provider], fun component_map/2),
+        warn_unsupported(meter_provider, Raw, [meter_provider], fun component_map/2),
         Distribution = #{erlang := Erlang} = resolve_distribution(Raw),
         Configuration0 =
             #{source => Model,
@@ -202,8 +205,8 @@ resolve_resource(Configuration) ->
         error -> undefined;
         {ok, null} -> undefined;
         {ok, ResourceConfig} when is_map(ResourceConfig) ->
-            reject_present('detection/development', ResourceConfig,
-                           [resource, 'detection/development']),
+            warn_unsupported('detection/development', ResourceConfig,
+                             [resource, 'detection/development'], fun component_map/2),
             ListAttributes = resource_attribute_list(value(attributes_list, ResourceConfig, <<>>)),
             SchemaUrl = value(schema_url, ResourceConfig, undefined),
             resolve_resource_attributes(find(attributes, ResourceConfig),
@@ -462,8 +465,9 @@ validate_attribute_limits(Configuration) ->
         error -> ok;
         {ok, null} -> ok;
         {ok, Limits} when is_map(Limits) ->
-            reject_non_null(attribute_value_depth_limit, Limits,
-                            [attribute_limits, attribute_value_depth_limit]);
+            warn_unsupported(attribute_value_depth_limit, Limits,
+                             [attribute_limits, attribute_value_depth_limit],
+                             fun positive_integer/2);
         {ok, Value} ->
             fail({invalid_configuration, [attribute_limits], Value})
     end.
@@ -516,8 +520,9 @@ resolve_tracer_provider(Configuration, Erlang) ->
     end.
 
 resolve_tracer_provider_configuration(TracerProvider, Erlang) when is_map(TracerProvider) ->
-    reject_present('tracer_configurator/development', TracerProvider,
-                   [tracer_provider, 'tracer_configurator/development']),
+    warn_unsupported('tracer_configurator/development', TracerProvider,
+                     [tracer_provider, 'tracer_configurator/development'],
+                     fun component_map/2),
     validate_tracer_limits(TracerProvider),
     Processors = required(processors, TracerProvider,
                           [tracer_provider, processors]),
@@ -577,8 +582,8 @@ resolve_processor_config(Kind, Config) ->
     Path = [tracer_provider, processors, Kind],
     case Kind of
         batch ->
-            reject_non_null(max_export_batch_size, Config,
-                            Path ++ [max_export_batch_size]);
+            warn_unsupported(max_export_batch_size, Config,
+                             Path ++ [max_export_batch_size], fun positive_integer/2);
         simple -> ok
     end,
     Exporter = required(exporter, Config, Path ++ [exporter]),
@@ -628,8 +633,9 @@ validate_tracer_limits(TracerProvider) ->
         error -> ok;
         {ok, null} -> ok;
         {ok, Limits} when is_map(Limits) ->
-            reject_non_null(attribute_value_depth_limit, Limits,
-                            [tracer_provider, limits, attribute_value_depth_limit]);
+            warn_unsupported(attribute_value_depth_limit, Limits,
+                             [tracer_provider, limits, attribute_value_depth_limit],
+                             fun positive_integer/2);
         {ok, Value} ->
             fail({invalid_configuration, [tracer_provider, limits], Value})
     end.
@@ -785,9 +791,11 @@ validate_span_exporter(Value) ->
 otlp_exporter(Transport, Config0) ->
     Path = [exporter, otlp_transport(Transport)],
     Config = component_map(Config0, Path),
-    reject_non_null(max_request_size, Config, Path ++ [max_request_size]),
-    reject_non_null(max_response_size, Config, Path ++ [max_response_size]),
-    reject_non_null(timeout, Config, Path ++ [timeout]),
+    warn_unsupported(max_request_size, Config, Path ++ [max_request_size],
+                     fun non_negative_integer/2),
+    warn_unsupported(max_response_size, Config, Path ++ [max_response_size],
+                     fun positive_integer/2),
+    warn_unsupported(timeout, Config, Path ++ [timeout], fun non_negative_integer/2),
     check_encoding(Transport, Config, Path),
     Endpoint = to_binary(value(endpoint, Config, default_endpoint(Transport))),
     Headers = exporter_headers(Config, Path),
@@ -834,7 +842,7 @@ tls_options(null, _Transport, _Path) -> undefined;
 tls_options(undefined, _Transport, _Path) -> undefined;
 tls_options(Tls, Transport, Path) when is_map(Tls) ->
     case Transport of
-        grpc -> reject_non_null(insecure, Tls, Path ++ [insecure]);
+        grpc -> warn_unsupported(insecure, Tls, Path ++ [insecure], fun boolean_value/2);
         http -> ok
     end,
     Ca = value(ca_file, Tls, undefined),
@@ -913,15 +921,21 @@ component_map(undefined, _Path) -> #{};
 component_map(Config, _Path) when is_map(Config) -> Config;
 component_map(Value, Path) -> fail({invalid_configuration, Path, Value}).
 
-reject_present(Key, Map, Path) ->
+%% Keep schema-valid optional settings in the source model even when this SDK
+%% cannot apply them yet. Do not include values (which may be sensitive) in logs.
+warn_unsupported(Key, Map, Path, Validator) ->
     case find(Key, Map) of
         error -> ok;
         {ok, null} -> ok;
         {ok, undefined} -> ok;
-        {ok, Value} -> fail({unsupported_configuration, Path, Value})
+        {ok, Value} ->
+            _ = Validator(Value, Path),
+            ?LOG_WARNING("Ignoring unsupported OpenTelemetry configuration property ~p",
+                         [Path], #{otel_configuration_path => Path})
     end.
 
-reject_non_null(Key, Map, Path) -> reject_present(Key, Map, Path).
+boolean_value(Value, _Path) when is_boolean(Value) -> Value;
+boolean_value(Value, Path) -> fail({invalid_configuration, Path, Value}).
 
 parse_key_value_list(null, _Path) -> [];
 parse_key_value_list(undefined, _Path) -> [];

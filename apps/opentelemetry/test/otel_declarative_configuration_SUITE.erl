@@ -21,6 +21,8 @@ all() ->
      resolves_standalone_tracer_provider,
      normalizes_json_sweeper_settings,
      configured_resource_takes_precedence,
+     warns_about_unimplemented_settings,
+     rejects_invalid_unimplemented_settings,
      rejects_unsupported_configuration,
      ignores_unknown_top_level_properties_without_creating_atoms].
 
@@ -492,23 +494,125 @@ configured_resource_takes_precedence(_Config) ->
         application:unload(opentelemetry)
     end.
 
+warns_about_unimplemented_settings(_Config) ->
+    Handler = configuration_warning_test,
+    ok = logger:add_handler(Handler, ?MODULE,
+                            #{level => warning, config => #{pid => self()}}),
+    try
+        Input = #{file_format => <<"1.1">>,
+                  attribute_limits => #{attribute_value_depth_limit => 64},
+                  resource => #{'detection/development' => #{}},
+                  logger_provider => #{processors => []},
+                  meter_provider => #{readers => []},
+                  tracer_provider =>
+                      #{'tracer_configurator/development' => #{},
+                        limits => #{attribute_value_depth_limit => 64},
+                        processors =>
+                            [{batch, #{max_export_batch_size => 512,
+                                       exporter =>
+                                           {otlp_grpc,
+                                            #{endpoint => <<"https://collector:4317">>,
+                                              timeout => 10000,
+                                              max_request_size => 0,
+                                              max_response_size => 1,
+                                              tls => #{insecure => true}}}}}]}},
+        {ok, Resolved} = otel_configuration_declarative:resolve(Input),
+        ?assertEqual(Input, otel_configuration_model:root(
+                              otel_configuration_sdk:source(Resolved))),
+        #{processors := [{otel_batch_processor, Processor}]} =
+            otel_configuration_sdk:tracer_provider(Resolved),
+        ?assertNot(maps:is_key(max_export_batch_size, Processor)),
+        ?assertMatch({opentelemetry_exporter,
+                      #{protocol := grpc,
+                        endpoints := [<<"https://collector:4317">>],
+                        ssl_options := undefined}}, maps:get(exporter, Processor)),
+        Expected = [[logger_provider], [meter_provider],
+                    [resource, 'detection/development'],
+                    [attribute_limits, attribute_value_depth_limit],
+                    [tracer_provider, limits, attribute_value_depth_limit],
+                    [tracer_provider, 'tracer_configurator/development'],
+                    [tracer_provider, processors, batch, max_export_batch_size],
+                    [exporter, otlp_grpc, timeout],
+                    [exporter, otlp_grpc, max_request_size],
+                    [exporter, otlp_grpc, max_response_size],
+                    [exporter, otlp_grpc, tls, insecure]],
+        ?assertEqual(lists:sort(Expected), lists:sort(configuration_warnings())),
+        %% Null properties retain default behavior without warning.
+        {ok, _} = otel_configuration_declarative:resolve(
+                    #{file_format => <<"1.1">>, logger_provider => null,
+                      meter_provider => null,
+                      attribute_limits => #{attribute_value_depth_limit => null},
+                      tracer_provider =>
+                          #{limits => #{attribute_value_depth_limit => null},
+                            processors =>
+                                [{batch, #{max_export_batch_size => null,
+                                           exporter =>
+                                               {otlp_grpc, #{timeout => null,
+                                                             tls => #{insecure => null}}}}}]}}),
+        ?assertEqual([], configuration_warnings())
+    after
+        logger:remove_handler(Handler)
+    end.
+
+%% Logger handler used to capture only configuration warnings from this test.
+log(#{meta := #{pid := Pid, otel_configuration_path := Path}},
+    #{config := #{pid := Pid}}) ->
+    Pid ! {configuration_warning, Path},
+    ok;
+log(_Event, _Config) -> ok.
+
+configuration_warnings() ->
+    receive
+        {configuration_warning, Path} -> [Path | configuration_warnings()]
+    after 0 -> []
+    end.
+
+rejects_invalid_unimplemented_settings(_Config) ->
+    Cases = [{[attribute_limits, attribute_value_depth_limit], 0},
+             {[tracer_provider, limits, attribute_value_depth_limit], -1},
+             {[logger_provider], false},
+             {[meter_provider], []}],
+    lists:foreach(
+      fun({Path, Value}) ->
+              Input = maps:merge(#{file_format => <<"1.1">>}, nested_property(Path, Value)),
+              ?assertEqual({error, {invalid_configuration, Path, Value}},
+                           otel_configuration_declarative:resolve(Input))
+      end, Cases),
+    lists:foreach(
+      fun(Value) -> assert_invalid_processor_setting(batch, max_export_batch_size, Value) end,
+      [0, -1, 1.5, <<"512">>]),
+    lists:foreach(
+      fun({Transport, Path, Value}) ->
+              Config = nested_property(Path, Value),
+              Input = #{processors => [{batch, #{exporter => {Transport, Config}}}]},
+              ?assertEqual({error, {invalid_configuration,
+                                   [exporter, Transport | Path], Value}},
+                           otel_configuration_sdk:create_tracer_provider(Input))
+      end,
+      [{otlp_http, [timeout], -1},
+       {otlp_grpc, [timeout], <<"10000">>},
+       {otlp_http, [max_request_size], -1},
+       {otlp_grpc, [max_response_size], 0},
+       {otlp_grpc, [tls, insecure], <<"true">>}]).
+
+nested_property([Key], Value) -> #{Key => Value};
+nested_property([Key | Rest], Value) -> #{Key => nested_property(Rest, Value)}.
+
 rejects_unsupported_configuration(_Config) ->
     ?assertEqual({error, {unsupported_file_format, <<"2.0">>}},
                  otel_configuration_declarative:resolve(
                    #{<<"file_format">> => <<"2.0">>})),
-    ?assertMatch({error, {unsupported_configuration, [logger_provider], _}},
-                 otel_configuration_declarative:resolve(
-                   #{<<"file_format">> => <<"1.1">>,
-                     <<"logger_provider">> => #{<<"processors">> => []}})),
-    ?assertMatch({error, {unsupported_configuration,
-                          [tracer_provider, processors, batch, max_export_batch_size], 512}},
+    %% An unresolved component is still an error, not an ignored property.
+    ?assertEqual({error, {unsupported_configuration,
+                         [tracer_provider, processors], <<"not_registered">>}},
                  otel_configuration_declarative:resolve(
                    #{<<"file_format">> => <<"1.1">>,
                      <<"tracer_provider">> =>
-                         #{<<"processors">> =>
-                               [#{<<"batch">> =>
-                                      #{<<"max_export_batch_size">> => 512,
-                                        <<"exporter">> => #{<<"otlp_http">> => null}}}]}})).
+                         #{<<"processors">> => [#{<<"not_registered">> => #{}}]}})),
+    ?assertEqual({error, {unsupported_configuration,
+                         [tracer_provider, processors, exporter], <<"not_registered">>}},
+                 otel_configuration_sdk:create_tracer_provider(
+                   #{processors => [{batch, #{exporter => #{<<"not_registered">> => #{}}}}]})).
 
 ignores_unknown_top_level_properties_without_creating_atoms(_Config) ->
     Unknown = <<"declarative_unknown_", (integer_to_binary(erlang:unique_integer([positive])))/binary>>,
