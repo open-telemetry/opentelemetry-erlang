@@ -19,10 +19,7 @@
 %%%-------------------------------------------------------------------------
 -module(otel_configuration).
 
--export([resolve/1,
-         defaults/0,
-         span_processor_defaults/1,
-         merge_with_os/1,
+-export([merge_with_os/1,
          merge_list_with_environment/3,
          report_cb/1]).
 
@@ -35,10 +32,7 @@
 
 %% required configuration
 %% using a map instead of a record because there can be more values
--type t() :: #{configuration_source := legacy | declarative,
-               sdk_disabled := boolean(),
-               traces_enabled := boolean(),
-               metrics_enabled := boolean(),
+-type t() :: #{sdk_disabled := boolean(),
                log_level := atom(),
                register_loaded_applications := boolean() | undefined,
                create_application_tracers := boolean() | undefined,
@@ -47,7 +41,6 @@
 
                resource_detectors := [module() | {module(), term()}],
                resource_detector_timeout := integer(),
-               resource := otel_resource:t() | undefined,
                bsp_scheduled_delay_ms := integer() | undefined,
                bsp_exporting_timeout_ms := integer() | undefined,
                bsp_max_queue_size := integer() | undefined,
@@ -75,23 +68,13 @@
                attribute_per_event_limit := integer(),
                attribute_per_link_limit := integer()}.
 
--type resolved() :: t().
-
--export_type([t/0,
-              resolved/0]).
+-export_type([t/0]).
 
 -include_lib("kernel/include/logger.hrl").
 
--spec resolve(map()) -> t().
-resolve(Overrides) ->
-    maps:merge(defaults(), Overrides).
-
--spec defaults() -> t().
-defaults() ->
-    #{configuration_source => legacy,
-      sdk_disabled => false,
-      traces_enabled => true,
-      metrics_enabled => true,
+-spec new() -> t().
+new() ->
+    #{sdk_disabled => false,
       log_level => info,
       register_loaded_applications => undefined,
       create_application_tracers => undefined,
@@ -100,7 +83,6 @@ defaults() ->
       resource_detectors => [otel_resource_env_var,
                              otel_resource_app_env],
       resource_detector_timeout => 5000,
-      resource => undefined,
       bsp_scheduled_delay_ms => undefined,
       bsp_exporting_timeout_ms => undefined,
       bsp_max_queue_size => undefined,
@@ -126,15 +108,9 @@ defaults() ->
       attribute_per_event_limit => 128,
       attribute_per_link_limit => 128}.
 
--spec span_processor_defaults(otel_batch_processor | otel_simple_processor) -> map().
-span_processor_defaults(otel_batch_processor) ->
-    ?BATCH_PROCESSOR_DEFAULTS;
-span_processor_defaults(otel_simple_processor) ->
-    ?SIMPLE_PROCESSOR_DEFAULTS.
-
 -spec merge_with_os(list()) -> t().
 merge_with_os(AppEnv) ->
-    ConfigMap = defaults(),
+    ConfigMap = new(),
 
     lists:foldl(fun(F, Acc) ->
                         F(AppEnv, Acc)
