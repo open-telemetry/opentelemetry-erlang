@@ -147,9 +147,12 @@ init_per_testcase(multiple_processors, Config) ->
 init_per_testcase(_, Config) ->
     Processor = ?config(processor, Config),
     Tid = ets:new(exported_spans, [public, bag]),
+    Options = case Processor of
+                  otel_batch_processor -> #{schedule_delay => 1};
+                  otel_simple_processor -> #{}
+              end,
     set_processors([{processor_name(Processor),
-                     #{schedule_delay => 1,
-                       exporter => {otel_exporter_tab, Tid}}}]),
+                     Options#{exporter => {otel_exporter_tab, Tid}}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     [{tid, Tid} | Config].
 
@@ -716,6 +719,13 @@ multiple_tracer_providers(_Config) ->
                [{batch, #{exporter => none, schedule_delay => -1}}]})),
     ?assertEqual(undefined,
                  otel_tracer_provider:resource(invalid_test_provider)),
+    ?assertEqual(
+       {error, {invalid_configuration,
+                [tracer_provider, processors, batch, scheduled_delay_ms], unknown_property}},
+       otel_tracer_provider_sup:start(
+         invalid_test_provider,
+         #{processors => [{batch, #{exporter => none, scheduled_delay_ms => 1}}]})),
+    ?assertEqual(undefined, whereis(otel_tracer_provider_invalid_test_provider)),
 
     ?assertMatch({ok, _},
                  otel_tracer_provider_sup:start(empty_test_provider,

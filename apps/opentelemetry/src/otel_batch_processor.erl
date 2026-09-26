@@ -18,11 +18,11 @@
 %% It stores finished Spans in a ETS table buffer and exports
 %% them on an interval or when the table reaches a maximum size.
 %%
-%% You can configure these timeouts:
+%% You can configure these timeouts in milliseconds:
 %%
 %% <ul>
 %% <li>`export_timeout': how long to let the exports run before killing.</li>
-%% <li>`check_table_size_ms': timeout to check the size of the export table.</li>
+%% <li>`check_table_size': timeout to check the size of the export table.</li>
 %% <li>`schedule_delay': how often to trigger running the exporters.</li>
 %% </ul>
 %%

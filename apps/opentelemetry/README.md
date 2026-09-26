@@ -149,6 +149,13 @@ the same names as the declarative document. The implementation module names
 `otel_batch_processor` and `otel_simple_processor` remain accepted for
 compatibility, but component names are preferred in configuration.
 
+Built-in processors reject unknown option names with a path-specific error.
+When migrating older native configurations, rename `scheduled_delay_ms` to
+`schedule_delay`, `exporting_timeout_ms` to `export_timeout`, and
+`check_table_size_ms` to `check_table_size`. Durations remain in milliseconds.
+Batch-only options are not accepted by `simple`. Custom processors retain
+control over their own option names.
+
 In an explicit file or native configuration, missing `tracer_provider` and
 `propagator` sections have the declarative model's no-op behavior. For example,
 `{tracer_provider, null}` explicitly disables provider creation without opting

@@ -17,6 +17,7 @@ all() ->
      preserves_model_semantics,
      resolves_builtin_processor_aliases,
      rejects_invalid_builtin_processor_settings,
+     rejects_unknown_builtin_processor_settings,
      resolves_erlang_application_extensions,
      resolves_standalone_tracer_provider,
      normalizes_json_sweeper_settings,
@@ -328,6 +329,52 @@ rejects_invalid_builtin_processor_settings(_Config) ->
                                 max_queue_size => 1,
                                 check_table_size => infinity}}]}}]),
     ?assertMatch({ok, _}, otel_configuration_sdk:create(Model)).
+
+rejects_unknown_builtin_processor_settings(_Config) ->
+    lists:foreach(
+      fun({Kind, Module}) ->
+              lists:foreach(
+                fun(Key) ->
+                        lists:foreach(
+                          fun(RawKey) ->
+                                  Options = #{exporter => none, RawKey => 10},
+                                  lists:foreach(
+                                    fun(Component) ->
+                                            ?assertEqual(
+                                               {error, {invalid_configuration,
+                                                        [tracer_provider, processors, Kind, RawKey],
+                                                        unknown_property}},
+                                               otel_configuration_sdk:create_tracer_provider(
+                                                 #{processors => [Component]}))
+                                    end, [{Kind, Options}, {Module, Options},
+                                          #{Kind => Options}, #{Module => Options}])
+                          end, [Key, atom_to_binary(Key, utf8)])
+                end, [scheduled_delay_ms, exporting_timeout_ms, check_table_size_ms,
+                      misspelled_option])
+      end, [{batch, otel_batch_processor}, {simple, otel_simple_processor}]),
+    %% Valid batch-only settings must not silently pass through simple.
+    ?assertEqual({error, {invalid_configuration,
+                         [tracer_provider, processors, simple, schedule_delay], unknown_property}},
+                 otel_configuration_sdk:create_tracer_provider(
+                   #{processors => [{simple, #{exporter => none, schedule_delay => 10}}]})),
+    Unknown = <<"unknown_processor_option_", (integer_to_binary(erlang:unique_integer([positive])))/binary>>,
+    ?assertException(error, badarg, binary_to_existing_atom(Unknown, utf8)),
+    ?assertEqual({error, {invalid_configuration,
+                         [tracer_provider, processors, batch, Unknown], unknown_property}},
+                 otel_configuration_declarative:resolve(
+                   #{<<"file_format">> => <<"1.1">>,
+                     <<"tracer_provider">> =>
+                         #{<<"processors">> =>
+                               [#{<<"batch">> => #{Unknown => null,
+                                                   <<"exporter">> => #{<<"otlp_http">> => null}}}]}})),
+    ?assertException(error, badarg, binary_to_existing_atom(Unknown, utf8)),
+    %% Third-party processors define their own properties, including these names.
+    Custom = #{scheduled_delay_ms => 10, Unknown => null},
+    ?assertMatch({ok, #{processors := [{custom_span_processor, Custom},
+                                      {custom_span_processor, Custom}]}},
+                 otel_configuration_sdk:create_tracer_provider(
+                   #{processors => [{custom_span_processor, Custom},
+                                    #{custom_span_processor => Custom}]})).
 
 assert_invalid_processor_setting(Kind, Key, Value) ->
     {ok, Model} = otel_configuration_model:from_application_env(

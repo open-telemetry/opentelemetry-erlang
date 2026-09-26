@@ -38,7 +38,7 @@
          span_limits/1,
          source/1]).
 
--type path() :: [atom()].
+-type path() :: [atom() | binary()].
 -type error_reason() :: {invalid_configuration, path(), term()}
                       | {unsupported_configuration, path(), term()}.
 
@@ -560,12 +560,12 @@ resolve_span_processor({Module, Config}) when is_atom(Module), is_map(Config) ->
     end;
 resolve_span_processor(Component) when is_map(Component), map_size(Component) =:= 1 ->
     case first_entry(Component) of
-        {batch, Config0} ->
+        {Name, Config0} when Name =:= batch; Name =:= otel_batch_processor ->
             {otel_batch_processor,
              resolve_processor_config(batch,
                                       component_map(Config0,
                                                     [tracer_provider, processors, batch]))};
-        {simple, Config0} ->
+        {Name, Config0} when Name =:= simple; Name =:= otel_simple_processor ->
             {otel_simple_processor,
              resolve_processor_config(simple,
                                       component_map(Config0,
@@ -580,6 +580,7 @@ resolve_span_processor(Value) ->
 
 resolve_processor_config(Kind, Config) ->
     Path = [tracer_provider, processors, Kind],
+    validate_processor_keys(Kind, Config, Path),
     case Kind of
         batch ->
             warn_unsupported(max_export_batch_size, Config,
@@ -601,6 +602,23 @@ resolve_processor_config(Kind, Config) ->
         simple ->
             Resolved1
     end.
+
+validate_processor_keys(Kind, Config, Path) ->
+    Allowed = case Kind of
+                  batch -> [exporter, schedule_delay, export_timeout, max_queue_size,
+                            max_export_batch_size, check_table_size];
+                  simple -> [exporter, export_timeout]
+              end,
+    AllowedKeys = Allowed ++ [atom_to_binary(Key, utf8) || Key <- Allowed],
+    maps:foreach(
+      fun(Key, _Value) when is_atom(Key); is_binary(Key) ->
+              case lists:member(Key, AllowedKeys) of
+                  true -> ok;
+                  false -> fail({invalid_configuration, Path ++ [Key], unknown_property})
+              end;
+         (Key, _Value) ->
+              fail({invalid_configuration, Path, {invalid_property_name, Key}})
+      end, Config).
 
 copy_validated(Key, Source, Target, Path, Validator) ->
     case find(Key, Source) of
