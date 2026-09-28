@@ -32,23 +32,17 @@ end_per_suite(_Config) ->
     ok.
 
 init_per_testcase(storage_size, Config) ->
-    application:set_env(opentelemetry, sweeper, #{interval => 250,
-                                                  strategy => end_span,
-                                                  span_ttl => 500,
-                                                  storage_size => 100}),
-    application:set_env(opentelemetry, tracer, otel_tracer_default),
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1,
-                                                                            exporter => {otel_exporter_pid, self()}}}]),
+    set_configuration(#{interval => 250,
+                        strategy => end_span,
+                        span_ttl => 500,
+                        storage_size => 100}),
     {ok, _} = application:ensure_all_started(opentelemetry),
 
     Config;
 init_per_testcase(Type, Config) ->
-    application:set_env(opentelemetry, sweeper, #{interval => 250,
-                                                  strategy => Type,
-                                                  span_ttl => 500}),
-    application:set_env(opentelemetry, tracer, otel_tracer_default),
-    application:set_env(opentelemetry, processors, [{otel_batch_processor, #{scheduled_delay_ms => 1,
-                                                                             exporter => {otel_exporter_pid, self()}}}]),
+    set_configuration(#{interval => 250,
+                        strategy => Type,
+                        span_ttl => 500}),
     {ok, _} = application:ensure_all_started(opentelemetry),
 
     Config.
@@ -56,6 +50,18 @@ init_per_testcase(Type, Config) ->
 end_per_testcase(_, _Config) ->
     ok = application:stop(opentelemetry),
     ok.
+
+set_configuration(Sweeper) ->
+    application:set_env(opentelemetry,
+                        distribution,
+                        #{erlang => #{sweeper => Sweeper}}),
+    application:set_env(
+      opentelemetry,
+      tracer_provider,
+      #{processors =>
+            [{otel_batch_processor,
+              #{schedule_delay => 1,
+                exporter => {otel_exporter_pid, self()}}}]}).
 
 storage_size(_Config) ->
     SpanName1 = <<"span-1">>,

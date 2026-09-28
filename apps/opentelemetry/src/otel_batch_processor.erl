@@ -18,12 +18,12 @@
 %% It stores finished Spans in a ETS table buffer and exports
 %% them on an interval or when the table reaches a maximum size.
 %%
-%% You can configure these timeouts:
+%% You can configure these timeouts in milliseconds:
 %%
 %% <ul>
-%% <li>`exporting_timeout_ms': how long to let the exports run before killing.</li>
-%% <li>`check_table_size_ms': timeout to check the size of the export table.</li>
-%% <li>`scheduled_delay_ms': how often to trigger running the exporters.</li>
+%% <li>`export_timeout': how long to let the exports run before killing.</li>
+%% <li>`check_table_size': timeout to check the size of the export table.</li>
+%% <li>`schedule_delay': how often to trigger running the exporters.</li>
 %% </ul>
 %%
 %% The size limit of the current table where finished spans are stored can
@@ -39,12 +39,7 @@
          on_start/3,
          on_end/2,
          force_flush/1,
-         report_cb/1,
-
-         %% deprecated
-         set_exporter/1,
-         set_exporter/2,
-         set_exporter/3]).
+         report_cb/1]).
 
 -export([init/1,
          callback_mode/0,
@@ -52,14 +47,22 @@
          exporting/3,
          terminate/3]).
 
-%% uncomment when OTP-23 becomes the minimum required version
-%% -deprecated({set_exporter, 1, "set through the otel_tracer_provider instead"}).
-%% -deprecated({set_exporter, 2, "set through the otel_tracer_provider instead"}).
-%% -deprecated({set_exporter, 3, "set through the otel_tracer_provider instead"}).
-
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("kernel/include/logger.hrl").
 -include("otel_span.hrl").
+
+-type configuration() ::
+        #{name := atom() | list(),
+          exporter => otel_configuration_sdk:span_exporter_component() | none,
+          schedule_delay => non_neg_integer() | null,
+          export_timeout => non_neg_integer() | null,
+          max_queue_size => non_neg_integer() | infinity | null,
+          check_table_size => timeout(),
+          resource => otel_resource:t(),
+          reg_name => atom(),
+          binary() => term()}.
+
+-export_type([configuration/0]).
 
 -record(data, {exporter             :: {module(), term()} | undefined,
                exporter_config      :: {module(), term()} | undefined | none,
@@ -100,26 +103,12 @@ current_tab_to_list(RegName) ->
 %% communicate with the processor
 %% @doc Starts a Batch Span Processor.
 %% @end
--spec start_link(#{name := atom() | list(), term() => term()}) -> {ok, pid(), map()}.
+-spec start_link(configuration()) -> {ok, pid(), configuration()}.
 start_link(Config=#{name := Name}) ->
     RegisterName = ?REG_NAME(Name),
     Config1 = Config#{reg_name => RegisterName},
-    {ok, Pid} = gen_statem:start_link({local, RegisterName}, ?MODULE, [Config1], []),
+    {ok, Pid} = gen_statem:start_link({local, RegisterName}, ?MODULE, Config1, []),
     {ok, Pid, Config1}.
-
-%% @deprecated Please use {@link otel_tracer_provider}
-set_exporter(Exporter) ->
-    set_exporter(global, Exporter, []).
-
-%% @deprecated Please use {@link otel_tracer_provider}
--spec set_exporter(module(), term()) -> ok.
-set_exporter(Exporter, Options) ->
-    gen_statem:call(?REG_NAME(global), {set_exporter, {Exporter, Options}}).
-
-%% @deprecated Please use {@link otel_tracer_provider}
--spec set_exporter(atom(), module(), term()) -> ok.
-set_exporter(Name, Exporter, Options) ->
-    gen_statem:call(?REG_NAME(Name), {set_exporter, {Exporter, Options}}).
 
 %% @private
 -spec on_start(otel_ctx:t(), opentelemetry:span(), otel_span_processor:processor_config())
@@ -143,23 +132,29 @@ force_flush(#{reg_name := RegName}) ->
     gen_statem:cast(RegName, force_flush).
 
 %% @private
-init([Args=#{reg_name := RegName}]) ->
+-spec init(configuration()) -> gen_statem:init_result(idle).
+init(Args=#{reg_name := RegName}) ->
     process_flag(trap_exit, true),
 
-    SizeLimit = maps:get(max_queue_size, Args, ?DEFAULT_MAX_QUEUE_SIZE),
-    ExportingTimeout = maps:get(exporting_timeout_ms, Args, ?DEFAULT_EXPORTER_TIMEOUT_MS),
-    ScheduledDelay = maps:get(scheduled_delay_ms, Args, ?DEFAULT_SCHEDULED_DELAY_MS),
-    CheckTableSize = maps:get(check_table_size_ms, Args, ?DEFAULT_CHECK_TABLE_SIZE_MS),
+    SizeLimit = otel_configuration_sdk:value(max_queue_size, Args, ?DEFAULT_MAX_QUEUE_SIZE),
+    ExportingTimeout0 = otel_configuration_sdk:value(export_timeout,
+                                                      Args,
+                                                      ?DEFAULT_EXPORTER_TIMEOUT_MS),
+    ExportingTimeout = timeout(ExportingTimeout0),
+    ScheduledDelay = otel_configuration_sdk:value(schedule_delay,
+                                                  Args,
+                                                  ?DEFAULT_SCHEDULED_DELAY_MS),
+    CheckTableSize = otel_configuration_sdk:value(check_table_size,
+                                                  Args,
+                                                  ?DEFAULT_CHECK_TABLE_SIZE_MS),
 
-    %% TODO: this should be passed in from the tracer server
+    %% Direct starts may omit a resource; tracer providers always supply theirs.
     Resource = case maps:find(resource, Args) of
                    {ok, R} ->
                        R;
                    error ->
                        otel_resource_detector:get_resource()
                end,
-    %% Resource = otel_tracer_provider:resource(),
-
     Table1 = ?TABLE_1,
     Table2 = ?TABLE_2,
 
@@ -168,7 +163,7 @@ init([Args=#{reg_name := RegName}]) ->
     persistent_term:put(?CURRENT_TABLES_KEY(RegName), Table1),
 
     %% only enable export table if there is going to be an exporter
-    case maps:get(exporter, Args, none) of
+    case exporter(otel_configuration_sdk:span_exporter_component(Args)) of
         ExporterConfig when ExporterConfig =:= none ; ExporterConfig =:= undefined ->
             disable(RegName);
         ExporterConfig ->
@@ -186,6 +181,13 @@ init([Args=#{reg_name := RegName}]) ->
                      table_1=Table1,
                      table_2=Table2,
                      reg_name=RegName}}.
+
+timeout(0) -> infinity;
+timeout(Value) -> Value.
+
+exporter(none) -> none;
+exporter(undefined) -> none;
+exporter(Configuration) -> otel_configuration_sdk:span_exporter(Configuration).
 
 %% @private
 callback_mode() ->
@@ -224,10 +226,8 @@ exporting({timeout, export_spans}, export_spans, _) ->
     {keep_state_and_data, [postpone]};
 exporting(enter, _OldState, #data{exporter=undefined,
                                   reg_name=RegName}) ->
-    %% exporter still undefined, go back to idle
-    %% first empty the table and disable the processor so no more spans are added
-    %% we wait until the attempt to export to disable so we don't lose spans
-    %% on startup but disable once it is clear an exporter isn't being set
+    %% The exporter is unavailable. Empty the table and disable the processor
+    %% so no more spans are added.
     clear_table_and_disable(RegName),
 
     %% use state timeout to transition to `idle' since we can't set a
@@ -292,21 +292,6 @@ handle_event_(_State, {timeout, check_table_size}, check_table_size, #data{max_q
             enable(RegName)
     end,
     {keep_state_and_data, [{{timeout, check_table_size}, CheckInterval, check_table_size}]};
-handle_event_(_, {call, From}, {set_exporter, ExporterConfig}, Data=#data{exporter=OldExporter,
-                                                                          reg_name=RegName}) ->
-    otel_exporter:shutdown(OldExporter),
-
-    %% enable immediately or else spans will be dropped for a period even after this call returns
-    enable(RegName),
-
-    {keep_state, Data#data{exporter=undefined,
-                           exporter_config=ExporterConfig}, [{reply, From, ok},
-                                                             {next_event, internal, init_exporter}]};
-handle_event_(_, internal, init_exporter, Data=#data{exporter=undefined,
-                                                     exporter_config=ExporterConfig,
-                                                     reg_name=RegName}) ->
-    Exporter = init_exporter(RegName, ExporterConfig),
-    {keep_state, Data#data{exporter=Exporter}};
 handle_event_(_, _, _, _) ->
     keep_state_and_data.
 

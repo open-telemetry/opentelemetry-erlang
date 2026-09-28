@@ -31,10 +31,12 @@
 
 -include("opentelemetry.hrl").
 
-%% uncomment when OTP-23 becomes the minimum required version
-%% -deprecated({start, 2, "start the TracerProvider through the SDK"}).
-
-%% @deprecated Start the TracerProvider through the SDK
+%% @doc Starts a named SDK TracerProvider from native configuration.
+%%
+%% This function requires the `opentelemetry' SDK application. The
+%% configuration uses the same shape as its `tracer_provider' application
+%% environment entry.
+-spec start(atom(), map()) -> supervisor:startchild_ret().
 start(Name, Config) ->
     otel_tracer_provider_sup:start(Name, Config).
 
