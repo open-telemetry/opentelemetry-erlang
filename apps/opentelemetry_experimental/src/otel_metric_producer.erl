@@ -23,8 +23,8 @@
 -include("otel_metrics.hrl").
 -include_lib("kernel/include/logger.hrl").
 
--callback init(module(), term()) -> {ok, t()} | ignore.
--callback produce_batch(t()) -> [#metric{}].
+-callback init(term()) -> {ok, term()} | ignore.
+-callback produce_batch(term()) -> [#metric{}].
 
 -record(producer, {module :: module(),
                    state  :: term()}).
