@@ -114,8 +114,6 @@
                 grpc_metadata :: map() | undefined,
                 endpoints :: [otel_exporter_otlp:endpoint_map()]}).
 
--include_lib("opentelemetry_api/include/gradualizer.hrl").
-
 %% @doc Initialize the exporter based on the provided configuration.
 -spec init(otel_exporter_otlp:opts()) -> {ok, #state{}}.
 init(Opts) ->

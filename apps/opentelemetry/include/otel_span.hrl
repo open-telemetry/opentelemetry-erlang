@@ -23,7 +23,7 @@
           %% 64 bit int span id
           span_id                 :: opentelemetry:span_id() | undefined | '$1',
 
-          tracestate = []         :: opentelemetry:tracestate() | '_',
+          tracestate = otel_tracestate:new() :: opentelemetry:tracestate() | '_',
 
           %% 64 bit int parent span
           parent_span_id          :: opentelemetry:span_id() | undefined | '_',
@@ -39,7 +39,7 @@
           %% and `server` (callee) to identify queueing latency associated with the span.status
           kind                    :: opentelemetry:span_kind() | undefined | '_',
 
-          start_time              :: opentelemetry:timestamp() | '$2',
+          start_time              :: opentelemetry:timestamp() | '$2' | '_',
           end_time                :: opentelemetry:timestamp() | undefined | '_',
 
           %% A set of attributes on the span.

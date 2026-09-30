@@ -51,11 +51,11 @@ get_meter(ServerRef, InstrumentationScope) ->
             {otel_meter_noop, []}
     end.
 
--spec resource() -> term() | undefined.
+-spec resource() -> dynamic() | undefined.
 resource() ->
     resource(?GLOBAL_METER_PROVIDER_NAME).
 
--spec resource(atom() | pid()) -> term() | undefined.
+-spec resource(atom() | pid()) -> dynamic() | undefined.
 resource(ServerRef) ->
     try
         gen_server:call(maybe_to_reg_name(ServerRef), resource)

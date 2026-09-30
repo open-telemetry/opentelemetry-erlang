@@ -22,8 +22,8 @@ jobs:
           persist-credentials: false
       - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124 # v1.24.1
         with:
-          otp-version: "27.2.4"
-          elixir-version: "1.18.1"
+          otp-version: "27.3.4"
+          elixir-version: "v1.20.4"
           version-type: "strict"
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         name: Cache
@@ -41,9 +41,9 @@ jobs:
     name: Test SDK on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["27.2.4", "26.2.5.21"]
+        otp_version: ["27.2.4"]
         elixir_version: ["1.18.1", "1.14.5"]
-        rebar3_version: ["3.24.0"]
+        rebar3_version: ["3.25.1"]
         os: [ubuntu-24.04]
         exclude:
           - elixir_version: "1.14.5"
@@ -71,9 +71,9 @@ jobs:
     name: Test API on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["27.2.4", "26.2.5.21"]
+        otp_version: ["27.2.4"]
         elixir_version: ["1.18.1", "1.14.5"]
-        rebar3_version: ["3.24.0"]
+        rebar3_version: ["3.25.1"]
         os: [ubuntu-24.04]
         exclude:
           - elixir_version: "1.14.5"
@@ -107,7 +107,7 @@ jobs:
         name: Deps
       - run: mix test --cover
         name: ExUnit
-      - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         if: ${{ always() }}
         with:
           file: apps/opentelemetry_api/coverage.xml
@@ -121,7 +121,7 @@ jobs:
       matrix:
         otp_version: ["27.2.4"]
         elixir_version: ["1.18.1"]
-        rebar3_version: ["3.24.0"]
+        rebar3_version: ["3.25.1"]
         os: [ubuntu-24.04]
     env:
       OTP_VERSION: ${{ matrix.otp_version }}
@@ -158,9 +158,9 @@ jobs:
     name: Test SemConv on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["27.2.4", "26.2.5.21"]
+        otp_version: ["29.0"]
         elixir_version: ["1.18.1", "1.14.5"]
-        rebar3_version: ["3.24.0"]
+        rebar3_version: ["3.25.1"]
         os: [ubuntu-24.04]
         exclude:
           - elixir_version: "1.14.5"

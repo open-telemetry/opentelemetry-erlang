@@ -2,6 +2,9 @@
 
 -compile(export_all).
 
+%% Logger permits handler-specific config keys not represented in its closed type.
+-eqwalizer({nowarn_function, exports_logs_after_idle_interval/1}).
+
 -include_lib("common_test/include/ct.hrl").
 
 all() ->

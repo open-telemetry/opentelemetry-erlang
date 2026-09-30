@@ -4,6 +4,12 @@
 
 -compile(export_all).
 
+%% These tests intentionally pass malformed values to validation APIs.
+-eqwalizer({nowarn_function, can_create_link_from_span/1}).
+-eqwalizer({nowarn_function, validations/1}).
+-eqwalizer({nowarn_function, update_span_data/1}).
+-eqwalizer({nowarn_function, noop_with_span/1}).
+
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 
@@ -71,7 +77,8 @@ can_create_link_from_span(_Config) ->
                     span_id := SpanId,
                     attributes := #{},
                     tracestate := Tracestate}],
-                 opentelemetry:links([undefined, {SpanCtx, Attributes}, SpanCtx])).
+                 opentelemetry:links(
+                   [undefined, {SpanCtx, Attributes}, SpanCtx])).
 
 validations(_Config) ->
     InvalidAttributesArg = undefined,
@@ -139,7 +146,7 @@ validations(_Config) ->
                  opentelemetry:links(Links)),
 
     StartOpts = #{attributes => Attributes,
-                 links => opentelemetry:links(Links)},
+                  links => opentelemetry:links(Links)},
     EmptyTracestate = otel_tracestate:new(),
     ?assertMatch(#{attributes := ProcessedAttributes,
                   links := [#{trace_id := 0, span_id := 0, attributes := ProcessedAttributes, tracestate := EmptyTracestate}]},
@@ -194,9 +201,9 @@ noop_tracer(_Config) ->
 %% just shouldn't crash
 update_span_data(_Config) ->
     Links = opentelemetry:links([#{trace_id => 0,
-               span_id => 0,
-               attributes => [],
-               tracestate => []}]),
+                                   span_id => 0,
+                                   attributes => [],
+                                   tracestate => []}]),
 
     SpanCtx1 = ?start_span(<<"span-1">>, #{links => Links}),
     ?set_current_span(SpanCtx1),
@@ -234,9 +241,9 @@ update_span_data(_Config) ->
 noop_with_span(_Config) ->
     Attributes = #{<<"attr-1">> => <<"value-1">>},
     Links = opentelemetry:links([#{trace_id => 0,
-               span_id => 0,
-               attributes => [],
-               tracestate => []}]),
+                                   span_id => 0,
+                                   attributes => [],
+                                   tracestate => []}]),
     StartOpts = #{attributes => Attributes, links => Links},
 
     Tracer = opentelemetry:get_tracer(),

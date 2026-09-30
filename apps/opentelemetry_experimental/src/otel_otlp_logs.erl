@@ -154,7 +154,7 @@ decode_trace_flags(TraceFlagsHex) when is_binary(TraceFlagsHex),
 decode_trace_flags(_) ->
     0.
 
--spec decode_id(term(), pos_integer()) -> {ok, binary()} | error.
+-spec decode_id(dynamic(), pos_integer()) -> {ok, binary()} | error.
 decode_id(Id, NumBytes) when is_list(Id) ->
     %% logger metadata is arbitrary user data: characters_to_binary/1
     %% raises badarg for non-chardata lists (improper lists, atoms in

@@ -183,7 +183,12 @@ handle_event_(_, _, _, _) ->
     keep_state_and_data.
 
 %% @private
-terminate(_, _, _Data) ->
+terminate(_, _, #data{exporter=Exporter}) ->
+    %% Synchronously shut the exporter down before this gen_statem exits,
+    %% mirroring `otel_batch_processor:terminate/3'. See #868 — linked
+    %% grpcbox channels crash on a missing `gproc' ETS table when they
+    %% terminate after the `grpcbox' application is already gone.
+    _ = otel_exporter:shutdown(Exporter),
     ok.
 
 %%

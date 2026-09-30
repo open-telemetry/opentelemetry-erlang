@@ -39,20 +39,40 @@
                                    scheme => "http"}]).
 
 -type headers() :: [{unicode:chardata(), unicode:chardata()}].
--type endpoint() :: uri_string:uri_string() | uri_string:uri_map().
+-type endpoint() :: uri_string:uri_string() | uri_string:uri_map() |
+                    endpoint_map() | {atom(), unicode:chardata(), integer(), list()}.
 -type endpoint_map() :: #{scheme := unicode:chardata(),
                           host := unicode:chardata(),
                           path => unicode:chardata(),
                           port => integer(),
-                          ssl_options => []}.
+                          ssl_options => list()}.
 
 -type protocol() :: grpc | http_protobuf | http_json.
 -type compression() :: gzip.
 
+-type httpc_option() :: {proxy, {{string(), non_neg_integer()}, [string()]}}
+                      | {https_proxy, {{string(), non_neg_integer()}, [string()]}}
+                      | {max_connections_open, integer() | infinity}
+                      | {max_sessions, integer()}
+                      | {max_keep_alive_length, integer()}
+                      | {keep_alive_timeout, integer()}
+                      | {max_pipeline_length, integer()}
+                      | {pipeline_timeout, integer()}
+                      | {cookies, enabled | disabled | verify}
+                      | {ipfamily, inet | inet6 | local | inet6fb4}
+                      | {ip, inet:ip_address()}
+                      | {port, non_neg_integer()}
+                      | {socket_opts, [term()]}
+                      | {verbose, false | verbose | debug | trace}
+                      | {unix_socket, string()}.
+
 -type opts() :: #{endpoints => [endpoint()],
                   headers => headers(),
                   protocol => protocol(),
-                  ssl_options => list()}.
+                  compression => compression() | undefined,
+                  ssl_options => list(),
+                  channel_opts => map(),
+                  httpc_options => [httpc_option()]}.
 
 -export_type([opts/0,
               headers/0,
@@ -69,8 +89,6 @@
                    compression := compression() | undefined,
                    grpc_metadata := map() | undefined,
                    endpoints := [endpoint_map()]}.
-
--include_lib("opentelemetry_api/include/gradualizer.hrl").
 
 %% @doc Initialize the exporter based on the provided configuration.
 -spec init(opts()) -> {ok, state()}.
@@ -166,10 +184,11 @@ start_httpc(Opts) ->
     case httpc:info(HttpcProfile) of
         {error, {not_started, _}} ->
             %% by default use inet6fb4 which will try ipv6 and then fallback to ipv4 if it fails
-            HttpcOptions = lists:ukeymerge(1,
-                                           lists:usort(maps:get(httpc_options, Opts, [])),
-                                           [{ipfamily, inet6fb4}]
-                                          ),
+            HttpcOptions0 = lists:usort(maps:get(httpc_options, Opts, [])),
+            HttpcOptions = case lists:keymember(ipfamily, 1, HttpcOptions0) of
+                               true -> HttpcOptions0;
+                               false -> lists:sort([{ipfamily, inet6fb4} | HttpcOptions0])
+                           end,
             %% can't use `stand_alone' because then `httpc:info(Profile)' would fail
             {ok, Pid} = inets:start(httpc, [{profile, HttpcProfile}]),
             ok = httpc:set_options(HttpcOptions, Pid);
@@ -242,7 +261,7 @@ user_agent() ->
     {ok, ExporterVsn} = application:get_key(opentelemetry_exporter, vsn),
     lists:flatten(io_lib:format("OTel-OTLP-Exporter-erlang/~s", [ExporterVsn])).
 
--spec endpoints([endpoint()], list() | undefined) -> [endpoint_map()].
+-spec endpoints(endpoint() | [endpoint()], list() | undefined) -> [endpoint_map()].
 endpoints(List, DefaultSSLOpts) when is_list(List) ->
     Endpoints = case io_lib:printable_list(List) of
                     true ->
@@ -458,7 +477,18 @@ append_path(Endpoint=#{}, DefaultPath) ->
     Endpoint#{path => filename:join([], DefaultPath)};
 append_path(EndpointString, DefaultPath) when is_list(EndpointString) orelse is_binary(EndpointString) ->
     Endpoint=#{path := Path} = uri_string:parse(EndpointString),
-    Endpoint#{path => filename:join(?assert_type(Path, string() | binary()), DefaultPath)}.
+    case Path of
+        PathList when is_list(PathList) ->
+            Endpoint#{path => filename:join(flat_path(PathList), DefaultPath)};
+        PathBinary when is_binary(PathBinary) ->
+            Endpoint#{path => filename:join(PathBinary, DefaultPath)}
+    end.
+
+-spec flat_path(unicode:charlist()) -> string().
+flat_path([]) ->
+    [];
+flat_path([Character | Rest]) when is_integer(Character) ->
+    [Character | flat_path(Rest)].
 
 %% use the value from the environment if it exists, otherwise use the value
 %% passed in Opts or the default
@@ -476,4 +506,3 @@ update_opts(AppKey, OptKey, Default, AppOpts, Opts, Transform) ->
 
 id(X) ->
     X.
-

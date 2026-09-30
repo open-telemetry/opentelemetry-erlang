@@ -103,7 +103,7 @@ generate_span() ->
     EndTime = opentelemetry:timestamp(),
     #span{trace_id = otel_id_generator:generate_trace_id(),
           span_id = otel_id_generator:generate_span_id(),
-          name = "test_span",
+          name = <<"test_span">>,
           start_time = StartTime,
           end_time = EndTime,
           trace_flags = 1,
@@ -113,4 +113,4 @@ generate_span() ->
           events = otel_events:new(128, 128, 128),
           links = otel_links:new([], 128, 128, 128),
           tracestate = otel_tracestate:new([]),
-          instrumentation_scope = #instrumentation_scope{name = "test"}}.
+          instrumentation_scope = #instrumentation_scope{name = <<"test">>}}.

@@ -87,19 +87,19 @@ set_value(_, Key, Value) ->
     #{Key => Value}.
 
 %% @doc Gets a value from the current context under the given key.
--spec get_value(term()) -> eqwalizer:dynamic().
+-spec get_value(term()) -> dynamic().
 get_value(Key) ->
     get_value(erlang:get(?CURRENT_CTX), Key, undefined).
 
 %% @doc Gets a value from the current context under the given key, or returns the default value
 %% if the key is not present in the current context.
--spec get_value(term(), term()) -> eqwalizer:dynamic().
+-spec get_value(term(), term()) -> dynamic().
 get_value(Key, Default) ->
     get_value(erlang:get(?CURRENT_CTX), Key, Default).
 
 %% @doc Gets a value from the given context under the given key, or returns the default value
 %% if the key is not present in the given context or if `Ctx' is `undefined'.
--spec get_value(t(), term(), term()) -> eqwalizer:dynamic().
+-spec get_value(t(), term(), term()) -> dynamic().
 get_value(undefined, _Key, Default) ->
     Default;
 get_value(Ctx, Key, Default) when is_map(Ctx) ->

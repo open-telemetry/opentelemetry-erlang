@@ -36,7 +36,7 @@
                       meter_version => unicode:unicode_binary() | undefined,
                       meter_schema_url => unicode:unicode_binary() | undefined}.
 -type config() :: #{description => unicode:unicode_binary() | undefined,
-                    attribute_keys => [atom()] | undefined,
+                    attribute_keys => [opentelemetry:attribute_key()] | undefined,
                     aggregation_module => module() | default | undefined,
                     aggregation_options => map()
                     %% exemplar_reservoir
@@ -48,8 +48,6 @@
               name/0,
               criteria/0,
               config/0]).
-
--include_lib("opentelemetry_api/include/gradualizer.hrl").
 
 %% ignore dialyzer warnings in functions using matchspecs or related to those that do
 -dialyzer({nowarn_function, do_new/2}).
@@ -202,4 +200,3 @@ view_name_from_criteria(Criteria) when is_map(Criteria) ->
     end;
 view_name_from_criteria(_) ->
     undefined.
-

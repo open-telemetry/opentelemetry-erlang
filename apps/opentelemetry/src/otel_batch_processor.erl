@@ -100,7 +100,7 @@ current_tab_to_list(RegName) ->
 %% communicate with the processor
 %% @doc Starts a Batch Span Processor.
 %% @end
--spec start_link(#{name := atom() | list()}) -> {ok, pid(), map()}.
+-spec start_link(#{name := atom() | list(), term() => term()}) -> {ok, pid(), map()}.
 start_link(Config=#{name := Name}) ->
     RegisterName = ?REG_NAME(Name),
     Config1 = Config#{reg_name => RegisterName},
@@ -318,6 +318,14 @@ terminate(_Reason, _State, #data{exporter=Exporter,
 
     %% `export' is used to perform a blocking export
     _ = export(Exporter, Resource, CurrentTable),
+
+    %% Synchronously shut the exporter down before this gen_statem exits.
+    %% Linked transport resources (e.g. grpcbox channels) clean up via
+    %% gproc in their own `terminate'; if we just return here, those
+    %% terminations race with the shutdown of the `grpcbox' application
+    %% itself and crash with "the table identifier does not refer to an
+    %% existing ETS table". See open-telemetry/opentelemetry-erlang#868.
+    _ = otel_exporter:shutdown(Exporter),
 
     ok.
 

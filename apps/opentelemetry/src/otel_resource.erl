@@ -38,7 +38,9 @@
          attributes/1,
          is_key/2]).
 
--type key() :: unicode:latin1_binary() | atom().
+-eqwalizer({nowarn_function, attributes/1}).
+
+-type key() :: unicode:latin1_chardata() | atom().
 %% values allowed in attributes of a resource are limited
 
 -type value() :: unicode:latin1_binary() | integer() | float() | boolean().
@@ -52,7 +54,7 @@
 -record(resource, {schema_url :: schema_url() | undefined,
                    attributes :: otel_attributes:t()}).
 
--type t() :: #resource{} | undefined.
+-type t() :: #resource{}.
 %% The type that represents a resource.
 
 -export_type([t/0]).
@@ -99,7 +101,8 @@ schema_url(_) ->
 %%
 %% This function returns `undefined' only in case `Resource' is an invalid argument
 %% (not a resource record).
--spec attributes(t()) -> otel_attributes:t() | undefined.
+-spec attributes(t()) -> otel_attributes:t();
+                (undefined) -> undefined.
 attributes(#resource{attributes=Attributes}) ->
     Attributes;
 attributes(_) ->

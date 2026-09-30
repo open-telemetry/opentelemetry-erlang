@@ -1,6 +1,10 @@
 -module(opentelemetry_exporter_SUITE).
 
 -compile(export_all).
+
+%% These serialization tests deliberately include non-standard attribute values.
+-eqwalizer({nowarn_function, span_round_trip/1}).
+-eqwalizer({nowarn_function, verify_export/1}).
 -compile(nowarn_export_all).
 
 -include_lib("stdlib/include/assert.hrl").
@@ -255,10 +259,10 @@ ets_instrumentation_info(_Config) ->
               links = otel_links:new([], 128, 128, 128),
               events = otel_events:add([#event{system_time_native=opentelemetry:timestamp(),
                                                name = <<"event-1">>,
-                                               attributes = [{<<"attr-1">>, <<"value-1">>}]},
+                                               attributes = otel_attributes:new([{<<"attr-1">>, <<"value-1">>}], 128, 128)},
                                         #event{system_time_native=opentelemetry:timestamp(),
                                                name = <<"event-2">>,
-                                               attributes = [{<<"attr-3">>, <<"value-3">>}]}], Events1),
+                                               attributes = otel_attributes:new([{<<"attr-3">>, <<"value-3">>}], 128, 128)}], Events1),
               attributes = otel_attributes:new([{<<"attr-2">>, <<"value-2">>}], 128, 128),
               instrumentation_scope=#instrumentation_scope{name = <<"tracer-2">>,
                                                                version = <<"0.0.1">>}},
@@ -275,10 +279,10 @@ ets_instrumentation_info(_Config) ->
                       links = otel_links:new([], 128, 128, 128),
                       events = otel_events:add([#event{system_time_native=opentelemetry:timestamp(),
                                                        name = <<"event-1">>,
-                                                       attributes = [{<<"attr-1">>, <<"value-1">>}]},
+                                                       attributes = otel_attributes:new([{<<"attr-1">>, <<"value-1">>}], 128, 128)},
                                                 #event{system_time_native=opentelemetry:timestamp(),
                                                        name = <<"event-2">>,
-                                                       attributes = [{<<"attr-3">>, <<"value-3">>}]}], Events2),
+                                                       attributes = otel_attributes:new([{<<"attr-3">>, <<"value-3">>}], 128, 128)}], Events2),
                       attributes = otel_attributes:new([{<<"attr-2">>, <<"value-2">>}], 128, 128),
                       instrumentation_scope=#instrumentation_scope{name = <<"tracer-1">>,
                                                                        version = <<"0.0.1">>}},
@@ -311,15 +315,15 @@ span_round_trip(_Config) ->
               links = otel_links:new([], 128, 128, 128),
               events = otel_events:add([#event{system_time_native=opentelemetry:timestamp(),
                                                name = <<"event-1">>,
-                                               attributes = [{<<"attr-1">>, <<"value-1">>}]},
+                                               attributes = otel_attributes:new([{<<"attr-1">>, <<"value-1">>}], 128, 128)},
                                         #event{system_time_native=opentelemetry:timestamp(),
                                                name = event_2,
-                                               attributes = [{<<"attr-3">>, <<"value-3">>}]}], Events),
+                                               attributes = otel_attributes:new([{<<"attr-3">>, <<"value-3">>}], 128, 128)}], Events),
               attributes = otel_attributes:new([{<<"attr-2">>, <<"value-2">>},
-                                                {attr_3, true},
-                                                {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
-                                                {<<"list-key-1">>, [3.14, 9.345]}
-                                                ], 128, 128),
+                                                                       {attr_3, true},
+                                                                       {<<"map-key-1">>, #{<<"map-key-1">> => 123}},
+                                                                       {<<"list-key-1">>, [3.14, 9.345]}],
+                                               128, 128),
               status = #status{code=?OTEL_STATUS_OK,
                                message = <<"">>},
               parent_span_is_remote = undefined,

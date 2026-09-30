@@ -2,6 +2,9 @@
 
 -compile(export_all).
 
+%% The tracestate test verifies that invalid key/value types are ignored.
+-eqwalizer({nowarn_function, tracestate/1}).
+
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 -include("otel_tracer.hrl").

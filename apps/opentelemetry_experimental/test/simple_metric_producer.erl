@@ -16,7 +16,9 @@ produce_batch(_) ->
              name=external_counter_1,
              description = <<"external counter description">>,
              unit=kb,
-             data=#sum{datapoints=[#datapoint{
+             data=#sum{aggregation_temporality=temporality_cumulative,
+                       is_monotonic=true,
+                       datapoints=[#datapoint{
                                       attributes=#{<<"a">> => <<"b">>},
                                       start_time=opentelemetry:timestamp(),
                                       time=opentelemetry:timestamp(),

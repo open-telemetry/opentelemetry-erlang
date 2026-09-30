@@ -142,7 +142,7 @@ tracestate(_) ->
 -spec set_attribute(SpanCtx, Key, Value) -> boolean() when
       Key :: opentelemetry:attribute_key(),
       Value :: opentelemetry:attribute_value(),
-      SpanCtx :: opentelemetry:span_ctx().
+      SpanCtx :: opentelemetry:span_ctx() | undefined.
 set_attribute(SpanCtx=#span_ctx{span_sdk={Module, _}}, Key, Value) when ?is_recording(SpanCtx) , is_tuple(Value) ->
     List = tuple_to_list(Value),
     case otel_attributes:is_valid_attribute(Key, List) of
@@ -163,7 +163,7 @@ set_attribute(_, _, _) ->
 
 -spec set_attributes(SpanCtx, Attributes) -> boolean() when
       Attributes :: opentelemetry:attributes_map(),
-      SpanCtx :: opentelemetry:span_ctx().
+      SpanCtx :: opentelemetry:span_ctx() | undefined.
 set_attributes(SpanCtx=#span_ctx{span_sdk={Module, _}}, Attributes) when ?is_recording(SpanCtx),
                                                                          (is_list(Attributes) orelse is_map(Attributes)) ->
     Module:set_attributes(SpanCtx, otel_attributes:process_attributes(Attributes));
@@ -177,7 +177,7 @@ set_attributes(_, _) ->
 -spec add_event(SpanCtx, Name, Attributes) -> boolean() when
       Name :: opentelemetry:event_name(),
       Attributes :: opentelemetry:attributes_map(),
-      SpanCtx :: opentelemetry:span_ctx().
+      SpanCtx :: opentelemetry:span_ctx() | undefined.
 add_event(SpanCtx=#span_ctx{span_sdk={Module, _}}, Name, Attributes)
   when ?is_recording(SpanCtx) ,
        (is_list(Attributes) orelse is_map(Attributes)) ->
@@ -195,14 +195,14 @@ add_event(_, _, _) ->
 %% Returns `false' if the given span context is not recording.
 -spec add_events(SpanCtx, Events) -> boolean() when
       Events :: [opentelemetry:event()],
-      SpanCtx :: opentelemetry:span_ctx().
+      SpanCtx :: opentelemetry:span_ctx() | undefined.
 add_events(SpanCtx=#span_ctx{span_sdk={Module, _}}, Events) when ?is_recording(SpanCtx) , is_list(Events)  ->
     Module:add_events(SpanCtx, Events);
 add_events(_, _) ->
     false.
 
 -spec record_exception(SpanCtx, Class, Term, Stacktrace, Attributes) -> boolean() when
-      SpanCtx :: opentelemetry:span_ctx(),
+      SpanCtx :: opentelemetry:span_ctx() | undefined,
       Class :: atom(),
       Term :: term(),
       Stacktrace :: list(any()),
@@ -219,7 +219,7 @@ record_exception(_, _, _, _, _) ->
     false.
 
 -spec record_exception(SpanCtx, Class, Term,  Message, Stacktrace, Attributes) -> boolean() when
-      SpanCtx :: opentelemetry:span_ctx(),
+      SpanCtx :: opentelemetry:span_ctx() | undefined,
       Class :: atom(),
       Term :: term(),
       Message :: unicode:unicode_binary(),
@@ -239,7 +239,7 @@ record_exception(_, _, _, _, _, _) ->
 
 -spec set_status(SpanCtx, StatusOrCode) -> boolean() when
       StatusOrCode :: opentelemetry:status() | undefined | opentelemetry:status_code(),
-      SpanCtx :: opentelemetry:span_ctx().
+      SpanCtx :: opentelemetry:span_ctx() | undefined.
 set_status(SpanCtx=#span_ctx{span_sdk={Module, _}}, Code) when ?is_recording(SpanCtx) andalso
                                                                (Code =:= ?OTEL_STATUS_UNSET orelse
                                                                 Code =:= ?OTEL_STATUS_OK orelse
@@ -255,7 +255,7 @@ set_status(_, _) ->
 -spec set_status(SpanCtx, Code, Message) -> boolean() when
       Code :: opentelemetry:status_code(),
       Message :: unicode:unicode_binary(),
-      SpanCtx :: opentelemetry:span_ctx().
+      SpanCtx :: opentelemetry:span_ctx() | undefined.
 set_status(SpanCtx, Code, Message) ->
     set_status(SpanCtx, opentelemetry:status(Code, Message)).
 
@@ -264,7 +264,7 @@ set_status(SpanCtx, Code, Message) ->
 %% Returns `false' if the given span context is not recording, or if the name `Name' is not valid.
 -spec update_name(SpanCtx, Name) -> boolean() when
       Name :: opentelemetry:span_name(),
-      SpanCtx :: opentelemetry:span_ctx().
+      SpanCtx :: opentelemetry:span_ctx() | undefined.
 update_name(SpanCtx=#span_ctx{span_sdk={Module, _}}, SpanName) when ?is_recording(SpanCtx) ->
     case is_valid_name(SpanName) of
         true ->
@@ -280,7 +280,7 @@ update_name(_, _) ->
 %% If `SpanCtx' is not recording, this function doesn't do anything.
 %% Returns the updated span context.
 -spec end_span(SpanCtx) -> SpanCtx when
-      SpanCtx :: opentelemetry:span_ctx().
+      SpanCtx :: opentelemetry:span_ctx() | undefined.
 end_span(SpanCtx=#span_ctx{span_sdk={Module, _}}) when ?is_recording(SpanCtx) ->
     _ = Module:end_span(SpanCtx, undefined),
     SpanCtx#span_ctx{is_recording=false};
@@ -293,7 +293,7 @@ end_span(SpanCtx) ->
 %% If `Timestamp' is `undefined', this is equivalent to {@link end_span/1}.
 %% Returns the updated span context.
 -spec end_span(SpanCtx, Timestamp) -> SpanCtx when
-    SpanCtx :: opentelemetry:span_ctx(),
+    SpanCtx :: opentelemetry:span_ctx() | undefined,
     Timestamp :: integer() | undefined.
 end_span(SpanCtx=#span_ctx{span_sdk={Module, _}}, Timestamp) when ?is_recording(SpanCtx)
                                                                   , is_integer(Timestamp) ->

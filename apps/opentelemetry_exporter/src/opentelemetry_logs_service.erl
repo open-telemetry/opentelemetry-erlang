@@ -40,4 +40,3 @@ export(Input, Options) ->
     {ok, opentelemetry_exporter_logs_service_pb:export_logs_service_response(), grpcbox:metadata()} | grpcbox_stream:grpc_error_response() | {error, any()}.
 export(Ctx, Input, Options) ->
     grpcbox_client:unary(Ctx, <<"/opentelemetry.proto.collector.logs.v1.LogsService/Export">>, Input, ?DEF(export_logs_service_request, export_logs_service_response, <<"opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest">>), Options).
-

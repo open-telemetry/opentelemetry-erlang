@@ -2,6 +2,11 @@
 
 -compile(export_all).
 
+%% These tests deliberately exercise malformed callback/config values and a failed lookup.
+-eqwalizer({nowarn_function, bad_observable_return/1}).
+-eqwalizer({nowarn_function, advisory_params/1}).
+-eqwalizer({nowarn_function, fail_name_instrument_lookup/1}).
+
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 
@@ -976,7 +981,7 @@ kill_reader(_Config) ->
     [{_, ProviderSupPid, _, _}] = supervisor:which_children(otel_meter_provider_sup),
     {_, ReaderSup, _, _} = lists:keyfind(otel_metric_reader_sup, 1, supervisor:which_children(ProviderSupPid)),
 
-    [ReaderPid] = [Pid || {_, Pid, _, _} <- supervisor:which_children(ReaderSup)],
+    [ReaderPid] = [Pid || {_, Pid, _, _} <- supervisor:which_children(ReaderSup), is_pid(Pid)],
     erlang:exit(ReaderPid, kill),
 
     %% loop until a new reader has started
@@ -1029,7 +1034,10 @@ kill_server(_Config) ->
     ?assertEqual(ok, otel_counter:add(Ctx, Meter, CounterName, 3, #{<<"a">> => <<"b">>, <<"d">> => <<"e">>})),
 
     CurrentPid = erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME),
-    erlang:exit(erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME), kill),
+    ProviderPid = case erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME) of
+                      Pid when is_pid(Pid) -> Pid
+                  end,
+    erlang:exit(ProviderPid, kill),
 
     %% wait until process has died and born again
     ?UNTIL(erlang:whereis(?GLOBAL_METER_PROVIDER_REG_NAME) =/= CurrentPid),
@@ -1397,12 +1405,14 @@ advisory_params(_Config) ->
     ?assertEqual(Counter#instrument.advisory_params, #{}),
 
     % advisory parameters different from explicit_bucket_boundaries are not allowed
-    Counter1 = otel_counter:create(Meter, invalid_2, #{advisory_params => #{invalid => invalid}}),
+    Counter1 = otel_counter:create(Meter, invalid_2,
+                                   #{advisory_params => #{invalid => invalid}}),
     ?assertEqual(Counter1#instrument.advisory_params, #{}),
 
     % explicit_bucket_boundaries should be an ordered list of numbers
-    Histo1 = otel_histogram:create(Meter, invalid_3,
-                                  #{advisory_params => #{explicit_bucket_boundaries => invalid}}),
+    Histo1 = otel_histogram:create(
+               Meter, invalid_3,
+               #{advisory_params => #{explicit_bucket_boundaries => invalid}}),
     ?assertEqual(Histo1#instrument.advisory_params, #{}),
 
     Histo2 = otel_histogram:create(Meter, invalid_4,
@@ -2351,9 +2361,12 @@ fail_name_instrument_lookup(_Config) ->
     Ctx = otel_ctx:new(),
 
     %% attempt to record for counter of same name but different meter
-    OtherMeter = opentelemetry_experimental:get_meter(other_name),
+    OtherMeter = opentelemetry_experimental:get_meter(
+                   opentelemetry:instrumentation_scope(other_name, undefined, undefined)),
     OtherCounter = otel_meter:lookup_instrument(OtherMeter, CounterName),
-    ?assertEqual(false, ?counter_add(OtherCounter, 10.3, #{<<"c">> => <<"b">>})),
+    ?assertEqual(false,
+                 ?counter_add(OtherCounter, 10.3,
+                              #{<<"c">> => <<"b">>})),
     ?assertEqual(undefined, OtherCounter),
 
     ?assertEqual(ok, otel_counter:add(Ctx, Meter, CounterName, 2.1, #{})),

@@ -85,14 +85,13 @@ verify_export(Config) ->
     Metrics = [#metric{scope=#instrumentation_scope{name = <<"scope-1">>,
                                                     version = <<"version-1">>,
                                                     schema_url = <<"https://example.com/schemas/1.8.0">>},
-                       name = <<"sum name">>,
+                       name = sum_name,
                        description = <<"some sum description">>,
                        unit = kb,
                        data = #sum{aggregation_temporality = temporality_cumulative,
                                    is_monotonic=true,
                                    datapoints=[#datapoint{
-                                                  attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
-                                                                                 128, 128),
+                                                  attributes=#{<<"key-1">> => <<"value-1">>},
                                                   start_time=opentelemetry:timestamp(),
                                                   time=opentelemetry:timestamp(),
                                                   value=5,
@@ -100,8 +99,7 @@ verify_export(Config) ->
                                                   flags=0
                                                  },
                                                #datapoint{
-                                                  attributes=otel_attributes:new(#{<<"key-2">> => <<"value-2">>},
-                                                                                 128, 128),
+                                                  attributes=#{<<"key-2">> => <<"value-2">>},
                                                   start_time=opentelemetry:timestamp(),
                                                   time=opentelemetry:timestamp(),
                                                   value=8,
@@ -111,12 +109,11 @@ verify_export(Config) ->
                #metric{scope=#instrumentation_scope{name = <<"scope-1">>,
                                                     version = <<"version-1">>,
                                                     schema_url = <<"https://example.com/schemas/1.8.0">>},
-                       name = <<"gauge name">>,
+                       name = gauge_name,
                        description = <<"some gauge description">>,
                        unit = kb,
                        data = #gauge{datapoints=[#datapoint{
-                                                    attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
-                                                                                   128, 128),
+                                                    attributes=#{<<"key-1">> => <<"value-1">>},
                                                     start_time=opentelemetry:timestamp(),
                                                     time=opentelemetry:timestamp(),
                                                     value=8,
@@ -124,8 +121,7 @@ verify_export(Config) ->
                                                     flags=0
                                                    },
                                                  #datapoint{
-                                                    attributes=otel_attributes:new(#{<<"key-2">> => <<"value-2">>},
-                                                                                   128, 128),
+                                                    attributes=#{<<"key-2">> => <<"value-2">>},
                                                     start_time=opentelemetry:timestamp(),
                                                     time=opentelemetry:timestamp(),
                                                     value=9,
@@ -135,13 +131,12 @@ verify_export(Config) ->
                #metric{scope=#instrumentation_scope{name = <<"scope-1">>,
                                                     version = <<"version-1">>,
                                                     schema_url = <<"https://example.com/schemas/1.8.0">>},
-                       name = <<"histogram name">>,
+                       name = histogram_name,
                        description = <<"some histogram description">>,
                        unit = kb,
                        data = #histogram{aggregation_temporality = temporality_cumulative,
                                          datapoints=[#histogram_datapoint{
-                                                        attributes=otel_attributes:new(#{<<"key-1">> => <<"value-1">>},
-                                                                                       128, 128),
+                                                        attributes=#{<<"key-1">> => <<"value-1">>},
                                                         start_time=opentelemetry:timestamp(),
                                                         time=opentelemetry:timestamp(),
                                                         count = 3,
@@ -154,8 +149,7 @@ verify_export(Config) ->
                                                         max = 5
                                                        },
                                                      #histogram_datapoint{
-                                                        attributes=otel_attributes:new(#{<<"key-2">> => <<"value-2">>},
-                                                                                       128, 128),
+                                                        attributes=#{<<"key-2">> => <<"value-2">>},
                                                         start_time=opentelemetry:timestamp(),
                                                         time=opentelemetry:timestamp(),
                                                         count = 3,

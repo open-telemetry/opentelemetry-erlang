@@ -38,8 +38,8 @@ pdict_context(_Config) ->
 explicit_context(_Config) ->
     Ctx = otel_ctx:new(),
 
-    Ctx1 = otel_baggage:set(Ctx, <<"key-1">>, <<"value-1">>),
-    Ctx2 = otel_baggage:set(Ctx1, [{"key-2", "value-2"}]),
+    Ctx1 = otel_baggage:set_to(Ctx, <<"key-1">>, <<"value-1">>),
+    Ctx2 = otel_baggage:set_to(Ctx1, [{"key-2", "value-2"}]),
 
     ?assertEqual(#{<<"key-1">> => {<<"value-1">>, []},
                    <<"key-2">> => {<<"value-2">>, []}}, otel_baggage:get_all(Ctx2)),
@@ -48,4 +48,3 @@ explicit_context(_Config) ->
     ?assert(maps:size(otel_baggage:get_all(Ctx3)) =:= 0),
 
     ok.
-
