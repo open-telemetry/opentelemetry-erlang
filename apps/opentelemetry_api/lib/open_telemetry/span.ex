@@ -179,6 +179,19 @@ defmodule OpenTelemetry.Span do
     add_event(span_ctx, :exception, exception_attributes ++ attributes)
   end
 
+  def record_exception(span_ctx, kind, reason, stacktrace)
+      when is_atom(kind) and not is_nil(reason) and is_list(stacktrace) do
+    add_event(
+      span_ctx,
+      :exception,
+      [
+        {:"exception.type", to_string(kind)},
+        {:"exception.message", inspect(reason)},
+        {:"exception.stacktrace", Exception.format_stacktrace(stacktrace)}
+      ]
+    )
+  end
+
   def record_exception(_, _, _, _), do: false
 
   @doc """
