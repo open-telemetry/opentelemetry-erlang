@@ -24,8 +24,7 @@ end_per_suite(_Config) ->
     ok.
 
 init_per_testcase(_TestCase, Config) ->
-    SavedOSEnv = [{Name, os:getenv(Name)} || Name <- environment_names()],
-    [os:unsetenv(Name) || Name <- environment_names()],
+    SavedOSEnv = otel_configuration_test_utils:save_environment(),
 
     SavedAppEnv = application:get_all_env(opentelemetry),
     [application:unset_env(opentelemetry, Key) || {Key, _} <- SavedAppEnv],
@@ -35,8 +34,8 @@ init_per_testcase(_TestCase, Config) ->
 end_per_testcase(_TestCase, Config) ->
     _ = application:stop(opentelemetry),
 
-    [os:unsetenv(Name) || Name <- environment_names()],
-    [restore_os_env(Name, Value) || {Name, Value} <- proplists:get_value(saved_os_env, Config)],
+    ok = otel_configuration_test_utils:restore_environment(
+           proplists:get_value(saved_os_env, Config)),
 
     [application:unset_env(opentelemetry, Key)
      || {Key, _} <- application:get_all_env(opentelemetry)],
@@ -58,7 +57,7 @@ defaults(_Config) ->
           create_application_tracers => true,
           id_generator => otel_id_generator,
           deny_list => [],
-          resource_detectors => [otel_resource_env_var, otel_resource_app_env],
+          resource_detectors => [otel_resource_env_var],
           resource_detector_timeout => 5000,
           bsp_scheduled_delay_ms => undefined,
           bsp_exporting_timeout_ms => undefined,
@@ -93,7 +92,7 @@ application_environment(_Config) ->
          {log_level, debug},
          {id_generator, custom_id_generator},
          {deny_list, [opentelemetry]},
-         {resource_detectors, [otel_resource_app_env]},
+         {resource_detectors, [otel_resource_detector_test]},
          {resource_detector_timeout, 1234},
          {text_map_propagators, [b3, baggage]},
          {sampler, {parent_based, #{root => always_off}}},
@@ -110,7 +109,7 @@ application_environment(_Config) ->
                    log_level := debug,
                    id_generator := custom_id_generator,
                    deny_list := [opentelemetry],
-                   resource_detectors := [otel_resource_app_env],
+                   resource_detectors := [otel_resource_detector_test],
                    resource_detector_timeout := 1234,
                    text_map_propagators := [b3, baggage],
                    sampler := {parent_based, #{root := always_off}},
@@ -144,7 +143,7 @@ os_environment_precedence(_Config) ->
                    text_map_propagators := [b3],
                    sampler := always_off,
                    processors :=
-                       [{otel_batch_processor, #{scheduled_delay_ms := 42}}],
+                       [{otel_batch_processor, #{scheduled_delay_ms := 999}}],
                    attribute_count_limit := 17,
                    create_application_tracers := false},
                  otel_configuration:merge_with_os(AppEnv)).
@@ -187,9 +186,16 @@ repeated_resolution(_Config) ->
     ?assertEqual(First, Second).
 
 application_startup(_Config) ->
-    %% Application tracers are cached in persistent_term and intentionally survive
-    %% an SDK restart, so disable their automatic creation to keep this test isolated.
-    application:set_env(opentelemetry, create_application_tracers, false),
+    application:set_env(
+      opentelemetry,
+      propagator,
+      #{composite => [trace_context, baggage]}),
+    application:set_env(
+      opentelemetry,
+      tracer_provider,
+      #{processors =>
+            [{otel_batch_processor, #{exporter => {otlp_http, #{}}}}],
+        sampler => {parent_based, #{root => always_on}}}),
     {ok, _} = application:ensure_all_started(opentelemetry),
 
     ?assert(is_pid(whereis(otel_tracer_provider_global))),
@@ -206,42 +212,3 @@ application_startup(_Config) ->
          "remoteParentNotSampled:AlwaysOffSampler,localParentSampled:AlwaysOnSampler,"
          "localParentNotSampled:AlwaysOffSampler}">>,
        otel_sampler:description(Sampler)).
-
-restore_os_env(Name, false) ->
-    os:unsetenv(Name);
-restore_os_env(Name, Value) ->
-    os:putenv(Name, Value).
-
-environment_names() ->
-    ["OTEL_SDK_DISABLED",
-     "OTEL_LOG_LEVEL",
-     "OTEL_REGISTER_LOADED_APPLICATIONS",
-     "OTEL_CREATE_APPLICATION_TRACERS",
-     "OTEL_ID_GENERATOR",
-     "OTEL_DENY_LIST",
-     "OTEL_PROPAGATORS",
-     "OTEL_TRACES_EXPORTER",
-     "OTEL_METRICS_EXPORTER",
-     "OTEL_METRIC_VIEWS",
-     "OTEL_METRIC_READERS",
-     "OTEL_ERLANG_X_EXEMPLARS_ENABLED",
-     "OTEL_METRICS_EXEMPLAR_FILTER",
-     "OTEL_ERLANG_X_METRIC_PRODUCERS",
-     "OTEL_RESOURCE_DETECTORS",
-     "OTEL_RESOURCE_DETECTOR_TIMEOUT",
-     "OTEL_BSP_SCHEDULE_DELAY_MILLIS",
-     "OTEL_BSP_EXPORT_TIMEOUT_MILLIS",
-     "OTEL_BSP_MAX_QUEUE_SIZE",
-     "OTEL_SSP_EXPORT_TIMEOUT_MILLIS",
-     "OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT",
-     "OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT",
-     "OTEL_SPAN_EVENT_COUNT_LIMIT",
-     "OTEL_SPAN_LINK_COUNT_LIMIT",
-     "OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT",
-     "OTEL_LINK_ATTRIBUTE_COUNT_LIMIT",
-     "OTEL_SPAN_SWEEPER_INTERVAL",
-     "OTEL_SPAN_SWEEPER_STRATEGY",
-     "OTEL_SPAN_SWEEPER_SPAN_TTL",
-     "OTEL_SPAN_SWEEPER_STORAGE_SIZE",
-     "OTEL_TRACES_SAMPLER",
-     "OTEL_TRACES_SAMPLER_ARG"].

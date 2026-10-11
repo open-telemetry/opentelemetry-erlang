@@ -66,11 +66,13 @@
                       | {verbose, false | verbose | debug | trace}
                       | {unix_socket, string()}.
 
+-type ssl_options() :: list() | {system_defaults, list()}.
+
 -type opts() :: #{endpoints => [endpoint()],
                   headers => headers(),
                   protocol => protocol(),
                   compression => compression() | undefined,
-                  ssl_options => list(),
+                  ssl_options => ssl_options() | undefined,
                   channel_opts => map(),
                   httpc_options => [httpc_option()]}.
 
@@ -242,7 +244,7 @@ user_agent() ->
     {ok, ExporterVsn} = application:get_key(opentelemetry_exporter, vsn),
     lists:flatten(io_lib:format("OTel-OTLP-Exporter-erlang/~s", [ExporterVsn])).
 
--spec endpoints(endpoint() | [endpoint()], list() | undefined) -> [endpoint_map()].
+-spec endpoints(endpoint() | [endpoint()], ssl_options() | undefined) -> [endpoint_map()].
 endpoints(List, DefaultSSLOpts) when is_list(List) ->
     Endpoints = case io_lib:printable_list(List) of
                     true ->
@@ -346,6 +348,8 @@ maybe_add_scheme_port(Uri) ->
 %% if no ssl opts are defined by the user then use defaults from `tls_certificate_check'
 update_ssl_opts(Host, undefined) ->
     tls_certificate_check:options(Host);
+update_ssl_opts(Host, {system_defaults, SSLOptions}) ->
+    SSLOptions ++ tls_certificate_check:options(Host);
 update_ssl_opts(_, SSLOptions) ->
     SSLOptions.
 
@@ -368,6 +372,13 @@ to_existing_atom(Scheme) when is_binary(Scheme) ->
 to_existing_atom(_) ->
     erlang:error(bad_exporter_scheme).
 
+merge_with_environment(_ConfigMapping, _AppEnv,
+                       #{configuration_resolved := true}=Opts,
+                       _SignalEndpointConfigKey, _SignalHeadersConfigKey,
+                       _SignalProtocolConfigKey, _SignalCompressionConfigKey,
+                       _DefaultPath) ->
+    %% Source selection and environment handling have already happened in the SDK.
+    maps:remove(configuration_resolved, Opts);
 merge_with_environment(ConfigMapping, AppEnv, Opts, SignalEndpointConfigKey, SignalHeadersConfigKey, SignalProtocolConfigKey, SignalCompressionConfigKey, DefaultPath) ->
     Config = #{otlp_endpoint => undefined,
                SignalEndpointConfigKey => undefined,

@@ -45,11 +45,11 @@ for a list of features supported.
 
 ## Requirements
 
-- Erlang/OTP 23+ (With best effort for OTP 22 support)
+- Erlang/OTP 27+
 
 If using the Elixir API:
 
-- Elixir 1.13+
+- Elixir 1.18+
 
 ## Contacting Us
 

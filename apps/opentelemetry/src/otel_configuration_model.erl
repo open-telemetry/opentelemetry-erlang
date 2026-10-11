@@ -1,0 +1,141 @@
+%%%------------------------------------------------------------------------
+%% Copyright 2026, OpenTelemetry Authors
+%% Licensed under the Apache License, Version 2.0 (the "License");
+%% you may not use this file except in compliance with the License.
+%% You may obtain a copy of the License at
+%%
+%% http://www.apache.org/licenses/LICENSE-2.0
+%%
+%% Unless required by applicable law or agreed to in writing, software
+%% distributed under the License is distributed on an "AS IS" BASIS,
+%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+%% See the License for the specific language governing permissions and
+%% limitations under the License.
+%%
+%% In-memory representation of an OpenTelemetry declarative configuration.
+%% The shape follows the configuration schema and deliberately preserves the
+%% difference between an absent property and a property whose value is null.
+%% JSON keys and extension component properties remain binaries. Application
+%% configuration may use atoms for known keys and component names.
+%% @private
+%%%------------------------------------------------------------------------
+-module(otel_configuration_model).
+
+-import(otel_configuration_utils, [find/2, to_binary/1]).
+
+-export([from_map/1,
+         from_application_env/1,
+         from_environment/1,
+         root/1,
+         source/1,
+         file_format/1]).
+
+-type source() :: declarative | application_env | environment.
+-opaque t() :: #{source := source(),
+                 file_format := binary(),
+                 root := map()}.
+-type error_reason() :: {invalid_configuration, [atom()], term()}
+                      | {unsupported_file_format, term()}.
+
+-export_type([t/0,
+              source/0,
+              error_reason/0]).
+
+-spec from_map(map()) -> {ok, t()} | {error, error_reason()}.
+from_map(Configuration) when is_map(Configuration) ->
+    case find(file_format, Configuration) of
+        {ok, Version} ->
+            case supported_file_format(Version) of
+                true ->
+                    {ok, #{source => declarative,
+                           file_format => version_binary(Version),
+                           root => Configuration}};
+                false -> {error, {unsupported_file_format, Version}}
+            end;
+        error ->
+            {error, {invalid_configuration, [file_format], missing}}
+    end;
+from_map(Configuration) ->
+    {error, {invalid_configuration, [], Configuration}}.
+
+%% Application environment configuration describes the same settings using
+%% idiomatic Erlang values. Since it is not itself a versioned file, use the
+%% configuration version implemented by this SDK when file_format is omitted.
+-spec from_application_env([{term(), term()}]) ->
+          {ok, t()} | {error, error_reason()}.
+from_application_env(AppEnv) when is_list(AppEnv) ->
+    case lists:search(fun(Key) -> proplists:is_defined(Key, AppEnv) end, legacy_keys()) of
+        false ->
+            Configuration0 = maps:from_list(AppEnv),
+            Configuration = case find(file_format, Configuration0) of
+                                {ok, _} -> Configuration0;
+                                error -> Configuration0#{file_format => <<"1.1">>}
+                            end,
+            from_source(Configuration, application_env);
+        {value, Key} ->
+            {error, {invalid_configuration, [Key], legacy_configuration_not_supported}}
+    end;
+from_application_env(AppEnv) ->
+    {error, {invalid_configuration, [], AppEnv}}.
+
+%% Environment defaults are constructed in the same shape as native options.
+-spec from_environment(map()) -> {ok, t()} | {error, error_reason()}.
+from_environment(Configuration) ->
+    from_source(Configuration, environment).
+
+-spec root(t()) -> map().
+root(Configuration) ->
+    maps:get(root, Configuration).
+
+-spec source(t()) -> source().
+source(Configuration) ->
+    maps:get(source, Configuration).
+
+-spec file_format(t()) -> binary().
+file_format(Configuration) ->
+    maps:get(file_format, Configuration).
+
+from_source(Configuration, Source) ->
+    case from_map(Configuration) of
+        {ok, Model} -> {ok, Model#{source := Source}};
+        {error, _}=Error -> Error
+    end.
+
+legacy_keys() ->
+    [config_file,
+     sdk_disabled,
+     register_loaded_applications,
+     create_application_tracers,
+     id_generator,
+     deny_list,
+     resource_detectors,
+     resource_detector_timeout,
+     bsp_scheduled_delay_ms,
+     bsp_exporting_timeout_ms,
+     bsp_max_queue_size,
+     ssp_exporting_timeout_ms,
+     text_map_propagators,
+     traces_exporter,
+     processors,
+     span_processor,
+     sampler,
+     sweeper,
+     attribute_count_limit,
+     attribute_value_length_limit,
+     event_count_limit,
+     link_count_limit,
+     attribute_per_event_limit,
+     attribute_per_link_limit].
+
+supported_file_format(Version) ->
+    case to_binary(Version) of
+        {ok, Binary} ->
+            re:run(Binary, <<"^1\\.[0-9]+(?:\\.[0-9]+)?(?:[-+].*)?$">>,
+                   [{capture, none}]) =:= match;
+        error ->
+            false
+    end.
+
+version_binary(Version) ->
+    {ok, Binary} = to_binary(Version),
+    Binary.
