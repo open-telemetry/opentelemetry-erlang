@@ -296,7 +296,7 @@ service_release_name(ProgName) ->
     end.
 
 add_telemetry_info(Resource) ->
-    {ok, LibraryVsn} = application:get_key(opentelemetry, vsn),
+    {ok, LibraryVsn} = application:get_key(opentelemetry_sdk, vsn),
     LibraryName = <<"opentelemetry">>,
     LibraryLanguage = <<"erlang">>,
     ResourceAttributes = [{'telemetry.sdk.name', LibraryName},
