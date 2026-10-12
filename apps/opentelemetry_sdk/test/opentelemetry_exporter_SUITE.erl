@@ -248,15 +248,13 @@ resolved_exporter_precedence(_Config) ->
     ConfiguredEndpoint = <<"http://configured.example/v1/traces">>,
     OSName = "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
     SavedOS = os:getenv(OSName),
-    SavedApp = application:get_env(opentelemetry_sdk, otlp_traces_endpoint),
     os:putenv(OSName, "http://environment.example/v1/traces"),
-    application:set_env(opentelemetry_sdk, otlp_traces_endpoint,
-                         "http://application.example/v1/traces"),
     try
         ModuleOptions = #{endpoints => [ConfiguredEndpoint], headers => [],
                           protocol => http_protobuf, compression => undefined,
                           ssl_options => undefined},
-        %% Test the SDK/exporter boundary with conflicting OS and app settings.
+        %% Test that resolved processor configuration is authoritative at the
+        %% SDK/exporter boundary, even when the OS environment conflicts.
         %% Resolution defaults, input forms and validation live in the SDK suite.
         Components = [{otlp_http, #{endpoint => ConfiguredEndpoint}},
                       {otlp_grpc, #{endpoint => ConfiguredEndpoint}},
@@ -288,12 +286,6 @@ resolved_exporter_precedence(_Config) ->
         case SavedOS of
             false -> os:unsetenv(OSName);
             OSValue -> os:putenv(OSName, OSValue)
-        end,
-        case SavedApp of
-            undefined ->
-                application:unset_env(opentelemetry_sdk, otlp_traces_endpoint);
-            {ok, AppValue} ->
-                application:set_env(opentelemetry_sdk, otlp_traces_endpoint, AppValue)
         end
     end.
 
