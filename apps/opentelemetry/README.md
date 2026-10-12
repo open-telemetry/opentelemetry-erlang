@@ -20,8 +20,8 @@ depend directly on it; releases that want automatic setup should include this
 
 Configuration remains under the `opentelemetry` application environment
 because this application owns the automatic startup policy. See the
-[`opentelemetry_sdk` README](../opentelemetry_sdk/README.md) for the complete
-configuration model and component documentation.
+[`opentelemetry_sdk` README](https://hexdocs.pm/opentelemetry_sdk/readme.html)
+for the complete configuration model and component documentation.
 
 ## Release setup
 

@@ -127,6 +127,7 @@ all() ->
     ].
 
 init_per_suite(Config) ->
+    %% Restart without span processors to avoid starting the default OTLP batch exporter.
     application:stop(opentelemetry),
     application:load(opentelemetry),
     application:set_env(opentelemetry, tracer_provider, #{processors => []}),

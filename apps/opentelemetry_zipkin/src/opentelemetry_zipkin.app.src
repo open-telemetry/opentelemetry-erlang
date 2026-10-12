@@ -6,8 +6,7 @@
    [kernel,
     stdlib,
     inets,
-    opentelemetry_api,
-    opentelemetry_sdk
+    opentelemetry_api
    ]},
   {exclude_paths, ["rebar.lock"]},
   {env,[]},
