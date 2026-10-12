@@ -8,6 +8,7 @@
                 otel_span_sweeper,
                 otel_resource_detector
                ]},
+  {mod, {opentelemetry_sdk_app, []}},
   {applications,
    [kernel,
     stdlib,

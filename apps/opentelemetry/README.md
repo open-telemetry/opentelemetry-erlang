@@ -2,24 +2,19 @@
 
 [![Hex.pm](https://img.shields.io/hexpm/v/opentelemetry?label=OTP%20Integration&style=for-the-badge)](https://hex.pm/packages/opentelemetry)
 
-This application integrates the OpenTelemetry SDK with an OTP release. At
-startup it:
-
-1. loads declarative or Erlang application configuration;
-2. configures text-map propagators;
-3. starts the SDK resource, span-storage, and tracer-provider supervision
-   trees;
-4. starts the configured global tracer provider; and
-5. optionally creates tracers for applications already loaded in the release.
+This application integrates the OpenTelemetry SDK with an OTP release. After
+its `opentelemetry_sdk` dependency has started the configured SDK and global
+tracer provider, this application optionally creates tracers for applications
+already loaded in the release.
 
 The SDK components and OTLP exporter live in the `opentelemetry_sdk`
 application. Starting `opentelemetry_sdk` by itself does not automatically
-start a provider. Applications that need custom lifecycle management can
-depend directly on it; releases that want automatic setup should include this
-`opentelemetry` application.
+create per-application tracer mappings. Applications that do not need those
+mappings can depend directly on the SDK; releases that want them should include
+this `opentelemetry` application.
 
-Configuration remains under the `opentelemetry` application environment
-because this application owns the automatic startup policy. See the
+SDK configuration belongs to the `opentelemetry_sdk` application environment.
+See the
 [`opentelemetry_sdk` README](https://hexdocs.pm/opentelemetry_sdk/readme.html)
 for the complete configuration model and component documentation.
 
@@ -40,8 +35,9 @@ releases: [
 ]
 ```
 
-The `opentelemetry_sdk` dependency and its exporter dependencies are started
-before this application's callback by OTP.
+The `opentelemetry_sdk` dependency and its exporter dependencies, including the
+configured global provider, are started before this application's callback by
+OTP.
 
 ## Contributing
 

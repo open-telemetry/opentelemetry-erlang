@@ -19,6 +19,8 @@ registered_processes_belong_to_sdk(_Config) ->
                   otel_span_sweeper,
                   otel_resource_detector],
                  Registered),
+    ?assertEqual({ok, {opentelemetry_sdk_app, []}},
+                 application:get_key(opentelemetry_sdk, mod)),
     ?assertEqual({ok, []}, application:get_key(opentelemetry, registered)),
     _ = application:unload(opentelemetry),
     ok.
@@ -29,36 +31,25 @@ starts_without_opentelemetry(_Config) ->
         _ = application:unload(opentelemetry),
         ?assertEqual(undefined, application:get_key(opentelemetry, vsn)),
 
+        application:set_env(opentelemetry_sdk, tracer_provider, #{processors => []}),
         {ok, _} = application:ensure_all_started(opentelemetry_sdk),
-        {ok, Configuration} = otel_configuration_source:resolve([]),
-        {ok, SdkSup} = opentelemetry_sdk_sup:start_link(Configuration),
-        unlink(SdkSup),
+        SdkSup = whereis(opentelemetry_sdk_sup),
 
         Resource = otel_resource_detector:get_resource(),
         Attributes = otel_attributes:map(otel_resource:attributes(Resource)),
         {ok, SdkVsn} = application:get_key(opentelemetry_sdk, vsn),
+        NamedResource = otel_resource:create([{'service.name', <<"named-provider">>}]),
+        {ok, NamedProvider} = otel_tracer_provider:start(
+                                direct_sdk_test, NamedResource, #{processors => []}),
 
         ?assert(is_process_alive(SdkSup)),
+        ?assert(is_pid(whereis(otel_tracer_provider_global))),
+        ?assert(is_process_alive(NamedProvider)),
+        ?assertEqual(NamedResource, otel_tracer_provider:resource(direct_sdk_test)),
         ?assertEqual(unicode:characters_to_binary(SdkVsn),
                      maps:get('telemetry.sdk.version', Attributes)),
         ?assertEqual(undefined, application:get_key(opentelemetry, vsn))
     after
-        stop_sdk_supervisor(),
-        _ = application:stop(opentelemetry_sdk)
-    end.
-
-stop_sdk_supervisor() ->
-    case whereis(opentelemetry_sdk_sup) of
-        undefined ->
-            ok;
-        SdkSup ->
-            Monitor = monitor(process, SdkSup),
-            unlink(SdkSup),
-            exit(SdkSup, shutdown),
-            receive
-                {'DOWN', Monitor, process, SdkSup, shutdown} ->
-                    ok
-            after 5000 ->
-                    error({supervisor_shutdown_timeout, SdkSup})
-            end
+        _ = application:stop(opentelemetry_sdk),
+        _ = application:unset_env(opentelemetry_sdk, tracer_provider)
     end.

@@ -675,7 +675,7 @@ preserves_resource_attribute_types(_Config) ->
                      [{ints, [65, 66]}, {strings, [<<"a">>, <<"b">>]}]))).
 
 configured_resource_takes_precedence(_Config) ->
-    ok = application:load(opentelemetry),
+    ok = application:load(opentelemetry_sdk),
     {ok, Model} = otel_configuration_model:from_application_env(
         [{resource,
           #{attributes =>
@@ -700,7 +700,7 @@ configured_resource_takes_precedence(_Config) ->
                      resource_attributes(Resource))
     after
         gen_statem:stop(Pid),
-        application:unload(opentelemetry)
+        application:unload(opentelemetry_sdk)
     end.
 
 warns_about_empty_http_endpoint_paths(_Config) ->

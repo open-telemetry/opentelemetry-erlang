@@ -16,30 +16,35 @@ all() ->
      application_startup].
 
 init_per_suite(Config) ->
+    application:load(opentelemetry_sdk),
     application:load(opentelemetry),
     Config.
 
 end_per_suite(_Config) ->
+    application:stop(opentelemetry),
+    application:stop(opentelemetry_sdk),
     application:unload(opentelemetry),
+    application:unload(opentelemetry_sdk),
     ok.
 
 init_per_testcase(_TestCase, Config) ->
     SavedOSEnv = otel_configuration_test_utils:save_environment(),
 
-    SavedAppEnv = application:get_all_env(opentelemetry),
-    [application:unset_env(opentelemetry, Key) || {Key, _} <- SavedAppEnv],
+    SavedAppEnv = application:get_all_env(opentelemetry_sdk),
+    [application:unset_env(opentelemetry_sdk, Key) || {Key, _} <- SavedAppEnv],
 
     [{saved_os_env, SavedOSEnv}, {saved_app_env, SavedAppEnv} | Config].
 
 end_per_testcase(_TestCase, Config) ->
     _ = application:stop(opentelemetry),
+    _ = application:stop(opentelemetry_sdk),
 
     ok = otel_configuration_test_utils:restore_environment(
            proplists:get_value(saved_os_env, Config)),
 
-    [application:unset_env(opentelemetry, Key)
-     || {Key, _} <- application:get_all_env(opentelemetry)],
-    [application:set_env(opentelemetry, Key, Value)
+    [application:unset_env(opentelemetry_sdk, Key)
+     || {Key, _} <- application:get_all_env(opentelemetry_sdk)],
+    [application:set_env(opentelemetry_sdk, Key, Value)
      || {Key, Value} <- proplists:get_value(saved_app_env, Config)],
     ok.
 
@@ -187,11 +192,11 @@ repeated_resolution(_Config) ->
 
 application_startup(_Config) ->
     application:set_env(
-      opentelemetry,
+      opentelemetry_sdk,
       propagator,
       #{composite => [trace_context, baggage]}),
     application:set_env(
-      opentelemetry,
+      opentelemetry_sdk,
       tracer_provider,
       #{processors =>
             [{otel_batch_processor, #{exporter => {otlp_http, #{}}}}],

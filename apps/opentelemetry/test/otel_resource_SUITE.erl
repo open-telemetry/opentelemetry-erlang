@@ -67,6 +67,7 @@ startup(_Config) ->
         {ok, _} = application:ensure_all_started(opentelemetry),
         Resource = otel_tracer_provider:resource(),
         _ = application:stop(opentelemetry),
+        _ = application:stop(opentelemetry_sdk),
 
         ?assertMatch(#{'service.name' := <<"cttest">>,
                        'service.version' := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Resource))),
@@ -74,6 +75,7 @@ startup(_Config) ->
     after
         os:unsetenv("OTEL_RESOURCE_ATTRIBUTES"),
         application:stop(opentelemetry),
+        application:stop(opentelemetry_sdk),
         application:unload(opentelemetry)
     end.
 
@@ -86,6 +88,7 @@ startup_env_service_name(_Config) ->
         {ok, _} = application:ensure_all_started(opentelemetry),
         Resource = otel_tracer_provider:resource(),
         _ = application:stop(opentelemetry),
+        _ = application:stop(opentelemetry_sdk),
 
         ?assertMatch(#{'service.name' := <<"env-service-name">>,
                        'service.version' := <<"1.1.1">>}, otel_attributes:map(otel_resource:attributes(Resource))),
@@ -94,6 +97,7 @@ startup_env_service_name(_Config) ->
         os:unsetenv("OTEL_SERVICE_NAME"),
         os:unsetenv("OTEL_RESOURCE_ATTRIBUTES"),
         application:stop(opentelemetry),
+        application:stop(opentelemetry_sdk),
         application:unload(opentelemetry)
     end.
 
@@ -102,7 +106,7 @@ startup_configured_service_name(_Config) ->
         os:putenv("OTEL_SERVICE_NAME", "env-service-name"),
         os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=1.1.1"),
         configure_resource_startup(),
-        application:set_env(opentelemetry, resource,
+        application:set_env(opentelemetry_sdk, resource,
                             #{attributes => #{<<"service.name">> => <<"configured">>}}),
         {ok, _} = application:ensure_all_started(opentelemetry),
         Resource = otel_tracer_provider:resource(),
@@ -113,13 +117,14 @@ startup_configured_service_name(_Config) ->
         os:unsetenv("OTEL_SERVICE_NAME"),
         os:unsetenv("OTEL_RESOURCE_ATTRIBUTES"),
         application:stop(opentelemetry),
+        application:stop(opentelemetry_sdk),
         application:unload(opentelemetry)
     end.
 
 configure_resource_startup() ->
-    application:set_env(opentelemetry, tracer_provider, #{processors => []}),
+    application:set_env(opentelemetry_sdk, tracer_provider, #{processors => []}),
     application:set_env(
-      opentelemetry,
+      opentelemetry_sdk,
       distribution,
       #{erlang => #{resource_detectors => [otel_resource_env_var]}}).
 
@@ -207,9 +212,9 @@ set_env_var(Name, Value) -> os:putenv(Name, Value).
 app_env_resource(_Config) ->
     SchemaUrl = <<"https://opentelemetry.io/schemas/1.8.0">>,
     try
-        application:set_env(opentelemetry, tracer_provider, #{processors => []}),
-        application:set_env(opentelemetry, distribution, #{erlang => #{resource_detectors => []}}),
-        application:set_env(opentelemetry, resource,
+        application:set_env(opentelemetry_sdk, tracer_provider, #{processors => []}),
+        application:set_env(opentelemetry_sdk, distribution, #{erlang => #{resource_detectors => []}}),
+        application:set_env(opentelemetry_sdk, resource,
                             #{attributes => #{<<"service.name">> => <<"x">>},
                               attributes_list => <<"service.name=from-list,region=ca">>,
                               schema_url => SchemaUrl}),
@@ -226,6 +231,7 @@ app_env_resource(_Config) ->
         ?assertNot(otel_resource:is_key(<<"schema_url">>, Resource))
     after
         application:stop(opentelemetry),
+        application:stop(opentelemetry_sdk),
         application:unload(opentelemetry)
     end.
 

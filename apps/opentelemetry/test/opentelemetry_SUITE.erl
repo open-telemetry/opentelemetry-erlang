@@ -31,6 +31,7 @@ all() ->
      shutdown_force_flush,
      shutdown_sdk_noop_spans,
      supervision_tree,
+     integration_stop_keeps_sdk,
 
      multiple_processors,
      multiple_tracer_providers,
@@ -53,11 +54,14 @@ groups() ->
      {otel_batch_processor, [], all_cases()}].
 
 init_per_suite(Config) ->
+    application:load(opentelemetry_sdk),
     application:load(opentelemetry),
     Config.
 
 end_per_suite(_Config) ->
+    stop_applications(),
     application:unload(opentelemetry),
+    application:unload(opentelemetry_sdk),
     ok.
 
 init_per_group(Processor, Config) ->
@@ -67,7 +71,7 @@ end_per_group(_, _Config) ->
     ok.
 
 init_per_testcase(disabled_sdk, Config) ->
-    application:set_env(opentelemetry, disabled, true),
+    application:set_env(opentelemetry_sdk, disabled, true),
     set_processors([]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
@@ -121,6 +125,10 @@ init_per_testcase(supervision_tree, Config) ->
     set_processors([]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
+init_per_testcase(integration_stop_keeps_sdk, Config) ->
+    set_processors([]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
 init_per_testcase(dropped_attributes, Config) ->
     Config1 = set_batch_tab_processor(Config),
     set_tracer_limits(#{attribute_value_length_limit => 2}),
@@ -162,26 +170,31 @@ init_per_testcase(_, Config) ->
     [{tid, Tid} | Config].
 
 end_per_testcase(disabled_sdk, _Config) ->
-    application:unset_env(opentelemetry, disabled),
-    _ = application:stop(opentelemetry),
+    application:unset_env(opentelemetry_sdk, disabled),
+    stop_applications(),
     _ = application:unload(opentelemetry),
     ok;
 end_per_testcase(disable_auto_creation, _Config) ->
-    _ = application:stop(opentelemetry),
+    stop_applications(),
     _ = application:unload(opentelemetry),
     ok;
 end_per_testcase(old_disable_auto_creation, _Config) ->
-    _ = application:stop(opentelemetry),
+    stop_applications(),
     _ = application:unload(opentelemetry),
     ok;
 end_per_testcase(propagator_configuration_with_os_env, _Config) ->
     os:unsetenv("OTEL_PROPAGATORS"),
-    _ = application:stop(opentelemetry),
+    stop_applications(),
     clear_sdk_env(),
     ok;
 end_per_testcase(_, _Config) ->
-    _ = application:stop(opentelemetry),
+    stop_applications(),
     clear_sdk_env(),
+    ok.
+
+stop_applications() ->
+    _ = application:stop(opentelemetry),
+    _ = application:stop(opentelemetry_sdk),
     ok.
 
 set_batch_tab_processor(Config) ->
@@ -213,20 +226,20 @@ set_tracer_limits(Limits) ->
       fun(TracerProvider) -> TracerProvider#{limits => Limits} end).
 
 update_tracer_provider(Fun) ->
-    TracerProvider = application:get_env(opentelemetry, tracer_provider, #{}),
-    application:set_env(opentelemetry, tracer_provider, Fun(TracerProvider)).
+    TracerProvider = application:get_env(opentelemetry_sdk, tracer_provider, #{}),
+    application:set_env(opentelemetry_sdk, tracer_provider, Fun(TracerProvider)).
 
 set_propagators(Names) ->
     application:set_env(
-      opentelemetry,
+      opentelemetry_sdk,
       propagator,
       #{composite => Names}).
 
 set_distribution(Erlang) ->
-    application:set_env(opentelemetry, distribution, #{erlang => Erlang}).
+    application:set_env(opentelemetry_sdk, distribution, #{erlang => Erlang}).
 
 clear_sdk_env() ->
-    [application:unset_env(opentelemetry, Key)
+    [application:unset_env(opentelemetry_sdk, Key)
      || Key <- [file_format, disabled, log_level, attribute_limits,
                 resource, propagator, tracer_provider, meter_provider,
                 logger_provider, 'instrumentation/development', distribution]],
@@ -454,7 +467,7 @@ shutdown_force_flush(Config) ->
 
     otel_span:end_span(SpanCtx1),
 
-    application:stop(opentelemetry),
+    application:stop(opentelemetry_sdk),
 
     %% wouldn't be exported at this point unless force flush on shutdown worked
     [Span1] = assert_exported(Tid, SpanCtx1),
@@ -469,7 +482,7 @@ shutdown_sdk_noop_spans(_Config) ->
 
     ?assertMatch({otel_tracer_default, _}, opentelemetry:get_tracer()),
 
-    application:stop(opentelemetry),
+    application:stop(opentelemetry_sdk),
 
     SpanCtx2 = ?start_span(<<"span-2">>),
 
@@ -914,9 +927,9 @@ stop_temporary_app(_Config) ->
     ?assertNotMatch(#span_ctx{trace_id=0,
                               span_id=0}, SpanCtx1),
 
-    ok = application:stop(opentelemetry),
+    ok = application:stop(opentelemetry_sdk),
 
-    %% stopping opentelemetry deletes the active span ETS table
+    %% stopping opentelemetry_sdk deletes the active span ETS table
     %% so eventually newly started spans will be no-ops because
     %% inserting a new span will fail
     ?UNTIL(case ?start_span(<<"span-2">>) of
@@ -1221,14 +1234,22 @@ disabled_sdk(_Config) ->
     ok.
 
 supervision_tree(_Config) ->
-    [{opentelemetry_sdk_sup, SdkSup, supervisor, [opentelemetry_sdk_sup]}] =
-        supervisor:which_children(opentelemetry_sup),
-    ?assertEqual(whereis(opentelemetry_sdk_sup), SdkSup),
+    ?assertEqual([], supervisor:which_children(opentelemetry_sup)),
+    SdkSup = whereis(opentelemetry_sdk_sup),
+    ?assert(is_pid(SdkSup)),
 
     Children = supervisor:which_children(SdkSup),
     ?assertEqual(
        lists:sort([otel_resource_detector, otel_span_sup, otel_tracer_provider_sup]),
        lists:sort([Id || {Id, _Pid, _Type, _Modules} <- Children])),
+    ok.
+
+integration_stop_keeps_sdk(_Config) ->
+    SdkSup = whereis(opentelemetry_sdk_sup),
+    GlobalProvider = whereis(otel_tracer_provider_global),
+    ok = application:stop(opentelemetry),
+    ?assert(is_process_alive(SdkSup)),
+    ?assert(is_process_alive(GlobalProvider)),
     ok.
 
 generate_trace_id() -> 41394.

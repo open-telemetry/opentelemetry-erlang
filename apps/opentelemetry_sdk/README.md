@@ -11,10 +11,17 @@ and should be included in the final deployable artifact, usually an OTP
 release.
 
 This application also contains the OTLP exporter. Starting
-`opentelemetry_sdk` loads its code and dependencies but deliberately does not
-start a provider. Use the `opentelemetry` application for automatic provider
-startup and per-application tracer creation in an OTP release, or assemble SDK
-components directly for custom lifecycle management.
+`opentelemetry_sdk` resolves its configuration, starts the SDK infrastructure,
+and starts the configured global tracer provider. Add the `opentelemetry`
+application to an OTP release when automatic per-application tracer creation is
+also desired.
+
+An OTP release starts the SDK through the normal application dependency tree.
+Outside a release, start it explicitly before using SDK components:
+
+```erlang
+{ok, _} = application:ensure_all_started(opentelemetry_sdk).
+```
 
 ## Configuration
 
@@ -23,8 +30,8 @@ The SDK uses the
 model. When using a configuration file, YAML parsing, environment variable
 substitution, and JSON Schema validation must be completed before the SDK starts.
 
-When started through the `opentelemetry` application, no configuration file
-and an empty `opentelemetry` application environment starts a batch processor
+With no configuration file and an empty `opentelemetry_sdk` application
+environment, the SDK starts a batch processor
 with OTLP HTTP/protobuf export to
 `http://localhost:4318/v1/traces`, a parent-based always-on sampler, and Trace
 Context and Baggage propagation. Standard environment variables configure this
@@ -97,13 +104,13 @@ export OTEL_CONFIG_FILE=/path/to/otel-sdk-config.json
 The JSON decoder does not create atoms from property or component names.
 Unsupported components cause SDK startup to fail with a configuration error.
 
-The `opentelemetry` application environment expresses the same settings using
+The `opentelemetry_sdk` application environment expresses the same settings using
 idiomatic Erlang terms. The `file_format` property may be omitted because
 application configuration is not a versioned file:
 
 ```erlang
 [
- {opentelemetry,
+ {opentelemetry_sdk,
   [{resource,
     #{attributes =>
           #{<<"service.name">> => <<"checkout">>}}},
@@ -122,7 +129,7 @@ application configuration is not a versioned file:
 Elixir configuration uses the same shape:
 
 ```elixir
-config :opentelemetry,
+config :opentelemetry_sdk,
   propagator: %{
     composite: [:tracecontext, :baggage]
   },
@@ -139,7 +146,7 @@ config :opentelemetry,
 Configuration precedence is:
 
 1. A nonempty `OTEL_CONFIG_FILE` selects the preprocessed JSON document.
-2. Otherwise, a nonempty `opentelemetry` application environment supplies the
+2. Otherwise, a nonempty `opentelemetry_sdk` application environment supplies the
    complete native configuration.
 3. Otherwise, the SDK uses environment variables and zero-config defaults.
 
@@ -273,14 +280,14 @@ Names from JSON remain binaries and are not converted into module names.
 
 ### Named tracer providers
 
-Start additional named tracer providers through `otel_tracer_provider_sup`.
+Start additional named tracer providers through `otel_tracer_provider`.
 Its configuration map uses the native `tracer_provider` options and is
 validated before any provider processes start:
 
 ```erlang
 Resource = otel_resource:create(
              [{<<"service.name">>, <<"checkout-worker">>}]),
-{ok, _} = otel_tracer_provider_sup:start(
+{ok, _} = otel_tracer_provider:start(
             checkout_worker,
             Resource,
             #{processors =>
@@ -325,7 +332,8 @@ Settings specific to this SDK live under `distribution.erlang`:
 `create_application_tracers` must be a boolean, and `resource_detector_timeout`
 must be a nonnegative integer in milliseconds. JSON uses `false`, not `"false"`,
 and numeric timeouts, not quoted numbers. These values are checked before SDK
-processes start.
+processes start. `create_application_tracers` is used only when the optional
+`opentelemetry` OTP integration application is started.
 
 Nonempty `resource_detectors` and `deny_list` settings are native-only: detector
 entries must be module atoms or `{Module, Options}` tuples, and deny-list entries

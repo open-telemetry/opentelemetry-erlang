@@ -18,7 +18,7 @@
 
 -behaviour(supervisor).
 
--export([start_link/1]).
+-export([start_link/0]).
 
 -export([init/1]).
 
@@ -26,23 +26,13 @@
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
--spec start_link(otel_configuration_sdk:configuration()) ->
-          {ok, pid()} | ignore | {error, term()}.
-start_link(Configuration) ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, Configuration).
+-spec start_link() -> {ok, pid()} | ignore | {error, term()}.
+start_link() ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
--spec init(otel_configuration_sdk:configuration()) ->
+-spec init([]) ->
           {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
-init(Configuration) ->
-    SupFlags = #{strategy => one_for_one,
-                 intensity => 1,
-                 period => 5},
-
-    SdkSup = #{id => opentelemetry_sdk_sup,
-               start => {opentelemetry_sdk_sup, start_link, [Configuration]},
-               restart => permanent,
-               shutdown => infinity,
-               type => supervisor,
-               modules => [opentelemetry_sdk_sup]},
-
-    {ok, {SupFlags, [SdkSup]}}.
+init([]) ->
+    {ok, {#{strategy => one_for_one,
+            intensity => 1,
+            period => 5}, []}}.

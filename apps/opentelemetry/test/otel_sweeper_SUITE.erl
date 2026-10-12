@@ -23,12 +23,15 @@ all() ->
      failed_attribute_and_end_span].
 
 init_per_suite(Config) ->
+    application:load(opentelemetry_sdk),
     application:load(opentelemetry),
     Config.
 
 end_per_suite(_Config) ->
-    application:unload(opentelemetry),
     application:stop(opentelemetry),
+    application:stop(opentelemetry_sdk),
+    application:unload(opentelemetry),
+    application:unload(opentelemetry_sdk),
     ok.
 
 init_per_testcase(storage_size, Config) ->
@@ -49,14 +52,15 @@ init_per_testcase(Type, Config) ->
 
 end_per_testcase(_, _Config) ->
     ok = application:stop(opentelemetry),
+    ok = application:stop(opentelemetry_sdk),
     ok.
 
 set_configuration(Sweeper) ->
-    application:set_env(opentelemetry,
+    application:set_env(opentelemetry_sdk,
                         distribution,
                         #{erlang => #{sweeper => Sweeper}}),
     application:set_env(
-      opentelemetry,
+      opentelemetry_sdk,
       tracer_provider,
       #{processors =>
             [{otel_batch_processor,

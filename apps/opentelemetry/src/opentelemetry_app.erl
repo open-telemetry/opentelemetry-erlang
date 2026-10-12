@@ -24,64 +24,31 @@
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
 start(_StartType, _StartArgs) ->
-    case otel_configuration_source:resolve(
-           application:get_all_env(opentelemetry)) of
-        {ok, Config} ->
-            start_with_configuration(Config);
-        {error, Reason} ->
-            {error, {configuration_error, Reason}}
-    end.
-
--spec start_with_configuration(otel_configuration_sdk:configuration()) ->
-          {ok, pid()} | ignore | {error, term()}.
-start_with_configuration(Config) ->
-
-    %% set the global propagators for HTTP based on the application env
-    %% these get set even if the SDK is disabled
-    setup_text_map_propagators(Config),
-
-    case opentelemetry_sup:start_link(Config) of
-        {ok, _}=SupResult ->
-            configure_tracing(Config),
-            SupResult;
+    Configuration = opentelemetry_sdk_app:configuration(),
+    case opentelemetry_sup:start_link() of
+        {ok, _}=SupervisorResult ->
+            create_application_tracers(Configuration),
+            SupervisorResult;
         Other ->
             Other
     end.
 
--spec configure_tracing(otel_configuration_sdk:configuration()) -> ok.
-configure_tracing(Config) ->
-    case {otel_configuration_sdk:disabled(Config),
-          otel_configuration_sdk:tracer_provider(Config)} of
+-spec create_application_tracers(otel_configuration_sdk:configuration()) -> ok.
+create_application_tracers(Configuration) ->
+    case {otel_configuration_sdk:disabled(Configuration),
+          otel_configuration_sdk:tracer_provider(Configuration)} of
         {true, _} ->
             ok;
         {_, undefined} ->
             ok;
         {_, TracerProvider} when is_map(TracerProvider) ->
-            %% set global span limits record based on configuration
-            otel_span_limits:set(Config),
-
-            Resource = otel_resource_detector:get_resource(),
-            _ = otel_tracer_provider_sup:start_resolved(?GLOBAL_TRACER_PROVIDER_NAME,
-                                                         Resource, TracerProvider),
-
-            %% must be done after the supervisor starts so that otel_tracer_server is running
             %% TODO: make this work with release upgrades. Currently if an application's version
             %% changes the version in the tracer will not be updated.
-            create_loaded_application_tracers(Config),
-
-            ok
+            create_loaded_application_tracers(Configuration)
     end.
 
 stop(_State) ->
     ok.
-
-%% internal functions
-
--spec setup_text_map_propagators(otel_configuration_sdk:configuration()) -> ok.
-setup_text_map_propagators(Config) ->
-    List = otel_configuration_sdk:text_map_propagators(Config),
-    CompositePropagator = otel_propagator_text_map_composite:create(List),
-    opentelemetry:set_text_map_propagator(CompositePropagator).
 
 -spec create_loaded_application_tracers(otel_configuration_sdk:configuration()) -> ok.
 create_loaded_application_tracers(Config) ->

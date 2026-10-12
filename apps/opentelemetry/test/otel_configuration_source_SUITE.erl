@@ -26,21 +26,24 @@ init_per_suite(Config) ->
 
 end_per_suite(_Config) ->
     _ = application:unload(opentelemetry),
+    _ = application:unload(opentelemetry_sdk),
     ok.
 
 init_per_testcase(_TestCase, Config) ->
     _ = application:stop(opentelemetry),
+    _ = application:stop(opentelemetry_sdk),
     SavedOSEnv = otel_configuration_test_utils:save_environment(),
-    SavedSDKEnv = application:get_all_env(opentelemetry),
-    clear_application_env(opentelemetry),
+    SavedSDKEnv = application:get_all_env(opentelemetry_sdk),
+    clear_application_env(opentelemetry_sdk),
     [{saved_os_env, SavedOSEnv},
      {saved_sdk_env, SavedSDKEnv} | Config].
 
 end_per_testcase(_TestCase, Config) ->
     _ = application:stop(opentelemetry),
+    _ = application:stop(opentelemetry_sdk),
     ok = otel_configuration_test_utils:restore_environment(
            proplists:get_value(saved_os_env, Config)),
-    restore_application_env(opentelemetry,
+    restore_application_env(opentelemetry_sdk,
                             proplists:get_value(saved_sdk_env, Config)),
     ok.
 
@@ -156,12 +159,12 @@ rejects_legacy_application_environment(_Config) ->
 rejects_native_typos_before_startup(_Config) ->
     lists:foreach(
       fun({AppEnv, Reason}) ->
-              clear_application_env(opentelemetry),
-              [application:set_env(opentelemetry, Key, Value) || {Key, Value} <- AppEnv],
+              clear_application_env(opentelemetry_sdk),
+              [application:set_env(opentelemetry_sdk, Key, Value) || {Key, Value} <- AppEnv],
               ?assertEqual({error, Reason}, otel_configuration_source:resolve(AppEnv)),
               ?assertEqual({error, {configuration_error, Reason}},
-                           opentelemetry_app:start(normal, [])),
-              ?assertEqual(undefined, whereis(opentelemetry_sup)),
+                           opentelemetry_sdk_app:start(normal, [])),
+              ?assertEqual(undefined, whereis(opentelemetry_sdk_sup)),
               ?assertEqual(undefined, whereis(otel_tracer_provider_global))
       end,
       [{[{tracer_providers, #{}}],
@@ -190,8 +193,8 @@ application_startup_uses_shared_declarative_configuration(Config) ->
     os:putenv("OTEL_SERVICE_NAME", "environment-service"),
     os:putenv("OTEL_SERVICE_INSTANCE", "environment-instance"),
     os:putenv("OTEL_RESOURCE_ATTRIBUTES", "env.only=unwanted"),
-    application:set_env(opentelemetry, log_level, fatal4),
-    application:set_env(opentelemetry, resource, #{app => #{only => <<"unwanted">>}}),
+    application:set_env(opentelemetry_sdk, log_level, fatal4),
+    application:set_env(opentelemetry_sdk, resource, #{app => #{only => <<"unwanted">>}}),
     {ok, _} = application:ensure_all_started(opentelemetry),
 
     ?assertEqual(undefined, whereis(otel_tracer_provider_global)),
@@ -204,7 +207,8 @@ application_startup_uses_shared_declarative_configuration(Config) ->
     ?assertNot(maps:is_key('env.only', Attributes)),
     ?assertNot(maps:is_key('app.only', Attributes)),
 
-    ok = application:stop(opentelemetry).
+    ok = application:stop(opentelemetry),
+    ok = application:stop(opentelemetry_sdk).
 
 validates_json_distribution_before_startup(Config) ->
     File = filename:join(?config(priv_dir, Config), "distribution.json"),
@@ -216,8 +220,8 @@ validates_json_distribution_before_startup(Config) ->
                       "\"distribution\":{\"erlang\":{", Fields, "}}}"]),
               ?assertEqual({error, Reason}, otel_configuration_source:resolve([])),
               ?assertEqual({error, {configuration_error, Reason}},
-                           opentelemetry_app:start(normal, [])),
-              ?assertEqual(undefined, whereis(opentelemetry_sup)),
+                           opentelemetry_sdk_app:start(normal, [])),
+              ?assertEqual(undefined, whereis(opentelemetry_sdk_sup)),
               ?assertEqual(undefined, whereis(otel_resource_detector))
       end,
       [{"\"create_application_tracers\":\"false\"",
@@ -254,7 +258,7 @@ omitted_resource_ignores_legacy_detection(Config) ->
     os:putenv("OTEL_SERVICE_NAME", "environment-service"),
     os:putenv("OTEL_SERVICE_INSTANCE", "environment-instance"),
     os:putenv("OTEL_RESOURCE_ATTRIBUTES", "env.only=unwanted"),
-    application:set_env(opentelemetry, resource, #{app => #{only => <<"unwanted">>}}),
+    application:set_env(opentelemetry_sdk, resource, #{app => #{only => <<"unwanted">>}}),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Attributes = resource_attributes(otel_resource_detector:get_resource()),
     ?assertMatch(#{'service.name' := <<"unknown_service:erl">>,

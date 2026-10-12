@@ -22,6 +22,7 @@
 -module(otel_tracer_provider).
 
 -export([start/2,
+         start/3,
          get_tracer/3,
          get_tracer/4,
          resource/0,
@@ -33,12 +34,19 @@
 
 %% @doc Starts a named SDK TracerProvider from native configuration.
 %%
-%% This function requires the `opentelemetry' SDK application. The
+%% This function requires the `opentelemetry_sdk' application. The
 %% configuration uses the same shape as its `tracer_provider' application
 %% environment entry.
 -spec start(atom(), map()) -> supervisor:startchild_ret().
 start(Name, Config) ->
     otel_tracer_provider_sup:start(Name, Config).
+
+%% @doc Starts a named SDK TracerProvider with the supplied resource.
+%%
+%% This function requires the `opentelemetry_sdk' application.
+-spec start(atom(), dynamic(), map()) -> supervisor:startchild_ret().
+start(Name, Resource, Config) ->
+    otel_tracer_provider_sup:start(Name, Resource, Config).
 
 -spec get_tracer(Name, Vsn, SchemaUrl) -> Tracer when
       Name :: opentelemetry:span_name(),

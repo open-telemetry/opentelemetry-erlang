@@ -92,10 +92,11 @@ the Hex package [opentelemetry_api](https://hex.pm/packages/opentelemetry_api).
 The SDK implementation and OTLP exporter are found under
 `apps/opentelemetry_sdk` and published as the
 [opentelemetry_sdk](https://hex.pm/packages/opentelemetry_sdk) package. The
-`opentelemetry` application is the OTP release integration: it loads SDK
-configuration, starts the configured provider, and creates tracers for loaded
-applications. Include `opentelemetry` in a release when that automatic setup is
-desired; it depends on `opentelemetry_sdk`.
+`opentelemetry_sdk` application resolves SDK configuration and starts the
+configured provider. The `opentelemetry` application is the optional OTP
+release integration that creates tracers for loaded applications. Include it
+when those per-application tracer mappings are desired; it depends on
+`opentelemetry_sdk`.
 
 Example of Release configuration in `rebar.config`:
 
