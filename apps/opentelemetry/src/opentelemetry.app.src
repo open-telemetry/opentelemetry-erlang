@@ -1,10 +1,7 @@
 {application, opentelemetry,
  [{description, "OpenTelemetry OTP release integration"},
   {vsn, "2.0.0"},
-  {registered, [
-                %% global tracer provider supervisor for use by the API
-                otel_tracer_provider_sup
-               ]},
+  {registered, []},
   {mod, {opentelemetry_app, []}},
   {applications,
    [kernel,

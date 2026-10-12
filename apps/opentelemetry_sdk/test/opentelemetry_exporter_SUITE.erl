@@ -248,9 +248,9 @@ resolved_exporter_precedence(_Config) ->
     ConfiguredEndpoint = <<"http://configured.example/v1/traces">>,
     OSName = "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
     SavedOS = os:getenv(OSName),
-    SavedApp = application:get_env(opentelemetry_exporter, otlp_traces_endpoint),
+    SavedApp = application:get_env(opentelemetry_sdk, otlp_traces_endpoint),
     os:putenv(OSName, "http://environment.example/v1/traces"),
-    application:set_env(opentelemetry_exporter, otlp_traces_endpoint,
+    application:set_env(opentelemetry_sdk, otlp_traces_endpoint,
                          "http://application.example/v1/traces"),
     try
         ModuleOptions = #{endpoints => [ConfiguredEndpoint], headers => [],
@@ -290,8 +290,10 @@ resolved_exporter_precedence(_Config) ->
             OSValue -> os:putenv(OSName, OSValue)
         end,
         case SavedApp of
-            undefined -> application:unset_env(opentelemetry_exporter, otlp_traces_endpoint);
-            {ok, AppValue} -> application:set_env(opentelemetry_exporter, otlp_traces_endpoint, AppValue)
+            undefined ->
+                application:unset_env(opentelemetry_sdk, otlp_traces_endpoint);
+            {ok, AppValue} ->
+                application:set_env(opentelemetry_sdk, otlp_traces_endpoint, AppValue)
         end
     end.
 

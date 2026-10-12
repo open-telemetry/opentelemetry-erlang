@@ -1,7 +1,13 @@
 {application, opentelemetry_sdk,
  [{description, "OpenTelemetry SDK and OTLP exporter"},
   {vsn, "2.0.0"},
-  {registered, []},
+  {registered, [
+                opentelemetry_sdk_sup,
+                otel_tracer_provider_sup,
+                otel_span_sup,
+                otel_span_sweeper,
+                otel_resource_detector
+               ]},
   {applications,
    [kernel,
     stdlib,

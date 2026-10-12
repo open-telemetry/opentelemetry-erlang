@@ -361,6 +361,38 @@ called. Its strategies are `drop`, `end_span`, and
 `failed_attribute_and_end_span`; a function may also be supplied through the
 Erlang application environment.
 
+## Upgrading OpenTelemetry Protos
+
+The protos are in a separate repository,
+[opentelemetry-proto](https://github.com/open-telemetry/opentelemetry-proto/),
+and used as a submodule in this repo. To update the Erlang protobuf modules and
+gRPC client, first update the submodule and then use the [rebar3 grpcbox
+plugin](https://github.com/tsloughter/grpcbox_plugin/) to generate the client:
+
+```shell
+$ pushd apps/opentelemetry_sdk/opentelemetry-proto
+$ git fetch origin
+$ git checkout <tag>
+$ popd
+
+# A bug in the grpcbox plugin means the _pb files must be deleted before
+# regeneration.
+$ rm apps/opentelemetry_sdk/src/opentelemetry_exporter_trace_service_pb.erl \
+     apps/opentelemetry_sdk/src/opentelemetry_exporter_metrics_service_pb.erl \
+     apps/opentelemetry_sdk/src/opentelemetry_exporter_logs_service_pb.erl
+
+$ rebar3 grpc gen -t client
+...
+$ mv apps/opentelemetry_sdk/src/opentelemetry_proto_collector_trace_v_1_trace_service_client.erl \
+     apps/opentelemetry_sdk/src/opentelemetry_trace_service.erl
+$ mv apps/opentelemetry_sdk/src/opentelemetry_proto_collector_logs_v_1_logs_service_client.erl \
+     apps/opentelemetry_sdk/src/opentelemetry_logs_service.erl
+$ mv apps/opentelemetry_sdk/src/opentelemetry_proto_collector_metrics_v_1_metrics_service_client.erl \
+     apps/opentelemetry_sdk/src/opentelemetry_metrics_service.erl
+```
+
+Then open each moved module and fix the module name.
+
 ## Contributing
 
 Read the OpenTelemetry project

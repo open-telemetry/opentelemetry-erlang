@@ -6,7 +6,22 @@
 -include_lib("stdlib/include/assert.hrl").
 
 all() ->
-    [starts_without_opentelemetry].
+    [registered_processes_belong_to_sdk,
+     starts_without_opentelemetry].
+
+registered_processes_belong_to_sdk(_Config) ->
+    _ = application:load(opentelemetry_sdk),
+    _ = application:load(opentelemetry),
+    {ok, Registered} = application:get_key(opentelemetry_sdk, registered),
+    ?assertEqual([opentelemetry_sdk_sup,
+                  otel_tracer_provider_sup,
+                  otel_span_sup,
+                  otel_span_sweeper,
+                  otel_resource_detector],
+                 Registered),
+    ?assertEqual({ok, []}, application:get_key(opentelemetry, registered)),
+    _ = application:unload(opentelemetry),
+    ok.
 
 starts_without_opentelemetry(_Config) ->
     try
