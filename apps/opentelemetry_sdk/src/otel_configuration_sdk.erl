@@ -27,7 +27,6 @@
          value/3,
          disabled/1,
          tracer_provider/1,
-         erlang_distribution/1,
          span_processors/1,
          span_exporter_component/1,
          resource/1,
@@ -96,19 +95,12 @@
         #{processors := [span_processor_component()],
           sampler := sampler_component(),
           id_generator := id_generator_component()}.
--type erlang_distribution_configuration() ::
-        #{resource_detectors => [module() | {module(), term()}],
-          resource_detector_timeout => non_neg_integer(),
-          sweeper => sweeper_configuration(),
-          term() => term()}.
 -type sweeper_configuration() ::
         #{interval => timeout(),
           strategy => drop | end_span | failed_attribute_and_end_span |
                       fun((opentelemetry:span()) -> ok),
           span_ttl => timeout(),
           storage_size => non_neg_integer() | infinity}.
--type distribution_configuration() ::
-        #{erlang := erlang_distribution_configuration()}.
 -type configuration() ::
         #{source := otel_configuration_model:t(),
           file_format := binary(),
@@ -117,7 +109,9 @@
           text_map_propagators := [atom() | {module(), component_properties()}],
           span_limits := resolved_span_limits(),
           tracer_provider := tracer_provider_configuration() | undefined,
-          distribution := distribution_configuration()}.
+          resource_detectors => [module() | {module(), term()}],
+          resource_detector_timeout => non_neg_integer(),
+          sweeper => sweeper_configuration()}.
 
 -export_type([error_reason/0,
               configuration/0,
@@ -133,9 +127,7 @@
               processor_options/0,
               sampler_options/0,
               tracer_provider_options/0,
-              tracer_provider_configuration/0,
-              distribution_configuration/0,
-              erlang_distribution_configuration/0]).
+              tracer_provider_configuration/0]).
 
 -spec create(otel_configuration_model:t()) ->
           {ok, configuration()} | {error, error_reason()}.
@@ -145,19 +137,20 @@ create(Model) ->
         otel_configuration_keys:validate(Raw, otel_configuration_model:source(Model)),
         warn_unsupported(log_level, Raw, [log_level], fun log_level/2),
         validate_distribution(Raw),
+        validate_sweeper(Raw),
         validate_attribute_limits(Raw),
         warn_unsupported(logger_provider, Raw, [logger_provider], fun component_map/2),
         warn_unsupported(meter_provider, Raw, [meter_provider], fun component_map/2),
-        Distribution = resolve_distribution(Raw, otel_configuration_model:source(Model)),
-        Configuration =
+        Extensions = resolve_erlang_extensions(Raw, otel_configuration_model:source(Model)),
+        Configuration = maps:merge(
             #{source => Model,
               file_format => otel_configuration_model:file_format(Model),
               disabled => resolve_disabled(Raw),
               resource => resolve_resource(Raw),
               text_map_propagators => resolve_text_map_propagators(Raw),
               span_limits => resolve_span_limits(Raw),
-              tracer_provider => resolve_tracer_provider(Raw),
-              distribution => Distribution},
+              tracer_provider => resolve_tracer_provider(Raw)},
+            Extensions),
         {ok, Configuration}
     catch
         throw:{declarative_configuration_error, Reason} ->
@@ -185,10 +178,6 @@ disabled(Configuration) ->
 -spec tracer_provider(configuration()) -> tracer_provider_configuration() | undefined.
 tracer_provider(Configuration) ->
     maps:get(tracer_provider, Configuration).
-
--spec erlang_distribution(configuration()) -> erlang_distribution_configuration().
-erlang_distribution(Configuration) ->
-    maps:get(erlang, maps:get(distribution, Configuration), #{}).
 
 -spec span_processors(tracer_provider_configuration()) -> [span_processor_component()].
 span_processors(TracerProvider) ->
@@ -333,38 +322,18 @@ validate_distribution(Configuration) ->
     case find(distribution, Configuration) of
         error -> ok;
         {ok, null} -> ok;
-        {ok, Distribution} when is_map(Distribution) ->
-            case find(erlang, Distribution) of
-                error -> ok;
-                {ok, null} -> ok;
-                {ok, Erlang} when is_map(Erlang) -> validate_erlang_distribution(Erlang);
-                {ok, Value} -> fail({invalid_configuration, [distribution, erlang], Value})
-            end;
+        {ok, Distribution} when is_map(Distribution) -> ok;
         {ok, Value} ->
             fail({invalid_configuration, [distribution], Value})
     end.
 
-resolve_distribution(Configuration, Source) ->
-    case find(distribution, Configuration) of
-        error -> #{erlang => #{}};
-        {ok, null} -> #{erlang => #{}};
-        {ok, Distribution} when is_map(Distribution) ->
-            case find(erlang, Distribution) of
-                error -> #{erlang => #{}};
-                {ok, null} -> #{erlang => #{}};
-                {ok, Erlang} when is_map(Erlang) ->
-                    #{erlang => resolve_erlang_distribution(Erlang, Source)}
-            end
-    end.
-
-resolve_erlang_distribution(Erlang, Source) ->
-    Path = [distribution, erlang],
-    Resolved0 = copy_validated(resource_detector_timeout, Erlang, #{}, Path,
+resolve_erlang_extensions(Configuration, Source) ->
+    Resolved0 = copy_validated(resource_detector_timeout, Configuration, #{}, [],
                                fun non_negative_integer/2),
-    Resolved = copy_validated(resource_detectors, Erlang, Resolved0, Path,
-                              fun(Value, P) -> native_distribution_entries(
+    Resolved = copy_validated(resource_detectors, Configuration, Resolved0, [],
+                              fun(Value, P) -> native_entries(
                                                   Value, P, Source, fun resource_detector/2) end),
-    case find(sweeper, Erlang) of
+    case find(sweeper, Configuration) of
         {ok, Sweeper} when is_map(Sweeper) ->
             Resolved#{sweeper => resolve_sweeper(Sweeper)};
         _ ->
@@ -372,13 +341,13 @@ resolve_erlang_distribution(Erlang, Source) ->
     end.
 
 %% JSON cannot select Erlang modules or application atoms. Empty lists are safe
-%% and useful for explicitly disabling these distribution extensions.
-native_distribution_entries([], _Path, _Source, _Validator) -> [];
-native_distribution_entries(Values, Path, declarative, _Validator) when is_list(Values) ->
+%% and useful for explicitly disabling these native extensions.
+native_entries([], _Path, _Source, _Validator) -> [];
+native_entries(Values, Path, declarative, _Validator) when is_list(Values) ->
     fail({unsupported_configuration, Path, Values});
-native_distribution_entries(Values, Path, _Source, Validator) when is_list(Values) ->
+native_entries(Values, Path, _Source, Validator) when is_list(Values) ->
     [Validator(Value, Path) || Value <- Values];
-native_distribution_entries(Value, Path, _Source, _Validator) ->
+native_entries(Value, Path, _Source, _Validator) ->
     fail({invalid_configuration, Path, Value}).
 
 resource_detector(Module, _Path) when is_atom(Module) -> Module;
@@ -386,7 +355,7 @@ resource_detector({Module, _}=Detector, _Path) when is_atom(Module) -> Detector;
 resource_detector(Value, Path) -> fail({invalid_configuration, Path, Value}).
 
 resolve_sweeper(Sweeper) ->
-    Path = [distribution, erlang, sweeper],
+    Path = [sweeper],
     Resolved0 = copy_validated(interval, Sweeper, #{}, Path,
                                fun non_negative_integer_or_infinity/2),
     Resolved1 = copy_validated(span_ttl, Sweeper, Resolved0, Path,
@@ -404,13 +373,13 @@ sweeper_strategy(Value, Path) ->
           {<<"failed_attribute_and_end_span">>, failed_attribute_and_end_span}],
          Path).
 
-validate_erlang_distribution(Erlang) ->
-    case find(sweeper, Erlang) of
+validate_sweeper(Configuration) ->
+    case find(sweeper, Configuration) of
         error -> ok;
         {ok, null} -> ok;
         {ok, Sweeper} when is_map(Sweeper) -> ok;
         {ok, Value} ->
-            fail({invalid_configuration, [distribution, erlang, sweeper], Value})
+            fail({invalid_configuration, [sweeper], Value})
     end.
 
 log_level(Value, Path) ->

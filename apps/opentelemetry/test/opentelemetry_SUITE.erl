@@ -239,7 +239,8 @@ clear_sdk_env() ->
     [application:unset_env(opentelemetry_sdk, Key)
      || Key <- [file_format, disabled, log_level, attribute_limits,
                 resource, propagator, tracer_provider, meter_provider,
-                logger_provider, 'instrumentation/development', distribution]],
+                logger_provider, 'instrumentation/development', distribution,
+                resource_detectors, resource_detector_timeout, sweeper]],
     ok.
 
 clear_integration_env() ->

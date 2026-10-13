@@ -35,9 +35,9 @@ configuration() ->
                 sampler => sampler(),
                 limits => limits(span_limits),
                 id_generator => read("OTEL_ID_GENERATOR", fun list_to_existing_atom/1,
-                                     otel_id_generator)},
-          distribution => #{erlang => erlang_distribution()}},
-    maps:merge(Configuration, mappings([{"OTEL_LOG_LEVEL", log_level}], fun log_level/1)).
+                                     otel_id_generator)}},
+    Configuration1 = maps:merge(Configuration, erlang_extensions()),
+    maps:merge(Configuration1, mappings([{"OTEL_LOG_LEVEL", log_level}], fun log_level/1)).
 
 batch() ->
     #{exporter => exporter(),
@@ -181,7 +181,7 @@ mappings(Mappings, Parser) ->
                         end
                 end, #{}, Mappings).
 
-erlang_distribution() ->
+erlang_extensions() ->
     #{resource_detectors => read("OTEL_RESOURCE_DETECTORS", fun atom_list/1, []),
       resource_detector_timeout => read("OTEL_RESOURCE_DETECTOR_TIMEOUT", fun non_negative_integer/1, 5000),
       sweeper => maps:merge(

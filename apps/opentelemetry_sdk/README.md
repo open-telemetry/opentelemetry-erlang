@@ -311,21 +311,25 @@ Span limits are global in this implementation. Set them through
 passed when starting a named provider is ignored with a warning; it does not
 change the global limits or establish limits for that provider.
 
-### Erlang distribution settings
+### Erlang SDK settings
 
-Settings specific to this SDK live under `distribution.erlang`:
+Settings specific to this SDK are top-level entries in the
+`opentelemetry_sdk` application environment:
 
 ```erlang
-{distribution,
- #{erlang =>
-       #{resource_detectors => [otel_resource_env_var],
-         resource_detector_timeout => 5000,
-         sweeper =>
-             #{interval => 600000,
-               strategy => drop,
-               span_ttl => 1800000,
-               storage_size => infinity}}}}
+{opentelemetry_sdk,
+ [{resource_detectors, [otel_resource_env_var]},
+  {resource_detector_timeout, 5000},
+  {sweeper,
+   #{interval => 600000,
+     strategy => drop,
+     span_ttl => 1800000,
+     storage_size => infinity}}]}
 ```
+
+The declarative configuration `distribution` field is left opaque for
+distribution- and vendor-specific namespaces such as Splunk or New Relic. The
+upstream Erlang SDK does not interpret values inside it.
 
 `resource_detector_timeout` must be a nonnegative integer in milliseconds.
 Numeric timeouts must not be quoted. These values are checked before SDK
@@ -335,7 +339,8 @@ Nonempty `resource_detectors` settings are native-only: detector entries must be
 module atoms or `{Module, Options}` tuples. JSON files may omit this list, set it
 to `null`, or supply an empty list; nonempty lists return
 `unsupported_configuration`. JSON names are not converted into Erlang module
-atoms.
+atoms. In JSON, these Erlang SDK extensions are top-level properties rather than
+members of `distribution`.
 
 With explicit SDK configuration, resource environment variables are only read
 when the corresponding resource detector is explicitly configured.

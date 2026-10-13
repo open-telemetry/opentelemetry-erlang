@@ -40,13 +40,12 @@ init(Configuration) ->
                  intensity => 1,
                  period => 5},
 
-    Erlang = otel_configuration_sdk:erlang_distribution(Configuration),
     SweeperConfig = maps:merge(
                       #{interval => timer:minutes(10),
                         strategy => drop,
                         span_ttl => timer:minutes(30),
                         storage_size => infinity},
-                      otel_configuration_sdk:value(sweeper, Erlang, #{})),
+                      otel_configuration_sdk:value(sweeper, Configuration, #{})),
     Sweeper = #{id => otel_span_sweeper,
                 start => {otel_span_sweeper, start_link, [SweeperConfig]},
                 restart => permanent,
