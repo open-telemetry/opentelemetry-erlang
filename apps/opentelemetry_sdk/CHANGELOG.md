@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make `opentelemetry_sdk` own configuration and the complete SDK lifecycle,
   including the configured global tracer provider.
 - Reduce `opentelemetry` to optional OTP application-tracer integration.
+- Move application-tracer creation and application exclusions out of SDK
+  configuration and into the `opentelemetry` application environment.
 - Move the OTLP exporter out of the retired `opentelemetry_exporter` application.
 - Use erl_error:format_exception for exception.stacktrace by @arseniycodes in [#988](https://github.com/open-telemetry/opentelemetry-erlang/pull/988)
 

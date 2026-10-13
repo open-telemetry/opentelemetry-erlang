@@ -10,7 +10,8 @@
     opentelemetry_sdk
    ]},
   {exclude_paths, ["rebar.lock"]},
-  {env, []},
+  {env, [{create_application_tracers, true},
+         {excluded_applications, []}]},
   {modules, []},
 
   {doc, "doc"},

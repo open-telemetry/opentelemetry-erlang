@@ -318,9 +318,7 @@ Settings specific to this SDK live under `distribution.erlang`:
 ```erlang
 {distribution,
  #{erlang =>
-       #{create_application_tracers => false,
-         deny_list => [kernel],
-         resource_detectors => [otel_resource_env_var],
+       #{resource_detectors => [otel_resource_env_var],
          resource_detector_timeout => 5000,
          sweeper =>
              #{interval => 600000,
@@ -329,18 +327,15 @@ Settings specific to this SDK live under `distribution.erlang`:
                storage_size => infinity}}}}
 ```
 
-`create_application_tracers` must be a boolean, and `resource_detector_timeout`
-must be a nonnegative integer in milliseconds. JSON uses `false`, not `"false"`,
-and numeric timeouts, not quoted numbers. These values are checked before SDK
-processes start. `create_application_tracers` is used only when the optional
-`opentelemetry` OTP integration application is started.
+`resource_detector_timeout` must be a nonnegative integer in milliseconds.
+Numeric timeouts must not be quoted. These values are checked before SDK
+processes start.
 
-Nonempty `resource_detectors` and `deny_list` settings are native-only: detector
-entries must be module atoms or `{Module, Options}` tuples, and deny-list entries
-must be application atoms or `{Application, VersionString}` tuples. JSON files
-may omit these lists, set them to `null`, or supply empty lists; nonempty lists
-return `unsupported_configuration`. JSON names are not converted into Erlang
-module or application atoms.
+Nonempty `resource_detectors` settings are native-only: detector entries must be
+module atoms or `{Module, Options}` tuples. JSON files may omit this list, set it
+to `null`, or supply an empty list; nonempty lists return
+`unsupported_configuration`. JSON names are not converted into Erlang module
+atoms.
 
 With explicit SDK configuration, resource environment variables are only read
 when the corresponding resource detector is explicitly configured.

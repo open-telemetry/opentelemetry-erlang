@@ -18,6 +18,21 @@ See the
 [`opentelemetry_sdk` README](https://hexdocs.pm/opentelemetry_sdk/readme.html)
 for the complete configuration model and component documentation.
 
+This integration application has two native Erlang settings. They are not part
+of the SDK declarative configuration model and are configured only under the
+`opentelemetry` application:
+
+```erlang
+{opentelemetry,
+ [{create_application_tracers, true},
+  {excluded_applications, [kernel, stdlib]}]}
+```
+
+`create_application_tracers` defaults to `true`. `excluded_applications`
+defaults to an empty list and prevents automatic module-to-application tracer
+mappings for the listed OTP applications; it does not disable explicitly
+requested instrumentation scopes.
+
 ## Release setup
 
 For rebar3/relx:

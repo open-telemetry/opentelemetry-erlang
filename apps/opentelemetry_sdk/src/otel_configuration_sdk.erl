@@ -95,12 +95,9 @@
 -type tracer_provider_configuration() ::
         #{processors := [span_processor_component()],
           sampler := sampler_component(),
-          id_generator := id_generator_component(),
-          deny_list := [atom() | {atom(), string()}]}.
+          id_generator := id_generator_component()}.
 -type erlang_distribution_configuration() ::
-        #{create_application_tracers => boolean(),
-          deny_list => [atom() | {atom(), string()}],
-          resource_detectors => [module() | {module(), term()}],
+        #{resource_detectors => [module() | {module(), term()}],
           resource_detector_timeout => non_neg_integer(),
           sweeper => sweeper_configuration(),
           term() => term()}.
@@ -151,8 +148,7 @@ create(Model) ->
         validate_attribute_limits(Raw),
         warn_unsupported(logger_provider, Raw, [logger_provider], fun component_map/2),
         warn_unsupported(meter_provider, Raw, [meter_provider], fun component_map/2),
-        Distribution = #{erlang := Erlang} = resolve_distribution(
-                                               Raw, otel_configuration_model:source(Model)),
+        Distribution = resolve_distribution(Raw, otel_configuration_model:source(Model)),
         Configuration =
             #{source => Model,
               file_format => otel_configuration_model:file_format(Model),
@@ -160,7 +156,7 @@ create(Model) ->
               resource => resolve_resource(Raw),
               text_map_propagators => resolve_text_map_propagators(Raw),
               span_limits => resolve_span_limits(Raw),
-              tracer_provider => resolve_tracer_provider(Raw, Erlang),
+              tracer_provider => resolve_tracer_provider(Raw),
               distribution => Distribution},
         {ok, Configuration}
     catch
@@ -176,7 +172,7 @@ create_tracer_provider(Configuration) ->
         otel_configuration_keys:validate_tracer_provider(Configuration),
         %% Span limits are global and can only be installed at SDK startup.
         warn_unsupported(limits, Configuration, [tracer_provider, limits], fun component_map/2),
-        {ok, resolve_tracer_provider_configuration(Configuration, #{})}
+        {ok, resolve_tracer_provider_configuration(Configuration)}
     catch
         throw:{declarative_configuration_error, Reason} ->
             {error, Reason}
@@ -363,14 +359,9 @@ resolve_distribution(Configuration, Source) ->
 
 resolve_erlang_distribution(Erlang, Source) ->
     Path = [distribution, erlang],
-    Resolved0 = copy_validated(create_application_tracers, Erlang, #{}, Path,
-                               fun boolean_value/2),
-    Resolved1 = copy_validated(resource_detector_timeout, Erlang, Resolved0, Path,
+    Resolved0 = copy_validated(resource_detector_timeout, Erlang, #{}, Path,
                                fun non_negative_integer/2),
-    Resolved2 = copy_validated(deny_list, Erlang, Resolved1, Path,
-                               fun(Value, P) -> native_distribution_entries(
-                                                   Value, P, Source, fun deny_list_entry/2) end),
-    Resolved = copy_validated(resource_detectors, Erlang, Resolved2, Path,
+    Resolved = copy_validated(resource_detectors, Erlang, Resolved0, Path,
                               fun(Value, P) -> native_distribution_entries(
                                                   Value, P, Source, fun resource_detector/2) end),
     case find(sweeper, Erlang) of
@@ -393,14 +384,6 @@ native_distribution_entries(Value, Path, _Source, _Validator) ->
 resource_detector(Module, _Path) when is_atom(Module) -> Module;
 resource_detector({Module, _}=Detector, _Path) when is_atom(Module) -> Detector;
 resource_detector(Value, Path) -> fail({invalid_configuration, Path, Value}).
-
-deny_list_entry(Name, _Path) when is_atom(Name) -> Name;
-deny_list_entry({Name, Version}=Entry, Path) when is_atom(Name), is_list(Version) ->
-    case io_lib:char_list(Version) of
-        true -> Entry;
-        false -> fail({invalid_configuration, Path, Entry})
-    end;
-deny_list_entry(Value, Path) -> fail({invalid_configuration, Path, Value}).
 
 resolve_sweeper(Sweeper) ->
     Path = [distribution, erlang, sweeper],
@@ -519,15 +502,15 @@ propagator_name(Name) ->
         _ -> fail({unsupported_configuration, [propagator, composite_list], Name})
     end.
 
-resolve_tracer_provider(Configuration, Erlang) ->
+resolve_tracer_provider(Configuration) ->
     case find(tracer_provider, Configuration) of
         error -> undefined;
         {ok, null} -> undefined;
         {ok, TracerProvider} ->
-            resolve_tracer_provider_configuration(TracerProvider, Erlang)
+            resolve_tracer_provider_configuration(TracerProvider)
     end.
 
-resolve_tracer_provider_configuration(TracerProvider, Erlang) when is_map(TracerProvider) ->
+resolve_tracer_provider_configuration(TracerProvider) when is_map(TracerProvider) ->
     warn_unsupported('tracer_configurator/development', TracerProvider,
                      [tracer_provider, 'tracer_configurator/development'],
                      fun component_map/2),
@@ -536,9 +519,8 @@ resolve_tracer_provider_configuration(TracerProvider, Erlang) when is_map(Tracer
                           [tracer_provider, processors]),
     #{processors => resolve_span_processors(Processors),
       sampler => resolve_sampler(TracerProvider),
-      id_generator => resolve_id_generator(TracerProvider),
-      deny_list => maps:get(deny_list, Erlang, [])};
-resolve_tracer_provider_configuration(Value, _Erlang) ->
+      id_generator => resolve_id_generator(TracerProvider)};
+resolve_tracer_provider_configuration(Value) ->
     fail({invalid_configuration, [tracer_provider], Value}).
 
 resolve_sampler(TracerProvider) ->

@@ -224,9 +224,7 @@ validates_json_distribution_before_startup(Config) ->
               ?assertEqual(undefined, whereis(opentelemetry_sdk_sup)),
               ?assertEqual(undefined, whereis(otel_resource_detector))
       end,
-      [{"\"create_application_tracers\":\"false\"",
-        {invalid_configuration, [distribution, erlang, create_application_tracers], <<"false">>}},
-       {"\"resource_detectors\":[\"otel_resource_env_var\"]",
+      [{"\"resource_detectors\":[\"otel_resource_env_var\"]",
         {unsupported_configuration, [distribution, erlang, resource_detectors],
          [<<"otel_resource_env_var">>]}},
        {"\"resource_detector_timeout\":\"5000\"",
@@ -234,8 +232,8 @@ validates_json_distribution_before_startup(Config) ->
     %% Real JSON booleans and numbers are safe to pass to the startup consumers.
     ok = file:write_file(File,
            <<"{\"file_format\":\"1.1\",\"tracer_provider\":{\"processors\":[]},"
-             "\"distribution\":{\"erlang\":{\"create_application_tracers\":false,"
-             "\"resource_detector_timeout\":0,\"resource_detectors\":[],\"deny_list\":[]}}}">>),
+             "\"distribution\":{\"erlang\":{"
+             "\"resource_detector_timeout\":0,\"resource_detectors\":[]}}}">>),
     {ok, _} = application:ensure_all_started(opentelemetry),
     ?assert(is_pid(whereis(otel_tracer_provider_global))).
 

@@ -21,44 +21,84 @@
 -export([start/2,
          stop/1]).
 
--include_lib("opentelemetry_api/include/opentelemetry.hrl").
-
 start(_StartType, _StartArgs) ->
-    Configuration = opentelemetry_sdk_app:configuration(),
+    case configuration() of
+        {ok, IntegrationConfiguration} ->
+            start_with_configuration(IntegrationConfiguration,
+                                     opentelemetry_sdk_app:configuration());
+        {error, Reason} ->
+            {error, {configuration_error, Reason}}
+    end.
+
+-type configuration() ::
+        #{create_application_tracers := boolean(),
+          excluded_applications := [atom()]}.
+
+-spec configuration() -> {ok, configuration()} | {error, term()}.
+configuration() ->
+    CreateApplicationTracers =
+        application:get_env(opentelemetry, create_application_tracers, true),
+    ExcludedApplications =
+        application:get_env(opentelemetry, excluded_applications, []),
+    case CreateApplicationTracers of
+        Value when not is_boolean(Value) ->
+            {error, {invalid_configuration, [create_application_tracers], Value}};
+        _ ->
+            case is_atom_list(ExcludedApplications) of
+                true ->
+                    {ok, #{create_application_tracers => CreateApplicationTracers,
+                           excluded_applications => ExcludedApplications}};
+                false ->
+                    {error, {invalid_configuration,
+                             [excluded_applications], ExcludedApplications}}
+            end
+    end.
+
+is_atom_list(Value) when is_list(Value) ->
+    lists:all(fun is_atom/1, Value);
+is_atom_list(_) ->
+    false.
+
+start_with_configuration(IntegrationConfiguration, SdkConfiguration) ->
     case opentelemetry_sup:start_link() of
         {ok, _}=SupervisorResult ->
-            create_application_tracers(Configuration),
+            create_application_tracers(IntegrationConfiguration, SdkConfiguration),
             SupervisorResult;
         Other ->
             Other
     end.
 
--spec create_application_tracers(otel_configuration_sdk:configuration()) -> ok.
-create_application_tracers(Configuration) ->
-    case {otel_configuration_sdk:disabled(Configuration),
-          otel_configuration_sdk:tracer_provider(Configuration)} of
-        {true, _} ->
-            ok;
-        {_, undefined} ->
-            ok;
-        {_, TracerProvider} when is_map(TracerProvider) ->
+-spec create_application_tracers(configuration(),
+                                 otel_configuration_sdk:configuration()) -> ok.
+create_application_tracers(IntegrationConfiguration, SdkConfiguration) ->
+    case {maps:get(create_application_tracers, IntegrationConfiguration),
+          otel_configuration_sdk:disabled(SdkConfiguration),
+          otel_configuration_sdk:tracer_provider(SdkConfiguration)} of
+        {false, _, _} ->
+            clear_application_tracers();
+        {_, true, _} ->
+            clear_application_tracers();
+        {_, _, undefined} ->
+            clear_application_tracers();
+        {true, false, TracerProvider} when is_map(TracerProvider) ->
             %% TODO: make this work with release upgrades. Currently if an application's version
             %% changes the version in the tracer will not be updated.
-            create_loaded_application_tracers(Configuration)
+            create_loaded_application_tracers(
+              maps:get(excluded_applications, IntegrationConfiguration))
     end.
 
 stop(_State) ->
+    clear_application_tracers(),
     ok.
 
--spec create_loaded_application_tracers(otel_configuration_sdk:configuration()) -> ok.
-create_loaded_application_tracers(Config) ->
-    Erlang = otel_configuration_sdk:erlang_distribution(Config),
-    case otel_configuration_sdk:value(create_application_tracers, Erlang, true) of
-        true ->
-            %% TODO: filter out OTP apps that will not have any instrumentation
-            LoadedApplications = application:loaded_applications(),
-            opentelemetry:create_application_tracers(LoadedApplications),
-            ok;
-        false ->
-            ok
-    end.
+clear_application_tracers() ->
+    opentelemetry:create_application_tracers([]).
+
+-spec create_loaded_application_tracers([atom()]) -> ok.
+create_loaded_application_tracers(ExcludedApplications) ->
+    LoadedApplications =
+        [Application
+         || {Name, _Description, _Vsn}=Application <- application:loaded_applications(),
+            not lists:member(Name, ExcludedApplications)],
+    opentelemetry:create_application_tracers(LoadedApplications),
+    ok.

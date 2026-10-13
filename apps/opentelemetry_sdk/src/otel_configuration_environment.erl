@@ -182,11 +182,7 @@ mappings(Mappings, Parser) ->
                 end, #{}, Mappings).
 
 erlang_distribution() ->
-    #{create_application_tracers =>
-          read_first(["OTEL_CREATE_APPLICATION_TRACERS", "OTEL_REGISTER_LOADED_APPLICATIONS"],
-                     fun boolean/1, true),
-      deny_list => read("OTEL_DENY_LIST", fun atom_list/1, []),
-      resource_detectors => read("OTEL_RESOURCE_DETECTORS", fun atom_list/1, []),
+    #{resource_detectors => read("OTEL_RESOURCE_DETECTORS", fun atom_list/1, []),
       resource_detector_timeout => read("OTEL_RESOURCE_DETECTOR_TIMEOUT", fun non_negative_integer/1, 5000),
       sweeper => maps:merge(
                    mappings([{"OTEL_SPAN_SWEEPER_INTERVAL", interval},
