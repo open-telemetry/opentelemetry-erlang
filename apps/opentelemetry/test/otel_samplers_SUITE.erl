@@ -6,20 +6,22 @@
 -include_lib("common_test/include/ct.hrl").
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
--include("otel_sampler.hrl").
+-include_lib("opentelemetry_sdk/include/otel_sampler.hrl").
 
 all() ->
     [trace_id_ratio_based, parent_based, get_description, custom_sampler_module,
      custom_attributes_sampler].
 
 init_per_suite(Config) ->
+    application:load(opentelemetry_sdk),
     application:load(opentelemetry),
     %% set application environment variables
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config.
 
 end_per_suite(_Config) ->
-    ok = application:stop(opentelemetry).
+    ok = application:stop(opentelemetry),
+    ok = application:stop(opentelemetry_sdk).
 
 init_per_testcase(_, Config) ->
     Config.

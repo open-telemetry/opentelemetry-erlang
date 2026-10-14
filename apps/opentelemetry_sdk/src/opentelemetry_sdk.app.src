@@ -1,0 +1,28 @@
+{application, opentelemetry_sdk,
+ [{description, "OpenTelemetry SDK and OTLP exporter"},
+  {vsn, "2.0.0"},
+  {registered, [
+                opentelemetry_sdk_sup,
+                otel_tracer_provider_sup,
+                otel_span_sup,
+                otel_span_sweeper,
+                otel_resource_detector
+               ]},
+  {mod, {opentelemetry_sdk_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    inets,
+    ctx,
+    grpcbox,
+    tls_certificate_check,
+    opentelemetry_api
+   ]},
+  {exclude_paths, ["rebar.lock"]},
+  {env, []},
+  {modules, []},
+
+  {doc, "doc"},
+  {licenses, ["Apache-2.0"]},
+  {links, [{"GitHub", "https://github.com/open-telemetry/opentelemetry-erlang"}]}
+ ]}.

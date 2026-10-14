@@ -11,11 +11,11 @@
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
 -include_lib("opentelemetry_api/include/otel_tracer.hrl").
--include("otel_tracer.hrl").
--include("otel_span.hrl").
+-include_lib("opentelemetry_sdk/src/otel_tracer.hrl").
+-include_lib("opentelemetry_sdk/include/otel_span.hrl").
 -include("otel_test_utils.hrl").
--include("otel_sampler.hrl").
--include("otel_span_ets.hrl").
+-include_lib("opentelemetry_sdk/include/otel_sampler.hrl").
+-include_lib("opentelemetry_sdk/src/otel_span_ets.hrl").
 
 all() ->
     [override_propagators,
@@ -29,16 +29,20 @@ groups() ->
      {b3, [], [propagation]}].
 
 init_per_suite(Config) ->
+    application:load(opentelemetry_sdk),
     application:load(opentelemetry),
     application:set_env(
-      opentelemetry,
+      opentelemetry_sdk,
       tracer_provider,
       #{processors => []}),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config.
 
 end_per_suite(_Config) ->
+    application:stop(opentelemetry),
+    application:stop(opentelemetry_sdk),
     application:unload(opentelemetry),
+    application:unload(opentelemetry_sdk),
     ok.
 
 init_per_group(Propagator, Config) when Propagator =:= w3c ;
@@ -62,7 +66,8 @@ init_per_group(Propagator, Config) when Propagator =:= w3c ;
     [{propagator, Propagator} | Config].
 
 end_per_group(_, _Config) ->
-    _ = application:stop(opentelemetry).
+    _ = application:stop(opentelemetry),
+    _ = application:stop(opentelemetry_sdk).
 
 propagation(Config) ->
     Propagator = ?config(propagator, Config),

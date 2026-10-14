@@ -212,7 +212,7 @@ module_to_application(Name, Version, SchemaUrl) ->
 
 %% @doc Returns the default global tracer.
 %%
-%% Without the `opentelemetry' application loaded (as a dependency) and
+%% Without the `opentelemetry_sdk' application loaded (as a dependency) and
 %% started (or another SDK), this function returns the default value
 %% `{otel_tracer_noop, []}'.
 -spec get_tracer() -> tracer().

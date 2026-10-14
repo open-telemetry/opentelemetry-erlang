@@ -111,8 +111,10 @@ dotted_key(_) -> false.
 
 fields(sdk) ->
     [file_format, disabled, log_level, resource, propagator, attribute_limits,
-     tracer_provider, meter_provider, logger_provider, distribution];
+     tracer_provider, meter_provider, logger_provider, distribution,
+     resource_detection_timeout, span_sweeper];
 fields(resource) -> [attributes, attributes_list, schema_url, 'detection/development'];
+fields(resource_detection) -> [detectors, attributes];
 fields(attribute) -> [name, type, value];
 fields(header) -> [name, value];
 fields(propagator) -> [composite, composite_list];
@@ -131,9 +133,7 @@ fields(grpc_tls) -> [insecure | fields(http_tls)];
 fields(parent_based) -> [root, remote_parent_sampled, remote_parent_not_sampled,
                        local_parent_sampled, local_parent_not_sampled];
 fields(trace_id_ratio_based) -> [ratio];
-fields(distribution) -> [erlang];
-fields(erlang) -> [create_application_tracers, deny_list, resource_detectors, resource_detector_timeout, sweeper];
-fields(sweeper) -> [interval, span_ttl, storage_size, strategy];
+fields(span_sweeper) -> [interval, span_ttl, storage_size, strategy];
 fields(console) -> [];
 fields(always_on) -> [];
 fields(always_off) -> [];
@@ -144,8 +144,9 @@ fields(b3) -> [];
 fields(b3multi) -> [].
 
 children(sdk) -> [{resource, resource}, {propagator, propagator}, {attribute_limits, attribute_limits},
-                  {tracer_provider, tracer_provider}, {distribution, distribution}];
-children(resource) -> [{attributes, {list, attribute}}];
+                  {tracer_provider, tracer_provider}, {span_sweeper, span_sweeper}];
+children(resource) -> [{attributes, {list, attribute}},
+                       {'detection/development', resource_detection}];
 children(propagator) -> [{composite, {list, {component, propagator}}}];
 children(tracer_provider) -> [{processors, {list, {component, processor}}},
                               {sampler, {component, sampler}}, {limits, limits},
@@ -155,8 +156,6 @@ children(simple) -> children(batch);
 children(otlp_http) -> [{tls, http_tls}, {headers, {list, header}}];
 children(otlp_grpc) -> [{tls, grpc_tls}, {headers, {list, header}}];
 children(parent_based) -> [{Key, {component, sampler}} || Key <- fields(parent_based)];
-children(distribution) -> [{erlang, erlang}];
-children(erlang) -> [{sweeper, sweeper}];
 children(_) -> [].
 
 components(processor) -> [{batch, batch}, {simple, simple},

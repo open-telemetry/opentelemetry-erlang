@@ -27,7 +27,7 @@
 -endif.
 
 -include_lib("opentelemetry_api/include/opentelemetry.hrl").
--include_lib("opentelemetry/include/otel_span.hrl").
+-include("otel_span.hrl").
 
 -spec to_proto(ets:table(), otel_resource:t()) -> opentelemetry_exporter_trace_service_pb:export_trace_service_request() | empty.
 to_proto(Tab, Resource) ->

@@ -34,13 +34,10 @@
 %% using a map instead of a record because there can be more values
 -type t() :: #{sdk_disabled := boolean(),
                log_level := atom(),
-               register_loaded_applications := boolean() | undefined,
-               create_application_tracers := boolean() | undefined,
                id_generator := module(),
-               deny_list := [atom()],
 
                resource_detectors := [module() | {module(), term()}],
-               resource_detector_timeout := integer(),
+               resource_detection_timeout := integer(),
                bsp_scheduled_delay_ms := integer() | undefined,
                bsp_exporting_timeout_ms := integer() | undefined,
                bsp_max_queue_size := integer() | undefined,
@@ -57,7 +54,7 @@
 
                processors := list(),
                sampler := {atom(), term()},
-               sweeper := #{interval => integer() | infinity,
+               span_sweeper := #{interval => integer() | infinity,
                             strategy => atom() | fun(),
                             span_ttl => integer() | infinity,
                             storage_size => integer() | infinity},
@@ -76,12 +73,9 @@
 new() ->
     #{sdk_disabled => false,
       log_level => info,
-      register_loaded_applications => undefined,
-      create_application_tracers => undefined,
       id_generator => otel_id_generator,
-      deny_list => [],
       resource_detectors => [otel_resource_env_var],
-      resource_detector_timeout => 5000,
+      resource_detection_timeout => 5000,
       bsp_scheduled_delay_ms => undefined,
       bsp_exporting_timeout_ms => undefined,
       bsp_max_queue_size => undefined,
@@ -96,7 +90,7 @@ new() ->
       metric_producers => [],
       processors => [{otel_batch_processor, ?BATCH_PROCESSOR_DEFAULTS}],
       sampler => {parent_based, #{root => always_on}},
-      sweeper => #{interval => timer:minutes(10),
+      span_sweeper => #{interval => timer:minutes(10),
                    strategy => drop,
                    span_ttl => timer:minutes(30),
                    storage_size => infinity},
@@ -117,7 +111,7 @@ merge_with_os(AppEnv) ->
                                  fun general/2,
                                  fun sampler/2,
                                  fun processors/2,
-                                 fun sweeper/2]).
+                                 fun span_sweeper/2]).
 
 -spec span_limits(list(), t()) -> t().
 span_limits(AppEnv, ConfigMap) ->
@@ -125,36 +119,17 @@ span_limits(AppEnv, ConfigMap) ->
 
 -spec general(list(), t()) -> t().
 general(AppEnv, ConfigMap) ->
-    Config = merge_list_with_environment(config_mappings(general_sdk), AppEnv, ConfigMap),
+    merge_list_with_environment(config_mappings(general_sdk), AppEnv, ConfigMap).
 
-    %% merge the old `register_loaded_applications' with the new config key
-    %% `create_application_tracers' that has replaced it
-    Config1 = maps:update_with(create_application_tracers,
-                               fun(undefined) ->
-                                       %% `create_application_tracers' isn't set so update
-                                       %% with the `register_loaded_applications' value
-                                       %% or `true' if it too isn't set
-                                       case maps:get(register_loaded_applications, Config) of
-                                           undefined ->
-                                               true;
-                                           Bool ->
-                                               Bool
-                                       end;
-                                  (Bool) ->
-                                       Bool
-                               end, Config),
-
-    Config1.
-
--spec sweeper(list(), t()) -> t().
-sweeper(AppEnv, ConfigMap=#{sweeper := DefaultSweeperConfig}) ->
-    AppEnvSweeper = proplists:get_value(sweeper, AppEnv, #{}),
+-spec span_sweeper(list(), t()) -> t().
+span_sweeper(AppEnv, ConfigMap=#{span_sweeper := DefaultSweeperConfig}) ->
+    AppEnvSweeper = proplists:get_value(span_sweeper, AppEnv, #{}),
 
     %% convert sweeper config to a list to utilize the merge_list_with_environment function
-    SweeperConfig = merge_list_with_environment(config_mappings(sweeper),
+    SweeperConfig = merge_list_with_environment(config_mappings(span_sweeper),
                                                 maps:to_list(AppEnvSweeper),
                                                 DefaultSweeperConfig),
-    ConfigMap#{sweeper => SweeperConfig}.
+    ConfigMap#{span_sweeper => SweeperConfig}.
 
 -spec processors(list(), t()) -> t().
 processors(AppEnv, ConfigMap) ->
@@ -296,12 +271,7 @@ config_mappings(general_sdk) ->
     [{"OTEL_SDK_DISABLED", sdk_disabled, boolean},
      {"OTEL_LOG_LEVEL", log_level, existing_atom},
 
-     %% `register_loaded_applications' is kept for backwards compatibility
-     {"OTEL_REGISTER_LOADED_APPLICATIONS", register_loaded_applications, boolean},
-     {"OTEL_CREATE_APPLICATION_TRACERS", create_application_tracers, boolean},
-
      {"OTEL_ID_GENERATOR", id_generator, existing_atom},
-     {"OTEL_DENY_LIST", deny_list, existing_atom_list},
      {"OTEL_PROPAGATORS", text_map_propagators, propagators},
      {"OTEL_TRACES_EXPORTER", traces_exporter, exporter},
      {"OTEL_METRICS_EXPORTER", metrics_exporter, exporter},
@@ -310,8 +280,8 @@ config_mappings(general_sdk) ->
      {"OTEL_ERLANG_X_EXEMPLARS_ENABLED", exemplars_enabled, boolean},
      {"OTEL_METRICS_EXEMPLAR_FILTER", exemplar_filter, exemplar_filter},
      {"OTEL_ERLANG_X_METRIC_PRODUCERS", metric_producers, metric_producers},
-     {"OTEL_RESOURCE_DETECTORS", resource_detectors, existing_atom_list},
-     {"OTEL_RESOURCE_DETECTOR_TIMEOUT", resource_detector_timeout, integer},
+     {"OTEL_ERLANG_RESOURCE_DETECTORS", resource_detectors, existing_atom_list},
+     {"OTEL_ERLANG_RESOURCE_DETECTION_TIMEOUT", resource_detection_timeout, integer},
 
      {"OTEL_BSP_SCHEDULE_DELAY_MILLIS", bsp_scheduled_delay_ms, integer},
      {"OTEL_BSP_EXPORT_TIMEOUT_MILLIS", bsp_exporting_timeout_ms, integer},
@@ -331,11 +301,11 @@ config_mappings(span_limits) ->
      %% {"OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT", attribute_value_length_limit, integer},
      %% {"OTEL_ATTRIBUTE_COUNT_LIMIT", attribute_per_link_limit, integer}
     ];
-config_mappings(sweeper) ->
-    [{"OTEL_SPAN_SWEEPER_INTERVAL", interval, integer_infinity},
-     {"OTEL_SPAN_SWEEPER_STRATEGY", strategy, atom_or_fun},
-     {"OTEL_SPAN_SWEEPER_SPAN_TTL", span_ttl, integer_infinity},
-     {"OTEL_SPAN_SWEEPER_STORAGE_SIZE", storage_size, integer_infinity}
+config_mappings(span_sweeper) ->
+    [{"OTEL_ERLANG_SPAN_SWEEPER_INTERVAL", interval, integer_infinity},
+     {"OTEL_ERLANG_SPAN_SWEEPER_STRATEGY", strategy, atom_or_fun},
+     {"OTEL_ERLANG_SPAN_SWEEPER_SPAN_TTL", span_ttl, integer_infinity},
+     {"OTEL_ERLANG_SPAN_SWEEPER_STORAGE_SIZE", storage_size, integer_infinity}
     ].
 
 transform(_, undefined) ->

@@ -59,20 +59,23 @@ Any setup for signals contained in the experimental SDK must be done on startup
 of the experimental SDK. For example, setting the default Meter would be done
 in `start/2` of `opentelemetry_sdk_experimental`.
 
-### SDK (`opentelemetry`)
+### SDK (`opentelemetry_sdk`)
 
 Functionality is implemented in this Application and the API is dynamically
 configured to use a particular SDK -- at this time there is only 1 SDK
-implementation, the default implementation.
+implementation, the default implementation. The OTLP exporter is part of this
+Application and is versioned with the SDK.
 
 A goal is that the latest SDK can always be used with any version of the API, so
 that a user can always pull the latest implementation into their final Release
 to run with any API versions that were used in instrumented Applications within the
 Release.
 
-### OTLP Exporter (`opentelemetry_exporter`)
+### OTP Release Integration (`opentelemetry`)
 
-Exporter implementations are tied to the SDK's public API.
+This Application owns automatic provider startup and per-application tracer
+creation for OTP releases. It depends on `opentelemetry_sdk` but is separate so
+SDK components can be used with custom lifecycle management.
 
 ## Releases
 

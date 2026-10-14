@@ -20,6 +20,7 @@ scope-sdk:
   - changed-files:
     - any-glob-to-any-file:
       - apps/opentelemetry/**
+      - apps/opentelemetry_sdk/**
 
 scope-semconv:
   - changed-files:

@@ -9,29 +9,29 @@ set -e
 
 rebar3 compile
 rebar3 edoc
-sdk_version=1.7.0
+integration_version=2.0.0
+sdk_version=2.0.0
 api_version=1.5.0
 exp_sdk_version=0.6.0
 exp_api_version=0.6.0
-otlp_version=1.11.0
 zipkin_version=1.1.0
 
 mix escript.install hex ex_doc
 
-ex_doc "opentelemetry" $sdk_version "_build/default/lib/opentelemetry/ebin" \
-  --source-ref v${sdk_version} \
+ex_doc "opentelemetry" $integration_version "_build/default/lib/opentelemetry/ebin" \
+  --source-ref v${integration_version} \
   --config apps/opentelemetry/docs.config $@ \
   --output "apps/opentelemetry/doc"
+
+ex_doc "opentelemetry_sdk" $sdk_version "_build/default/lib/opentelemetry_sdk/ebin" \
+  --source-ref v${sdk_version} \
+  --config apps/opentelemetry_sdk/docs.config $@ \
+  --output "apps/opentelemetry_sdk/doc"
 
 ex_doc "opentelemetry_experimental" $exp_sdk_version "_build/default/lib/opentelemetry_experimental/ebin" \
   --source-ref v${exp_sdk_version} \
   --config apps/opentelemetry_experimental/docs.config $@ \
   --output "apps/opentelemetry_experimental/doc"
-
-ex_doc "opentelemetry_exporter" $otlp_version "_build/default/lib/opentelemetry_exporter/ebin" \
-  --source-ref v${otlp_version} \
-  --config apps/opentelemetry_exporter/docs.config $@ \
-  --output "apps/opentelemetry_exporter/doc"
 
 ex_doc "opentelemetry_zipkin" $zipkin_version "_build/default/lib/opentelemetry_zipkin/ebin" \
   --source-ref v${zipkin_version} \

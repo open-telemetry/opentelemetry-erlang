@@ -30,9 +30,9 @@ all() ->
      rejects_invalid_console_exporter_settings,
      rejects_invalid_builtin_processor_settings,
      rejects_unknown_builtin_processor_settings,
-     resolves_erlang_application_extensions,
-     validates_erlang_distribution_values,
-     rejects_json_erlang_names,
+     resolves_native_extensions,
+     validates_native_extension_values,
+     rejects_json_resource_detector_names,
      resolves_standalone_tracer_provider,
      resolves_otlp_module_options,
      standalone_provider_limits_warn,
@@ -465,16 +465,14 @@ assert_invalid_processor_setting(Kind, Key, Value) ->
                    [tracer_provider, processors, Kind, Key], Value}},
                  otel_configuration_sdk:create(Model)).
 
-resolves_erlang_application_extensions(_Config) ->
+resolves_native_extensions(_Config) ->
     {ok, Model} = otel_configuration_model:from_application_env(
-                    [{distribution,
-                      #{erlang =>
-                            #{create_application_tracers => false,
-                              deny_list => [kernel, {stdlib, "1.0"}],
-                              resource_detectors => [otel_resource_env_var,
-                                                     {otel_resource_detector_test, custom_options}],
-                              resource_detector_timeout => 123,
-                              sweeper => #{interval => 10}}}},
+                    [{resource,
+                      #{'detection/development' =>
+                            #{detectors => [otel_resource_env_var,
+                                            {otel_resource_detector_test, custom_options}]}}},
+                     {resource_detection_timeout, 123},
+                     {span_sweeper, #{interval => 10}},
                      {propagator,
                       #{composite => [custom_text_map_propagator]}},
                      {tracer_provider,
@@ -483,17 +481,13 @@ resolves_erlang_application_extensions(_Config) ->
                         sampler => {custom_sampler, #{sample => true}},
                         id_generator => custom_id_generator}}]),
     {ok, Resolved} = otel_configuration_sdk:create(Model),
-    Erlang = otel_configuration_sdk:erlang_distribution(Resolved),
-    ?assertMatch(#{create_application_tracers := false,
-                   deny_list := [kernel, {stdlib, "1.0"}],
-                   resource_detectors := [otel_resource_env_var,
+    ?assertMatch(#{resource_detectors := [otel_resource_env_var,
                                           {otel_resource_detector_test, custom_options}],
-                   resource_detector_timeout := 123,
-                   sweeper := #{interval := 10}}, Erlang),
+                   resource_detection_timeout := 123,
+                   span_sweeper := #{interval := 10}}, Resolved),
     ?assertEqual([custom_text_map_propagator],
                  otel_configuration_sdk:text_map_propagators(Resolved)),
     TracerProvider = #{} = otel_configuration_sdk:tracer_provider(Resolved),
-    ?assertEqual([kernel, {stdlib, "1.0"}], maps:get(deny_list, TracerProvider)),
     [Processor] = otel_configuration_sdk:span_processors(TracerProvider),
     ?assertEqual({custom_span_processor, #{custom => value}},
                  otel_configuration_sdk:span_processor_component(Processor)),
@@ -502,65 +496,72 @@ resolves_erlang_application_extensions(_Config) ->
     ?assertEqual(custom_id_generator,
                  otel_configuration_sdk:id_generator(TracerProvider)).
 
-validates_erlang_distribution_values(_Config) ->
-    lists:foreach(
-      fun(Bool) ->
-              {ok, Resolved} = otel_configuration_test_utils:resolve_declarative(
-                  #{<<"file_format">> => <<"1.1">>,
-                    <<"distribution">> => #{<<"erlang">> =>
-                        #{<<"create_application_tracers">> => Bool,
-                          <<"resource_detector_timeout">> => 0,
-                          <<"resource_detectors">> => [], <<"deny_list">> => []}}}),
-              ?assertEqual(#{create_application_tracers => Bool,
-                             resource_detector_timeout => 0,
-                             resource_detectors => [], deny_list => []},
-                           otel_configuration_sdk:erlang_distribution(Resolved))
-      end, [true, false]),
+validates_native_extension_values(_Config) ->
+    %% Distribution configuration belongs to an SDK distribution or vendor and
+    %% is opaque to the upstream Erlang SDK.
+    Distribution = #{splunk => #{realm => <<"us0">>}},
+    {ok, OpaqueNative} = otel_configuration_model:from_application_env(
+                           [{distribution, Distribution}]),
+    {ok, OpaqueRuntime} = otel_configuration_sdk:create(OpaqueNative),
+    ?assertEqual(undefined,
+                 otel_configuration_sdk:value(resource_detection_timeout,
+                                              OpaqueRuntime, undefined)),
+    ?assertEqual(Distribution,
+                 maps:get(distribution,
+                          otel_configuration_model:root(
+                            otel_configuration_sdk:source(OpaqueRuntime)))),
     lists:foreach(
       fun({Key, Value}) ->
               {ok, Native} = otel_configuration_model:from_application_env(
-                              [{distribution, #{erlang => #{Key => Value}}}]),
+                              [{Key, Value}]),
               {ok, Json} = otel_configuration_model:from_map(
                             #{<<"file_format">> => <<"1.1">>,
-                              <<"distribution">> => #{<<"erlang">> =>
-                                  #{atom_to_binary(Key, utf8) => Value}}}),
+                              atom_to_binary(Key, utf8) => Value}),
               lists:foreach(
                 fun(Model) ->
-                        ?assertEqual({error, {invalid_configuration, [distribution, erlang, Key], Value}},
+                        ?assertEqual({error, {invalid_configuration, [Key], Value}},
                                      otel_configuration_sdk:create(Model))
                 end, [Native, Json])
-      end, [{create_application_tracers, <<"false">>},
-            {create_application_tracers, "false"}, {create_application_tracers, 1},
-            {resource_detector_timeout, <<"5000">>},
-            {resource_detector_timeout, -1}, {resource_detector_timeout, 1.5},
-            {resource_detectors, <<"otel_resource_env_var">>}, {deny_list, <<"kernel">>}]),
+      end, [{resource_detection_timeout, <<"5000">>},
+            {resource_detection_timeout, -1}, {resource_detection_timeout, 1.5}]),
     lists:foreach(
-      fun({Key, Entry}) ->
+      fun(Entry) ->
               {ok, Model} = otel_configuration_model:from_application_env(
-                              [{distribution, #{erlang => #{Key => [Entry]}}}]),
-              ?assertEqual({error, {invalid_configuration, [distribution, erlang, Key], Entry}},
+                              [{resource, #{'detection/development' =>
+                                                #{detectors => [Entry]}}}]),
+              ?assertEqual({error, {invalid_configuration,
+                                    [resource, 'detection/development', detectors], Entry}},
                            otel_configuration_sdk:create(Model))
-      end, [{resource_detectors, <<"otel_resource_env_var">>},
-            {resource_detectors, {<<"otel_resource_env_var">>, #{}}},
-            {resource_detectors, #{}}, {deny_list, <<"kernel">>},
-            {deny_list, {kernel, <<"1.0">>}}, {deny_list, {kernel, [bad_version]}}]),
+      end, [<<"otel_resource_env_var">>, #{}]),
     {ok, Nulls} = otel_configuration_test_utils:resolve_declarative(
-                   #{file_format => <<"1.1">>, distribution => #{erlang =>
-                       #{create_application_tracers => null, resource_detector_timeout => null,
-                         resource_detectors => null, deny_list => null}}}),
-    ?assertEqual(#{}, otel_configuration_sdk:erlang_distribution(Nulls)).
+                   #{file_format => <<"1.1">>,
+                     resource_detection_timeout => null,
+                     resource => #{'detection/development' => #{detectors => null}},
+                     span_sweeper => null}),
+    ?assertEqual(undefined,
+                 otel_configuration_sdk:value(resource_detection_timeout,
+                                              Nulls, undefined)),
+    ?assertEqual(undefined,
+                 otel_configuration_sdk:value(resource_detectors, Nulls, undefined)),
+    ?assertEqual(undefined,
+                 otel_configuration_sdk:value(span_sweeper, Nulls, undefined)).
 
-rejects_json_erlang_names(_Config) ->
+rejects_json_resource_detector_names(_Config) ->
     Unknown = <<"unknown_detector_", (integer_to_binary(erlang:unique_integer([positive])))/binary>>,
-    lists:foreach(
-      fun({Key, Value}) ->
-              ?assertEqual({error, {unsupported_configuration, [distribution, erlang, Key], Value}},
-                           otel_configuration_test_utils:resolve_declarative(
-                             #{<<"file_format">> => <<"1.1">>,
-                               <<"distribution">> => #{<<"erlang">> =>
-                                   #{atom_to_binary(Key, utf8) => Value}}}))
-      end, [{resource_detectors, [<<"otel_resource_env_var">>]},
-            {resource_detectors, [Unknown]}, {deny_list, [<<"kernel">>]}]).
+    ?assertMatch({ok, #{resource_detectors := [otel_resource_env_var]}},
+                 otel_configuration_test_utils:resolve_declarative(
+                   #{<<"file_format">> => <<"1.1">>,
+                     <<"resource">> =>
+                         #{<<"detection/development">> =>
+                               #{<<"detectors">> => [#{<<"env">> => null}]}}})),
+    ?assertEqual(
+       {error, {unsupported_configuration,
+                [resource, 'detection/development', detectors], Unknown}},
+       otel_configuration_test_utils:resolve_declarative(
+         #{<<"file_format">> => <<"1.1">>,
+           <<"resource">> =>
+               #{<<"detection/development">> =>
+                     #{<<"detectors">> => [#{Unknown => null}]}}})).
 
 resolves_standalone_tracer_provider(_Config) ->
     Native = #{processors => [{batch, #{exporter => {otlp_http, #{}}}}]},
@@ -575,8 +576,7 @@ resolves_standalone_tracer_provider(_Config) ->
                                        #{protocol := http_protobuf,
                                          configuration_resolved := true}}}}],
                    sampler := {parent_based, #{root := always_on}},
-                   id_generator := otel_id_generator,
-                   deny_list := []}, Provider),
+                   id_generator := otel_id_generator}, Provider),
     ?assertEqual({error, {invalid_configuration,
                          [tracer_provider, processors], missing}},
                  otel_configuration_sdk:create_tracer_provider(#{})).
@@ -617,31 +617,27 @@ rejects_invalid_ratio_sampler_options(_Config) ->
 normalizes_json_sweeper_settings(_Config) ->
     {ok, Resolved} = otel_configuration_test_utils:resolve_declarative(
         #{<<"file_format">> => <<"1.1">>,
-          <<"distribution">> =>
-              #{<<"erlang">> =>
-                    #{<<"sweeper">> =>
-                          #{<<"interval">> => 123,
-                            <<"span_ttl">> => 456,
-                            <<"storage_size">> => 789,
-                            <<"strategy">> => <<"end_span">>}}}}),
+          <<"span_sweeper">> =>
+              #{<<"interval">> => 123,
+                <<"span_ttl">> => 456,
+                <<"storage_size">> => 789,
+                <<"strategy">> => <<"end_span">>}}),
     ?assertEqual(#{interval => 123,
                    span_ttl => 456,
                    storage_size => 789,
                    strategy => end_span},
                  otel_configuration_sdk:value(
-                   sweeper,
-                   otel_configuration_sdk:erlang_distribution(Resolved),
+                   span_sweeper,
+                   Resolved,
                    undefined)),
 
     ?assertMatch(
        {error,
         {invalid_configuration,
-         [distribution, erlang, sweeper, interval], -1}},
+         [span_sweeper, interval], -1}},
        otel_configuration_test_utils:resolve_declarative(
          #{<<"file_format">> => <<"1.1">>,
-           <<"distribution">> =>
-               #{<<"erlang">> =>
-                     #{<<"sweeper">> => #{<<"interval">> => -1}}}})).
+           <<"span_sweeper">> => #{<<"interval">> => -1}})).
 
 preserves_resource_attribute_types(_Config) ->
     {ok, Resolved} = otel_configuration_test_utils:resolve_declarative(
@@ -675,20 +671,19 @@ preserves_resource_attribute_types(_Config) ->
                      [{ints, [65, 66]}, {strings, [<<"a">>, <<"b">>]}]))).
 
 configured_resource_takes_precedence(_Config) ->
-    ok = application:load(opentelemetry),
+    ok = application:load(opentelemetry_sdk),
     {ok, Model} = otel_configuration_model:from_application_env(
         [{resource,
           #{attributes =>
                 #{<<"configured.resource">> => <<"configured">>,
-                  <<"configured.only">> => <<"present">>}}},
-         {distribution,
-          #{erlang =>
-                #{resource_detectors =>
+                  <<"configured.only">> => <<"present">>},
+            'detection/development' =>
+                #{detectors =>
                       [{otel_resource_detector_test,
                         {attributes,
                          [{<<"configured.resource">>, <<"detected">>},
-                          {<<"detector.only">>, <<"present">>}]}}],
-                  resource_detector_timeout => 100}}}]),
+                          {<<"detector.only">>, <<"present">>}]}}]}}},
+         {resource_detection_timeout, 100}]),
     {ok, RuntimeConfiguration} = otel_configuration_sdk:create(Model),
     {ok, Pid} = otel_resource_detector:start_link(
                   RuntimeConfiguration),
@@ -700,7 +695,7 @@ configured_resource_takes_precedence(_Config) ->
                      resource_attributes(Resource))
     after
         gen_statem:stop(Pid),
-        application:unload(opentelemetry)
+        application:unload(opentelemetry_sdk)
     end.
 
 warns_about_empty_http_endpoint_paths(_Config) ->
@@ -767,7 +762,6 @@ warns_about_unimplemented_settings(_Config) ->
                         endpoints := [<<"https://collector:4317">>],
                         ssl_options := undefined}}, maps:get(exporter, Processor)),
         Expected = [[log_level], [logger_provider], [meter_provider],
-                    [resource, 'detection/development'],
                     [attribute_limits, attribute_value_depth_limit],
                     [tracer_provider, limits, attribute_value_depth_limit],
                     [tracer_provider, 'tracer_configurator/development'],
@@ -975,8 +969,8 @@ undefined_is_not_a_null_alias(_Config) ->
             {#{meter_provider => undefined}, [meter_provider]},
             {#{tracer_provider => #{processors => [{simple, undefined}]}},
              [tracer_provider, processors, simple]},
-            {#{distribution => #{erlang => #{sweeper => #{interval => undefined}}}},
-             [distribution, erlang, sweeper, interval]}]).
+            {#{span_sweeper => #{interval => undefined}},
+             [span_sweeper, interval]}]).
 
 %% Built-in module options use the same defaults and validation as aliases.
 %% Environment isolation is checked at the actual exporter merge boundary.

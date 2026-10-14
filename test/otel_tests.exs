@@ -6,10 +6,10 @@ defmodule OtelTests do
   require OpenTelemetry.Ctx, as: Ctx
 
   require Record
-  @fields Record.extract(:span, from_lib: "opentelemetry/include/otel_span.hrl")
+  @fields Record.extract(:span, from_lib: "opentelemetry_sdk/include/otel_span.hrl")
   Record.defrecordp(:span, @fields)
 
-  @fields Record.extract(:tracer, from_lib: "opentelemetry/src/otel_tracer.hrl")
+  @fields Record.extract(:tracer, from_lib: "opentelemetry_sdk/src/otel_tracer.hrl")
   Record.defrecordp(:tracer, @fields)
 
   @fields Record.extract(:span_ctx, from_lib: "opentelemetry_api/include/opentelemetry.hrl")

@@ -95,10 +95,6 @@ init({ExporterModule, Config}) when is_atom(ExporterModule) ->
                                            exporter => ExporterModule}, #{report_cb => fun ?MODULE:report_cb/1}),
                             undefined
                     end;
-                {error, undef} when ExporterModule =:= opentelemetry_exporter ->
-                    ?LOG_WARNING("OTLP exporter module `opentelemetry_exporter` not found. "
-                                 "Verify you have included the `opentelemetry_exporter` dependency."),
-                    undefined;
                 {error, undef} ->
                     ?LOG_WARNING("Exporter module ~tp not found. Verify you have included "
                                  "the dependency that contains the exporter module.", [ExporterModule]),

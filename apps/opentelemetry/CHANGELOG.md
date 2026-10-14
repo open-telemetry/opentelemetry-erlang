@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Keep only automatic SDK startup and per-application tracer creation in the `opentelemetry` application.
+- Configure automatic application tracers and excluded OTP applications only
+  through the `opentelemetry` application environment.
 - Use erl_error:format_exception for exception.stacktrace by @arseniycodes in [#988](https://github.com/open-telemetry/opentelemetry-erlang/pull/988)
 
 ## New Contributors

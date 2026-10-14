@@ -6,7 +6,7 @@
 -include_lib("stdlib/include/assert.hrl").
 
 -import(otel_configuration_test_utils, [resource_attributes/1, add_warning_handler/2, warnings/0]).
--include("otel_tracer.hrl").
+-include_lib("opentelemetry_sdk/src/otel_tracer.hrl").
 
 all() ->
     [zero_config_starts_sdk,
@@ -24,28 +24,32 @@ all() ->
      invalid_explicit_configuration_does_not_fall_back].
 
 init_per_suite(Config) ->
-    {ok, Started} = application:ensure_all_started(opentelemetry_exporter),
-    [{started_apps, Started} | Config].
+    Config.
 
-end_per_suite(Config) ->
+end_per_suite(_Config) ->
+    _ = application:stop(opentelemetry),
+    _ = application:stop(opentelemetry_sdk),
     _ = application:unload(opentelemetry),
-    [application:stop(App) || App <- lists:reverse(proplists:get_value(started_apps, Config))],
+    _ = application:unload(opentelemetry_sdk),
     ok.
 
 init_per_testcase(_Case, Config) ->
     _ = application:stop(opentelemetry),
+    _ = application:stop(opentelemetry_sdk),
+    _ = application:load(opentelemetry_sdk),
     _ = application:load(opentelemetry),
     Saved = otel_configuration_test_utils:save_environment(),
-    AppEnv = application:get_all_env(opentelemetry),
-    [application:unset_env(opentelemetry, Key) || {Key, _} <- AppEnv],
+    AppEnv = application:get_all_env(opentelemetry_sdk),
+    [application:unset_env(opentelemetry_sdk, Key) || {Key, _} <- AppEnv],
     [{saved_environment, Saved}, {saved_app_env, AppEnv} | Config].
 
 end_per_testcase(_Case, Config) ->
     _ = application:stop(opentelemetry),
+    _ = application:stop(opentelemetry_sdk),
     ok = otel_configuration_test_utils:restore_environment(
            proplists:get_value(saved_environment, Config)),
-    [application:unset_env(opentelemetry, Key) || {Key, _} <- application:get_all_env(opentelemetry)],
-    [application:set_env(opentelemetry, Key, Value)
+    [application:unset_env(opentelemetry_sdk, Key) || {Key, _} <- application:get_all_env(opentelemetry_sdk)],
+    [application:set_env(opentelemetry_sdk, Key, Value)
      || {Key, Value} <- proplists:get_value(saved_app_env, Config)],
     ok.
 
@@ -84,7 +88,11 @@ environment_configures_sdk(_Config) ->
                      {"OTEL_BSP_EXPORT_TIMEOUT", "123"},
                      {"OTEL_BSP_MAX_QUEUE_SIZE", "256"},
                      {"OTEL_ATTRIBUTE_COUNT_LIMIT", "64"},
-                     {"OTEL_SPAN_EVENT_COUNT_LIMIT", "12"}]),
+                     {"OTEL_SPAN_EVENT_COUNT_LIMIT", "12"},
+                     {"OTEL_ERLANG_RESOURCE_DETECTORS", "otel_resource_env_var"},
+                     {"OTEL_ERLANG_RESOURCE_DETECTION_TIMEOUT", "77"},
+                     {"OTEL_ERLANG_SPAN_SWEEPER_INTERVAL", "99"},
+                     {"OTEL_ERLANG_SPAN_SWEEPER_STRATEGY", "end_span"}]),
     {ok, Runtime} = otel_configuration_source:resolve([]),
     ?assertEqual(debug, maps:get(log_level, otel_configuration_model:root(
                                            otel_configuration_sdk:source(Runtime)))),
@@ -101,6 +109,9 @@ environment_configures_sdk(_Config) ->
                  otel_configuration_sdk:tracer_provider(Modern)),
     ?assertMatch(#{attribute_count_limit := 64, event_count_limit := 12},
                  otel_configuration_sdk:span_limits(Runtime)),
+    ?assertMatch(#{resource_detectors := [otel_resource_env_var],
+                   resource_detection_timeout := 77,
+                   span_sweeper := #{interval := 99, strategy := end_span}}, Runtime),
     {ok, _} = application:ensure_all_started(opentelemetry),
     ?assertMatch(#{'service.name' := <<"checkout">>, 'service.instance.id' := <<"instance-1">>,
                    region := <<"ca">>, note := <<"a=b">>},
@@ -138,6 +149,7 @@ environment_exports_spans(_Config) ->
         ?assert(meck:validate(httpc))
     after
         application:stop(opentelemetry),
+        application:stop(opentelemetry_sdk),
         meck:unload(httpc)
     end.
 
@@ -191,6 +203,7 @@ environment_exports_to_console(_Config) ->
         ?assert(meck:validate(otel_exporter_stdout))
     after
         application:stop(opentelemetry),
+        application:stop(opentelemetry_sdk),
         meck:unload(otel_exporter_stdout)
     end.
 
@@ -327,7 +340,7 @@ explicit_application_configuration_is_authoritative(_Config) ->
     ?assertEqual([], otel_configuration_sdk:text_map_propagators(Runtime)),
     ?assertEqual(undefined, otel_configuration_sdk:resource(Runtime)),
     ?assertMatch(#{sampler := always_on, processors := []}, otel_configuration_sdk:tracer_provider(Runtime)),
-    [application:set_env(opentelemetry, Key, Value) || {Key, Value} <- AppEnv],
+    [application:set_env(opentelemetry_sdk, Key, Value) || {Key, Value} <- AppEnv],
     {ok, _} = application:ensure_all_started(opentelemetry),
     ?assert(is_pid(whereis(otel_tracer_provider_global))),
     ?assertMatch(#{'service.name' := <<"unknown_service:erl">>},

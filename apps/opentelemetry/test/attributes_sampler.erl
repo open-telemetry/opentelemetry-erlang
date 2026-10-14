@@ -8,7 +8,7 @@
          setup/1,
          should_sample/7]).
 
--include("otel_sampler.hrl").
+-include_lib("opentelemetry_sdk/include/otel_sampler.hrl").
 
 setup(Attributes) when is_map(Attributes) ->
     Attributes;

@@ -21,77 +21,84 @@
 -export([start/2,
          stop/1]).
 
--include_lib("opentelemetry_api/include/opentelemetry.hrl").
-
 start(_StartType, _StartArgs) ->
-    case otel_configuration_source:resolve(
-           application:get_all_env(opentelemetry)) of
-        {ok, Config} ->
-            start_with_configuration(Config);
+    case configuration() of
+        {ok, IntegrationConfiguration} ->
+            start_with_configuration(IntegrationConfiguration,
+                                     opentelemetry_sdk_app:configuration());
         {error, Reason} ->
             {error, {configuration_error, Reason}}
     end.
 
--spec start_with_configuration(otel_configuration_sdk:configuration()) ->
-          {ok, pid()} | ignore | {error, term()}.
-start_with_configuration(Config) ->
+-type configuration() ::
+        #{create_application_tracers := boolean(),
+          excluded_applications := [atom()]}.
 
-    %% set the global propagators for HTTP based on the application env
-    %% these get set even if the SDK is disabled
-    setup_text_map_propagators(Config),
+-spec configuration() -> {ok, configuration()} | {error, term()}.
+configuration() ->
+    CreateApplicationTracers =
+        application:get_env(opentelemetry, create_application_tracers, true),
+    ExcludedApplications =
+        application:get_env(opentelemetry, excluded_applications, []),
+    case CreateApplicationTracers of
+        Value when not is_boolean(Value) ->
+            {error, {invalid_configuration, [create_application_tracers], Value}};
+        _ ->
+            case is_atom_list(ExcludedApplications) of
+                true ->
+                    {ok, #{create_application_tracers => CreateApplicationTracers,
+                           excluded_applications => ExcludedApplications}};
+                false ->
+                    {error, {invalid_configuration,
+                             [excluded_applications], ExcludedApplications}}
+            end
+    end.
 
-    case opentelemetry_sup:start_link(Config) of
-        {ok, _}=SupResult ->
-            configure_tracing(Config),
-            SupResult;
+is_atom_list(Value) when is_list(Value) ->
+    lists:all(fun is_atom/1, Value);
+is_atom_list(_) ->
+    false.
+
+start_with_configuration(IntegrationConfiguration, SdkConfiguration) ->
+    case opentelemetry_sup:start_link() of
+        {ok, _}=SupervisorResult ->
+            create_application_tracers(IntegrationConfiguration, SdkConfiguration),
+            SupervisorResult;
         Other ->
             Other
     end.
 
--spec configure_tracing(otel_configuration_sdk:configuration()) -> ok.
-configure_tracing(Config) ->
-    case {otel_configuration_sdk:disabled(Config),
-          otel_configuration_sdk:tracer_provider(Config)} of
-        {true, _} ->
-            ok;
-        {_, undefined} ->
-            ok;
-        {_, TracerProvider} when is_map(TracerProvider) ->
-            %% set global span limits record based on configuration
-            otel_span_limits:set(Config),
-
-            Resource = otel_resource_detector:get_resource(),
-            _ = otel_tracer_provider_sup:start_resolved(?GLOBAL_TRACER_PROVIDER_NAME,
-                                                         Resource, TracerProvider),
-
-            %% must be done after the supervisor starts so that otel_tracer_server is running
+-spec create_application_tracers(configuration(),
+                                 otel_configuration_sdk:configuration()) -> ok.
+create_application_tracers(IntegrationConfiguration, SdkConfiguration) ->
+    case {maps:get(create_application_tracers, IntegrationConfiguration),
+          otel_configuration_sdk:disabled(SdkConfiguration),
+          otel_configuration_sdk:tracer_provider(SdkConfiguration)} of
+        {false, _, _} ->
+            clear_application_tracers();
+        {_, true, _} ->
+            clear_application_tracers();
+        {_, _, undefined} ->
+            clear_application_tracers();
+        {true, false, TracerProvider} when is_map(TracerProvider) ->
             %% TODO: make this work with release upgrades. Currently if an application's version
             %% changes the version in the tracer will not be updated.
-            create_loaded_application_tracers(Config),
-
-            ok
+            create_loaded_application_tracers(
+              maps:get(excluded_applications, IntegrationConfiguration))
     end.
 
 stop(_State) ->
+    clear_application_tracers(),
     ok.
 
-%% internal functions
+clear_application_tracers() ->
+    opentelemetry:create_application_tracers([]).
 
--spec setup_text_map_propagators(otel_configuration_sdk:configuration()) -> ok.
-setup_text_map_propagators(Config) ->
-    List = otel_configuration_sdk:text_map_propagators(Config),
-    CompositePropagator = otel_propagator_text_map_composite:create(List),
-    opentelemetry:set_text_map_propagator(CompositePropagator).
-
--spec create_loaded_application_tracers(otel_configuration_sdk:configuration()) -> ok.
-create_loaded_application_tracers(Config) ->
-    Erlang = otel_configuration_sdk:erlang_distribution(Config),
-    case otel_configuration_sdk:value(create_application_tracers, Erlang, true) of
-        true ->
-            %% TODO: filter out OTP apps that will not have any instrumentation
-            LoadedApplications = application:loaded_applications(),
-            opentelemetry:create_application_tracers(LoadedApplications),
-            ok;
-        false ->
-            ok
-    end.
+-spec create_loaded_application_tracers([atom()]) -> ok.
+create_loaded_application_tracers(ExcludedApplications) ->
+    LoadedApplications =
+        [Application
+         || {Name, _Description, _Vsn}=Application <- application:loaded_applications(),
+            not lists:member(Name, ExcludedApplications)],
+    opentelemetry:create_application_tracers(LoadedApplications),
+    ok.

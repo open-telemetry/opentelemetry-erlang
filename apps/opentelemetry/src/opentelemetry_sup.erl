@@ -1,4 +1,4 @@
-%%%------------------------------------------------------------------------
+%%------------------------------------------------------------------------
 %% Copyright 2019, OpenTelemetry Authors
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -18,57 +18,19 @@
 
 -behaviour(supervisor).
 
--export([start_link/1]).
+-export([start_link/0]).
 
 -export([init/1]).
 
 -define(SERVER, ?MODULE).
 
--include_lib("opentelemetry_api/include/opentelemetry.hrl").
+-spec start_link() -> {ok, pid()} | ignore | {error, term()}.
+start_link() ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
--spec start_link(otel_configuration_sdk:configuration()) ->
-          {ok, pid()} | ignore | {error, term()}.
-start_link(Configuration) ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, Configuration).
-
--spec init(otel_configuration_sdk:configuration()) ->
+-spec init([]) ->
           {ok, {supervisor:sup_flags(), [supervisor:child_spec()]}}.
-init(Configuration) ->
-    case otel_configuration_sdk:disabled(Configuration) of
-        true ->
-            {ok, {#{}, []}};
-        false ->
-            init_enabled(Configuration)
-    end.
-
-init_enabled(Configuration) ->
-    SupFlags = #{strategy => one_for_one,
-                 intensity => 1,
-                 period => 5},
-
-    Detectors =  #{id => otel_resource_detector,
-                   start => {otel_resource_detector, start_link, [Configuration]},
-                   restart => permanent,
-                   shutdown => 5000,
-                   type => worker,
-                   modules => [otel_resource_detector]},
-
-    TracerProviderSup = #{id => otel_tracer_provider_sup,
-                          start => {otel_tracer_provider_sup, start_link, []},
-                          restart => permanent,
-                          shutdown => 5000,
-                          type => supervisor,
-                          modules => [otel_tracer_provider_sup]},
-
-    SpanSup = #{id => otel_span_sup,
-                start => {otel_span_sup, start_link, [Configuration]},
-                type => supervisor,
-                restart => permanent,
-                shutdown => infinity,
-                modules => [otel_span_sup]},
-
-    %% `SpanSup' should be the last to shutdown so the ETS table lives until the end
-    %% the `TracerServer' process
-    ChildSpecs = [SpanSup, Detectors, TracerProviderSup],
-
-    {ok, {SupFlags, ChildSpecs}}.
+init([]) ->
+    {ok, {#{strategy => one_for_one,
+            intensity => 1,
+            period => 5}, []}}.

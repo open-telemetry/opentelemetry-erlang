@@ -6,12 +6,13 @@ Requires Zipkin 2.8 or above because it uses the [v2 API](https://zipkin.io/zipk
 
 ## Setup
 
-Easiest way to setup is to add configuration for the batch processor in OpenTelemetry application environment.
+The easiest setup is to configure the batch processor in the OpenTelemetry SDK
+application environment.
 
 For an Erlang release in `sys.config`:
 
 ``` erlang
-{opentelemetry,
+{opentelemetry_sdk,
  [{tracer_provider,
    #{processors =>
          [{batch,
@@ -25,7 +26,7 @@ For an Erlang release in `sys.config`:
 An Elixir release uses `releases.exs`:
 
 ``` elixir
-config :opentelemetry,
+config :opentelemetry_sdk,
   tracer_provider: %{
     processors: [
       {:batch,
