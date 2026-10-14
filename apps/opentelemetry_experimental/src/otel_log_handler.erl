@@ -35,7 +35,8 @@
          callback_mode/0,
          idle/3,
          exporting/3,
-         handle_event/3]).
+         handle_event/3,
+         terminate/3]).
 
 -type config() :: #{id => logger:handler_id(),
                     regname := atom(),
@@ -59,12 +60,13 @@
                resource             :: otel_resource:t(),
 
                runner_pid           :: pid() | undefined,
-               max_queue_size       :: integer() | infinity,
+               runner_ref           :: reference() | undefined,
+               queue_table          :: ets:tid(),
+               queue_counter        :: atomics:atomics_ref(),
                exporting_timeout_ms :: integer(),
                scheduled_delay_ms   :: integer(),
 
-               config :: #{},
-               batch  :: #{opentelemetry:instrumentation_scope() => [logger:log_event()]}}).
+               config :: #{}}).
 
 start_link(RegName, Config) ->
     gen_statem:start_link({local, RegName}, ?MODULE, [RegName, Config], []).
@@ -84,9 +86,10 @@ adding_handler(#{id := Id,
           modules  => [?MODULE]},
     case supervisor:start_child(opentelemetry_experimental_sup, ChildSpec) of
         {ok, _Pid} ->
-            %% ok = logger_handler_watcher:register_handler(Name,Pid),
-            %% OlpOpts = logger_olp:get_opts(Olp),
-            {ok, Config#{regname => RegName}};
+            {Table, Counter} = gen_statem:call(RegName, queue_info),
+            {ok, Config#{regname => RegName,
+                         queue_table => Table,
+                         queue_counter => Counter}};
         {error, {Reason, Ch}} when is_tuple(Ch), element(1, Ch) == child ->
             {error, Reason};
         {error, _Reason}=Error ->
@@ -103,21 +106,22 @@ adding_handler(#{id := Id,
       Config :: config(),
       Reason :: term().
 changing_config(SetOrUpdate, OldConfig, NewConfig=#{regname := Id}) ->
-    gen_statem:call(Id, {changing_config, SetOrUpdate, OldConfig, NewConfig}).
+    {ok, gen_statem:call(Id, {changing_config, SetOrUpdate, OldConfig, NewConfig})}.
 
 %%%-----------------------------------------------------------------
 %%% Handler being removed
 -spec removing_handler(Config) -> ok when
       Config :: config().
-removing_handler(Config=#{regname := Id}) ->
-    gen_statem:call(Id, {removing_handler, Config}).
+removing_handler(#{regname := Id}) ->
+    gen_statem:stop(Id, normal, 2000).
 
 %%%-----------------------------------------------------------------
 %%% Log a string or report
 -spec log(LogEvent, Config) -> ok when
       LogEvent :: logger:log_event(),
       Config :: config().
-log(LogEvent, _Config=#{regname := Id}) ->
+log(LogEvent, Config=#{queue_table := Table,
+                       queue_counter := Counter}) ->
     Scope = case LogEvent of
                 #{meta := #{otel_scope := Scope0=#instrumentation_scope{}}} ->
                     Scope0;
@@ -127,7 +131,21 @@ log(LogEvent, _Config=#{regname := Id}) ->
                     opentelemetry:instrumentation_scope(<<>>, <<>>, <<>>)
             end,
 
-    gen_statem:cast(Id, {log, Scope, LogEvent}).
+    MaxSize = maps:get(max_queue_size, Config, ?DEFAULT_MAX_QUEUE_SIZE),
+    case reserve(Counter, MaxSize) of
+        ok ->
+            try
+                true = ets:insert(Table, {erlang:unique_integer([monotonic, positive]),
+                                          Scope, LogEvent}),
+                ok
+            catch
+                error:badarg ->
+                    _ = atomics:sub_get(Counter, 1, 1),
+                    ok
+            end;
+        dropped ->
+            ok
+    end.
 
 %%%-----------------------------------------------------------------
 %%% Remove internal fields from configuration
@@ -141,23 +159,22 @@ init([_RegName, Config]) ->
 
     Resource = otel_resource_detector:get_resource(),
 
-    SizeLimit = maps:get(max_queue_size, Config, ?DEFAULT_MAX_QUEUE_SIZE),
     ExportingTimeout = maps:get(exporting_timeout_ms, Config, ?DEFAULT_EXPORTER_TIMEOUT_MS),
     ScheduledDelay = maps:get(scheduled_delay_ms, Config, ?DEFAULT_SCHEDULED_DELAY_MS),
 
     ExporterConfig = maps:get(exporter, Config, {opentelemetry_exporter, #{protocol => grpc}}),
 
+    QueueTable = ets:new(?MODULE, [ordered_set, public, {write_concurrency, true}]),
+    QueueCounter = atomics:new(1, []),
+
     {ok, idle, #data{exporter=undefined,
                      exporter_config=ExporterConfig,
                      resource=Resource,
                      config=Config,
-                     max_queue_size=case SizeLimit of
-                                        infinity -> infinity;
-                                        _ -> SizeLimit div erlang:system_info(wordsize)
-                                    end,
+                     queue_table=QueueTable,
+                     queue_counter=QueueCounter,
                      exporting_timeout_ms=ExportingTimeout,
-                     scheduled_delay_ms=ScheduledDelay,
-                     batch=#{}}}.
+                     scheduled_delay_ms=ScheduledDelay}}.
 
 callback_mode() ->
     [state_functions, state_enter].
@@ -186,20 +203,41 @@ exporting(enter, _OldState, _Data) ->
 exporting(internal, export, Data=#data{exporter=Exporter,
                                        resource=Resource,
                                        config=Config,
-                                       batch=Batch}) when map_size(Batch) =/= 0 ->
-    _ = export(Exporter, Resource, Batch, Config),
-    {next_state, idle, Data#data{batch=#{}}};
-exporting(internal, export, Data=#data{batch=Batch}) when map_size(Batch) =:= 0 ->
-    %% Nothing accumulated this interval. Return to `idle` so its `enter` clause
-    %% re-arms the export timer. Without this clause an empty tick falls through
-    %% to `handle_event/3` (`keep_state_and_data`) and the handler stays in
-    %% `exporting` forever, never exporting again after the first idle interval.
-    {next_state, idle, Data};
+                                       queue_table=Table,
+                                       queue_counter=Counter,
+                                       exporting_timeout_ms=Timeout}) ->
+    Batch = drain(Table, Counter),
+    case map_size(Batch) of
+        0 ->
+            {next_state, idle, Data};
+        _ ->
+            {Pid, Ref} = spawn_monitor(fun() -> export(Exporter, Resource, Batch, Config) end),
+            {keep_state, Data#data{runner_pid=Pid, runner_ref=Ref},
+             [{state_timeout, Timeout, exporting_timeout}]}
+    end;
+exporting(info, {'DOWN', Ref, process, Pid, _Reason},
+          Data=#data{runner_pid=Pid, runner_ref=Ref}) ->
+    {next_state, idle, Data#data{runner_pid=undefined, runner_ref=undefined}};
+exporting(state_timeout, exporting_timeout,
+          Data=#data{runner_pid=Pid, runner_ref=Ref}) when is_pid(Pid) ->
+    erlang:demonitor(Ref, [flush]),
+    exit(Pid, kill),
+    {next_state, idle, Data#data{runner_pid=undefined, runner_ref=undefined}};
 exporting(EventType, EventContent, Data) ->
     handle_event(EventType, EventContent, Data).
 
 handle_event({call, From}, {changing_config, _SetOrUpdate, _OldConfig, NewConfig}, Data) ->
-    {keep_state, Data#data{config=NewConfig}, [{reply, From, NewConfig}]};
+    Config = NewConfig#{queue_table => Data#data.queue_table,
+                        queue_counter => Data#data.queue_counter},
+    ExportingTimeout = maps:get(exporting_timeout_ms, Config, ?DEFAULT_EXPORTER_TIMEOUT_MS),
+    ScheduledDelay = maps:get(scheduled_delay_ms, Config, ?DEFAULT_SCHEDULED_DELAY_MS),
+    {keep_state, Data#data{config=Config,
+                           exporting_timeout_ms=ExportingTimeout,
+                           scheduled_delay_ms=ScheduledDelay},
+     [{reply, From, Config}]};
+handle_event({call, From}, queue_info,
+             Data=#data{queue_table=Table, queue_counter=Counter}) ->
+    {keep_state, Data, [{reply, From, {Table, Counter}}]};
 handle_event({call, From}, {removing_handler, Config}, _Data) ->
     %% TODO: flush
     {keep_state_and_data, [{reply, From, Config}]};
@@ -209,12 +247,44 @@ handle_event({call, From}, {filter_config, Config}, Data) ->
     {keep_state, Data, [{reply, From, Config}]};
 handle_event({call, _From}, _Msg, _Data) ->
     keep_state_and_data;
-handle_event(cast, {log, Scope, LogEvent}, Data=#data{batch=Logs}) ->
-    {keep_state, Data#data{batch=maps:update_with(Scope, fun(V) ->
-                                                                  [LogEvent | V]
-                                                          end, [LogEvent], Logs)}};
 handle_event(_, _, _) ->
     keep_state_and_data.
+
+terminate(_Reason, _State, #data{runner_pid=Runner, exporter=Exporter}) ->
+    case Runner of
+        Pid when is_pid(Pid) -> exit(Pid, kill);
+        _ -> ok
+    end,
+    _ = otel_exporter_logs:shutdown(Exporter),
+    ok.
+
+reserve(Counter, infinity) ->
+    _ = atomics:add_get(Counter, 1, 1),
+    ok;
+reserve(Counter, MaxSize) when is_integer(MaxSize), MaxSize > 0 ->
+    Current = atomics:get(Counter, 1),
+    case Current >= MaxSize of
+        true -> dropped;
+        false ->
+            case atomics:compare_exchange(Counter, 1, Current, Current + 1) of
+                ok -> ok;
+                _ -> reserve(Counter, MaxSize)
+            end
+    end.
+
+drain(Table, Counter) ->
+    Taken = lists:foldl(fun({Key, _, _}, Acc) ->
+                                case ets:take(Table, Key) of
+                                    [{_, Scope, Event}] ->
+                                        _ = atomics:sub_get(Counter, 1, 1),
+                                        [{Scope, Event} | Acc];
+                                    [] -> Acc
+                                end
+                        end, [], ets:tab2list(Table)),
+    lists:foldl(fun({Scope, Event}, Batch) ->
+                        maps:update_with(Scope, fun(Events) -> [Event | Events] end,
+                                         [Event], Batch)
+                end, #{}, lists:reverse(Taken)).
 
 %%
 

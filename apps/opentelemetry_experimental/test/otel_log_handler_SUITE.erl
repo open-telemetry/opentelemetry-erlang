@@ -8,7 +8,11 @@
 -include_lib("common_test/include/ct.hrl").
 
 all() ->
-    [exports_logs_after_idle_interval].
+    [exports_logs_after_idle_interval,
+     queue_limit_caps_one_batch,
+     queue_limit_tracks_config_update,
+     blocked_export_times_out_without_blocking_handler,
+     removing_handler_stops_worker_and_allows_readd].
 
 init_per_suite(Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
@@ -54,6 +58,99 @@ exports_logs_after_idle_interval(_Config) ->
         _ = logger:remove_handler(HandlerId)
     end.
 
+queue_limit_caps_one_batch(_Config) ->
+    HandlerId = ?FUNCTION_NAME,
+    ok = logger:add_handler(HandlerId, otel_log_handler,
+                            #{level => info,
+                              exporter => {?MODULE, {logs, self()}},
+                              max_queue_size => 2,
+                              scheduled_delay_ms => 100}),
+    try
+        {ok, HandlerConfig} = logger:get_handler_config(HandlerId),
+        ok = otel_log_handler:log(test_log(1), HandlerConfig),
+        ok = otel_log_handler:log(test_log(2), HandlerConfig),
+        ok = otel_log_handler:log(test_log(3), HandlerConfig),
+        2 = ets:info(maps:get(queue_table, HandlerConfig), size),
+        receive
+            {logs, {Batch, _}} ->
+                Count = lists:sum([length(Events) || Events <- maps:values(Batch)]),
+                2 = Count
+        after
+            5000 -> ct:fail(no_bounded_batch)
+        end
+    after
+        _ = logger:remove_handler(HandlerId)
+    end.
+
+queue_limit_tracks_config_update(_Config) ->
+    HandlerId = ?FUNCTION_NAME,
+    ok = logger:add_handler(HandlerId, otel_log_handler,
+                            #{level => info,
+                              exporter => {?MODULE, {logs, self()}},
+                              max_queue_size => 2,
+                              scheduled_delay_ms => 1000}),
+    try
+        ok = logger:update_handler_config(HandlerId, #{max_queue_size => 1}),
+        {ok, HandlerConfig} = logger:get_handler_config(HandlerId),
+        ok = otel_log_handler:log(test_log(first), HandlerConfig),
+        ok = otel_log_handler:log(test_log(second), HandlerConfig),
+        1 = ets:info(maps:get(queue_table, HandlerConfig), size)
+    after
+        _ = logger:remove_handler(HandlerId)
+    end.
+
+blocked_export_times_out_without_blocking_handler(_Config) ->
+    HandlerId = ?FUNCTION_NAME,
+    ok = logger:add_handler(HandlerId, otel_log_handler,
+                            #{level => info,
+                              exporter => {?MODULE, {blocked_logs, self()}},
+                              max_queue_size => 2,
+                              exporting_timeout_ms => 50,
+                              scheduled_delay_ms => 10}),
+    try
+        {ok, HandlerConfig} = logger:get_handler_config(HandlerId),
+        ok = otel_log_handler:log(test_log(blocked), HandlerConfig),
+        receive
+            {export_started, ExportPid} ->
+                try
+                    timer:sleep(200),
+                    false = is_process_alive(ExportPid),
+                    {ok, _} = logger:get_handler_config(HandlerId)
+                after
+                    ExportPid ! {release, self()}
+                end
+        after
+            5000 -> ct:fail(no_export_started)
+        end
+    after
+        _ = logger:remove_handler(HandlerId)
+    end.
+
+removing_handler_stops_worker_and_allows_readd(_Config) ->
+    HandlerId = ?FUNCTION_NAME,
+    HandlerConfig = #{level => info,
+                      exporter => {?MODULE, {blocked_logs, self()}},
+                      scheduled_delay_ms => 10},
+    ok = logger:add_handler(HandlerId, otel_log_handler, HandlerConfig),
+    {ok, Config} = logger:get_handler_config(HandlerId),
+    Worker = whereis(maps:get(regname, Config)),
+    ok = otel_log_handler:log(test_log(blocked), Config),
+    receive
+        {export_started, ExportPid} ->
+            ok = logger:remove_handler(HandlerId),
+            false = is_process_alive(Worker),
+            false = is_process_alive(ExportPid),
+            ok = logger:add_handler(HandlerId, otel_log_handler, HandlerConfig),
+            ok = logger:remove_handler(HandlerId)
+    after
+        5000 -> ct:fail(no_export_started)
+    end.
+
+test_log(Label) ->
+    #{level => info,
+      msg => {string, io_lib:format("~p", [Label])},
+      meta => #{time => logger:timestamp()}}.
+
 flush() ->
     receive
         {logs, _} -> flush()
@@ -63,10 +160,18 @@ flush() ->
 
 %% --- otel_exporter test double (logs signal) ---
 init({logs, Pid}) ->
-    {ok, Pid}.
+    {ok, {logs, Pid}};
+init({blocked_logs, Pid}) ->
+    {ok, {blocked_logs, Pid}}.
 
-export(Logs, _Resource, Pid) ->
+export(Logs, _Resource, {logs, Pid}) ->
     Pid ! {logs, Logs},
+    ok;
+export(_Logs, _Resource, {blocked_logs, Pid}) ->
+    Pid ! {export_started, self()},
+    receive
+        {release, Pid} -> ok
+    end,
     ok.
 
 shutdown(_) ->
