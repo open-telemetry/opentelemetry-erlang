@@ -121,7 +121,7 @@ jobs:
     strategy:
       matrix:
         otp_version: ["29.1"]
-        elixir_version: ["1.18.1"]
+        elixir_version: ["1.20.4"]
         rebar3_version: ["3.25.1"]
         os: [ubuntu-24.04]
     env:
