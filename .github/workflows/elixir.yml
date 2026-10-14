@@ -120,7 +120,7 @@ jobs:
     name: Dialyze on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["27.2.4"]
+        otp_version: ["29.1"]
         elixir_version: ["1.18.1"]
         rebar3_version: ["3.25.1"]
         os: [ubuntu-24.04]
