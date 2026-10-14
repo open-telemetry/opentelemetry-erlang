@@ -1,4 +1,4 @@
-%%%------------------------------------------------------------------------
+%%------------------------------------------------------------------------
 %% Copyright 2019, OpenTelemetry Authors
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -23,8 +23,6 @@
 -export([init/1]).
 
 -define(SERVER, ?MODULE).
-
--include_lib("opentelemetry_api/include/opentelemetry.hrl").
 
 -spec start_link() -> {ok, pid()} | ignore | {error, term()}.
 start_link() ->
