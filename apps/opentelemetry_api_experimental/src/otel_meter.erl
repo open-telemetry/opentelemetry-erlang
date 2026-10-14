@@ -20,6 +20,7 @@
 -export([create_counter/3,
          create_histogram/3,
          create_updown_counter/3,
+         create_gauge/3,
 
          create_observable_counter/3,
          create_observable_counter/5,
@@ -82,6 +83,13 @@ create_updown_counter(Meter, Name, Opts) ->
       Opts :: otel_instrument:opts().
 create_histogram(Meter, Name, Opts) ->
     create_instrument(Meter, Name, ?KIND_HISTOGRAM, Opts).
+
+-spec create_gauge(Meter, Name, Opts) -> otel_instrument:t() when
+      Meter :: t(),
+      Name :: otel_instrument:name(),
+      Opts :: otel_instrument:opts().
+create_gauge(Meter, Name, Opts) ->
+    create_instrument(Meter, Name, ?KIND_GAUGE, Opts).
 
 -spec create_observable_counter(Meter, Name, Opts) -> otel_instrument:t() when
       Meter :: t(),
