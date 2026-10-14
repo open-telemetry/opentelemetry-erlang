@@ -5,6 +5,7 @@ on:
   pull_request:
     branches:
       - "main"
+      - "2.0"
     types: [opened, reopened, synchronize, labeled]
 
   push:
