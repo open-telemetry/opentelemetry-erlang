@@ -21,7 +21,8 @@
 %% the `service.name' attribute from that list.
 %%
 %% With explicit SDK configuration, enable this detector through
-%% `resource_detectors => [otel_resource_env_var]'.
+%% `resource => #{'detection/development' =>
+%%                    #{detectors => [otel_resource_env_var]}}'.
 %% Explicitly configured resource attributes take precedence over detected attributes.
 %% @end
 %%%-----------------------------------------------------------------------

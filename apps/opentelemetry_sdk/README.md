@@ -313,14 +313,17 @@ change the global limits or establish limits for that provider.
 
 ### Erlang SDK settings
 
-Settings specific to this SDK are top-level entries in the
-`opentelemetry_sdk` application environment:
+Erlang SDK settings live in the `opentelemetry_sdk` application environment.
+Resource detector selection uses the standard resource path, while the
+Erlang-only timeout and span sweeper are top-level entries:
 
 ```erlang
 {opentelemetry_sdk,
- [{resource_detectors, [otel_resource_env_var]},
-  {resource_detector_timeout, 5000},
-  {sweeper,
+ [{resource,
+   #{'detection/development' =>
+         #{detectors => [otel_resource_env_var]}}},
+  {resource_detection_timeout, 5000},
+  {span_sweeper,
    #{interval => 600000,
      strategy => drop,
      span_ttl => 1800000,
@@ -331,16 +334,25 @@ The declarative configuration `distribution` field is left opaque for
 distribution- and vendor-specific namespaces such as Splunk or New Relic. The
 upstream Erlang SDK does not interpret values inside it.
 
-`resource_detector_timeout` must be a nonnegative integer in milliseconds.
+`resource_detection_timeout` must be a nonnegative integer in milliseconds.
 Numeric timeouts must not be quoted. These values are checked before SDK
 processes start.
 
-Nonempty `resource_detectors` settings are native-only: detector entries must be
-module atoms or `{Module, Options}` tuples. JSON files may omit this list, set it
-to `null`, or supply an empty list; nonempty lists return
-`unsupported_configuration`. JSON names are not converted into Erlang module
-atoms. In JSON, these Erlang SDK extensions are top-level properties rather than
-members of `distribution`.
+Resource detectors use the standard
+`resource.detection/development.detectors` configuration path. Native
+application configuration accepts module atoms and `{Module, Options}` tuples.
+JSON configuration accepts the standard single-entry component form; the
+built-in `env` detector selects `otel_resource_env_var`. Unknown JSON detector
+names return `unsupported_configuration` and are never converted into Erlang
+atoms.
+
+The Erlang-specific environment variables are
+`OTEL_ERLANG_RESOURCE_DETECTORS`,
+`OTEL_ERLANG_RESOURCE_DETECTION_TIMEOUT`,
+`OTEL_ERLANG_SPAN_SWEEPER_INTERVAL`,
+`OTEL_ERLANG_SPAN_SWEEPER_SPAN_TTL`,
+`OTEL_ERLANG_SPAN_SWEEPER_STORAGE_SIZE`, and
+`OTEL_ERLANG_SPAN_SWEEPER_STRATEGY`.
 
 With explicit SDK configuration, resource environment variables are only read
 when the corresponding resource detector is explicitly configured.
@@ -359,8 +371,9 @@ configuration with a path-specific error. Environment input logs a warning and
 skips the malformed entry, retaining valid entries.
 
 The old `otel_resource_app_env` detector has been removed. Remove it from
-`resource_detectors` and put application-defined attributes under
-`resource.attributes`, for example `#{attributes => #{<<"service.name">> => <<"x">>}}`.
+`resource.detection/development.detectors` and put application-defined
+attributes under `resource.attributes`, for example
+`#{attributes => #{<<"service.name">> => <<"x">>}}`.
 The SDK reads this configuration directly, including `attributes_list` and
 `schema_url`; no application-environment detector is needed.
 

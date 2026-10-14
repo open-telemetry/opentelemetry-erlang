@@ -57,7 +57,7 @@ end_per_testcase(_, _Config) ->
 
 set_configuration(Sweeper) ->
     application:set_env(opentelemetry_sdk,
-                        sweeper,
+                        span_sweeper,
                         Sweeper),
     application:set_env(
       opentelemetry_sdk,
