@@ -104,10 +104,7 @@ from_source(Configuration, Source) ->
 legacy_keys() ->
     [config_file,
      sdk_disabled,
-     register_loaded_applications,
-     create_application_tracers,
      id_generator,
-     deny_list,
      resource_detectors,
      resource_detector_timeout,
      bsp_scheduled_delay_ms,

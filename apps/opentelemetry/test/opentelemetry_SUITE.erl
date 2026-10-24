@@ -23,8 +23,9 @@
 all() ->
     [%% no need to include tests that don't export any spans with the simple/batch groups
      disable_auto_creation,
-     old_disable_auto_creation,
+     excluded_application_tracers,
      application_tracers,
+     invalid_integration_configuration,
      logger_metadata,
      %% force flush is a test of flushing the batch processor's table
      force_flush,
@@ -72,21 +73,26 @@ init_per_testcase(disabled_sdk, Config) ->
     Config;
 init_per_testcase(disable_auto_creation, Config) ->
     clear_application_tracers(),
-    set_distribution(#{create_application_tracers => false}),
+    application:set_env(opentelemetry, create_application_tracers, false),
     set_processors([]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
-init_per_testcase(old_disable_auto_creation, Config) ->
+init_per_testcase(excluded_application_tracers, Config) ->
     clear_application_tracers(),
-    set_distribution(#{create_application_tracers => false}),
+    application:set_env(opentelemetry, create_application_tracers, true),
+    application:set_env(opentelemetry, excluded_applications, [kernel]),
     set_processors([]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(application_tracers, Config) ->
     clear_application_tracers(),
-    set_distribution(#{create_application_tracers => true}),
+    application:set_env(opentelemetry, create_application_tracers, true),
     set_processors([]),
     {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
+init_per_testcase(invalid_integration_configuration, Config) ->
+    clear_application_tracers(),
+    set_processors([]),
     Config;
 init_per_testcase(logger_metadata, Config) ->
     set_processors([]),
@@ -132,7 +138,6 @@ init_per_testcase(tracer_instrumentation_scope, Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config1;
 init_per_testcase(multiple_tracer_providers, Config) ->
-    set_distribution(#{deny_list => [blocked_tracer]}),
     set_processors([{batch, #{exporter => {otel_exporter_pid, self()},
                               schedule_delay => 1}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
@@ -161,22 +166,16 @@ end_per_testcase(disabled_sdk, _Config) ->
     _ = application:stop(opentelemetry),
     _ = application:unload(opentelemetry),
     ok;
-end_per_testcase(disable_auto_creation, _Config) ->
-    _ = application:stop(opentelemetry),
-    _ = application:unload(opentelemetry),
-    ok;
-end_per_testcase(old_disable_auto_creation, _Config) ->
-    _ = application:stop(opentelemetry),
-    _ = application:unload(opentelemetry),
-    ok;
 end_per_testcase(propagator_configuration_with_os_env, _Config) ->
     os:unsetenv("OTEL_PROPAGATORS"),
     _ = application:stop(opentelemetry),
     clear_sdk_env(),
+    clear_integration_env(),
     ok;
 end_per_testcase(_, _Config) ->
     _ = application:stop(opentelemetry),
     clear_sdk_env(),
+    clear_integration_env(),
     ok.
 
 set_batch_tab_processor(Config) ->
@@ -217,14 +216,16 @@ set_propagators(Names) ->
       propagator,
       #{composite => Names}).
 
-set_distribution(Erlang) ->
-    application:set_env(opentelemetry, distribution, #{erlang => Erlang}).
-
 clear_sdk_env() ->
     [application:unset_env(opentelemetry, Key)
      || Key <- [file_format, disabled, log_level, attribute_limits,
                 resource, propagator, tracer_provider, meter_provider,
                 logger_provider, 'instrumentation/development', distribution]],
+    ok.
+
+clear_integration_env() ->
+    application:unset_env(opentelemetry, create_application_tracers),
+    application:unset_env(opentelemetry, excluded_applications),
     ok.
 
 clear_application_tracers() ->
@@ -240,11 +241,11 @@ disable_auto_creation(_Config) ->
     ?assertEqual(undefined, Library),
     ok.
 
-old_disable_auto_creation(_Config) ->
+excluded_application_tracers(_Config) ->
     ?assertEqual('$__default_tracer', opentelemetry:get_application(kernel)),
-    {_, #tracer{instrumentation_scope=Library}} = opentelemetry:get_tracer(
-                                                      opentelemetry:get_application(kernel)),
-    ?assertEqual(undefined, Library),
+    ?assertMatch({stdlib, _, _}, opentelemetry:get_application(lists)),
+    ?assertMatch({otel_tracer_default, _},
+                 otel_tracer_provider:get_tracer(global, kernel, <<>>, <<>>)),
     ok.
 
 application_tracers(_Config) ->
@@ -266,6 +267,22 @@ application_tracers(_Config) ->
     ?assertEqual(<<"fake-version">>, NewLibrary1#instrumentation_scope.version),
     ?assertEqual(<<"http://schema.org/myschema">>, NewLibrary1#instrumentation_scope.schema_url),
 
+    ok.
+
+invalid_integration_configuration(_Config) ->
+    lists:foreach(
+      fun({Key, Value}) ->
+              application:set_env(opentelemetry, Key, Value),
+              ?assertEqual({error,
+                            {configuration_error,
+                             {invalid_configuration, [Key], Value}}},
+                           opentelemetry_app:start(normal, [])),
+              application:unset_env(opentelemetry, Key),
+              ?assertEqual(undefined, whereis(opentelemetry_sup))
+      end,
+      [{create_application_tracers, enabled},
+       {excluded_applications, [kernel, <<"stdlib">>]},
+       {excluded_applications, kernel}]),
     ok.
 
 logger_metadata(_Config) ->
@@ -747,10 +764,6 @@ multiple_tracer_providers(_Config) ->
                                                 Resource,
                                                 TestProviderConfiguration)),
     ?assertEqual(Resource, otel_tracer_provider:resource(test_provider)),
-    %% The global provider receives its distribution deny list. Independently
-    %% configured providers retain their own default (empty) deny list.
-    ?assertMatch({otel_tracer_noop, _},
-                 otel_tracer_provider:get_tracer(global, blocked_tracer, <<>>, <<>>)),
     ?assertMatch({otel_tracer_default, _},
                  otel_tracer_provider:get_tracer(global, allowed_tracer, <<>>, <<>>)),
     ?assertMatch({otel_tracer_default, _},

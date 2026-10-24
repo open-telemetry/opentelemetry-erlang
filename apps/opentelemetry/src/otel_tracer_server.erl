@@ -48,10 +48,7 @@
          sampler :: otel_sampler:t(),
          resource :: otel_resource:t(),
 
-         span_processor_sup :: atom(),
-
-         %% list of tracer names to return noop tracers for
-         deny_list :: [atom() | {atom(), string()}]
+         span_processor_sup :: atom()
         }).
 
 -spec start_link(atom(), atom(), atom(), otel_resource:t(),
@@ -68,7 +65,6 @@ init({Name, SpanProcessorSup, Resource, TracerProvider}) ->
     IdGeneratorModule = otel_configuration_sdk:id_generator(TracerProvider),
     SamplerSpec = otel_configuration_sdk:sampler(TracerProvider),
     Processors = otel_configuration_sdk:span_processors(TracerProvider),
-    DenyList = maps:get(deny_list, TracerProvider),
     Sampler = otel_sampler:new(SamplerSpec),
 
     Processors1 = init_processors(SpanProcessorSup, Resource, Processors),
@@ -85,7 +81,6 @@ init({Name, SpanProcessorSup, Resource, TracerProvider}) ->
     {ok, #state{id_generator=IdGeneratorModule,
                 resource=Resource,
                 sampler=Sampler,
-                deny_list=DenyList,
                 shared_tracer=Tracer,
                 span_processor_sup=SpanProcessorSup,
                 processors=Processors1}}.
@@ -94,21 +89,13 @@ handle_call(resource, _From, State=#state{resource=Resource}) ->
     {reply, Resource, State};
 handle_call({get_tracer, _Name, _Vsn, _SchemaUrl}, _From, State=#state{shared_tracer=undefined}) ->
     {reply, {otel_tracer_noop, []}, State};
-handle_call({get_tracer, Name, Vsn, SchemaUrl}, _From, State=#state{shared_tracer=Tracer,
-                                                                    deny_list=DenyList})
+handle_call({get_tracer, Name, Vsn, SchemaUrl}, _From, State=#state{shared_tracer=Tracer})
   when Tracer =/= undefined ->
-    %% TODO: support semver constraints in denylist
-    case proplists:is_defined(Name, DenyList) of
-        true ->
-            {reply, {otel_tracer_noop, []}, State};
-        false ->
-            InstrumentationScope = opentelemetry:instrumentation_scope(Name, Vsn, SchemaUrl),
-            TracerTuple = {Tracer#tracer.module,
-                           Tracer#tracer{instrumentation_scope=InstrumentationScope}},
-            {reply, TracerTuple, State}
-    end;
-handle_call({get_tracer, InstrumentationScope}, _From, State=#state{shared_tracer=Tracer,
-                                                                    deny_list=_DenyList})
+    InstrumentationScope = opentelemetry:instrumentation_scope(Name, Vsn, SchemaUrl),
+    TracerTuple = {Tracer#tracer.module,
+                   Tracer#tracer{instrumentation_scope=InstrumentationScope}},
+    {reply, TracerTuple, State};
+handle_call({get_tracer, InstrumentationScope}, _From, State=#state{shared_tracer=Tracer})
   when Tracer =/= undefined ->
     {reply, {Tracer#tracer.module,
              Tracer#tracer{instrumentation_scope=InstrumentationScope}}, State};

@@ -132,7 +132,7 @@ fields(parent_based) -> [root, remote_parent_sampled, remote_parent_not_sampled,
                        local_parent_sampled, local_parent_not_sampled];
 fields(trace_id_ratio_based) -> [ratio];
 fields(distribution) -> [erlang];
-fields(erlang) -> [create_application_tracers, deny_list, resource_detectors, resource_detector_timeout, sweeper];
+fields(erlang) -> [resource_detectors, resource_detector_timeout, sweeper];
 fields(sweeper) -> [interval, span_ttl, storage_size, strategy];
 fields(console) -> [];
 fields(always_on) -> [];

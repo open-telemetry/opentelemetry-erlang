@@ -359,3 +359,18 @@ Erlang application environment.
 Read the OpenTelemetry project
 [contributing guide](https://github.com/open-telemetry/community/blob/main/CONTRIBUTING.md)
 for general information about the project.
+
+### OTP application tracers
+
+Automatic application tracer creation is configured through the `opentelemetry`
+application environment, separately from the SDK configuration model:
+
+```erlang
+[{opentelemetry, [{create_application_tracers, true},
+                  {excluded_applications, [kernel, stdlib]}]}].
+```
+
+`excluded_applications` controls automatic registration only; explicit tracer
+requests remain available. The old distribution keys and `OTEL_DENY_LIST`,
+`OTEL_CREATE_APPLICATION_TRACERS`, and `OTEL_REGISTER_LOADED_APPLICATIONS`
+environment settings no longer configure application tracers.
