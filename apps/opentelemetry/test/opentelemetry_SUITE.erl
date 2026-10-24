@@ -17,8 +17,6 @@
 
 %% This test intentionally passes an invalid status to verify it is rejected.
 -eqwalizer({nowarn_function, update_span_data/1}).
-%% ETS match results are tuples at the type boundary; the pattern fixes their record shape.
--eqwalizer({nowarn_function, assert_exported/2}).
 
 all() ->
     [%% no need to include tests that don't export any spans with the simple/batch groups
