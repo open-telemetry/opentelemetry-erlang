@@ -17,7 +17,7 @@ all() ->
      rejects_legacy_application_environment,
      rejects_native_typos_before_startup,
      application_startup_uses_shared_declarative_configuration,
-     validates_json_distribution_before_startup,
+     validates_json_extensions_before_startup,
      upstream_reference_starts_sdk,
      omitted_resource_ignores_legacy_detection].
 
@@ -206,14 +206,14 @@ application_startup_uses_shared_declarative_configuration(Config) ->
 
     ok = application:stop(opentelemetry).
 
-validates_json_distribution_before_startup(Config) ->
-    File = filename:join(?config(priv_dir, Config), "distribution.json"),
+validates_json_extensions_before_startup(Config) ->
+    File = filename:join(?config(priv_dir, Config), "extensions.json"),
     os:putenv("OTEL_CONFIG_FILE", File),
     lists:foreach(
       fun({Fields, Reason}) ->
               ok = file:write_file(File,
                      ["{\"file_format\":\"1.1\",\"tracer_provider\":{\"processors\":[]},",
-                      "\"distribution\":{\"erlang\":{", Fields, "}}}"]),
+                      Fields, "}"]),
               ?assertEqual({error, Reason}, otel_configuration_source:resolve([])),
               ?assertEqual({error, {configuration_error, Reason}},
                            opentelemetry_app:start(normal, [])),
@@ -221,15 +221,14 @@ validates_json_distribution_before_startup(Config) ->
               ?assertEqual(undefined, whereis(otel_resource_detector))
       end,
       [{"\"resource_detectors\":[\"otel_resource_env_var\"]",
-        {unsupported_configuration, [distribution, erlang, resource_detectors],
+        {unsupported_configuration, [resource_detectors],
          [<<"otel_resource_env_var">>]}},
        {"\"resource_detector_timeout\":\"5000\"",
-        {invalid_configuration, [distribution, erlang, resource_detector_timeout], <<"5000">>}}]),
+        {invalid_configuration, [resource_detector_timeout], <<"5000">>}}]),
     %% Real JSON booleans and numbers are safe to pass to the startup consumers.
     ok = file:write_file(File,
            <<"{\"file_format\":\"1.1\",\"tracer_provider\":{\"processors\":[]},"
-             "\"distribution\":{\"erlang\":{"
-             "\"resource_detector_timeout\":0,\"resource_detectors\":[]}}}">>),
+             "\"resource_detector_timeout\":0,\"resource_detectors\":[]}">>),
     {ok, _} = application:ensure_all_started(opentelemetry),
     ?assert(is_pid(whereis(otel_tracer_provider_global))).
 

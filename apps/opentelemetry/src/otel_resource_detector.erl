@@ -86,10 +86,9 @@ get_resource(Timeout) ->
 init(Config) ->
     process_flag(trap_exit, true),
 
-    Erlang = otel_configuration_sdk:erlang_distribution(Config),
-    Detectors = otel_configuration_sdk:value(resource_detectors, Erlang, []),
+    Detectors = otel_configuration_sdk:value(resource_detectors, Config, []),
     DetectorTimeout = otel_configuration_sdk:value(resource_detector_timeout,
-                                                    Erlang,
+                                                    Config,
                                                     5000),
     ConfiguredResource = case otel_configuration_sdk:resource(Config) of
                              undefined -> otel_resource:create([]);

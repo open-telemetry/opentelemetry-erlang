@@ -297,35 +297,36 @@ Span limits are global in this implementation. Set them through
 passed when starting a named provider is ignored with a warning; it does not
 change the global limits or establish limits for that provider.
 
-### Erlang distribution settings
+### Erlang SDK settings
 
-Settings specific to this SDK live under `distribution.erlang`:
+Settings specific to this SDK are top-level entries in the
+`opentelemetry` application environment:
 
 ```erlang
-{distribution,
- #{erlang =>
-       #{create_application_tracers => false,
-         deny_list => [kernel],
-         resource_detectors => [otel_resource_env_var],
-         resource_detector_timeout => 5000,
-         sweeper =>
-             #{interval => 600000,
-               strategy => drop,
-               span_ttl => 1800000,
-               storage_size => infinity}}}}
+{opentelemetry,
+ [{resource_detectors, [otel_resource_env_var]},
+  {resource_detector_timeout, 5000},
+  {sweeper,
+   #{interval => 600000,
+     strategy => drop,
+     span_ttl => 1800000,
+     storage_size => infinity}}]}
 ```
 
-`create_application_tracers` must be a boolean, and `resource_detector_timeout`
-must be a nonnegative integer in milliseconds. JSON uses `false`, not `"false"`,
-and numeric timeouts, not quoted numbers. These values are checked before SDK
+The declarative configuration `distribution` field is left opaque for
+distribution- and vendor-specific namespaces such as Splunk or New Relic. The
+upstream Erlang SDK does not interpret values inside it.
+
+`resource_detector_timeout` must be a nonnegative integer in milliseconds.
+Numeric timeouts must not be quoted. These values are checked before SDK
 processes start.
 
-Nonempty `resource_detectors` and `deny_list` settings are native-only: detector
-entries must be module atoms or `{Module, Options}` tuples, and deny-list entries
-must be application atoms or `{Application, VersionString}` tuples. JSON files
-may omit these lists, set them to `null`, or supply empty lists; nonempty lists
-return `unsupported_configuration`. JSON names are not converted into Erlang
-module or application atoms.
+Nonempty `resource_detectors` settings are native-only: detector entries must be
+module atoms or `{Module, Options}` tuples. JSON files may omit this list, set it
+to `null`, or supply an empty list; nonempty lists return
+`unsupported_configuration`. JSON names are not converted into Erlang module
+atoms. In JSON, these Erlang SDK extensions are top-level properties rather than
+members of `distribution`.
 
 With explicit SDK configuration, resource environment variables are only read
 when the corresponding resource detector is explicitly configured.
@@ -354,12 +355,6 @@ called. Its strategies are `drop`, `end_span`, and
 `failed_attribute_and_end_span`; a function may also be supplied through the
 Erlang application environment.
 
-## Contributing
-
-Read the OpenTelemetry project
-[contributing guide](https://github.com/open-telemetry/community/blob/main/CONTRIBUTING.md)
-for general information about the project.
-
 ### OTP application tracers
 
 Automatic application tracer creation is configured through the `opentelemetry`
@@ -374,3 +369,9 @@ application environment, separately from the SDK configuration model:
 requests remain available. The old distribution keys and `OTEL_DENY_LIST`,
 `OTEL_CREATE_APPLICATION_TRACERS`, and `OTEL_REGISTER_LOADED_APPLICATIONS`
 environment settings no longer configure application tracers.
+
+## Contributing
+
+Read the OpenTelemetry project
+[contributing guide](https://github.com/open-telemetry/community/blob/main/CONTRIBUTING.md)
+for general information about the project.

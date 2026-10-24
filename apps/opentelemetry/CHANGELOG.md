@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Move Erlang SDK resource-detector and sweeper settings out of `distribution`.
 - Configure automatic application tracers and excluded OTP applications through the
   `opentelemetry` application environment, separately from SDK configuration.
 - Use erl_error:format_exception for exception.stacktrace by @arseniycodes in [#988](https://github.com/open-telemetry/opentelemetry-erlang/pull/988)
