@@ -221,7 +221,7 @@ clear_sdk_env() ->
      || Key <- [file_format, disabled, log_level, attribute_limits,
                 resource, propagator, tracer_provider, meter_provider,
                 logger_provider, 'instrumentation/development', distribution,
-                resource_detectors, resource_detector_timeout, sweeper]],
+                resource_detection_timeout, span_sweeper]],
     ok.
 
 clear_integration_env() ->

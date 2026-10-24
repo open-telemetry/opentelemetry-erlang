@@ -137,8 +137,8 @@ cases() ->
       [tracer_provider, sampler, parent_based, root, trace_id_ratio_based, ration]},
      {provider(#{sampler => #{always_on => #{typo => true}}}), [tracer_provider, sampler, always_on, typo]},
      {provider(#{id_generator => #{random => #{typo => true}}}), [tracer_provider, id_generator, random, typo]},
-     {#{resource_detector_timeot => 100}, [resource_detector_timeot]},
-     {#{sweeper => #{span_ttl_ms => 100}}, [sweeper, span_ttl_ms]}].
+     {#{resource_detection_timeot => 100}, [resource_detection_timeot]},
+     {#{span_sweeper => #{span_ttl_ms => 100}}, [span_sweeper, span_ttl_ms]}].
 
 provider(Options) -> #{tracer_provider => maps:merge(#{processors => []}, Options)}.
 exporter(Kind, Options) -> provider(#{processors => [#{batch => #{exporter => #{Kind => Options}}}]}).
@@ -220,6 +220,8 @@ does_not_create_atoms(_Config) ->
              {error, {unsupported_configuration, [tracer_provider, processors], Name}}},
             {exporter(Name, #{}),
              {error, {unsupported_configuration, [tracer_provider, processors, exporter], Name}}},
-            {#{resource_detectors => [Name]},
-             {error, {unsupported_configuration, [resource_detectors], [Name]}}}]),
+            {#{resource => #{'detection/development' =>
+                                  #{detectors => [#{Name => null}]}}},
+             {error, {unsupported_configuration,
+                      [resource, 'detection/development', detectors], Name}}}]),
     ?assertException(error, badarg, binary_to_existing_atom(Name, utf8)).

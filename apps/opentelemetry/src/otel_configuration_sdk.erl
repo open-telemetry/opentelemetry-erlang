@@ -110,8 +110,8 @@
           span_limits := resolved_span_limits(),
           tracer_provider := tracer_provider_configuration() | undefined,
           resource_detectors => [module() | {module(), term()}],
-          resource_detector_timeout => non_neg_integer(),
-          sweeper => sweeper_configuration()}.
+          resource_detection_timeout => non_neg_integer(),
+          span_sweeper => sweeper_configuration()}.
 
 -export_type([error_reason/0,
               configuration/0,
@@ -137,11 +137,11 @@ create(Model) ->
         otel_configuration_keys:validate(Raw, otel_configuration_model:source(Model)),
         warn_unsupported(log_level, Raw, [log_level], fun log_level/2),
         validate_distribution(Raw),
-        validate_sweeper(Raw),
+        validate_span_sweeper(Raw),
         validate_attribute_limits(Raw),
         warn_unsupported(logger_provider, Raw, [logger_provider], fun component_map/2),
         warn_unsupported(meter_provider, Raw, [meter_provider], fun component_map/2),
-        Extensions = resolve_erlang_extensions(Raw, otel_configuration_model:source(Model)),
+        Extensions = resolve_sdk_extensions(Raw, otel_configuration_model:source(Model)),
         Configuration = maps:merge(
             #{source => Model,
               file_format => otel_configuration_model:file_format(Model),
@@ -203,8 +203,6 @@ resolve_resource(Configuration) ->
         error -> undefined;
         {ok, null} -> undefined;
         {ok, ResourceConfig} when is_map(ResourceConfig) ->
-            warn_unsupported('detection/development', ResourceConfig,
-                             [resource, 'detection/development'], fun component_map/2),
             ListAttributes = resource_attribute_list(value(attributes_list, ResourceConfig, <<>>)),
             SchemaUrl = value(schema_url, ResourceConfig, undefined),
             resolve_resource_attributes(find(attributes, ResourceConfig),
@@ -327,42 +325,63 @@ validate_distribution(Configuration) ->
             fail({invalid_configuration, [distribution], Value})
     end.
 
-resolve_erlang_extensions(Configuration, Source) ->
-    Resolved0 = copy_validated(resource_detector_timeout, Configuration, #{}, [],
+resolve_sdk_extensions(Configuration, Source) ->
+    Resolved0 = copy_validated(resource_detection_timeout, Configuration, #{}, [],
                                fun non_negative_integer/2),
-    Resolved = copy_validated(resource_detectors, Configuration, Resolved0, [],
-                              fun(Value, P) -> native_entries(
-                                                  Value, P, Source, fun resource_detector/2) end),
-    case find(sweeper, Configuration) of
-        {ok, Sweeper} when is_map(Sweeper) ->
-            Resolved#{sweeper => resolve_sweeper(Sweeper)};
+    Resolved = case resolve_resource_detectors(Configuration, Source) of
+                   undefined -> Resolved0;
+                   Detectors -> Resolved0#{resource_detectors => Detectors}
+               end,
+    case find(span_sweeper, Configuration) of
+        {ok, SpanSweeper} when is_map(SpanSweeper) ->
+            Resolved#{span_sweeper => resolve_span_sweeper(SpanSweeper)};
         _ ->
             Resolved
     end.
 
-%% JSON cannot select Erlang modules or application atoms. Empty lists are safe
-%% and useful for explicitly disabling these native extensions.
-native_entries([], _Path, _Source, _Validator) -> [];
-native_entries(Values, Path, declarative, _Validator) when is_list(Values) ->
-    fail({unsupported_configuration, Path, Values});
-native_entries(Values, Path, _Source, Validator) when is_list(Values) ->
-    [Validator(Value, Path) || Value <- Values];
-native_entries(Value, Path, _Source, _Validator) ->
-    fail({invalid_configuration, Path, Value}).
+resolve_resource_detectors(Configuration, Source) ->
+    Path = [resource, 'detection/development', detectors],
+    Resource = value(resource, Configuration, #{}),
+    Detection = value('detection/development', Resource, #{}),
+    case find(detectors, Detection) of
+        error -> undefined;
+        {ok, null} -> undefined;
+        {ok, Detectors} when is_list(Detectors) ->
+            [resource_detector(Detector, Path, Source) || Detector <- Detectors];
+        {ok, Value} -> fail({invalid_configuration, Path, Value})
+    end.
 
-resource_detector(Module, _Path) when is_atom(Module) -> Module;
-resource_detector({Module, _}=Detector, _Path) when is_atom(Module) -> Detector;
-resource_detector(Value, Path) -> fail({invalid_configuration, Path, Value}).
+resource_detector(Module, _Path, Source) when is_atom(Module), Source =/= declarative -> Module;
+resource_detector({Module, _}=Detector, _Path, Source)
+  when is_atom(Module), Source =/= declarative -> Detector;
+resource_detector(Component, Path, Source) ->
+    case otel_configuration_utils:component_entry(Component) of
+        {ok, {Name, Options}} -> resource_detector_component(Name, Options, Path, Source);
+        error -> fail({invalid_configuration, Path, Component})
+    end.
 
-resolve_sweeper(Sweeper) ->
-    Path = [sweeper],
-    Resolved0 = copy_validated(interval, Sweeper, #{}, Path,
+resource_detector_component(env, null, _Path, _Source) -> otel_resource_env_var;
+resource_detector_component(env, Options, Path, _Source) ->
+    {otel_resource_env_var, component_map(Options, Path ++ [env])};
+resource_detector_component(<<"env">>, Options, Path, Source) ->
+    resource_detector_component(env, Options, Path, Source);
+resource_detector_component(Module, null, _Path, Source)
+  when is_atom(Module), Source =/= declarative -> Module;
+resource_detector_component(Module, Options, Path, Source)
+  when is_atom(Module), Source =/= declarative ->
+    {Module, component_map(Options, Path ++ [Module])};
+resource_detector_component(Name, _Options, Path, _Source) ->
+    fail({unsupported_configuration, Path, Name}).
+
+resolve_span_sweeper(SpanSweeper) ->
+    Path = [span_sweeper],
+    Resolved0 = copy_validated(interval, SpanSweeper, #{}, Path,
                                fun non_negative_integer_or_infinity/2),
-    Resolved1 = copy_validated(span_ttl, Sweeper, Resolved0, Path,
+    Resolved1 = copy_validated(span_ttl, SpanSweeper, Resolved0, Path,
                                fun non_negative_integer_or_infinity/2),
-    Resolved2 = copy_validated(storage_size, Sweeper, Resolved1, Path,
+    Resolved2 = copy_validated(storage_size, SpanSweeper, Resolved1, Path,
                                fun non_negative_integer_or_infinity/2),
-    copy_validated(strategy, Sweeper, Resolved2, Path,
+    copy_validated(strategy, SpanSweeper, Resolved2, Path,
                    fun sweeper_strategy/2).
 
 sweeper_strategy(Value, _Path) when is_function(Value, 1) -> Value;
@@ -373,13 +392,13 @@ sweeper_strategy(Value, Path) ->
           {<<"failed_attribute_and_end_span">>, failed_attribute_and_end_span}],
          Path).
 
-validate_sweeper(Configuration) ->
-    case find(sweeper, Configuration) of
+validate_span_sweeper(Configuration) ->
+    case find(span_sweeper, Configuration) of
         error -> ok;
         {ok, null} -> ok;
-        {ok, Sweeper} when is_map(Sweeper) -> ok;
+        {ok, SpanSweeper} when is_map(SpanSweeper) -> ok;
         {ok, Value} ->
-            fail({invalid_configuration, [sweeper], Value})
+            fail({invalid_configuration, [span_sweeper], Value})
     end.
 
 log_level(Value, Path) ->

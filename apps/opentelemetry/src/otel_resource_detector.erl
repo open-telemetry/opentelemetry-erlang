@@ -87,7 +87,7 @@ init(Config) ->
     process_flag(trap_exit, true),
 
     Detectors = otel_configuration_sdk:value(resource_detectors, Config, []),
-    DetectorTimeout = otel_configuration_sdk:value(resource_detector_timeout,
+    DetectorTimeout = otel_configuration_sdk:value(resource_detection_timeout,
                                                     Config,
                                                     5000),
     ConfiguredResource = case otel_configuration_sdk:resource(Config) of
@@ -126,7 +126,8 @@ handle_event(info, {resource, Ref, Resource}, {collecting, [{Ref, _, _} | Rest]}
              Data=#data{resource=CurrentResource}) ->
     NewResource = otel_resource:merge(Resource, CurrentResource),
     {next_state, next_state(Rest), Data#data{resource=NewResource}, state_timeout(Data)};
-handle_event(state_timeout, resource_detector_timeout, {collecting, [{_, Pid, Detector} | Rest]}, Data) ->
+handle_event(state_timeout, resource_detection_timeout,
+             {collecting, [{_, Pid, Detector} | Rest]}, Data) ->
     ?LOG_WARNING("detector ~p timed out while executing", [Detector]),
     %% may still have an EXIT in the mailbox but with `unlink' we might not
     erlang:unlink(Pid),
@@ -158,7 +159,7 @@ next_state(List) ->
     {collecting, List}.
 
 state_timeout(#data{detector_timeout=DetectorTimeout}) ->
-    {state_timeout, DetectorTimeout, resource_detector_timeout}.
+    {state_timeout, DetectorTimeout, resource_detection_timeout}.
 
 spawn_detectors(Detectors) ->
     lists:map(fun(Detector) ->

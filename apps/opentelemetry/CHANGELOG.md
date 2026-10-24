@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Align resource detection and span-sweeper configuration keys with the SDK model;
+  prefix Erlang-specific environment settings with `OTEL_ERLANG_`.
 - Move Erlang SDK resource-detector and sweeper settings out of `distribution`.
 - Configure automatic application tracers and excluded OTP applications through the
   `opentelemetry` application environment, separately from SDK configuration.

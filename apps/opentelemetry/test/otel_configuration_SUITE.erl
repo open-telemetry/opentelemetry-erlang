@@ -131,7 +131,7 @@ init_per_testcase(none_metrics_exporter, Config) ->
 
     [{os_vars, Vars} | Config];
 init_per_testcase(resource_detectors, Config) ->
-    Vars = [{"OTEL_RESOURCE_DETECTORS", "opentelemetry_exporter,opentelemetry,nonexisting_atom"}],
+    Vars = [{"OTEL_ERLANG_RESOURCE_DETECTORS", "opentelemetry_exporter,opentelemetry,nonexisting_atom"}],
 
     setup_env(Vars),
 
@@ -334,7 +334,7 @@ none_metrics_exporter(_Config) ->
     ok.
 
 resource_detectors(_Config) ->
-    %% nonexisting_atom in the OTEL_RESOURCE_DETECTORS os var is dropped bc it isn't an existing atom
+    %% nonexisting_atom in OTEL_ERLANG_RESOURCE_DETECTORS is dropped because it is not an existing atom
     ?assertMatch(#{resource_detectors := [opentelemetry_exporter,opentelemetry]},
                  otel_configuration:merge_with_os([])),
 

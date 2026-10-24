@@ -45,7 +45,7 @@ init(Configuration) ->
                         strategy => drop,
                         span_ttl => timer:minutes(30),
                         storage_size => infinity},
-                      otel_configuration_sdk:value(sweeper, Configuration, #{})),
+                      otel_configuration_sdk:value(span_sweeper, Configuration, #{})),
     Sweeper = #{id => otel_span_sweeper,
                 start => {otel_span_sweeper, start_link, [SweeperConfig]},
                 restart => permanent,
