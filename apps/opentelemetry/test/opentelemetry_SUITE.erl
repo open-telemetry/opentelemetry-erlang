@@ -25,6 +25,7 @@ all() ->
      disable_auto_creation,
      excluded_application_tracers,
      application_tracers,
+     application_registry_lifecycle,
      invalid_integration_configuration,
      logger_metadata,
      %% force flush is a test of flushing the batch processor's table
@@ -93,6 +94,10 @@ init_per_testcase(application_tracers, Config) ->
 init_per_testcase(invalid_integration_configuration, Config) ->
     clear_application_tracers(),
     set_processors([]),
+    Config;
+init_per_testcase(application_registry_lifecycle, Config) ->
+    set_processors([]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
 init_per_testcase(logger_metadata, Config) ->
     set_processors([]),
@@ -230,8 +235,7 @@ clear_integration_env() ->
     ok.
 
 clear_application_tracers() ->
-    persistent_term:erase({opentelemetry, otel_module_to_application_key}),
-    ok.
+    otel_application_registry:clear().
 
 %% test cases
 
@@ -284,6 +288,20 @@ invalid_integration_configuration(_Config) ->
       [{create_application_tracers, enabled},
        {excluded_applications, [kernel, <<"stdlib">>]},
        {excluded_applications, kernel}]),
+    ok.
+
+application_registry_lifecycle(_Config) ->
+    ?assertMatch({kernel, _, _}, opentelemetry:get_application(kernel)),
+    ?assertMatch({otel_application_tracers, Pid, worker, [otel_application_tracers]}
+                   when is_pid(Pid),
+                 lists:keyfind(otel_application_tracers, 1,
+                               supervisor:which_children(opentelemetry_sup))),
+    ok = supervisor:terminate_child(opentelemetry_sup, otel_application_tracers),
+    ?assertEqual('$__default_tracer', opentelemetry:get_application(kernel)),
+    {ok, _} = supervisor:restart_child(opentelemetry_sup, otel_application_tracers),
+    ?assertMatch({kernel, _, _}, opentelemetry:get_application(kernel)),
+    ok = application:stop(opentelemetry),
+    ?assertEqual('$__default_tracer', opentelemetry:get_application(kernel)),
     ok.
 
 logger_metadata(_Config) ->

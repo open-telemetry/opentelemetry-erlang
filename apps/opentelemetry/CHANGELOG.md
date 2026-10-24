@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Keep application-tracer lookup in an API-owned registry and supervise its
+  registration and cleanup under `opentelemetry_sup`.
 - Align resource detection and span-sweeper configuration keys with the SDK model;
   prefix Erlang-specific environment settings with `OTEL_ERLANG_`.
 - Move Erlang SDK resource-detector and sweeper settings out of `distribution`.

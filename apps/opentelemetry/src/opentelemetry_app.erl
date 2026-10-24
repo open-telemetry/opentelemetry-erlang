@@ -49,14 +49,15 @@ start_with_configuration(Config, IntegrationConfiguration) ->
 
     case opentelemetry_sup:start_link(Config) of
         {ok, _}=SupResult ->
-            configure_tracing(Config, IntegrationConfiguration),
+            configure_tracing(Config),
+            {ok, _} = start_application_tracers(IntegrationConfiguration, Config),
             SupResult;
         Other ->
             Other
     end.
 
--spec configure_tracing(otel_configuration_sdk:configuration(), map()) -> ok.
-configure_tracing(Config, IntegrationConfiguration) ->
+-spec configure_tracing(otel_configuration_sdk:configuration()) -> ok.
+configure_tracing(Config) ->
     case {otel_configuration_sdk:disabled(Config),
           otel_configuration_sdk:tracer_provider(Config)} of
         {true, _} ->
@@ -71,16 +72,10 @@ configure_tracing(Config, IntegrationConfiguration) ->
             _ = otel_tracer_provider_sup:start_resolved(?GLOBAL_TRACER_PROVIDER_NAME,
                                                          Resource, TracerProvider),
 
-            %% must be done after the supervisor starts so that otel_tracer_server is running
-            %% TODO: make this work with release upgrades. Currently if an application's version
-            %% changes the version in the tracer will not be updated.
-            create_application_tracers(IntegrationConfiguration, Config),
-
             ok
     end.
 
 stop(_State) ->
-    clear_application_tracers(),
     ok.
 
 %% internal functions
@@ -120,33 +115,14 @@ is_atom_list(Value) when is_list(Value) ->
 is_atom_list(_) ->
     false.
 
--spec create_application_tracers(configuration(),
-                                 otel_configuration_sdk:configuration()) -> ok.
-create_application_tracers(IntegrationConfiguration, SdkConfiguration) ->
-    case {maps:get(create_application_tracers, IntegrationConfiguration),
-          otel_configuration_sdk:disabled(SdkConfiguration),
-          otel_configuration_sdk:tracer_provider(SdkConfiguration)} of
-        {false, _, _} ->
-            clear_application_tracers();
-        {_, true, _} ->
-            clear_application_tracers();
-        {_, _, undefined} ->
-            clear_application_tracers();
-        {true, false, TracerProvider} when is_map(TracerProvider) ->
-            %% TODO: make this work with release upgrades. Currently if an application's version
-            %% changes the version in the tracer will not be updated.
-            create_loaded_application_tracers(
-              maps:get(excluded_applications, IntegrationConfiguration))
-    end.
-
-clear_application_tracers() ->
-    opentelemetry:create_application_tracers([]).
-
--spec create_loaded_application_tracers([atom()]) -> ok.
-create_loaded_application_tracers(ExcludedApplications) ->
-    LoadedApplications =
-        [Application
-         || {Name, _Description, _Vsn}=Application <- application:loaded_applications(),
-            not lists:member(Name, ExcludedApplications)],
-    opentelemetry:create_application_tracers(LoadedApplications),
-    ok.
+%% Start after configuring the global provider so warmup uses the real tracer.
+%% The supervisor owns registration, restart and shutdown cleanup.
+start_application_tracers(IntegrationConfiguration, SdkConfiguration) ->
+    supervisor:start_child(opentelemetry_sup,
+      #{id => otel_application_tracers,
+        start => {otel_application_tracers, start_link,
+                  [IntegrationConfiguration, SdkConfiguration]},
+        restart => permanent,
+        shutdown => 5000,
+        type => worker,
+        modules => [otel_application_tracers]}).
