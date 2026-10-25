@@ -35,9 +35,9 @@ configuration() ->
                 sampler => sampler(),
                 limits => limits(span_limits),
                 id_generator => read("OTEL_ID_GENERATOR", fun list_to_existing_atom/1,
-                                     otel_id_generator)},
-          distribution => #{erlang => erlang_distribution()}},
-    maps:merge(Configuration, mappings([{"OTEL_LOG_LEVEL", log_level}], fun log_level/1)).
+                                     otel_id_generator)}},
+    Configuration1 = maps:merge(Configuration, sdk_extensions()),
+    maps:merge(Configuration1, mappings([{"OTEL_LOG_LEVEL", log_level}], fun log_level/1)).
 
 batch() ->
     #{exporter => exporter(),
@@ -106,7 +106,12 @@ resource() ->
     Attributes0 = maps:from_list(read("OTEL_RESOURCE_ATTRIBUTES",
                                       fun(V) -> pairs(V, "OTEL_RESOURCE_ATTRIBUTES") end, [])),
     Attributes1 = put_resource_attribute("OTEL_SERVICE_NAME", <<"service.name">>, Attributes0),
-    #{attributes => put_resource_attribute("OTEL_SERVICE_INSTANCE", <<"service.instance.id">>, Attributes1)}.
+    Resource = #{attributes => put_resource_attribute(
+                                  "OTEL_SERVICE_INSTANCE", <<"service.instance.id">>, Attributes1)},
+    case read("OTEL_ERLANG_RESOURCE_DETECTORS", fun atom_list/1, []) of
+        [] -> Resource;
+        Detectors -> Resource#{'detection/development' => #{detectors => Detectors}}
+    end.
 
 put_resource_attribute(Name, Key, Attributes) ->
     case read(Name, fun to_binary/1, undefined) of
@@ -181,18 +186,14 @@ mappings(Mappings, Parser) ->
                         end
                 end, #{}, Mappings).
 
-erlang_distribution() ->
-    #{create_application_tracers =>
-          read_first(["OTEL_CREATE_APPLICATION_TRACERS", "OTEL_REGISTER_LOADED_APPLICATIONS"],
-                     fun boolean/1, true),
-      deny_list => read("OTEL_DENY_LIST", fun atom_list/1, []),
-      resource_detectors => read("OTEL_RESOURCE_DETECTORS", fun atom_list/1, []),
-      resource_detector_timeout => read("OTEL_RESOURCE_DETECTOR_TIMEOUT", fun non_negative_integer/1, 5000),
-      sweeper => maps:merge(
-                   mappings([{"OTEL_SPAN_SWEEPER_INTERVAL", interval},
-                             {"OTEL_SPAN_SWEEPER_SPAN_TTL", span_ttl},
-                             {"OTEL_SPAN_SWEEPER_STORAGE_SIZE", storage_size}], fun timeout/1),
-                   mappings([{"OTEL_SPAN_SWEEPER_STRATEGY", strategy}],
+sdk_extensions() ->
+    #{resource_detection_timeout =>
+          read("OTEL_ERLANG_RESOURCE_DETECTION_TIMEOUT", fun non_negative_integer/1, 5000),
+      span_sweeper => maps:merge(
+                   mappings([{"OTEL_ERLANG_SPAN_SWEEPER_INTERVAL", interval},
+                             {"OTEL_ERLANG_SPAN_SWEEPER_SPAN_TTL", span_ttl},
+                             {"OTEL_ERLANG_SPAN_SWEEPER_STORAGE_SIZE", storage_size}], fun timeout/1),
+                   mappings([{"OTEL_ERLANG_SPAN_SWEEPER_STRATEGY", strategy}],
                             fun(V) -> choice(V, [{"drop", drop}, {"end_span", end_span},
                                                  {"failed_attribute_and_end_span", failed_attribute_and_end_span}]) end))}.
 

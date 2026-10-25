@@ -10,7 +10,6 @@ all() ->
     [defaults,
      application_environment,
      os_environment_precedence,
-     application_tracer_compatibility_alias,
      custom_components,
      repeated_resolution,
      application_startup].
@@ -53,12 +52,9 @@ defaults(_Config) ->
     Expected =
         #{sdk_disabled => false,
           log_level => info,
-          register_loaded_applications => undefined,
-          create_application_tracers => true,
           id_generator => otel_id_generator,
-          deny_list => [],
           resource_detectors => [otel_resource_env_var],
-          resource_detector_timeout => 5000,
+          resource_detection_timeout => 5000,
           bsp_scheduled_delay_ms => undefined,
           bsp_exporting_timeout_ms => undefined,
           bsp_max_queue_size => undefined,
@@ -73,7 +69,7 @@ defaults(_Config) ->
           metric_producers => [],
           processors => [BatchProcessor],
           sampler => {parent_based, #{root => always_on}},
-          sweeper => #{interval => timer:minutes(10),
+          span_sweeper => #{interval => timer:minutes(10),
                        strategy => drop,
                        span_ttl => timer:minutes(30),
                        storage_size => infinity},
@@ -91,13 +87,12 @@ application_environment(_Config) ->
         [{sdk_disabled, true},
          {log_level, debug},
          {id_generator, custom_id_generator},
-         {deny_list, [opentelemetry]},
          {resource_detectors, [otel_resource_detector_test]},
-         {resource_detector_timeout, 1234},
+         {resource_detection_timeout, 1234},
          {text_map_propagators, [b3, baggage]},
          {sampler, {parent_based, #{root => always_off}}},
          {processors, [{custom_span_processor, #{custom => value}}]},
-         {sweeper, #{interval => 10,
+         {span_sweeper, #{interval => 10,
                      strategy => keep,
                      span_ttl => 20,
                      storage_size => 30}},
@@ -108,13 +103,12 @@ application_environment(_Config) ->
     ?assertMatch(#{sdk_disabled := true,
                    log_level := debug,
                    id_generator := custom_id_generator,
-                   deny_list := [opentelemetry],
                    resource_detectors := [otel_resource_detector_test],
-                   resource_detector_timeout := 1234,
+                   resource_detection_timeout := 1234,
                    text_map_propagators := [b3, baggage],
                    sampler := {parent_based, #{root := always_off}},
                    processors := [{custom_span_processor, #{custom := value}}],
-                   sweeper := #{interval := 10,
+                   span_sweeper := #{interval := 10,
                                 strategy := keep,
                                 span_ttl := 20,
                                 storage_size := 30},
@@ -127,8 +121,7 @@ os_environment_precedence(_Config) ->
          {"OTEL_PROPAGATORS", "b3"},
          {"OTEL_TRACES_SAMPLER", "always_off"},
          {"OTEL_BSP_SCHEDULE_DELAY_MILLIS", "42"},
-         {"OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", "17"},
-         {"OTEL_CREATE_APPLICATION_TRACERS", "false"}],
+         {"OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT", "17"}],
     [os:putenv(Name, Value) || {Name, Value} <- OSEnv],
 
     AppEnv =
@@ -136,26 +129,15 @@ os_environment_precedence(_Config) ->
          {text_map_propagators, [baggage]},
          {sampler, always_on},
          {processors, [{otel_batch_processor, #{scheduled_delay_ms => 999}}]},
-         {attribute_count_limit, 64},
-         {create_application_tracers, true}],
+         {attribute_count_limit, 64}],
 
     ?assertMatch(#{log_level := error,
                    text_map_propagators := [b3],
                    sampler := always_off,
                    processors :=
                        [{otel_batch_processor, #{scheduled_delay_ms := 999}}],
-                   attribute_count_limit := 17,
-                   create_application_tracers := false},
+                   attribute_count_limit := 17},
                  otel_configuration:merge_with_os(AppEnv)).
-
-application_tracer_compatibility_alias(_Config) ->
-    ?assertMatch(#{create_application_tracers := false},
-                 otel_configuration:merge_with_os(
-                   [{register_loaded_applications, false}])),
-    ?assertMatch(#{create_application_tracers := true},
-                 otel_configuration:merge_with_os(
-                   [{register_loaded_applications, false},
-                    {create_application_tracers, true}])).
 
 custom_components(_Config) ->
     CustomSampler = {static_sampler, #{decision => drop}},
@@ -178,7 +160,7 @@ repeated_resolution(_Config) ->
                         #{scheduled_delay_ms => 25,
                           exporter => {custom_exporter, #{endpoint => local}}}}]},
          {sampler, {trace_id_ratio_based, 0.25}},
-         {resource_detector_timeout, 250}],
+         {resource_detection_timeout, 250}],
 
     First = otel_configuration:merge_with_os(AppEnv),
     Second = otel_configuration:merge_with_os(AppEnv),

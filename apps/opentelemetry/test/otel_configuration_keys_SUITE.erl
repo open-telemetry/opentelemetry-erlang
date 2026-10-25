@@ -9,7 +9,8 @@
 
 all() -> [native_unknown_keys_fail, json_unknown_keys_warn, does_not_create_atoms,
           native_tuples_and_named_providers, legacy_resource_shape,
-          custom_properties_are_opaque, rejects_binary_module_names, rejects_runtime_exporter_markers].
+          custom_properties_are_opaque, distribution_is_opaque,
+          rejects_binary_module_names, rejects_runtime_exporter_markers].
 
 native_unknown_keys_fail(_Config) ->
     %% Each schema location is distinct coverage. Binary key lookup is shared,
@@ -97,6 +98,17 @@ custom_properties_are_opaque(_Config) ->
             {{custom_exporter, self()}, self()}, {#{custom_exporter => null}, #{}},
             {#{custom_exporter => undefined}, undefined}, {#{custom_exporter => Options}, Options}]).
 
+distribution_is_opaque(_Config) ->
+    Distribution = #{splunk => #{future_setting => true},
+                     new_relic => #{nested => #{setting => value}}},
+    ?assertMatch({ok, _}, resolve_native(#{distribution => Distribution})),
+    ?assertMatch({ok, _},
+                 otel_configuration_test_utils:resolve_declarative(
+                   #{<<"file_format">> => <<"1.1">>,
+                     <<"distribution">> => json_keys(Distribution)})),
+    ?assertEqual({error, {invalid_configuration, [distribution], []}},
+                 resolve_native(#{distribution => []})).
+
 cases() ->
     [{#{tracer_providers => #{}}, [tracer_providers]},
      {#{resource => #{atributes => #{}}}, [resource, atributes]},
@@ -125,9 +137,8 @@ cases() ->
       [tracer_provider, sampler, parent_based, root, trace_id_ratio_based, ration]},
      {provider(#{sampler => #{always_on => #{typo => true}}}), [tracer_provider, sampler, always_on, typo]},
      {provider(#{id_generator => #{random => #{typo => true}}}), [tracer_provider, id_generator, random, typo]},
-     {#{distribution => #{erlagn => #{}}}, [distribution, erlagn]},
-     {#{distribution => #{erlang => #{resource_detector_timeot => 100}}}, [distribution, erlang, resource_detector_timeot]},
-     {#{distribution => #{erlang => #{sweeper => #{span_ttl_ms => 100}}}}, [distribution, erlang, sweeper, span_ttl_ms]}].
+     {#{resource_detection_timeot => 100}, [resource_detection_timeot]},
+     {#{span_sweeper => #{span_ttl_ms => 100}}, [span_sweeper, span_ttl_ms]}].
 
 provider(Options) -> #{tracer_provider => maps:merge(#{processors => []}, Options)}.
 exporter(Kind, Options) -> provider(#{processors => [#{batch => #{exporter => #{Kind => Options}}}]}).
@@ -209,6 +220,8 @@ does_not_create_atoms(_Config) ->
              {error, {unsupported_configuration, [tracer_provider, processors], Name}}},
             {exporter(Name, #{}),
              {error, {unsupported_configuration, [tracer_provider, processors, exporter], Name}}},
-            {#{distribution => #{erlang => #{resource_detectors => [Name]}}},
-             {error, {unsupported_configuration, [distribution, erlang, resource_detectors], [Name]}}}]),
+            {#{resource => #{'detection/development' =>
+                                  #{detectors => [#{Name => null}]}}},
+             {error, {unsupported_configuration,
+                      [resource, 'detection/development', detectors], Name}}}]),
     ?assertException(error, badarg, binary_to_existing_atom(Name, utf8)).

@@ -103,7 +103,9 @@ startup_configured_service_name(_Config) ->
         os:putenv("OTEL_RESOURCE_ATTRIBUTES", "service.name=cttest,service.version=1.1.1"),
         configure_resource_startup(),
         application:set_env(opentelemetry, resource,
-                            #{attributes => #{<<"service.name">> => <<"configured">>}}),
+                            #{attributes => #{<<"service.name">> => <<"configured">>},
+                              'detection/development' =>
+                                  #{detectors => [otel_resource_env_var]}}),
         {ok, _} = application:ensure_all_started(opentelemetry),
         Resource = otel_tracer_provider:resource(),
         ?assertMatch(#{'service.name' := <<"configured">>,
@@ -118,10 +120,10 @@ startup_configured_service_name(_Config) ->
 
 configure_resource_startup() ->
     application:set_env(opentelemetry, tracer_provider, #{processors => []}),
-    application:set_env(
-      opentelemetry,
-      distribution,
-      #{erlang => #{resource_detectors => [otel_resource_env_var]}}).
+    application:set_env(opentelemetry,
+                        resource,
+                        #{'detection/development' =>
+                              #{detectors => [otel_resource_env_var]}}).
 
 
 crash_detector(_Config) ->
@@ -208,11 +210,11 @@ app_env_resource(_Config) ->
     SchemaUrl = <<"https://opentelemetry.io/schemas/1.8.0">>,
     try
         application:set_env(opentelemetry, tracer_provider, #{processors => []}),
-        application:set_env(opentelemetry, distribution, #{erlang => #{resource_detectors => []}}),
         application:set_env(opentelemetry, resource,
                             #{attributes => #{<<"service.name">> => <<"x">>},
                               attributes_list => <<"service.name=from-list,region=ca">>,
-                              schema_url => SchemaUrl}),
+                              schema_url => SchemaUrl,
+                              'detection/development' => #{detectors => []}}),
         {ok, _} = application:ensure_all_started(opentelemetry),
         Resource = case otel_tracer_provider:resource() of
                        undefined -> error(missing_resource);
@@ -425,10 +427,8 @@ start_net_kernel_and_detector(NetKernelArgs) ->
 
 detector_configuration(Attributes, Detectors) ->
     {ok, Model} = otel_configuration_model:from_application_env(
-        [{resource, #{attributes => maps:from_list(Attributes)}},
-         {distribution,
-          #{erlang =>
-                #{resource_detectors => Detectors,
-                  resource_detector_timeout => 100}}}]),
+        [{resource, #{attributes => maps:from_list(Attributes),
+                      'detection/development' => #{detectors => Detectors}}},
+         {resource_detection_timeout, 100}]),
     {ok, RuntimeConfiguration} = otel_configuration_sdk:create(Model),
     RuntimeConfiguration.

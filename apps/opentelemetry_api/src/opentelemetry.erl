@@ -31,7 +31,6 @@
 -export([start_tracer_provider/2,
          set_default_tracer/1,
          set_default_tracer/2,
-         create_application_tracers/1,
          get_tracer/0,
          get_tracer/1,
          get_tracer/3,
@@ -149,7 +148,6 @@
 
 -define(TRACER_KEY(TracerProvider, Name), {?MODULE, TracerProvider, tracer, Name}).
 -define(DEFAULT_TRACER_KEY(TracerProvider), ?TRACER_KEY(TracerProvider, '$__default_tracer')).
--define(MODULE_TO_APPLICATION_KEY, {?MODULE, otel_module_to_application_key}).
 -define(TEXT_MAP_EXTRACTOR_KEY, {?MODULE, text_map_extractor}).
 -define(TEXT_MAP_INJECTOR_KEY, {?MODULE, text_map_injector}).
 
@@ -189,26 +187,6 @@ set_tracer(Name, Vsn, SchemaUrl, Tracer) ->
       Tracer:: opentelemetry:tracer().
 set_tracer(TracerProvider, Name, Vsn, SchemaUrl, Tracer) ->
     verify_and_set_term(Tracer, ?TRACER_KEY(TracerProvider, {Name, Vsn, SchemaUrl}), otel_tracer).
-
--spec create_application_tracers([{Application, Description, Vsn}]) -> ok when
-      Application :: atom(),
-      Description :: string(),
-      Vsn :: string().
-create_application_tracers(Applications) ->
-    TracerMap = lists:foldl(fun({Name, _Description, Version}, Acc) ->
-                                    Vsn = vsn_to_binary(Version),
-                                    SchemaUrl = application:get_env(Name, otel_schema_url, undefined),
-                                    _ = get_tracer(Name, Version, SchemaUrl),
-                                    maps:merge(Acc, module_to_application(Name, Vsn, SchemaUrl))
-                            end, #{}, Applications),
-    persistent_term:put(?MODULE_TO_APPLICATION_KEY, TracerMap).
-
-%% creates a map of modules to application name, version and schema_url tuple
-module_to_application(Name, Version, SchemaUrl) ->
-    {ok, Modules} = application:get_key(Name, modules),
-    lists:foldl(fun(M, Acc) ->
-                        Acc#{M => {Name, Version, SchemaUrl}}
-                end, #{}, Modules).
 
 %% @doc Returns the default global tracer.
 %%
@@ -292,8 +270,7 @@ get_application_scope(ModuleName) ->
       Vsn :: unicode:unicode_binary() | undefined,
       SchemaUrl :: uri_string:uri_string() | undefined.
 get_application(ModuleName) ->
-    Map = persistent_term:get(?MODULE_TO_APPLICATION_KEY, #{}),
-    maps:get(ModuleName, Map, '$__default_tracer').
+    otel_application_registry:lookup(ModuleName).
 
 %% setting the propagator is the same as setting the same injector and extractor
 set_text_map_propagator(Propagator) ->

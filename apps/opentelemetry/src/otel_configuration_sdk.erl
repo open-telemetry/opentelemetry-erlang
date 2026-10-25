@@ -27,7 +27,6 @@
          value/3,
          disabled/1,
          tracer_provider/1,
-         erlang_distribution/1,
          span_processors/1,
          span_exporter_component/1,
          resource/1,
@@ -95,23 +94,13 @@
 -type tracer_provider_configuration() ::
         #{processors := [span_processor_component()],
           sampler := sampler_component(),
-          id_generator := id_generator_component(),
-          deny_list := [atom() | {atom(), string()}]}.
--type erlang_distribution_configuration() ::
-        #{create_application_tracers => boolean(),
-          deny_list => [atom() | {atom(), string()}],
-          resource_detectors => [module() | {module(), term()}],
-          resource_detector_timeout => non_neg_integer(),
-          sweeper => sweeper_configuration(),
-          term() => term()}.
+          id_generator := id_generator_component()}.
 -type sweeper_configuration() ::
         #{interval => timeout(),
           strategy => drop | end_span | failed_attribute_and_end_span |
                       fun((opentelemetry:span()) -> ok),
           span_ttl => timeout(),
           storage_size => non_neg_integer() | infinity}.
--type distribution_configuration() ::
-        #{erlang := erlang_distribution_configuration()}.
 -type configuration() ::
         #{source := otel_configuration_model:t(),
           file_format := binary(),
@@ -120,7 +109,9 @@
           text_map_propagators := [atom() | {module(), component_properties()}],
           span_limits := resolved_span_limits(),
           tracer_provider := tracer_provider_configuration() | undefined,
-          distribution := distribution_configuration()}.
+          resource_detectors => [module() | {module(), term()}],
+          resource_detection_timeout => non_neg_integer(),
+          span_sweeper => sweeper_configuration()}.
 
 -export_type([error_reason/0,
               configuration/0,
@@ -136,9 +127,7 @@
               processor_options/0,
               sampler_options/0,
               tracer_provider_options/0,
-              tracer_provider_configuration/0,
-              distribution_configuration/0,
-              erlang_distribution_configuration/0]).
+              tracer_provider_configuration/0]).
 
 -spec create(otel_configuration_model:t()) ->
           {ok, configuration()} | {error, error_reason()}.
@@ -148,20 +137,20 @@ create(Model) ->
         otel_configuration_keys:validate(Raw, otel_configuration_model:source(Model)),
         warn_unsupported(log_level, Raw, [log_level], fun log_level/2),
         validate_distribution(Raw),
+        validate_span_sweeper(Raw),
         validate_attribute_limits(Raw),
         warn_unsupported(logger_provider, Raw, [logger_provider], fun component_map/2),
         warn_unsupported(meter_provider, Raw, [meter_provider], fun component_map/2),
-        Distribution = #{erlang := Erlang} = resolve_distribution(
-                                               Raw, otel_configuration_model:source(Model)),
-        Configuration =
+        Extensions = resolve_sdk_extensions(Raw, otel_configuration_model:source(Model)),
+        Configuration = maps:merge(
             #{source => Model,
               file_format => otel_configuration_model:file_format(Model),
               disabled => resolve_disabled(Raw),
               resource => resolve_resource(Raw),
               text_map_propagators => resolve_text_map_propagators(Raw),
               span_limits => resolve_span_limits(Raw),
-              tracer_provider => resolve_tracer_provider(Raw, Erlang),
-              distribution => Distribution},
+              tracer_provider => resolve_tracer_provider(Raw)},
+            Extensions),
         {ok, Configuration}
     catch
         throw:{declarative_configuration_error, Reason} ->
@@ -176,7 +165,7 @@ create_tracer_provider(Configuration) ->
         otel_configuration_keys:validate_tracer_provider(Configuration),
         %% Span limits are global and can only be installed at SDK startup.
         warn_unsupported(limits, Configuration, [tracer_provider, limits], fun component_map/2),
-        {ok, resolve_tracer_provider_configuration(Configuration, #{})}
+        {ok, resolve_tracer_provider_configuration(Configuration)}
     catch
         throw:{declarative_configuration_error, Reason} ->
             {error, Reason}
@@ -189,10 +178,6 @@ disabled(Configuration) ->
 -spec tracer_provider(configuration()) -> tracer_provider_configuration() | undefined.
 tracer_provider(Configuration) ->
     maps:get(tracer_provider, Configuration).
-
--spec erlang_distribution(configuration()) -> erlang_distribution_configuration().
-erlang_distribution(Configuration) ->
-    maps:get(erlang, maps:get(distribution, Configuration), #{}).
 
 -spec span_processors(tracer_provider_configuration()) -> [span_processor_component()].
 span_processors(TracerProvider) ->
@@ -218,8 +203,6 @@ resolve_resource(Configuration) ->
         error -> undefined;
         {ok, null} -> undefined;
         {ok, ResourceConfig} when is_map(ResourceConfig) ->
-            warn_unsupported('detection/development', ResourceConfig,
-                             [resource, 'detection/development'], fun component_map/2),
             ListAttributes = resource_attribute_list(value(attributes_list, ResourceConfig, <<>>)),
             SchemaUrl = value(schema_url, ResourceConfig, undefined),
             resolve_resource_attributes(find(attributes, ResourceConfig),
@@ -337,80 +320,68 @@ validate_distribution(Configuration) ->
     case find(distribution, Configuration) of
         error -> ok;
         {ok, null} -> ok;
-        {ok, Distribution} when is_map(Distribution) ->
-            case find(erlang, Distribution) of
-                error -> ok;
-                {ok, null} -> ok;
-                {ok, Erlang} when is_map(Erlang) -> validate_erlang_distribution(Erlang);
-                {ok, Value} -> fail({invalid_configuration, [distribution, erlang], Value})
-            end;
+        {ok, Distribution} when is_map(Distribution) -> ok;
         {ok, Value} ->
             fail({invalid_configuration, [distribution], Value})
     end.
 
-resolve_distribution(Configuration, Source) ->
-    case find(distribution, Configuration) of
-        error -> #{erlang => #{}};
-        {ok, null} -> #{erlang => #{}};
-        {ok, Distribution} when is_map(Distribution) ->
-            case find(erlang, Distribution) of
-                error -> #{erlang => #{}};
-                {ok, null} -> #{erlang => #{}};
-                {ok, Erlang} when is_map(Erlang) ->
-                    #{erlang => resolve_erlang_distribution(Erlang, Source)}
-            end
-    end.
-
-resolve_erlang_distribution(Erlang, Source) ->
-    Path = [distribution, erlang],
-    Resolved0 = copy_validated(create_application_tracers, Erlang, #{}, Path,
-                               fun boolean_value/2),
-    Resolved1 = copy_validated(resource_detector_timeout, Erlang, Resolved0, Path,
+resolve_sdk_extensions(Configuration, Source) ->
+    Resolved0 = copy_validated(resource_detection_timeout, Configuration, #{}, [],
                                fun non_negative_integer/2),
-    Resolved2 = copy_validated(deny_list, Erlang, Resolved1, Path,
-                               fun(Value, P) -> native_distribution_entries(
-                                                   Value, P, Source, fun deny_list_entry/2) end),
-    Resolved = copy_validated(resource_detectors, Erlang, Resolved2, Path,
-                              fun(Value, P) -> native_distribution_entries(
-                                                  Value, P, Source, fun resource_detector/2) end),
-    case find(sweeper, Erlang) of
-        {ok, Sweeper} when is_map(Sweeper) ->
-            Resolved#{sweeper => resolve_sweeper(Sweeper)};
+    Resolved = case resolve_resource_detectors(Configuration, Source) of
+                   undefined -> Resolved0;
+                   Detectors -> Resolved0#{resource_detectors => Detectors}
+               end,
+    case find(span_sweeper, Configuration) of
+        {ok, SpanSweeper} when is_map(SpanSweeper) ->
+            Resolved#{span_sweeper => resolve_span_sweeper(SpanSweeper)};
         _ ->
             Resolved
     end.
 
-%% JSON cannot select Erlang modules or application atoms. Empty lists are safe
-%% and useful for explicitly disabling these distribution extensions.
-native_distribution_entries([], _Path, _Source, _Validator) -> [];
-native_distribution_entries(Values, Path, declarative, _Validator) when is_list(Values) ->
-    fail({unsupported_configuration, Path, Values});
-native_distribution_entries(Values, Path, _Source, Validator) when is_list(Values) ->
-    [Validator(Value, Path) || Value <- Values];
-native_distribution_entries(Value, Path, _Source, _Validator) ->
-    fail({invalid_configuration, Path, Value}).
+resolve_resource_detectors(Configuration, Source) ->
+    Path = [resource, 'detection/development', detectors],
+    Resource = value(resource, Configuration, #{}),
+    Detection = value('detection/development', Resource, #{}),
+    case find(detectors, Detection) of
+        error -> undefined;
+        {ok, null} -> undefined;
+        {ok, Detectors} when is_list(Detectors) ->
+            [resource_detector(Detector, Path, Source) || Detector <- Detectors];
+        {ok, Value} -> fail({invalid_configuration, Path, Value})
+    end.
 
-resource_detector(Module, _Path) when is_atom(Module) -> Module;
-resource_detector({Module, _}=Detector, _Path) when is_atom(Module) -> Detector;
-resource_detector(Value, Path) -> fail({invalid_configuration, Path, Value}).
+resource_detector(Module, _Path, Source) when is_atom(Module), Source =/= declarative -> Module;
+resource_detector({Module, _}=Detector, _Path, Source)
+  when is_atom(Module), Source =/= declarative -> Detector;
+resource_detector(Component, Path, Source) ->
+    case otel_configuration_utils:component_entry(Component) of
+        {ok, {Name, Options}} -> resource_detector_component(Name, Options, Path, Source);
+        error -> fail({invalid_configuration, Path, Component})
+    end.
 
-deny_list_entry(Name, _Path) when is_atom(Name) -> Name;
-deny_list_entry({Name, Version}=Entry, Path) when is_atom(Name), is_list(Version) ->
-    case io_lib:char_list(Version) of
-        true -> Entry;
-        false -> fail({invalid_configuration, Path, Entry})
-    end;
-deny_list_entry(Value, Path) -> fail({invalid_configuration, Path, Value}).
+resource_detector_component(env, null, _Path, _Source) -> otel_resource_env_var;
+resource_detector_component(env, Options, Path, _Source) ->
+    {otel_resource_env_var, component_map(Options, Path ++ [env])};
+resource_detector_component(<<"env">>, Options, Path, Source) ->
+    resource_detector_component(env, Options, Path, Source);
+resource_detector_component(Module, null, _Path, Source)
+  when is_atom(Module), Source =/= declarative -> Module;
+resource_detector_component(Module, Options, Path, Source)
+  when is_atom(Module), Source =/= declarative ->
+    {Module, component_map(Options, Path ++ [Module])};
+resource_detector_component(Name, _Options, Path, _Source) ->
+    fail({unsupported_configuration, Path, Name}).
 
-resolve_sweeper(Sweeper) ->
-    Path = [distribution, erlang, sweeper],
-    Resolved0 = copy_validated(interval, Sweeper, #{}, Path,
+resolve_span_sweeper(SpanSweeper) ->
+    Path = [span_sweeper],
+    Resolved0 = copy_validated(interval, SpanSweeper, #{}, Path,
                                fun non_negative_integer_or_infinity/2),
-    Resolved1 = copy_validated(span_ttl, Sweeper, Resolved0, Path,
+    Resolved1 = copy_validated(span_ttl, SpanSweeper, Resolved0, Path,
                                fun non_negative_integer_or_infinity/2),
-    Resolved2 = copy_validated(storage_size, Sweeper, Resolved1, Path,
+    Resolved2 = copy_validated(storage_size, SpanSweeper, Resolved1, Path,
                                fun non_negative_integer_or_infinity/2),
-    copy_validated(strategy, Sweeper, Resolved2, Path,
+    copy_validated(strategy, SpanSweeper, Resolved2, Path,
                    fun sweeper_strategy/2).
 
 sweeper_strategy(Value, _Path) when is_function(Value, 1) -> Value;
@@ -421,13 +392,13 @@ sweeper_strategy(Value, Path) ->
           {<<"failed_attribute_and_end_span">>, failed_attribute_and_end_span}],
          Path).
 
-validate_erlang_distribution(Erlang) ->
-    case find(sweeper, Erlang) of
+validate_span_sweeper(Configuration) ->
+    case find(span_sweeper, Configuration) of
         error -> ok;
         {ok, null} -> ok;
-        {ok, Sweeper} when is_map(Sweeper) -> ok;
+        {ok, SpanSweeper} when is_map(SpanSweeper) -> ok;
         {ok, Value} ->
-            fail({invalid_configuration, [distribution, erlang, sweeper], Value})
+            fail({invalid_configuration, [span_sweeper], Value})
     end.
 
 log_level(Value, Path) ->
@@ -519,15 +490,15 @@ propagator_name(Name) ->
         _ -> fail({unsupported_configuration, [propagator, composite_list], Name})
     end.
 
-resolve_tracer_provider(Configuration, Erlang) ->
+resolve_tracer_provider(Configuration) ->
     case find(tracer_provider, Configuration) of
         error -> undefined;
         {ok, null} -> undefined;
         {ok, TracerProvider} ->
-            resolve_tracer_provider_configuration(TracerProvider, Erlang)
+            resolve_tracer_provider_configuration(TracerProvider)
     end.
 
-resolve_tracer_provider_configuration(TracerProvider, Erlang) when is_map(TracerProvider) ->
+resolve_tracer_provider_configuration(TracerProvider) when is_map(TracerProvider) ->
     warn_unsupported('tracer_configurator/development', TracerProvider,
                      [tracer_provider, 'tracer_configurator/development'],
                      fun component_map/2),
@@ -536,9 +507,8 @@ resolve_tracer_provider_configuration(TracerProvider, Erlang) when is_map(Tracer
                           [tracer_provider, processors]),
     #{processors => resolve_span_processors(Processors),
       sampler => resolve_sampler(TracerProvider),
-      id_generator => resolve_id_generator(TracerProvider),
-      deny_list => maps:get(deny_list, Erlang, [])};
-resolve_tracer_provider_configuration(Value, _Erlang) ->
+      id_generator => resolve_id_generator(TracerProvider)};
+resolve_tracer_provider_configuration(Value) ->
     fail({invalid_configuration, [tracer_provider], Value}).
 
 resolve_sampler(TracerProvider) ->

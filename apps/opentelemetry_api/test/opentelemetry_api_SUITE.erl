@@ -21,6 +21,7 @@ all() ->
      validations,
      update_span_data,
      noop_with_span,
+     application_registry,
      can_create_link_from_span,
      hex_trace_ids].
 
@@ -32,6 +33,20 @@ init_per_suite(Config) ->
     Config.
 
 end_per_suite(_Config) ->
+    otel_application_registry:clear(),
+    ok.
+
+application_registry(_Config) ->
+    otel_application_registry:clear(),
+    ?assertEqual('$__default_tracer', opentelemetry:get_application(?MODULE)),
+
+    Scope = {opentelemetry_api, <<"2.0.0">>, undefined},
+    ok = otel_application_registry:replace(#{?MODULE => Scope}),
+    ?assertEqual(Scope, otel_application_registry:lookup(?MODULE)),
+    ?assertEqual(Scope, opentelemetry:get_application(?MODULE)),
+
+    ok = otel_application_registry:replace(#{}),
+    ?assertEqual('$__default_tracer', opentelemetry:get_application(?MODULE)),
     ok.
 
 can_create_link_from_span(_Config) ->

@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - "main"
+      - "2.0"
     types: [opened, reopened, synchronize, labeled]
 
   push:
@@ -119,8 +120,8 @@ jobs:
     name: Dialyze on Elixir ${{ matrix.elixir_version }} (OTP ${{ matrix.otp_version }}) and ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["27.2.4"]
-        elixir_version: ["1.18.1"]
+        otp_version: ["29.1"]
+        elixir_version: ["1.20.4"]
         rebar3_version: ["3.25.1"]
         os: [ubuntu-24.04]
     env:

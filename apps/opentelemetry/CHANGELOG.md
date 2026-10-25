@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Keep application-tracer lookup in an API-owned registry and supervise its
+  registration and cleanup under `opentelemetry_sup`.
+- Align resource detection and span-sweeper configuration keys with the SDK model;
+  prefix Erlang-specific environment settings with `OTEL_ERLANG_`.
+- Move Erlang SDK resource-detector and sweeper settings out of `distribution`.
+- Configure automatic application tracers and excluded OTP applications through the
+  `opentelemetry` application environment, separately from SDK configuration.
 - Use erl_error:format_exception for exception.stacktrace by @arseniycodes in [#988](https://github.com/open-telemetry/opentelemetry-erlang/pull/988)
 
 ## New Contributors

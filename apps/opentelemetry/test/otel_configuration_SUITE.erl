@@ -22,7 +22,7 @@ all() ->
      log_level, propagators, propagators_b3, propagators_b3multi, otlp_exporter,
      jaeger_exporter, zipkin_exporter, none_exporter, app_env_exporter,
      otlp_metrics_exporter, none_metrics_exporter, span_limits, bad_span_limits,
-     bad_app_config, deny_list, resource_detectors, span_processors,
+     bad_app_config, resource_detectors, span_processors,
      processor_exporter_not_overridden,
      processor_config_precedence_with_os_env].
 
@@ -130,14 +130,8 @@ init_per_testcase(none_metrics_exporter, Config) ->
     setup_env(Vars),
 
     [{os_vars, Vars} | Config];
-init_per_testcase(deny_list, Config) ->
-    Vars = [{"OTEL_DENY_LIST", "opentelemetry_exporter,opentelemetry,nonexisting_atom"}],
-
-    setup_env(Vars),
-
-    [{os_vars, Vars} | Config];
 init_per_testcase(resource_detectors, Config) ->
-    Vars = [{"OTEL_RESOURCE_DETECTORS", "opentelemetry_exporter,opentelemetry,nonexisting_atom"}],
+    Vars = [{"OTEL_ERLANG_RESOURCE_DETECTORS", "opentelemetry_exporter,opentelemetry,nonexisting_atom"}],
 
     setup_env(Vars),
 
@@ -339,15 +333,8 @@ none_metrics_exporter(_Config) ->
 
     ok.
 
-deny_list(_Config) ->
-    %% nonexisting_atom in the OTEL_DENY_LIST os var is dropped bc it isn't an existing atom
-    ?assertMatch(#{deny_list := [opentelemetry_exporter,opentelemetry]},
-                 otel_configuration:merge_with_os([])),
-
-    ok.
-
 resource_detectors(_Config) ->
-    %% nonexisting_atom in the OTEL_RESOURCE_DETECTORS os var is dropped bc it isn't an existing atom
+    %% nonexisting_atom in OTEL_ERLANG_RESOURCE_DETECTORS is dropped because it is not an existing atom
     ?assertMatch(#{resource_detectors := [opentelemetry_exporter,opentelemetry]},
                  otel_configuration:merge_with_os([])),
 

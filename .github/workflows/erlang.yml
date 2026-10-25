@@ -5,6 +5,7 @@ on:
   pull_request:
     branches:
       - "main"
+      - "2.0"
     types: [opened, reopened, synchronize, labeled]
 
   push:
@@ -93,7 +94,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        otp_version: ["28.1"]
+        otp_version: ["29.1"]
         rebar3_version: ["3.25.1"]
         os: [ubuntu-24.04]
     steps:
