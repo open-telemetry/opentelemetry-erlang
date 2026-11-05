@@ -19,6 +19,6 @@ services:
     privileged: true
 
   jaeger-all-in-one:
-    image: jaegertracing/jaeger:2.21.0@sha256:3d0ac795ff98aa04d1be04311d2dac6c25b4bfc8322dc02e53bc5b170c5018c3
+    image: jaegertracing/jaeger:2.23.0@sha256:3823829974ccfc2485d2e48b165579091f32295022ae80ca49704e2f4834116e
     ports:
       - "16686:16686"
