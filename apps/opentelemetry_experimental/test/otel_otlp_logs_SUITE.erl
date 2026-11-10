@@ -18,6 +18,8 @@ all() ->
      charlist_ids,
      raw_binary_ids,
      ids_without_trace_flags,
+     trace_context_not_in_attributes,
+     signed_trace_flags_default_to_zero,
      non_hex_ids_dropped,
      wrong_size_ids_dropped,
      partially_invalid_ids_dropped,
@@ -33,7 +35,7 @@ hex_binary_ids(_Config) ->
                                     otel_trace_flags => <<"01">>}),
     ?assertMatch(#{trace_id := ?TRACE_ID,
                    span_id := ?SPAN_ID,
-                   trace_flags := 1}, LogRecord).
+                   flags := 1}, LogRecord).
 
 uppercase_hex_binary_ids(_Config) ->
     LogRecord = export_log_record(#{otel_trace_id => <<"ABCDEF0123456789ABCDEF0123456789">>,
@@ -41,7 +43,7 @@ uppercase_hex_binary_ids(_Config) ->
                                     otel_trace_flags => <<"01">>}),
     ?assertMatch(#{trace_id := ?TRACE_ID,
                    span_id := ?SPAN_ID,
-                   trace_flags := 1}, LogRecord).
+                   flags := 1}, LogRecord).
 
 %% older versions of `otel_span:hex_span_ctx/1' returned charlists
 charlist_ids(_Config) ->
@@ -50,7 +52,7 @@ charlist_ids(_Config) ->
                                     otel_trace_flags => <<"01">>}),
     ?assertMatch(#{trace_id := ?TRACE_ID,
                    span_id := ?SPAN_ID,
-                   trace_flags := 1}, LogRecord).
+                   flags := 1}, LogRecord).
 
 %% raw ids pass through unchanged
 raw_binary_ids(_Config) ->
@@ -59,14 +61,29 @@ raw_binary_ids(_Config) ->
                                     otel_trace_flags => <<"00">>}),
     ?assertMatch(#{trace_id := ?TRACE_ID,
                    span_id := ?SPAN_ID,
-                   trace_flags := 0}, LogRecord).
+                   flags := 0}, LogRecord).
 
 ids_without_trace_flags(_Config) ->
     LogRecord = export_log_record(#{otel_trace_id => ?HEX_TRACE_ID,
                                     otel_span_id => ?HEX_SPAN_ID}),
     ?assertMatch(#{trace_id := ?TRACE_ID,
                    span_id := ?SPAN_ID}, LogRecord),
-    ?assertNot(maps:is_key(trace_flags, LogRecord)).
+    ?assertNot(maps:is_key(flags, LogRecord)).
+
+%% trace context goes in the record's own fields, not in its attributes
+trace_context_not_in_attributes(_Config) ->
+    LogRecord = export_log_record(#{otel_trace_id => ?HEX_TRACE_ID,
+                                    otel_span_id => ?HEX_SPAN_ID,
+                                    otel_trace_flags => <<"01">>,
+                                    request_id => <<"abc">>}),
+    ?assertMatch(#{attributes := [#{key := <<"request_id">>}]}, LogRecord).
+
+%% a sign must not turn the flags negative and set the reserved bits
+signed_trace_flags_default_to_zero(_Config) ->
+    LogRecord = export_log_record(#{otel_trace_id => ?HEX_TRACE_ID,
+                                    otel_span_id => ?HEX_SPAN_ID,
+                                    otel_trace_flags => <<"-1">>}),
+    ?assertMatch(#{flags := 0}, LogRecord).
 
 %% ids that can't be decoded must be dropped, along with the trace
 %% flags, instead of being exported as garbage
@@ -117,7 +134,7 @@ export_log_record(SpanCtxMetadata) ->
 assert_no_span_ctx(LogRecord) ->
     ?assertNot(maps:is_key(trace_id, LogRecord)),
     ?assertNot(maps:is_key(span_id, LogRecord)),
-    ?assertNot(maps:is_key(trace_flags, LogRecord)).
+    ?assertNot(maps:is_key(flags, LogRecord)).
 
 non_chardata_list_ids_dropped(_Config) ->
     LogRecord = export_log_record(#{otel_trace_id => [an_atom, "abc"],
@@ -133,5 +150,5 @@ non_hex_trace_flags_default_to_zero(_Config) ->
                                     otel_trace_flags => <<"zz">>}),
     ?assertEqual(<<16#00112233445566778899aabbccddeeff:128>>, maps:get(trace_id, LogRecord)),
     ?assertEqual(<<16#0011223344556677:64>>, maps:get(span_id, LogRecord)),
-    ?assertEqual(0, maps:get(trace_flags, LogRecord)),
+    ?assertEqual(0, maps:get(flags, LogRecord)),
     ok.
