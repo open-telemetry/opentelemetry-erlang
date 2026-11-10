@@ -66,8 +66,7 @@ logs_by_scope(ScopeLogs, Config) ->
 
 log_record(#{level := Level,
              msg := Body,
-             meta := Metadata=#{time := ObservedTime}}, Config) ->
-    Time = opentelemetry:timestamp(),
+             meta := Metadata=#{time := Time}}, Config) ->
     {SeverityNumber, SeverityText} = level_to_severity(Level),
     Body1 = case format_msg(Body, Metadata, Config) of
                 S when ?IS_STRING(S) ->
@@ -103,10 +102,11 @@ log_record(#{level := Level,
             #{}
     end,
 
+    %% logger calls the handler as the event is logged, so it is observed when it occurs
+    TimeNano = erlang:convert_time_unit(Time, microsecond, nanosecond),
 
-
-    LogRecord#{time_unix_nano          => opentelemetry:timestamp_to_nano(Time),
-               observed_time_unix_nano => erlang:convert_time_unit(ObservedTime, microsecond, nanosecond),
+    LogRecord#{time_unix_nano          => TimeNano,
+               observed_time_unix_nano => TimeNano,
                severity_number         => SeverityNumber,
                severity_text           => SeverityText,
                body                    => otel_otlp_common:to_any_value(Body1),
