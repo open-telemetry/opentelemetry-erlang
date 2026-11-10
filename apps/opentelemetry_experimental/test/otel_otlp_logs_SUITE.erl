@@ -23,7 +23,8 @@ all() ->
      partially_invalid_ids_dropped,
      no_span_ctx_metadata,
      non_chardata_list_ids_dropped,
-     non_hex_trace_flags_default_to_zero].
+     non_hex_trace_flags_default_to_zero,
+     severity_text_is_logger_level].
 
 %% ids set by `otel_span:hex_span_ctx/1' are lowercase hex binaries and
 %% must be decoded to the raw bytes the OTLP LogRecord expects
@@ -135,3 +136,8 @@ non_hex_trace_flags_default_to_zero(_Config) ->
     ?assertEqual(<<16#0011223344556677:64>>, maps:get(span_id, LogRecord)),
     ?assertEqual(0, maps:get(trace_flags, LogRecord)),
     ok.
+
+%% severity text is the level as logger names it, as the logs data model asks
+severity_text_is_logger_level(_Config) ->
+    ?assertMatch(#{severity_number := 'SEVERITY_NUMBER_INFO',
+                   severity_text := <<"info">>}, export_log_record(#{})).

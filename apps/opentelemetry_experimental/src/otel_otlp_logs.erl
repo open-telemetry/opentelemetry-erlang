@@ -305,18 +305,18 @@ chardata_to_list(Chardata) ->
     end.
 
 level_to_severity(emergency)->
-    {'SEVERITY_NUMBER_FATAL', <<"SEVERITY_NUMBER_FATAL">>};
+    {'SEVERITY_NUMBER_FATAL', <<"emergency">>};
 level_to_severity(alert)->
-    {'SEVERITY_NUMBER_ERROR3', <<"SEVERITY_NUMBER_ERROR3">>};
+    {'SEVERITY_NUMBER_ERROR3', <<"alert">>};
 level_to_severity(critical)->
-    {'SEVERITY_NUMBER_ERROR2', <<"SEVERITY_NUMBER_ERROR2">>};
+    {'SEVERITY_NUMBER_ERROR2', <<"critical">>};
 level_to_severity(error)->
-    {'SEVERITY_NUMBER_ERROR', <<"SEVERITY_NUMBER_ERROR">>};
+    {'SEVERITY_NUMBER_ERROR', <<"error">>};
 level_to_severity(warning)->
-    {'SEVERITY_NUMBER_WARN', <<"SEVERITY_NUMBER_WARN">>};
+    {'SEVERITY_NUMBER_WARN', <<"warning">>};
 level_to_severity(notice)->
-    {'SEVERITY_NUMBER_INFO2', <<"SEVERITY_NUMBER_INFO2">>};
+    {'SEVERITY_NUMBER_INFO2', <<"notice">>};
 level_to_severity(info)->
-    {'SEVERITY_NUMBER_INFO', <<"SEVERITY_NUMBER_INFO">>};
+    {'SEVERITY_NUMBER_INFO', <<"info">>};
 level_to_severity(debug)->
-    {'SEVERITY_NUMBER_DEBUG', <<"SEVERITY_NUMBER_DEBUG">>}.
+    {'SEVERITY_NUMBER_DEBUG', <<"debug">>}.
