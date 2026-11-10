@@ -66,7 +66,8 @@ logs_by_scope(ScopeLogs, Config) ->
 
 log_record(#{level := Level,
              msg := Body,
-             meta := Metadata=#{time := Time}}, Config) ->
+             meta := Metadata=#{time := Time,
+                                otel_observed_time := ObservedTime}}, Config) ->
     {SeverityNumber, SeverityText} = level_to_severity(Level),
     Body1 = case format_msg(Body, Metadata, Config) of
                 S when ?IS_STRING(S) ->
@@ -80,7 +81,7 @@ log_record(#{level := Level,
                 M ->
                     M
             end,
-    Attributes = maps:without([gl, time, report_cb], Metadata),
+    Attributes = maps:without([gl, time, report_cb, otel_observed_time], Metadata),
     Attributes1 = maps:fold(fun(K, V, Acc) ->
                                     [#{key => otel_otlp_common:to_binary(K),
                                        value => otel_otlp_common:to_any_value(V)} | Acc]
@@ -102,11 +103,8 @@ log_record(#{level := Level,
             #{}
     end,
 
-    %% logger calls the handler as the event is logged, so it is observed when it occurs
-    TimeNano = erlang:convert_time_unit(Time, microsecond, nanosecond),
-
-    LogRecord#{time_unix_nano          => TimeNano,
-               observed_time_unix_nano => TimeNano,
+    LogRecord#{time_unix_nano          => erlang:convert_time_unit(Time, microsecond, nanosecond),
+               observed_time_unix_nano => ObservedTime,
                severity_number         => SeverityNumber,
                severity_text           => SeverityText,
                body                    => otel_otlp_common:to_any_value(Body1),

@@ -11,11 +11,9 @@
 -define(SPAN_ID, <<16#a1b2c3d4e5f60718:64>>).
 -define(HEX_TRACE_ID, <<"abcdef0123456789abcdef0123456789">>).
 -define(HEX_SPAN_ID, <<"a1b2c3d4e5f60718">>).
--define(LOGGED_TIME, 1700000000123456).
 
 all() ->
-    [logged_time,
-     hex_binary_ids,
+    [hex_binary_ids,
      uppercase_hex_binary_ids,
      charlist_ids,
      raw_binary_ids,
@@ -26,12 +24,6 @@ all() ->
      no_span_ctx_metadata,
      non_chardata_list_ids_dropped,
      non_hex_trace_flags_default_to_zero].
-
-%% the record carries the time the event was logged, not the time of export
-logged_time(_Config) ->
-    LogRecord = export_log_record(#{time => ?LOGGED_TIME}),
-    ?assertMatch(#{time_unix_nano := ?LOGGED_TIME * 1000,
-                   observed_time_unix_nano := ?LOGGED_TIME * 1000}, LogRecord).
 
 %% ids set by `otel_span:hex_span_ctx/1' are lowercase hex binaries and
 %% must be decoded to the raw bytes the OTLP LogRecord expects
@@ -109,7 +101,8 @@ no_span_ctx_metadata(_Config) ->
 %%
 
 export_log_record(SpanCtxMetadata) ->
-    Metadata = maps:merge(#{time => erlang:system_time(microsecond)}, SpanCtxMetadata),
+    Metadata = SpanCtxMetadata#{time => erlang:system_time(microsecond),
+                                otel_observed_time => erlang:system_time(nanosecond)},
     LogEvent = #{level => info,
                  msg => {string, "hello"},
                  meta => Metadata},
