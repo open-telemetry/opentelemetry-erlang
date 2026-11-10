@@ -51,7 +51,9 @@ print_metric(Name, #sum{datapoints=Datapoints}) ->
 print_metric(Name, #gauge{datapoints=Datapoints}) ->
     lists:map(fun(Datapoint) -> print_datapoint(Name, Datapoint) end, Datapoints);
 print_metric(Name, #histogram{datapoints=Datapoints}) ->
-    lists:map(fun(Datapoint) -> print_histogram_datapoint(Name, Datapoint) end, Datapoints).
+    lists:map(fun(Datapoint) -> print_histogram_datapoint(Name, Datapoint) end, Datapoints);
+print_metric(Name, #exponential_histogram{datapoints=Datapoints}) ->
+    lists:map(fun(Datapoint) -> print_exponential_histogram_datapoint(Name, Datapoint) end, Datapoints).
 
 print_datapoint(Name, #datapoint{
                          attributes=Attributes,
@@ -79,6 +81,26 @@ print_histogram_datapoint(Name, #histogram_datapoint{
                                   }) ->
     AttributesString = attributes_string(Attributes),
     io:format("~s{~s} ~p~n", [Name, AttributesString, Buckets]).
+
+print_exponential_histogram_datapoint(Name, #exponential_histogram_datapoint{
+                                               attributes=Attributes,
+                                               start_time=_StartTime,
+                                               time=_CollectionStartTime,
+                                               count=_Count,
+                                               sum=_Sum,
+                                               scale=Scale,
+                                               zero_count=ZeroCount,
+                                               positive=Positive,
+                                               negative=Negative,
+                                               exemplars=_Exemplars,
+                                               flags=_Flags,
+                                               min=_Min,
+                                               max=_Max,
+                                               zero_threshold=_ZeroThreshold
+                                              }) ->
+    AttributesString = attributes_string(Attributes),
+    io:format("~s{~s} scale=~p zero_count=~p positive=~p negative=~p~n",
+             [Name, AttributesString, Scale, ZeroCount, Positive, Negative]).
 
 attr_str(V) when is_list(V); is_binary(V) -> V;
 attr_str(V) when is_atom(V) -> atom_to_list(V);

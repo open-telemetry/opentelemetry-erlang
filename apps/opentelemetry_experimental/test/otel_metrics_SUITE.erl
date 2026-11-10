@@ -123,7 +123,12 @@ all() ->
      sync_delta_histogram, async_cumulative_page_faults, async_delta_page_faults,
      async_attribute_removal, sync_cumulative_histogram, simple_fixed_exemplars,
      float_simple_fixed_exemplars, explicit_histogram_exemplars, trace_based_exemplars,
-     observable_exemplars, simple_producer, fail_name_instrument_lookup
+     observable_exemplars, simple_producer, fail_name_instrument_lookup,
+     delta_exponential_histogram, cumulative_exponential_histogram, exponential_histogram_rescale,
+     exponential_histogram_update, exponential_histogram_otlp,
+     exponential_histogram_concurrent, exponential_histogram_rescale_both_signs,
+     exponential_histogram_zero_threshold_otlp, exponential_histogram_console,
+     exponential_histogram_option_clamping, exponential_histogram_large_negative_min_max
     ].
 
 init_per_suite(Config) ->
@@ -220,6 +225,17 @@ init_per_testcase(sync_cumulative_histogram, Config) ->
                                                                      config => #{exporter => {otel_metric_exporter_pid, self()},
                                                                                  default_temporality_mapping =>
                                                                                      DeltaHistogramTemporality}}]),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
+init_per_testcase(cumulative_exponential_histogram, Config) ->
+    CumulativeHistogramTemporality = maps:put(?KIND_HISTOGRAM, ?TEMPORALITY_CUMULATIVE, default_temporality_mapping()),
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping =>
+                                                                                     CumulativeHistogramTemporality}}]),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
@@ -2401,6 +2417,303 @@ check_observer_results(MetricName, Expected) ->
         5000 ->
             ct:fail({metric_receive_timeout, ?LINE})
     end.
+
+delta_exponential_histogram(_Config) ->
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assert(otel_meter_server:add_view(exp_view, #{instrument_name => exp_histogram},
+                                       #{aggregation_module => otel_aggregation_exponential_histogram})),
+    _Histogram = otel_histogram:create(Meter, exp_histogram, #{}),
+
+    Ctx = otel_ctx:new(),
+    [?assertEqual(ok, otel_histogram:record(Ctx, Meter, exp_histogram, V, #{<<"a">> => <<"1">>}))
+     || V <- [1, 2, 4, 0]],
+    ?assertEqual(ok, otel_histogram:record(Ctx, Meter, exp_histogram, 3, #{<<"a">> => <<"2">>})),
+
+    otel_meter_server:force_flush(),
+
+    %% 1, 2 and 4 span 2^21 buckets at scale 20, so the scale is lowered
+    %% until the range fits within the default max_size of 160
+    ?assertEqual([{#{<<"a">> => <<"1">>}, 4, 7, 0, 4, 6, 1, [{-1, 1}, {63, 1}, {127, 1}]},
+                  {#{<<"a">> => <<"2">>}, 1, 3, 3, 3, 20, 0, [{map_to_index(3, 20), 1}]}],
+                 receive_exponential_histogram(exp_view)),
+
+    otel_meter_server:force_flush(),
+
+    ?assertEqual([], receive_exponential_histogram(exp_view)),
+
+    ?assertEqual(ok, otel_histogram:record(Ctx, Meter, exp_histogram, 5, #{<<"a">> => <<"2">>})),
+
+    otel_meter_server:force_flush(),
+
+    ?assertEqual([{#{<<"a">> => <<"2">>}, 1, 5, 5, 5, 20, 0, [{map_to_index(5, 20), 1}]}],
+                 receive_exponential_histogram(exp_view)),
+
+    ok.
+
+cumulative_exponential_histogram(_Config) ->
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assert(otel_meter_server:add_view(exp_view, #{instrument_name => exp_histogram},
+                                       #{aggregation_module => otel_aggregation_exponential_histogram})),
+    _Histogram = otel_histogram:create(Meter, exp_histogram, #{}),
+
+    Ctx = otel_ctx:new(),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Meter, exp_histogram, 1, #{})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Meter, exp_histogram, 2, #{})),
+
+    otel_meter_server:force_flush(),
+
+    ?assertEqual([{#{}, 2, 3, 1, 2, 7, 0, [{-1, 1}, {127, 1}]}],
+                 receive_exponential_histogram(exp_view)),
+
+    ?assertEqual(ok, otel_histogram:record(Ctx, Meter, exp_histogram, 4, #{})),
+
+    otel_meter_server:force_flush(),
+
+    ?assertEqual([{#{}, 3, 7, 1, 4, 6, 0, [{-1, 1}, {63, 1}, {127, 1}]}],
+                 receive_exponential_histogram(exp_view)),
+
+    otel_meter_server:force_flush(),
+
+    ?assertEqual([{#{}, 3, 7, 1, 4, 6, 0, [{-1, 1}, {63, 1}, {127, 1}]}],
+                 receive_exponential_histogram(exp_view)),
+
+    ok.
+
+exponential_histogram_rescale(_Config) ->
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assert(otel_meter_server:add_view(exp_view, #{instrument_name => exp_histogram},
+                                       #{aggregation_module => otel_aggregation_exponential_histogram,
+                                         aggregation_options => #{max_size => 4}})),
+    _Histogram = otel_histogram:create(Meter, exp_histogram, #{}),
+
+    Ctx = otel_ctx:new(),
+    Values = [1, 2, 4, 8, 16, 32, 64, 1024],
+    [?assertEqual(ok, otel_histogram:record(Ctx, Meter, exp_histogram, V, #{})) || V <- Values],
+
+    otel_meter_server:force_flush(),
+
+    receive
+        {otel_metric, #metric{name=exp_view,
+                              data=#exponential_histogram{
+                                      datapoints=[#exponential_histogram_datapoint{
+                                                     count=Count,
+                                                     positive={_, Counts}}]}}} ->
+            ?assertEqual(length(Values), Count),
+            ?assertEqual(Count, lists:sum(Counts)),
+            ?assert(length(Counts) =< 4, Counts)
+    after
+        5000 ->
+            ct:fail({metric_receive_timeout, ?LINE})
+    end.
+
+exponential_histogram_update(_Config) ->
+    Stream = #stream{name=exp_view,
+                     reader=make_ref(),
+                     aggregation_options=#{zero_threshold => 0.5},
+                     forget=false},
+    Agg0 = otel_aggregation_exponential_histogram:init(Stream, term_to_binary(#{})),
+
+    Agg = lists:foldl(fun(V, Acc) -> otel_aggregation_exponential_histogram:update(Acc, V) end,
+                      Agg0, [-4, -1, 0, 0.25, -0.5, 2, 8]),
+
+    #exponential_histogram_aggregation{scale=Scale,
+                                       zero_count=ZeroCount,
+                                       positive_buckets=Positive,
+                                       negative_buckets=Negative,
+                                       min=Min,
+                                       max=Max,
+                                       sum=Sum,
+                                       count=Count} = Agg,
+
+    ?assertEqual(3, ZeroCount),
+    ?assertEqual(7, Count),
+    ?assertEqual(4.75, Sum),
+    ?assertEqual(-4, Min),
+    ?assertEqual(8, Max),
+
+    %% negative values are bucketed by magnitude at the same scale as positive ones
+    ?assertEqual(#{map_to_index(1, Scale) => 1, map_to_index(4, Scale) => 1}, Negative),
+    ?assertEqual(#{map_to_index(2, Scale) => 1, map_to_index(8, Scale) => 1}, Positive),
+
+    %% exact powers of two sit on the upper, inclusive, boundary of their bucket
+    ?assertEqual(-1, map_to_index(1, 0)),
+    ?assertEqual(2, map_to_index(8, 0)),
+    ?assertEqual(1, map_to_index(16, -1)),
+    ?assertEqual(5, map_to_index(8, 1)),
+
+    ok.
+
+exponential_histogram_otlp(_Config) ->
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assert(otel_meter_server:add_view(exp_view, #{instrument_name => exp_histogram},
+                                       #{aggregation_module => otel_aggregation_exponential_histogram})),
+    ?assert(otel_meter_server:add_view(exp_view_no_min_max, #{instrument_name => exp_histogram},
+                                       #{aggregation_module => otel_aggregation_exponential_histogram,
+                                         aggregation_options => #{record_min_max => false}})),
+    _Histogram = otel_histogram:create(Meter, exp_histogram, #{}),
+
+    Ctx = otel_ctx:new(),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Meter, exp_histogram, 1, #{})),
+    ?assertEqual(ok, otel_histogram:record(Ctx, Meter, exp_histogram, 2.5, #{})),
+
+    otel_meter_server:force_flush(),
+
+    lists:foreach(
+      fun(ViewName) ->
+              receive
+                  {otel_metric, Metric=#metric{name=ViewName}} ->
+                      Request = otel_otlp_metrics:to_proto([Metric], otel_resource:create([])),
+                      ?assert(is_binary(opentelemetry_exporter_metrics_service_pb:encode_msg(
+                                          Request, export_metrics_service_request)))
+              after
+                  5000 ->
+                      ct:fail({metric_receive_timeout, ViewName})
+              end
+      end, [exp_view, exp_view_no_min_max]).
+
+exponential_histogram_concurrent(_Config) ->
+    Stream = #stream{name=exp_view, reader=make_ref(), aggregation_options=#{}, forget=false},
+    Tab = ets:new(exp_concurrent, [public, {keypos, #exponential_histogram_aggregation.key}]),
+    Agg = otel_aggregation_exponential_histogram:init(Stream, term_to_binary(#{})),
+    true = ets:insert(Tab, Agg),
+    Self = self(),
+    Writers = 8,
+    PerWriter = 200,
+    %% every 25th value from each writer is large, growing with the writer
+    %% number, so rescales happen mid-race rather than only plain increments
+    Value = fun(W, V) when V rem 25 =:= 0 -> 1.0e9 * W * V;
+               (_W, V) -> V rem 50 + 1
+            end,
+    [spawn_link(fun() ->
+                        [true = otel_aggregation_exponential_histogram:aggregate(
+                                  otel_ctx:new(), Tab, undefined, Stream, Value(W, V),
+                                  term_to_binary(#{}), #{})
+                         || V <- lists:seq(1, PerWriter)],
+                        Self ! done
+                end) || W <- lists:seq(1, Writers)],
+    [receive done -> ok after 30000 -> ct:fail(writer_timeout) end || _ <- lists:seq(1, Writers)],
+    [#exponential_histogram_aggregation{count=Count, sum=Sum, scale=Scale,
+                                        positive_buckets=Positive}] = ets:tab2list(Tab),
+    ?assertEqual(Writers * PerWriter, Count),
+    ?assertEqual(Count, lists:sum(maps:values(Positive))),
+    %% exact float equality is safe only because every value is a whole
+    %% number and the total (about 3e13) is below 2^53, so each addition is
+    %% exact regardless of the order the racing writers applied them in.
+    %% Fractional values or a larger total would make this flaky.
+    ?assertEqual(lists:sum([Value(W, V) || W <- lists:seq(1, Writers), V <- lists:seq(1, PerWriter)]),
+                 Sum),
+    ?assert(Scale < 20),
+    ?assert(map_size(Positive) =< 160).
+
+exponential_histogram_rescale_both_signs(_Config) ->
+    Stream = #stream{name=exp_view, reader=make_ref(),
+                     aggregation_options=#{max_size => 4}, forget=false},
+    Agg0 = otel_aggregation_exponential_histogram:init(Stream, term_to_binary(#{})),
+    %% negative buckets are populated first, then positive values force a
+    %% downscale that must also be applied to the negative side
+    Agg = lists:foldl(fun(V, Acc) -> otel_aggregation_exponential_histogram:update(Acc, V) end,
+                      Agg0, [-1, -2, 1, 2, 4, 8, 1024]),
+    #exponential_histogram_aggregation{scale=Scale, positive_buckets=Positive,
+                                       negative_buckets=Negative, count=Count} = Agg,
+    ?assertEqual(7, Count),
+    %% 1..1024 only fits in 4 buckets once the scale is -2
+    ?assertEqual(-2, Scale),
+    %% at scale -2: 1 -> -1, 2, 4 and 8 -> 0, 1024 -> 2
+    ?assertEqual(#{-1 => 1, 0 => 3, 2 => 1}, Positive),
+    %% the negative side, recorded at scale 20, was downscaled to match
+    ?assertEqual(#{-1 => 1, 0 => 1}, Negative).
+
+exponential_histogram_zero_threshold_otlp(_Config) ->
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assert(otel_meter_server:add_view(exp_view, #{instrument_name => exp_histogram},
+                                       #{aggregation_module => otel_aggregation_exponential_histogram,
+                                         aggregation_options => #{zero_threshold => 0.5}})),
+    _Histogram = otel_histogram:create(Meter, exp_histogram, #{}),
+    Ctx = otel_ctx:new(),
+    [?assertEqual(ok, otel_histogram:record(Ctx, Meter, exp_histogram, V, #{})) || V <- [0.1, -0.2, 2]],
+    otel_meter_server:force_flush(),
+    receive
+        {otel_metric, Metric=#metric{name=exp_view}} ->
+            Request = otel_otlp_metrics:to_proto([Metric], otel_resource:create([])),
+            #{resource_metrics := [#{scope_metrics := [#{metrics := [#{data := {exponential_histogram, Data}}]}]}]} = Request,
+            #{data_points := [DataPoint]} = Data,
+            ?assertEqual(0.5, maps:get(zero_threshold, DataPoint)),
+            ?assertEqual(2, maps:get(zero_count, DataPoint)),
+            ?assertEqual(3, maps:get(count, DataPoint)),
+            ?assertEqual(-0.2, maps:get(min, DataPoint)),
+            ?assertEqual(2, maps:get(max, DataPoint))
+    after
+        5000 ->
+            ct:fail({metric_receive_timeout, ?LINE})
+    end.
+
+exponential_histogram_console(_Config) ->
+    Datapoint = #exponential_histogram_datapoint{
+                   attributes=#{<<"a">> => <<"1">>}, start_time=opentelemetry:timestamp(),
+                   time=opentelemetry:timestamp(), count=1, sum=1, scale=0, zero_count=0,
+                   positive={0, [1]}, negative={0, []},
+                   %% non-empty exemplars and non-zero flags must not crash the exporter
+                   exemplars=[exemplar], flags=1, min=1, max=1, zero_threshold=0.0},
+    Metric = #metric{name=exp_view, data=#exponential_histogram{
+                                            datapoints=[Datapoint],
+                                            aggregation_temporality=?TEMPORALITY_DELTA}},
+    ?assertEqual(ok, otel_metric_exporter_console:export([Metric], undefined, undefined)).
+
+exponential_histogram_option_clamping(_Config) ->
+    Stream = #stream{name=exp_view, reader=make_ref(), forget=false,
+                     aggregation_options=#{max_size => 0, max_scale => 99, zero_threshold => -1}},
+    #exponential_histogram_aggregation{max_size=MaxSize, max_scale=MaxScale,
+                                       zero_threshold=ZeroThreshold} =
+        otel_aggregation_exponential_histogram:init(Stream, term_to_binary(#{})),
+    ?assertEqual(2, MaxSize),
+    ?assertEqual(20, MaxScale),
+    ?assertEqual(0.0, ZeroThreshold),
+    #exponential_histogram_aggregation{zero_threshold=DefaultZeroThreshold} =
+        otel_aggregation_exponential_histogram:init(Stream#stream{aggregation_options=#{}},
+                                                    term_to_binary(#{})),
+    ?assertEqual(0.0, DefaultZeroThreshold),
+    %% scale reduction never goes below the spec minimum of -10, even when
+    %% that leaves more than max_size buckets. At scale -10 the smallest
+    %% subnormal double (2^-1074) maps to -2, 1.0 to -1 and 1.0e300 to 0.
+    Agg = lists:foldl(fun(V, Acc) -> otel_aggregation_exponential_histogram:update(Acc, V) end,
+                      otel_aggregation_exponential_histogram:init(Stream, term_to_binary(#{})),
+                      [5.0e-324, 1.0, 1.0e300]),
+    #exponential_histogram_aggregation{scale=Scale, positive_buckets=Positive} = Agg,
+    ?assertEqual(-10, Scale),
+    ?assertEqual(#{-2 => 1, -1 => 1, 0 => 1}, Positive),
+    ?assert(map_size(Positive) > MaxSize).
+
+exponential_histogram_large_negative_min_max(_Config) ->
+    %% values below -2^63 used to report a max sentinel of -9.22e18
+    Stream = #stream{name=exp_view, reader=make_ref(), aggregation_options=#{}, forget=false},
+    Agg0 = otel_aggregation_exponential_histogram:init(Stream, term_to_binary(#{})),
+    Agg1 = otel_aggregation_exponential_histogram:update(Agg0, -1.0e20),
+    ?assertMatch(#exponential_histogram_aggregation{min=-1.0e20, max=-1.0e20, count=1}, Agg1),
+    Agg2 = otel_aggregation_exponential_histogram:update(Agg1, -3.0e20),
+    ?assertMatch(#exponential_histogram_aggregation{min=-3.0e20, max=-1.0e20, count=2}, Agg2).
+
+receive_exponential_histogram(Name) ->
+    receive
+        {otel_metric, #metric{name=MetricName,
+                              data=#exponential_histogram{datapoints=Datapoints}}}
+          when MetricName =:= Name ->
+            lists:sort([{Attributes, Count, Sum, Min, Max, Scale, ZeroCount,
+                         [{Offset + I - 1, C} || {I, C} <- lists:enumerate(Counts), C > 0]}
+                        || #exponential_histogram_datapoint{attributes=Attributes,
+                                                            count=Count,
+                                                            sum=Sum,
+                                                            min=Min,
+                                                            max=Max,
+                                                            scale=Scale,
+                                                            zero_count=ZeroCount,
+                                                            positive={Offset, Counts}} <- Datapoints])
+    after
+        5000 ->
+            ct:fail({metric_receive_timeout, Name})
+    end.
+
+map_to_index(Value, Scale) ->
+    otel_aggregation_exponential_histogram:map_to_index(Value, Scale).
 
 is_subset(List1, List2) ->
     sets:is_subset(sets:from_list(List1), sets:from_list(List2)).

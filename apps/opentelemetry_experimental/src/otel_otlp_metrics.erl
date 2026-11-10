@@ -87,7 +87,13 @@ to_data(#histogram{datapoints=Datapoints,
                    aggregation_temporality=Temporality
                   }) ->
     {histogram, #{data_points => [to_histogram_data_points(Datapoint) || Datapoint <- Datapoints],
-                  aggregation_temporality => to_otlp_temporality(Temporality)}}.
+                  aggregation_temporality => to_otlp_temporality(Temporality)}};
+to_data(#exponential_histogram{datapoints=Datapoints,
+                               aggregation_temporality=Temporality
+                              }) ->
+    {exponential_histogram,
+     #{data_points => [to_exponential_histogram_data_points(Datapoint) || Datapoint <- Datapoints],
+       aggregation_temporality => to_otlp_temporality(Temporality)}}.
 
 to_data_points(#datapoint{attributes=Attributes,
                           start_time=StartTime,
@@ -130,6 +136,42 @@ to_histogram_data_points(#histogram_datapoint{
       min => Min,
       max => Max
      }.
+
+to_exponential_histogram_data_points(#exponential_histogram_datapoint{
+                                        attributes=Attributes,
+                                        start_time=StartTime,
+                                        time=CollectionStartTime,
+                                        count=Count,
+                                        sum=Sum,
+                                        scale=Scale,
+                                        zero_count=ZeroCount,
+                                        positive={PositiveOffset, PositiveCounts},
+                                        negative={NegativeOffset, NegativeCounts},
+                                        exemplars=Exemplars,
+                                        flags=Flags,
+                                        min=Min,
+                                        max=Max,
+                                        zero_threshold=ZeroThreshold
+                                       }) ->
+    DataPoint = #{attributes => otel_otlp_common:to_attributes(Attributes),
+                  start_time_unix_nano => opentelemetry:timestamp_to_nano(StartTime),
+                  time_unix_nano => opentelemetry:timestamp_to_nano(CollectionStartTime),
+                  count => Count,
+                  sum => Sum,
+                  scale => Scale,
+                  zero_count => ZeroCount,
+                  positive => #{offset => PositiveOffset, bucket_counts => PositiveCounts},
+                  negative => #{offset => NegativeOffset, bucket_counts => NegativeCounts},
+                  exemplars => to_exemplars(Exemplars),
+                  flags => Flags,
+                  zero_threshold => ZeroThreshold
+                 },
+    case {Min, Max} of
+        {undefined, undefined} ->
+            DataPoint;
+        _ ->
+            DataPoint#{min => Min, max => Max}
+    end.
 
 %%
 
