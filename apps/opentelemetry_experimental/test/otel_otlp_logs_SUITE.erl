@@ -18,6 +18,7 @@ all() ->
      charlist_ids,
      raw_binary_ids,
      ids_without_trace_flags,
+     trace_flags_are_encoded,
      trace_context_not_in_attributes,
      signed_trace_flags_default_to_zero,
      non_hex_ids_dropped,
@@ -69,6 +70,17 @@ ids_without_trace_flags(_Config) ->
     ?assertMatch(#{trace_id := ?TRACE_ID,
                    span_id := ?SPAN_ID}, LogRecord),
     ?assertNot(maps:is_key(flags, LogRecord)).
+
+%% the encoder ignores unknown keys, so check the flags reach the wire
+trace_flags_are_encoded(_Config) ->
+    LogRecord = export_log_record(#{otel_trace_id => ?HEX_TRACE_ID,
+                                    otel_span_id => ?HEX_SPAN_ID,
+                                    otel_trace_flags => <<"01">>}),
+    Bin = opentelemetry_exporter_logs_service_pb:encode_msg(LogRecord,
+                                                            log_record),
+    ?assertMatch(#{flags := 1},
+                 opentelemetry_exporter_logs_service_pb:decode_msg(
+                   Bin, log_record)).
 
 %% trace context goes in the record's own fields, not in its attributes
 trace_context_not_in_attributes(_Config) ->
