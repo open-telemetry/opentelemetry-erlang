@@ -66,6 +66,7 @@ default_mapping() ->
     #{?KIND_COUNTER => otel_aggregation_sum,
       ?KIND_OBSERVABLE_COUNTER => otel_aggregation_sum,
       ?KIND_HISTOGRAM => otel_aggregation_histogram_explicit,
+      ?KIND_GAUGE => otel_aggregation_last_value,
       ?KIND_OBSERVABLE_GAUGE => otel_aggregation_last_value,
       ?KIND_UPDOWN_COUNTER => otel_aggregation_sum,
       ?KIND_OBSERVABLE_UPDOWNCOUNTER => otel_aggregation_sum}.
@@ -78,6 +79,7 @@ default_temporality_mapping() ->
                 end, #{}, [?KIND_COUNTER,
                            ?KIND_OBSERVABLE_COUNTER,
                            ?KIND_HISTOGRAM,
+                           ?KIND_GAUGE,
                            ?KIND_OBSERVABLE_GAUGE,
                            ?KIND_UPDOWN_COUNTER,
                            ?KIND_OBSERVABLE_UPDOWNCOUNTER

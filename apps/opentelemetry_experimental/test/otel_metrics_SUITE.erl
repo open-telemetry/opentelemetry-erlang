@@ -116,7 +116,7 @@ all() ->
     [default_view, provider_test, view_creation_test, wildcard_view, counter_add, multiple_readers,
      explicit_histograms, delta_explicit_histograms, delta_counter, cumulative_counter,
      kill_reader, kill_server, observable_counter, observable_updown_counter, observable_gauge,
-     multi_instrument_callback, multi_instrument_callback_macros,
+     sync_gauge, delta_sync_gauge, multi_instrument_callback, multi_instrument_callback_macros,
      using_macros, float_counter, float_updown_counter, float_histogram,
      sync_filtered_attributes, async_filtered_attributes, delta_observable_counter,
      bad_observable_return, default_resource, histogram_aggregation_options, advisory_params,
@@ -176,6 +176,17 @@ init_per_testcase(delta_counter, Config) ->
     %% so no need to set any temporality mapping in the reader
     ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
                                                                      config => #{exporter => {otel_metric_exporter_pid, self()}}}]),
+
+    {ok, _} = application:ensure_all_started(opentelemetry_experimental),
+
+    Config;
+init_per_testcase(delta_sync_gauge, Config) ->
+    DeltaGaugeTemporality = maps:put(?KIND_GAUGE, ?TEMPORALITY_DELTA, default_temporality_mapping()),
+    application:load(opentelemetry_experimental),
+    ok = application:set_env(opentelemetry_experimental, readers, [#{module => otel_metric_reader,
+                                                                     config => #{exporter => {otel_metric_exporter_pid, self()},
+                                                                                 default_temporality_mapping =>
+                                                                                     DeltaGaugeTemporality}}]),
 
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
 
@@ -1173,6 +1184,89 @@ observable_gauge(_Config) ->
     otel_meter_server:force_flush(),
 
     ?assertLastValueReceive(CounterName, CounterDesc, CounterUnit, [{5, #{<<"a">> => <<"b">>}}]),
+
+    ok.
+
+sync_gauge(_Config) ->
+    DefaultMeter = otel_meter_default,
+
+    Meter = opentelemetry_experimental:get_meter(),
+    ?assertMatch({DefaultMeter, _}, Meter),
+
+    GaugeName = a_sync_gauge,
+    GaugeDesc = <<"sync gauge description">>,
+    GaugeUnit = kb,
+
+    Gauge = otel_gauge:create(Meter, GaugeName, #{description => GaugeDesc, unit => GaugeUnit}),
+
+    ?assertMatch(#instrument{meter = {DefaultMeter,_},
+                             module = DefaultMeter,
+                             name = GaugeName,
+                             description = GaugeDesc,
+                             kind = gauge,
+                             unit = GaugeUnit}, Gauge),
+
+    Ctx = otel_ctx:new(),
+
+    ?assertEqual(ok, otel_gauge:set(Ctx, Meter, GaugeName, 10, #{<<"a">> => <<"b">>})),
+    ?assertEqual(ok, ?gauge_set(GaugeName, -3, #{<<"a">> => <<"b">>})),
+    ?assertEqual(ok, ?gauge_set(GaugeName, 7.5, #{})),
+
+    otel_meter_server:force_flush(),
+
+    ?assertLastValueReceive(GaugeName, GaugeDesc, GaugeUnit,
+                            [{7.5, #{}}, {-3, #{<<"a">> => <<"b">>}}]),
+
+    otel_meter_server:force_flush(),
+
+    ?assertLastValueReceive(GaugeName, GaugeDesc, GaugeUnit,
+                            [{7.5, #{}}, {-3, #{<<"a">> => <<"b">>}}]),
+
+    ok.
+
+delta_sync_gauge(_Config) ->
+    Meter = opentelemetry_experimental:get_meter(),
+
+    GaugeName = a_delta_sync_gauge,
+    GaugeDesc = <<"delta sync gauge description">>,
+    GaugeUnit = kb,
+
+    _Gauge = ?create_gauge(GaugeName, #{description => GaugeDesc, unit => GaugeUnit}),
+
+    Ctx = otel_ctx:new(),
+
+    ?assertEqual(ok, otel_gauge:set(Ctx, Meter, GaugeName, 10, #{<<"a">> => <<"b">>})),
+    ?assertEqual(ok, otel_gauge:set(Ctx, Meter, GaugeName, 4, #{<<"a">> => <<"b">>})),
+    ?assertEqual(ok, otel_gauge:set(Ctx, Meter, GaugeName, 9, #{<<"c">> => <<"d">>})),
+
+    otel_meter_server:force_flush(),
+
+    ?assertLastValueReceive(GaugeName, GaugeDesc, GaugeUnit,
+                            [{4, #{<<"a">> => <<"b">>}}, {9, #{<<"c">> => <<"d">>}}]),
+
+    otel_meter_server:force_flush(),
+
+    receive
+        {otel_metric, #metric{name=GaugeName, data=Data}} ->
+            ?assertEqual(#gauge{datapoints=[]}, Data)
+    after
+        500 ->
+            ok
+    end,
+
+    ?assertEqual(ok, otel_gauge:set(Ctx, Meter, GaugeName, 6, #{<<"a">> => <<"b">>})),
+
+    otel_meter_server:force_flush(),
+
+    receive
+        {otel_metric, #metric{name=GaugeName, data=#gauge{datapoints=Datapoints}}} ->
+            ?assertEqual([{6, #{<<"a">> => <<"b">>}}],
+                         [{Value, Attributes} || #datapoint{value=Value,
+                                                            attributes=Attributes} <- Datapoints])
+    after
+        5000 ->
+            ct:fail({metric_receive_timeout, ?LINE})
+    end,
 
     ok.
 

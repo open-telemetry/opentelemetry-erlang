@@ -28,7 +28,8 @@
 -type name() :: atom().
 -type description() :: unicode:unicode_binary().
 -type kind() :: ?KIND_COUNTER | ?KIND_OBSERVABLE_COUNTER | ?KIND_HISTOGRAM |
-                ?KIND_OBSERVABLE_GAUGE | ?KIND_UPDOWN_COUNTER | ?KIND_OBSERVABLE_UPDOWNCOUNTER.
+                ?KIND_GAUGE | ?KIND_OBSERVABLE_GAUGE | ?KIND_UPDOWN_COUNTER |
+                ?KIND_OBSERVABLE_UPDOWNCOUNTER.
 -type unit() :: atom(). %% latin1, maximum length of 63 characters
 -type observation() :: {number(), opentelemetry:attributes_map()}.
 -type named_observations() :: {name(), [observation()]}.
@@ -113,5 +114,7 @@ kind_temporality(?KIND_OBSERVABLE_UPDOWNCOUNTER) ->
     ?TEMPORALITY_CUMULATIVE;
 kind_temporality(?KIND_HISTOGRAM) ->
     ?TEMPORALITY_DELTA;
+kind_temporality(?KIND_GAUGE) ->
+    ?TEMPORALITY_CUMULATIVE;
 kind_temporality(?KIND_OBSERVABLE_GAUGE) ->
     ?TEMPORALITY_CUMULATIVE.
