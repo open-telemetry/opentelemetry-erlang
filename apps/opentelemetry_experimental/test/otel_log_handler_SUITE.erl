@@ -5,13 +5,15 @@
 %% Logger permits handler-specific config keys not represented in its closed type.
 -eqwalizer({nowarn_function, exports_logs_after_idle_interval/1}).
 -eqwalizer({nowarn_function, logged_and_observed_time/1}).
+-eqwalizer({nowarn_function, caller_observed_time_is_kept/1}).
 
 -include_lib("stdlib/include/assert.hrl").
 -include_lib("common_test/include/ct.hrl").
 
 all() ->
     [exports_logs_after_idle_interval,
-     logged_and_observed_time].
+     logged_and_observed_time,
+     caller_observed_time_is_kept].
 
 init_per_suite(Config) ->
     {ok, _} = application:ensure_all_started(opentelemetry_experimental),
@@ -86,6 +88,32 @@ logged_and_observed_time(_Config) ->
                 ?assertEqual(LoggedTime * 1000, TimeNano),
                 ?assert(Before =< ObservedTime andalso ObservedTime =< After),
                 ?assertEqual([], [A || A=#{key := <<"otel_observed_time">>} <- Attributes])
+        after
+            5000 -> ct:fail(no_export)
+        end
+    after
+        _ = logger:remove_handler(HandlerId)
+    end.
+
+%% A caller that sets `otel_observed_time' keeps its own value.
+caller_observed_time_is_kept(_Config) ->
+    HandlerId = ?FUNCTION_NAME,
+    ok = logger:add_handler(HandlerId, otel_log_handler,
+                            #{level => info,
+                              exporter => {?MODULE, {logs, self()}},
+                              scheduled_delay_ms => 500}),
+    ObservedTime = 1700000000123456789,
+    Msg = <<"caller observed time log line">>,
+    logger:log(info, Msg, #{otel_observed_time => ObservedTime}),
+    try
+        receive
+            {logs, {Batch, HandlerConfig}} ->
+                #{resource_logs := [#{scope_logs := ScopeLogs}]} =
+                    otel_otlp_logs:to_proto(Batch, otel_resource:create([]), HandlerConfig),
+                [#{observed_time_unix_nano := ObservedTime}] =
+                    [R || #{log_records := Rs} <- ScopeLogs,
+                          R=#{body := #{value := {string_value, B}}} <- Rs,
+                          B =:= Msg]
         after
             5000 -> ct:fail(no_export)
         end
