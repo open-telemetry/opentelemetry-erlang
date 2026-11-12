@@ -66,8 +66,7 @@ logs_by_scope(ScopeLogs, Config) ->
 
 log_record(#{level := Level,
              msg := Body,
-             meta := Metadata=#{time := ObservedTime}}, Config) ->
-    Time = opentelemetry:timestamp(),
+             meta := Metadata}, Config) ->
     {SeverityNumber, SeverityText} = level_to_severity(Level),
     Body1 = case format_msg(Body, Metadata, Config) of
                 S when ?IS_STRING(S) ->
@@ -81,7 +80,7 @@ log_record(#{level := Level,
                 M ->
                     M
             end,
-    Attributes = maps:without([gl, time, report_cb], Metadata),
+    Attributes = maps:without([gl, time, report_cb, otel_observed_time], Metadata),
     Attributes1 = maps:fold(fun(K, V, Acc) ->
                                     [#{key => otel_otlp_common:to_binary(K),
                                        value => otel_otlp_common:to_any_value(V)} | Acc]
@@ -94,7 +93,7 @@ log_record(#{level := Level,
     %% raw 16/8 bytes, so they must be decoded before being put in the
     %% LogRecord. If either id can't be decoded then the correlation fields
     %% are omitted entirely rather than exporting garbage ids.
-    LogRecord = case Metadata of
+    CorrelationFields = case Metadata of
         #{otel_trace_id := MetaTraceId,
           otel_span_id := MetaSpanId} ->
             correlation_fields(MetaTraceId, MetaSpanId,
@@ -103,10 +102,9 @@ log_record(#{level := Level,
             #{}
     end,
 
-
-
-    LogRecord#{time_unix_nano          => opentelemetry:timestamp_to_nano(Time),
-               observed_time_unix_nano => erlang:convert_time_unit(ObservedTime, microsecond, nanosecond),
+    LogRecord = maps:merge(CorrelationFields, event_time(Metadata)),
+    LogRecord#{observed_time_unix_nano =>
+                   maps:get(otel_observed_time, Metadata, os:system_time(nanosecond)),
                severity_number         => SeverityNumber,
                severity_text           => SeverityText,
                body                    => otel_otlp_common:to_any_value(Body1),
@@ -114,6 +112,13 @@ log_record(#{level := Level,
                dropped_attributes_count => DroppedAttributesCount,
                flags                   => Flags
               }.
+
+%% Without a source time the field is left out, and receivers use the
+%% observed time. `time' is in microseconds.
+event_time(#{time := Time}) when is_integer(Time) ->
+    #{time_unix_nano => erlang:convert_time_unit(Time, microsecond, nanosecond)};
+event_time(_Metadata) ->
+    #{}.
 
 %% Decode a trace or span id from logger metadata into the raw bytes the
 %% OTLP LogRecord expects. The metadata value is a lowercase hex encoded

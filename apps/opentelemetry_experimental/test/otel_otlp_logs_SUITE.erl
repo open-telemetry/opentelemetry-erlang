@@ -23,7 +23,8 @@ all() ->
      partially_invalid_ids_dropped,
      no_span_ctx_metadata,
      non_chardata_list_ids_dropped,
-     non_hex_trace_flags_default_to_zero].
+     non_hex_trace_flags_default_to_zero,
+     missing_times].
 
 %% ids set by `otel_span:hex_span_ctx/1' are lowercase hex binaries and
 %% must be decoded to the raw bytes the OTLP LogRecord expects
@@ -135,3 +136,18 @@ non_hex_trace_flags_default_to_zero(_Config) ->
     ?assertEqual(<<16#0011223344556677:64>>, maps:get(span_id, LogRecord)),
     ?assertEqual(0, maps:get(trace_flags, LogRecord)),
     ok.
+
+%% An event without `time' leaves the source time out, and one without
+%% `otel_observed_time' gets an observed time when it is encoded.
+missing_times(_Config) ->
+    LogEvent = #{level => info, msg => {string, "hello"}, meta => #{}},
+    Scope = #instrumentation_scope{name = <<"test_scope">>,
+                                   version = <<"1.0.0">>},
+    Before = os:system_time(nanosecond),
+    #{resource_logs :=
+          [#{scope_logs := [#{log_records := [LogRecord]}]}]} =
+        otel_otlp_logs:to_proto(#{Scope => [LogEvent]},
+                                otel_resource:create([]), #{}),
+    ?assertNot(maps:is_key(time_unix_nano, LogRecord)),
+    #{observed_time_unix_nano := ObservedTime} = LogRecord,
+    ?assert(Before =< ObservedTime).
