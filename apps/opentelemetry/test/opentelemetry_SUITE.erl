@@ -32,6 +32,7 @@ all() ->
      shutdown_sdk_noop_spans,
 
      multiple_processors,
+     processor_after_dropping_processor,
      multiple_tracer_providers,
 
      %% all other tests are run with both the simple and batch processor
@@ -144,8 +145,16 @@ init_per_testcase(multiple_processors, Config) ->
                                                                              exporter => {otel_exporter_pid, self()}}}]),
     {ok, _} = application:ensure_all_started(opentelemetry),
     Config;
+init_per_testcase(processor_after_dropping_processor, Config) ->
+    application:set_env(opentelemetry, processors, [{otel_simple_processor, #{exporter => none}},
+                                                    {otel_batch_processor, #{name => second,
+                                                                             scheduled_delay_ms => 1,
+                                                                             exporter => {otel_exporter_pid, self()}}}]),
+    {ok, _} = application:ensure_all_started(opentelemetry),
+    Config;
 init_per_testcase(_, Config) ->
     Processor = ?config(processor, Config),
+
     Tid = ets:new(exported_spans, [public, bag]),
     application:set_env(opentelemetry, processors, [{Processor, #{scheduled_delay_ms => 1,
                                                                   exporter => {otel_exporter_tab, Tid}}}]),
@@ -654,6 +663,20 @@ multiple_processors(_Config) ->
     end,
 
     ok.
+
+processor_after_dropping_processor(_Config) ->
+    Tracer = opentelemetry:get_tracer(),
+
+    SpanCtx = otel_tracer:start_span(Tracer, <<"span-1">>, #{}),
+    otel_span:end_span(SpanCtx),
+
+    receive
+        {span, Span} ->
+            ?assertEqual(<<"span-1">>, Span#span.name)
+    after
+        1000 ->
+            ct:fail(timeout)
+    end.
 
 multiple_tracer_providers(_Config) ->
     Resource = otel_resource:create([{<<"a">>, <<"b">>}]),
