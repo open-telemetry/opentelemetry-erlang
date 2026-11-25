@@ -117,7 +117,7 @@ removing_handler(Config=#{regname := Id}) ->
 -spec log(LogEvent, Config) -> ok when
       LogEvent :: logger:log_event(),
       Config :: config().
-log(LogEvent, _Config=#{regname := Id}) ->
+log(LogEvent=#{meta := Metadata}, _Config=#{regname := Id}) ->
     Scope = case LogEvent of
                 #{meta := #{otel_scope := Scope0=#instrumentation_scope{}}} ->
                     Scope0;
@@ -127,7 +127,14 @@ log(LogEvent, _Config=#{regname := Id}) ->
                     opentelemetry:instrumentation_scope(<<>>, <<>>, <<>>)
             end,
 
-    gen_statem:cast(Id, {log, Scope, LogEvent}).
+    gen_statem:cast(Id, {log, Scope,
+                         LogEvent#{meta => observed_time(Metadata)}}).
+
+%% Callers may set `otel_observed_time' themselves, as Unix time in nanoseconds.
+observed_time(Metadata=#{otel_observed_time := _}) ->
+    Metadata;
+observed_time(Metadata) ->
+    Metadata#{otel_observed_time => os:system_time(nanosecond)}.
 
 %%%-----------------------------------------------------------------
 %%% Remove internal fields from configuration
