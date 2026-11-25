@@ -81,13 +81,14 @@ log_record(#{level := Level,
                 M ->
                     M
             end,
-    Attributes = maps:without([gl, time, report_cb], Metadata),
+    %% trace context goes in the record's own fields
+    Attributes = maps:without([gl, time, report_cb,
+                               otel_trace_id, otel_span_id, otel_trace_flags], Metadata),
     Attributes1 = maps:fold(fun(K, V, Acc) ->
                                     [#{key => otel_otlp_common:to_binary(K),
                                        value => otel_otlp_common:to_any_value(V)} | Acc]
                             end, [], Attributes),
     DroppedAttributesCount = maps:size(Attributes) - length(Attributes1),
-    Flags = 0,
 
     %% Note: otel_trace_id and otel_span_id from hex_span_ctx are now binaries, not charlists.
     %% They are hex encoded, but the OTLP trace_id and span_id fields are the
@@ -111,8 +112,7 @@ log_record(#{level := Level,
                severity_text           => SeverityText,
                body                    => otel_otlp_common:to_any_value(Body1),
                attributes              => Attributes1,
-               dropped_attributes_count => DroppedAttributesCount,
-               flags                   => Flags
+               dropped_attributes_count => DroppedAttributesCount
               }.
 
 %% Decode a trace or span id from logger metadata into the raw bytes the
@@ -121,7 +121,7 @@ log_record(#{level := Level,
 %% in older versions of the API) but raw ids are also accepted in case
 %% the user set the metadata themselves.
 %% Decode both correlation ids together: either both are valid and the
-%% correlation fields are returned (trace_flags added only when the
+%% correlation fields are returned (flags added only when the
 %% metadata carried it), or all correlation fields are omitted.
 correlation_fields(MetaTraceId, MetaSpanId, TraceFlagsHex) ->
     case {decode_id(MetaTraceId, 16), decode_id(MetaSpanId, 8)} of
@@ -132,21 +132,22 @@ correlation_fields(MetaTraceId, MetaSpanId, TraceFlagsHex) ->
                 undefined ->
                     Base;
                 TraceFlags ->
-                    Base#{trace_flags => TraceFlags}
+                    Base#{flags => TraceFlags}
             end;
         _ ->
             #{}
     end.
 
 %% Absent flags metadata omits the field entirely; present but
-%% malformed flags (wrong size, non-binary, non-hex digits) fall back
-%% to 0 rather than raising from binary_to_integer/2.
+%% malformed flags (wrong size, non-binary, non-hex digits, signs) fall
+%% back to 0 rather than raising or setting the reserved flag bits.
 decode_trace_flags(undefined) ->
     undefined;
 decode_trace_flags(TraceFlagsHex) when is_binary(TraceFlagsHex),
                                        byte_size(TraceFlagsHex) =:= 2 ->
-    try
-        erlang:binary_to_integer(TraceFlagsHex, 16)
+    try decode_hex(TraceFlagsHex) of
+        <<TraceFlags>> ->
+            TraceFlags
     catch
         _:_ ->
             0
