@@ -10,7 +10,7 @@ set -e
 rebar3 compile
 rebar3 edoc
 sdk_version=1.7.0
-api_version=1.5.0
+api_version=1.5.1
 exp_sdk_version=0.6.0
 exp_api_version=0.6.0
 otlp_version=1.11.0
