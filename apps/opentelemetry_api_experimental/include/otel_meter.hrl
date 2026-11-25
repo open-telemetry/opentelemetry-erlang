@@ -19,6 +19,9 @@
 -define(create_histogram(Name, Opts),
         otel_meter:create_histogram(?current_meter, Name, Opts)).
 
+-define(create_gauge(Name, Opts),
+        otel_meter:create_gauge(?current_meter, Name, Opts)).
+
 -define(create_observable_gauge(Name, Callback, CallbackArgs, Opts),
         otel_meter:create_observable_gauge(?current_meter, Name, Callback, CallbackArgs, Opts)).
 
@@ -43,6 +46,9 @@
 
 -define(updown_counter_add(Name, Number, Attributes),
         otel_updown_counter:add(otel_ctx:get_current(), ?current_meter, Name, Number, Attributes)).
+
+-define(gauge_set(Name, Number, Attributes),
+        otel_gauge:set(otel_ctx:get_current(), ?current_meter, Name, Number, Attributes)).
 
 -define(histogram_record(Name, Number, Attributes),
         otel_histogram:record(otel_ctx:get_current(), ?current_meter, Name, Number, Attributes)).

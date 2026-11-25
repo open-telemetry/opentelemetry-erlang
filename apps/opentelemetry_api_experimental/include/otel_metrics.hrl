@@ -17,6 +17,7 @@
 -define(KIND_COUNTER, counter).
 -define(KIND_OBSERVABLE_COUNTER, observable_counter).
 -define(KIND_HISTOGRAM, histogram).
+-define(KIND_GAUGE, gauge).
 -define(KIND_OBSERVABLE_GAUGE, observable_gauge).
 -define(KIND_UPDOWN_COUNTER, updown_counter).
 -define(KIND_OBSERVABLE_UPDOWNCOUNTER, observable_updowncounter).

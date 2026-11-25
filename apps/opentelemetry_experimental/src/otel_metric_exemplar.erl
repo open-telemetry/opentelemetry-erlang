@@ -49,6 +49,7 @@ reservoir(Kind, Filter) when Kind =:= ?KIND_COUNTER
                              ; Kind =:= ?KIND_OBSERVABLE_COUNTER
                              ; Kind =:= ?KIND_UPDOWN_COUNTER
                              ; Kind =:= ?KIND_OBSERVABLE_UPDOWNCOUNTER
+                             ; Kind =:= ?KIND_GAUGE
                              ; Kind =:= ?KIND_OBSERVABLE_GAUGE ->
     otel_metric_exemplar_reservoir:new(otel_metric_exemplar_reservoir_simple, #{}, Filter);
 reservoir(Kind, Filter) when Kind =:= ?KIND_HISTOGRAM ->
