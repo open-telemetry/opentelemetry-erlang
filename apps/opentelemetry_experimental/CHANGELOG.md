@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Base2 exponential bucket histogram aggregation (`otel_aggregation_exponential_histogram`), opt-in through a View's `aggregation_module`, with OTLP and console exporter support
+
 ## [opentelemetry_experimental/v0.6.0] - 2026-09-15
 
 ### Fixed

@@ -7,9 +7,10 @@
 -include_lib("opentelemetry_api_experimental/include/otel_metrics.hrl").
 -include("otel_view.hrl").
 
-%% -type t() :: drop | sum | last_value | histogram.
+%% -type t() :: drop | sum | last_value | histogram | exponential_histogram.
 -type t() :: otel_aggregation_drop:t() | otel_aggregation_sum:t() |
-             otel_aggregation_last_value:t() | otel_aggregation_histogram_explicit:t().
+             otel_aggregation_last_value:t() | otel_aggregation_histogram_explicit:t() |
+             otel_aggregation_exponential_histogram:t().
 
 -type key() :: {atom(), opentelemetry:attributes_map(), reference(), number()}.
 

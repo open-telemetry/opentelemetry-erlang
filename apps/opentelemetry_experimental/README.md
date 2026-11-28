@@ -19,6 +19,17 @@ Supported aggregators:
 - last value (`otel_aggregation_last_value`): Collects only the value and timestamp of the last Measurement.
 - explicit bucket histogram (`otel_aggregation_histogram_explicit`): Collects a
   histogram with static bucket boundaries.
+- base2 exponential bucket histogram (`otel_aggregation_exponential_histogram`):
+  Collects a histogram whose buckets are sized automatically, lowering the scale
+  as needed to stay within `max_size` buckets (unless the spec's minimum
+  scale of -10 is reached). Opt-in only: it is not the default
+  for any instrument and is selected with a View's `aggregation_module`, for
+  example `#{aggregation_module => otel_aggregation_exponential_histogram,
+  aggregation_options => #{max_size => 160, max_scale => 20, zero_threshold => 0.0,
+  record_min_max => true}}`. Each record rewrites the series' whole row, so
+  heavily contended single series are more expensive than with the explicit
+  histogram. Exemplars are not supported yet, datapoints always have an empty
+  exemplar list.
 
 Default aggregators for instruments:
 

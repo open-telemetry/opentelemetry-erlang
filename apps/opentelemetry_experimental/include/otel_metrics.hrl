@@ -111,11 +111,72 @@
         aggregation_temporality :: otel_instrument:temporality()
        }).
 
+-record(exponential_histogram_checkpoint,
+        {
+         scale :: match_spec(integer()) | undefined,
+         zero_count :: match_spec(non_neg_integer()) | undefined,
+         positive_buckets :: match_spec(#{integer() => pos_integer()}) | undefined,
+         negative_buckets :: match_spec(#{integer() => pos_integer()}) | undefined,
+         min :: number() | undefined,
+         max :: number() | undefined,
+         sum :: number() | undefined,
+         count :: non_neg_integer() | undefined,
+         start_time :: number() | undefined
+        }).
+
+-record(exponential_histogram_aggregation,
+        {
+         key :: otel_aggregation:key()
+              | {atom(), match_var() | binary(), reference() | undefined, match_spec(number())}
+              | undefined,
+         start_time :: match_spec(integer()) | undefined,
+
+         max_size :: match_spec(pos_integer()) | undefined,
+         max_scale :: match_spec(integer()) | undefined,
+         zero_threshold :: match_spec(number()) | undefined,
+         record_min_max :: match_spec(boolean()) | undefined,
+
+         checkpoint :: match_spec(#exponential_histogram_checkpoint{}) | {#exponential_histogram_checkpoint{}} | undefined,
+
+         scale :: match_spec(integer()) | undefined,
+         zero_count :: match_spec(non_neg_integer()) | undefined,
+         positive_buckets :: match_spec(#{integer() => pos_integer()}) | undefined,
+         negative_buckets :: match_spec(#{integer() => pos_integer()}) | undefined,
+         min :: match_spec(number()) | undefined,
+         max :: match_spec(number()) | undefined,
+         sum :: match_spec(number()) | undefined,
+         count :: match_spec(non_neg_integer()) | undefined
+        }).
+
+-record(exponential_histogram_datapoint,
+        {
+         attributes :: opentelemetry:attributes_map(),
+         start_time :: integer() | {const, dynamic()} | undefined,
+         time :: integer(),
+         count :: non_neg_integer(),
+         sum :: number() | undefined,
+         scale :: integer(),
+         zero_count :: non_neg_integer(),
+         positive :: {integer(), [non_neg_integer()]},
+         negative :: {integer(), [non_neg_integer()]},
+         exemplars :: list(),
+         flags :: integer(),
+         min :: number() | undefined,
+         max :: number() | undefined,
+         zero_threshold :: number()
+        }).
+
+-record(exponential_histogram,
+       {
+        datapoints :: [#exponential_histogram_datapoint{}],
+        aggregation_temporality :: otel_instrument:temporality()
+       }).
+
 -record(metric,
         {
          name :: otel_view:name(),
          scope :: opentelemetry:instrumentation_scope() | undefined,
          description :: otel_instrument:description() | undefined,
          unit :: otel_instrument:unit() | undefined,
-         data :: #sum{} | #gauge{} | #histogram{}
+         data :: #sum{} | #gauge{} | #histogram{} | #exponential_histogram{}
         }).
