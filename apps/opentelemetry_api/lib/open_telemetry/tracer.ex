@@ -26,11 +26,16 @@ defmodule OpenTelemetry.Tracer do
   See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#span-creation)
   """
   defmacro start_span(name, opts \\ quote(do: %{})) do
-    quote bind_quoted: [name: name, start_opts: opts] do
+    attributes =
+      __CALLER__
+      |> OpenTelemetry.Attributes.from_macro_env()
+      |> Macro.escape()
+
+    quote bind_quoted: [name: name, start_opts: opts, attributes: attributes] do
       :otel_tracer.start_span(
         :opentelemetry.get_application_tracer(__MODULE__),
         name,
-        Map.new(start_opts)
+        OpenTelemetry.Tracer.merge_start_opts(start_opts, attributes)
       )
     end
   end
@@ -43,12 +48,17 @@ defmodule OpenTelemetry.Tracer do
   See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#span-creation)
   """
   defmacro start_span(ctx, name, opts) do
-    quote bind_quoted: [ctx: ctx, name: name, start_opts: opts] do
+    attributes =
+      __CALLER__
+      |> OpenTelemetry.Attributes.from_macro_env()
+      |> Macro.escape()
+
+    quote bind_quoted: [ctx: ctx, name: name, start_opts: opts, attributes: attributes] do
       :otel_tracer.start_span(
         ctx,
         :opentelemetry.get_application_tracer(__MODULE__),
         name,
-        Map.new(start_opts)
+        OpenTelemetry.Tracer.merge_start_opts(start_opts, attributes)
       )
     end
   end
@@ -82,11 +92,16 @@ defmodule OpenTelemetry.Tracer do
   See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#span-creation)
   """
   defmacro with_span(name, start_opts \\ quote(do: %{}), do: block) do
+    attributes =
+      __CALLER__
+      |> OpenTelemetry.Attributes.from_macro_env()
+      |> Macro.escape()
+
     quote do
       :otel_tracer.with_span(
         :opentelemetry.get_application_tracer(__MODULE__),
         unquote(name),
-        Map.new(unquote(start_opts)),
+        OpenTelemetry.Tracer.merge_start_opts(unquote(start_opts), unquote(attributes)),
         fn _ -> unquote(block) end
       )
     end
@@ -102,12 +117,17 @@ defmodule OpenTelemetry.Tracer do
   See [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.8.0/specification/trace/api.md#span-creation)
   """
   defmacro with_span(ctx, name, start_opts, do: block) do
+    attributes =
+      __CALLER__
+      |> OpenTelemetry.Attributes.from_macro_env()
+      |> Macro.escape()
+
     quote do
       :otel_tracer.with_span(
         unquote(ctx),
         :opentelemetry.get_application_tracer(__MODULE__),
         unquote(name),
-        Map.new(unquote(start_opts)),
+        OpenTelemetry.Tracer.merge_start_opts(unquote(start_opts), unquote(attributes)),
         fn _ -> unquote(block) end
       )
     end
@@ -256,5 +276,14 @@ defmodule OpenTelemetry.Tracer do
   @spec update_name(String.t()) :: boolean()
   def update_name(name) do
     :otel_span.update_name(:otel_tracer.current_span_ctx(), name)
+  end
+
+  @doc false
+  @spec merge_start_opts(OpenTelemetry.Span.start_opts(), OpenTelemetry.attributes_map()) ::
+          OpenTelemetry.Span.start_opts()
+  def merge_start_opts(start_opts, builtin_attributes) do
+    start_opts
+    |> Map.new()
+    |> Map.update(:attributes, builtin_attributes, &Map.merge(&1, builtin_attributes))
   end
 end
